@@ -7,11 +7,8 @@ namespace Altinn.App.Core.Features.Process;
 internal static class ServiceTaskLookupExtensions
 {
     /// <summary>
-    /// All registered service tasks. Queries both interfaces: DI registrations are per service
-    /// type, so a task registered as <see cref="IServiceTask"/> is not returned for
-    /// <c>GetAll&lt;IPipelineServiceTask&gt;()</c> even though the interface derives from it —
-    /// and the inverse registration does not compile for a plain task, so each task appears
-    /// under exactly one of the two.
+    /// All registered service tasks. Queries both interfaces: DI registrations are per service type, so each
+    /// task appears under exactly one of the two.
     /// </summary>
     public static IEnumerable<IPipelineServiceTask> GetServiceTasks(this AppImplementationFactory factory)
     {

@@ -4,15 +4,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// The tamper-evident envelope a forwarded message travels in: the forwarder wraps, the receive step
-/// unwraps, the engine stores it opaquely.
+/// unwraps, the engine stores it opaquely. The domain (<see cref="SigningPurpose.MailboxDeliveryV1"/>) binds
+/// the mailbox id, service task type and idempotency key — each closing a distinct replay move. It proves
+/// round-tripping, not trustworthiness: the body remains untrusted input.
 /// </summary>
-/// <remarks>
-/// The state blob's detached-HMAC construction under <see cref="SigningPurpose.MailboxDeliveryV1"/>, so
-/// the domains cannot cross. The domain binds the mailbox id, service task type and idempotency key — each
-/// closing a distinct replay move. It proves round-tripping, not trustworthiness: the body remains
-/// untrusted input. JSON escaping counts against <c>MaxMailboxPayloadSize</c> (up to ×6), so anything large
-/// belongs in Storage.
-/// </remarks>
 internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
 {
     /// <exception cref="Authentication.WorkflowCallbackSecretNotFoundException">

@@ -13,20 +13,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// engine step runs, named by its position in <see cref="ServiceTaskPipeline.Items"/>.
 /// </summary>
 /// <remarks>
-/// <para>
-/// <strong><see cref="ItemIndex"/> is semantically required</strong>, and nullable only because binding
-/// failures are not survivable here: <c>CommandPayloadSerializer.Deserialize</c> runs in
-/// <c>WorkflowEngineCommandBase</c> outside any handler, so a non-nullable <c>int</c> would either throw an
-/// old index-less payload out as an unhandled callback exception or, worse, bind <c>0</c> and silently
-/// dispatch the pipeline's first item. An old receive step's <c>repliesTo</c> lands here too, that property
-/// being skipped by deserialization.
-/// </para>
-/// <para>
-/// Guarded in <see cref="ExecuteServiceTask.Execute"/> rather than in a constructor for the same reason: a
-/// throwing constructor would leave the callback as an unhandled exception instead of the legible permanent
-/// failure every other payload-shape violation here gets (see <see cref="EnqueueReceiveWorkflow"/>'s own
-/// <c>InvalidPayloadException</c>).
-/// </para>
+/// <see cref="ItemIndex"/> is semantically required but nullable: deserialization runs outside any handler, so
+/// a non-nullable <c>int</c> would either throw an old index-less payload out as an unhandled callback
+/// exception or bind <c>0</c> and silently dispatch the pipeline's first item. Guarded in
+/// <see cref="ExecuteServiceTask.Execute"/> so the refusal is a legible permanent failure.
 /// </remarks>
 internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? ItemIndex = null) : CommandRequestPayload;
 
@@ -39,9 +29,9 @@ internal sealed class ExecuteServiceTask(
     public static string Key => "ExecuteServiceTask";
 
     /// <summary>
-    /// Service tasks routinely call slow external systems (eFormidling, payment providers), so
-    /// they get a far more generous default timeout than the engine's. Override per task via
-    /// <see cref="IProcessStepConfigurable.StepOptions"/> or per stage on the builder.
+    /// Service tasks routinely call slow external systems, so they get a far more generous default timeout
+    /// than the engine's. Override per task via <see cref="IProcessStepConfigurable.StepOptions"/> or per
+    /// stage on the builder.
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 
@@ -61,10 +51,8 @@ internal sealed class ExecuteServiceTask(
 
         using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, serviceTaskType);
 
-        // Refused before the task is resolved: inside the try below, anything the resolution throws — an
-        // unregistered service task type, a Define that throws — becomes a retryable failure that never
-        // converges, on a payload no retry can fix. A payload-shape refusal needs no pipeline, so it is the
-        // one guard that can still run out here.
+        // Refused before task resolution: inside the try below, a resolution throw becomes a retryable
+        // failure, and no retry fixes a payload.
         if (payload.ItemIndex is not { } itemIndex)
         {
             return MissingItemIndex(serviceTaskType);
@@ -141,8 +129,6 @@ internal sealed class ExecuteServiceTask(
 
                 PipelineConclusion.FinalStep final => await ExecuteConclusion(final, serviceTask, serviceTaskContext),
 
-                // Drift guard for this assembly's own vocabulary: the item hierarchy is closed, so the only way
-                // here is a shape added without a branch to execute it.
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
         }
@@ -153,10 +139,7 @@ internal sealed class ExecuteServiceTask(
         }
     }
 
-    /// <summary>
-    /// One pipeline stage, dispatched on the stage's own shape so each kind's work delegate is called with
-    /// exactly the arguments it declares.
-    /// </summary>
+    /// <summary>One pipeline stage, dispatched on the stage's own shape.</summary>
     private static async Task<ProcessEngineCommandResult> ExecuteStage(
         ProcessEngineCommandContext context,
         ServiceTaskStage stage,
@@ -174,33 +157,13 @@ internal sealed class ExecuteServiceTask(
                 serviceTask,
                 serviceTaskContext
             ),
-            // Drift guard for this assembly's own vocabulary: ServiceTaskStage is a closed two-member set, so
-            // the only way here is a third stage shape added without a branch to execute it.
             _ => throw new UnreachableException($"Unknown service task stage type: {stage.GetType().Name}"),
         };
 
     /// <summary>
-    /// The stage that opens the exchange's mailbox: it is handed the address the mint step published, so it
-    /// can send it.
+    /// The stage that opens the exchange's mailbox: handed the address the mint step published, so it can send
+    /// it.
     /// </summary>
-    /// <remarks>
-    /// One drift guard, <c>MailboxIdMissingFromState</c>, for two scenarios the stage cannot recover from
-    /// either way — it has no way to obtain an address, and retrying only repeats the read:
-    /// <list type="bullet">
-    /// <item>
-    /// <description>
-    /// a redeploy <em>added</em> the declaration at this index while a workflow enqueued against the
-    /// declaration-free shape was in flight, so that workflow's step list holds no mint step at all.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// the mint step did run — it is the immediately preceding step, with nothing between — and the record it
-    /// left did not survive into this step's state.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
     private static async Task<ProcessEngineCommandResult> ExecuteMailboxOpeningStage(
         ProcessEngineCommandContext context,
         ServiceTaskStage.MailboxOpening stage,
@@ -226,36 +189,9 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// One execution of an exchange's reply handler: exactly one message, or the news that no message can
-    /// arrive. Every disagreement between the engine's rendezvous and this pipeline is a permanent failure
-    /// rather than a silent default — either wrong answer ends the exchange falsely.
+    /// arrive. Every disagreement between the engine's rendezvous and this pipeline is a permanent failure —
+    /// either wrong answer ends the exchange falsely.
     /// </summary>
-    /// <remarks>
-    /// Two guards run before the handler does. The first is a drift guard, unreachable from app code, which is
-    /// why it survived the compile-time move. The second is not: it guards runtime-supplied integration data no
-    /// type can bind.
-    /// <list type="bullet">
-    /// <item>
-    /// <term><c>MailboxReceiptAmbiguous</c></term>
-    /// <description>
-    /// the rendezvous carries neither a message nor a closure reason, or both. Exactly one is present by the
-    /// engine's contract, so this is engine drift: a rendezvous shape this app-lib does not model. "Neither"
-    /// must not read as closed, because an absent message is the instruction to conclude.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term><c>MailboxDeliveryEnvelopeInvalid</c></term>
-    /// <description>
-    /// the delivered bytes do not open as something this application sealed. <strong>Reachable from app
-    /// code</strong>, unlike the one above: <see cref="IServiceTaskReplyForwarder"/> takes both the mailbox id
-    /// and the service task type from its caller — deliberately, because deriving either can sign its own
-    /// mistake — so forwarding under the wrong one seals for a different mailbox or task and fails the unwrap
-    /// here. The other routes are a forged or altered delivery and an app code that expired while the message
-    /// waited unread at its position; that last needs nothing to be wrong with the message, which is why the
-    /// wording names it.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
     private async Task<ProcessEngineCommandResult> ExecuteReply(
         AppCallbackMailbox receipt,
         string serviceTaskType,
@@ -279,8 +215,8 @@ internal sealed class ExecuteServiceTask(
 
         if (receipt.Delivery is { } delivery)
         {
-            // Opening the envelope is what makes the mailbox id, task type and idempotency key trustworthy — all
-            // three are read from the delivered callback.
+            // Opening the envelope is what makes the mailbox id, task type and idempotency key trustworthy —
+            // all three are read from the delivered callback.
             string body;
             try
             {
@@ -312,8 +248,8 @@ internal sealed class ExecuteServiceTask(
     }
 
     /// <summary>
-    /// The exchange answered by the pipeline's <em>terminal</em>: the handler's verdict is the task's own
-    /// vocabulary, so the relay maps it and the exchange's conclusion is the task's.
+    /// The exchange answered by the pipeline's <em>terminal</em>: the verdict is the task's own vocabulary, so
+    /// the exchange's conclusion is the task's.
     /// </summary>
     private Task<ProcessEngineCommandResult> ExecuteTerminalReply(
         ProcessEngineCommandContext context,
@@ -344,9 +280,8 @@ internal sealed class ExecuteServiceTask(
     }
 
     /// <summary>
-    /// The exchange answered by a handler the pipeline <em>carries on past</em>: the handler's verdict is the
-    /// stage vocabulary, so the relay maps it and the exchange's conclusion starts the pipeline's next
-    /// segment rather than the task's conclusion.
+    /// The exchange answered by a handler the pipeline <em>carries on past</em>: the verdict is the stage
+    /// vocabulary, so the exchange's conclusion starts the pipeline's next segment.
     /// </summary>
     private Task<ProcessEngineCommandResult> ExecuteSegmentReply(
         ProcessEngineCommandContext context,
@@ -376,20 +311,13 @@ internal sealed class ExecuteServiceTask(
             );
     }
 
-    /// <summary>
-    /// The step that concludes the pipeline — the last step of its <em>final segment</em>.
-    /// </summary>
+    /// <summary>The step that concludes the pipeline — the last step of its final segment.</summary>
     private static async Task<ProcessEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.FinalStep final,
         IPipelineServiceTask serviceTask,
         ServiceTaskContext serviceTaskContext
     ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
 
-    /// <remarks>
-    /// Permanent, for the reason every drift guard on this path is: the step's payload never changes, so a
-    /// retry replays the same index against the same code. Nor may the runtime pick a neighbouring item — a
-    /// handler that answers a different exchange would read this exchange's message and settle on it.
-    /// </remarks>
     private static FailedProcessEngineCommandResult PipelineItemNotFound(string serviceTaskType, int itemIndex) =>
         FailedProcessEngineCommandResult.Permanent(
             $"Service task '{serviceTaskType}' composes no pipeline item at index {itemIndex}. A pipeline's "
@@ -439,12 +367,6 @@ internal sealed class ExecuteServiceTask(
             "InvalidPayloadException"
         );
 
-    /// <summary>
-    /// The <c>MailboxDeliveryEnvelopeInvalid</c> failure, kept out of <see cref="ExecuteReply"/>'s control flow
-    /// because it is mostly wording. Permanent, because the bytes at a position never change; the handler is
-    /// never called, so the exchange ends as a visibly failed workflow rather than on a message the platform
-    /// cannot stand behind.
-    /// </summary>
     private static FailedProcessEngineCommandResult DeliveryEnvelopeInvalid(
         string serviceTaskType,
         AppCallbackMailbox receipt,
@@ -469,8 +391,7 @@ internal sealed class ExecuteServiceTask(
     ) =>
         result switch
         {
-            // A completed stage never advances the process — the pipeline just moves on to its
-            // next engine step.
+            // A completed stage never advances the process — the pipeline just moves on to its next step.
             CompletedServiceTaskStageResult => new SuccessfulProcessEngineCommandResult(),
             DeferredServiceTaskStageResult deferred => new DeferredProcessEngineCommandResult
             {
@@ -482,8 +403,7 @@ internal sealed class ExecuteServiceTask(
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
-            // Reachable from app code by the route MailboxRelay.Decide's last arm documents, so permanent
-            // rather than a throw the outer catch would make retryable.
+            // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
                 task,
                 result,
@@ -516,9 +436,7 @@ internal sealed class ExecuteServiceTask(
                 AutoAdvanceAction = success.Action,
             },
             ServiceTaskSuccessResult => new SuccessfulProcessEngineCommandResult(),
-            // Explicit rather than a catch-all, because the catch-all this replaces concluded an unmapped
-            // result as a silent success. Reachable from app code by the route MailboxRelay.Decide's last arm
-            // documents, so permanent rather than a throw the outer catch would make retryable.
+            // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
                 task,
                 result,
@@ -530,10 +448,8 @@ internal sealed class ExecuteServiceTask(
         };
 
     /// <summary>
-    /// A result type neither mapper knows. An author error rather than drift — see the last arm of
-    /// <see cref="MailboxRelay.Decide"/> for how one reaches a runtime whose result roots declare no
-    /// accessible constructor — so it fails <em>permanently</em> and names the type: a throw here would be
-    /// caught by <see cref="Execute"/> and retried forever on a mistake no retry can fix.
+    /// A result type neither mapper knows: an author error, so it fails permanently naming the type — a throw
+    /// here would be caught by <see cref="Execute"/> and retried forever.
     /// </summary>
     private static FailedProcessEngineCommandResult UnknownResultType(
         IPipelineServiceTask task,
@@ -550,18 +466,12 @@ internal sealed class ExecuteServiceTask(
         );
 
     /// <summary>
-    /// <c>ServiceTaskFailedException</c>: the reason code every failure a service task's <em>own code</em>
-    /// reported carries, whichever part of the pipeline reported it — a stage, the conclusion, or a reply
-    /// handler by way of <see cref="MailboxRelay"/>. Shared with that class rather than duplicated: the code
-    /// is operator-visible and reaches in-flight workflows, so two literals would let a reword show apps two
-    /// different codes for one condition.
+    /// Reason code for every failure a service task's own code reported, whichever part of the pipeline
+    /// reported it. One definition, shared with <see cref="MailboxRelay"/> — the code is operator-visible.
     /// </summary>
     internal const string FailedReasonCode = "ServiceTaskFailedException";
 
-    /// <summary>
-    /// The sentence such a failure is reported as, shared with <see cref="MailboxRelay"/>'s handler-failure
-    /// arms for the reason <see cref="FailedReasonCode"/> gives.
-    /// </summary>
+    /// <summary>The sentence such a failure is reported as, shared with <see cref="MailboxRelay"/>.</summary>
     internal static string FailedMessage(string serviceTaskType, string errorMessage) =>
         $"Service task '{serviceTaskType}' failed: {errorMessage}";
 

@@ -4,19 +4,15 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models;
 
 /// <summary>
 /// The non-data half of <see cref="WorkflowCallbackState"/>, live for one callback: what travels step to
-/// step that is not instance data and cannot be re-derived from it.
+/// step that is not instance data and cannot be re-derived from it. Restored from the incoming blob, handed
+/// to the command, written back into the outgoing blob — a command that never touches it forwards it
+/// unchanged, and a deferral echoes the incoming blob, discarding anything recorded.
 /// </summary>
-/// <remarks>
-/// Restored from the incoming blob, handed to the command, written back into the outgoing blob — so a
-/// command that never touches it forwards it unchanged. Deliberately mutable (a value threaded through
-/// every result type is one some step forgets to thread) and narrow (changed only by methods named for the
-/// one thing they record). Per-callback: a deferral echoes the incoming blob, discarding anything recorded.
-/// </remarks>
 internal sealed class WorkflowCallbackStateCarry
 {
     /// <summary>
     /// Keyed by the opening stage's item index — the exchange's identity everywhere. Nothing here assumes the
-    /// map holds at most one entry, even where today's builder does not forbid several.
+    /// map holds at most one entry.
     /// </summary>
     private readonly Dictionary<int, CarriedMailbox> _mailboxes = new();
 
@@ -24,9 +20,8 @@ internal sealed class WorkflowCallbackStateCarry
     public WorkflowCallbackStateCarry() { }
 
     /// <summary>
-    /// Restores the carry from an incoming blob. Keys must be <em>canonical</em> renderings of an item index,
-    /// so <c>"00"</c> is refused rather than folded onto <c>"0"</c>: two spellings of one index would otherwise
-    /// collapse into one entry here and let the blob's last writer silently win over the other exchange.
+    /// Restores the carry from an incoming blob. Keys must be canonical renderings of an item index — two
+    /// spellings of one index would collapse into one entry and let the blob's last writer win.
     /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
@@ -54,10 +49,9 @@ internal sealed class WorkflowCallbackStateCarry
     }
 
     /// <summary>
-    /// The mailboxes still traveling, in their blob shape: keyed by the opening stage's item index as a string
-    /// (JSON object keys are strings), or <c>null</c> when none is — not an empty map, so the blob a workflow
-    /// with no exchange publishes keeps the shape it always had. A concluded exchange's mailbox is already gone
-    /// from here (see <see cref="RecordMailboxConcluded"/>).
+    /// The mailboxes still traveling, in their blob shape: keyed by the opening stage's item index as a
+    /// string, or <c>null</c> when none is — not an empty map, so the blob a workflow with no exchange
+    /// publishes keeps the shape it always had.
     /// </summary>
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes =>
         _mailboxes.Count == 0
@@ -69,14 +63,10 @@ internal sealed class WorkflowCallbackStateCarry
             );
 
     /// <summary>
-    /// Records the mailbox the stage at the given item index just minted, so the step that enqueues the first
-    /// receiver can address it. Re-recording the same mailbox is the idempotent replay of a mint and is
-    /// accepted; recording a <em>different</em> mailbox for the same index is unreachable by construction, and
-    /// throws rather than picking a winner.
+    /// Records the mailbox the stage at the given item index just minted. Re-recording the same mailbox is
+    /// the idempotent replay of a mint and is accepted; a different mailbox for the same index throws rather
+    /// than picking a winner.
     /// </summary>
-    /// <param name="stageIndex">The item index of the stage that opened it — the exchange's identity from here on.</param>
-    /// <param name="mailboxId">The engine's id for the minted mailbox.</param>
-    /// <param name="deadline">When the mailbox stops accepting messages.</param>
     public void RecordMailbox(int stageIndex, Guid mailboxId, DateTimeOffset deadline)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(stageIndex);
@@ -101,11 +91,9 @@ internal sealed class WorkflowCallbackStateCarry
         _mailboxes.TryGetValue(stageIndex, out CarriedMailbox? mailbox) ? mailbox : null;
 
     /// <summary>
-    /// Records that the exchange the stage at the given item index opened has concluded, which
-    /// <strong>drops</strong> its mailbox from the blob this callback publishes. The one thing the mailbox
-    /// must not outlive: the next transition inherits this blob and may open a mailbox from a stage at the
-    /// same index, which <see cref="RecordMailbox"/> would refuse over a stale one. Concluding an exchange
-    /// this workflow carries nothing for is a no-op — the blob names no mailbox either way.
+    /// Records that the exchange the stage at the given item index opened has concluded, dropping its mailbox
+    /// from the blob this callback publishes — the next transition may open a mailbox from a stage at the
+    /// same index, which <see cref="RecordMailbox"/> would refuse over a stale entry.
     /// </summary>
     public void RecordMailboxConcluded(int stageIndex) => _mailboxes.Remove(stageIndex);
 }

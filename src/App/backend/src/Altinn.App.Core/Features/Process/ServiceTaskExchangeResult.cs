@@ -3,69 +3,39 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// What a reply handler may answer: anything a service task concludes with (<see cref="ServiceTaskResult"/>,
 /// the whole vocabulary below this type) plus <see cref="AwaitNextReply"/>, which concludes nothing and waits
-/// for the next message.
+/// for the next message. Only <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>'s <c>onMessage</c>
+/// returns this type — its <c>onClosed</c>, and <see cref="ServiceTaskPipelineBuilder.Finally"/>, return
+/// <see cref="ServiceTaskResult"/>, so the compiler rejects <see cref="AwaitNextReply"/> where there is no
+/// next message to await. A handler the pipeline carries on past answers
+/// <see cref="ServiceTaskStageExchangeResult"/> instead — a separate root, on purpose.
 /// </summary>
-/// <remarks>
-/// <para>
-/// The split is what makes "await the next message" unrepresentable where there is no next message to await:
-/// only <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>'s <c>onMessage</c> returns this type — its
-/// <c>onClosed</c>, and <see cref="ServiceTaskPipelineBuilder.Finally"/>, return
-/// <see cref="ServiceTaskResult"/>, so the compiler rejects <see cref="AwaitNextReply"/> there.
-/// </para>
-/// <para>
-/// This root is the <em>terminal's</em> vocabulary. A reply handler the pipeline carries on past answers
-/// <see cref="ServiceTaskStageExchangeResult"/> instead — a separate root, on purpose, so that concluding the
-/// task is not among its moves.
-/// </para>
-/// </remarks>
 public abstract record ServiceTaskExchangeResult
 {
     /// <summary>
-    /// Declares no constructor an app can call, so this vocabulary is closed to ordinary derivation — as
-    /// <see cref="ServiceTaskStageResult"/> is. The answers below are the whole set, and the runtime maps each
-    /// to a workflow-engine outcome by its type; it has nothing to give a subtype it does not know. Should one
-    /// reach it anyway, the task fails permanently naming the type rather than being concluded on a guess.
+    /// Declares no constructor an app can call, closing the vocabulary: the runtime maps each answer by type
+    /// and has nothing to give a subtype it does not know.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// <strong>No test holds this property, and one artifact does.</strong> <c>Altinn.App.Core.Tests</c> is an
-    /// <c>InternalsVisibleTo</c> friend, so a probe written there derives from this root perfectly legally and
-    /// proves nothing about what an app can do. The only thing that would notice this constructor being widened
-    /// is the committed public-API approval file
-    /// (<c>PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt</c>) — <em>and only in CI</em>,
-    /// because that project's module initializer calls Verify's <c>AutoVerify(includeBuildServer: false)</c>, so
-    /// a local run silently rewrites the file and still reports green. If you touch the accessibility of this
-    /// constructor, or of <see cref="ServiceTaskResult"/>'s, <see cref="ServiceTaskStageResult"/>'s or
-    /// <see cref="ServiceTaskStageExchangeResult"/>'s, read that file's diff by hand.
-    /// </para>
-    /// <para>
-    /// What does fail loudly is the hole this does not close: a record's synthesized <em>copy</em> constructor
-    /// is <c>protected</c> and C# forbids narrowing it on an unsealed record, so an app can still chain it.
-    /// Four tests derive that way — one per root the runtime maps — to pin that it converges on such a value
-    /// instead of throwing into a retry ladder. They are self-cleaning: close the hole properly (which means
-    /// moving these roots off records) and <c>base(original)</c> stops compiling, taking those tests with it.
-    /// </para>
+    /// No test can hold this property (<c>Altinn.App.Core.Tests</c> is an <c>InternalsVisibleTo</c> friend);
+    /// the committed public-API approval file is what notices a widening, and <em>only in CI</em> — AutoVerify
+    /// rewrites it silently on a developer machine. Read that file's diff by hand if you touch the
+    /// accessibility of this constructor or its siblings'. The record copy-constructor stays reachable
+    /// (C# forbids narrowing it), so four tests pin that an unknown result converges as a permanent failure
+    /// instead of throwing into a retry ladder.
     /// </remarks>
     private protected ServiceTaskExchangeResult() { }
 
     /// <summary>
-    /// This message is handled; the exchange is not over. Returnable only from a reply terminal's
-    /// <c>onMessage</c> — a handler the pipeline carries on past has
-    /// <see cref="ServiceTaskStageExchangeResult.AwaitNextReply"/> for the same purpose.
+    /// This message is handled; the exchange is not over. Data changes are saved and the state travels on —
+    /// publish what the next message should see.
     /// </summary>
-    /// <remarks>
-    /// An ordinary successful completion: data changes are saved, and the state travels on — publish what the
-    /// next message should see. The task stays unconcluded until a later message answers with
-    /// <see cref="ServiceTaskResult.Success"/>/<see cref="ServiceTaskResult.FailedPermanent"/> or the
-    /// mailbox's timeout runs out.
-    /// </remarks>
     public static ServiceTaskAwaitNextReplyResult AwaitNextReply() => ServiceTaskAwaitNextReplyResult.Instance;
 }
 
 /// <summary>A reply terminal finished its message while the exchange stays open.</summary>
 /// <remarks>
-/// <strong>Its twin, <see cref="ServiceTaskStageAwaitNextReplyResult"/>, has the identical shape on
-/// purpose</strong> — see that type's remarks. Do not deduplicate.
+/// Identical shape to <see cref="ServiceTaskStageAwaitNextReplyResult"/> on purpose — see that type's
+/// remarks. Do not deduplicate.
 /// </remarks>
 public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskExchangeResult
 {

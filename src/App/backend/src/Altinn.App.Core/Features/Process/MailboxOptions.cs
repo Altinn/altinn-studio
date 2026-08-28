@@ -8,16 +8,10 @@ namespace Altinn.App.Core.Features.Process;
 public sealed record MailboxOptions
 {
     /// <summary>
-    /// How long the mailbox accepts messages, from the mint. When it runs out the task is told so in place of
-    /// a message, and concludes in its own words.
+    /// How long the mailbox accepts messages. When it runs out the task is told so in place of a message, and
+    /// concludes in its own words. Bounded by the engine's <c>MaxMailboxTimeout</c> (21 days by default),
+    /// which app startup cannot check — a timeout past it rejects the mint.
     /// </summary>
-    /// <remarks>
-    /// A real domain deadline only the task can know; days are ordinary. One ceiling cannot be checked at app
-    /// startup: the engine's <c>MaxMailboxTimeout</c> (21 days by default) rejects the mint and fails the
-    /// declaring transition. A long exchange also inherits the general constraint that callback token and state
-    /// blob are signed with the app code current at enqueue and never refreshed — bounded by code rotation, not
-    /// by anything measured here.
-    /// </remarks>
     public required TimeSpan Timeout { get; init; }
 
     /// <summary>

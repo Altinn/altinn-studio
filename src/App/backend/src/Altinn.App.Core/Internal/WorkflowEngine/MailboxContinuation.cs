@@ -2,18 +2,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// What the relay does next — a closed set of exactly three answers, which is where "at most one execution
-/// concludes, per exchange" is made structural: no member can express another's action, and the private
-/// constructor keeps the set closed.
+/// concludes, per exchange" is made structural: no member can express another's action.
 /// </summary>
 /// <remarks>
-/// <strong><see cref="Conclude"/> does not tell you which kind of handler produced it</strong>: a terminal
-/// returns it on a success and on a permanent failure, and a mid-pipeline handler returns it on a permanent
-/// failure too. What keeps an after-workflow out of a mid-pipeline handler's reach is not this type but two
-/// facts outside it: the stage vocabulary has no <c>Success(action)</c>, so
-/// <see cref="MailboxRelay.DecideSegment"/> never sets <c>AutoAdvanceProcess</c>; and <see cref="Conclude"/>
-/// is gated on that flag in <see cref="MailboxRelay.Continue"/>, which the callback controller pins to
-/// <c>false</c> on its failure branch — the only branch a mid-pipeline handler's <see cref="Conclude"/> ever
-/// arrives on.
+/// <see cref="Conclude"/> does not say which kind of handler produced it. What keeps an after-workflow out of
+/// a mid-pipeline handler's reach is two facts outside this type: the stage vocabulary has no
+/// <c>Success(action)</c>, so <see cref="MailboxRelay.DecideSegment"/> never sets <c>AutoAdvanceProcess</c>;
+/// and <see cref="Conclude"/> is gated on that flag in <see cref="MailboxRelay.Continue"/>, which the callback
+/// controller pins to <c>false</c> on its failure branch.
 /// </remarks>
 internal abstract record MailboxContinuation
 {
@@ -39,16 +35,13 @@ internal abstract record MailboxContinuation
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// The handler's own position in the pipeline — the one thing the successor's step names, since a step
-        /// carries which item it runs. Sourced from the executing step's own payload rather than re-derived
-        /// from the pipeline, so a mid-flight reshape cannot make the successor run a different handler.
+        /// The handler's own position in the pipeline — what the successor's step names. Sourced from the
+        /// executing step's own payload, so a mid-flight reshape cannot make the successor run a different
+        /// handler.
         /// </summary>
         public int HandlerItemIndex { get; }
 
-        /// <summary>
-        /// The position the handler just answered — names the successor for operators; the successor's own
-        /// position is the engine's to assign.
-        /// </summary>
+        /// <summary>The position the handler just answered — names the successor for operators.</summary>
         public long Position { get; }
     }
 
@@ -56,10 +49,6 @@ internal abstract record MailboxContinuation
     /// The exchange is over and the pipeline has nothing left to run for it: close the mailbox, then start
     /// the after-workflow if — and only if — the answer asked the process to advance.
     /// </summary>
-    /// <remarks>
-    /// Returned by a terminal's success or permanent failure, and by a mid-pipeline handler's permanent
-    /// failure. See this type's base for why that shared use is safe.
-    /// </remarks>
     internal sealed record Conclude : MailboxContinuation
     {
         public Conclude(Guid mailboxId)
@@ -68,14 +57,9 @@ internal abstract record MailboxContinuation
 
     /// <summary>
     /// A mid-pipeline handler concluded <em>its</em> exchange while the task carries on: close that one
-    /// mailbox, then start the pipeline's next segment.
+    /// mailbox, then start the pipeline's next segment. Not <see cref="Conclude"/> with a flag: what follows a
+    /// closing is a shape the relay dispatches on, so no arm can drift into performing the other's move.
     /// </summary>
-    /// <remarks>
-    /// Deliberately not <see cref="Conclude"/> with a flag: what follows a closing is then a shape the relay
-    /// dispatches on rather than a field it reads, so no arm can drift into performing the other's move. It is
-    /// <em>not</em> what keeps a mid-pipeline handler away from the after-workflow — see this type's base for
-    /// what actually does.
-    /// </remarks>
     internal sealed record ConcludeAndContinue : MailboxContinuation
     {
         public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, int handlerItemIndex, int openingStageIndex)
@@ -98,9 +82,8 @@ internal abstract record MailboxContinuation
 
         /// <summary>
         /// The stage that opened the exchange just concluded — the carry key the conclusion dropped, and what
-        /// the continuation's operation id names for operators. Kept beside
-        /// <see cref="HandlerItemIndex"/> rather than derived from it: the exchange and the handler that
-        /// answers it are two different positions.
+        /// the continuation's operation id names. The exchange and the handler that answers it are two
+        /// different positions.
         /// </summary>
         public int OpeningStageIndex { get; }
     }

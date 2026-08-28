@@ -5,10 +5,8 @@ namespace Altinn.App.Core.Features.Process;
 /// <c>onMessage</c> handler — exactly one per execution, each its own durable unit of work.
 /// </summary>
 /// <remarks>
-/// The payload originated outside the platform: validate defensively, and conclude an ununderstandable
-/// message with <see cref="ServiceTaskResult.FailedPermanent"/>. Messages arrive one at a time in accepted
-/// order, each starting from the state its predecessor published; delivery is at-least-once, so key durable
-/// side effects on <see cref="IdempotencyKey"/> or <see cref="ServiceTaskContext.StepId"/>.
+/// The payload originated outside the platform: validate defensively. Delivery is at-least-once, so key
+/// durable side effects on <see cref="IdempotencyKey"/> or <see cref="ServiceTaskContext.StepId"/>.
 /// </remarks>
 public sealed record ServiceTaskReply
 {

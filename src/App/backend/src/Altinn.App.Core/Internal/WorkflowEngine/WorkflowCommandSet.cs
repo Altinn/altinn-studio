@@ -13,29 +13,18 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// A segment's receive half: the one step its receive workflows run — the handler answering the exchange the
-/// segment ends on, whether that is a mid-pipeline one or the pipeline's terminal, named by its own item
-/// index — and the item index whose stage opens the exchange that handler answers.
+/// A segment's receive half. The two indexes are different positions: <paramref name="Step"/> names the
+/// handler by its own item index, while <paramref name="OpeningStageIndex"/> is what addresses the mailbox.
 /// </summary>
-/// <remarks>
-/// The two indexes are different positions, and only <see cref="OpeningStageIndex"/> addresses the mailbox:
-/// the enqueueing hop needs it to tell <c>EnqueueReceiveWorkflow</c> which carried mailbox to declare, and
-/// the step beside it names the handler instead.
-/// </remarks>
 /// <param name="Step">The receive workflow's single step.</param>
 /// <param name="OpeningStageIndex">The item index whose stage's mint the receiver is enqueued against.</param>
 internal sealed record MailboxReceivePlan(StepRequest Step, int OpeningStageIndex);
 
 /// <summary>
-/// One planned pipeline segment: the engine steps the workflow that runs the segment carries, and — when the
-/// segment ends on an exchange — the receive half its last step enqueues instead of concluding.
+/// One planned pipeline segment. A non-null <see cref="Receive"/> means the enqueuing hop must end the
+/// segment with an <c>EnqueueReceiveWorkflow</c> step of its own — deliberately not planned here, because its
+/// labels, operation id and callback context belong to the hop doing the enqueueing.
 /// </summary>
-/// <remarks>
-/// <see cref="Receive"/> non-null means the enqueuing hop must end the segment with an
-/// <c>EnqueueReceiveWorkflow</c> step of its own. That last step is deliberately not planned here — its
-/// labels, operation id and callback context belong to the hop doing the enqueueing, and no two hops
-/// assemble them the same way.
-/// </remarks>
 /// <param name="Steps">The segment's steps, in execution order, with options unresolved.</param>
 /// <param name="Receive">The exchange the segment ends on, or null when it ends with the conclusion.</param>
 internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<StepRequest> Steps, MailboxReceivePlan? Receive);
@@ -202,41 +191,14 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Plans one pipeline segment: a walk over <see cref="ServiceTaskPipeline.Items"/> from where the segment
-    /// starts, emitting one <c>ExecuteServiceTask</c> step per stage in composition order — each preceded by a
-    /// <c>MintMailbox</c> step where the stage opens a mailbox — and ending on the first item that ends a
-    /// segment. That is the next <see cref="ReplySegment"/>'s receive half, or the conclusion the list ends
-    /// with: the concluding step for a <see cref="PipelineConclusion.FinalStep"/>, the receive half for a
-    /// <see cref="PipelineConclusion.ReplyExchange"/>. A receive half's enqueue step is the caller's to append.
+    /// Plans one pipeline segment: one <c>ExecuteServiceTask</c> step per stage in composition order — each
+    /// preceded by a <c>MintMailbox</c> step where the stage opens a mailbox — ending on the first item that
+    /// ends a segment (a reply handler's receive half, or the concluding step). Segments are the items split
+    /// at each reply handler: segment 0 rides Main (<paramref name="afterHandlerItemIndex"/> null), segment k
+    /// rides the continuation the relay enqueues when exchange k concludes, and a handler is never a step of
+    /// the segment it ends. Options are left unresolved and a receive half's enqueue step is the caller's to
+    /// append — the frontier-never-empty convention is the caller's to hold.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <strong>Segments are the items split at each reply handler.</strong> Segment 0 rides Main; segment k
-    /// rides the continuation the relay enqueues when exchange k concludes. A handler is never a step of the
-    /// segment it ends: it runs on the receive workflows that segment's last step enqueues, once per message.
-    /// </para>
-    /// <para>
-    /// Options are left unresolved: the task the steps run under is the enqueueing hop's to know, so the hop
-    /// resolves them.
-    /// </para>
-    /// <para>
-    /// A segment is planned from the pipeline as resolved at that hop, never from a projection of it carried
-    /// along — the identity travelling in payloads is the item index, and the shape around it is re-derived.
-    /// The expansion fixes that shape for the workflow's lifetime: a mid-flight change to the composition
-    /// shifts indexes exactly as any other mid-flight process edit would.
-    /// </para>
-    /// <para>
-    /// <strong>Frontier-never-empty is the caller's to hold, not this method's.</strong> What keeps the
-    /// collection non-empty is that the step enqueueing the next receiver is the segment's <em>last</em>
-    /// step, and that step is appended by the hop.
-    /// </para>
-    /// </remarks>
-    /// <param name="serviceTaskType">The service task the steps dispatch back to.</param>
-    /// <param name="pipeline">The task's pipeline, resolved at this hop.</param>
-    /// <param name="afterHandlerItemIndex">
-    /// The item index of the reply handler this segment follows — so the segment starts at the item after
-    /// that handler. Null for segment 0, which starts at the beginning.
-    /// </param>
     internal static ServiceTaskSegmentPlan PlanSegment(
         string serviceTaskType,
         ServiceTaskPipeline pipeline,
@@ -275,10 +237,9 @@ internal sealed class WorkflowCommandSet
                 case ServiceTaskStage stage:
                     if (stage is ServiceTaskStage.MailboxOpening)
                     {
-                        // The mint hugs the stage that sends, on both sides: the deadline clock starts here, so
-                        // no earlier stage may erode it, and the stage must never send without an address, so
-                        // the mint cannot come later. No stage index on the step: the mint must not inherit the
-                        // stage's options, so the engine's defaults apply to what is one HTTP call.
+                        // The mint hugs the stage that sends, on both sides: the deadline clock starts here,
+                        // and the stage must never send without an address. No stage index on the step — the
+                        // mint must not inherit the stage's options.
                         steps.Add(
                             CreateCommand(
                                 MintMailbox.Key,
@@ -324,21 +285,12 @@ internal sealed class WorkflowCommandSet
 
     /// <summary>
     /// The one step a receive workflow runs: an <c>ExecuteServiceTask</c> step naming the reply handler that
-    /// answers the message — a mid-pipeline <see cref="ReplySegment"/> or a
-    /// <see cref="PipelineConclusion.ReplyExchange"/> — by its item index, exactly as a stage's step names the
-    /// stage.
+    /// answers the message by its item index, fixed here at the receiver's enqueue and never re-derived. The
+    /// index travels three ways, deliberately: in the payload (dispatch reads it), in
+    /// <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by it), and in the
+    /// OperationId (the engine's own record). Which exchange the step answers is not carried at all: it is
+    /// read off the handler this index resolves to.
     /// </summary>
-    /// <remarks>
-    /// The handler's identity is fixed here, at the receiver's enqueue, and never re-derived at the hop that
-    /// runs the step — a mid-flight reshape would otherwise run a different handler, or none. It travels three
-    /// ways, deliberately: in the payload, which dispatch reads; in
-    /// <see cref="StepRequest.ServiceTaskItemIndex"/>, which the enqueueing hop resolves the step's options by
-    /// — reading that back out of the payload would mean deserializing what this hop just wrote; and in the
-    /// OperationId, which is the engine's own record of the step. The OperationId carries the index because a
-    /// bare key would give every receive step of every exchange in a multi-exchange pipeline one telemetry
-    /// name. Which exchange the step answers is not carried at all: it is read off the handler this index
-    /// resolves to.
-    /// </remarks>
     internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, int handlerItemIndex) =>
         CreateCommand(
             ExecuteServiceTask.Key,
@@ -350,13 +302,9 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// The step that ends a segment ending on an exchange: it enqueues the exchange's first receive workflow,
     /// carrying the workflow its hop pre-assembled and the item index whose stage's mailbox that receiver is
-    /// declared against.
+    /// declared against. Shared by the two hops that end a segment — Main's assembly and the relay's
+    /// continuation — while the workflow inside it is each hop's own.
     /// </summary>
-    /// <remarks>
-    /// Shared by the two hops that end a segment — Main's assembly and the relay's continuation. What is
-    /// <em>not</em> shared is the workflow inside it: its labels, operation id and callback context are the
-    /// enqueueing hop's, and no two hops assemble them alike.
-    /// </remarks>
     internal static StepRequest CreateReceiveEnqueueStep(
         WorkflowEnqueueRequest receiveEnqueueRequest,
         int openingStageIndex

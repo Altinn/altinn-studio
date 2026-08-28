@@ -5,13 +5,9 @@ namespace Altinn.App.Core.Features.Process;
 /// task's reply handler processes it as its own durable piece of work.
 /// </summary>
 /// <remarks>
-/// The declaring stage published <see cref="ServiceTaskMailbox.Id"/> as the reply address; the channel that
-/// receives the answer reads the echoed address and calls <see cref="ForwardReply"/>, doing no work of its
-/// own beyond decoding enough to forward. An early message is not an error — it is accepted and read by the
-/// receiver enqueued for its position. Pass the source's own message id as <c>idempotencyKey</c>, since
-/// channels and retries both deliver at least once. Keep the payload small (the engine accepts 256 KB, and
-/// the integrity envelope's escaping leaves roughly half for a JSON body), and resolve the forwarder per
-/// message from a scope — injecting this transient into a singleton subscriber pins its HttpClient.
+/// Resolve the forwarder per message from a scope — injecting this transient into a singleton subscriber
+/// pins its HttpClient. Forwarding guidance (payload limits, early messages, outcome handling):
+/// <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </remarks>
 public interface IServiceTaskReplyForwarder
 {

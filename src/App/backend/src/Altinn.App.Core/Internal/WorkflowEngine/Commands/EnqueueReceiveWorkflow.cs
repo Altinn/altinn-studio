@@ -7,29 +7,22 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The pre-assembled enqueue request for the first receive workflow, built at Main-enqueue time, plus the item
-/// index of the stage that opens the exchange it answers. The command fills in the three execution-only
-/// values: the mailbox, the state blob, and a fresh callback token.
+/// The pre-assembled enqueue request for the first receive workflow, built at Main-enqueue time. The command
+/// fills in the three execution-only values: the mailbox, the state blob, and a fresh callback token.
 /// </summary>
 /// <param name="EnqueueRequest">The receive workflow as assembled at Main-enqueue time.</param>
 /// <param name="OpeningStageIndex">
 /// The stage whose mint this receiver reads from the carry — the exchange's identity, fixed when Main was
-/// enqueued. Never re-derived at this hop: a mid-flight reshape would address a different mailbox, or silently
-/// none.
+/// enqueued and never re-derived at this hop.
 /// </param>
 internal sealed record EnqueueReceiveWorkflowPayload(WorkflowEnqueueRequest EnqueueRequest, int OpeningStageIndex)
     : CommandRequestPayload;
 
 /// <summary>
-/// The last step of Main for a service task that opens a mailbox: enqueues the task's first
-/// <em>receive workflow</em> — one step, the handler answering that exchange named by its own item index, run
-/// once against one message.
+/// The last step of Main for a service task that opens a mailbox: enqueues the task's first receive workflow —
+/// one step, the handler answering that exchange named by its own item index. Last in Main on purpose: the
+/// receiver exists before Main settles, keeping the collection's frontier non-empty for the whole exchange.
 /// </summary>
-/// <remarks>
-/// Last in Main on purpose: the receiver exists before Main settles, keeping the collection's frontier
-/// non-empty for the whole exchange. Enqueued as a head that depends on no head, and with no <c>links</c>
-/// edge back to Main — a receiver shares the collection key and labels, so an edge buys no reachability.
-/// </remarks>
 internal sealed class EnqueueReceiveWorkflow(
     IWorkflowEngineClient workflowEngineClient,
     IWorkflowCallbackTokenGenerator callbackTokenGenerator
@@ -39,33 +32,6 @@ internal sealed class EnqueueReceiveWorkflow(
 
     public override string GetKey() => Key;
 
-    /// <summary>
-    /// Fills in the three execution-only values and enqueues the receiver, guarding three things:
-    /// <list type="bullet">
-    /// <item>
-    /// <term><c>InvalidPayloadException</c></term>
-    /// <description>
-    /// the pre-assembled request does not hold exactly one workflow. It was assembled by this app-lib's own
-    /// expansion, so this is app-lib drift: a payload written by a version whose receive shape differed.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term><c>MailboxIdMissingFromState</c></term>
-    /// <description>
-    /// a broken carry, and only that — this step and the mint step are emitted by the same expansion, so a
-    /// redeploy cannot leave one without the other. A step between the two dropped the record, and retrying
-    /// only repeats the read.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term><c>MailboxStepIdMissing</c></term>
-    /// <description>
-    /// engine drift: an engine version that does not send <c>stepId</c>. The enqueue is keyed on it, and an
-    /// empty key is a constant shared by every exchange in the application.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </summary>
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
         EnqueueReceiveWorkflowPayload payload
@@ -80,9 +46,8 @@ internal sealed class EnqueueReceiveWorkflow(
             );
         }
 
-        // Carried in the state blob because the mint's key is the mint step's own step id, which nothing later can
-        // re-derive. Looked up by the index the payload names rather than by scanning the map, so a second carried
-        // mailbox is no obstacle.
+        // Carried in the state blob because the mint's key is the mint step's own step id, which nothing later
+        // can re-derive. Looked up by index, so a second carried mailbox is no obstacle.
         if (context.StateCarry.FindMailbox(payload.OpeningStageIndex) is not { } carried)
         {
             return FailedProcessEngineCommandResult.Permanent(
@@ -108,9 +73,8 @@ internal sealed class EnqueueReceiveWorkflow(
 
         try
         {
-            // Minted here for the relay's sake: each hop draws from whatever code is current then. It does not
-            // extend receiver 1's life — the state blob is signed by the previous step's code and dies with it,
-            // so viability is bounded by the signing code's expiry (see Internal/WorkflowEngine/AGENTS.md).
+            // Minted here so each relay hop draws from whatever app code is current then; it does not extend
+            // receiver 1's life, which is bounded by the code that signed its state blob.
             var receiveContext = new AppWorkflowContext
             {
                 Actor = context.Payload.Actor,
@@ -144,8 +108,8 @@ internal sealed class EnqueueReceiveWorkflow(
         }
         catch (Exception ex)
         {
-            // Retryable, and the step stays unfinished: Main must not complete having published a reply address
-            // nothing is listening on.
+            // Retryable, and the step stays unfinished: Main must not complete having published a reply
+            // address nothing is listening on.
             return FailedProcessEngineCommandResult.Retryable(ex);
         }
     }

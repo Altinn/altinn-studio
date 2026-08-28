@@ -10,16 +10,10 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Seals a received message into its tamper-evident envelope and delivers it into the mailbox, over the
-/// same authenticated app→engine channel enqueues use.
+/// Seals a received message into its tamper-evident envelope and delivers it into the mailbox. The status
+/// mapping lives here and nowhere else. No lookup: which handler reads the message is <em>told</em> by the
+/// caller, because a derivation could be wrong at signing time and sign its own mistake.
 /// </summary>
-/// <remarks>
-/// The status mapping lives here and nowhere else: <c>202</c> and <c>200</c> are both success (the two
-/// overlapping at-least-once deliveries), everything else surfaces as a
-/// <see cref="ServiceTaskReplyForwardException"/> for the receiving channel to decide on. No lookup here:
-/// which handler reads the message is <em>told</em> by the caller, because a derivation could be wrong at
-/// signing time and sign its own mistake.
-/// </remarks>
 internal sealed class ServiceTaskReplyForwarder(
     IWorkflowEngineClient workflowEngineClient,
     MailboxDeliveryEnvelope envelope,
