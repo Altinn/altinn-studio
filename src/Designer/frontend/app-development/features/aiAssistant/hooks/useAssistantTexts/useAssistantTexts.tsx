@@ -1,4 +1,4 @@
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import type { AssistantTexts } from '@studio/assistant';
 
 export const useAssistantTexts = (): AssistantTexts => {
@@ -15,22 +15,9 @@ export const useAssistantTexts = (): AssistantTexts => {
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),
       intro: t('ai_assistant.about_assistant_intro'),
-      howToHeading: t('ai_assistant.about_assistant_how_to_heading'),
-      description: (
-        <Trans
-          i18nKey='ai_assistant.about_assistant_description'
-          components={{ strong: <strong /> }}
-        />
-      ),
-      branchInfo: (
-        <Trans
-          i18nKey='ai_assistant.about_assistant_branch_info'
-          components={{ strong: <strong /> }}
-        />
-      ),
-      branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
+      assistantDocsInfo: t('ai_assistant.about_assistant_docs_info'),
+      assistantDocsLink: t('ai_assistant.about_assistant_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
-      privacyHeading: t('ai_assistant.about_assistant_privacy_heading'),
       privacyDataHandling: t('ai_assistant.about_assistant_privacy_data_handling'),
     },
     emptyThread: {

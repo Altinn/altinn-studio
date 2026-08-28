@@ -11,7 +11,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agents.graph.runner import GoalRejected, WorkflowCancelled, _gate_goal
+from agents.graph.runner import (
+    _UNCLEAR_GOAL_MESSAGE,
+    _UNSAFE_GOAL_MESSAGE,
+    GoalRejected,
+    WorkflowCancelled,
+    _gate_goal,
+    _validate_intent,
+)
 from agents.graph.state import AgentState
 from agents.services.events.jobs import EventSink
 from agents.services.llm.scope_checker import ScopeCheckResult, check_scope_async
@@ -290,3 +297,39 @@ class TestGateGoal:
         after = event_sink.get_events_since("sess-1", 0)
         assert len(after) == before
         assert event_sink.get_conversation_history("sess-1") == []
+
+
+REJECTION_SUGGESTION = "Prøv A"
+UNSAFE_GATE_REASON = "targets a database"
+
+
+class TestValidateIntentRejectionCopy:
+    """The user-facing half of a rejection: Norwegian, and free of the gate's
+    own reasoning, which names the rule that was tripped."""
+
+    async def _reject(self, parsed) -> str:
+        with (
+            patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
+            patch(
+                "agents.graph.runner.suggest_goal_correction",
+                return_value=[REJECTION_SUGGESTION],
+            ),
+        ):
+            with pytest.raises(GoalRejected) as excinfo:
+                await _validate_intent(_state(allow_app_changes=True))
+        return str(excinfo.value)
+
+    async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):
+        parsed = MagicMock(safe=False, confidence=0.9, reason=UNSAFE_GATE_REASON)
+
+        message = await self._reject(parsed)
+
+        assert message == f"{_UNSAFE_GOAL_MESSAGE}|{REJECTION_SUGGESTION}"
+        assert UNSAFE_GATE_REASON not in message
+
+    async def test_an_unclear_goal_is_reported_in_norwegian(self):
+        parsed = MagicMock(safe=True, confidence=0.0, reason="unclear")
+
+        message = await self._reject(parsed)
+
+        assert message == f"{_UNCLEAR_GOAL_MESSAGE}|{REJECTION_SUGGESTION}"

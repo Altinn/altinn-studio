@@ -61,7 +61,13 @@ class TestExtractSecurityNotice:
         assert len(notice) == MAX_SECURITY_NOTICE_LENGTH
 
 
-def _completion_events(monkeypatch, final_text: str, history: list | None = None) -> list:
+def _completion_events(
+    monkeypatch,
+    final_text: str,
+    history: list | None = None,
+    *,
+    with_attachment: bool = True,
+) -> list:
     sent: list = []
     recorded = history if history is not None else []
     monkeypatch.setattr(
@@ -77,6 +83,8 @@ def _completion_events(monkeypatch, final_text: str, history: list | None = None
         allow_app_changes=True,
         tests_passed=True,
         trace_id=None,
+        attachments=[object()] if with_attachment else [],
+        form_spec=None,
     )
     result = LoopResult(
         reason=TerminationReason.COMPLETED,
@@ -131,3 +139,23 @@ class TestEmittedEvent:
         _completion_events(monkeypatch, _SUMMARY, history)
 
         assert history[0][2] == _SUMMARY
+
+    def test_no_flag_when_the_turn_had_no_attachment(self, monkeypatch):
+        """The alert names an uploaded document, so it must not fire without one:
+        the model can report an injection after reading conversation history."""
+        sent = _completion_events(
+            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", with_attachment=False
+        )
+
+        message = next(e for e in sent if e.type == "assistant_message")
+        assert "attachmentInstructionFlagged" not in message.data
+
+    def test_the_notice_is_still_stripped_without_an_attachment(self, monkeypatch):
+        """Not flagging is not a reason to leak the attacker-influenced sentence."""
+        sent = _completion_events(
+            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", with_attachment=False
+        )
+
+        message = next(e for e in sent if e.type == "assistant_message")
+        assert _NOTICE not in message.data["content"]
+        assert "SECURITY_NOTICE" not in message.data["content"]

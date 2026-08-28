@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.DatepickerMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.DeprecatedLayoutPropertiesMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
@@ -185,6 +186,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDeprecatedLayoutProperties(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -1008,6 +1012,56 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating NavigationButtons showBackButton flags", ex);
+        }
+    }
+
+    /// <summary>
+    /// Converts the option/data list layout properties v9 removed - <c>mapping</c> and
+    /// <c>bindingToShowInSummary</c> - to <c>queryParameters</c> and <c>summaryBinding</c>.
+    /// </summary>
+    static async Task<int> MigrateDeprecatedLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Removed layout properties");
+        try
+        {
+            var result = await new DeprecatedLayoutPropertiesMigrator(projectFolder).Migrate();
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.QueryParametersConverted > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Converted {result.QueryParametersConverted} mapping entry/entries to queryParameters"
+                );
+            }
+
+            if (result.SummaryBindingsConverted > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Replaced {result.SummaryBindingsConverted} bindingToShowInSummary property/properties with summaryBinding"
+                );
+            }
+
+            if (result.FilesChanged == 0 && result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No mapping or bindingToShowInSummary properties found");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                UpgradeConsole.Todo(
+                    "Some layout properties removed in v9 could not be converted automatically. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating layout properties removed in v9", ex);
         }
     }
 
