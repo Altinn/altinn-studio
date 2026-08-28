@@ -16,10 +16,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports the app owner's required policy rights more accurately. It no longer asks for `pay` or `sign` on payment and signing tasks, which are already covered by `write`. It now grants `delete` when the app deletes its instances at process end, and points out a missing `reject` right for any task that can be rejected.
 - `studioctl app upgrade v9` now replaces the retired `FileUploadWithTag` layout component with `FileUpload`, retaining its configured options so tagged attachments continue to work.
 - `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
+- `studioctl app upgrade v9` converts the two layout properties v9 removes from the components that fetch options or data lists. `mapping` becomes `queryParameters` holding `["dataModel", "<field>"]` expressions on `Checkboxes`, `Dropdown`, `FileUploadWithTag`, `Likert`, `List`, `MultipleSelect`, `Option` and `RadioButtons`, and `bindingToShowInSummary` on `List` becomes `summaryBinding`, naming the key in `dataModelBindings` instead of repeating the field. Repeating group row markers (`[{0}]`) are dropped, because an expression already resolves relative to the row it is rendered in. Anything the upgrade cannot decide for you — a query parameter name that is already taken, or a summary field no data model binding points at — is left in place and reported. `mapping` on `Button`, `InstantiationButton` and `PaymentDetails` is untouched: it is prefill and refetch configuration there, and v9 still supports it.
 
 ### Fixed
 
 - `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
+- `studioctl app upgrade v9` no longer adds a byte order mark to layout files that did not have one, and keeps Norwegian characters as they are instead of rewriting every "æ", "ø" and "å" as an escape sequence. Both turned a two-line migration into a diff across the whole file. Layout files containing comments are now left untouched and reported, rather than silently losing the comments to the rewrite.
 
 ## [0.1.0-preview.22] - 2026-08-18
 
