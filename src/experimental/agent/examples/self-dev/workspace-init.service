@@ -1,0 +1,16 @@
+[Unit]
+Description=Initialize the Altinn Studio Agent workspace
+Wants=network-online.target
+After=network-online.target
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+PassEnvironment=GITHUB_TOKEN
+ExecStart=/usr/local/libexec/agent-workspace-init
+
+[Install]
+WantedBy=multi-user.target

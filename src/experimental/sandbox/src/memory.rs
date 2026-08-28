@@ -50,12 +50,19 @@ struct BackendState {
     by_name: BTreeMap<SandboxName, SandboxId>,
     executions: BTreeSet<(SandboxId, execution::ExecutionId)>,
     files: BTreeMap<(SandboxId, SandboxPath), Vec<u8>>,
+    execution_specs: Vec<execution::ExecutionSpec>,
+    matched_execution_events: VecDeque<MatchedExecutionEvents>,
     queued_execution_events: VecDeque<Vec<execution::ExecutionEvent>>,
     queued_terminal_events: VecDeque<Vec<terminal::TerminalEvent>>,
     volumes_by_id: BTreeMap<volume::VolumeId, volume::Volume>,
     volumes_by_name: BTreeMap<volume::VolumeName, volume::VolumeId>,
     network_endpoints: BTreeMap<SandboxId, PacketPeer>,
     network_properties: BTreeMap<SandboxId, network::PacketEndpointProperties>,
+}
+
+struct MatchedExecutionEvents {
+    predicate: Rc<dyn Fn(&execution::ExecutionSpec) -> bool>,
+    events: Vec<execution::ExecutionEvent>,
 }
 
 impl Provider {
@@ -85,6 +92,30 @@ impl Provider {
     /// Supplies the events returned by the next Execution started by this Provider.
     pub fn queue_execution_events(&self, events: Vec<execution::ExecutionEvent>) {
         self.state.borrow_mut().queued_execution_events.push_back(events);
+    }
+
+    /// Supplies events for the next Execution whose specification matches the predicate.
+    ///
+    /// Unlike [`Self::queue_execution_events`], unrelated Executions do not
+    /// consume this response while exercising multi-command reconciliation.
+    pub fn queue_execution_events_matching(
+        &self,
+        predicate: impl Fn(&execution::ExecutionSpec) -> bool + 'static,
+        events: Vec<execution::ExecutionEvent>,
+    ) {
+        self.state
+            .borrow_mut()
+            .matched_execution_events
+            .push_back(MatchedExecutionEvents {
+                predicate: Rc::new(predicate),
+                events,
+            });
+    }
+
+    /// Returns every normal Execution specification observed by this Provider.
+    #[must_use]
+    pub fn execution_specs(&self) -> Vec<execution::ExecutionSpec> {
+        self.state.borrow().execution_specs.clone()
     }
 
     /// Supplies the events returned by the next terminal Execution.
@@ -298,6 +329,7 @@ impl SandboxBackend for Provider {
                     resources: request.resources,
                     state: SandboxState::Stopped,
                     mounts: request.mounts,
+                    environment: request.environment,
                     network: request.network,
                 };
                 storage.by_name.insert(sandbox.name.clone(), id.clone());
@@ -319,6 +351,27 @@ impl SandboxBackend for Provider {
                     return Err(Error::Immutable("resources.rootFilesystem.mode"));
                 }
                 sandbox.resources = resources;
+                Ok(sandbox.clone())
+            })
+        })
+    }
+
+    fn update_environment<'a>(
+        &'a self,
+        id: &'a SandboxId,
+        environment: BTreeMap<String, String>,
+    ) -> PendingOperation<'a, Sandbox> {
+        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+            Box::pin(async move {
+                let mut storage = self.state.borrow_mut();
+                let sandbox = storage
+                    .by_id
+                    .get_mut(id)
+                    .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
+                if sandbox.state != SandboxState::Stopped {
+                    return Err(Error::invalid("sandbox.state", "must be stopped"));
+                }
+                sandbox.environment = environment;
                 Ok(sandbox.clone())
             })
         })
@@ -418,17 +471,26 @@ impl SandboxBackend for Provider {
         request: execution::StartExecutionRequest,
     ) -> LocalFuture<'a, Result<execution::StartedExecution, Error>> {
         Box::pin(async move {
-            let (id, _spec) = request.into_parts();
+            let (id, spec) = request.into_parts();
             self.ensure_running(sandbox_id)?;
             let mut storage = self.state.borrow_mut();
             let execution_key = (sandbox_id.clone(), id.clone());
             storage.executions.insert(execution_key.clone());
-            let events = storage.queued_execution_events.pop_front().unwrap_or_else(|| {
-                vec![
-                    execution::ExecutionEvent::Started { process_id: None },
-                    execution::ExecutionEvent::Exited(execution::ExitStatus { code: 0 }),
-                ]
-            });
+            storage.execution_specs.push(spec.clone());
+            let matched = storage
+                .matched_execution_events
+                .iter()
+                .position(|response| (response.predicate)(&spec))
+                .and_then(|index| storage.matched_execution_events.remove(index))
+                .map(|response| response.events);
+            let events = matched
+                .or_else(|| storage.queued_execution_events.pop_front())
+                .unwrap_or_else(|| {
+                    vec![
+                        execution::ExecutionEvent::Started { process_id: None },
+                        execution::ExecutionEvent::Exited(execution::ExitStatus { code: 0 }),
+                    ]
+                });
 
             Ok(execution::StartedExecution {
                 id,

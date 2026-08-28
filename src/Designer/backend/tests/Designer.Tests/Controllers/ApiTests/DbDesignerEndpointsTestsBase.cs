@@ -10,6 +10,8 @@ namespace Designer.Tests.Controllers.ApiTests;
 public abstract class DbDesignerEndpointsTestsBase<TControllerTest> : DesignerEndpointsTestsBase<TControllerTest>
     where TControllerTest : class
 {
+    protected override bool EnableOpenTelemetry => true;
+
     protected readonly DesignerDbFixture DesignerDbFixture;
 
     protected DbDesignerEndpointsTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)

@@ -264,9 +264,21 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("EventId")
+                        .HasColumnType("character varying")
+                        .HasColumnName("event_id");
+
+                    b.Property<bool?>("FeedbackThumbsUp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("feedback_thumbs_up");
+
                     b.PrimitiveCollection<List<string>>("FilesChanged")
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
+
+                    b.Property<bool?>("AttachmentInstructionFlagged")
+                        .HasColumnType("boolean")
+                        .HasColumnName("attachment_instruction_flagged");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")
@@ -280,9 +292,17 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("thread_id");
 
+                    b.Property<string>("TraceId")
+                        .HasColumnType("character varying")
+                        .HasColumnName("trace_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "ThreadId" }, "idx_chat_messages_thread_id");
+
+                    b.HasIndex(new[] { "ThreadId", "EventId" }, "idx_chat_messages_thread_id_event_id")
+                        .IsUnique()
+                        .HasFilter("event_id IS NOT NULL");
 
                     b.ToTable("chat_messages", "designer");
                 });

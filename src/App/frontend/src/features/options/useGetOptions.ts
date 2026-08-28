@@ -39,7 +39,7 @@ export interface GetOptionsResult {
 
   // Whether the options are currently being fetched from the API. This is usually false in normal components, as
   // options are always fetched on page load, but it can be true if the options are fetched dynamically based on
-  // mapping or query parameters. In those cases you most likely want to render a spinner.
+  // query parameters. In those cases you most likely want to render a spinner.
   isFetching: boolean;
 }
 
@@ -112,15 +112,12 @@ export function useSetOptions(
 }
 
 function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
-  const { optionsId, secure, mapping, queryParameters } = item;
-  return useGetOptionsUrl(optionsId, mapping, queryParameters, secure);
+  const { optionsId, secure, queryParameters } = item;
+  return useGetOptionsUrl(optionsId, queryParameters, secure);
 }
 
 function hasDynamicOptionsConfig(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
-  return Boolean(
-    (item.mapping && Object.keys(item.mapping).length > 0) ||
-    (item.queryParameters && Object.keys(item.queryParameters).length > 0),
-  );
+  return Boolean(item.queryParameters && Object.keys(item.queryParameters).length > 0);
 }
 
 export function useFetchOptions({ item }: FetchOptionsProps) {
@@ -186,15 +183,12 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
 function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
   useEffect(() => {
     if (error) {
-      const { id, optionsId, secure, mapping, queryParameters } = item;
+      const { id, optionsId, secure, queryParameters } = item;
       const _optionsId = optionsId ? `\noptionsId: ${optionsId}` : '';
-      const _mapping = mapping ? `\nmapping: ${JSON.stringify(mapping)}` : '';
       const _queryParameters = queryParameters ? `\nqueryParameters: ${JSON.stringify(queryParameters)}` : '';
       const _secure = secure ? `\nsecure: ${secure}` : '';
 
-      window.logErrorOnce(
-        `Failed to fetch options for node ${id}${_optionsId}${_mapping}${_queryParameters}${_secure}`,
-      );
+      window.logErrorOnce(`Failed to fetch options for node ${id}${_optionsId}${_queryParameters}${_secure}`);
     }
   }, [error, item]);
 }

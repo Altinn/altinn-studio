@@ -7,6 +7,7 @@ export * from './Audio';
 export * from './Button';
 export * from './ButtonGroup';
 export * from './Checkboxes';
+export * from './CustomButton';
 export * from './Date';
 export * from './Datepicker';
 export * from './Divider';

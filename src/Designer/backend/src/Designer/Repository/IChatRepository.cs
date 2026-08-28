@@ -89,4 +89,15 @@ public interface IChatRepository
     /// <param name="messageId">The message id.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     Task DeleteMessageAsync(Guid threadId, Guid messageId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Stores the user's thumbs up/down on the message produced by the given agent run.
+    /// </summary>
+    /// <returns>True when a message with that trace id was updated.</returns>
+    Task<bool> SetFeedbackAsync(
+        string traceId,
+        bool? thumbsUp,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
 }

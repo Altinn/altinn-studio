@@ -39,9 +39,9 @@ def load_prompt(prompt_name: str) -> Dict[str, Any]:
         Dict with keys: content, role, version, name
 
     Example:
-        >>> prompt = load_prompt("general_planning")
+        >>> prompt = load_prompt("intake_planning")
         >>> print(prompt["content"])
-        >>> print(prompt["role"])  # "planner"
+        >>> print(prompt["role"])
     """
     prompt_file = PROMPTS_DIR / f"{prompt_name}.md"
 
@@ -162,9 +162,8 @@ def render_template(template_name: str, **variables) -> str:
         Rendered template string
 
     Example:
-        >>> text = render_template("general_planning_user",
-        ...                        user_goal="Add a field",
-        ...                        planner_step="Step 1")
+        >>> text = render_template("intake_planning_user",
+        ...                        user_goal="Add a field")
     """
     # Try Langfuse, but guard against silent variable drops
     lf_prompt = get_raw_langfuse_prompt(template_name)

@@ -1,3 +1,5 @@
+using LibGit2Sharp;
+
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
@@ -10,8 +12,45 @@ internal sealed class TempAppFolder : IDisposable
 
     public TempAppFolder()
     {
-        Root = Path.Combine(Path.GetTempPath(), "studioctl-tests-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(Root);
+        var path = Path.Combine(Path.GetTempPath(), "studioctl-tests-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        Root = ResolvePhysicalPath(path);
+    }
+
+    /// <summary>
+    /// The path with every symlinked segment resolved. On macOS the temp folder sits behind "/var",
+    /// which links to "/private/var". Git resolves that, so a fixture holding the unresolved path makes
+    /// repository-relative lookups miss every file - and any test of behaviour that runs against
+    /// <c>HEAD</c> would quietly pass without exercising anything.
+    /// </summary>
+    private static string ResolvePhysicalPath(string path)
+    {
+        var resolved = Path.GetPathRoot(path);
+        if (string.IsNullOrEmpty(resolved))
+            return path;
+
+        foreach (var segment in Path.GetRelativePath(resolved, path).Split(Path.DirectorySeparatorChar))
+        {
+            resolved = Path.Combine(resolved, segment);
+            if (Directory.ResolveLinkTarget(resolved, returnFinalTarget: true) is { } target)
+                resolved = target.FullName;
+        }
+
+        return resolved;
+    }
+
+    /// <summary>
+    /// Turns the folder into a Git repository holding everything written so far, so that migrators
+    /// which restore formatting against <c>HEAD</c> have something to compare with. Without this, a
+    /// fixture exercises only the rewrite, never the restoration on top of it.
+    /// </summary>
+    public void CommitEverything()
+    {
+        Repository.Init(Root);
+        using var repository = new Repository(Root);
+        Commands.Stage(repository, "*");
+        var author = new Signature("studioctl tests", "tests@example.com", DateTimeOffset.UnixEpoch);
+        repository.Commit("fixture", author, author);
     }
 
     public string Write(string relativePath, string content)
