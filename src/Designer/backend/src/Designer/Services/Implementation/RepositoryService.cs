@@ -24,6 +24,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -320,7 +321,7 @@ public class RepositoryService : IRepository
             catch (Exception)
             {
                 // Cleanup repository on failure
-                await DeleteRepository(org, serviceConfig.RepositoryName);
+                await DeleteRepository(authenticatedContext.RepoEditingContext);
                 throw;
             }
         }
@@ -918,15 +919,36 @@ public class RepositoryService : IRepository
     }
 
     /// <inheritdoc/>
-    public async Task DeleteRepository(string org, string repository)
+    public async Task DeleteRepository(AltinnRepoEditingContext editingContext)
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
+        using Activity activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(RepositoryService)}.{nameof(DeleteRepository)}"
         );
-        await _sourceControl.DeleteRepository(altinnRepoEditingContext);
+        activity?.SetTag("org", editingContext.Org);
+        activity?.SetTag("repository", editingContext.Repo);
+        activity?.SetTag("developer", editingContext.Developer);
+
+        try
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer
+            );
+
+            if (Directory.Exists(localServiceRepoFolder))
+            {
+                DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
+            }
+
+            await _giteaClient.DeleteRepository(editingContext.Org, editingContext.Repo);
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.GetType().Name);
+            throw;
+        }
     }
 
     public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
