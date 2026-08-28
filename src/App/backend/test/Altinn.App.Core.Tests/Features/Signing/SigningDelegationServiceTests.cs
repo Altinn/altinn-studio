@@ -20,7 +20,7 @@ public class SigningDelegationServiceTests
         Party = new Party
         {
             PartyId = 1,
-            PartyUuid = Guid.NewGuid(),
+            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000023"),
             Name = "Test Person",
         },
     };

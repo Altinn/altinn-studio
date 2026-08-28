@@ -727,7 +727,7 @@ public class SigningUserActionHandleOnBehalfOfTests
                     OrgParty = new Party
                     {
                         PartyId = 123,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000730"),
                         Name = "Party 123",
                     },
                 },
@@ -778,7 +778,7 @@ public class SigningUserActionHandleOnBehalfOfTests
                     OrgParty = new Party
                     {
                         PartyId = 123,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000781"),
                         Name = "Party 123",
                     },
                 },

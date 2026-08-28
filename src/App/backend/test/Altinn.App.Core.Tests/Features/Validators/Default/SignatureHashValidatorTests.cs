@@ -245,7 +245,7 @@ public class SignatureHashValidatorTests
                 Party = new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000248"),
                     Name = "Test Person",
                 },
             },
@@ -370,7 +370,7 @@ public class SignatureHashValidatorTests
                 Party = new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000373"),
                     Name = "Test Person",
                 },
             },

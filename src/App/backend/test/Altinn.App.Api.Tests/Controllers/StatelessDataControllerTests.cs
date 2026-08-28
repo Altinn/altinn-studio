@@ -167,7 +167,7 @@ public class StatelessDataControllerTests
                 new Party
                 {
                     PartyId = 234,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000170"),
                     Name = "Party 234",
                 }
             );
@@ -202,7 +202,7 @@ public class StatelessDataControllerTests
                 new Party
                 {
                     PartyId = 234,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000205"),
                     Name = "Party 234",
                 }
             );

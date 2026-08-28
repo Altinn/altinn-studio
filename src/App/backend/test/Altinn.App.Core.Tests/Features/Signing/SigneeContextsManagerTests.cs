@@ -82,7 +82,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
                         return new Party
                         {
                             PartyId = 1,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000085"),
                             SSN = lookup.Ssn,
                             Name = "Test Person",
                             Person = new Person
@@ -99,7 +99,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
                         return new Party
                         {
                             PartyId = 2,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000102"),
                             OrgNumber = lookup.OrgNo,
                             Name = "Test Organization",
                             Organization = new Organization
@@ -556,7 +556,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000559"),
                         SSN = "12345678901",
                         Name = "Test Person",
                     },

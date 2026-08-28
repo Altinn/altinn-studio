@@ -70,14 +70,14 @@ public sealed class SigningServiceTests : IDisposable
                         ? new Party
                         {
                             PartyId = 1,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000073"),
                             Name = "Test Person",
                             SSN = lookup.Ssn,
                         }
                         : new Party
                         {
                             PartyId = 2,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000080"),
                             Name = "Test Org",
                             OrgNumber = lookup.OrgNo,
                         };
@@ -143,7 +143,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000146"),
                         SSN = person.SSN,
                         Name = person.Name,
                     },
@@ -154,7 +154,7 @@ public sealed class SigningServiceTests : IDisposable
                         OrgParty = new Party
                         {
                             PartyId = 2,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000157"),
                             Name = org.Name,
                             OrgNumber = org.OrgNumber,
                         },
@@ -197,7 +197,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000200"),
                         SSN = person.SSN,
                         Name = person.Name,
                     },
@@ -208,7 +208,7 @@ public sealed class SigningServiceTests : IDisposable
                         OrgParty = new Party
                         {
                             PartyId = 2,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000211"),
                             Name = org.Name,
                             OrgNumber = org.OrgNumber,
                         },
@@ -227,7 +227,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000230"),
                         SSN = person.SSN,
                         Name = person.Name,
                     },
@@ -268,14 +268,14 @@ public sealed class SigningServiceTests : IDisposable
                         ? new Party
                         {
                             PartyId = 1,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000271"),
                             SSN = lookup.Ssn,
                             Name = "A person",
                         }
                         : new Party
                         {
                             PartyId = 2,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000278"),
                             OrgNumber = lookup.OrgNo,
                             Name = "An organization",
                             Organization = new Organization { Name = "An organization", OrgNumber = lookup.OrgNo! },
@@ -396,7 +396,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000399"),
                         Name = "Test Person",
                     },
                 },
@@ -422,7 +422,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000425"),
                         Name = "Test Person",
                     },
                 },
@@ -473,7 +473,7 @@ public sealed class SigningServiceTests : IDisposable
                 new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000476"),
                     Name = "Test Party",
                 }
             );
@@ -583,7 +583,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000586"),
                         Name = "Test Person",
                     },
                 },
@@ -608,7 +608,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000611"),
                         Name = "Test Person",
                     },
                 },
@@ -646,7 +646,7 @@ public sealed class SigningServiceTests : IDisposable
                 new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000649"),
                     Name = "Test Party",
                 }
             );
@@ -748,7 +748,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000751"),
                         Name = "Test Person",
                     },
                 },
@@ -773,7 +773,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000776"),
                         Name = "Test Person",
                     },
                 },
@@ -805,7 +805,7 @@ public sealed class SigningServiceTests : IDisposable
             )
             .ReturnsAsync(signeeContextsWithDocuments);
 
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        Guid instanceOwnerPartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000808");
 
         _signingDelegationService
             .Setup(x =>
@@ -917,7 +917,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000920"),
                         Name = "Test Person",
                     },
                 },
@@ -942,7 +942,7 @@ public sealed class SigningServiceTests : IDisposable
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000945"),
                         Name = "Test Person",
                     },
                 },
@@ -974,7 +974,7 @@ public sealed class SigningServiceTests : IDisposable
             )
             .ReturnsAsync(signeeContextsWithDocuments);
 
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        Guid instanceOwnerPartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000977");
 
         _signingDelegationService
             .Setup(x =>
@@ -1169,7 +1169,7 @@ public sealed class SigningServiceTests : IDisposable
                     OrgParty = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001172"),
                         OrgNumber = "123456789",
                         Name = "An org",
                     },
@@ -1405,7 +1405,7 @@ public sealed class SigningServiceTests : IDisposable
                 new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001408"),
                     Name = "Digitaliseringsdirektoratet",
                     OrgNumber = "991825827",
                     PartyTypeName = PartyType.Organisation,
@@ -1481,7 +1481,7 @@ public sealed class SigningServiceTests : IDisposable
                         Party = new Party
                         {
                             PartyId = 1,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001484"),
                             Name = "Test Person",
                         },
                         SocialSecurityNumber = "12345678910",

@@ -243,7 +243,7 @@ public class InstancesController_ActiveInstancesTest
                     Party = new()
                     {
                         PartyId = 12345,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000246"),
                         Name = "Ola Olsen",
                     },
                 }

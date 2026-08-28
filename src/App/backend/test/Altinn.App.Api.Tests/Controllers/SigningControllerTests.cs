@@ -142,7 +142,7 @@ public class SigningControllerTests
                     OrgParty = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000145"),
                         Name = "Party 1",
                     },
                 },
@@ -165,7 +165,7 @@ public class SigningControllerTests
                     OrgParty = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000168"),
                         Name = "Party 1",
                     },
                 },
@@ -194,7 +194,7 @@ public class SigningControllerTests
                     OrgParty = new Party
                     {
                         PartyId = 2,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000197"),
                         Name = "Party 2",
                     },
                 },
@@ -223,7 +223,7 @@ public class SigningControllerTests
                     OrgParty = new Party
                     {
                         PartyId = 2,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000226"),
                         Name = "Party 2",
                     },
                 },
@@ -245,7 +245,7 @@ public class SigningControllerTests
                     OrgParty = new Party
                     {
                         PartyId = 2,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000248"),
                         Name = "Party 2",
                     },
                 },
@@ -352,7 +352,7 @@ public class SigningControllerTests
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000355"),
                         Name = "Party 1",
                     },
                 },
@@ -426,7 +426,7 @@ public class SigningControllerTests
                     Party = new Party
                     {
                         PartyId = 123,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000429"),
                         Name = "Party 123",
                     },
                     OnBehalfOfOrg = new OrganizationSignee
@@ -436,7 +436,7 @@ public class SigningControllerTests
                         OrgParty = new Party
                         {
                             PartyId = 321,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000439"),
                             Name = "Party 321",
                         },
                     },
@@ -519,7 +519,7 @@ public class SigningControllerTests
                         OrgParty = new Party
                         {
                             PartyId = 123,
-                            PartyUuid = Guid.NewGuid(),
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000522"),
                             Name = "Party 123",
                         },
                     },
@@ -595,7 +595,7 @@ public class SigningControllerTests
                 OrgParty = new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000598"),
                     Name = "Party 1",
                 },
             },
@@ -606,7 +606,7 @@ public class SigningControllerTests
                 OrgParty = new Party
                 {
                     PartyId = 2,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000609"),
                     Name = "Party 2",
                 },
             },
@@ -1047,7 +1047,7 @@ public class SigningControllerTests
                     Party = new Party
                     {
                         PartyId = 1,
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001050"),
                         Name = "Party 1",
                     },
                 },
@@ -1278,7 +1278,7 @@ public class SigningControllerTests
                 OrgParty = new Party
                 {
                     PartyId = 1,
-                    PartyUuid = Guid.NewGuid(),
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001281"),
                     Name = "Party 1",
                 },
             },

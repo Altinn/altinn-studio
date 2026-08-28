@@ -352,7 +352,7 @@ public class AuthenticatedTests
                     party = new Party()
                     {
                         PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000355"),
                         PartyTypeName = PartyType.Person,
                         OrgNumber = null,
                         SSN = "12345678901",
@@ -405,7 +405,7 @@ public class AuthenticatedTests
                     party = new Party()
                     {
                         PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
-                        PartyUuid = Guid.NewGuid(),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000408"),
                         PartyTypeName = PartyType.Person,
                         OrgNumber = null,
                         SSN = "12345678901",
@@ -470,7 +470,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
-                                    PartyUuid = Guid.NewGuid(),
+                                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000473"),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
@@ -503,7 +503,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
-                                    PartyUuid = Guid.NewGuid(),
+                                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000506"),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
@@ -541,7 +541,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
-                                    PartyUuid = Guid.NewGuid(),
+                                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000544"),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,

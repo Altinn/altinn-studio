@@ -33,7 +33,7 @@
   Details: {
     Party: {
       PartyId: 1234,
-      PartyUuid: 9a063d13-bfe0-4037-ba4e-74ee0f8d23a8,
+      PartyUuid: 00000000-0000-0000-0000-000000000506,
       PartyTypeName: Organisation,
       OrgNumber: 991825827,
       Name: Test AS,
