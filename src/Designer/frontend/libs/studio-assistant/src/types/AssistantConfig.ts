@@ -18,6 +18,7 @@ export interface AssistantMessageData {
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
   traceId?: string;
+  attachmentInstructionFlagged?: boolean;
   eventId?: string;
   /** Present when the backend already persisted this message; do not persist a copy. */
   persistedMessageId?: string;

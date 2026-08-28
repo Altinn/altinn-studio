@@ -300,6 +300,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
           filesChanged: assistantMessage.filesChanged || [],
           sources: assistantMessage.sources || [],
           traceId: assistantMessage.traceId,
+          attachmentInstructionFlagged: assistantMessage.attachmentInstructionFlagged,
         };
         try {
           const persisted = await createMessage(threadId, finalAssistantMessage);

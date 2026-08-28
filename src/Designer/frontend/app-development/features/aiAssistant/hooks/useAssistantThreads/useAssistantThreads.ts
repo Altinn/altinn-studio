@@ -73,6 +73,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
           attachmentFileNames: isUser ? message.attachments?.map((a) => a.name) : undefined,
           filesChanged: isUser ? undefined : message.filesChanged,
           sources: isUser ? undefined : message.sources,
+          attachmentInstructionFlagged: isUser ? undefined : message.attachmentInstructionFlagged,
           traceId: isUser ? undefined : message.traceId,
         },
       });

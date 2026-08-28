@@ -27,6 +27,7 @@ export type ChatMessage = {
   attachmentFileNames?: string[];
   filesChanged?: string[];
   sources?: Source[];
+  attachmentInstructionFlagged?: boolean;
   traceId?: string;
   feedbackThumbsUp?: boolean | null;
 };

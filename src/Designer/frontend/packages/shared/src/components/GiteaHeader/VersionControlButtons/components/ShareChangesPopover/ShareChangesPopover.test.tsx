@@ -108,8 +108,7 @@ describe('shareChanges', () => {
         },
       },
     });
-    const notificationIcon = screen.getByLabelText('sync_header.notification_label');
-
+    const notificationIcon = screen.getByRole('status');
     expect(notificationIcon).toBeInTheDocument();
   });
 
