@@ -1,3 +1,5 @@
+import type { LocalizedText } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
 import { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import { ExprVal } from 'src/features/expressions/types';
@@ -5,8 +7,8 @@ import type { GenerateExpressionOr } from 'src/codegen/dataTypes/GenerateExpress
 
 export interface TextResourceConfig {
   name: string;
-  title: string;
-  description: string;
+  title: LocalizedText;
+  description: LocalizedText;
 }
 
 /**
@@ -15,7 +17,10 @@ export interface TextResourceConfig {
  */
 export class GenerateTextResourceBinding extends GenerateProperty<GenerateExpressionOr<ExprVal.String>> {
   constructor(config: TextResourceConfig) {
-    const actualProp = new CG.expr(ExprVal.String).optional().setTitle(config.title).setDescription(config.description);
+    const actualProp = new CG.expr(ExprVal.String)
+      .optional()
+      .setTitle(config.title.en, config.title.nb)
+      .setDescription(config.description.en, config.description.nb);
     super(config.name, actualProp);
   }
 }

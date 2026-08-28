@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -43,5 +44,9 @@ export class GenerateArray<Inner extends CodeGenerator<any>> extends Describable
       minItems: this._minItems,
       maxItems: this._maxItems,
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { type: 'array', items: this.innerType.toComponentCatalog(), ...this.componentCatalogMetadata() };
   }
 }

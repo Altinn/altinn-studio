@@ -1,10 +1,16 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
 import { asOptionsComponent } from 'src/features/options/config';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = asOptionsComponent(
   new CG.component({
     category: CompCategory.Container,
+    availability: 'configurable',
+    metadata: {
+      name: { nb: 'Likert-skala', en: 'Likert' },
+      lifecycle: { status: 'stable' },
+    },
     directRendering: true,
     capabilities: {
       renderInTable: false,
@@ -28,15 +34,15 @@ export const Config = asOptionsComponent(
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The title of the group',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title of the group', nb: 'Ledeteksten til gruppen.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'description',
-      title: 'Description',
-      description: 'The description text for the Likert table.',
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: { en: 'The description text for the Likert table.', nb: 'Beskrivelsen av Likert-tabellen.' },
     }),
   )
   .addTextResource(
@@ -49,29 +55,41 @@ export const Config = asOptionsComponent(
   .addTextResource(
     new CG.trb({
       name: 'leftColumnHeader',
-      title: 'Left column header',
-      description: 'The header text for the left column in the Likert table',
+      title: { en: 'Left column header', nb: 'Overskrift for venstre kolonne' },
+      description: {
+        en: 'The header text for the left column in the Likert table',
+        nb: 'Overskriften for venstre kolonne i Likert-tabellen.',
+      },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'questions',
-      title: 'Questions',
-      description: 'The questions to be displayed in each row (use a dynamic text resource)',
+      title: { en: 'Questions', nb: 'Spørsmål' },
+      description: {
+        en: 'The questions to be displayed in each row (use a dynamic text resource)',
+        nb: 'Spørsmålene som vises i hver rad. Bruk en dynamisk tekstressurs.',
+      },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'questionDescriptions',
-      title: 'Question descriptions',
-      description: 'The descriptions to be displayed in each row (use a dynamic text resource)',
+      title: { en: 'Question descriptions', nb: 'Spørsmålsbeskrivelser' },
+      description: {
+        en: 'The descriptions to be displayed in each row (use a dynamic text resource)',
+        nb: 'Beskrivelsene som vises i hver rad. Bruk en dynamisk tekstressurs.',
+      },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'questionHelpTexts',
-      title: 'Question help texts',
-      description: 'The help texts to be displayed in each row (use a dynamic text resource)',
+      title: { en: 'Question help texts', nb: 'Hjelpetekster for spørsmål' },
+      description: {
+        en: 'The help texts to be displayed in each row (use a dynamic text resource)',
+        nb: 'Hjelpetekstene som vises i hver rad. Bruk en dynamisk tekstressurs.',
+      },
     }),
   )
   .addDataModelBinding(CG.common('IDataModelBindingsLikert'))
@@ -85,10 +103,11 @@ export const Config = asOptionsComponent(
         ),
       )
         .optional()
-        .setTitle('Filter')
+        .setTitle('Filter', 'Filter')
         .setDescription(
           'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones' +
             '(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)',
+          'Filtrerer radene i Likert-gruppen med start- og stoppindekser.',
         )
         .exportAs('ILikertFilter'),
     ),
