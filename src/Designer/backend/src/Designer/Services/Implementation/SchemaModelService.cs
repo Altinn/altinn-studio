@@ -23,6 +23,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
 
@@ -596,9 +597,26 @@ public class SchemaModelService : ISchemaModelService
         string id
     )
     {
+        HashSet<string> processTaskIds;
+        try
+        {
+            processTaskIds =
+                altinnAppGitRepository.GetProcessDefinitions()?.Process?.Tasks?.Select(task => task.Id).ToHashSet()
+                ?? [];
+        }
+        catch (NotFoundHttpRequestException)
+        {
+            return null;
+        }
+
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders();
         foreach (string layoutSetName in uiFolders)
         {
+            if (!processTaskIds.Contains(layoutSetName))
+            {
+                continue;
+            }
+
             LayoutSettings layoutSettings;
             try
             {
