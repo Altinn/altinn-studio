@@ -920,6 +920,11 @@ internal static class V8Tov9Upgrade
                 return ExitSuccess;
             }
 
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
             UpgradeConsole.Ok($"Migrated {result.MigratedFolderCount} UI folder(s)");
             UpgradeConsole.Ok(
                 $"Folder operations: {result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, {result.DeletedSourceFolderCount} deleted source folder(s)"
