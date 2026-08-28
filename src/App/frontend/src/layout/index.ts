@@ -66,6 +66,10 @@ export function getComponentBehaviors<T extends CompTypes>(type: T): ComponentCo
   return undefined as any;
 }
 
+export function isExternallyConfigurableComponent<T extends CompTypes>(type: T): boolean {
+  return getComponentConfigs()[type].availability === 'configurable';
+}
+
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
 ): def is Def & (ValidateEmptyField | ValidateComponent) {

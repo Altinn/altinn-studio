@@ -7,7 +7,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { getComponentDef, implementsDataModelBindingValidation } from 'src/layout';
+import { getComponentDef, implementsDataModelBindingValidation, isExternallyConfigurableComponent } from 'src/layout';
 import {
   shouldValidateLayoutConfiguration,
   useLayoutSchemaValidator,
@@ -125,7 +125,7 @@ export function validateLayoutProperties({
       }
     }
 
-    if (schemaValidator) {
+    if (schemaValidator && isExternallyConfigurableComponent(component.type)) {
       const schemaErrors = def.validateLayoutConfig(component as never, schemaValidator);
       if (schemaErrors) {
         for (const error of schemaErrors
