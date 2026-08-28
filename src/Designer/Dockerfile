@@ -39,7 +39,6 @@ COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/fro
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
-COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 COPY src/common/ts/package.json ./src/common/ts/
@@ -47,9 +46,7 @@ COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
 
-ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
-ENV CYPRESS_INSTALL_BINARY=${CYPRESS_INSTALL_BINARY}
 ENV PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD}
 
 RUN yarn --immutable
