@@ -2,7 +2,6 @@ import type { MutableRefObject, ReactElement, ReactNode } from 'react';
 import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
-import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageSpinner } from '@studio/components';
@@ -10,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
 import useUxEditorParams from './hooks/useUxEditorParams';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
+import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -60,6 +61,7 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
+  const { doReloadPreview } = usePreviewContext();
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
@@ -90,31 +92,22 @@ export const AppContextProvider = ({
 
   const updateLayoutsForPreview = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppLayouts, layoutSetName], resetQueries);
+      return await refetch([AppsQueryKey.AppFormBootstrap], resetQueries);
     },
     [refetch],
   );
 
-  const updateLayoutSetsForPreview = useCallback(
-    async (resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppLayoutSets], resetQueries);
-    },
-    [refetch],
-  );
+  const updateLayoutSetsForPreview = useCallback(async (): Promise<void> => {
+    doReloadPreview();
+  }, [doReloadPreview]);
 
-  const updateLayoutSettingsForPreview = useCallback(
-    async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppLayoutSettings, layoutSetName], resetQueries);
-    },
-    [refetch],
-  );
+  const updateLayoutSettingsForPreview = useCallback(async (): Promise<void> => {
+    doReloadPreview();
+  }, [doReloadPreview]);
 
-  const updateTextsForPreview = useCallback(
-    async (language: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppTextResources, language], resetQueries);
-    },
-    [refetch],
-  );
+  const updateTextsForPreview = useCallback(async (): Promise<void> => {
+    doReloadPreview();
+  }, [doReloadPreview]);
 
   const value = useMemo(
     () => ({
