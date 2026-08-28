@@ -45,6 +45,7 @@ COPY src/common/ts/package.json ./src/common/ts/
 COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
+COPY src/common/ts/layout-contract/package.json ./src/common/ts/layout-contract/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
