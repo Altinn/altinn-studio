@@ -135,7 +135,7 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
   throw new Error('Could not find ExprFunctionDefinitions');
 }
 
-export async function generateLayoutContracts() {
+(async () => {
   const [componentList, toDelete] = await getComponentList();
 
   for (const emptyFolder of toDelete) {
@@ -359,7 +359,7 @@ export async function generateLayoutContracts() {
   );
   await deleteOrphans([...orphans, ...documentationOrphans]);
   await fs.rm(LEGACY_CONTRACT_RENDERER_ROOT, { recursive: true, force: true });
-}
+})();
 
 async function findGeneratedDocumentation(root: string): Promise<string[]> {
   return (await fs.readdir(root))
