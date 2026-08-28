@@ -108,6 +108,8 @@
   "ai_assistant.permission_prompt_deny": "Ikke nå",
   "ai_assistant.permission_prompt_heading": "Assistenten ber om lov til å gjøre endringer i appen",
   "ai_assistant.preview": "Forhåndsvis",
+  "ai_assistant.security_notice_alert_description": "Et opplastet dokument inneholdt skjult tekst som forsøkte å styre assistenten. Instruksjonene ble ikke fulgt, og skjemaet er bygget som spesifisert. Kontroller hvor dokumentet kommer fra før du bruker det videre.",
+  "ai_assistant.security_notice_alert_heading": "Skjult instruksjon i opplastet fil",
   "ai_assistant.send": "Send",
   "ai_assistant.show_threads": "Vis tråder",
   "ai_assistant.sources_label": "Kilder:",

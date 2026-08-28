@@ -18,6 +18,7 @@ export type AssistantTexts = {
   assistantFirstMessage: string;
   feedback: MessageFeedbackTexts;
   criticalFileAlert: CriticalFileAlertTexts;
+  securityNoticeAlert: SecurityNoticeAlertTexts;
   permissionPrompt: PermissionPromptTexts;
   sourcesLabel: string;
 };
@@ -29,6 +30,11 @@ export type PermissionPromptTexts = {
 };
 
 export type CriticalFileAlertTexts = {
+  heading: string;
+  description: string;
+};
+
+export type SecurityNoticeAlertTexts = {
   heading: string;
   description: string;
 };

@@ -4,6 +4,7 @@ import type {
   MessageFeedbackTexts,
   EmptyThreadTexts,
   CriticalFileAlertTexts,
+  SecurityNoticeAlertTexts,
   TextAreaTexts,
   PermissionPromptTexts,
 } from '../types/AssistantTexts';
@@ -42,6 +43,11 @@ export const messageFeedbackTexts: MessageFeedbackTexts = {
   cancel: 'feedbackCancel',
 };
 
+export const securityNoticeAlertTexts: SecurityNoticeAlertTexts = {
+  heading: 'securityNoticeAlertHeading',
+  description: 'securityNoticeAlertDescription',
+};
+
 export const criticalFileAlertTexts: CriticalFileAlertTexts = {
   heading: 'criticalFileAlertHeading',
   description: 'criticalFileAlertDescription',
@@ -71,6 +77,7 @@ export const mockTexts: AssistantTexts = {
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
   feedback: messageFeedbackTexts,
   criticalFileAlert: criticalFileAlertTexts,
+  securityNoticeAlert: securityNoticeAlertTexts,
   permissionPrompt: permissionPromptTexts,
   sourcesLabel: 'sourcesLabel',
 };
