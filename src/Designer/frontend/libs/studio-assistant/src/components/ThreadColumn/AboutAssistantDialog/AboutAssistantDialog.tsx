@@ -4,6 +4,9 @@ import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@studi
 import { ExternalLinkIcon, InformationIcon } from '@studio/icons';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 
+export const assistantDocsUrl =
+  'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/assistant/';
+
 const branchDocsUrl =
   'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/branching/#flette-grener-til-master';
 
@@ -35,7 +38,13 @@ export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): Reac
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
-          <StudioParagraph spacing>{texts.intro}</StudioParagraph>
+          <StudioParagraph spacing>
+            {texts.intro} {texts.assistantDocsInfo}
+            <StudioLink target='_blank' rel='noopener noreferrer' href={assistantDocsUrl}>
+              <span>{texts.assistantDocsLink}</span>
+              <ExternalLinkIcon />
+            </StudioLink>
+          </StudioParagraph>
           <StudioHeading level={3} data-size='xs'>
             {texts.howToHeading}
           </StudioHeading>

@@ -11,6 +11,8 @@ import type {
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   heading: 'aboutAssistantHeading',
   intro: 'aboutAssistantIntro',
+  assistantDocsInfo: 'aboutAssistantDocsInfo',
+  assistantDocsLink: 'aboutAssistantDocsLink',
   howToHeading: 'aboutAssistantHowToHeading',
   description: 'aboutAssistantDescription',
   branchInfo: 'aboutAssistantBranchInfo',

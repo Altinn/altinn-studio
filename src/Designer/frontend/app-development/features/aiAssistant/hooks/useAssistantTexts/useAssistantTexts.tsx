@@ -15,6 +15,8 @@ export const useAssistantTexts = (): AssistantTexts => {
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),
       intro: t('ai_assistant.about_assistant_intro'),
+      assistantDocsInfo: t('ai_assistant.about_assistant_docs_info'),
+      assistantDocsLink: t('ai_assistant.about_assistant_docs_link'),
       howToHeading: t('ai_assistant.about_assistant_how_to_heading'),
       description: (
         <Trans

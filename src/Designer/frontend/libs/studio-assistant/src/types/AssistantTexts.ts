@@ -47,6 +47,8 @@ export type MessageFeedbackTexts = {
 export type AboutAssistantDialogTexts = {
   heading: string;
   intro: string;
+  assistantDocsInfo: string;
+  assistantDocsLink: string;
   howToHeading: string;
   description: ReactNode;
   branchInfo: ReactNode;

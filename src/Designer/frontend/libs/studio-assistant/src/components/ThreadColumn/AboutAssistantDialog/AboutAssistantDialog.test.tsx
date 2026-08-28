@@ -1,11 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AboutAssistantDialog, hasSeenDialogStorageKey } from './AboutAssistantDialog';
+import {
+  AboutAssistantDialog,
+  assistantDocsUrl,
+  hasSeenDialogStorageKey,
+} from './AboutAssistantDialog';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 
 const mockDialogTexts: AboutAssistantDialogTexts = {
   heading: 'Om assistenten',
   intro: 'Assistenten er en KI-agent.',
+  assistantDocsInfo: 'Du kan lese mer i',
+  assistantDocsLink: 'veiledningen for assistenten',
   howToHeading: 'Hvordan bruke assistenten',
   description: 'Beskrivelse av assistenten.',
   branchInfo: 'Grener info',
@@ -60,6 +66,13 @@ describe('AboutAssistantDialog', () => {
     const dialog = screen.getByRole('dialog');
 
     expect(dialog).toBeInTheDocument();
+  });
+
+  it('should render a link to the assistant documentation', () => {
+    renderAboutAssistantDialog();
+    const docsLink = screen.getByRole('link', { name: mockDialogTexts.assistantDocsLink });
+
+    expect(docsLink).toHaveAttribute('href', assistantDocsUrl);
   });
 
   it('should render the privacy section', () => {
