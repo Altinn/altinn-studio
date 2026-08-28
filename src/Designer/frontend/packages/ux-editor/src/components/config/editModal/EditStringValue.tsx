@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
-import { FormField } from '../../FormField';
+import { FormField } from 'app-shared/components/FormField';
+import type { PropertyDefinition } from '@app/layout-contract';
+import { validateCatalogValue } from '../../../data/componentCatalog';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import {
@@ -19,6 +21,7 @@ export interface EditStringValueProps extends IGenericEditComponent {
   enumValues?: string[];
   multiple?: boolean;
   className?: string;
+  definition?: PropertyDefinition;
 }
 
 export const EditStringValue = ({
@@ -28,6 +31,7 @@ export const EditStringValue = ({
   enumValues,
   multiple,
   className,
+  definition,
 }: EditStringValueProps): ReactElement => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -44,10 +48,11 @@ export const EditStringValue = ({
   return (
     <FormField
       id={component.id}
-      label={componentPropertyLabel(propertyKey)}
+      label={componentPropertyLabel(propertyKey, definition)}
       value={component[propertyKey]}
       onChange={handleValueChange}
-      propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
+      customRequired={definition?.required}
+      customValidationRules={(value) => validateCatalogValue(definition, value)}
       helpText={componentPropertyHelpText(propertyKey)}
       className={className}
       customValidationMessages={(errorCode: string) => {

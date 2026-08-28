@@ -1,4 +1,5 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
+import type { IMapping, IQueryParameters } from '@app/layout-contract/generated/common.generated';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosResponse } from 'axios';
 
@@ -10,7 +11,6 @@ import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings'
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IMapping, IQueryParameters } from 'src/layout/common.generated';
 
 export const useGetOptionsQuery = (
   url: string,

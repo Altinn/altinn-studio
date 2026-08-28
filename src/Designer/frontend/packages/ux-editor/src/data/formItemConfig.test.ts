@@ -4,7 +4,7 @@ import {
   schemaComponents,
   textComponents,
 } from './formItemConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('formItemConfig', () => {
   const allAvailableLists = [
@@ -16,15 +16,13 @@ describe('formItemConfig', () => {
   const allAvailableComponents = allAvailableLists.flat();
   const excludedComponents = [
     ComponentType.Custom,
-    // OrganisationLookup and Header belong to pre-v9 ux-editor-v4.
-    ComponentType.OrganisationLookup,
-    ComponentType.Header,
-    ComponentType.FileUploadWithTag,
     ComponentType.Payment,
     ComponentType.Summary,
+    ComponentType.AddToList,
+    ComponentType.SimpleTable,
   ];
 
-  /** Test that all v9 components, except Custom, Payment, and Summary, are available in a visible list. */
+  /** Test that all non-beta components intended for ordinary layouts are available in a visible list. */
   it.each(
     Object.values(ComponentType).filter(
       (componentType) => !excludedComponents.includes(componentType),

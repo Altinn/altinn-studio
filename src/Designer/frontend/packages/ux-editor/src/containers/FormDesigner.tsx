@@ -19,9 +19,8 @@ import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
-import { isSupportedComponentType } from '../data/formItemConfig';
 import {
   addItemOfType,
   getItem,
@@ -98,7 +97,6 @@ export const FormDesigner = (): JSX.Element => {
     const layout = formLayouts[selectedFormLayoutName];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
-      if (!isSupportedComponentType(type)) return;
       const newId = generateComponentId(type, formLayouts);
 
       if (!isComponentTypeValidChild(layout, parentId, type)) {

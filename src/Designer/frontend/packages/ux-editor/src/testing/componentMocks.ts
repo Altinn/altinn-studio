@@ -1,13 +1,12 @@
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { FormContainer } from '../types/FormContainer';
 
 const commonProps = <T extends ComponentType>(
   type: T,
-): Pick<FormComponentBase<T>, 'id' | 'itemType' | 'dataModelBindings' | 'type'> => ({
+): Pick<FormComponentBase<T>, 'id' | 'dataModelBindings' | 'type'> => ({
   id: type.toString(),
-  itemType: 'COMPONENT',
   dataModelBindings: {},
   type,
 });
@@ -55,7 +54,7 @@ const inputComponent: FormComponent<ComponentType.Input> = {
 };
 const headingComponent: FormComponent<ComponentType.Heading> = {
   ...commonProps(ComponentType.Heading),
-  size: 'medium',
+  size: 'M',
 };
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
   ...commonProps(ComponentType.Paragraph),
@@ -92,6 +91,7 @@ const textareaComponent: FormComponent<ComponentType.TextArea> = {
 };
 const subformComponent: FormComponent<ComponentType.Subform> = {
   ...commonProps(ComponentType.Subform),
+  layoutSet: '',
   tableColumns: [
     {
       headerContent: 'header content',
@@ -105,7 +105,6 @@ const subformComponent: FormComponent<ComponentType.Subform> = {
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
   dataModelBindings: undefined,
-  description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
   maxFileSizeInMB: 1,
@@ -114,7 +113,6 @@ const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
 };
 const buttonComponent: FormComponent<ComponentType.Button> = {
   ...commonProps(ComponentType.Button),
-  onClickAction: jest.fn(),
 };
 const addressComponent: FormComponent<ComponentType.Address> = {
   ...commonProps(ComponentType.Address),
@@ -134,11 +132,10 @@ const attachmentListComponent: FormComponent<ComponentType.AttachmentList> = {
 const thirdPartyComponent: FormComponent<ComponentType.Custom> = {
   ...commonProps(ComponentType.Custom),
   tagName: 'test',
-  framework: 'test',
 };
 const panelComponent: FormComponent<ComponentType.Panel> = {
   ...commonProps(ComponentType.Panel),
-  variant: FormPanelVariant.Info,
+  variant: 'info',
   showIcon: true,
 };
 const mapComponent: FormComponent<ComponentType.Map> = {
@@ -152,23 +149,18 @@ const mapComponent: FormComponent<ComponentType.Map> = {
 };
 const accordionContainer: FormContainer<ComponentType.Accordion> = {
   ...commonProps(ComponentType.Accordion),
-  itemType: 'CONTAINER',
 };
 const accordionGroupContainer: FormContainer<ComponentType.AccordionGroup> = {
   ...commonProps(ComponentType.AccordionGroup),
-  itemType: 'CONTAINER',
 };
 const buttonGroupContainer: FormContainer<ComponentType.ButtonGroup> = {
   ...commonProps(ComponentType.ButtonGroup),
-  itemType: 'CONTAINER',
 };
 const groupContainer: FormContainer<ComponentType.Group> = {
   ...commonProps(ComponentType.Group),
-  itemType: 'CONTAINER',
 };
 const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   ...commonProps(ComponentType.RepeatingGroup),
-  itemType: 'CONTAINER',
   dataModelBindings: { group: { field: '', dataType: '' } },
 };
 
@@ -209,7 +201,7 @@ export const componentMocks = {
   [ComponentType.Button]: buttonComponent,
   [ComponentType.Checkboxes]: checkboxesComponent,
   [ComponentType.CustomButton]: customButton,
-  [CustomComponentType.CloseSubformButton]: closeSubformButton,
+  [ComponentPreset.CloseSubformButton]: closeSubformButton,
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Divider]: dividerComponent,
   [ComponentType.Dropdown]: dropdownComponent,

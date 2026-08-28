@@ -1,5 +1,5 @@
 import type { OptionList } from 'app-shared/types/OptionList';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import {

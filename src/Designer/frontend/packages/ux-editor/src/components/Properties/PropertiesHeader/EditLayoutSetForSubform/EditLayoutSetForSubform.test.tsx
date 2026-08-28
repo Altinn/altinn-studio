@@ -1,6 +1,6 @@
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';

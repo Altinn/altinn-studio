@@ -1,5 +1,6 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 const dataType = 'model';
 

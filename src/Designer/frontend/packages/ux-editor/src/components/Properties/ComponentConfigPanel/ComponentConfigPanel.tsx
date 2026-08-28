@@ -1,7 +1,7 @@
 import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioSpinner, StudioDetails } from '@studio/components';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { StudioDetails } from '@studio/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
@@ -14,8 +14,8 @@ import { formItemConfigs } from '../../../data/formItemConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { UnknownComponentAlert } from '../../UnknownComponentAlert';
-import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
 import { Expressions } from '../../config/Expressions';
+import { getComponentDefinition } from '../../../data/componentCatalog';
 
 type ComponentConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Component }>;
@@ -26,7 +26,6 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   const { setSelectedItem } = useAppContext();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const [openList, setOpenList] = useState<string[]>([]);
-  const { data: schema, isPending: isFetchingSchema } = useComponentSchemaQuery(formItem?.type);
 
   const toggleOpen = (id: string) =>
     setOpenList((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -44,13 +43,10 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
       </div>
     );
 
-  if (isFetchingSchema)
-    return <StudioSpinner aria-label={t('ux_editor.edit_component.loading_schema')} />;
-
   const isSubformWithoutLayoutSet = formItem.type === 'Subform' && !formItem.layoutSet;
   if (isSubformWithoutLayoutSet) return <ComponentConfigHeader />;
 
-  const properties = schema?.properties || {};
+  const properties = getComponentDefinition(formItem.type)?.properties ?? {};
   const { textResourceBindings, dataModelBindings, ...otherProperties } = properties;
 
   const hasTextProperties = Boolean(textResourceBindings);

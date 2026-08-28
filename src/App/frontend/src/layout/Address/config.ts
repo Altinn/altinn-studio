@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Adresse', en: 'Address' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -20,36 +26,36 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Title of the component',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Title of the component', nb: 'Ledeteksten til komponenten.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'careOfTitle',
-      title: 'Care Of Title',
-      description: 'Title for care-of',
+      title: { en: 'Care Of Title', nb: 'Ledetekst for c/o' },
+      description: { en: 'Title for care-of', nb: 'Ledetekst for c/o.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'zipCodeTitle',
-      title: 'Zip Code Title',
-      description: 'Title for the zip code',
+      title: { en: 'Zip Code Title', nb: 'Ledetekst for postnummer' },
+      description: { en: 'Title for the zip code', nb: 'Ledetekst for postnummer.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'postPlaceTitle',
-      title: 'Post place Title',
-      description: 'Title for post place',
+      title: { en: 'Post place Title', nb: 'Ledetekst for poststed' },
+      description: { en: 'Title for post place', nb: 'Ledetekst for poststed.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'houseNumberTitle',
-      title: 'House number Title',
-      description: 'Title for house number',
+      title: { en: 'House number Title', nb: 'Ledetekst for husnummer' },
+      description: { en: 'Title for house number', nb: 'Ledetekst for husnummer.' },
     }),
   )
   .addDataModelBinding(
@@ -57,33 +63,48 @@ export const Config = new CG.component({
       new CG.prop(
         'address',
         new CG.dataModelBinding()
-          .setTitle('Data model binding for address')
-          .setDescription('Describes the location in the data model where the component should store the address.'),
+          .setTitle('Data model binding for address', 'Datamodellbinding for adresse')
+          .setDescription(
+            'Describes the location in the data model where the component should store the address.',
+            'Angir hvor i datamodellen komponenten skal lagre adressen.',
+          ),
       ),
       new CG.prop(
         'zipCode',
         new CG.dataModelBinding()
-          .setTitle('Data model binding for zip code')
-          .setDescription('Describes the location in the data model where the component should store the zip code.'),
+          .setTitle('Data model binding for zip code', 'Datamodellbinding for postnummer')
+          .setDescription(
+            'Describes the location in the data model where the component should store the zip code.',
+            'Angir hvor i datamodellen komponenten skal lagre postnummeret.',
+          ),
       ),
       new CG.prop(
         'postPlace',
         new CG.dataModelBinding()
-          .setTitle('Data model binding for post place')
-          .setDescription('Describes the location in the data model where the component should store the post place.'),
+          .setTitle('Data model binding for post place', 'Datamodellbinding for poststed')
+          .setDescription(
+            'Describes the location in the data model where the component should store the post place.',
+            'Angir hvor i datamodellen komponenten skal lagre poststedet.',
+          ),
       ),
       new CG.prop(
         'careOf',
         new CG.dataModelBinding()
-          .setTitle('Data model binding for care of')
-          .setDescription('Describes the location in the data model where the component should store care of.')
+          .setTitle('Data model binding for care of', 'Datamodellbinding for c/o')
+          .setDescription(
+            'Describes the location in the data model where the component should store care of.',
+            'Angir hvor i datamodellen komponenten skal lagre c/o-adressen.',
+          )
           .optional(),
       ),
       new CG.prop(
         'houseNumber',
         new CG.dataModelBinding()
-          .setTitle('Data model binding for house number')
-          .setDescription('Describes the location in the data model where the component should store the house number.')
+          .setTitle('Data model binding for house number', 'Datamodellbinding for husnummer')
+          .setDescription(
+            'Describes the location in the data model where the component should store the house number.',
+            'Angir hvor i datamodellen komponenten skal lagre husnummeret.',
+          )
           .optional(),
       ),
     ).exportAs('IDataModelBindingsForAddress'),
@@ -94,8 +115,11 @@ export const Config = new CG.component({
       'simplified',
       new CG.bool()
         .optional({ default: true })
-        .setTitle('Simplified')
-        .setDescription('Whether to use the simplified address input or not'),
+        .setTitle('Simplified', 'Forenklet')
+        .setDescription(
+          'Whether to use the simplified address input or not',
+          'Angir om det forenklede adressefeltet skal brukes.',
+        ),
     ),
   )
   .extends(CG.common('LabeledComponentProps'));

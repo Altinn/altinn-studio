@@ -1,8 +1,8 @@
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
-
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
 type ReqCounter = { count: number };

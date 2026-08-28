@@ -10,9 +10,9 @@ import {
 } from './ConfigProperties';
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
-import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { PropertyDefinition } from '@app/layout-contract';
 import { ConfigObjectProperty } from './ConfigProperties/ConfigObjectProperty/ConfigObjectProperty';
+import { getSpecializedPropertyPaths } from '../../data/componentEditorRegistry';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -22,38 +22,30 @@ export interface IEditFormComponentProps {
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
-  schema: JsonSchema;
+  properties: Readonly<Record<string, PropertyDefinition>>;
+  propertyPath?: readonly string[];
+  specializedPropertyPaths?: readonly string[];
 }
 
 export const FormComponentConfig = ({
-  schema,
+  properties,
   editFormId,
   component,
   handleComponentUpdate,
   keepEditOpen,
+  propertyPath = [],
+  specializedPropertyPaths = getSpecializedPropertyPaths(component.type),
 }: FormComponentConfigProps) => {
-  // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
-  const customProperties = [
-    'hasCustomFileEndings',
-    'validFileEndings',
-    'grid',
-    'layoutSet',
-    'children',
-    'dataTypeIds',
-    'target',
-    'tableColumns',
-    'overrides',
-    component.type === ComponentType.Text ? 'value' : '',
-  ];
+  const pathPrefix = propertyPath.length ? `${propertyPath.join('.')}.` : '';
+  const specializedProperties = specializedPropertyPaths
+    .filter((path) => path.startsWith(pathPrefix) && !path.slice(pathPrefix.length).includes('.'))
+    .map((path) => path.slice(pathPrefix.length));
 
   const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys } = usePropertyTypes(
-    schema,
-    customProperties,
+    properties,
+    specializedProperties,
   );
 
-  if (!schema?.properties) return null;
-
-  const { properties } = schema;
   const { layoutSet } = properties;
 
   return (
@@ -67,7 +59,7 @@ export const FormComponentConfig = ({
       {booleanKeys.length > 0 && (
         <ConfigBooleanProperties
           booleanPropertyKeys={booleanKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -87,7 +79,7 @@ export const FormComponentConfig = ({
       {stringKeys.length > 0 && (
         <ConfigStringProperties
           stringPropertyKeys={stringKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -99,7 +91,7 @@ export const FormComponentConfig = ({
       {numberKeys.length > 0 && (
         <ConfigNumberProperties
           numberPropertyKeys={numberKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -111,7 +103,7 @@ export const FormComponentConfig = ({
       {arrayKeys.length > 0 && (
         <ConfigArrayProperties
           arrayPropertyKeys={arrayKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -127,10 +119,12 @@ export const FormComponentConfig = ({
               key={objectPropertyKey}
               editFormId={editFormId}
               objectPropertyKey={objectPropertyKey}
-              schema={schema}
+              properties={properties}
               component={component}
               handleComponentUpdate={handleComponentUpdate}
               className={classes.elementWrapper}
+              propertyPath={propertyPath}
+              specializedPropertyPaths={specializedPropertyPaths}
             />
           );
         })}

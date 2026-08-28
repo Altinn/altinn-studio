@@ -1,25 +1,17 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
-import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithProviders } from '../../../../testing/mocks';
 import type { IGenericEditComponent } from '../../componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const handleComponentChangeMock = jest.fn();
-
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
 
 const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = handleComponentChangeMock,
 }: Partial<IGenericEditComponent<ComponentType.Map>>) => {
-  await waitForData();
-
   renderWithProviders(
     <MapComponent component={component} handleComponentChange={handleComponentChange} />,
   );

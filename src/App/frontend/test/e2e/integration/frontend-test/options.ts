@@ -1,7 +1,8 @@
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
+
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import { typedBoolean } from 'src/utils/typing';
-import type { IRawOption } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
 

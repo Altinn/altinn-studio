@@ -1,10 +1,11 @@
 import type React from 'react';
 import { type RefAttributes, type SVGProps } from 'react';
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import {
   AccordionIcon,
   CalendarIcon,
+  CardIcon,
   CheckboxIcon,
   ChevronDownDoubleIcon,
   ClipboardIcon,
@@ -29,75 +30,65 @@ import {
   RepeatingGroupIcon,
   SelectIcon,
   ShortTextIcon,
+  SpeakerIcon,
   TableIcon,
   TasklistIcon,
   TextIcon,
   TitleIcon,
+  VideoIcon,
   WalletIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import { LayoutItemType } from '../types/global';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { ComponentConfig } from '../types/ComponentConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FilterUtils } from './FilterUtils';
+import type { SerializedComponentDefaults } from '../types/SerializedComponent';
 
-export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
-  name: ComponentType | CustomComponentType;
-  getDisplayName?: (
-    formItem: ComponentSpecificConfig<ComponentType>,
-  ) => ComponentType | CustomComponentType;
+type ConfiguredComponentType<T extends ComponentType | ComponentPreset> = T extends ComponentPreset
+  ? ComponentType.CustomButton
+  : T;
+
+export type FormItemConfig<T extends ComponentType | ComponentPreset = ComponentType> = {
+  name: ComponentType | ComponentPreset;
+  getDisplayName?: (formItem: ComponentConfig<ComponentType>) => ComponentType | ComponentPreset;
   componentRef?: ComponentType;
-  itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
-  defaultProperties: ComponentSpecificConfig;
+  defaultProperties: SerializedComponentDefaults<ConfiguredComponentType<T>>;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
-  propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains pre-v9 names used by the legacy ux editors.
-export type SupportedComponentType = Exclude<
-  ComponentType | CustomComponentType,
-  ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
->;
-
 export type FormItemConfigs = {
-  [T in SupportedComponentType]: FormItemConfig<T>;
-} & Partial<{
-  [ComponentType.OrganisationLookup]: FormItemConfig<ComponentType.OrganisationLookup>;
-  [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
-}>;
+  [T in ComponentType]: FormItemConfig<T>;
+};
+
+export type ComponentPresetConfigs = {
+  [T in ComponentPreset]: FormItemConfig<T>;
+};
 
 export type FormItemConfigEntry = NonNullable<FormItemConfigs[keyof FormItemConfigs]>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
     name: ComponentType.Alert,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       severity: 'info',
     },
-    propertyPath: 'definitions/alertComponent',
     icon: ExclamationmarkTriangleIcon,
   },
   [ComponentType.Accordion]: {
     name: ComponentType.Accordion,
-    itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/accordionComponent',
     icon: AccordionIcon,
     validChildTypes: [ComponentType.Paragraph],
   },
   [ComponentType.AccordionGroup]: {
     name: ComponentType.AccordionGroup,
-    itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/accordionGroupComponent',
     icon: ChevronDownDoubleIcon,
     validChildTypes: [ComponentType.Accordion],
   },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       buttonStyle: 'primary',
       action: 'instantiate',
@@ -106,7 +97,6 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Address]: {
     name: ComponentType.Address,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         address: '',
@@ -116,28 +106,21 @@ export const formItemConfigs: FormItemConfigs = {
       simplified: true,
       saveWhileTyping: 400,
     },
-    propertyPath: 'definitions/addressComponent',
     icon: HouseIcon,
   },
   [ComponentType.AttachmentList]: {
     name: ComponentType.AttachmentList,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/attachmentListComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.Button]: {
     name: ComponentType.Button,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/actionButtonComponent',
     icon: FingerButtonIcon,
   },
   [ComponentType.ButtonGroup]: {
     name: ComponentType.ButtonGroup,
-    itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/buttonGroupComponent',
     icon: FingerButtonIcon,
     validChildTypes: [
       ComponentType.ActionButton,
@@ -150,39 +133,31 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: CheckboxIcon,
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       tagName: 'tag',
-      framework: 'framework',
     },
     icon: ElementIcon,
   },
   [ComponentType.CustomButton]: {
     name: ComponentType.CustomButton,
-    itemType: LayoutItemType.Component,
     getDisplayName: ({
       actions,
-    }: ComponentSpecificConfig<ComponentType.CustomButton>):
-      ComponentType | CustomComponentType => {
+    }: ComponentConfig<ComponentType.CustomButton>): ComponentType | ComponentPreset => {
       const isCloseSubformAction =
         actions?.length === 1 &&
         actions[0]?.id === 'closeSubform' &&
         actions[0]?.type === 'ClientAction';
 
-      return isCloseSubformAction
-        ? CustomComponentType.CloseSubformButton
-        : ComponentType.CustomButton;
+      return isCloseSubformAction ? ComponentPreset.CloseSubformButton : ComponentType.CustomButton;
     },
     defaultProperties: {
       actions: [],
@@ -190,24 +165,8 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
-  [CustomComponentType.CloseSubformButton]: {
-    name: CustomComponentType.CloseSubformButton,
-    componentRef: ComponentType.CustomButton,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      actions: [
-        {
-          type: 'ClientAction',
-          id: 'closeSubform',
-        },
-      ],
-    },
-    icon: FingerButtonIcon,
-  },
-
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
@@ -216,24 +175,20 @@ export const formItemConfigs: FormItemConfigs = {
       maxDate: '2100-01-01T12:00:00.000Z',
       timeStamp: false,
     },
-    propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
   },
   [ComponentType.Dropdown]: {
     name: ComponentType.Dropdown,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
       },
       optionsId: '',
     },
-    propertyPath: 'definitions/selectionComponents',
     icon: SelectIcon,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       displayMode: 'list',
       hasCustomFileEndings: false,
@@ -241,39 +196,31 @@ export const formItemConfigs: FormItemConfigs = {
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
     },
-    propertyPath: 'definitions/fileUploadComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.Grid]: {
     name: ComponentType.Grid,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       rows: [],
     },
-    propertyPath: 'definitions/gridComponent',
     icon: TableIcon,
   },
   [ComponentType.Group]: {
     name: ComponentType.Group,
-    itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/groupComponent',
     icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
-  // The v9 editor uses the renamed contract; ux-editor-v4 retains Header.
+  // The current editor uses the renamed contract; ux-editor-v4 retains Header.
   [ComponentType.Heading]: {
     name: ComponentType.Heading,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       size: 'L',
     },
-    propertyPath: 'definitions/headingComponent',
     icon: TitleIcon,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       sandbox: {},
     },
@@ -281,7 +228,6 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Image]: {
     name: ComponentType.Image,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       image: {
         src: {},
@@ -289,60 +235,49 @@ export const formItemConfigs: FormItemConfigs = {
         align: 'center',
       },
     },
-    propertyPath: 'definitions/imageComponent',
     icon: ImageIcon,
   },
   [ComponentType.ImageUpload]: {
     name: ComponentType.ImageUpload,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       crop: {
         shape: 'circle',
         diameter: 250,
       },
     },
-    propertyPath: 'definitions/imageUploadComponent',
     icon: ImageIcon,
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/inputComponent',
     icon: ShortTextIcon,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/instanceInformationComponent',
     icon: InformationSquareIcon,
   },
   [ComponentType.InstantiationButton]: {
     name: ComponentType.InstantiationButton,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: FingerButtonIcon,
   },
   [ComponentType.Likert]: {
     name: ComponentType.Likert,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         questions: '',
         answer: '',
       },
     },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: LikertIcon,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       style: 'link',
     },
@@ -350,18 +285,15 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.List]: {
     name: ComponentType.List,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {},
       tableHeaders: {},
       dataListId: '',
     },
-    propertyPath: 'definitions/listComponent',
     icon: TasklistIcon,
   },
   [ComponentType.Map]: {
     name: ComponentType.Map,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
@@ -372,173 +304,233 @@ export const formItemConfigs: FormItemConfigs = {
       },
       zoom: 1,
     },
-    propertyPath: 'definitions/mapComponent',
     icon: PinIcon,
   },
   [ComponentType.MultipleSelect]: {
     name: ComponentType.MultipleSelect,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
       },
       optionsId: '',
     },
-    propertyPath: 'definitions/selectionComponents',
     icon: SelectIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/navigationBarComponent',
     icon: NavBarIcon,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/navigationButtonsComponent',
     icon: FingerButtonIcon,
   },
-  // The v9 editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
+  // The current editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
   [ComponentType.OrganizationLookup]: {
     name: ComponentType.OrganizationLookup,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        organization_lookup_orgnr: '',
+      },
+    },
     icon: ShortTextIcon,
   },
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
-      variant: FormPanelVariant.Info,
+      variant: 'info',
       showIcon: true,
     },
-    propertyPath: 'definitions/panelComponent',
     icon: FileTextIcon,
   },
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      id: '',
-      itemType: 'COMPONENT',
-      type: ComponentType.Paragraph,
-    },
+    defaultProperties: {},
     icon: TextIcon,
   },
   [ComponentType.Payment]: {
     name: ComponentType.Payment,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: WalletIcon,
   },
   [ComponentType.PaymentDetails]: {
     name: ComponentType.PaymentDetails,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: PaymentDetailsIcon,
   },
   [ComponentType.PersonLookup]: {
     name: ComponentType.PersonLookup,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        person_lookup_ssn: '',
+      },
+    },
     icon: ShortTextIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
-    itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: FingerButtonIcon,
   },
   [ComponentType.RadioButtons]: {
     name: ComponentType.RadioButtons,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: RadioButtonIcon,
   },
   [ComponentType.RepeatingGroup]: {
     name: ComponentType.RepeatingGroup,
-    itemType: LayoutItemType.Container,
     defaultProperties: {
       dataModelBindings: {
         group: '',
       },
     },
-    propertyPath: 'definitions/repeatingGroupComponent',
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Subform]: {
     name: ComponentType.Subform,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {},
-    propertyPath: 'definitions/subform',
+    defaultProperties: {
+      layoutSet: '',
+      tableColumns: [],
+    },
     icon: ClipboardIcon,
   },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       componentRef: '',
     },
-    propertyPath: 'definitions/summaryComponent',
     icon: FileTextIcon,
   },
   [ComponentType.Summary2]: {
     name: ComponentType.Summary2,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       target: {
         type: 'layoutSet',
       },
     },
-    propertyPath: 'definitions/summary2Component',
     icon: FileTextIcon,
   },
   [ComponentType.Text]: {
     name: ComponentType.Text,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       value: '',
     },
-    propertyPath: 'definitions/textComponent',
     icon: TextIcon,
   },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
-    itemType: LayoutItemType.Component,
     defaultProperties: {
       dataModelBindings: {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/textAreaComponent',
     icon: LongTextIcon,
+  },
+  [ComponentType.AddToList]: {
+    name: ComponentType.AddToList,
+    defaultProperties: { title: '', dataModelBindings: { data: '' } },
+    icon: TasklistIcon,
+  },
+  [ComponentType.Audio]: {
+    name: ComponentType.Audio,
+    defaultProperties: { audio: { src: {} } },
+    icon: SpeakerIcon,
+  },
+  [ComponentType.Cards]: {
+    name: ComponentType.Cards,
+    defaultProperties: { color: 'neutral', cards: [] },
+    icon: CardIcon,
+  },
+  [ComponentType.Date]: {
+    name: ComponentType.Date,
+    defaultProperties: { value: '' },
+    icon: CalendarIcon,
+  },
+  [ComponentType.Number]: {
+    name: ComponentType.Number,
+    defaultProperties: { value: 0 },
+    icon: ShortTextIcon,
+  },
+  [ComponentType.Option]: {
+    name: ComponentType.Option,
+    defaultProperties: { value: '' },
+    icon: RadioButtonIcon,
+  },
+  [ComponentType.PDFPreviewButton]: {
+    name: ComponentType.PDFPreviewButton,
+    defaultProperties: { buttonStyle: 'secondary' },
+    icon: FileTextIcon,
+  },
+  [ComponentType.SigneeList]: {
+    name: ComponentType.SigneeList,
+    defaultProperties: {},
+    icon: TasklistIcon,
+  },
+  [ComponentType.SigningActions]: {
+    name: ComponentType.SigningActions,
+    defaultProperties: {},
+    icon: FingerButtonIcon,
+  },
+  [ComponentType.SigningDocumentList]: {
+    name: ComponentType.SigningDocumentList,
+    defaultProperties: {},
+    icon: FileTextIcon,
+  },
+  [ComponentType.SimpleTable]: {
+    name: ComponentType.SimpleTable,
+    defaultProperties: { title: '', columns: [] },
+    icon: TableIcon,
+  },
+  [ComponentType.Tabs]: {
+    name: ComponentType.Tabs,
+    defaultProperties: { tabs: [] },
+    icon: PresentationIcon,
+  },
+  [ComponentType.TimePicker]: {
+    name: ComponentType.TimePicker,
+    defaultProperties: { dataModelBindings: { simpleBinding: '' } },
+    icon: CalendarIcon,
+  },
+  [ComponentType.Video]: {
+    name: ComponentType.Video,
+    defaultProperties: { video: { src: {} } },
+    icon: VideoIcon,
   },
   [ComponentType.Divider]: {
     name: ComponentType.Divider,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      id: '',
-      type: ComponentType.Divider,
-    },
-    propertyPath: 'definitions/dividerComponent',
+    defaultProperties: {},
     icon: MinusIcon,
   },
 };
 
-export const isSupportedComponentType = (
-  componentType: ComponentType | CustomComponentType,
-): componentType is SupportedComponentType => componentType in formItemConfigs;
+export const componentPresetConfigs: ComponentPresetConfigs = {
+  [ComponentPreset.CloseSubformButton]: {
+    name: ComponentPreset.CloseSubformButton,
+    componentRef: ComponentType.CustomButton,
+    defaultProperties: {
+      actions: [{ type: 'ClientAction', id: 'closeSubform' }],
+    },
+    icon: FingerButtonIcon,
+  },
+};
 
-export const advancedItems: FormItemConfigEntry[] = [
+export function getFormItemConfig<T extends ComponentType | ComponentPreset>(
+  type: T,
+): FormItemConfig<T> {
+  return (
+    type in componentPresetConfigs
+      ? componentPresetConfigs[type as ComponentPreset]
+      : formItemConfigs[type as ComponentType]
+  ) as FormItemConfig<T>;
+}
+
+export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
@@ -552,6 +544,13 @@ export const advancedItems: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
   formItemConfigs[ComponentType.Subform],
+  formItemConfigs[ComponentType.Tabs],
+  formItemConfigs[ComponentType.SigneeList],
+  formItemConfigs[ComponentType.SigningActions],
+  formItemConfigs[ComponentType.SigningDocumentList],
+  formItemConfigs[ComponentType.Audio],
+  formItemConfigs[ComponentType.Video],
+  formItemConfigs[ComponentType.Cards],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigEntry[] = [
@@ -565,12 +564,14 @@ export const schemaComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.PersonLookup],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
+  formItemConfigs[ComponentType.TimePicker],
   formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.Button],
   formItemConfigs[ComponentType.CustomButton],
   formItemConfigs[ComponentType.NavigationButtons],
   formItemConfigs[ComponentType.PrintButton],
+  formItemConfigs[ComponentType.PDFPreviewButton],
   formItemConfigs[ComponentType.InstantiationButton],
   formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
@@ -587,6 +588,9 @@ export const textComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Panel],
   formItemConfigs[ComponentType.Alert],
   formItemConfigs[ComponentType.Text],
+  formItemConfigs[ComponentType.Date],
+  formItemConfigs[ComponentType.Number],
+  formItemConfigs[ComponentType.Option],
 ];
 
 export const confOnScreenComponents: FormItemConfigEntry[] = [
@@ -618,6 +622,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Input,
     ComponentType.TextArea,
     ComponentType.Datepicker,
+    ComponentType.TimePicker,
     ComponentType.OrganizationLookup,
     ComponentType.PersonLookup,
   ],
@@ -628,6 +633,9 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Alert,
     ComponentType.Divider,
     ComponentType.Text,
+    ComponentType.Date,
+    ComponentType.Number,
+    ComponentType.Option,
   ],
   select: [
     ComponentType.Checkboxes,
@@ -642,12 +650,16 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Link,
     ComponentType.IFrame,
     ComponentType.Summary2,
+    ComponentType.Audio,
+    ComponentType.Video,
+    ComponentType.Cards,
   ],
   button: [
     ComponentType.Button,
     ComponentType.CustomButton,
     ComponentType.NavigationButtons,
     ComponentType.PrintButton,
+    ComponentType.PDFPreviewButton,
     ComponentType.InstantiationButton,
     ComponentType.ActionButton,
   ],
@@ -660,12 +672,23 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.ButtonGroup,
     ComponentType.List,
     ComponentType.RepeatingGroup,
+    ComponentType.Tabs,
   ],
-  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
+  advanced: [
+    ComponentType.Address,
+    ComponentType.Map,
+    ComponentType.Custom,
+    ComponentType.Subform,
+    ComponentType.SigneeList,
+    ComponentType.SigningActions,
+    ComponentType.SigningDocumentList,
+    ComponentType.AddToList,
+    ComponentType.SimpleTable,
+  ],
 };
 export const subformLayoutComponents: FormItemConfigEntry[] = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
-  formItemConfigs[CustomComponentType.CloseSubformButton],
+  componentPresetConfigs[ComponentPreset.CloseSubformButton],
 ].filter(FilterUtils.filterUnsupportedSubformComponents);

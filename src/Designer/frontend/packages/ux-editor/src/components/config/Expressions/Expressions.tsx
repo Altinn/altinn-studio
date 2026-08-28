@@ -43,7 +43,7 @@ export const Expressions = () => {
         <ExpressionContent
           expression={getPropertyValue(formItem, property)}
           heading={<ExpressionHeading formItem={formItem} property={property} />}
-          key={JSON.stringify(property)}
+          key={property.path.join('.')}
           onChange={(expression) => handleExpressionChange(property, expression)}
           onDelete={() => handleDeleteExpression(property)}
         />

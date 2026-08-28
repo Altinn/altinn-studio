@@ -27,7 +27,7 @@ pre-commit:
     app-frontend-eslint:
       root: 'src/App/frontend/'
       glob: '*.{js,jsx,ts,tsx,json}'
-      run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
+      run: yarn eslint --cache --fix --max-warnings=0 --no-warn-ignored {staged_files}
       stage_fixed: true
     form-component-eslint:
       root: 'src/common/ts/form-component/'
@@ -39,11 +39,12 @@ pre-commit:
       run: yarn sort-texts
       stage_fixed: true
     prettier:
-      glob: '*.{js,jsx,tsx,ts,css,md}'
+      glob: '*.{js,jsx,tsx,ts,css}'
       # JS/TS inside the eslint roots are already prettier-formatted by their
       # eslint runs (eslint-plugin-prettier), so skip them here to avoid a
-      # redundant second pass and any parallel write race. CSS/MD in those
-      # dirs are still covered (not excluded).
+      # redundant second pass and any parallel write race. CSS in those dirs
+      # is still covered (not excluded). Generated Markdown is formatted by
+      # the generator that owns it.
       exclude:
         - 'src/App/frontend/**/*.{js,jsx,ts,tsx}'
         - 'src/common/ts/form-component/**/*.{js,jsx,ts,tsx}'

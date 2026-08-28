@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/package.json'
+      - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
       - 'src/common/ts/form-engine/src/**'
@@ -45,6 +46,9 @@ jobs:
 
       - name: install dependencies
         run: yarn --immutable
+
+      - name: verify generated contract
+        run: yarn gen:check
 
       - name: type-check
         run: yarn tsc

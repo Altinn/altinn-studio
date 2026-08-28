@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 import { createStore } from 'zustand';
+import type { IGroupEditProperties } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
@@ -14,7 +15,6 @@ import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenB
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { CompInternal } from 'src/layout/layout';
-import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGroup/utils';
 import type { BaseRow } from 'src/utils/layout/types';
 

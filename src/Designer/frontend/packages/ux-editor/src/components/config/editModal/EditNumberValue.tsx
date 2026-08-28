@@ -1,35 +1,32 @@
 import type { IGenericEditComponent } from '../componentConfig';
-import { FormField } from '../../FormField';
+import { FormField } from 'app-shared/components/FormField';
+import type { PropertyDefinition } from '@app/layout-contract';
+import { validateCatalogValue } from '../../../data/componentCatalog';
 import { setComponentProperty } from '@altinn/ux-editor/utils/component';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
-import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
 import {
   useComponentPropertyLabel,
   useAppContext,
   useComponentPropertyHelpText,
 } from '../../../hooks';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
 import { StudioDecimalInput, StudioSelect } from '@studio/components';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
-type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
-
-export interface EditNumberValueProps<
-  T extends ComponentType,
-  K extends NumberKeys<FormItem<T>>,
-> extends IGenericEditComponent<T> {
-  propertyKey: K;
+export interface EditNumberValueProps<T extends ComponentType> extends IGenericEditComponent<T> {
+  propertyKey: string;
   enumValues?: number[];
+  definition?: PropertyDefinition;
 }
 
-export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<FormItem<T>>>({
+export const EditNumberValue = <T extends ComponentType>({
   component,
   handleComponentChange,
   propertyKey,
   enumValues,
-}: EditNumberValueProps<T, K>) => {
+  definition,
+}: EditNumberValueProps<T>) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
   const { updateLayoutsForPreview } = useAppContext();
@@ -39,7 +36,7 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
   const handleValueChange = async (newValue: number) => {
     const nonNullValue = newValue ?? undefined;
     handleComponentChange(
-      setComponentProperty<T, number, K>(component, propertyKey, nonNullValue),
+      setComponentProperty(component, propertyKey as keyof FormItem<T>, nonNullValue),
       {
         onSuccess: async () => {
           await updateLayoutsForPreview(layoutSet, true);
@@ -48,17 +45,14 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
     );
   };
 
-  const schemaPropertyPath = component.propertyPath
-    ? `${component.propertyPath}/properties/${String(propertyKey)}`
-    : undefined;
-
   return (
     <FormField
       id={component.id}
-      label={componentPropertyLabel(String(propertyKey))}
-      value={component[propertyKey]}
+      label={componentPropertyLabel(String(propertyKey), definition)}
+      value={component[propertyKey as keyof FormItem<T>] as number | undefined}
       onChange={handleValueChange}
-      propertyPath={schemaPropertyPath}
+      customRequired={definition?.required}
+      customValidationRules={(value) => validateCatalogValue(definition, value)}
       helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (

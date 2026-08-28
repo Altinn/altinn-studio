@@ -1,5 +1,5 @@
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { WWWROOT_FILE_PATH } from './constants';
 
 export const updateComponentWithImage = (

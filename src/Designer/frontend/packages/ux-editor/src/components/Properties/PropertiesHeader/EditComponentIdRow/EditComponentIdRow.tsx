@@ -1,19 +1,15 @@
 import { useState } from 'react';
-import {
-  StudioAlert,
-  StudioToggleableTextfieldSchema,
-  type SchemaValidationError,
-} from '@studio/components';
+import { StudioAlert, StudioToggleableTextfield } from '@studio/components';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { useFormLayouts } from '../../../../hooks';
 import { findLayoutsContainingDuplicateComponents } from '../../../../utils/formLayoutUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import { getComponentDefinition, validateCatalogValue } from '../../../../data/componentCatalog';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -27,13 +23,9 @@ export const EditComponentIdRow = ({
 }: EditComponentIdRowProps) => {
   const formLayouts = useFormLayouts();
   const { t } = useTranslation();
-  const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
-    useLayoutSchemaQuery();
-
   const { org, app } = useStudioEnvironmentParams();
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const [isViewMode, setIsViewMode] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
   const idInputValue = component.id;
 
@@ -69,33 +61,26 @@ export const EditComponentIdRow = ({
         return t('ux_editor.error_component_id_exists_as_data_type');
       }
     }
+    const validationError = validateCatalogValue(
+      getComponentDefinition(component.type)?.properties.id,
+      value,
+    );
+    if (validationError === 'pattern') {
+      return t('ux_editor.modal_properties_component_id_not_valid');
+    }
     return '';
-  };
-
-  const handleValidationError = (error: SchemaValidationError | null): void => {
-    const errorCodeMap = {
-      required: t('validation_errors.required'),
-      unique: t('ux_editor.modal_properties_component_id_not_unique_error'),
-      pattern: t('ux_editor.modal_properties_component_id_not_valid'),
-    };
-    setErrorMessage(errorCodeMap[error?.errorCode]);
   };
 
   return (
     <div className={duplicatedId ? classes.duplicatedIdField : classes.container}>
-      <StudioToggleableTextfieldSchema
+      <StudioToggleableTextfield
         customValidation={(value) => {
           return validateId(value);
         }}
-        error={errorMessage}
         key={component.id}
         label={t('ux_editor.modal_properties_component_change_id')}
-        layoutSchema={layoutSchema}
         onBlur={(event) => saveComponentUpdate(event.target.value)}
-        onError={handleValidationError}
         onIsViewMode={setIsViewMode}
-        propertyPath='definitions/component/properties/id'
-        relatedSchemas={[expressionSchema, numberFormatSchema]}
         title={component.id}
         value={component.id}
       />

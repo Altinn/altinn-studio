@@ -5,7 +5,7 @@ import {
   firstAvailableLayout,
   idExists,
 } from './formLayoutsUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
@@ -40,8 +40,6 @@ describe('formLayoutsUtils', () => {
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
-        itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
       };
@@ -51,7 +49,6 @@ describe('formLayoutsUtils', () => {
           containers: {
             [BASE_CONTAINER_ID]: {
               id: BASE_CONTAINER_ID,
-              itemType: 'CONTAINER',
               type: undefined,
             },
           },

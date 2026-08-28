@@ -1,7 +1,9 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import type i18next from 'i18next';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
+import i18next from 'i18next';
+import { getComponentDefinition } from '../data/componentCatalog';
 
 /**
  * Get the help text for a given component type
@@ -10,7 +12,7 @@ import type i18next from 'i18next';
  * @returns The help text for the component, or the default help text if none is found
  */
 export function getComponentHelperTextByComponentType(
-  type: ComponentType | CustomComponentType,
+  type: ComponentType | ComponentPreset,
   t: typeof i18next.t,
 ): string {
   const text = t(`ux_editor.component_help_text.${type}`);
@@ -26,11 +28,15 @@ export function getComponentHelperTextByComponentType(
  * @returns The title text for the component, or the type if none is found
  */
 export function getTitleByComponentType(
-  type: ComponentType | CustomComponentType,
+  type: ComponentType | ComponentPreset,
   t: typeof i18next.t,
 ): string {
   const text = t(`ux_editor.component_title.${type}`);
-  return text !== `ux_editor.component_title.${type}` ? text : type;
+  if (text !== `ux_editor.component_title.${type}`) return text;
+
+  const localizedNames = getComponentDefinition(type)?.metadata.name;
+  const language = i18next.language?.split('-')[0];
+  return localizedNames?.[language === 'nb' ? 'nb' : 'en'] ?? type;
 }
 
 export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof i18next.t): string {

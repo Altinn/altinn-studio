@@ -1,17 +1,14 @@
 import type { FormContainer } from '../../types/FormContainer';
-import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
+import type { SerializedContainerComponent } from '../../types/SerializedComponent';
+import { mergeComponentProperties } from '../componentProperties';
 
 export const internalContainerComponentToExternal = (
   internalContainerComponent: FormContainer,
   children: string[],
-): ExternalContainerComponent => {
-  const propertiesToKeep = { ...internalContainerComponent };
-  delete propertiesToKeep.itemType;
-  delete propertiesToKeep.propertyPath;
-  delete propertiesToKeep.pageIndex;
-  return {
-    ...propertiesToKeep,
-    children,
-    type: internalContainerComponent.type,
-  } as ExternalContainerComponent;
+): SerializedContainerComponent => {
+  const { customProperties, ...component } = internalContainerComponent;
+  return mergeComponentProperties(
+    { ...component, children, type: internalContainerComponent.type },
+    customProperties,
+  ) as SerializedContainerComponent;
 };

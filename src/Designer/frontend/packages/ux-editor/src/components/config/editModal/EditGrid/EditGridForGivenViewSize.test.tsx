@@ -1,15 +1,9 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { screen, fireEvent } from '@testing-library/react';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
-
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
 
 type RenderProps = {
   gridValues?: GridSizes;
@@ -22,8 +16,6 @@ const render = async ({
   viewSize = ViewSize.Md,
   handleUpdateGrid = jest.fn(),
 }: RenderProps = {}) => {
-  await waitForData();
-
   return renderWithProviders(
     <EditGridForGivenViewSize
       handleUpdateGrid={handleUpdateGrid}

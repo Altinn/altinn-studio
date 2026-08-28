@@ -3,6 +3,8 @@ import React, { useMemo } from 'react';
 import { useIsMobileOrTablet } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { GridCell, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
+import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { evalExpr } from 'src/features/expressions';
@@ -32,9 +34,7 @@ import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { IGroupColumnFormatting } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {

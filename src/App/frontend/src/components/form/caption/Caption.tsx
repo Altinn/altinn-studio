@@ -4,10 +4,10 @@ import type { HtmlHTMLAttributes } from 'react';
 import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { ILabelSettings } from '@app/layout-contract/generated/common.generated';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/form/caption/Caption.module.css';
-import type { ILabelSettings } from 'src/layout/common.generated';
 
 type HelpTextProps = {
   text?: React.ReactNode;

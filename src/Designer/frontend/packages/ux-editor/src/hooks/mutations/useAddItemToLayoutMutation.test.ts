@@ -4,7 +4,7 @@ import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';

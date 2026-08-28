@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ImageMainConfig } from './ImageMainConfig';
 import type { FormItem } from '../../../../types/FormItem';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -12,7 +12,6 @@ import { app, org } from '@studio/testing/testids';
 const imageComponent: FormItem<ComponentType.Image> = {
   id: '0',
   type: ComponentType.Image,
-  itemType: 'COMPONENT',
 };
 
 describe('ComponentMainConfig', () => {

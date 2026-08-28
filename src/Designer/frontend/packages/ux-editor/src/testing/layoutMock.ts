@@ -1,12 +1,12 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from '../types/FormComponent';
 import type {
-  ExternalFormLayout,
-  FormLayoutsResponse,
-} from 'app-shared/types/api/FormLayoutsResponse';
+  SerializedFormLayout,
+  SerializedFormLayoutsResponse,
+} from '../types/SerializedComponent';
 import { componentMocks } from './componentMocks';
 import type {
   PagesModelWithPageGroups,
@@ -25,26 +25,17 @@ export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
-  propertyPath: 'definitions/inputComponent',
-  pageIndex: null,
 };
 export const component2IdMock = componentMocks[ComponentType.Paragraph].id;
 export const component2TypeMock = ComponentType.Paragraph;
 export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   id: component2IdMock,
   type: component2TypeMock,
-  itemType: 'COMPONENT',
-  pageIndex: null,
 };
 export const component3IdMock = componentMocks[ComponentType.FileUpload].id;
 export const component3Mock: FormComponent = {
   ...componentMocks[ComponentType.FileUpload],
-  itemType: 'COMPONENT',
-  description: 'test',
   displayMode: 'list',
-  pageIndex: null,
-  propertyPath: 'definitions/fileUploadComponent',
   hasCustomFileEndings: false,
   maxFileSizeInMB: 1,
   maxNumberOfAttachments: 1,
@@ -54,29 +45,22 @@ export const componentWithOptionsMock: FormComponent = {
   id: 'ComponentWithOptionsMock',
   type: ComponentType.Checkboxes,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
-  pageIndex: null,
   optionsId: '',
-  propertyPath: 'definitions/radioAndCheckboxComponents',
 };
 
 export const componentWithMultipleSelectMock: FormComponent = {
   id: 'ComponentWithMultipleSelectMock',
   type: ComponentType.MultipleSelect,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
-  pageIndex: null,
   optionsId: '',
-  propertyPath: 'definitions/multipleSelectComponent',
 };
 
 export const subformComponentMock: FormComponent = {
   id: 'SubformComponent',
   type: ComponentType.Subform,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
-  pageIndex: null,
-  propertyPath: 'definitions/subformComponent',
+  layoutSet: '',
+  tableColumns: [],
 };
 
 export const container1IdMock = 'Container-1';
@@ -99,25 +83,17 @@ export const layoutMock: IInternalLayout = {
   containers: {
     [baseContainerIdMock]: {
       id: baseContainerIdMock,
-      itemType: 'CONTAINER',
       type: undefined,
       index: 0,
-      pageIndex: null,
     },
     [container1IdMock]: {
       id: container1IdMock,
-      itemType: 'CONTAINER',
       type: ComponentType.Group,
-      pageIndex: null,
-      propertyPath: 'definitions/groupComponent',
     },
     [container2IdMock]: {
       id: container2IdMock,
-      itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
       dataModelBindings: { group: { field: 'some-path', dataType: '' } },
-      pageIndex: null,
-      propertyPath: 'definitions/repeatingGroupComponent',
     },
   },
   order: {
@@ -129,7 +105,7 @@ export const layoutMock: IInternalLayout = {
   customDataProperties: customDataPropertiesMock,
 };
 
-export const layout1Mock: ExternalFormLayout = {
+export const layout1Mock: SerializedFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [
@@ -165,7 +141,7 @@ export const layout1Mock: ExternalFormLayout = {
   },
   ...customRootPropertiesMock,
 };
-const layout2Mock: ExternalFormLayout = {
+const layout2Mock: SerializedFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [],
@@ -195,7 +171,7 @@ export const pageGroupsMultiplePagesMock: PagesModelWithPageGroups = {
     },
   ],
 };
-export const externalLayoutsMock: FormLayoutsResponse = {
+export const externalLayoutsMock: SerializedFormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,
   [layout2NameMock]: layout2Mock,
 };

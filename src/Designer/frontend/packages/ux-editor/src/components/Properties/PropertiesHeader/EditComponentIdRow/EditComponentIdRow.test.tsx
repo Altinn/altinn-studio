@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
@@ -135,9 +135,7 @@ describe('EditComponentIdRow', () => {
       component: {
         type: ComponentType.FileUpload,
         id: '',
-        itemType: 'COMPONENT',
-        description: 'test',
-        displayMode: 'test',
+        displayMode: 'list',
         hasCustomFileEndings: false,
         maxFileSizeInMB: 100,
         maxNumberOfAttachments: 2,

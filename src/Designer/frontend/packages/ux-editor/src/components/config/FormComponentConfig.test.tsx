@@ -2,34 +2,25 @@ import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
-import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
-import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
+import { componentCatalog } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('FormComponentConfig', () => {
-  it('should render nothing when schema is undefined, has no properties, or has undefined properties', () => {
-    const schemaConfigs = [
-      { schema: undefined },
-      { schema: { properties: undefined } },
-      { schema: { properties: {} } },
-    ];
-
-    schemaConfigs.forEach((props) => {
-      renderFormComponentConfig(props);
-      const properties = ['grid', 'readOnly', 'required', 'hidden'];
-      properties.forEach((property) => {
-        expect(
-          screen.queryByText(textMock(`ux_editor.component_properties.${property}`)),
-        ).not.toBeInTheDocument();
-      });
+  it('should render nothing when there are no properties', () => {
+    renderFormComponentConfig({ properties: {} });
+    const properties = ['grid', 'readOnly', 'required', 'hidden'];
+    properties.forEach((property) => {
       expect(
-        screen.queryByText('ux_editor.component_propertiesDescription.somePropertyName'),
+        screen.queryByText(textMock(`ux_editor.component_properties.${property}`)),
       ).not.toBeInTheDocument();
-      expect(screen.queryByText('Some description')).not.toBeInTheDocument();
     });
+    expect(
+      screen.queryByText('ux_editor.component_propertiesDescription.somePropertyName'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Some description')).not.toBeInTheDocument();
   });
 
   it('should render expected default components', async () => {
@@ -90,13 +81,11 @@ describe('FormComponentConfig', () => {
       component: {
         id: 'subform-unit-test-id',
         layoutSet: 'subform-unit-test-layout-set',
-        itemType: 'COMPONENT',
+        tableColumns: [],
         type: ComponentType.Subform,
       },
-      schema: {
-        properties: {
-          layoutSet: { value: 'subform-unit-test-layout-set' },
-        },
+      properties: {
+        layoutSet: { type: 'string', required: false },
       },
     });
 
@@ -106,17 +95,12 @@ describe('FormComponentConfig', () => {
   it('should render property text for the "sortOrder" property', async () => {
     const user = userEvent.setup();
     renderFormComponentConfig({
-      schema: {
-        ...InputSchema,
-        properties: {
-          ...InputSchema.properties,
-          sortOrder: {
-            type: 'array',
-            items: {
-              type: 'string',
-              enum: ['option1', 'option2'],
-            },
-          },
+      properties: {
+        ...componentCatalog.Input.properties,
+        sortOrder: {
+          type: 'array',
+          items: { type: 'string', allowedValues: ['option1', 'option2'] },
+          required: false,
         },
       },
     });
@@ -128,24 +112,17 @@ describe('FormComponentConfig', () => {
 
   it('should render property text for the "showValidations" property', () => {
     renderFormComponentConfig({
-      schema: {
-        ...InputSchema,
-        properties: {
-          ...InputSchema.properties,
-          showValidations: {
-            type: 'array',
-            items: {
-              type: 'string',
-              enum: ['true', 'false'],
-            },
-          },
-          anotherProperty: {
-            type: 'array',
-            items: {
-              type: 'string',
-              enum: ['option1', 'option2'],
-            },
-          },
+      properties: {
+        ...componentCatalog.Input.properties,
+        showValidations: {
+          type: 'array',
+          items: { type: 'string', allowedValues: ['true', 'false'] },
+          required: false,
+        },
+        anotherProperty: {
+          type: 'array',
+          items: { type: 'string', allowedValues: ['option1', 'option2'] },
+          required: false,
         },
       },
     });
@@ -154,24 +131,21 @@ describe('FormComponentConfig', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not render property if it is null', () => {
+  it('should not render an unsupported property type', () => {
     renderFormComponentConfig({
-      schema: {
-        ...InputSchema,
-        properties: {
-          ...InputSchema.properties,
-          nullProperty: null,
-        },
+      properties: {
+        ...componentCatalog.Input.properties,
+        unsupportedProperty: { type: 'any', required: false },
       },
     });
-    expect(screen.queryByText('nullProperty')).not.toBeInTheDocument();
+    expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
   it('should call updateComponent with true value when checking a default false property switch', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     renderFormComponentConfig({
-      schema: DatepickerSchema,
+      properties: componentCatalog.Datepicker.properties,
       handleComponentUpdate: handleComponentUpdateMock,
     });
     const button = screen.getByRole('button', {
@@ -192,19 +166,56 @@ describe('FormComponentConfig', () => {
     const { Text: textComponent } = componentMocks;
     renderFormComponentConfig({
       component: textComponent,
-      schema: {
-        properties: {
-          value: { type: 'string' },
-        },
+      properties: {
+        value: { type: 'string', required: true },
       },
     });
     expect(screen.queryByText('ux_editor.component_properties.value')).not.toBeInTheDocument();
   });
 
+  it('renders declared language sources for Video', async () => {
+    const user = userEvent.setup();
+    renderFormComponentConfig({
+      component: {
+        id: 'video',
+        type: ComponentType.Video,
+        video: { src: {} },
+      },
+      properties: componentCatalog.Video.properties,
+    });
+
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.video')));
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.src')));
+
+    expect(screen.getByText(textMock('ux_editor.component_properties.nb'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.nn'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.en'))).toBeInTheDocument();
+  });
+
+  it('keeps generic Image settings while leaving its source to the image library editor', async () => {
+    const user = userEvent.setup();
+    renderFormComponentConfig({
+      component: {
+        id: 'image',
+        type: ComponentType.Image,
+        image: { src: {} },
+      },
+      properties: componentCatalog.Image.properties,
+    });
+
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.image')));
+
+    expect(screen.getByText(textMock('ux_editor.component_properties.width'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.align'))).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('ux_editor.component_properties.src')),
+    ).not.toBeInTheDocument();
+  });
+
   const renderFormComponentConfig = (props: Partial<FormComponentConfigProps> = {}) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: FormComponentConfigProps = {
-      schema: InputSchema,
+      properties: componentCatalog.Input.properties,
       editFormId: '',
       component: inputComponent,
       handleComponentUpdate: jest.fn(),

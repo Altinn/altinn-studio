@@ -1,3 +1,5 @@
+import { CompCategory } from '@app/layout-contract';
+import type { ComponentDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
@@ -6,8 +8,7 @@ import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
 import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
-import { CompCategory } from 'src/layout/common';
-import type { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
@@ -72,7 +73,17 @@ export class ComponentConfig {
     const symbolName = symbol ?? type;
     this.type = type;
     this.typeSymbol = symbolName;
-    this.inner.addProperty(new CG.prop('type', new CG.const(this.type)).insertFirst());
+    this.inner.addProperty(
+      new CG.prop(
+        'type',
+        new CG.const(this.type)
+          .setTitle('Component type', 'Komponenttype')
+          .setDescription(
+            'Identifies which component type this configuration represents.',
+            'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          ),
+      ).insertFirst(),
+    );
 
     return this;
   }
@@ -86,7 +97,18 @@ export class ComponentConfig {
   private ensureTextResourceBindings(): void {
     const existing = this.inner.getProperty('textResourceBindings');
     if (!existing || existing.type instanceof GenerateRaw) {
-      this.inner.addProperty(new CG.prop('textResourceBindings', new CG.obj().optional()));
+      this.inner.addProperty(
+        new CG.prop(
+          'textResourceBindings',
+          new CG.obj()
+            .optional()
+            .setTitle('Text resources', 'Tekstressurser')
+            .setDescription(
+              'Connects component texts to text resources or expressions.',
+              'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+            ),
+        ),
+      );
     }
   }
 
@@ -148,10 +170,14 @@ export class ComponentConfig {
         new CG.prop(
           'removeWhenHidden',
           new CG.expr(ExprVal.Boolean)
-            .setTitle('Remove fields from component dataModelBindings when hidden expression is true')
+            .setTitle(
+              'Remove fields from component dataModelBindings when hidden expression is true',
+              'Behold datamodellfelter når komponenten skjules',
+            )
             .setDescription(
               'Override the logic cleaning data for hidden components at task end, if you want to keep data ' +
                 'referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+              'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
             )
             .optional(),
         ),
@@ -162,9 +188,9 @@ export class ComponentConfig {
       existing.addType(type);
     } else if (existing && !(existing instanceof GenerateRaw)) {
       const union = new CG.union(existing, type);
-      this.inner.addProperty(new CG.prop(name, union));
+      this.inner.addProperty(new CG.prop(name, describeDataModelBindings(union)));
     } else {
-      this.inner.addProperty(new CG.prop(name, type));
+      this.inner.addProperty(new CG.prop(name, describeDataModelBindings(type)));
     }
 
     return this;
@@ -238,13 +264,22 @@ export class ComponentConfig {
 
     const oneComponent = new CG.obj(new CG.prop('componentId', new CG.str()))
       .extends(overrides)
-      .setTitle(`Summary overrides for ${this.type}`)
-      .setDescription(`Properties for how to display the summary of this ${this.type} component`);
+      .setTitle(`Summary overrides for ${this.type}`, `Overstyringer av oppsummering for ${this.type}`)
+      .setDescription(
+        `Properties for how to display the summary of this ${this.type} component`,
+        `Egenskaper som styrer hvordan oppsummeringen av denne ${this.type}-komponenten vises.`,
+      );
 
     const allComponents = new CG.obj(new CG.prop('componentType', new CG.const(this.type)))
       .extends(overrides)
-      .setTitle(`Summary overrides for all ${this.type}`)
-      .setDescription(`Properties for how to display the summary of all ${this.type} components`);
+      .setTitle(
+        `Summary overrides for all ${this.type}`,
+        `Overstyringer av oppsummering for alle ${this.type}-komponenter`,
+      )
+      .setDescription(
+        `Properties for how to display the summary of all ${this.type} components`,
+        `Egenskaper som styrer hvordan oppsummeringen av alle ${this.type}-komponenter vises.`,
+      );
 
     return new CG.union(oneComponent, allComponents);
   }
@@ -270,7 +305,7 @@ export class ComponentConfig {
 
     return new CG.import({
       import: `${this.type}SummaryOverridesWithRef`,
-      from: `src/layout/${this.type}/config.generated.ts`,
+      from: `@app/layout-contract/generated/components/${this.type}/config.generated`,
     });
   }
 
@@ -294,32 +329,27 @@ export class ComponentConfig {
     }
   }
 
-  public generateConfigFile(): string {
+  public generateConfigTypes(): string {
     this.beforeFinalizing();
     // Forces the objects to register in the context and be exported via the context symbols table
     this.inner.exportAs(`Comp${this.typeSymbol}External`);
     this.inner.toTypeScript();
 
-    const impl = new CG.import({
-      import: this.typeSymbol,
-      from: `./index`,
-    });
-
     const CompCategory = new CG.import({
       import: 'CompCategory',
-      from: `src/layout/common`,
+      from: '@app/layout-contract',
     });
 
     const staticElements = [
-      `export function getConfig() {
-         return {
-           def: new ${impl.toTypeScript()}(),
-           capabilities: ${JSON.stringify(this.config.capabilities, null, 2)} as const,
-           behaviors: ${JSON.stringify(this.behaviors, null, 2)} as const,
-         };
-       }`,
-      `export type TypeConfig = {
+      `export const componentConfig = {
          category: ${CompCategory}.${this.config.category},
+         availability: '${this.config.availability}',
+         capabilities: ${JSON.stringify(this.config.capabilities, null, 2)},
+         behaviors: ${JSON.stringify(this.behaviors, null, 2)},
+       } as const;`,
+      `export type TypeConfig = {
+         category: typeof componentConfig.category;
+         availability: typeof componentConfig.availability;
          layout: ${this.inner};
          summaryOverrides: ${this.getSummaryOverridesImport('plain')?.toTypeScript() ?? 'undefined'};
          summaryOverridesWithRef: ${this.getSummaryOverrides()?.toTypeScript() ?? 'undefined'};
@@ -327,6 +357,40 @@ export class ComponentConfig {
     ];
 
     return staticElements.join('\n\n');
+  }
+
+  public generateSerializedType(): string {
+    this.beforeFinalizing();
+    return `export type Comp${this.typeSymbol}Serialized = ${this.inner.toTypeScriptDefinition(undefined)};`;
+  }
+
+  public generateRuntimeConfigFile(): string {
+    const impl = new CG.import({
+      import: this.typeSymbol,
+      from: `src/layout/${this.type}/index`,
+    });
+    const componentConfig = new CG.import({
+      import: 'componentConfig',
+      from: `@app/layout-contract/generated/components/${this.type}/config.generated`,
+    });
+    return `export function getConfig() {
+      return {
+        def: new ${impl.toTypeScript()}(),
+        ...${componentConfig.toTypeScript()},
+      };
+    }`;
+  }
+
+  public generateComponentCatalogEntry(): ComponentDefinition {
+    this.beforeFinalizing();
+    return {
+      kind: this.config.category === CompCategory.Container ? 'container' : 'component',
+      category: this.config.category,
+      capabilities: this.config.capabilities,
+      behaviors: this.behaviors,
+      metadata: this.config.metadata,
+      properties: this.inner.componentCatalogProperties(),
+    };
   }
 
   public generateDefClass(): string {
@@ -425,4 +489,13 @@ export class ComponentConfig {
     this.beforeFinalizing();
     return this.inner.toJsonSchema();
   }
+}
+
+function describeDataModelBindings<T extends DescribableCodeGenerator<unknown>>(type: T): T {
+  return type
+    .setTitle('Data model bindings', 'Datamodellbindinger')
+    .setDescription(
+      'Connects component values to fields in the data model.',
+      'Kobler verdiene i komponenten til felter i datamodellen.',
+    );
 }

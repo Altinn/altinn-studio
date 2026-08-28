@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ImageUploadComponent, type ImageUploadComponentProps } from './ImageUploadComponent';
 import { ShapeOptions } from './ImageUploadUtils';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -10,7 +10,6 @@ const defaultComponent = {
   id: 'imageUpload1',
   type: ComponentType.ImageUpload,
   label: 'Upload Image',
-  itemType: 'COMPONENT' as const,
   crop: { shape: ShapeOptions.Circle, diameter: 100 },
 };
 

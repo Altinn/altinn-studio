@@ -3,7 +3,7 @@ import { NewExpressionButton } from './NewExpressionButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../containers/FormItemContext';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormItem } from '../../../../types/FormItem';
@@ -16,18 +16,15 @@ describe('NewExpressionButton', () => {
   const testComponents: KeyValuePairs<FormItem> = {
     'a paragraph element': {
       id: 'test',
-      itemType: 'COMPONENT',
       type: ComponentType.Paragraph,
     },
     'an input element': {
       id: 'test',
-      itemType: 'COMPONENT',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     },
     'a repeating group': {
       id: 'test',
-      itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
       dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       edit: {},
@@ -53,14 +50,13 @@ describe('NewExpressionButton', () => {
       id: 'mockId',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      itemType: 'COMPONENT',
     };
     renderAddButton({ formItem, handleUpdate });
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await user.click(addButton);
     const dropdownOption = screen.getByRole('button', {
-      name: textMock('right_menu.expressions_property_read_only'),
+      name: textMock('ux_editor.component_properties.readOnly'),
     });
     await user.click(dropdownOption);
 
@@ -74,7 +70,6 @@ const renderAddButton = (formItemContext = {}) => {
     formItem: {
       id: 'mockId',
       type: ComponentType.Paragraph,
-      itemType: 'COMPONENT',
     },
     handleSave: jest.fn(),
     handleUpdate: jest.fn(),

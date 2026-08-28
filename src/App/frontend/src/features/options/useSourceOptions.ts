@@ -1,4 +1,5 @@
 import dot from 'dot-object';
+import type { IDataModelReference, IOptionSource } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
@@ -14,7 +15,6 @@ import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation'
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
 
 export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
   const langTools = useLanguage();

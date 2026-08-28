@@ -1,10 +1,11 @@
 import React from 'react';
 import classes from './ToolbarItemComponent.module.css';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { InformationPanelComponent } from './InformationPanelComponent';
 
 export type ToolbarItemProvidedProps = {
-  componentType: ComponentType | CustomComponentType;
+  componentType: ComponentType | ComponentPreset;
   componentTitle: string;
   icon?: React.ComponentType;
 };

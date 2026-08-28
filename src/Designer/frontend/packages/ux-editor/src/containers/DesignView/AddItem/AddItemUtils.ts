@@ -1,14 +1,21 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { type ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
-import { allComponents, defaultComponents, formItemConfigs } from '../../../data/formItemConfig';
+import {
+  allComponents,
+  defaultComponents,
+  formItemConfigs,
+  getFormItemConfig,
+} from '../../../data/formItemConfig';
 import { mapComponentToToolbarElement } from '../../../utils/formLayoutUtils';
 import { ElementsUtils } from '../../../components/Elements/ElementsUtils';
 import type { ConfPageType } from '../../../components/Elements/types/ConfigPageType';
+import { getComponentDefinition } from '../../../data/componentCatalog';
 
-type AddableComponentType = ComponentType | CustomComponentType;
+type AddableComponentType = ComponentType | ComponentPreset;
 
 const OTHER_COMPONENT_CATEGORY = 'other';
 
@@ -60,7 +67,7 @@ const getQuickAddComponents = (
     containerId,
     allowedComponentTypes,
   );
-  return componentTypes.map((element) => mapComponentToToolbarElement(formItemConfigs[element]));
+  return componentTypes.map((element) => mapComponentToToolbarElement(getFormItemConfig(element)));
 };
 
 const getAvailableComponents = (
@@ -80,7 +87,7 @@ const getAvailableComponents = (
       .filter((element) =>
         isComponentAllowedInContainer(element, containerId, validChildTypes, allowedComponentTypes),
       )
-      .map((element) => mapComponentToToolbarElement(formItemConfigs[element]));
+      .map((element) => mapComponentToToolbarElement(getFormItemConfig(element)));
 
     if (componentListForKey.length > 0) {
       allComponentLists[key] = componentListForKey;
@@ -95,6 +102,12 @@ const isComponentAllowedInContainer = (
   validChildTypes: ComponentType[] | undefined,
   allowedComponentTypes?: AddableComponentType[],
 ): boolean => {
+  if (
+    componentType !== ComponentPreset.CloseSubformButton &&
+    getComponentDefinition(componentType)?.metadata.lifecycle?.status === 'beta'
+  ) {
+    return false;
+  }
   if (
     containerId !== BASE_CONTAINER_ID &&
     !validChildTypes?.includes(componentType as ComponentType)

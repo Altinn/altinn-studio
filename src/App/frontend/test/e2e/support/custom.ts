@@ -3,6 +3,7 @@ import 'cypress-wait-until';
 import { breakpoints } from '@app/form-component';
 import escapeRegex from 'escape-string-regexp';
 import deepEqual from 'fast-deep-equal';
+import type { ILayoutFile } from '@app/layout-contract/generated/common.generated';
 import type axe from 'axe-core';
 import type { Options as AxeOptions } from 'cypress-axe';
 
@@ -12,7 +13,6 @@ import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 't
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { IFeatureToggles } from 'src/features/toggles';
-import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 

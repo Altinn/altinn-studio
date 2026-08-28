@@ -3,13 +3,14 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { subformLayoutMock } from '../../../../../testing/subformLayoutMock';
 import { EditColumnElement, type EditColumnElementProps } from './EditColumnElement';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
@@ -133,7 +134,7 @@ describe('EditColumnElementComponentSelect', () => {
     const user = userEvent.setup();
     renderEditColumnElement({
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        headerContent: getTextResourceId(subformLayoutMock.component4.textResourceBindings.title),
         cellContent: { query: addressDataField },
       },
     });
@@ -160,7 +161,7 @@ describe('EditColumnElementComponentSelect', () => {
     const user = userEvent.setup();
     renderEditColumnElement({
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        headerContent: getTextResourceId(subformLayoutMock.component4.textResourceBindings.title),
         cellContent: { query: addressDataField },
       },
     });

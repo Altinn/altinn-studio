@@ -6,18 +6,19 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import type { FormItemConfigs, SupportedComponentType } from '../data/formItemConfig';
+import type { FormItemConfig } from '../data/formItemConfig';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
 
-export const mapComponentToToolbarElement = <T extends keyof FormItemConfigs>(
-  c: FormItemConfigs[T],
+export const mapComponentToToolbarElement = <T extends ComponentType | ComponentPreset>(
+  c: FormItemConfig<T>,
 ): IToolbarElement => ({
   label: c.name,
   icon: c.icon,
@@ -62,7 +63,7 @@ export const addComponent = (
   position: number = -1,
 ): IInternalLayout => {
   const newLayout = ObjectUtils.deepCopy(layout);
-  component.pageIndex = calculateNewPageIndex(newLayout, containerId, position);
+  setPageIndex(newLayout, component.id, calculateNewPageIndex(newLayout, containerId, position));
   newLayout.components[component.id] = component;
   if (position < 0) newLayout.order[containerId].push(component.id);
   else newLayout.order[containerId].splice(position, 0, component.id);
@@ -80,15 +81,20 @@ const calculateNewPageIndex = (
   layout: IInternalLayout,
   containerId: string,
   position: number,
-): number => {
+): number | null => {
   const parent = layout.containers[containerId];
   const isParentMultiPage = parent.type === ComponentType.RepeatingGroup && parent?.edit?.multiPage;
   if (!isParentMultiPage) return null;
   const previousComponentPosition = findPositionOfPreviousComponent(layout, containerId, position);
   if (previousComponentPosition === undefined) return 0;
   const previousComponentId = layout.order[containerId][previousComponentPosition];
-  const previousComponent = getItem(layout, previousComponentId);
-  return previousComponent?.pageIndex;
+  return layout.pageIndexes?.[previousComponentId] ?? null;
+};
+
+const setPageIndex = (layout: IInternalLayout, itemId: string, pageIndex: number | null): void => {
+  layout.pageIndexes ??= {};
+  if (pageIndex === null) delete layout.pageIndexes[itemId];
+  else layout.pageIndexes[itemId] = pageIndex;
 };
 
 const findPositionOfPreviousComponent = (
@@ -123,7 +129,7 @@ export const addContainer = <T extends ContainerComponentType>(
   position: number = -1,
 ): IInternalLayout => {
   const newLayout = ObjectUtils.deepCopy(layout);
-  container.pageIndex = calculateNewPageIndex(newLayout, parentId, position);
+  setPageIndex(newLayout, id, calculateNewPageIndex(newLayout, parentId, position));
   newLayout.containers[id] = container as FormContainer<T>;
   newLayout.order[id] = [];
   if (position < 0) newLayout.order[parentId].push(id);
@@ -154,6 +160,10 @@ export const updateContainer = <T extends ContainerComponentType>(
       ...oldLayout.containers[currentId],
     };
     delete oldLayout.containers[currentId];
+    if (oldLayout.pageIndexes?.[currentId] !== undefined) {
+      oldLayout.pageIndexes[newId] = oldLayout.pageIndexes[currentId];
+      delete oldLayout.pageIndexes[currentId];
+    }
 
     // Update ID in parent container order:
     const parentContainer = Object.keys(oldLayout.order).find((containerId: string) => {
@@ -194,6 +204,7 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
       componentId,
     );
     delete newLayout.components[componentId];
+    delete newLayout.pageIndexes?.[componentId];
   }
   return newLayout;
 };
@@ -226,8 +237,6 @@ export const removeComponentsByType = (
 export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
   const navigationButtons: FormComponent = {
     id,
-    itemType: 'COMPONENT',
-    onClickAction: () => {},
     textResourceBindings: { next: undefined, back: undefined },
     type: ComponentType.NavigationButtons,
   };
@@ -254,11 +263,10 @@ export const createEmptyComponentStructure = (): InternalLayoutComponents => ({
     [BASE_CONTAINER_ID]: {
       id: BASE_CONTAINER_ID,
       index: 0,
-      itemType: 'CONTAINER',
       type: undefined,
-      pageIndex: null,
     },
   },
+  pageIndexes: {},
   order: {
     [BASE_CONTAINER_ID]: [],
   },
@@ -280,8 +288,7 @@ export const moveLayoutItem = (
 ): IInternalLayout => {
   const newLayout = ObjectUtils.deepCopy(layout);
   const oldContainerId = findParentId(layout, id);
-  const item = getItem(newLayout, id);
-  item.pageIndex = calculateNewPageIndex(newLayout, newContainerId, newPosition);
+  setPageIndex(newLayout, id, calculateNewPageIndex(newLayout, newContainerId, newPosition));
   if (oldContainerId) {
     newLayout.order[oldContainerId] = ArrayUtils.removeItemByValue(
       newLayout.order[oldContainerId],
@@ -305,15 +312,15 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends SupportedComponentType>(
+export const addItemOfType = <T extends ComponentType | ComponentPreset>(
   layout: IInternalLayout,
   componentType: T,
   id: string,
   parentId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
-  const newItem = generateFormItem(componentType, id);
-  return newItem.itemType === 'CONTAINER'
+  const newItem: FormItem<T> = generateFormItem<T>(componentType, id);
+  return formItemUtils.isContainer(newItem)
     ? addContainer(layout, newItem, id, parentId, position)
     : addComponent(layout, newItem, parentId, position);
 };
