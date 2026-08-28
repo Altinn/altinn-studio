@@ -23,7 +23,7 @@
           "name": "SelectedItem",
           "profession": "SelectedItemProfession"
         },
-        "bindingToShowInSummary": "SelectedItem",
+        "summaryBinding": "name",
         "dataListId": "people",
         "tableHeaders": {
           "name": "Navn",
@@ -35,8 +35,8 @@
           "alternatives": [5, 10],
           "default": 5
         },
-        "mapping": {
-          "Search": "search"
+        "queryParameters": {
+          "search": ["dataModel", "Search"]
         },
         "required": true
       },

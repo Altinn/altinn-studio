@@ -39,7 +39,6 @@ export class List extends ListDef {
     const groupBinding = dmBindings?.group;
     const checkedBinding = dmBindings?.checked;
     const summaryBinding = component?.summaryBinding;
-    const legacySummaryBinding = component?.bindingToShowInSummary;
     const formData = useNodeFormDataWhenType(baseComponentId, 'List');
 
     if (groupBinding) {
@@ -57,24 +56,11 @@ export class List extends ListDef {
         return Object.values(rowData).join(', ');
       }
 
-      if (legacySummaryBinding && dmBindings) {
-        window.logError(
-          `Node ${baseComponentId}: BindingToShowInSummary is deprecated and does not work ` +
-            `along with a group binding, use summaryBinding instead`,
-        );
-      }
-
       return '';
     }
 
     if (summaryBinding && dmBindings) {
       return formData?.[summaryBinding] ?? '';
-    } else if (legacySummaryBinding && dmBindings) {
-      for (const [key, binding] of Object.entries(dmBindings)) {
-        if (binding?.field === legacySummaryBinding) {
-          return formData?.[key] ?? '';
-        }
-      }
     }
 
     return '';
