@@ -9,8 +9,8 @@
     "./schemas/*": "./schemas/*"
   },
   "scripts": {
-    "format": "prettier --write \"src/**/*.ts\" package.json tsconfig.json",
-    "format:check": "prettier --check \"src/**/*.ts\" package.json tsconfig.json",
+    "format": "prettier --write \"src/**/*.ts\" eslint.config.mjs vitest.config.ts package.json tsconfig.json",
+    "format:check": "prettier --check \"src/**/*.ts\" eslint.config.mjs vitest.config.ts package.json tsconfig.json",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
