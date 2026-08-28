@@ -5,7 +5,11 @@
   "PhoneNumber": null,
   "Email": "test@test.com",
   "PartyId": 510004,
-  "Party": {},
+  "Party": {
+    "partyId": "510004",
+    "partyUuid": "fc27897e-3f96-4af8-9a41-d9bc4dee0599",
+    "ssn": ""
+  },
   "UserType": 2,
   "ProfileSettingPreference": {
     "Language": "nb"
