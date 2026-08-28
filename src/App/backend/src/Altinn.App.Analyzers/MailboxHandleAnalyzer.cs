@@ -290,10 +290,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     {
         internal Location Location { get; } = location;
 
-        /// <summary>
-        /// The local the handle was declared into — the exchange's identity as the diagnostics name it, since
-        /// the <c>out</c> variable is what the author wrote to route the exchange to its handler.
-        /// </summary>
+        /// <summary>The local the handle was declared into — the exchange's identity as the diagnostics name it.</summary>
         internal string HandleIdentifier { get; } = handleIdentifier;
     }
 

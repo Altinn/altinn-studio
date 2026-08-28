@@ -9,11 +9,6 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 public sealed class ServiceTaskPipeline
 {
-    /// <summary>
-    /// Takes the conclusion apart from the rest and appends it, so "exactly one conclusion, and it is
-    /// last" is a property of the only constructor rather than of a validation something could skip. The
-    /// items are copied, so a builder still composing cannot mutate a pipeline it already handed back.
-    /// </summary>
     internal ServiceTaskPipeline(IReadOnlyList<PipelineItem> items, PipelineConclusion conclusion)
     {
         Items = [.. items, conclusion];
@@ -21,9 +16,8 @@ public sealed class ServiceTaskPipeline
 
     /// <summary>
     /// Everything the pipeline composes, in composition order and ending with its conclusion — one list,
-    /// read by shape. Never empty: the last entry is always the <see cref="PipelineConclusion"/>, and a
-    /// simple service task's pipeline is that entry alone. A position in this list is an item's index —
-    /// the one identity every step of the pipeline is dispatched by, the concluding step included.
+    /// read by shape. A position in this list is an item's index — the one identity every step of the
+    /// pipeline is dispatched by, the concluding step included.
     /// </summary>
     internal IReadOnlyList<PipelineItem> Items { get; }
 }
@@ -55,8 +49,7 @@ internal abstract class PipelineItem
 /// stage either opens the exchange's mailbox or has nothing to do with mailboxes. Splitting them is what
 /// lets each shape's work delegate take the arguments it actually needs, so no execution reads a nullable
 /// declaration to rediscover which kind of stage it is running. The private constructor keeps the set
-/// closed. A stage has no identity of its own beyond its position: it is dispatched by its index in
-/// <see cref="ServiceTaskPipeline.Items"/>.
+/// closed.
 /// </summary>
 /// <remarks>
 /// Not a record: the only thing that would distinguish two stages is a delegate reference, so value
@@ -138,9 +131,7 @@ internal sealed class ReplySegment : PipelineItem
 
     /// <summary>
     /// The item that opened the mailbox this handler answers — the exchange's identity in the carry and in
-    /// the mint step's engine identity, exactly as for a terminal. A receive step names <em>this handler</em>
-    /// by its own item index; which exchange the handler answers is read off here, from composition data
-    /// <c>Define</c> fixed, rather than looked up per hop.
+    /// the mint step's engine identity, exactly as for a terminal.
     /// </summary>
     internal int OpeningIndex { get; }
 
@@ -158,11 +149,8 @@ internal sealed class ReplySegment : PipelineItem
 /// </summary>
 /// <remarks>
 /// <para>
-/// An ordinary <see cref="PipelineItem"/>, and always the last one: the conclusion is dispatched by its
-/// item index like everything else, so a step of a pipeline never has to be identified by the absence of
-/// an index. Its <see cref="PipelineItem.StepOptions"/> are the concluding step's alone, winning
-/// field-wise over the task's own exactly as a stage's do, and null for a simple
-/// <see cref="IServiceTask"/>, whose conclusion is configured by the task-level options and nothing else.
+/// A conclusion's <see cref="PipelineItem.StepOptions"/> are null for a simple <see cref="IServiceTask"/>,
+/// whose conclusion is configured by the task-level options and nothing else.
 /// </para>
 /// <para>
 /// Not a record, for the same reason <see cref="ServiceTaskStage"/> is not: both members hold nothing but
@@ -215,8 +203,7 @@ internal abstract class PipelineConclusion : PipelineItem
 
         /// <summary>
         /// The item that opened the mailbox — the exchange's identity in the carry and in the mint step's
-        /// engine identity, read off this handler for the reason <see cref="ReplySegment.OpeningIndex"/>
-        /// gives.
+        /// engine identity.
         /// </summary>
         public int OpeningIndex { get; }
 

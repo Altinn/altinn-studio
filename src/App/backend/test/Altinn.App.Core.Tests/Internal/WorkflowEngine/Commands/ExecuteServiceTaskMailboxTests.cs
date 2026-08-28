@@ -27,7 +27,7 @@ public class ExecuteServiceTaskMailboxTests
 
     /// <summary>
     /// The item index of the handler that answers that exchange: <see cref="ArchivingTask"/>'s conclusion,
-    /// composed after the sending stage and the plain one. This is what a receive step names.
+    /// composed after the sending stage and the plain one.
     /// </summary>
     private const int ReplyHandlerIndex = 2;
 
@@ -331,8 +331,7 @@ public class ExecuteServiceTaskMailboxTests
 
     /// <summary>
     /// A receive step reaches the reply handler and no stage: it names the handler's own item, so the stage
-    /// that opened the exchange is a different index entirely and never runs. The exchange the handler
-    /// answers is read off the handler, not off the step.
+    /// that opened the exchange is a different index entirely and never runs.
     /// </summary>
     [Fact]
     public async Task ReceiveStep_NamingItsHandler_RunsTheHandlerAndNotTheSendingStage()

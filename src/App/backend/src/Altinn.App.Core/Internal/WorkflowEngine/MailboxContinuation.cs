@@ -92,8 +92,7 @@ internal abstract record MailboxContinuation
         /// <summary>
         /// The handler's own position in the pipeline, which is where the next segment starts. Sourced from
         /// the executing step's own payload, for the reason
-        /// <see cref="AwaitNextMessage.HandlerItemIndex"/> gives — so the relay plans the segment from the
-        /// index it was handed instead of searching the pipeline for the handler again.
+        /// <see cref="AwaitNextMessage.HandlerItemIndex"/> gives.
         /// </summary>
         public int HandlerItemIndex { get; }
 

@@ -20,8 +20,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <remarks>
 /// The two indexes are different positions, and only <see cref="OpeningStageIndex"/> addresses the mailbox:
 /// the enqueueing hop needs it to tell <c>EnqueueReceiveWorkflow</c> which carried mailbox to declare, and
-/// the step beside it names the handler instead. Carried on the plan rather than looked up again, since the
-/// walk that produced the step had the handler in hand.
+/// the step beside it names the handler instead.
 /// </remarks>
 /// <param name="Step">The receive workflow's single step.</param>
 /// <param name="OpeningStageIndex">The item index whose stage's mint the receiver is enqueued against.</param>
@@ -250,9 +249,6 @@ internal sealed class WorkflowCommandSet
         {
             switch (pipeline.Items[index])
             {
-                // The two reply shapes end a segment identically: the step names the handler by its own item
-                // index, and the plan carries the exchange that handler answers so the enqueueing hop knows
-                // which carried mailbox to declare the receiver against.
                 case ReplySegment handler:
                     return new ServiceTaskSegmentPlan(
                         steps,
@@ -266,8 +262,6 @@ internal sealed class WorkflowCommandSet
                     );
 
                 case PipelineConclusion.FinalStep:
-                    // The concluding step carries its index like every other step, so a simple IServiceTask's
-                    // one step reads "ExecuteServiceTask: 0" rather than a bare key.
                     steps.Add(
                         CreateCommand(
                             ExecuteServiceTask.Key,
@@ -312,13 +306,7 @@ internal sealed class WorkflowCommandSet
             }
         }
 
-        // Unreachable from the runtime: a pipeline's items always end with its conclusion, and both conclusion
-        // shapes return, so a walk that starts anywhere inside the list reaches one. Falling out here takes the
-        // segment to start past the last item, which has exactly two causes — an afterHandlerItemIndex naming
-        // the last item or beyond (a direct caller's mistake; the relay's comes from a handler dispatch just
-        // ran, so an item follows it), and a Define that returned a shorter pipeline to this hop than to the
-        // dispatch that produced that index, breaking its determinism contract. Named rather than swallowed:
-        // planning nothing would silently drop the rest of the task.
+        // Named rather than swallowed: planning nothing here would silently drop the rest of the task.
         throw new UnreachableException(
             $"Service task '{serviceTaskType}' composes {pipeline.Items.Count} pipeline items, so a segment "
                 + $"starting at index {FindSegmentStart(afterHandlerItemIndex)} reaches no conclusion. Either "
@@ -346,11 +334,10 @@ internal sealed class WorkflowCommandSet
     /// ways, deliberately: in the payload, which dispatch reads; in
     /// <see cref="StepRequest.ServiceTaskItemIndex"/>, which the enqueueing hop resolves the step's options by
     /// — reading that back out of the payload would mean deserializing what this hop just wrote; and in the
-    /// OperationId, which is the engine's own record of the step. That OperationId carries the index for the
-    /// reason every other step's does: the index <em>is</em> the identity, so a bare key would give every
-    /// receive step of every exchange in a multi-exchange pipeline one telemetry name, and would quietly
-    /// reintroduce "no index" as a meaning. Which exchange the step answers is not carried at all: it is read
-    /// off the handler this index resolves to.
+    /// OperationId, which is the engine's own record of the step. The OperationId carries the index because a
+    /// bare key would give every receive step of every exchange in a multi-exchange pipeline one telemetry
+    /// name. Which exchange the step answers is not carried at all: it is read off the handler this index
+    /// resolves to.
     /// </remarks>
     internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, int handlerItemIndex) =>
         CreateCommand(

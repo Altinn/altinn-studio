@@ -60,9 +60,6 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Equal(0, handle.OpeningIndex);
     }
 
-    /// <summary>
-    /// The handle's OpeningIndex is the item position its stage occupies — the exchange's identity everywhere.
-    /// </summary>
     [Fact]
     public void MailboxHandle_CarriesTheOpeningItemsIndex()
     {

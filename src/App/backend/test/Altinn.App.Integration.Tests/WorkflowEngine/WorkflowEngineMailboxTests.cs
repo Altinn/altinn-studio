@@ -108,9 +108,8 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         //
         // The conclusion is this pipeline's item 3, and every step names the item it runs, so
         // "ExecuteServiceTask: 3" is a step id that really does get emitted - on the receive workflows,
-        // asserted below. Its absence *here* is what says Main never runs the handler. Exact-match, not a
-        // StartsWith predicate: this is the collection overload of DoesNotContain, and a prefix predicate
-        // would invert the assertion into one that can never hold.
+        // asserted below. Exact-match, not a StartsWith predicate: this is the collection overload of
+        // DoesNotContain, and a prefix predicate would invert the assertion into one that can never hold.
         Assert.DoesNotContain("ExecuteServiceTask: 3", mainOperationIds);
         Assert.Equal("EnqueueReceiveWorkflow", mainOperationIds[^1]);
 
@@ -198,9 +197,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             {
                 Assert.Equal("Completed", receiver.OverallStatus);
                 EngineStep step = Assert.Single(receiver.Steps);
-                // The step names the handler it runs — this pipeline's conclusion, item 3 — exactly as a
-                // stage's step names its stage. The workflow around it carries the exchange's identity
-                // separately, in its own "Mailbox receive: …" operation id.
+                // The step names the handler it runs — this pipeline's conclusion, item 3.
                 Assert.Equal("ExecuteServiceTask: 3", step.OperationId);
             }
         );

@@ -55,7 +55,7 @@ public static class Diagnostics
         // Close to the runtime backstop in ServiceTaskPipelineBuilder.ClaimMailbox (which names the opening
         // stage's item index, which the analyzer cannot know), so an author who meets one of them after the
         // other reads one rule rather than two. '{0}' is the identifier of the local the handle was declared
-        // into — what the author wrote to route this exchange to its handler.
+        // into.
         public static readonly DiagnosticDescriptor MailboxHandleAnsweredTwice = Error(
             "ALTINNAPP0702",
             Category.Contracts,

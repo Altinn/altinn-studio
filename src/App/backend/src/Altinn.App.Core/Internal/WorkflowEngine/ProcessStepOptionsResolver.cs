@@ -108,12 +108,8 @@ internal sealed class ProcessStepOptionsResolver
                 return null;
             }
 
-            // One item, one fallback: the step names the item it runs, so "the three sources are alternatives,
-            // never a chain" is the shape of this lookup rather than a rule enforced on top of it. Whatever
-            // that item leaves unset falls back to the task's options, never to another item's — a
-            // HandleReplies handler does not inherit the terminal's wait budget, which belongs to a different
-            // exchange. Options declared for one step win field-wise over the task's own, mirroring how the
-            // merged result then wins over the command default in Resolve.
+            // Options declared for one step win field-wise over the task's own, mirroring how the merged
+            // result then wins over the command default in Resolve.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
             ProcessStepOptions? stepOptions = serviceTaskItemIndex is { } itemIndex
                 ? pipeline.Items.ElementAtOrDefault(itemIndex)?.StepOptions

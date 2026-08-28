@@ -176,9 +176,6 @@ public class ExecuteServiceTaskStageTests
     [Fact]
     public async Task ConclusionIndex_RunsTheFinally_AndAutoAdvances()
     {
-        // The concluding engine step names the conclusion by its item index, like every other step — it is
-        // the pipeline's Finally, the only step that can conclude the task, and it runs after every stage
-        // has completed.
         var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
@@ -265,12 +262,6 @@ public class ExecuteServiceTaskStageTests
         Assert.Contains("no pipeline item at index 2", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// Every step this expansion builds names the one item it runs, the conclusion's step included, so a
-    /// payload carrying no index at all was written by a version whose step identity differed — the shape an
-    /// old receive step's <c>repliesTo</c> also arrives in, that property being skipped by deserialization.
-    /// Refused permanently, and before the task is resolved, so an unregistered type cannot turn it retryable.
-    /// </summary>
     [Fact]
     public async Task IndexLessPayload_FailsPermanently_AsAnInvalidPayload()
     {
@@ -358,9 +349,6 @@ public class ExecuteServiceTaskStageTests
     [Fact]
     public async Task ItemIndexPointingAtAReplyHandler_WithNoRendezvous_FailsAsReceiptMissing()
     {
-        // Stages, reply handlers and the conclusion share one index space — the pipeline's Items. An index
-        // whose item answers messages, on a step the engine handed nothing to answer, is the general
-        // receipt-missing rule rather than a not-found: the item exists, the message does not.
         var task = new ReplyFirstTask();
         var command = CreateCommand(task);
 

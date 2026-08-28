@@ -22,9 +22,8 @@ internal sealed record EnqueueReceiveWorkflowPayload(WorkflowEnqueueRequest Enqu
 
 /// <summary>
 /// The last step of Main for a service task that opens a mailbox: enqueues the task's first
-/// <em>receive workflow</em> — one step, the handler answering that exchange named by its own item index (the
-/// pipeline's terminal for a single-exchange task, the mid-pipeline handler the first segment ends on
-/// otherwise), run once against one message.
+/// <em>receive workflow</em> — one step, the handler answering that exchange named by its own item index, run
+/// once against one message.
 /// </summary>
 /// <remarks>
 /// Last in Main on purpose: the receiver exists before Main settles, keeping the collection's frontier

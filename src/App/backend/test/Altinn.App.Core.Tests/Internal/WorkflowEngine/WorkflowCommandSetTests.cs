@@ -185,7 +185,6 @@ public class WorkflowCommandSetTests
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("signing", pipeline);
 
-        // The conclusion is the pipeline's item 1 and its step is named like every other: no bare key any more.
         Assert.Equal([$"{ExecuteServiceTask.Key}: 0", $"{ExecuteServiceTask.Key}: 1"], OperationIds(plan));
         Assert.Null(plan.Receive);
     }
@@ -290,11 +289,6 @@ public class WorkflowCommandSetTests
         Assert.Null(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 3).Receive);
     }
 
-    /// <summary>
-    /// The receive half's step names the handler by its item index, exactly as a stage's step names its stage.
-    /// A bare command key here would give every receive step of every exchange one telemetry name, and would
-    /// make "no index" mean "a receive step" — the convention this index space exists to retire.
-    /// </summary>
     [Fact]
     public void PlanSegment_ReceiveHalfsStep_IsNamedByTheHandlersItemIndex()
     {
@@ -311,13 +305,6 @@ public class WorkflowCommandSetTests
         );
     }
 
-    /// <summary>
-    /// The walk always reaches a returning arm, because a pipeline's items end with its conclusion and both
-    /// conclusion shapes return — so the only way out of the loop is a segment that starts past the last item.
-    /// The runtime cannot ask for one (the relay's index comes from a handler dispatch just ran, and an item
-    /// always follows a handler), which is why this is an <c>UnreachableException</c>; it is pinned here
-    /// because a silent empty plan would drop the rest of the task instead.
-    /// </summary>
     [Fact]
     public void PlanSegment_StartingPastTheLastItem_ThrowsRatherThanPlanningNothing()
     {
@@ -332,7 +319,6 @@ public class WorkflowCommandSetTests
         Assert.Contains("Define did not return the same pipeline", thrown.Message, StringComparison.Ordinal);
     }
 
-    /// <summary>The pipeline every two-segment walk below composes.</summary>
     private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
         new ServiceTaskPipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)

@@ -348,11 +348,6 @@ public class MintMailboxTests
         Assert.Null(carry.Mailboxes);
     }
 
-    /// <summary>
-    /// Drift, plain verdict: the index resolves to an item that opens no mailbox — stages inserted,
-    /// reordered or removed shift every index behind them, and an unguarded reshape is the accepted hazard.
-    /// An index has no old value to search for, so there is no relocation story to tell.
-    /// </summary>
     [Fact]
     public async Task Execute_WhenNoDeclaringStageComposesAtIndex_FailsPermanentlyWithThePlainVerdict()
     {

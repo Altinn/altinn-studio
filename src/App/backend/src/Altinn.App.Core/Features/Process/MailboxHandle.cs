@@ -39,8 +39,7 @@ public sealed class MailboxHandle
     /// <summary>
     /// The item that opens the mailbox. The exchange's identity everywhere downstream: the carry's key, the
     /// mint step's engine identity, and the index the step that enqueues a receive workflow declares that
-    /// receiver against. Not what the receive step itself carries — that names the <em>handler</em> by its own
-    /// item index, and reads the exchange off the handler this index sits on.
+    /// receiver against.
     /// </summary>
     internal int OpeningIndex { get; }
 }

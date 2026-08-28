@@ -30,10 +30,7 @@ public class ExecuteServiceTaskReplyTests
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
 
-    /// <summary>
-    /// The item index of the stage that opens the tested exchanges' mailbox — the exchange's identity in the
-    /// carry, and what each handler's composition names. Never what a step carries.
-    /// </summary>
+    /// <summary>The item index of the stage that opens the tested exchanges' mailbox.</summary>
     private const int OpeningIndex = 0;
 
     /// <summary>The item index of <see cref="ArchivingTask"/>'s terminal, which answers that exchange.</summary>
@@ -113,8 +110,7 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an ordinary item rather
-    /// than the conclusion, so the pipeline carries on after the exchange and ends with a final step. Items:
-    /// the opening stage at 0, its handler at 1, a plain stage at 2, the conclusion at 3.
+    /// than the conclusion, so the pipeline carries on after the exchange and ends with a final step.
     /// </summary>
     private sealed class ContinuingTask : IPipelineServiceTask
     {
@@ -156,8 +152,6 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// Two exchanges, one answered each way: the first's mid-pipeline, the second's by the terminal.
-    /// Item indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2, and the
-    /// terminal — the second exchange's handler — at 3.
     /// </summary>
     private sealed class TwoExchangeTask : IPipelineServiceTask
     {
@@ -292,12 +286,11 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// A receive step the way the runtime enqueues one: it names the handler that answers the message, by that
-    /// handler's own item index. The exchange comes off the handler, never off the step.
+    /// handler's own item index.
     /// </summary>
     private static ExecuteServiceTaskPayload ReceiveStep(int handlerItemIndex = ArchivingReplyIndex) =>
         new("archiving", ItemIndex: handlerItemIndex);
 
-    /// <summary>Any step of the pipeline: a stage's, a handler's or the conclusion's, all named alike.</summary>
     private static ExecuteServiceTaskPayload Step(int itemIndex) => new("archiving", ItemIndex: itemIndex);
 
     [Fact]
@@ -388,12 +381,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.Null(task.Conclusion);
     }
 
-    /// <summary>
-    /// The guard's <em>other</em> route, on a pipeline that does answer messages: a receive step whose index
-    /// has landed on the concluding step after a reshape. The verdict is the same one a foreign workflow gets,
-    /// because with one index the two are indistinguishable from here — which is why the message names both
-    /// and names the index. The conclusion must not run: it would conclude the task on a message nothing read.
-    /// </summary>
     [Fact]
     public async Task ReceiveStep_WhoseIndexLandsOnTheConclusion_FailsAsReceiptOnConclusion()
     {
@@ -596,7 +583,6 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal("archiving", awaiting.ServiceTaskType);
-        // The handler's own index, not the exchange's: the successor names the same handler.
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
     }
 
@@ -636,8 +622,7 @@ public class ExecuteServiceTaskReplyTests
     /// <summary>
     /// A receive step is dispatched by the item it names, so a pipeline reshaped until that index composes
     /// nothing fails it permanently instead of running whatever replaced the terminal. The route is a redeploy
-    /// while the exchange was in flight. Matching is exact: an unresolvable index gets the plain not-found
-    /// verdict, naming the index and no relocation story.
+    /// while the exchange was in flight.
     /// </summary>
     /// <param name="withRendezvous">
     /// Both cells of the arm, which requires no rendezvous to notice the miss — so its wording must not claim
@@ -693,8 +678,6 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal("archiving", continuing.ServiceTaskType);
-        // The two indexes are different positions, and the relay needs both: the handler's, to plan what
-        // follows it, and the exchange's, for the carry key it dropped and the operation id it names.
         Assert.Equal(ContinuingSegmentIndex, continuing.HandlerItemIndex);
         Assert.Equal(OpeningIndex, continuing.OpeningStageIndex);
     }
@@ -768,8 +751,6 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
-        // Names the item and both routes, for the reason its two siblings do: with one index, an engine that
-        // omitted the rendezvous and a reshape that moved this index onto a handler look the same from here.
         Assert.Contains($"index {ContinuingSegmentIndex}", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Contains("workflow engine omitted it", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Contains("reshaped", failed.ErrorMessage, StringComparison.Ordinal);
@@ -777,10 +758,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.Null(task.ClosedReason);
     }
 
-    /// <summary>
-    /// Both handler shapes on one pipeline, in one index space: the step's index picks the item, and the item's
-    /// type — a mid-pipeline handler or the terminal — decides which vocabulary maps its verdict.
-    /// </summary>
     [Theory]
     [InlineData(TwoExchangeTask.SegmentIndex, "segment.onMessage")]
     [InlineData(TwoExchangeTask.TerminalIndex, "terminal.onMessage")]
@@ -796,11 +773,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal([expected], task.Answered);
     }
 
-    /// <summary>
-    /// A receive step whose index lands on something that answers no message is refused, never redirected to a
-    /// neighbouring handler: a stage there is <c>MailboxReceiptOnStage</c>, nothing there is
-    /// <c>PipelineItemNotFound</c>, and each names what it found. Both are the mid-flight reshape.
-    /// </summary>
     [Theory]
     [InlineData(0, "MailboxReceiptOnStage")]
     [InlineData(2, "MailboxReceiptOnStage")]
@@ -822,10 +794,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.Contains($"index {itemIndex}", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// A pipeline that answers an exchange mid-pipeline still concludes with its final step, and the step
-    /// naming the conclusion's own item index is what runs it.
-    /// </summary>
     [Fact]
     public async Task Conclusion_OfAPipelineThatAnswersMidPipeline_RunsItsFinalStep()
     {
@@ -839,12 +807,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.Null(task.Message);
     }
 
-    /// <summary>
-    /// A step naming no item at all is refused, never answered: every step this expansion builds names the one
-    /// item it runs, the concluding step included, so an index-less payload — the shape an old receive step's
-    /// <c>repliesTo</c> also arrives in — was written by a version whose step identity differed. No handler
-    /// runs, and the carry is untouched: a refusal concludes nothing.
-    /// </summary>
     [Fact]
     public async Task AnIndexLessStep_IsRefusedWithoutRunningAnyHandler()
     {
@@ -864,12 +826,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.NotNull(carry.Mailboxes);
     }
 
-    /// <summary>
-    /// The refusal runs <em>before</em> the service task is resolved, which is the only thing that makes a
-    /// broken payload converge: nothing about the pipeline changes what a step naming no item can mean, and
-    /// resolving first would turn an unregistered type into a retryable failure that never does. It is the
-    /// one guard left out here — every other now needs the pipeline to know the item's shape.
-    /// </summary>
     [Fact]
     public async Task AnIndexLessStep_OnAnUnregisteredServiceTaskType_StillFailsPermanently()
     {

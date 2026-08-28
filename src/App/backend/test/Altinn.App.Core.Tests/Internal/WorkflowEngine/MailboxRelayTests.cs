@@ -33,21 +33,18 @@ public class MailboxRelayTests
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
     private const string ServiceTaskType = "archiving";
 
-    /// <summary>
-    /// The item index of the stage that opens the tested exchanges' mailbox — the exchange's identity in the
-    /// carry and in the wording, never what a step names.
-    /// </summary>
+    /// <summary>The item index of the stage that opens the tested exchanges' mailbox.</summary>
     private const int OpeningStageIndex = 0;
 
     /// <summary>
     /// The item index of the handler answering that exchange in <see cref="ArchivingTask"/>, the default
-    /// pipeline: its terminal, right after the opening stage. This is what a receive step names.
+    /// pipeline: its terminal, right after the opening stage.
     /// </summary>
     private const int ArchivingReplyIndex = 1;
 
     /// <summary>
     /// The item index of the mid-pipeline handler in <see cref="ArchiveThenJournalTask"/> and
-    /// <see cref="ArchiveThenRecordTask"/> — the position a continuation's segment starts after.
+    /// <see cref="ArchiveThenRecordTask"/>.
     /// </summary>
     private const int SegmentHandlerIndex = 1;
     private static readonly DateTimeOffset _mailboxDeadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
@@ -233,8 +230,7 @@ public class MailboxRelayTests
     private const int JournalIndex = 3;
 
     /// <summary>
-    /// The item index of the terminal that answers the journal's exchange — one past its opening stage, and
-    /// what that exchange's receive step names.
+    /// The item index of the terminal that answers the journal's exchange — one past its opening stage.
     /// </summary>
     private const int JournalTerminalIndex = 4;
 
@@ -640,10 +636,6 @@ public class MailboxRelayTests
         Assert.Contains(ServiceTaskType, step.Command.Data.ToString(), StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// A successor is a receive step like the first one: it names the handler that answers the message, and
-    /// the index it names is whatever the continuation carried — never re-derived from the pipeline here.
-    /// </summary>
     [Fact]
     public async Task SuccessorReceiver_NamesTheHandlerTheContinuationCarried()
     {
@@ -663,8 +655,6 @@ public class MailboxRelayTests
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
         Assert.Equal(ArchivingReplyIndex, payload.ItemIndex);
-        // Held twice on purpose: the payload dispatch reads, and the field the enqueueing hop resolves the
-        // step's options by without deserializing the payload it just wrote.
         Assert.Equal(ArchivingReplyIndex, step.ServiceTaskItemIndex);
     }
 
@@ -817,7 +807,6 @@ public class MailboxRelayTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal(ServiceTaskType, awaiting.ServiceTaskType);
-        // The handler's own index travels to the successor; the exchange's stays the carry's key.
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
         Assert.Equal(4, awaiting.Position);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
@@ -958,8 +947,6 @@ public class MailboxRelayTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
-        // Both indexes, each for its own job: the handler's says where the next segment starts, the
-        // exchange's is the carry key just dropped and the operation id the continuation is named by.
         Assert.Equal(SegmentHandlerIndex, continuing.HandlerItemIndex);
         Assert.Equal(OpeningStageIndex, continuing.OpeningStageIndex);
 
@@ -1224,7 +1211,6 @@ public class MailboxRelayTests
         Assert.DoesNotContain($"{MintMailbox.Key}: {OpeningStageIndex}", StepOperationIds(continuation));
 
         EnqueueReceiveWorkflowPayload receive = ReceiveEnqueuePayload(continuation);
-        // The mailbox the receiver is declared against is still addressed by its opening stage's index.
         Assert.Equal(JournalIndex, receive.OpeningStageIndex);
         WorkflowRequest receiver = Assert.Single(receive.EnqueueRequest.Workflows);
         Assert.True(receiver.IsHead);
@@ -1242,14 +1228,12 @@ public class MailboxRelayTests
         var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
-        // The step names the handler — the terminal, one item past the journal's send — not the exchange.
         Assert.Equal(JournalTerminalIndex, payload.ItemIndex);
     }
 
     /// <summary>
     /// The segment is planned from the handler index the continuation carries, with no lookup of its own: a
-    /// continuation whose <em>opening</em> index is nonsense plans exactly the same segment, because nothing
-    /// on this hop searches the pipeline for the handler that answers that exchange.
+    /// continuation whose <em>opening</em> index is nonsense plans exactly the same segment.
     /// </summary>
     [Fact]
     public async Task Continuation_PlansFromTheCarriedHandlerIndex_NotFromTheExchangeItClosed()
@@ -1274,7 +1258,6 @@ public class MailboxRelayTests
             StepOperationIds(continuation)
         );
 
-        // Only the wording follows the opening index.
         Assert.Equal("Mailbox continue: Task_2 · after 99", continuation.OperationId);
     }
 
@@ -1312,7 +1295,6 @@ public class MailboxRelayTests
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2", $"{ExecuteServiceTask.Key}: 3"], StepOperationIds(continuation));
 
-        // The concluding step names the conclusion's own item, exactly as Main's does for a Finally.
         var appData = JsonSerializer.Deserialize<AppCommandData>(continuation.Steps[^1].Command.Data!.Value)!;
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(3, payload.ItemIndex);

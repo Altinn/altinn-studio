@@ -40,8 +40,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
     /// <summary>
     /// The item index of the handler answering the probe task's exchange: the conclusion, composed right after
-    /// the stage that opens the mailbox at item index 0. This is what a receive step names; the opening index
-    /// stays the carry's key, and is the literal <c>"0"</c> in the blobs below.
+    /// the stage that opens the mailbox at item index 0 — the literal <c>"0"</c> in the blobs below.
     /// </summary>
     private const int HandlerIndex = 1;
 
@@ -251,8 +250,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             WorkflowId = Guid.NewGuid(),
             StepId = stepId,
             Mailbox = mailbox,
-            // A receive step as the runtime enqueues one: it names the handler that answers the message, and
-            // the exchange that handler answers is read off the resolved pipeline.
+            // A receive step as the runtime enqueues one: it names the handler that answers the message.
             Payload = CommandPayloadSerializer.Serialize(
                 new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: HandlerIndex)
             ),

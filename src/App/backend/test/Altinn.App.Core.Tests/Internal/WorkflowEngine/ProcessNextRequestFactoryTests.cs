@@ -548,8 +548,9 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally. The task-wide options carry the 30 min timeout and the poll's 48 h
-    /// wait budget; the stage overrides the timeout for itself.
+    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally. The task-wide
+    /// options carry the 30 min timeout and the poll's 48 h wait budget; the stage overrides the timeout for
+    /// itself.
     /// </summary>
     private sealed class SigningTask : IPipelineServiceTask
     {
@@ -597,10 +598,7 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert — one ExecuteServiceTask engine step per item, in composition order, each payload carrying
-        // that item's index and a distinct OperationId for the engine's records. The concluding step (the
-        // pipeline's Finally) is the last item and is named exactly like the rest — the exact shape a simple
-        // IServiceTask produces on its own, where the conclusion is item 0.
+        // Assert
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         Assert.Equal(2, serviceTaskSteps.Count);
 
@@ -834,10 +832,6 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MintMailbox.Key, ExtractCommandKeys(bundle));
     }
 
-    /// <summary>
-    /// Fixed at assembly time, per the rule that the exchange's identity is never re-derived at a later hop:
-    /// the step that enqueues the receiver is told which item index opens the exchange it answers.
-    /// </summary>
     [Fact]
     public async Task Create_MailboxPipeline_CarriesTheOpeningIndexOnTheReceiveEnqueuePayload()
     {
@@ -951,8 +945,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
         var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal("archiving", receivePayload.ServiceTaskType);
-        // A receive step names the handler that answers the message — here the terminal, at item index 1 —
-        // fixed at the receiver's enqueue. The exchange it answers comes off that handler, not off the step.
+        // A receive step names the handler that answers the message — here the terminal, at item index 1.
         Assert.Equal(1, receivePayload.ItemIndex);
         Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
 

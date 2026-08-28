@@ -24,10 +24,9 @@ internal sealed class WorkflowCallbackStateCarry
     public WorkflowCallbackStateCarry() { }
 
     /// <summary>
-    /// Restores the carry from an incoming blob. Keys must be <em>canonical</em> renderings of an item index —
-    /// what <see cref="Mailboxes"/> writes — so <c>"00"</c> is refused rather than folded onto <c>"0"</c>:
-    /// two spellings of one index would otherwise collapse into one entry here and let the blob's last writer
-    /// silently win over the other exchange.
+    /// Restores the carry from an incoming blob. Keys must be <em>canonical</em> renderings of an item index,
+    /// so <c>"00"</c> is refused rather than folded onto <c>"0"</c>: two spellings of one index would otherwise
+    /// collapse into one entry here and let the blob's last writer silently win over the other exchange.
     /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {

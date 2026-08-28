@@ -82,9 +82,8 @@ internal sealed class MailboxRelay
     /// removes an entry the blob does not have, silently: the concluded mailbox stays in the published blob,
     /// and a later mint for a stage at that index hits <c>RecordMailbox</c>'s refusal to carry two mailboxes
     /// for one index, which <c>MintMailbox.Execute</c>'s catch turns into a retryable failure that never
-    /// converges. This is the reshape misassignment the design accepts rather than guards — the old scheme
-    /// misassigned equally, by pointing the successor's enqueue at a stale exchange instead — so it is recorded
-    /// here, not defended against.
+    /// converges. This is the reshape misassignment the design accepts rather than guards, recorded here
+    /// rather than defended against.
     /// </remarks>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskExchangeResult result,
@@ -185,8 +184,7 @@ internal sealed class MailboxRelay
     /// sits under neither <see cref="ServiceTaskExchangeResult"/> nor anything it shares. Merging them behind
     /// a common supertype would put <c>Success(action)</c> back within reach of a handler that must not have
     /// it. Both indexes mean exactly what they mean in <see cref="Decide"/>; here
-    /// <paramref name="handlerItemIndex"/> is additionally where the next segment starts, which is a
-    /// consequence of it being the handler's own position rather than a second meaning.
+    /// <paramref name="handlerItemIndex"/> is additionally where the next segment starts.
     /// </remarks>
     internal static ProcessEngineCommandResult DecideSegment(
         ServiceTaskStageExchangeResult result,

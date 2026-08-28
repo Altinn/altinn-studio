@@ -381,8 +381,6 @@ public class ProcessStepOptionsResolverTests
     [Fact]
     public void Resolve_Stage_IndexPastTheLastItem_FallsBackToTaskOptions()
     {
-        // An index nothing composes at resolves no stage, so tier 3 is the task's own — the same
-        // fallback an unresolvable name used to take.
         var resolver = CreateResolverWithPipelineTask();
 
         var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 9);
@@ -395,8 +393,6 @@ public class ProcessStepOptionsResolverTests
     [Fact]
     public void Resolve_Conclusion_OwnOptionsWin_AndDoNotReachTheStages()
     {
-        // The concluding engine step names the conclusion by its item index like any other step; its options
-        // come from Finally, with the task's own as the fallback for whatever Finally leaves unset.
         var resolver = CreateResolverWithPipelineTask();
 
         var conclusion = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 2);
@@ -512,8 +508,7 @@ public class ProcessStepOptionsResolverTests
 
     /// <summary>
     /// The promise <c>HandleReplies</c>' <c>options</c> parameter makes: they configure the step each
-    /// execution of <em>those</em> handlers runs as. The receive step names the handler by its own item
-    /// index, so the lookup is the same one a stage's step takes.
+    /// execution of <em>those</em> handlers runs as.
     /// </summary>
     [Fact]
     public void Resolve_ReceiveStep_AnsweredMidPipeline_UsesThatHandlersOwnOptions()
@@ -551,11 +546,6 @@ public class ProcessStepOptionsResolverTests
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // falls back to the task's
     }
 
-    /// <summary>
-    /// One item, one fallback: a step naming an index the pipeline no longer composes at — or naming nothing
-    /// at all — resolves the task's options and never another item's. No item's options stand in for a
-    /// missing one, which is what "the sources are alternatives, never a chain" now means literally.
-    /// </summary>
     [Theory]
     [InlineData(9)]
     [InlineData(null)]

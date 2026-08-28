@@ -233,10 +233,6 @@ public class WorkflowCallbackStateCarryTests
         Assert.Equal(2, carry.Mailboxes!.Count);
     }
 
-    /// <summary>
-    /// A key that is not an opening index is a blob this version cannot honor — written by some other shape
-    /// of this app-lib — and restoring it fails loudly rather than silently dropping the exchange.
-    /// </summary>
     [Fact]
     public void Restore_OfABlobKeyedByAnythingButAnIndex_Throws()
     {
@@ -256,11 +252,6 @@ public class WorkflowCallbackStateCarryTests
         Assert.Contains("'SendToArchive'", exception.Message, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// A key that parses as an index but is not how this app-lib writes one is refused too. Accepting it would
-    /// fold two spellings of the same index onto one entry, so a blob carrying both would silently lose one
-    /// exchange to whichever the dictionary happened to read last.
-    /// </summary>
     [Theory]
     [InlineData("00")]
     [InlineData("007")]
