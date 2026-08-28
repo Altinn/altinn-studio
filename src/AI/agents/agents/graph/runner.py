@@ -112,12 +112,16 @@ from shared.utils.langfuse_utils import (
     get_current_trace_id,
     flush_langfuse,
 )
-from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
+from agents.services.llm import (
+    MINIMUM_INTENT_CONFIDENCE,
+    parse_intent_async,
+    suggest_goal_correction,
+    check_scope_async,
+)
 
 import logging as _logging
 _log = _logging.getLogger(__name__)
 
-MINIMUM_INTENT_CONFIDENCE = 0.1
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 _UNSAFE_GOAL_MESSAGE = (
     "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "

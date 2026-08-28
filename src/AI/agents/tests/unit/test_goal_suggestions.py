@@ -2,6 +2,7 @@
 for. Offering one the gate rejects sends them round in a circle, and the prompt
 alone cannot guarantee that, so the filter is in code."""
 
+import threading
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -19,6 +20,15 @@ def _verdicts(**by_goal):
 
     async def parse(goal, attachments=None):
         return MagicMock(safe=by_goal[goal], confidence=0.9, reason=None)
+
+    return parse
+
+
+def _confidences(**by_goal):
+    """Stand in for the classifier when only confidence differs."""
+
+    async def parse(goal, attachments=None):
+        return MagicMock(safe=True, confidence=by_goal[goal], reason=None)
 
     return parse
 
@@ -86,3 +96,47 @@ class TestSuggestionFailures:
             ),
         ):
             assert await suggest_goal_correction(REJECTED_GOAL, GATE_REASON) == []
+
+
+class TestConfidenceGate:
+    async def test_a_suggestion_below_the_workflow_threshold_is_dropped(self):
+        """The workflow rejects on confidence too, so offering one below the
+        threshold would be refused the moment the user picked it."""
+        with (
+            patch(
+                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                return_value=[SAFE_SUGGESTION, "gjør det der"],
+            ),
+            patch(
+                "agents.services.llm.intent_parser.parse_intent_async",
+                new=_confidences(**{SAFE_SUGGESTION: 0.9, "gjør det der": 0.02}),
+            ),
+        ):
+            kept = await suggest_goal_correction(REJECTED_GOAL, GATE_REASON)
+
+        assert kept == [SAFE_SUGGESTION]
+
+
+class TestEventLoop:
+    async def test_the_blocking_generator_runs_off_the_event_loop(self):
+        """It does synchronous LLM I/O, and the workflow task shares its loop
+        with cancellation handling."""
+        loops: list = []
+
+        def blocking_generator(goal, reason=None):
+            loops.append(threading.current_thread().name)
+            return [SAFE_SUGGESTION]
+
+        with (
+            patch(
+                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                new=blocking_generator,
+            ),
+            patch(
+                "agents.services.llm.intent_parser.parse_intent_async",
+                new=_verdicts(**{SAFE_SUGGESTION: True}),
+            ),
+        ):
+            await suggest_goal_correction(REJECTED_GOAL, GATE_REASON)
+
+        assert loops and loops[0] != threading.current_thread().name

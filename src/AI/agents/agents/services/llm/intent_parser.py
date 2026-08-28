@@ -9,6 +9,8 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+MINIMUM_INTENT_CONFIDENCE = 0.1
+
 class ParsedIntent(BaseModel):
     """Structured representation of user intent"""
     action: str  # add, remove, update, move
@@ -164,7 +166,9 @@ async def suggest_goal_correction(
     suggestions could not be produced.
     """
     try:
-        candidates = suggest_goals_with_llm(goal, rejection_reason)
+        candidates = await asyncio.to_thread(
+            suggest_goals_with_llm, goal, rejection_reason
+        )
     except Exception as e:
         log.warning(f"Could not generate goal suggestions: {e}")
         return []
@@ -192,4 +196,6 @@ async def _would_be_accepted(goal: str) -> bool:
         parsed = await parse_intent_async(goal)
     except Exception:
         return False
-    return parsed.safe
+    # The workflow gate rejects on confidence too, so a suggestion below the
+    # threshold would be offered and then refused.
+    return parsed.safe and parsed.confidence >= MINIMUM_INTENT_CONFIDENCE
