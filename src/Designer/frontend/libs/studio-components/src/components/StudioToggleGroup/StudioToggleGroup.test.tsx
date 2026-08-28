@@ -17,9 +17,14 @@ describe('StudioToggleGroup', () => {
   });
 });
 
-const renderStudioToggleGroup = (props: StudioToggleGroupProps): RenderResult => {
+type RenderProps = Omit<
+  StudioToggleGroupProps,
+  'aria-label' | 'aria-labelledby' | 'data-toggle-group'
+>;
+
+const renderStudioToggleGroup = (props: RenderProps): RenderResult => {
   return render(
-    <StudioToggleGroup data-toggle-group='Name' {...props}>
+    <StudioToggleGroup aria-label='Name' {...props}>
       <StudioToggleGroup.Item>{mockItemText}</StudioToggleGroup.Item>
     </StudioToggleGroup>,
   );
