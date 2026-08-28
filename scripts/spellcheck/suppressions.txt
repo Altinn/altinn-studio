@@ -263,3 +263,12 @@ som
 # Paket is the .NET dependency manager named in the standard gitignore template
 @paths **/.gitignore
 Paket
+
+# eur1.html is the static TAD-form fixture the pdf3 e2e renders; its bytes
+# are baked into the committed PDF snapshots, so its text (typos and British
+# spellings alike) is a contract of those snapshots
+@paths src/Runtime/devenv/pkg/runtimes/kind/config/testserver/eur1.html
+additons
+Endorsment
+initialled
+litres
