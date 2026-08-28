@@ -1,3 +1,4 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
@@ -6,7 +7,6 @@ import { isDataModelBindingsRequired } from 'src/layout';
 import { isRepeatingChild } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { DataModelBindingValidationContext } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 export function validateDataModelBindingsAny<T extends CompTypes>(

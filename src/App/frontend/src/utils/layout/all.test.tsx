@@ -1,9 +1,9 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import layoutSchema from '@app/layout-contract/schemas/json/layout/layout.schema.v1.json';
 import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
-import layoutSchema from 'schemas/json/layout/layout.schema.v1.json';
 import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';

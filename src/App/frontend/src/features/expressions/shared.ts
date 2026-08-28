@@ -1,9 +1,9 @@
 import fs from 'node:fs';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 
 import type { ExternalApisResult } from 'src/core/queries/externalApi';
 import type { ExprPositionalArgs, ExprVal, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { IRawTextResource } from 'src/features/language/textResources';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IApplicationSettings, IData, IInstance, IProcess, ITask } from 'src/types/shared';
 

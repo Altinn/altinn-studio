@@ -1,6 +1,7 @@
 import type { AriaAttributes } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
+import type { IMapping } from '@app/layout-contract/generated/common.generated';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';

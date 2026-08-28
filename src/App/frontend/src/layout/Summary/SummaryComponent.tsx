@@ -2,6 +2,8 @@ import React from 'react';
 
 import { Flex } from '@app/form-component';
 import cn from 'classnames';
+import type { IGrid, IPageBreak } from '@app/layout-contract/generated/common.generated';
+import type { SummaryDisplayProperties } from '@app/layout-contract/generated/components/Summary/config.generated';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
@@ -21,8 +23,6 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IGrid, IPageBreak } from 'src/layout/common.generated';
-import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
 
 /**
  * These overrides include all props from the Summary component that should be forwarded to underlying component

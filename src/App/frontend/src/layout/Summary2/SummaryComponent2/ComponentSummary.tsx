@@ -2,11 +2,11 @@ import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
+import { CompCategory } from '@app/layout-contract';
 import cn from 'classnames';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { getComponentDef } from 'src/layout';
-import { CompCategory } from 'src/layout/common';
 import { useHasOnlyEmptyChildren, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import classes from 'src/layout/Summary2/Summary2.module.css';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';

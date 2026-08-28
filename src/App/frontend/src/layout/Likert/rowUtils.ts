@@ -1,7 +1,8 @@
+import type { ILikertFilter } from '@app/layout-contract/generated/components/Likert/config.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { typedBoolean } from 'src/utils/typing';
-import type { ILikertFilter } from 'src/layout/Likert/config.generated';
 
 export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilter = []) => {
   const start = filters.find(({ key }) => key === 'start')?.value;
