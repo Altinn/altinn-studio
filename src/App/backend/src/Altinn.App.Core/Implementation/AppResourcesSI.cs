@@ -9,7 +9,6 @@ using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using static System.Text.Json.JsonSerializer;
@@ -30,7 +29,6 @@ public class AppResourcesSI : IAppResources
 
     private readonly AppSettings _settings;
     private readonly IAppMetadata _appMetadata;
-    private readonly ILogger _logger;
     private readonly Telemetry? _telemetry;
 
     /// <summary>
@@ -39,19 +37,16 @@ public class AppResourcesSI : IAppResources
     /// <param name="settings">The app repository settings.</param>
     /// <param name="appMetadata">App metadata service</param>
     /// <param name="hostingEnvironment">The hosting environment</param>
-    /// <param name="logger">A logger from the built in logger factory.</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AppResourcesSI(
         IOptions<AppSettings> settings,
         IAppMetadata appMetadata,
         IWebHostEnvironment hostingEnvironment,
-        ILogger<AppResourcesSI> logger,
         Telemetry? telemetry = null
     )
     {
         _settings = settings.Value;
         _appMetadata = appMetadata;
-        _logger = logger;
         _telemetry = telemetry;
     }
 
@@ -127,15 +122,7 @@ public class AppResourcesSI : IAppResources
     public string GetClassRefForLogicDataType(string dataType)
     {
         using var activity = _telemetry?.StartGetClassRefActivity();
-        ApplicationMetadata applicationMetadata;
-        try
-        {
-            applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
-        }
-        catch (AggregateException ex)
-        {
-            throw new ApplicationConfigException("Failed to read application metadata", ex.InnerException ?? ex);
-        }
+        ApplicationMetadata applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
         string classRef = string.Empty;
 
         DataType? element = applicationMetadata.DataTypes.SingleOrDefault(d =>

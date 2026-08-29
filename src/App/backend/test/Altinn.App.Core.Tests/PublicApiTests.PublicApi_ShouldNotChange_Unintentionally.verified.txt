@@ -2616,7 +2616,7 @@ namespace Altinn.App.Core.Implementation
 {
     public class AppResourcesSI : Altinn.App.Core.Internal.App.IAppResources
     {
-        public AppResourcesSI(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.AspNetCore.Hosting.IWebHostEnvironment hostingEnvironment, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Implementation.AppResourcesSI> logger, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public AppResourcesSI(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.AspNetCore.Hosting.IWebHostEnvironment hostingEnvironment, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public string? GetCalculationConfiguration(string dataTypeId) { }
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }

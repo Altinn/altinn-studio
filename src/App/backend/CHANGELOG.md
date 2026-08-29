@@ -44,7 +44,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. Use `Altinn.App.Core.Internal.Data.IDataClient` instead.
 - Breaking: remove the rest of the `Altinn.App.Core.Interface` namespace — the legacy interfaces `IAppEvents`, `IApplication`, `IAuthentication`, `IAuthorization`, `IDSF`, `IER`, `IEvents`, `IInstance`, `IInstanceEvent`, `IPersonLookup`, `IPersonRetriever`, `IPrefill`, `IProcess`, `IProfile`, `IRegister`, `ISecrets`, `ITaskEvents` and `IUserTokenProvider`. Each has already been a compile error since before v8, pointing at its replacement in `Altinn.App.Core.Internal.*`; `studioctl app upgrade` has rewritten these for every app since the v7-to-v8 upgrade.
 - Breaking: remove `Altinn.App.Core.Internal.Texts.IText` and its `TextClient` implementation. Use `IAppResources.GetTexts()` instead.
-- Breaking: remove `IDataClient.DeleteBinaryData`. Use `DeleteData` with `delayed: false` instead.
+- Breaking: remove `IDataClient.DeleteBinaryData`. Use `DeleteData` with `delay: false` instead.
 - Breaking: remove the two `IDataClient.UpdateBinaryData` overloads that took an `HttpRequest` and separate `org`/`app` strings. Use the overload that takes an `InstanceIdentifier` and a `Stream` instead.
 - Breaking: remove `IAppResources.GetApplication`, `GetApplicationXACMLPolicy` and `GetApplicationBPMNProcess`. Use `IAppMetadata.GetApplicationMetadata`, `GetApplicationXACMLPolicy` and `GetApplicationBPMNProcess` instead.
 - Breaking: remove `ValidationIssue.InstanceId`. It has not been populated for years — a validation issue is always scoped to the instance it was raised for, so this never carried information callers needed.

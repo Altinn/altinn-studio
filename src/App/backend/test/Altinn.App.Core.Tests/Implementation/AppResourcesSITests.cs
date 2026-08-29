@@ -5,7 +5,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -54,7 +53,6 @@ public class AppResourcesSITests
                 Options.Create(appSettings),
                 appMetadata.Object,
                 null!,
-                new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
@@ -111,7 +109,6 @@ public class AppResourcesSITests
                 Options.Create(appSettings),
                 appMetadata.Object,
                 null!,
-                new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
@@ -165,7 +162,6 @@ public class AppResourcesSITests
                 Options.Create(appSettings),
                 appMetadata.Object,
                 null!,
-                new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
@@ -196,7 +192,6 @@ public class AppResourcesSITests
                 Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
                 Mock.Of<IAppMetadata>(),
                 null!,
-                new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
@@ -225,7 +220,6 @@ public class AppResourcesSITests
                 Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
                 Mock.Of<IAppMetadata>(),
                 null!,
-                new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
