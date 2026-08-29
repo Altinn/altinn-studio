@@ -119,9 +119,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
         services.AddAltinnCdnClient();
         services.AddRegisterClient();
-#pragma warning disable CS0618 // Type or member is obsolete
-        services.AddHttpClient<IText, TextClient>();
-#pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
         services.AddSingleton<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();

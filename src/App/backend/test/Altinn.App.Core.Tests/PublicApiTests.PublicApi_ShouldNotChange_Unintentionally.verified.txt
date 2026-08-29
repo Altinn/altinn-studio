@@ -2617,9 +2617,6 @@ namespace Altinn.App.Core.Implementation
     public class AppResourcesSI : Altinn.App.Core.Internal.App.IAppResources
     {
         public AppResourcesSI(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.AspNetCore.Hosting.IWebHostEnvironment hostingEnvironment, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Implementation.AppResourcesSI> logger, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public Altinn.Platform.Storage.Interface.Models.Application GetApplication() { }
-        public string? GetApplicationBPMNProcess() { }
-        public string? GetApplicationXACMLPolicy() { }
         public string? GetCalculationConfiguration(string dataTypeId) { }
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }
@@ -2788,9 +2785,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UnlockDataElement(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Guid dataGuid, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string? filename, System.Guid dataGuid, System.IO.Stream stream, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
-        [System.Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes " +
-            "a Stream instead")]
-        public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         [System.Obsolete("Use the UpdateFormData method with Instance parameter instead")]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default)
             where T :  notnull { }
@@ -2812,131 +2806,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     {
         public SignClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
         public System.Threading.Tasks.Task SignDataElements(Altinn.App.Core.Internal.Sign.SignatureContext signatureContext, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
-    }
-    [System.Obsolete("Use IAppResources.GetTexts() instead")]
-    public class TextClient : Altinn.App.Core.Internal.Texts.IText
-    {
-        public TextClient(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Infrastructure.Clients.Storage.TextClient> logger, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, System.Net.Http.HttpClient httpClient, Microsoft.Extensions.Caching.Memory.IMemoryCache memoryCache) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetText(string org, string app, string language) { }
-    }
-}
-namespace Altinn.App.Core.Interface
-{
-    [System.Obsolete("Use Altinn.App.Core.Internal.App.IAppEvents instead", true)]
-    public interface IAppEvents
-    {
-        System.Threading.Tasks.Task OnEndAppEvent(string endEvent, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task OnStartAppEvent(string startEvent, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.App.IApplicationClient instead", true)]
-    public interface IApplication
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Application?> GetApplication(string org, string app);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Auth.IAuthenticationClient instead", true)]
-    public interface IAuthentication
-    {
-        System.Threading.Tasks.Task<string> RefreshToken();
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Auth.IAuthorizationClient instead", true)]
-    public interface IAuthorization
-    {
-        System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId);
-    }
-    [System.Obsolete("Upstream API changed. Use Altinn.App.Core.Internal.Registers.IPersonClient instea" +
-        "d", true)]
-    public interface IDSF
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string SSN);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IOrganizationClient instead", true)]
-    public interface IER
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Organization?> GetOrganization(string OrgNr);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Events.IEventsClient instead", true)]
-    public interface IEvents
-    {
-        System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Instances.IInstanceClient instead", true)]
-    public interface IInstance
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> AddCompleteConfirmation(int instanceOwnerPartyId, System.Guid instanceGuid);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> CreateInstance(string org, string app, Altinn.Platform.Storage.Interface.Models.Instance instanceTemplate);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> DeleteInstance(int instanceOwnerPartyId, System.Guid instanceGuid, bool hard);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> GetInstance(Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> GetInstance(string app, string org, int instanceOwnerPartyId, System.Guid instanceId);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.Instance>> GetInstances(System.Collections.Generic.Dictionary<string, Microsoft.Extensions.Primitives.StringValues> queryParams);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdateDataValue(Altinn.Platform.Storage.Interface.Models.Instance instance, string key, string? value);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdateDataValues(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<string, string?> dataValues);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdateDataValues(int instanceOwnerPartyId, System.Guid instanceGuid, Altinn.Platform.Storage.Interface.Models.DataValues dataValues);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdatePresentationTexts(int instanceOwnerPartyId, System.Guid instanceGuid, Altinn.Platform.Storage.Interface.Models.PresentationTexts presentationTexts);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdateProcess(Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdateReadStatus(int instanceOwnerPartyId, System.Guid instanceGuid, string readStatus);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> UpdateSubstatus(int instanceOwnerPartyId, System.Guid instanceGuid, Altinn.Platform.Storage.Interface.Models.Substatus substatus);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Instances.IInstanceEventClient instead", true)]
-    public interface IInstanceEvent
-    {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to);
-        System.Threading.Tasks.Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IPersonClient instead", true)]
-    public interface IPersonLookup
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, System.Threading.CancellationToken ct);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IPersonClient instead", true)]
-    public interface IPersonRetriever
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, System.Threading.CancellationToken ct);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Prefill.IPrefill instead", true)]
-    public interface IPrefill
-    {
-        void PrefillDataModel(object dataModel, System.Collections.Generic.Dictionary<string, string> externalPrefill, bool continueOnError = false);
-        System.Threading.Tasks.Task PrefillDataModel(string partyId, string dataModelName, object dataModel, System.Collections.Generic.Dictionary<string, string>? externalPrefill = null);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Process.IProcessClient instead", true)]
-    public interface IProcess
-    {
-        System.IO.Stream GetProcessDefinition();
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Profile.IProfileClient instead", true)]
-    public interface IProfile
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile> GetUserProfile(int userId);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IAltinnPartyClient instead", true)]
-    public interface IRegister
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> GetParty(int partyId);
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupParty(Altinn.Platform.Register.Models.PartyLookup partyLookup);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Secrets.ISecretsClient instead", true)]
-    public interface ISecrets
-    {
-        System.Threading.Tasks.Task<byte[]> GetCertificateAsync(string certificateName);
-        System.Threading.Tasks.Task<Microsoft.Azure.KeyVault.WebKey.JsonWebKey> GetKeyAsync(string keyName);
-        Microsoft.Azure.KeyVault.KeyVaultClient GetKeyVaultClient();
-        System.Threading.Tasks.Task<string> GetSecretAsync(string secretName);
-    }
-    [System.Obsolete("Use the task lifecycle handlers in Altinn.App.Core.Features.Process instead: IOnT" +
-        "askStartingHandler, IOnTaskEndingHandler and IOnTaskAbandonHandler.", true)]
-    public interface ITaskEvents
-    {
-        System.Threading.Tasks.Task OnAbandonProcessTask(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task OnEndProcessTask(string endEvent, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task OnStartProcessTask(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<string, string> prefill);
-    }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Auth.IUserTokenProvider instead", true)]
-    public interface IUserTokenProvider
-    {
-        string GetUserToken();
     }
 }
 namespace Altinn.App.Core.Internal.AccessManagement.Models
@@ -3087,15 +2956,6 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppResources
     {
-        [System.Obsolete("GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMet" +
-            "adata.GetApplicationMetadata instead", false)]
-        Altinn.Platform.Storage.Interface.Models.Application GetApplication();
-        [System.Obsolete("GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMet" +
-            "adata.GetApplicationBPMNProcess instead", false)]
-        string? GetApplicationBPMNProcess();
-        [System.Obsolete("GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMet" +
-            "adata.GetApplicationXACMLPolicy instead", false)]
-        string? GetApplicationXACMLPolicy();
         string? GetCalculationConfiguration(string dataTypeId);
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
@@ -3196,8 +3056,6 @@ namespace Altinn.App.Core.Internal.Data
     }
     public interface IDataClient
     {
-        [System.Obsolete("Use method DeleteData with delayed=false instead.", true)]
-        System.Threading.Tasks.Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid);
         System.Threading.Tasks.Task<bool> DeleteData(int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, bool delay);
         System.Threading.Tasks.Task<bool> DeleteData(int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, bool delay, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         [System.Obsolete("Use the overload without org and app parameters")]
@@ -3260,13 +3118,7 @@ namespace Altinn.App.Core.Internal.Data
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string? filename, System.Guid dataGuid, System.IO.Stream stream);
-        [System.Obsolete("Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, " +
-            "Stream) instead", false)]
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string? filename, System.Guid dataGuid, System.IO.Stream stream, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        [System.Obsolete("Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, " +
-            "Stream) instead", false)]
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         [System.Obsolete("Use the UpdateFormData method with Instance parameter instead")]
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId)
             where T :  notnull;
@@ -4128,11 +3980,6 @@ namespace Altinn.App.Core.Internal.Sign
 }
 namespace Altinn.App.Core.Internal.Texts
 {
-    [System.Obsolete("Use IAppResources.GetTexts() instead")]
-    public interface IText
-    {
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetText(string org, string app, string language);
-    }
     public interface ITranslationService
     {
         [System.Obsolete("Multiple keys should be implemented by a default fallback that references the oth" +
@@ -5749,10 +5596,6 @@ namespace Altinn.App.Core.Models.Validation
         [Newtonsoft.Json.JsonProperty(PropertyName="field")]
         [System.Text.Json.Serialization.JsonPropertyName("field")]
         public string? Field { get; set; }
-        [Newtonsoft.Json.JsonIgnore]
-        [System.Obsolete("Not in use", true)]
-        [System.Text.Json.Serialization.JsonIgnore]
-        public string? InstanceId { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="severity")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]

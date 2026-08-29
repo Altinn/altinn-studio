@@ -93,57 +93,6 @@ public class AppResourcesSI : IAppResources
         return textResource;
     }
 
-    /// <inheritdoc />
-    public Application GetApplication()
-    {
-        using var activity = _telemetry?.StartGetApplicationActivity();
-        try
-        {
-            ApplicationMetadata applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
-            Application application = applicationMetadata;
-            if (applicationMetadata.OnEntry != null)
-            {
-                application.OnEntry = new OnEntryConfig() { Show = applicationMetadata.OnEntry.Show };
-            }
-
-            return application;
-        }
-        catch (AggregateException ex)
-        {
-            throw new ApplicationConfigException("Failed to read application metadata", ex.InnerException ?? ex);
-        }
-    }
-
-    /// <inheritdoc/>
-    public string? GetApplicationXACMLPolicy()
-    {
-        using var activity = _telemetry?.StartClientGetApplicationXACMLPolicyActivity();
-        try
-        {
-            return _appMetadata.GetApplicationXACMLPolicy().Result;
-        }
-        catch (AggregateException ex)
-        {
-            _logger.LogError(ex, "Something went wrong fetching application policy");
-            return null;
-        }
-    }
-
-    /// <inheritdoc/>
-    public string? GetApplicationBPMNProcess()
-    {
-        using var activity = _telemetry?.StartClientGetApplicationBPMNProcessActivity();
-        try
-        {
-            return _appMetadata.GetApplicationBPMNProcess().Result;
-        }
-        catch (AggregateException ex)
-        {
-            _logger.LogError(ex, "Something went wrong fetching application policy");
-            return null;
-        }
-    }
-
     /// <inheritdoc/>
     public string GetModelJsonSchema(string modelId)
     {
@@ -178,10 +127,20 @@ public class AppResourcesSI : IAppResources
     public string GetClassRefForLogicDataType(string dataType)
     {
         using var activity = _telemetry?.StartGetClassRefActivity();
-        Application application = GetApplication();
+        ApplicationMetadata applicationMetadata;
+        try
+        {
+            applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
+        }
+        catch (AggregateException ex)
+        {
+            throw new ApplicationConfigException("Failed to read application metadata", ex.InnerException ?? ex);
+        }
         string classRef = string.Empty;
 
-        DataType? element = application.DataTypes.SingleOrDefault(d => d.Id.Equals(dataType, StringComparison.Ordinal));
+        DataType? element = applicationMetadata.DataTypes.SingleOrDefault(d =>
+            d.Id.Equals(dataType, StringComparison.Ordinal)
+        );
 
         if (element != null)
         {

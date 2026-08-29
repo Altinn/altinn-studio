@@ -497,19 +497,12 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process")]
     public class ProcessController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer, Altinn.App.Core.Internal.Process.ProcessStateEnricher processStateEnricher) { }
+        public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer, Altinn.App.Core.Internal.Process.ProcessStateEnricher processStateEnricher) { }
         [Microsoft.AspNetCore.Mvc.HttpPut("completeProcess")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> CompleteProcess([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
-        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
-        [Microsoft.AspNetCore.Mvc.HttpGet("next")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(409)]
-        [System.Obsolete("From v8 of nuget package navigation is done by sending performed action to the ne" +
-            "xt api. Available actions are returned in the GET /process endpoint")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<string>>> GetNextElements([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet("history")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
