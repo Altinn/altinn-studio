@@ -146,6 +146,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateFileAnalysisNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -532,6 +535,30 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Rewrites the mechanical IText/TextClient breaks: a field, parameter or property typed IText is
+    /// retyped to IAppResources, and a GetText(..) call reached through it is renamed to GetTexts(..).
+    /// A class implementing IText directly, or a direct reference to the concrete TextClient type, is
+    /// reported instead - IAppResources is a much larger interface, so there is no mechanical fix.
+    /// </summary>
+    static async Task<int> MigrateTextService(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IText/TextClient");
+        try
+        {
+            var result = new TextServiceMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IText/TextClient usages to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IText/TextClient", ex);
+        }
+    }
+
+    /// <summary>
     /// Rewrites usings of the misspelled v8 <c>Features.FileAnalyzis</c> namespace. Runs after
     /// <see cref="MigrateMisspelledApis"/>, which leaves those using directives alone precisely so this
     /// step can merge them with an existing using of the correctly spelled sibling namespace.
@@ -558,7 +585,8 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
-    /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
+    /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
+    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
@@ -586,7 +614,8 @@ internal static class V8Tov9Upgrade
                 new PlatformHttpExceptionApiDetector(scanner).Detect(),
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
-                new MaskinportenClientOverrideDetector(scanner).Detect()
+                new MaskinportenClientOverrideDetector(scanner).Detect(),
+                new RemovedAppResourcesApiDetector(pristineView).Detect()
             );
 
             return ReportMigrationResult(
