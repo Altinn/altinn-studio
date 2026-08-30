@@ -91,6 +91,13 @@ internal sealed class WorkflowCallbackStateCarry
         _mailboxes.TryGetValue(stageIndex, out CarriedMailbox? mailbox) ? mailbox : null;
 
     /// <summary>
+    /// Every mailbox still traveling, ordered by opening stage index — what a conclusion that ends the whole
+    /// task closes. A snapshot: recording a conclusion afterwards does not mutate it.
+    /// </summary>
+    public IReadOnlyList<(int StageIndex, CarriedMailbox Mailbox)> FindAllMailboxes() =>
+        _mailboxes.OrderBy(kv => kv.Key).Select(kv => (kv.Key, kv.Value)).ToList();
+
+    /// <summary>
     /// Records that the exchange the stage at the given item index opened has concluded, dropping its mailbox
     /// from the blob this callback publishes — the next transition may open a mailbox from a stage at the
     /// same index, which <see cref="RecordMailbox"/> would refuse over a stale entry.

@@ -64,12 +64,12 @@ internal abstract class ServiceTaskStage : PipelineItem
 
     /// <summary>
     /// The stage that opens the exchange's mailbox and sends its address. Its work is handed the mailbox as a
-    /// non-nullable argument.
+    /// non-nullable argument, and answers the widened <see cref="ServiceTaskOpeningStageResult"/> vocabulary.
     /// </summary>
     internal sealed class MailboxOpening : ServiceTaskStage
     {
         public MailboxOpening(
-            Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> work,
+            Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
             MailboxOptions declaration,
             ProcessStepOptions? stepOptions
         )
@@ -80,7 +80,7 @@ internal abstract class ServiceTaskStage : PipelineItem
         }
 
         /// <summary>The stage's work, handed the mailbox it opened.</summary>
-        public Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> Work { get; }
+        public Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> Work { get; }
 
         /// <summary>
         /// The mailbox declaration. The mint step reads its <see cref="MailboxOptions.Timeout"/>

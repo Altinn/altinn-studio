@@ -19,7 +19,6 @@ namespace Altinn.App.Clients.Fiks.Configuration
         T WithFiksIOConfig(string configSectionPath);
         T WithMaskinportenConfig(System.Action<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings> configureOptions);
         T WithMaskinportenConfig(string configSectionPath);
-        T WithResiliencePipeline(System.Action<Polly.ResiliencePipelineBuilder<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse>, Polly.DependencyInjection.AddResiliencePipelineContext<string>> configure);
     }
 }
 namespace Altinn.App.Clients.Fiks.Constants
@@ -35,10 +34,6 @@ namespace Altinn.App.Clients.Fiks.Constants
             public const string ArchiveRecordCreationReceipt = "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett.kvittering";
             public const string CreateArchiveRecord = "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett";
         }
-    }
-    public static class FiksIOConstants
-    {
-        public const string UserDefinedResiliencePipelineId = "FiksIOResiliencePipeline";
     }
 }
 namespace Altinn.App.Clients.Fiks.Exceptions

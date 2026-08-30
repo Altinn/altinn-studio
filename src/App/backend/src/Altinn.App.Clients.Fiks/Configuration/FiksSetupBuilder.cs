@@ -1,4 +1,3 @@
-using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
@@ -6,8 +5,6 @@ using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using Polly.DependencyInjection;
 
 namespace Altinn.App.Clients.Fiks.Configuration;
 
@@ -87,15 +84,6 @@ internal abstract class FiksSetupBuilder(IServiceCollection services)
         return this;
     }
 
-    /// <inheritdoc cref="IFiksSetupBuilder{T}.WithResiliencePipeline"/>
-    protected FiksSetupBuilder ConfigureResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    )
-    {
-        services.AddResiliencePipeline(FiksIOConstants.UserDefinedResiliencePipelineId, configure);
-        return this;
-    }
-
     /// <inheritdoc cref="IFiksSetupBuilder{T}.CompleteSetup"/>
     public IServiceCollection CompleteSetup() => services;
 }
@@ -120,11 +108,6 @@ internal sealed class FiksIOSetupBuilder(IServiceCollection services) : FiksSetu
     /// <inheritdoc />
     public IFiksIOSetupBuilder WithMaskinportenConfig(string configSectionPath) =>
         (IFiksIOSetupBuilder)ConfigureMaskinporten(configSectionPath);
-
-    /// <inheritdoc />
-    public IFiksIOSetupBuilder WithResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    ) => (IFiksIOSetupBuilder)ConfigureResiliencePipeline(configure);
 }
 
 /// <summary>
@@ -149,11 +132,6 @@ internal sealed class FiksArkivSetupBuilder(IServiceCollection services)
     /// <inheritdoc />
     public IFiksArkivSetupBuilder WithMaskinportenConfig(string configSectionPath) =>
         (IFiksArkivSetupBuilder)ConfigureMaskinporten(configSectionPath);
-
-    /// <inheritdoc />
-    public IFiksArkivSetupBuilder WithResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    ) => (IFiksArkivSetupBuilder)ConfigureResiliencePipeline(configure);
 
     /// <inheritdoc />
     public IFiksArkivSetupBuilder WithFiksArkivConfig(Action<FiksArkivSettings> configureOptions) =>

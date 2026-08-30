@@ -13,8 +13,8 @@ public class ServiceTaskPipelineMailboxTests
 {
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     private static Task<ServiceTaskExchangeResult> Handle(ServiceTaskContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskExchangeResult.AwaitNextReply());
@@ -106,7 +106,7 @@ public class ServiceTaskPipelineMailboxTests
                 (_, mailbox) =>
                 {
                     seen = mailbox;
-                    return Task.FromResult(ServiceTaskStageResult.Completed());
+                    return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
                 },
                 _threeDays,
                 out MailboxHandle handle

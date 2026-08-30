@@ -3,6 +3,7 @@ using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
+using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
@@ -67,7 +68,10 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             .Stage(SendToArchive, new MailboxOptions { Timeout = ArchiveReplyTimeout }, out MailboxHandle archive)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
-    private async Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private async Task<ServiceTaskOpeningStageResult> SendToArchive(
+        ServiceTaskContext context,
+        ServiceTaskMailbox mailbox
+    )
     {
         // Two identities: klientMeldingId is the idempotency key (StepId, stable across retries);
         // klientKorrelasjonsId is echoed on every reply, so it must be the mailbox. Swapping them fails
@@ -78,7 +82,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             const string errorMessage =
                 "The workflow engine did not supply a step id, so there is no retry-stable Fiks client message ID to send with.";
             _logger.LogError("FiksArkivServiceTask cannot send to the archive: {ErrorMessage}", errorMessage);
-            return ServiceTaskStageResult.FailedPermanent(errorMessage);
+            return ServiceTaskOpeningStageResult.FailedPermanent(errorMessage);
         }
 
         Guid replyAddress = mailbox.Id;
@@ -110,22 +114,58 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
                 response
             );
 
-            return ServiceTaskStageResult.Completed();
+            return ServiceTaskOpeningStageResult.Completed();
         }
         catch (OperationCanceledException e) when (context.CancellationToken.IsCancellationRequested)
         {
+            // Never a conclusion: it is not known whether the shipment left, so the exchange must stay
+            // open for the answer a departed shipment would get.
             _logger.LogWarning(e, "Sending to Fiks Arkiv was cut off before it finished: {ErrorMessage}", e.Message);
-            return ServiceTaskStageResult.FailedRetryable(
+            return ServiceTaskOpeningStageResult.FailedRetryable(
                 "Sending the archive record was cut off at this attempt's execution deadline before Fiks IO "
                     + $"answered, so it is not known whether the shipment left: {e.Message}"
             );
         }
+        catch (Exception e) when (FiksIOSendFailure.IsCredentialsRefused(e))
+        {
+            // Deterministic but app-level: no citizen action helps, so errorHandling is not consulted. A
+            // plain stage failure rather than a conclusion, deliberately — concluding would close the
+            // mailbox, and an operator who fixes the credentials and resumes would then re-run a send whose
+            // answers can never be delivered. Left open, the mailbox waits out its own deadline and the
+            // resumed send's exchange completes normally.
+            _logger.LogError(e, "The archive record can not be sent: {ErrorMessage}", e.Message);
+            return ServiceTaskOpeningStageResult.FailedPermanent(
+                "The archive record can not be sent: Fiks IO refused the app's integration credentials. "
+                    + $"Retrying cannot succeed; fix the credentials and resume the workflow. {e.Message}"
+            );
+        }
+        catch (Exception e) when (FiksIOSendFailure.IsRecipientNotFound(e))
+        {
+            // Deterministic and case-level — the recipient account comes from the instance's own data, so
+            // this send fails identically every time and the archiving cannot succeed: the same verdict an
+            // archive rejection gets, concluded down the same errorHandling path.
+            _logger.LogError(e, "The archive record can not be sent: {ErrorMessage}", e.Message);
+
+            if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is true)
+            {
+                return ServiceTaskOpeningStageResult.Conclude(
+                    ServiceTaskResult.Success(action: _fiksArkivSettings.ErrorHandling.GetActionOrDefault())
+                );
+            }
+
+            return ServiceTaskOpeningStageResult.Conclude(
+                ServiceTaskResult.FailedPermanent(
+                    "The archive record can not be sent: the recipient account does not exist. Retrying "
+                        + $"cannot succeed; manual follow-up is required. {e.Message}"
+                )
+            );
+        }
         catch (Exception e)
         {
-            // A failure even under ErrorHandling.MoveToNextTask: a stage cannot advance the process, and moving on
-            // from a send that never happened would wait for a receipt that can never arrive.
+            // Transient or unknown: retried, and a retry budget that runs out fails the task — never the
+            // errorHandling path, which is reserved for an archiving that cannot succeed.
             _logger.LogError(e, "Error occurred while sending to Fiks Arkiv: {ErrorMessage}", e.Message);
-            return ServiceTaskStageResult.FailedRetryable(e.Message);
+            return ServiceTaskOpeningStageResult.FailedRetryable(e.Message);
         }
     }
 

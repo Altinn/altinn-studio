@@ -1,4 +1,4 @@
-[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/app-lib-dotnet")]
+﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/app-lib-dotnet")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
 namespace Altinn.App.Core.Configuration
 {
@@ -2109,6 +2109,14 @@ namespace Altinn.App.Core.Features.Process
         public required System.DateTimeOffset Deadline { get; init; }
         public required System.Guid Id { get; init; }
     }
+    public abstract class ServiceTaskOpeningStageResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult>
+    {
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult Completed() { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult Conclude(Altinn.App.Core.Features.Process.ServiceTaskResult result) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedRetryable(string errorMessage) { }
+    }
     public sealed class ServiceTaskPipeline { }
     public sealed class ServiceTaskPipelineBuilder
     {
@@ -2116,7 +2124,7 @@ namespace Altinn.App.Core.Features.Process
         public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder HandleReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
     public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
     {

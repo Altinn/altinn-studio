@@ -51,9 +51,10 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
 ### Stage results
 
 `ServiceTaskStageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
-`FailedRetryable(msg)`, `FailedPermanent(msg)`. A stage cannot conclude the task or advance the process —
-that is reserved for the pipeline's conclusion. The concluding step returns `ServiceTaskResult`, which
-adds `Success(action?)` / `SuccessWithoutAutoAdvance()`.
+`FailedRetryable(msg)`, `FailedPermanent(msg)`. A plain stage cannot conclude the task or advance the
+process — that is reserved for the pipeline's conclusion, and for a mailbox-opening stage's `Conclude`
+(see below). The concluding step returns `ServiceTaskResult`, which adds `Success(action?)` /
+`SuccessWithoutAutoAdvance()`.
 
 ## Waiting: Defer and wait budgets
 
@@ -103,6 +104,31 @@ before the stage, so it never runs twice.
   declaring transition.
 - The mailbox id is unguessable but **not a secret**: it is the address a message is sent to, not proof
   of who sent it.
+
+### Concluding from the opening stage
+
+A mailbox-opening stage answers its own vocabulary, `ServiceTaskOpeningStageResult`: the stage members,
+plus `Conclude(ServiceTaskResult)` for the send whose failure already settles the task — a recipient
+address that does not exist — where waiting out the exchange would only delay the same verdict.
+
+- A conclusion ends the **whole task**: every mailbox the task has opened is closed before anything
+  downstream starts, no receiver is enqueued, the pipeline items composed after the stage never run, and
+  the process advances (or not) per the carried result — `Success(action?)` advances, `FailedPermanent`
+  fails the task with the mailboxes closed.
+- A wrapped `FailedRetryable` or `Defer` concludes nothing: it acts exactly as the stage vocabulary's own
+  member, and every open mailbox stays open.
+- It is honored only from the **last stage before the segment's reply handler**: any stage composed
+  between this one and the handler runs as its own later engine step, which a conclusion cannot cancel. A
+  conclusion returned anywhere else fails the step permanently (`MailboxConclusionMidSegment`) — the
+  composition cannot reject the misplacement eagerly, because whether a stage's work concludes is
+  invisible until it runs.
+- Conclude only on a verdict that is already final. A send whose outcome is unknown (a timeout, a
+  cancelled attempt) must return `FailedRetryable` instead: the shipment may have left, and concluding
+  would close the mailbox its answer needs.
+- Conclude only on failures remediated case-side. An app-level failure — refused credentials, broken
+  configuration — should be an ordinary permanent stage failure (`FailedPermanent`) instead: the mailbox
+  stays open, and fixing the problem plus resuming the workflow re-runs the send and lets the exchange
+  complete.
 
 ### Answering the exchange
 

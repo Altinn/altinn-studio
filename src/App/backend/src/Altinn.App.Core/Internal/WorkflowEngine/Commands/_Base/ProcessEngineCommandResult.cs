@@ -58,9 +58,9 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     public readonly bool ServiceOwnerAuthorizationDenied;
 
     /// <summary>
-    /// What the mailbox relay must still do despite the failure. Set only by a mailbox reply
-    /// handler's permanent failure, which concludes the exchange in its own words: an exchange the
-    /// app has given up on must stop accepting messages, even though nothing downstream starts.
+    /// What the mailbox relay must still do despite the failure. Set only by a permanent failure that
+    /// concludes — a reply handler's, or an opening stage's <c>Conclude(FailedPermanent)</c>: an exchange
+    /// the app has given up on must stop accepting messages, even though nothing downstream starts.
     /// </summary>
     public readonly MailboxContinuation? MailboxContinuation;
 

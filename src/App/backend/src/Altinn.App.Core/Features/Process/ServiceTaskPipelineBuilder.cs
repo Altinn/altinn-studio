@@ -51,7 +51,10 @@ public sealed class ServiceTaskPipelineBuilder
     /// <summary>
     /// Adds a durable stage that <strong>opens a mailbox</strong>: a durable inbox whose id the stage
     /// publishes as its reply address. Every message that comes back runs the handler that answers
-    /// <paramref name="handle"/>. Otherwise an ordinary stage.
+    /// <paramref name="handle"/>. Otherwise an ordinary stage — except that its vocabulary,
+    /// <see cref="ServiceTaskOpeningStageResult"/>, adds
+    /// <see cref="ServiceTaskOpeningStageResult.Conclude"/> for the send whose failure already settles the
+    /// task, honored only from the last stage before the segment's reply handler (see that member's remarks).
     /// </summary>
     /// <param name="work">The stage's work, handed the mailbox it opened.</param>
     /// <param name="mailbox">How long the mailbox accepts messages.</param>
@@ -61,7 +64,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// </param>
     /// <param name="options">Optional per-stage execution options, as above.</param>
     public ServiceTaskPipelineBuilder Stage(
-        Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> work,
+        Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
         MailboxOptions mailbox,
         out MailboxHandle handle,
         ProcessStepOptions? options = null

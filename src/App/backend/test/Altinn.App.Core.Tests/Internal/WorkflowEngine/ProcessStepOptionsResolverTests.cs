@@ -483,8 +483,10 @@ public class ProcessStepOptionsResolverTests
 
         private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-        private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-            Task.FromResult(ServiceTaskStageResult.Completed());
+        private static Task<ServiceTaskOpeningStageResult> Send(
+            ServiceTaskContext context,
+            ServiceTaskMailbox mailbox
+        ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
         private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
             ServiceTaskContext context,

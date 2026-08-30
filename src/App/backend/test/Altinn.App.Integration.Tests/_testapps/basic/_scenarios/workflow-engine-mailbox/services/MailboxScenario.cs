@@ -75,13 +75,13 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
-    private Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
         int run = MailboxExchangeRecorder.NextRun(SendStageLabel);
         // Standing in for the outbound message that would carry the reply address to the archive.
         MailboxExchangeRecorder.PublishAddress(mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Mailbox.SendToArchive.Run{run}.Published");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
     private Task<ServiceTaskStageResult> RecordDispatch(ServiceTaskContext context)

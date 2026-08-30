@@ -129,8 +129,10 @@ public class WorkflowCommandSetTests
     private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
         Task.FromResult(ServiceTaskStageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> SendStage(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(
+        ServiceTaskContext context,
+        ServiceTaskMailbox mailbox
+    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
@@ -158,7 +160,7 @@ public class WorkflowCommandSetTests
     /// The regression floor for the whole expansion: a pipeline with no mid-pipeline handler has exactly one
     /// segment, and it is what the factory has always built — each step carrying its item index. (The
     /// assembled version of this is
-    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheReceiveEnqueueAndEmitsNoConclusion</c>,
+    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion</c>,
     /// which must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
     /// </summary>
     [Fact]
@@ -290,19 +292,41 @@ public class WorkflowCommandSetTests
     }
 
     [Fact]
-    public void PlanSegment_ReceiveHalfsStep_IsNamedByTheHandlersItemIndex()
+    public void PlanSegment_ReceiveHalf_IsNamedByTheHandlersItemIndex()
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
         // Segment 0 ends on the mid-pipeline handler at item index 1; the last segment on the terminal at 4.
+        Assert.Equal(1, WorkflowCommandSet.PlanSegment("archiving", pipeline).Receive?.HandlerItemIndex);
         Assert.Equal(
-            $"{ExecuteServiceTask.Key}: 1",
-            WorkflowCommandSet.PlanSegment("archiving", pipeline).Receive?.Step.OperationId
+            4,
+            WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1).Receive?.HandlerItemIndex
         );
-        Assert.Equal(
-            $"{ExecuteServiceTask.Key}: 4",
-            WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1).Receive?.Step.OperationId
-        );
+    }
+
+    /// <summary>
+    /// The plan's <c>Receive</c> also rides the segment's last stage step's payload, fixed at planning time:
+    /// completing that step is what enqueues the exchange's first receiver.
+    /// </summary>
+    [Fact]
+    public void PlanSegment_BakesTheReceiveIntoTheLastStageStepsPayloadAndNoOthers()
+    {
+        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
+
+        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1);
+
+        List<ExecuteServiceTaskPayload> payloads = plan
+            .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
+            .Select(step =>
+            {
+                var appData = System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
+                return CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
+            })
+            .ToList();
+
+        Assert.Equal(2, payloads.Count);
+        Assert.Null(payloads[0].Receive);
+        Assert.Equal(plan.Receive, payloads[1].Receive);
     }
 
     [Fact]

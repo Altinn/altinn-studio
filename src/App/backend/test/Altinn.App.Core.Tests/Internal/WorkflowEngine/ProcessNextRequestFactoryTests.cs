@@ -644,8 +644,10 @@ public class ProcessNextRequestFactoryTests
     private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
         Task.FromResult(ServiceTaskStageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> SendStage(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(
+        ServiceTaskContext context,
+        ServiceTaskMailbox mailbox
+    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
@@ -746,15 +748,8 @@ public class ProcessNextRequestFactoryTests
         return CommandPayloadSerializer.Deserialize<MintMailboxPayload>(appData.Payload)!;
     }
 
-    private static EnqueueReceiveWorkflowPayload ExtractReceiveEnqueuePayload(WorkflowEnqueueEnvelope bundle)
-    {
-        StepRequest step = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == EnqueueReceiveWorkflow.Key);
-        var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-        return CommandPayloadSerializer.Deserialize<EnqueueReceiveWorkflowPayload>(appData.Payload)!;
-    }
-
     [Fact]
-    public async Task Create_MailboxPipeline_EndsMainWithTheReceiveEnqueueAndEmitsNoConclusion()
+    public async Task Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -770,10 +765,10 @@ public class ProcessNextRequestFactoryTests
         // runs on the receive workflows rather than in Main.
         Assert.Equal(0, sendStep.Payload.ItemIndex);
 
+        // Main's last step is the segment's last stage: completing it is what enqueues the first receiver,
+        // from inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
         var keys = ExtractCommandKeys(bundle);
-        Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
-        Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
-        Assert.True(keys.IndexOf(EnqueueReceiveWorkflow.Key) > keys.IndexOf(ExecuteServiceTask.Key));
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
 
     /// <summary>
@@ -833,22 +828,27 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_MailboxPipeline_CarriesTheOpeningIndexOnTheReceiveEnqueuePayload()
+    public async Task Create_MailboxPipeline_BakesTheExchangeIntoTheSendStagePayload()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        Assert.Equal(0, ExtractReceiveEnqueuePayload(bundle).OpeningStageIndex);
+        var sendStep = Assert.Single(ExtractServiceTaskSteps(bundle));
+        MailboxReceivePlan receive = Assert.IsType<MailboxReceivePlan>(sendStep.Payload.Receive);
+        // Both positions fixed at assembly time: the terminal that answers (item 1) and the stage whose
+        // mint the receiver is declared against (item 0).
+        Assert.Equal(1, receive.HandlerItemIndex);
+        Assert.Equal(0, receive.OpeningStageIndex);
     }
 
     /// <summary>
     /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to
     /// split at a reply handler, a composed <c>HandleReplies</c> made Main's planning throw, so this shape
-    /// could not reach the engine at all. Main now ends with the hand-over to the exchange its <em>first</em>
-    /// segment ends on — the mid-pipeline handler's, never the terminal's — and carries neither the later
-    /// send nor a concluding step.
+    /// could not reach the engine at all. Main carries only the pipeline's <em>first</em> segment and hands
+    /// over to the exchange that segment ends on — the mid-pipeline handler's, never the terminal's — with
+    /// the journal's send and the terminal belonging to the continuation the archive's conclusion starts.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipelineAnsweredMidPipeline_HandsMainOverToTheFirstExchange()
@@ -868,43 +868,37 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(0, sendStep.Payload.ItemIndex);
 
         var keys = ExtractCommandKeys(bundle);
-        Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
-        Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
         // Only the archive's mailbox is minted in Main: the journal's clock starts in the continuation.
         Assert.Single(keys, key => key == MintMailbox.Key);
         Assert.Equal(0, ExtractMintPayload(bundle).StageIndex);
 
-        EnqueueReceiveWorkflowPayload payload = ExtractReceiveEnqueuePayload(bundle);
-        Assert.Equal(0, payload.OpeningStageIndex);
-
-        StepRequest receiveStep = Assert.Single(Assert.Single(payload.EnqueueRequest.Workflows).Steps);
-        var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
-        var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-        // The mid-pipeline handler's own item index — item 1, right after the send it answers.
-        Assert.Equal(1, receivePayload.ItemIndex);
-
-        // Resolved from the handler that answers this exchange — the HandleReplies call — and not from the
-        // terminal that ends the chain, whose 3 minutes belong to a different exchange.
-        Assert.Equal(TimeSpan.FromMinutes(5), receiveStep.Command.MaxExecutionTime);
+        // The exchange baked into the send: the mid-pipeline handler's own item index — item 1, right after
+        // the send it answers — never the terminal's.
+        MailboxReceivePlan receive = Assert.IsType<MailboxReceivePlan>(sendStep.Payload.Receive);
+        Assert.Equal(1, receive.HandlerItemIndex);
+        Assert.Equal(0, receive.OpeningStageIndex);
     }
 
     [Fact]
-    public async Task Create_PipelineWithoutMailbox_EnqueuesNoReceiveWorkflow()
+    public async Task Create_PipelineWithoutMailbox_BakesNoExchangeIntoAnyStep()
     {
         var factory = CreateFactory(serviceTasks: new SigningTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        var keys = ExtractCommandKeys(bundle);
-        Assert.DoesNotContain(EnqueueReceiveWorkflow.Key, keys);
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        Assert.All(serviceTaskSteps, s => Assert.Null(s.Payload.Receive));
         // The signing pipeline's conclusion is its item 1, and Main runs it as an ordinary step.
-        Assert.Contains(ExtractServiceTaskSteps(bundle), s => s.Payload.ItemIndex == 1);
+        Assert.Contains(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
     }
 
     /// <summary>
     /// Main runs the segment's stages and stops there: the handler that answers the exchange — this
-    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone, never one of Main's.
+    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone, never one of Main's. The
+    /// exchange rides the segment's <em>last</em> stage, which here is the plain stage after the send: what
+    /// carries the hand-over is position in the segment, not having opened the mailbox.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipeline_NamesOnlyStagesOnMainsSteps()
@@ -914,42 +908,13 @@ public class ProcessNextRequestFactoryTests
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        Assert.Equal([0, 1, 2], ExtractServiceTaskSteps(bundle).Select(s => s.Payload.ItemIndex).ToList());
-    }
-
-    [Fact]
-    public async Task Create_MailboxPipeline_PreAssemblesTheReceiveWorkflowAsAHeadThatDependsOnHeads()
-    {
-        var factory = CreateFactory(serviceTasks: new ArchivingTask());
-        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
-
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
-
-        EnqueueReceiveWorkflowPayload payload = ExtractReceiveEnqueuePayload(bundle);
-        WorkflowRequest receiver = Assert.Single(payload.EnqueueRequest.Workflows);
-
-        Assert.True(receiver.IsHead);
-        Assert.True(receiver.DependsOnHeads);
-        Assert.StartsWith(
-            ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix,
-            receiver.OperationId,
-            StringComparison.Ordinal
-        );
-
-        Assert.Null(receiver.Mailbox);
-        Assert.Null(receiver.State);
-        Assert.Null(payload.EnqueueRequest.Context);
-
-        StepRequest receiveStep = Assert.Single(receiver.Steps);
-        var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
-        Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
-        var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-        Assert.Equal("archiving", receivePayload.ServiceTaskType);
-        // A receive step names the handler that answers the message — here the terminal, at item index 1.
-        Assert.Equal(1, receivePayload.ItemIndex);
-        Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
-
-        Assert.Equal(bundle.Request.Labels, payload.EnqueueRequest.Labels);
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        Assert.Equal([0, 1, 2], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
+        Assert.Null(serviceTaskSteps[0].Payload.Receive);
+        Assert.Null(serviceTaskSteps[1].Payload.Receive);
+        MailboxReceivePlan receive = Assert.IsType<MailboxReceivePlan>(serviceTaskSteps[2].Payload.Receive);
+        Assert.Equal(3, receive.HandlerItemIndex);
+        Assert.Equal(1, receive.OpeningStageIndex);
     }
 
     [Fact]

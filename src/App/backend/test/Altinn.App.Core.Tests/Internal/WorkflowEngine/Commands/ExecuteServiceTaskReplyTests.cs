@@ -77,7 +77,7 @@ public class ExecuteServiceTaskReplyTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
@@ -105,8 +105,8 @@ public class ExecuteServiceTaskReplyTests
 
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     /// <summary>
     /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an ordinary item rather

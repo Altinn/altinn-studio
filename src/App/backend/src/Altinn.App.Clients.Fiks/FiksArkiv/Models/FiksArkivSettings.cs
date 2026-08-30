@@ -233,16 +233,19 @@ public sealed record FiksArkivSuccessHandlingSettings
 /// Represents the settings for error handling.
 /// </summary>
 /// <remarks>
-/// Applies when <strong>the archive reports it could not create the record</strong> — not when the message
-/// cannot be sent at all, which is retried and then fails the task. Applied by
+/// Applies when <strong>the archiving cannot succeed for this case</strong>: the archive reports it could
+/// not create the record, or the recipient account does not exist. Fiks IO refusing the app's integration
+/// credentials is outside its reach — an operations problem, so it fails the workflow for the app owner to
+/// fix and resume — and so are transient and unknown-outcome send failures, Maskinporten and transport
+/// failures included, which are retried and then fail the task. Applied by
 /// <see cref="FiksArkivServiceTask"/>.
 /// </remarks>
 public sealed record FiksArkivErrorHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task when the archive reports that it could not
-    /// create the record? Defaults to <c>false</c>: an archive error fails the task, so the rejection
-    /// reaches monitoring — whether this block is present or not.
+    /// Should we automatically progress to the next task when the archiving cannot succeed for this case —
+    /// the archive rejected the record, or the recipient account does not exist? Defaults to <c>false</c>:
+    /// such a failure fails the task, so it reaches monitoring — whether this block is present or not.
     /// </summary>
     [JsonPropertyName("moveToNextTask")]
     public bool MoveToNextTask { get; set; }

@@ -825,7 +825,7 @@ public class WorkflowEngineServiceTests
                     steps:
                     [
                         CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed),
-                        CreateStep(EnqueueReceiveWorkflow.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
                     ]
                 ),
                 CreateWorkflowStatus(
@@ -922,7 +922,7 @@ public class WorkflowEngineServiceTests
                     steps:
                     [
                         CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed),
-                        CreateStep(EnqueueReceiveWorkflow.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
                     ]
                 ),
                 CreateWorkflowStatus(

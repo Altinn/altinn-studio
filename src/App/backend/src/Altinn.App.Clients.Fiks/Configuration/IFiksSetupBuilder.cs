@@ -3,8 +3,6 @@ using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using Polly.DependencyInjection;
 
 namespace Altinn.App.Clients.Fiks.Configuration;
 
@@ -40,15 +38,6 @@ public interface IFiksSetupBuilder<out T>
     /// <param name="configSectionPath">Configuration section path.</param>
     /// <returns>The builder instance.</returns>
     T WithMaskinportenConfig(string configSectionPath);
-
-    /// <summary>
-    /// Configures the resilience pipeline (retry behavior) for the Fiks IO client.
-    /// </summary>
-    /// <param name="configure">Configuration delegate.</param>
-    /// <returns>The builder instance.</returns>
-    T WithResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    );
 
     /// <summary>
     /// Completes the setup and returns the service collection.

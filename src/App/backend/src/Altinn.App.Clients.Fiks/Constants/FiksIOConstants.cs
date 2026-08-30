@@ -3,16 +3,8 @@ namespace Altinn.App.Clients.Fiks.Constants;
 /// <summary>
 /// Constants related to the configuration and operation of the Fiks IO client.
 /// </summary>
-public static class FiksIOConstants
+internal static class FiksIOConstants
 {
-    /// <summary>
-    /// The ID for the user-configurable resilience pipeline (retry strategy).
-    /// </summary>
-    public const string UserDefinedResiliencePipelineId = "FiksIOResiliencePipeline";
-
-    internal const string DefaultResiliencePipelineId = "DefaultFiksIOResiliencePipeline";
-    internal const string MessageRequestPropertyKey = "FiksIOMessageRequest";
-
     internal static class Stubs
     {
         public const string InvalidRequest = "ugyldigforespoersel";

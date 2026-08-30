@@ -222,8 +222,10 @@ public class MailboxRelayFrontierTests
     private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
         Task.FromResult(ServiceTaskStageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> SendStage(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(
+        ServiceTaskContext context,
+        ServiceTaskMailbox mailbox
+    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
@@ -386,7 +388,7 @@ public class MailboxRelayFrontierTests
         // concluding receiver settles.
         int beforeConclusion = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
-            new MailboxContinuation.Conclude(_mailboxId),
+            new MailboxContinuation.Conclude([_mailboxId]),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );
@@ -436,7 +438,7 @@ public class MailboxRelayFrontierTests
         Assert.NotEqual(Guid.Empty, main);
 
         await relay.Continue(
-            new MailboxContinuation.Conclude(_mailboxId),
+            new MailboxContinuation.Conclude([_mailboxId]),
             CreateRequest(receiver, Guid.NewGuid()) with
             {
                 AutoAdvanceProcess = false,

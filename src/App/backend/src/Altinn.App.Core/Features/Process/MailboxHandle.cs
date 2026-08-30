@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The mailbox a stage opened, handed out by the mailbox-opening
-/// <see cref="ServiceTaskPipelineBuilder.Stage(Func{ServiceTaskContext, ServiceTaskMailbox, Task{ServiceTaskStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>
+/// <see cref="ServiceTaskPipelineBuilder.Stage(Func{ServiceTaskContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>
 /// overload and passed to the one handler that answers it —
 /// <see cref="ServiceTaskPipelineBuilder.HandleReplies"/> or
 /// <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>.

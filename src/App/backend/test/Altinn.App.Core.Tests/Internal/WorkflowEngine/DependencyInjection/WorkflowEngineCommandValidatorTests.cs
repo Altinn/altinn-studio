@@ -66,7 +66,6 @@ public class WorkflowEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, SaveProcessStateToStorage>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
-        services.AddTransient<IWorkflowEngineCommand, EnqueueReceiveWorkflow>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
     }
 }

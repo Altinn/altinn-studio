@@ -114,13 +114,11 @@ internal static class WorkflowEngineCommandValidator
             keys
         );
 
-        // MutateProcessState, SaveProcessStateToStorage, EnqueueSideEffectsWorkflow and
-        // EnqueueReceiveWorkflow are inserted by ProcessNextRequestFactory rather than declared in
-        // WorkflowCommandSet
+        // MutateProcessState, SaveProcessStateToStorage and EnqueueSideEffectsWorkflow are inserted by
+        // ProcessNextRequestFactory rather than declared in WorkflowCommandSet
         keys.Add(MutateProcessState.Key);
         keys.Add(SaveProcessStateToStorage.Key);
         keys.Add(EnqueueSideEffectsWorkflow.Key);
-        keys.Add(EnqueueReceiveWorkflow.Key);
 
         return keys;
     }
@@ -138,7 +136,7 @@ internal static class WorkflowEngineCommandValidator
     private static ServiceTaskPipeline CreateDummyMailboxPipeline() =>
         new ServiceTaskPipelineBuilder()
             .Stage(
-                (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
+                (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                 new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
                 out MailboxHandle handle
             )

@@ -370,7 +370,7 @@ public class ExecuteServiceTaskStageTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                     new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
                     out MailboxHandle handle
                 )

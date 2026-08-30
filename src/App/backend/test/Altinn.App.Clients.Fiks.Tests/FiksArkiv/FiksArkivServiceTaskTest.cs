@@ -75,9 +75,12 @@ public class FiksArkivServiceTaskTest
             services.AddSingleton(sender.Object);
         });
 
-        ServiceTaskStageResult result = await SendStage(fixture)(CreateContext(dataMutator.Object), MailboxFactory());
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
 
-        Assert.IsType<CompletedServiceTaskStageResult>(result);
+        Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
         sender.Verify();
     }
 
@@ -143,12 +146,12 @@ public class FiksArkivServiceTaskTest
             services.AddSingleton(sender.Object);
         });
 
-        ServiceTaskStageResult result = await SendStage(fixture)(
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
             CreateContext(dataMutator.Object, stepId: Guid.Empty),
             MailboxFactory()
         );
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskOpeningStageResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("did not supply a step id", failed.ErrorMessage);
         sender.VerifyNoOtherCalls();
@@ -160,8 +163,8 @@ public class FiksArkivServiceTaskTest
     [InlineData(false)]
     public async Task SendToArchive_FailedSend_ReturnsRetryableFailureRegardlessOfMoveToNextTask(bool moveToNextTask)
     {
-        // A stage cannot advance the process, so MoveToNextTask does not divert a failed send: nothing would
-        // be waiting for the receipt.
+        // A transient failure may succeed on the retry, so MoveToNextTask does not divert it: errorHandling
+        // covers only an archiving that cannot succeed.
         var settings = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
@@ -178,9 +181,12 @@ public class FiksArkivServiceTaskTest
             [("CustomFiksArkivSettings", settings)]
         );
 
-        ServiceTaskStageResult result = await SendStage(fixture)(CreateContext(dataMutator.Object), MailboxFactory());
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskOpeningStageResult>(result);
         Assert.Equal(FailureKind.Retryable, failed.Kind);
         Assert.Equal("Fiks unavailable", failed.ErrorMessage);
         sender.Verify();
@@ -210,14 +216,168 @@ public class FiksArkivServiceTaskTest
         using var cancelled = new CancellationTokenSource();
         await cancelled.CancelAsync();
 
-        ServiceTaskStageResult result = await SendStage(fixture)(
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
             CreateContext(dataMutator.Object, cancellationToken: cancelled.Token),
             MailboxFactory()
         );
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskOpeningStageResult>(result);
         Assert.Equal(FailureKind.Retryable, failed.Kind);
         Assert.Contains("cut off at this attempt's execution deadline", failed.ErrorMessage);
+        sender.Verify();
+    }
+
+    /// <summary>
+    /// Load-bearing: <c>MaskinportenException</c> wraps transport failures and 5xx as well as refusals, and
+    /// even a genuine refusal can heal (key rollover, clock skew). Concluding on it would advance the
+    /// process past a shipment that never left, or close the mailbox over a passing outage — so it retries,
+    /// whatever <c>errorHandling</c> says.
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendToArchive_MaskinportenFailure_ReturnsRetryableFailureAndConcludesNothing(bool moveToNextTask)
+    {
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+        };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var sender = FailingSenderMockFactory(
+            new Altinn.App.Core.Features.Maskinporten.Exceptions.MaskinportenAuthenticationException(
+                "token request refused"
+            )
+        );
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(sender.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
+
+        var failed = Assert.IsType<FailedServiceTaskOpeningStageResult>(result);
+        Assert.Equal(FailureKind.Retryable, failed.Kind);
+        sender.Verify();
+    }
+
+    [Fact]
+    public async Task SendToArchive_RecipientNotFound_ConcludesDownTheErrorHandlingPath()
+    {
+        // Deterministic and case-level — the recipient comes from the instance's own data — so this send
+        // fails identically every time and concludes exactly as an archive rejection does.
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "reject" },
+        };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var sender = FailingSenderMockFactory(
+            new KS.Fiks.IO.Send.Client.Exceptions.FiksIOSendUnexpectedResponseException(
+                "Send failed with status code NotFound"
+            )
+        );
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(sender.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
+
+        var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
+        var success = Assert.IsType<ServiceTaskSuccessResult>(concluded.Result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("reject", success.Action);
+        sender.Verify();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendToArchive_RecipientNotFound_WithoutMoveToNextTask_ConcludesAsPermanentFailure(
+        bool errorHandlingConfigured
+    )
+    {
+        var settings = errorHandlingConfigured
+            ? new FiksArkivSettings { ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false } }
+            : new FiksArkivSettings();
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var sender = FailingSenderMockFactory(
+            new KS.Fiks.IO.Send.Client.Exceptions.FiksIOSendUnexpectedResponseException(
+                "Send failed with status code NotFound"
+            )
+        );
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(sender.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
+
+        var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
+        var failed = Assert.IsType<ServiceTaskFailedResult>(concluded.Result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("recipient account does not exist", failed.ErrorMessage);
+        Assert.Contains("Retrying cannot succeed", failed.ErrorMessage);
+        sender.Verify();
+    }
+
+    /// <summary>
+    /// Deterministic but app-level: refused integration credentials are an operations problem no citizen
+    /// action helps, so errorHandling is never consulted — and a plain stage failure, never a conclusion,
+    /// because concluding closes the mailbox and an operator who fixes the credentials and resumes would
+    /// re-run a send whose answers could never be delivered.
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendToArchive_CredentialsRefused_FailsTheWorkflowRegardlessOfMoveToNextTask(bool moveToNextTask)
+    {
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+        };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var sender = FailingSenderMockFactory(
+            new KS.Fiks.IO.Send.Client.Exceptions.FiksIOSendUnauthorizedException("credentials refused")
+        );
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(sender.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
+
+        var failed = Assert.IsType<FailedServiceTaskOpeningStageResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("integration credentials", failed.ErrorMessage);
+        Assert.Contains("resume the workflow", failed.ErrorMessage);
         sender.Verify();
     }
 
@@ -654,7 +814,7 @@ public class FiksArkivServiceTaskTest
         instanceClient.VerifyNoOtherCalls();
     }
 
-    private static Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> SendStage(
+    private static Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> SendStage(
         TestFixture fixture
     ) => Assert.IsType<ServiceTaskStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]).Work;
 

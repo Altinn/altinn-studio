@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -47,7 +48,7 @@ public class ExecuteServiceTaskMailboxTests
                     {
                         Seen["SendToArchive"] = context;
                         SentTo = mailbox;
-                        return Task.FromResult(ServiceTaskStageResult.Completed());
+                        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
                     },
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
@@ -175,7 +176,8 @@ public class ExecuteServiceTaskMailboxTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(int? itemIndex) => new("archiving", itemIndex);
+    private static ExecuteServiceTaskPayload Payload(int? itemIndex, MailboxReceivePlan? receive = null) =>
+        new("archiving", itemIndex, receive);
 
     /// <summary>A receive step as the runtime enqueues one: it names the handler that answers the message.</summary>
     private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", ItemIndex: ReplyHandlerIndex);
@@ -345,5 +347,259 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Contains("OnMessage", task.Seen);
         Assert.DoesNotContain("SendToArchive", task.Seen);
         Assert.Null(task.SentTo);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // The segment's last stage: completing it starts the receive leg, and — for a mailbox-opening
+    // stage — concluding from it ends the whole task.
+    // ---------------------------------------------------------------------------------------------
+
+    /// <summary>The Fiks Arkiv shape: the opening stage is the segment's last step.</summary>
+    private sealed class SendOnlyTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
+            (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(OnSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle archive)
+                .ConcludeOnReplies(
+                    archive,
+                    (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                    (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+                );
+    }
+
+    /// <summary>The exchange as the expansion bakes it into <see cref="SendOnlyTask"/>'s send step.</summary>
+    private static readonly MailboxReceivePlan _sendOnlyReceive = new(
+        HandlerItemIndex: 1,
+        OpeningStageIndex: SendStageIndex
+    );
+
+    [Fact]
+    public async Task SegmentFinalOpeningStage_Completed_AsksForTheFirstReceiver()
+    {
+        var task = new SendOnlyTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex, _sendOnlyReceive));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+
+        MailboxContinuation.AwaitFirstMessage first = Assert.IsType<MailboxContinuation.AwaitFirstMessage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(_carriedMailboxId, first.MailboxId);
+        Assert.Equal("archiving", first.ServiceTaskType);
+        Assert.Equal(1, first.HandlerItemIndex);
+        Assert.Equal(SendStageIndex, first.OpeningStageIndex);
+    }
+
+    /// <summary>
+    /// The segment's last stage need not be the one that opened the exchange: a plain stage composed between
+    /// the send and the handler carries the hand-over just the same.
+    /// </summary>
+    [Fact]
+    public async Task SegmentFinalPlainStage_Completed_AsksForTheFirstReceiver()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(
+                CreateContext(MintedCarry()),
+                Payload(itemIndex: 1, new MailboxReceivePlan(ReplyHandlerIndex, SendStageIndex))
+            );
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        MailboxContinuation.AwaitFirstMessage first = Assert.IsType<MailboxContinuation.AwaitFirstMessage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(_carriedMailboxId, first.MailboxId);
+        Assert.Equal(ReplyHandlerIndex, first.HandlerItemIndex);
+        Assert.Equal(SendStageIndex, first.OpeningStageIndex);
+    }
+
+    [Fact]
+    public async Task MidSegmentStage_Completed_StartsNoReceiveLeg()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Null(success.MailboxContinuation);
+    }
+
+    [Fact]
+    public async Task OpeningStageConclusion_WithSuccessAndAction_ClosesEveryMailboxAndAdvances()
+    {
+        var task = new SendOnlyTask
+        {
+            OnSend = (_, _) =>
+                Task.FromResult(ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success("reject"))),
+        };
+        WorkflowCallbackStateCarry carry = MintedCarry();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("reject", success.AutoAdvanceAction);
+
+        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(_carriedMailboxId, Assert.Single(conclude.MailboxIds));
+        // Dropped before the capture: the published blob carries no exchange the conclusion closed.
+        Assert.Null(carry.FindMailbox(SendStageIndex));
+    }
+
+    [Fact]
+    public async Task OpeningStageConclusion_WithPermanentFailure_ClosesEveryMailboxAndAdvancesNothing()
+    {
+        var task = new SendOnlyTask
+        {
+            OnSend = (_, _) =>
+                Task.FromResult(
+                    ServiceTaskOpeningStageResult.Conclude(
+                        ServiceTaskResult.FailedPermanent("the recipient account does not exist")
+                    )
+                ),
+        };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex, _sendOnlyReceive));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
+        Assert.Contains("the recipient account does not exist", failed.ErrorMessage, StringComparison.Ordinal);
+        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
+        Assert.Equal(_carriedMailboxId, Assert.Single(conclude.MailboxIds));
+    }
+
+    /// <summary>
+    /// The runtime half of the mid-segment refusal — the builder cannot see whether a stage's work concludes,
+    /// so the misplacement surfaces here, permanently and naming the stage.
+    /// </summary>
+    [Fact]
+    public async Task OpeningStageConclusion_FromAStageThatIsNotSegmentFinal_FailsPermanently()
+    {
+        var task = new MidSegmentConcluderTask();
+        WorkflowCallbackStateCarry carry = MintedCarry();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(carry), Payload(SendStageIndex));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxConclusionMidSegment", failed.ExceptionType);
+        Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
+        // Refusing the verdict is not concluding: the exchange stays open, bounded by its own deadline.
+        Assert.NotNull(carry.FindMailbox(SendStageIndex));
+    }
+
+    /// <summary>The archiving shape with a conclusion misplaced onto the mid-segment opening stage.</summary>
+    private sealed class MidSegmentConcluderTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(
+                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success())),
+                    new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
+                    out MailboxHandle archive
+                )
+                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .ConcludeOnReplies(
+                    archive,
+                    (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                    (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+                );
+    }
+
+    /// <summary>
+    /// The probe for the opening-stage vocabulary's unknown-result arm, sibling to the four other roots':
+    /// convergence rather than a throw into the retry ladder, naming the type.
+    /// </summary>
+    /// <remarks>
+    /// Self-cleaning: closing the copy-constructor route properly stops <c>base(original)</c> compiling, and
+    /// this test disappears with the arm it pins.
+    /// </remarks>
+    private sealed record RogueOpeningStageResult : ServiceTaskOpeningStageResult
+    {
+        public RogueOpeningStageResult(ServiceTaskOpeningStageResult original)
+            : base(original) { }
+    }
+
+    [Fact]
+    public async Task OpeningStage_WithAnUnrecognisedResultType_FailsPermanentlyAndNamesIt()
+    {
+        var task = new SendOnlyTask
+        {
+            OnSend = (_, _) =>
+                Task.FromResult<ServiceTaskOpeningStageResult>(
+                    new RogueOpeningStageResult(ServiceTaskOpeningStageResult.Completed())
+                ),
+        };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex, _sendOnlyReceive));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains(nameof(RogueOpeningStageResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task OpeningStage_DeferAndFailures_MapAsTheStageVocabularysOwn()
+    {
+        WorkflowCallbackStateCarry carry = MintedCarry();
+
+        DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(
+            await CreateCommand(
+                    new SendOnlyTask
+                    {
+                        OnSend = (_, _) =>
+                            Task.FromResult(ServiceTaskOpeningStageResult.Defer(TimeSpan.FromMinutes(2), "waiting")),
+                    }
+                )
+                .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive))
+        );
+        Assert.Equal(TimeSpan.FromMinutes(2), deferred.Delay);
+
+        FailedProcessEngineCommandResult retryable = Assert.IsType<FailedProcessEngineCommandResult>(
+            await CreateCommand(
+                    new SendOnlyTask
+                    {
+                        OnSend = (_, _) =>
+                            Task.FromResult(ServiceTaskOpeningStageResult.FailedRetryable("engine sneezed")),
+                    }
+                )
+                .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive))
+        );
+        Assert.False(retryable.NonRetryable);
+        Assert.Null(retryable.MailboxContinuation);
+
+        FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
+            await CreateCommand(
+                    new SendOnlyTask
+                    {
+                        OnSend = (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.FailedPermanent("no step id")),
+                    }
+                )
+                .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive))
+        );
+        Assert.True(permanent.NonRetryable);
+        // A stage's own permanent failure concludes nothing: mailboxes stay open for a resume.
+        Assert.Null(permanent.MailboxContinuation);
+        Assert.NotNull(carry.FindMailbox(SendStageIndex));
     }
 }

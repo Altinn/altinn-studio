@@ -103,15 +103,16 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Contains("ExecuteServiceTask: 2", mainOperationIds);
 
         // A mailbox-opening task expands to no concluding Main step - the reply handler runs on the
-        // receive workflows - and Main ends by enqueueing the first receiver, so the frontier is never
-        // empty while the exchange is open.
+        // receive workflows - and Main ends with the segment's last stage, whose completion enqueues the
+        // first receiver from inside the still-unsettled step, so the frontier is never empty while the
+        // exchange is open.
         //
         // The conclusion is this pipeline's item 3, and every step names the item it runs, so
         // "ExecuteServiceTask: 3" is a step id that really does get emitted - on the receive workflows,
         // asserted below. Exact-match, not a StartsWith predicate: this is the collection overload of
         // DoesNotContain, and a prefix predicate would invert the assertion into one that can never hold.
         Assert.DoesNotContain("ExecuteServiceTask: 3", mainOperationIds);
-        Assert.Equal("EnqueueReceiveWorkflow", mainOperationIds[^1]);
+        Assert.Equal("ExecuteServiceTask: 2", mainOperationIds[^1]);
 
         // ---- The address reached the declaring stage, once ----
         ExchangeState afterSend = await WaitForExchangeState(fixture, state => state.MailboxId is not null);

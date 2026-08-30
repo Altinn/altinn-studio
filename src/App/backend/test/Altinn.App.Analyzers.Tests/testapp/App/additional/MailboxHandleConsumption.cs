@@ -14,8 +14,8 @@ internal static class MailboxHandlers
 {
     internal static MailboxOptions Options() => new MailboxOptions { Timeout = TimeSpan.FromDays(1) };
 
-    internal static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    internal static Task<ServiceTaskOpeningStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     internal static Task<ServiceTaskStageExchangeResult> OnMessage(
         ServiceTaskContext context,

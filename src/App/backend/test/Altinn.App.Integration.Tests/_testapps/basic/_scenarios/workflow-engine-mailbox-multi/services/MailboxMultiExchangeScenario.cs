@@ -63,20 +63,20 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
             .Stage(SendToJournal, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle journal)
             .ConcludeOnReplies(journal, onMessage: HandleJournalMessage, onClosed: HandleJournalClosed);
 
-    private Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
         int run = MultiExchangeRecorder.NextRun(ArchiveStageLabel);
         MultiExchangeRecorder.PublishAddress(ArchiveStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendToArchive.Run{run}.Published");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
-    private Task<ServiceTaskStageResult> SendToJournal(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendToJournal(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
         int run = MultiExchangeRecorder.NextRun(JournalStageLabel);
         MultiExchangeRecorder.PublishAddress(JournalStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendToJournal.Run{run}.Published");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
     /// <summary>
@@ -228,20 +228,20 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
             .Stage(RecordOutcome)
             .Finally(ConfirmBoth);
 
-    private Task<ServiceTaskStageResult> SendAlpha(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendAlpha(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
         int run = MultiExchangeRecorder.NextRun(AlphaStageLabel);
         MultiExchangeRecorder.PublishAddress(AlphaStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendAlpha.Run{run}.Published");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
-    private Task<ServiceTaskStageResult> SendBeta(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendBeta(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
         int run = MultiExchangeRecorder.NextRun(BetaStageLabel);
         MultiExchangeRecorder.PublishAddress(BetaStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendBeta.Run{run}.Published");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
     private Task<ServiceTaskStageResult> RecordOutcome(ServiceTaskContext context)

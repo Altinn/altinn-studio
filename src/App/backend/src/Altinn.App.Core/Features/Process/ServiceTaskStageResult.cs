@@ -2,10 +2,11 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Deliberately missing compared
-/// to <see cref="ServiceTaskResult"/>: a stage cannot conclude the task or advance the process — that is
-/// reserved for the pipeline's conclusion. A subtype of <see cref="ServiceTaskStageExchangeResult"/>, so
-/// every one of these answers is also a valid answer from a reply handler that leaves the task unconcluded —
-/// the reverse does not hold.
+/// to <see cref="ServiceTaskResult"/>: a plain stage cannot conclude the task or advance the process — that
+/// is reserved for the pipeline's conclusion and for a mailbox-opening stage's
+/// <see cref="ServiceTaskOpeningStageResult.Conclude"/>. A subtype of
+/// <see cref="ServiceTaskStageExchangeResult"/>, so every one of these answers is also a valid answer from a
+/// reply handler that leaves the task unconcluded — the reverse does not hold.
 /// </summary>
 public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
 {

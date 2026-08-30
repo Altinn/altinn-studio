@@ -37,7 +37,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using Polly;
 
 namespace Altinn.App.Clients.Fiks.Tests;
 
@@ -94,8 +93,6 @@ internal sealed record TestFixture(
 
     /// <summary>The Fiks Arkiv task's composed pipeline — the send stage plus its reply handler.</summary>
     public ServiceTaskPipeline FiksArkivPipeline => FiksArkivServiceTask.ResolvePipeline();
-    public ResiliencePipeline<FiksIOMessageResponse> FiksIOResiliencePipeline =>
-        App.Services.ResolveResiliencePipeline();
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();
     public IProcessReader ProcessReader => App.Services.GetRequiredService<IProcessReader>();
     public IHttpClientFactory HttpClientFactory => App.Services.GetRequiredService<IHttpClientFactory>();

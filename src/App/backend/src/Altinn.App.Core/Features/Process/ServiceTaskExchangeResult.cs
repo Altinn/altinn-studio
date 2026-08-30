@@ -20,8 +20,8 @@ public abstract record ServiceTaskExchangeResult
     /// the committed public-API approval file is what notices a widening, and <em>only in CI</em> — AutoVerify
     /// rewrites it silently on a developer machine. Read that file's diff by hand if you touch the
     /// accessibility of this constructor or its siblings'. The record copy-constructor stays reachable
-    /// (C# forbids narrowing it), so four tests pin that an unknown result converges as a permanent failure
-    /// instead of throwing into a retry ladder.
+    /// (C# forbids narrowing it), so a test per result mapper pins that an unknown result converges as a
+    /// permanent failure instead of throwing into a retry ladder.
     /// </remarks>
     private protected ServiceTaskExchangeResult() { }
 

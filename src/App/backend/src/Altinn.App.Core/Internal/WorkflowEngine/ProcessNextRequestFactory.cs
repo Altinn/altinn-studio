@@ -78,8 +78,9 @@ internal sealed class ProcessNextRequestFactory
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 
     /// <summary>
-    /// OperationId prefix for a receive workflow — a naming convention for ops and logs; nothing identifies a
-    /// receiver by it.
+    /// OperationId prefix for a receive workflow — enqueued by <see cref="MailboxRelay"/>, never by this
+    /// factory; the constant lives here beside its siblings. A naming convention for ops and logs; nothing
+    /// identifies a receiver by it.
     /// </summary>
     internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
@@ -211,30 +212,6 @@ internal sealed class ProcessNextRequestFactory
         }
         mainSteps.AddRange(commands.CriticalPostCommit);
 
-        // A message-answered task concludes on its receive workflows, so Main ends by enqueueing the first
-        // receiver — appended after every critical post-commit step so the receiver joins the frontier while
-        // Main is still unsettled.
-        if (commands.MailboxReceive is { } receive)
-        {
-            var receiveEnqueueRequest = new WorkflowEnqueueRequest
-            {
-                Labels = labels,
-                Workflows =
-                [
-                    new WorkflowRequest
-                    {
-                        OperationId = $"{MailboxReceiveOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                        Steps = [receive.Step],
-                        // A head that depends on the current head — Main itself, so a failed transition
-                        // condemns its receiver instead of leaving it parked on the rendezvous.
-                        IsHead = true,
-                        DependsOnHeads = true,
-                    },
-                ],
-            };
-            mainSteps.Add(CreateEnqueueReceiveWorkflowCommand(receiveEnqueueRequest, receive.OpeningStageIndex));
-        }
-
         var request = new WorkflowEnqueueRequest
         {
             Labels = labels,
@@ -289,16 +266,14 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// The assembled step lists for one transition: the Main workflow's sequence through the
-    /// SaveProcessStateToStorage commit, the critical post-commit commands that follow it, the
+    /// SaveProcessStateToStorage commit, the critical post-commit commands that follow it, and the
     /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued at
-    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>), and — when the transition
-    /// enters a service task that opens a mailbox — the step its receive workflows run.
+    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>).
     /// </summary>
     private readonly record struct AssembledCommands(
         List<StepRequest> ThroughCommit,
         List<StepRequest> CriticalPostCommit,
-        List<StepRequest> SideEffects,
-        MailboxReceivePlan? MailboxReceive
+        List<StepRequest> SideEffects
     );
 
     private async Task<AssembledCommands> AssembleCommandSequence(
@@ -312,7 +287,6 @@ internal sealed class ProcessNextRequestFactory
         var taskStartSteps = new List<StepRequest>();
         var criticalPostCommitSteps = new List<StepRequest>();
         var sideEffectSteps = new List<StepRequest>();
-        MailboxReceivePlan? mailboxReceive = null;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
 
@@ -369,14 +343,6 @@ internal sealed class ProcessNextRequestFactory
                         serviceTaskType
                     )
                 );
-
-                if (workflowCommands.MailboxReceive is { } receive)
-                {
-                    mailboxReceive = receive with
-                    {
-                        Step = receive.Step.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType),
-                    };
-                }
             }
         }
 
@@ -389,7 +355,7 @@ internal sealed class ProcessNextRequestFactory
         commands.AddRange(taskStartSteps);
         commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
 
-        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, mailboxReceive);
+        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps);
     }
 
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
@@ -535,14 +501,6 @@ internal sealed class ProcessNextRequestFactory
         };
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
-
-    private StepRequest CreateEnqueueReceiveWorkflowCommand(
-        WorkflowEnqueueRequest receiveEnqueueRequest,
-        int openingStageIndex
-    ) =>
-        WorkflowCommandSet
-            .CreateReceiveEnqueueStep(receiveEnqueueRequest, openingStageIndex)
-            .ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
 
     private StepRequest CreateEnqueueSideEffectsWorkflowCommand(WorkflowEnqueueRequest sideEffectsEnqueueRequest)
     {

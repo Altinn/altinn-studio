@@ -18,9 +18,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <summary>
 /// The mailbox relay saga. Correct under at-least-once retries by three invariants: the mailbox closes before
 /// anything downstream starts; at most one execution concludes per exchange (structural, via
-/// <see cref="MailboxContinuation"/>); and every engine call is keyed off
-/// <see cref="AppCallbackPayload.StepId"/>. Every enqueue lands as a collection head from inside the
-/// still-unsettled receiver, keeping the frontier non-empty for the whole exchange.
+/// <see cref="MailboxContinuation"/>); and each step performs <strong>at most one</strong> idempotency-keyed
+/// enqueue — which one is decided by the verdict, and verdicts are deterministic per the handler contract —
+/// so the bare <see cref="AppCallbackPayload.StepId"/> is the whole key. Every enqueue lands as a collection
+/// head from inside the still-unsettled receiver, keeping the frontier non-empty for the whole exchange.
 /// </summary>
 internal sealed class MailboxRelay
 {
@@ -45,11 +46,117 @@ internal sealed class MailboxRelay
         _appImplementationFactory = appImplementationFactory;
     }
 
-    /// <summary>Keyed so a replayed conclusion advances the process once.</summary>
-    internal static string CreateAfterWorkflowIdempotencyKey(Guid stepId) => $"{stepId}:mailbox-after";
+    /// <summary>
+    /// Maps the completion of a segment's last stage to the continuation that starts the exchange's receive
+    /// leg. The <see cref="MailboxReceivePlan"/> was fixed at assembly time and never re-derived: the
+    /// receiver must answer the exchange this expansion minted, not whatever sits at that index when the
+    /// step runs. The mailbox is read from the carry here, where a missing entry can still fail the step
+    /// legibly.
+    /// </summary>
+    internal static ProcessEngineCommandResult DecideSegmentEnd(
+        string serviceTaskType,
+        Guid stepId,
+        WorkflowCallbackStateCarry carry,
+        MailboxReceivePlan receive
+    )
+    {
+        if (StepIdMissing(stepId, serviceTaskType, "enqueue the exchange's first receiver") is { } noKey)
+        {
+            return noKey;
+        }
 
-    /// <summary>Keyed so a replayed conclusion starts the pipeline's next segment once.</summary>
-    internal static string CreateContinuationIdempotencyKey(Guid stepId) => $"{stepId}:mailbox-continue";
+        // Carried in the state blob because the mint's key is the mint step's own step id, which nothing later
+        // can re-derive. Looked up by index, so a second carried mailbox is no obstacle.
+        if (carry.FindMailbox(receive.OpeningStageIndex) is not { } carried)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                $"This service task's exchange is opened by the stage at index {receive.OpeningStageIndex}, but "
+                    + "no mailbox id for it reached this step in the workflow state. The mint step that runs "
+                    + "before that stage records the id; a step between the two must have dropped it.",
+                "MailboxIdMissingFromState"
+            );
+        }
+
+        return new SuccessfulProcessEngineCommandResult
+        {
+            MailboxContinuation = new MailboxContinuation.AwaitFirstMessage(
+                carried.Id,
+                serviceTaskType,
+                receive.HandlerItemIndex,
+                receive.OpeningStageIndex
+            ),
+        };
+    }
+
+    /// <summary>
+    /// Maps a mailbox-opening stage's conclusion of the whole task. A concluding verdict closes
+    /// <em>every</em> mailbox the carry still holds — the task is over, so no exchange of its may keep
+    /// accepting messages — before anything downstream starts; the wrapped verdicts that conclude nothing
+    /// (retryable failure, deferral) act exactly as the stage vocabulary's own members and close nothing.
+    /// </summary>
+    internal static ProcessEngineCommandResult DecideOpeningStageConclusion(
+        ServiceTaskResult result,
+        string serviceTaskType,
+        Guid stepId,
+        WorkflowCallbackStateCarry carry
+    )
+    {
+        switch (result)
+        {
+            case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
+                // A failing callback publishes no blob, so there is nothing for the carry to un-say.
+                return FailedProcessEngineCommandResult.Permanent(
+                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
+                    ExecuteServiceTask.FailedReasonCode,
+                    new MailboxContinuation.Conclude([.. carry.FindAllMailboxes().Select(m => m.Mailbox.Id)])
+                );
+
+            case ServiceTaskFailedResult failed:
+                // The saga has not started; the next attempt re-runs the stage.
+                return FailedProcessEngineCommandResult.Retryable(
+                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
+                    ExecuteServiceTask.FailedReasonCode
+                );
+
+            case ServiceTaskDeferredResult deferred:
+                return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
+
+            case ServiceTaskSuccessResult { AutoAdvanceProcess: true }
+                when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the conclusion")
+                    is { } noAfterKey:
+                return noAfterKey;
+
+            case ServiceTaskSuccessResult success:
+                IReadOnlyList<(int StageIndex, CarriedMailbox Mailbox)> carried = carry.FindAllMailboxes();
+                // Dropped from the carry here, before the state is captured, so the blob this callback
+                // publishes carries no exchange the conclusion just closed.
+                foreach ((int stageIndex, _) in carried)
+                {
+                    carry.RecordMailboxConcluded(stageIndex);
+                }
+
+                return new SuccessfulProcessEngineCommandResult
+                {
+                    AutoAdvanceProcess = success.AutoAdvanceProcess,
+                    AutoAdvanceAction = success.Action,
+                    MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
+                };
+
+            // Reached by the route Decide's last arm documents; answered the same way.
+            default:
+                return FailedProcessEngineCommandResult.Permanent(
+                    $"Service task '{serviceTaskType}' concluded from its mailbox-opening stage with a result "
+                        + $"of type '{result.GetType().Name}', which this version of the app-lib cannot act "
+                        + "on. A conclusion must carry one of the results the factory methods produce — "
+                        + $"{nameof(ServiceTaskResult.Success)}, "
+                        + $"{nameof(ServiceTaskResult.SuccessWithoutAutoAdvance)}, "
+                        + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
+                        + $"{nameof(ServiceTaskResult.FailedPermanent)} or "
+                        + $"{nameof(ServiceTaskResult.Defer)} — never a type of its own.",
+                    "ServiceTaskResultUnknown"
+                );
+        }
+    }
 
     /// <summary>
     /// Maps a terminal reply handler's verdict to the callback's outcome plus the continuation
@@ -93,7 +200,7 @@ internal sealed class MailboxRelay
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
                     ExecuteServiceTask.FailedReasonCode,
-                    new MailboxContinuation.Conclude(mailbox.Id)
+                    new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
             case ServiceTaskFailedResult failed:
@@ -117,7 +224,7 @@ internal sealed class MailboxRelay
                 {
                     AutoAdvanceProcess = success.AutoAdvanceProcess,
                     AutoAdvanceAction = success.Action,
-                    MailboxContinuation = new MailboxContinuation.Conclude(mailbox.Id),
+                    MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
                 };
 
             // Reachable from app code: the result roots declare no callable constructor, but they are records,
@@ -145,7 +252,10 @@ internal sealed class MailboxRelay
     /// vocabulary, so concluding the task and advancing the process are not among the moves, and a concluded
     /// exchange starts the pipeline's next segment rather than an after-workflow. A separate method because
     /// the two vocabularies are unrelated roots — merging them behind a supertype would put
-    /// <c>Success(action)</c> back within reach of a handler that must not have it.
+    /// <c>Success(action)</c> back within reach of a handler that must not have it. A concluding verdict
+    /// plans the next segment from <paramref name="pipeline"/> — the same resolution dispatch just ran the
+    /// handler from — because a segment with no steps of its own needs its exchange's mailbox resolved from
+    /// the carry <em>here</em>, where a missing entry can still fail the verdict legibly.
     /// </summary>
     internal static ProcessEngineCommandResult DecideSegment(
         ServiceTaskStageExchangeResult result,
@@ -154,7 +264,8 @@ internal sealed class MailboxRelay
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
-        int openingStageIndex
+        int openingStageIndex,
+        ServiceTaskPipeline pipeline
     )
     {
         switch (result)
@@ -180,6 +291,42 @@ internal sealed class MailboxRelay
                 return noContinueKey;
 
             case CompletedServiceTaskStageResult:
+                ResolvedFirstReceiver? nextReceiver = null;
+                ServiceTaskSegmentPlan nextSegment = WorkflowCommandSet.PlanSegment(
+                    serviceTaskType,
+                    pipeline,
+                    afterHandlerItemIndex: handlerItemIndex
+                );
+                if (nextSegment.Steps.Count == 0)
+                {
+                    // PlanSegment ends every segment on an exchange or on the conclusion's own step, so an
+                    // empty segment always names an exchange.
+                    MailboxReceivePlan receive =
+                        nextSegment.Receive
+                        ?? throw new UnreachableException("An empty segment plan must name the exchange it ends on.");
+
+                    // Only up-front sends produce an empty segment, so the next exchange's mint ran in an
+                    // earlier segment and its entry provably travels in the carry unless the carry broke.
+                    if (carry.FindMailbox(receive.OpeningStageIndex) is not { } nextCarried)
+                    {
+                        // Refused before anything is recorded: the exchange is untouched, so a resume
+                        // replays this handler.
+                        return FailedProcessEngineCommandResult.Permanent(
+                            $"The pipeline's next exchange is opened by the stage at index "
+                                + $"{receive.OpeningStageIndex}, but no mailbox id for it reached this step in "
+                                + "the workflow state. The mint step that runs before that stage records the "
+                                + "id; a step between the two must have dropped it.",
+                            "MailboxIdMissingFromState"
+                        );
+                    }
+
+                    nextReceiver = new ResolvedFirstReceiver(
+                        nextCarried.Id,
+                        receive.HandlerItemIndex,
+                        receive.OpeningStageIndex
+                    );
+                }
+
                 // Dropped from the carry here, before the state is captured, so the continuation and everything
                 // after it carry only the exchanges still open.
                 carry.RecordMailboxConcluded(openingStageIndex);
@@ -189,7 +336,8 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        openingStageIndex
+                        openingStageIndex,
+                        nextReceiver
                     ),
                 };
 
@@ -199,7 +347,7 @@ internal sealed class MailboxRelay
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
                     ExecuteServiceTask.FailedReasonCode,
-                    new MailboxContinuation.Conclude(mailbox.Id)
+                    new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
             case FailedServiceTaskStageResult failed:
@@ -229,9 +377,10 @@ internal sealed class MailboxRelay
     }
 
     /// <summary>
-    /// <c>MailboxStepIdMissing</c>, for the keyed verdicts only: engine idempotency is scoped to
-    /// <c>(namespace, key)</c> and an empty id is a constant, so every exchange in the application would
-    /// collapse onto one successor and one after-workflow. Verdicts that make no keyed call are not refused.
+    /// <c>MailboxStepIdMissing</c>, for the keyed verdicts only: the bare step id is the whole idempotency
+    /// key, engine idempotency is scoped to <c>(namespace, key)</c>, and an empty id is a constant — so
+    /// every exchange in the application would collapse onto one enqueued workflow. Verdicts that make no
+    /// keyed call are not refused.
     /// </summary>
     private static FailedProcessEngineCommandResult? StepIdMissing(Guid stepId, string serviceTaskType, string wouldDo)
     {
@@ -252,13 +401,36 @@ internal sealed class MailboxRelay
     {
         switch (continuation)
         {
+            case MailboxContinuation.AwaitFirstMessage first:
+                await EnqueueReceiver(
+                    first.MailboxId,
+                    first.ServiceTaskType,
+                    first.HandlerItemIndex,
+                    operationIdSuffix: first.OpeningStageIndex.ToString(CultureInfo.InvariantCulture),
+                    request,
+                    ct
+                );
+                return;
+
             case MailboxContinuation.AwaitNextMessage awaitNext:
-                await EnqueueSuccessorReceiver(awaitNext, request, ct);
+                await EnqueueReceiver(
+                    awaitNext.MailboxId,
+                    awaitNext.ServiceTaskType,
+                    awaitNext.HandlerItemIndex,
+                    operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
+                    request,
+                    ct
+                );
                 return;
 
             case MailboxContinuation.Conclude conclude:
-                // Invariant 1: the mailbox stops accepting messages before anything downstream starts.
-                await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), conclude.MailboxId, ct);
+                // Invariant 1: every named mailbox stops accepting messages before anything downstream
+                // starts. Sequential on purpose — the count is the task's open exchanges, and a close must
+                // not race the after-workflow.
+                foreach (Guid mailboxId in conclude.MailboxIds)
+                {
+                    await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), mailboxId, ct);
+                }
 
                 if (request.AutoAdvanceProcess)
                 {
@@ -272,6 +444,22 @@ internal sealed class MailboxRelay
                 // has already moved past. Only this exchange's mailbox closes — a later one already open
                 // spends its own deadline, which is what lets a resume replay this handler.
                 await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), continuing.MailboxId, ct);
+
+                if (continuing.NextReceiver is { } next)
+                {
+                    // The next segment has no steps of its own, so there is no continuation workflow to
+                    // ride: the receiver is the pipeline's continuation.
+                    await EnqueueReceiver(
+                        next.MailboxId,
+                        continuing.ServiceTaskType,
+                        next.HandlerItemIndex,
+                        operationIdSuffix: next.OpeningStageIndex.ToString(CultureInfo.InvariantCulture),
+                        request,
+                        ct
+                    );
+                    return;
+                }
+
                 await EnqueueContinuation(continuing, request, ct);
                 return;
 
@@ -280,9 +468,18 @@ internal sealed class MailboxRelay
         }
     }
 
-    /// <summary>The same shape <see cref="Commands.EnqueueReceiveWorkflow"/> gives the first receiver.</summary>
-    private async Task EnqueueSuccessorReceiver(
-        MailboxContinuation.AwaitNextMessage continuation,
+    /// <summary>
+    /// One receive workflow, first receiver and successors alike: a single step naming the handler by its
+    /// item index, parked on the exchange's mailbox, enqueued as a head that depends on the current head —
+    /// the still-unsettled step running this relay — so the exchange stays visible to the frontier and a
+    /// failed hop condemns everything downstream. Keyed on the bare executing step id, per the invariant on
+    /// this class.
+    /// </summary>
+    private async Task EnqueueReceiver(
+        Guid mailboxId,
+        string serviceTaskType,
+        int handlerItemIndex,
+        string operationIdSuffix,
         MailboxRelayRequest request,
         CancellationToken ct
     )
@@ -290,8 +487,8 @@ internal sealed class MailboxRelay
         string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
 
         StepRequest receiveStep = WorkflowCommandSet
-            .CreateReceiveHandlerStep(continuation.ServiceTaskType, continuation.HandlerItemIndex)
-            .ApplyStepOptions(_stepOptionsResolver, taskId, continuation.ServiceTaskType);
+            .CreateReceiveHandlerStep(serviceTaskType, handlerItemIndex)
+            .ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType);
 
         // Token minted at this hop; with the re-signed blob this binds each hop to current app code. The lock
         // token is carried verbatim by design.
@@ -315,13 +512,10 @@ internal sealed class MailboxRelay
                 new WorkflowRequest
                 {
                     OperationId =
-                        $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · after message "
-                        + continuation.Position.ToString(CultureInfo.InvariantCulture),
+                        $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · {operationIdSuffix}",
                     Steps = [receiveStep],
-                    Mailbox = new MailboxReference { Id = continuation.MailboxId },
+                    Mailbox = new MailboxReference { Id = mailboxId },
                     State = request.State,
-                    // A head that depends on the current head — the previous hop — so the exchange stays
-                    // visible to the frontier and a failed hop condemns everything downstream.
                     IsHead = true,
                     DependsOnHeads = true,
                 },
@@ -330,7 +524,7 @@ internal sealed class MailboxRelay
 
         await _workflowEngineClient.EnqueueWorkflows(
             ns: GetNamespace(request.AppId),
-            idempotencyKey: Commands.EnqueueReceiveWorkflow.CreateIdempotencyKey(request.Payload.StepId),
+            idempotencyKey: request.Payload.StepId.ToString(),
             collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             request: enqueueRequest,
             ct: ct
@@ -339,11 +533,12 @@ internal sealed class MailboxRelay
 
     /// <summary>
     /// The pipeline's next segment, as one workflow: the items composed after the handler that just concluded,
-    /// ended by the step that enqueues the next exchange's first receiver — or by the pipeline's conclusion
-    /// when no exchange is left. Identity carried, shape re-derived: the continuation says where the segment
-    /// starts, and what it contains is planned from the pipeline as it resolves at this hop. The step that
-    /// enqueues the next receiver is appended here, last — the continuation cannot settle before the receiver
-    /// that follows it exists.
+    /// ended by the stage whose completion enqueues the next exchange's first receiver — or by the pipeline's
+    /// conclusion when no exchange is left. Identity carried, shape re-derived: the continuation says where
+    /// the segment starts, and what it contains is planned from the pipeline as it resolves at this hop — the
+    /// same resolution the decide already planned against, so a segment with no steps of its own never
+    /// reaches here (its receiver rides <see cref="MailboxContinuation.ConcludeAndContinue.NextReceiver"/>
+    /// instead).
     /// </summary>
     private async Task EnqueueContinuation(
         MailboxContinuation.ConcludeAndContinue continuation,
@@ -369,36 +564,18 @@ internal sealed class MailboxRelay
             afterHandlerItemIndex: continuation.HandlerItemIndex
         );
 
+        if (segmentPlan.Steps.Count == 0)
+        {
+            throw new UnreachableException(
+                "An empty next segment is resolved at decide time and rides the continuation's NextReceiver; "
+                    + "Define is deterministic, so this hop's plan cannot disagree with the decide's."
+            );
+        }
+
         List<StepRequest> steps =
         [
             .. segmentPlan.Steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType),
         ];
-
-        if (segmentPlan.Receive is { } receive)
-        {
-            var receiveEnqueueRequest = new WorkflowEnqueueRequest
-            {
-                Labels = CreateSuccessorLabels(request),
-                Workflows =
-                [
-                    new WorkflowRequest
-                    {
-                        OperationId =
-                            $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · "
-                            + receive.OpeningStageIndex.ToString(CultureInfo.InvariantCulture),
-                        Steps = [receive.Step.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)],
-                        IsHead = true,
-                        DependsOnHeads = true,
-                    },
-                ],
-            };
-
-            steps.Add(
-                WorkflowCommandSet
-                    .CreateReceiveEnqueueStep(receiveEnqueueRequest, receive.OpeningStageIndex)
-                    .ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null)
-            );
-        }
 
         // Minted at this hop, exactly as a successor receiver's is.
         var continuationContext = new AppWorkflowContext
@@ -438,7 +615,7 @@ internal sealed class MailboxRelay
 
         await _workflowEngineClient.EnqueueWorkflows(
             ns: GetNamespace(request.AppId),
-            idempotencyKey: CreateContinuationIdempotencyKey(request.Payload.StepId),
+            idempotencyKey: request.Payload.StepId.ToString(),
             collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             request: enqueueRequest,
             ct: ct
@@ -489,7 +666,7 @@ internal sealed class MailboxRelay
                         + "published."
                 ),
             request.AutoAdvanceAction,
-            CreateAfterWorkflowIdempotencyKey(request.Payload.StepId),
+            request.Payload.StepId.ToString(),
             ct
         );
 
