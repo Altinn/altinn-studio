@@ -10,6 +10,7 @@ using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
@@ -264,21 +265,10 @@ internal static class TestHelpers
         ) => Task.CompletedTask;
     }
 
-    public class CustomFiksArkivResponseHandler : IFiksArkivResponseHandler
+    public class CustomFiksArkivMessageHandler : IFiksArkivMessageHandler
     {
-        public Task HandleSuccess(
-            Instance instance,
-            FiksIOReceivedMessage message,
-            IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads,
-            CancellationToken cancellationToken = default
-        ) => throw new NotImplementedException();
-
-        public Task HandleError(
-            Instance instance,
-            FiksIOReceivedMessage message,
-            IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads,
-            CancellationToken cancellationToken = default
-        ) => throw new NotImplementedException();
+        public Task HandleMessage(FiksArkivReceivedMessage message, ServiceTaskContext context) =>
+            throw new NotImplementedException();
     }
 
     public static FiksArkivBindableValue<T> BindableValueFactory<T>(string dataTypeId, string field) =>

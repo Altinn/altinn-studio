@@ -163,13 +163,13 @@ public class ServiceCollectionExtensionsTests
         var fiksIOClientFactory = fixture.FiksIOClientFactory;
         var resiliencePipeline = fixture.FiksIOResiliencePipeline;
         var altinnCdnClient = fixture.AltinnCdnClient;
-        var fiksArkivHost = fixture.FiksArkivHost;
+        var fiksArkivSubscriber = fixture.FiksArkivSubscriber;
+        var fiksArkivMessageSender = fixture.FiksArkivMessageSender;
         var fiksArkivServiceTask = fixture.FiksArkivServiceTask;
         var fiksArkivConfigValidationService = fixture.FiksArkivConfigValidationService;
         var fiksArkivConfigResolver = fixture.FiksArkivConfigResolver;
         var fiksArkivInstanceClient = fixture.FiksArkivInstanceClient;
         var fiksArkivPayloadGenerator = fixture.FiksArkivPayloadGenerator;
-        var fiksArkivResponseHandler = fixture.FiksArkivResponseHandler;
 
         // Assert
         Assert.NotNull(fiksIOClient);
@@ -177,24 +177,25 @@ public class ServiceCollectionExtensionsTests
         Assert.NotNull(fiksIOClientFactory);
         Assert.NotNull(resiliencePipeline);
         Assert.NotNull(altinnCdnClient);
-        Assert.NotNull(fiksArkivHost);
+        Assert.NotNull(fiksArkivSubscriber);
+        Assert.NotNull(fiksArkivMessageSender);
         Assert.NotNull(fiksArkivServiceTask);
         Assert.NotNull(fiksArkivConfigValidationService);
         Assert.NotNull(fiksArkivConfigResolver);
         Assert.NotNull(fiksArkivInstanceClient);
         Assert.NotNull(fiksArkivPayloadGenerator);
-        Assert.NotNull(fiksArkivResponseHandler);
+        // No message handler is registered by default — the hook is optional.
+        Assert.Null(fixture.FiksArkivMessageHandler);
         Assert.Equal(TestHelpers.DefaultFiksIOSettings, fiksIOSettings);
         Assert.IsType<FiksIOClient>(fiksIOClient);
         Assert.IsType<FiksIOClientFactory>(fiksIOClientFactory);
         Assert.IsType<AltinnCdnClient>(altinnCdnClient);
-        Assert.IsType<FiksArkivHost>(fiksArkivHost);
+        Assert.IsType<FiksArkivMessageSender>(fiksArkivMessageSender);
         Assert.IsType<FiksArkivServiceTask>(fiksArkivServiceTask);
         Assert.IsType<FiksArkivConfigValidationService>(fiksArkivConfigValidationService);
         Assert.IsType<FiksArkivConfigResolver>(fiksArkivConfigResolver);
         Assert.IsType<FiksArkivInstanceClient>(fiksArkivInstanceClient);
         Assert.IsType<FiksArkivDefaultPayloadGenerator>(fiksArkivPayloadGenerator);
-        Assert.IsType<FiksArkivDefaultResponseHandler>(fiksArkivResponseHandler);
 
         AssertDefaultResiliencePipeline(resiliencePipeline);
     }
@@ -341,19 +342,19 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public async Task AddFiksArkiv_OverridesResponseHandler()
+    public async Task AddFiksArkiv_RegistersMessageHandler()
     {
         // Arrange
         await using var fixture = TestFixture.Create(services =>
-            services.AddFiksArkiv().WithResponseHandler<TestHelpers.CustomFiksArkivResponseHandler>()
+            services.AddFiksArkiv().WithMessageHandler<TestHelpers.CustomFiksArkivMessageHandler>()
         );
 
         // Act
-        var fiksArkivMessageHandler = fixture.FiksArkivResponseHandler;
+        var fiksArkivMessageHandler = fixture.FiksArkivMessageHandler;
 
         // Assert
         Assert.NotNull(fiksArkivMessageHandler);
-        Assert.IsType<TestHelpers.CustomFiksArkivResponseHandler>(fiksArkivMessageHandler);
+        Assert.IsType<TestHelpers.CustomFiksArkivMessageHandler>(fiksArkivMessageHandler);
     }
 
     private static void AssertDefaultResiliencePipeline(ResiliencePipeline<FiksIOMessageResponse> pipeline)

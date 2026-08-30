@@ -186,7 +186,7 @@ serviceTaskType, payload, idempotencyKey)`, doing no work of its own beyond deco
   `FailedPermanent`.
 
 The worked example in-tree is Fiks Arkiv (`Altinn.App.Clients.Fiks`): `FiksArkivServiceTask` publishes the
-mailbox id as the outbound message's `klientKorrelasjonsId`, and `FiksArkivHost.IncomingMessageListener`
+mailbox id as the outbound message's `klientKorrelasjonsId`, and `FiksArkivSubscriber.IncomingMessageListener`
 reads the echo, decrypts, and forwards.
 
 ## Redeploys and in-flight workflows

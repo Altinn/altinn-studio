@@ -241,18 +241,15 @@ public sealed record FiksArkivErrorHandlingSettings
 {
     /// <summary>
     /// Should we automatically progress to the next task when the archive reports that it could not
-    /// create the record? Defaults to <c>true</c>.
+    /// create the record? Defaults to <c>false</c>: an archive error fails the task, so the rejection
+    /// reaches monitoring — whether this block is present or not.
     /// </summary>
-    /// <remarks>
-    /// <c>false</c> fails the task so the rejection reaches monitoring. Omitting the whole block is not the
-    /// same as these defaults: with no block at all, an archive error fails the task.
-    /// </remarks>
     [JsonPropertyName("moveToNextTask")]
-    public bool MoveToNextTask { get; set; } = true;
+    public bool MoveToNextTask { get; set; }
 
     /// <summary>
-    /// When progressing to the next task, which action should we send?
-    /// Defaults to <c>reject</c>.
+    /// When progressing to the next task (<see cref="MoveToNextTask"/> is <c>true</c>), which action
+    /// should we send? Defaults to <c>reject</c>.
     /// </summary>
     [JsonPropertyName("action")]
     public string? Action { get; set; } = "reject";

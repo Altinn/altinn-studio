@@ -78,10 +78,11 @@ internal sealed record TestFixture(
         App.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
     public FiksArkivConfigValidationService FiksArkivConfigValidationService =>
         App.Services.GetServices<IHostedService>().OfType<FiksArkivConfigValidationService>().Single();
-    public FiksArkivHost FiksArkivHost => App.Services.GetServices<IHostedService>().OfType<FiksArkivHost>().Single();
+    public FiksArkivSubscriber FiksArkivSubscriber =>
+        App.Services.GetServices<IHostedService>().OfType<FiksArkivSubscriber>().Single();
+    public IFiksArkivMessageSender FiksArkivMessageSender => App.Services.GetRequiredService<IFiksArkivMessageSender>();
     public IAltinnCdnClient AltinnCdnClient => App.Services.GetRequiredService<IAltinnCdnClient>();
-    public IFiksArkivResponseHandler FiksArkivResponseHandler =>
-        App.Services.GetRequiredService<IFiksArkivResponseHandler>();
+    public IFiksArkivMessageHandler? FiksArkivMessageHandler => App.Services.GetService<IFiksArkivMessageHandler>();
     public IFiksArkivPayloadGenerator FiksArkivPayloadGenerator =>
         App.Services.GetRequiredService<IFiksArkivPayloadGenerator>();
     public IFiksArkivConfigResolver FiksArkivConfigResolver =>

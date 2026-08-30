@@ -120,7 +120,7 @@ public class FiksArkivReplyAddressRoundTripTest
         var svarSender = new Mock<ISvarSender>();
 
         // 3. The real subscriber routes on what the archive echoed.
-        await fixture.FiksArkivHost.IncomingMessageListener(
+        await fixture.FiksArkivSubscriber.IncomingMessageListener(
             new FiksIOReceivedMessage(new MottattMeldingArgs(mottattMelding.Object, svarSender.Object))
         );
 

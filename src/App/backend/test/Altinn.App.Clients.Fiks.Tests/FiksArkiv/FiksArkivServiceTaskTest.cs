@@ -53,8 +53,9 @@ public class FiksArkivServiceTaskTest
     {
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
-        host.Setup(x =>
+        var sender = new Mock<IFiksArkivMessageSender>(MockBehavior.Strict);
+        sender
+            .Setup(x =>
                 x.GenerateAndSendMessage(
                     "Task_1",
                     "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett",
@@ -71,13 +72,13 @@ public class FiksArkivServiceTaskTest
         await using var fixture = TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
-            services.AddSingleton(host.Object);
+            services.AddSingleton(sender.Object);
         });
 
         ServiceTaskStageResult result = await SendStage(fixture)(CreateContext(dataMutator.Object), MailboxFactory());
 
         Assert.IsType<CompletedServiceTaskStageResult>(result);
-        host.Verify();
+        sender.Verify();
     }
 
     [Fact]
@@ -85,9 +86,10 @@ public class FiksArkivServiceTaskTest
     {
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
+        var sender = new Mock<IFiksArkivMessageSender>(MockBehavior.Strict);
         var received = new List<(Guid SendersReference, Guid ReplyAddress)>();
-        host.Setup(x =>
+        sender
+            .Setup(x =>
                 x.GenerateAndSendMessage(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -114,7 +116,7 @@ public class FiksArkivServiceTaskTest
         await using var fixture = TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
-            services.AddSingleton(host.Object);
+            services.AddSingleton(sender.Object);
         });
 
         Guid laterMailboxId = Guid.Parse("76aec9b6-ea01-41ed-bad2-828cdf7f2bb2");
@@ -134,11 +136,11 @@ public class FiksArkivServiceTaskTest
     public async Task SendToArchive_WithoutAStepId_ReturnsPermanentFailureWithoutHostOrMutatorSideEffects()
     {
         var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
-        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
+        var sender = new Mock<IFiksArkivMessageSender>(MockBehavior.Strict);
         await using var fixture = TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
-            services.AddSingleton(host.Object);
+            services.AddSingleton(sender.Object);
         });
 
         ServiceTaskStageResult result = await SendStage(fixture)(
@@ -149,7 +151,7 @@ public class FiksArkivServiceTaskTest
         var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("did not supply a step id", failed.ErrorMessage);
-        host.VerifyNoOtherCalls();
+        sender.VerifyNoOtherCalls();
         dataMutator.VerifyNoOtherCalls();
     }
 
@@ -166,12 +168,12 @@ public class FiksArkivServiceTaskTest
         };
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = FailingHostMockFactory(new TimeoutException("Fiks unavailable"));
+        var sender = FailingSenderMockFactory(new TimeoutException("Fiks unavailable"));
         await using var fixture = TestFixture.Create(
             services =>
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(host.Object);
+                services.AddSingleton(sender.Object);
             },
             [("CustomFiksArkivSettings", settings)]
         );
@@ -181,7 +183,7 @@ public class FiksArkivServiceTaskTest
         var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
         Assert.Equal(FailureKind.Retryable, failed.Kind);
         Assert.Equal("Fiks unavailable", failed.ErrorMessage);
-        host.Verify();
+        sender.Verify();
     }
 
     [Theory]
@@ -195,12 +197,12 @@ public class FiksArkivServiceTaskTest
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
         };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
-        var host = FailingHostMockFactory(new OperationCanceledException("attempt deadline"));
+        var sender = FailingSenderMockFactory(new OperationCanceledException("attempt deadline"));
         await using var fixture = TestFixture.Create(
             services =>
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(host.Object);
+                services.AddSingleton(sender.Object);
             },
             [("CustomFiksArkivSettings", settings)]
         );
@@ -216,7 +218,7 @@ public class FiksArkivServiceTaskTest
         var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
         Assert.Equal(FailureKind.Retryable, failed.Kind);
         Assert.Contains("cut off at this attempt's execution deadline", failed.ErrorMessage);
-        host.Verify();
+        sender.Verify();
     }
 
     [Theory]
@@ -225,8 +227,8 @@ public class FiksArkivServiceTaskTest
     public async Task HandleArchiveClosed_FailsInItsOwnWords(MailboxClosedReason reason, string expectedWording)
     {
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
-        var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);
-        await using var fixture = CreateFixture(responseHandler: responseHandler);
+        var messageHandler = new Mock<IFiksArkivMessageHandler>(MockBehavior.Strict);
+        await using var fixture = CreateFixture(messageHandler: messageHandler);
 
         ServiceTaskResult result = await OnClosed(fixture)(CreateContext(dataMutator.Object), reason);
 
@@ -236,7 +238,7 @@ public class FiksArkivServiceTaskTest
         Assert.Contains(expectedWording, failed.ErrorMessage);
         Assert.Contains("manual follow-up", failed.ErrorMessage);
         dataMutator.VerifyNoOtherCalls();
-        responseHandler.VerifyNoOtherCalls();
+        messageHandler.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -429,10 +431,19 @@ public class FiksArkivServiceTaskTest
         instanceClient.Verify();
     }
 
-    [Fact]
-    public async Task HandleArchiveMessage_ErrorMessage_WithoutErrorHandlingConfigured_FailsPermanently()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleArchiveMessage_ErrorMessage_WithoutExplicitMoveToNextTask_FailsPermanently(
+        bool blockPresent
+    )
     {
-        var settings = new FiksArkivSettings { ErrorHandling = null };
+        // An omitted errorHandling block and a block leaving moveToNextTask at its default mean the same
+        // thing: an archive error fails the task, so the rejection reaches monitoring.
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = blockPresent ? new FiksArkivErrorHandlingSettings() : null,
+        };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         await using var fixture = CreateFixture(settings);
 
@@ -532,7 +543,6 @@ public class FiksArkivServiceTaskTest
         var failed = Assert.IsType<ServiceTaskFailedResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("could not be read as an archive receipt", failed.ErrorMessage);
-        dataMutator.VerifyGet(x => x.Instance, Times.AtLeastOnce());
         dataMutator.VerifyNoOtherCalls();
     }
 
@@ -579,54 +589,20 @@ public class FiksArkivServiceTaskTest
     [InlineData(FiksArkivMeldingtype.Serverfeil, true)]
     [InlineData(FiksArkivMeldingtype.Ikkefunnet, true)]
     [InlineData(FiksArkivMeldingtype.Ugyldigforespørsel, true)]
-    public async Task HandleArchiveMessage_CallsTheResponseHandlerForEveryMessage(string messageType, bool expectError)
+    public async Task HandleArchiveMessage_CallsTheMessageHandlerForEveryMessage(string messageType, bool expectError)
     {
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         AllowAnyBinaryDataElement(dataMutator);
-        var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);
-        FiksIOReceivedMessage? seenMessage = null;
-        string? seenMethod = null;
-        responseHandler
-            .Setup(x =>
-                x.HandleSuccess(
-                    It.IsAny<Instance>(),
-                    It.IsAny<FiksIOReceivedMessage>(),
-                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
+        var messageHandler = new Mock<IFiksArkivMessageHandler>(MockBehavior.Strict);
+        FiksArkivReceivedMessage? seenMessage = null;
+        ServiceTaskContext? seenContext = null;
+        messageHandler
+            .Setup(x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<ServiceTaskContext>()))
             .Callback(
-                (
-                    Instance _,
-                    FiksIOReceivedMessage message,
-                    IReadOnlyList<FiksArkivReceivedMessagePayload>? _,
-                    CancellationToken _
-                ) =>
+                (FiksArkivReceivedMessage message, ServiceTaskContext context) =>
                 {
                     seenMessage = message;
-                    seenMethod = nameof(IFiksArkivResponseHandler.HandleSuccess);
-                }
-            )
-            .Returns(Task.CompletedTask);
-        responseHandler
-            .Setup(x =>
-                x.HandleError(
-                    It.IsAny<Instance>(),
-                    It.IsAny<FiksIOReceivedMessage>(),
-                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Callback(
-                (
-                    Instance _,
-                    FiksIOReceivedMessage message,
-                    IReadOnlyList<FiksArkivReceivedMessagePayload>? _,
-                    CancellationToken _
-                ) =>
-                {
-                    seenMessage = message;
-                    seenMethod = nameof(IFiksArkivResponseHandler.HandleError);
+                    seenContext = context;
                 }
             )
             .Returns(Task.CompletedTask);
@@ -635,46 +611,35 @@ public class FiksArkivServiceTaskTest
         instanceClient
             .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        await using var fixture = CreateFixture(responseHandler: responseHandler, instanceClient: instanceClient);
+        await using var fixture = CreateFixture(messageHandler: messageHandler, instanceClient: instanceClient);
 
-        await OnMessage(fixture)(CreateContext(dataMutator.Object), ReceiptOrPlainReply(messageType));
+        ServiceTaskContext context = CreateContext(dataMutator.Object);
+        await OnMessage(fixture)(context, ReceiptOrPlainReply(messageType));
 
-        Assert.Equal(
-            expectError
-                ? nameof(IFiksArkivResponseHandler.HandleError)
-                : nameof(IFiksArkivResponseHandler.HandleSuccess),
-            seenMethod
-        );
         Assert.NotNull(seenMessage);
-        Assert.Equal(messageType, seenMessage.Message.MessageType);
-        Assert.Equal(_deliveredMessageId, seenMessage.Message.MessageId);
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            _ = seenMessage.Message.GetDecryptedStream();
-        });
-        await Assert.ThrowsAsync<InvalidOperationException>(() => seenMessage.Responder.Ack());
+        Assert.Equal(expectError, seenMessage.IsError);
+        Assert.Equal(messageType, seenMessage.MessageType);
+        Assert.Equal(_deliveredMessageId, seenMessage.MessageId);
+        Assert.Same(context, seenContext);
+        messageHandler.Verify(
+            x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<ServiceTaskContext>()),
+            Times.Once
+        );
     }
 
     [Fact]
-    public async Task HandleArchiveMessage_AFailingResponseHandler_IsRetryableAndConcludesNothing()
+    public async Task HandleArchiveMessage_AFailingMessageHandler_IsRetryableAndConcludesNothing()
     {
         // The message is frozen at its position, so a retry hands the same message to the same handler — what
         // a transient app dependency needs. The strict mocks prove nothing was saved or advanced.
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
-        var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);
-        responseHandler
-            .Setup(x =>
-                x.HandleSuccess(
-                    It.IsAny<Instance>(),
-                    It.IsAny<FiksIOReceivedMessage>(),
-                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
+        var messageHandler = new Mock<IFiksArkivMessageHandler>(MockBehavior.Strict);
+        messageHandler
+            .Setup(x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<ServiceTaskContext>()))
             .ThrowsAsync(new InvalidOperationException("the app's notification service is down"));
 
-        await using var fixture = CreateFixture(responseHandler: responseHandler, instanceClient: instanceClient);
+        await using var fixture = CreateFixture(messageHandler: messageHandler, instanceClient: instanceClient);
 
         ServiceTaskExchangeResult result = await OnMessage(fixture)(
             CreateContext(dataMutator.Object),
@@ -683,9 +648,8 @@ public class FiksArkivServiceTaskTest
 
         var failed = Assert.IsType<ServiceTaskFailedResult>(result);
         Assert.Equal(FailureKind.Retryable, failed.Kind);
-        Assert.Contains(nameof(IFiksArkivResponseHandler), failed.ErrorMessage);
+        Assert.Contains(nameof(IFiksArkivMessageHandler), failed.ErrorMessage);
         Assert.Contains("the app's notification service is down", failed.ErrorMessage);
-        dataMutator.VerifyGet(x => x.Instance, Times.AtLeastOnce());
         dataMutator.VerifyNoOtherCalls();
         instanceClient.VerifyNoOtherCalls();
     }
@@ -722,17 +686,17 @@ public class FiksArkivServiceTaskTest
     private static TestFixture CreateFixture(
         FiksArkivSettings? settings = null,
         Mock<ILogger<FiksArkivServiceTask>>? logger = null,
-        Mock<IFiksArkivResponseHandler>? responseHandler = null,
+        Mock<IFiksArkivMessageHandler>? messageHandler = null,
         Mock<IFiksArkivInstanceClient>? instanceClient = null
     )
     {
         void Configure(IServiceCollection services)
         {
-            services.AddSingleton(new Mock<IFiksArkivHost>(MockBehavior.Strict).Object);
+            services.AddSingleton(new Mock<IFiksArkivMessageSender>(MockBehavior.Strict).Object);
             if (logger is not null)
                 services.AddSingleton(logger.Object);
-            if (responseHandler is not null)
-                services.AddSingleton(responseHandler.Object);
+            if (messageHandler is not null)
+                services.AddSingleton(messageHandler.Object);
             if (instanceClient is not null)
                 services.AddSingleton(instanceClient.Object);
         }
@@ -840,10 +804,11 @@ public class FiksArkivServiceTaskTest
         return dataMutator;
     }
 
-    private static Mock<IFiksArkivHost> FailingHostMockFactory(Exception exception)
+    private static Mock<IFiksArkivMessageSender> FailingSenderMockFactory(Exception exception)
     {
-        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
-        host.Setup(x =>
+        var sender = new Mock<IFiksArkivMessageSender>(MockBehavior.Strict);
+        sender
+            .Setup(x =>
                 x.GenerateAndSendMessage(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -856,6 +821,6 @@ public class FiksArkivServiceTaskTest
             )
             .ThrowsAsync(exception)
             .Verifiable(Times.Once);
-        return host;
+        return sender;
     }
 }

@@ -3,7 +3,6 @@ using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
-using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
@@ -21,12 +20,13 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 /// <remarks>
 /// The exchange is asynchronous and multi-message, so the task opens a <em>mailbox</em> rather than polling;
 /// each delivered message runs the reply handler as its own durable unit of work.
-/// <see cref="IFiksArkivResponseHandler"/> is called from here — it must no longer move the process.
+/// The app's <see cref="IFiksArkivMessageHandler"/>, when one is registered, is called from here —
+/// it must not move the process.
 /// </remarks>
 internal sealed class FiksArkivServiceTask : IPipelineServiceTask
 {
     private readonly ILogger<FiksArkivServiceTask> _logger;
-    private readonly IFiksArkivHost _fiksArkivHost;
+    private readonly IFiksArkivMessageSender _fiksArkivMessageSender;
     private readonly IFiksArkivInstanceClient _fiksArkivInstanceClient;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly FiksArkivSettings _fiksArkivSettings;
@@ -41,14 +41,14 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     public string Type => AltinnTaskTypes.FiksArkiv;
 
     public FiksArkivServiceTask(
-        IFiksArkivHost fiksArkivHost,
+        IFiksArkivMessageSender fiksArkivMessageSender,
         IFiksArkivInstanceClient fiksArkivInstanceClient,
         AppImplementationFactory appImplementationFactory,
         IOptions<FiksArkivSettings> fiksArkivSettings,
         ILogger<FiksArkivServiceTask> logger
     )
     {
-        _fiksArkivHost = fiksArkivHost;
+        _fiksArkivMessageSender = fiksArkivMessageSender;
         _fiksArkivInstanceClient = fiksArkivInstanceClient;
         _appImplementationFactory = appImplementationFactory;
         _fiksArkivSettings = fiksArkivSettings.Value;
@@ -94,7 +94,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
                 taskId
             );
 
-            var response = await _fiksArkivHost.GenerateAndSendMessage(
+            var response = await _fiksArkivMessageSender.GenerateAndSendMessage(
                 taskId,
                 FiksArkivConstants.MessageTypes.CreateArchiveRecord,
                 sendersReference,
@@ -162,36 +162,28 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             );
         }
 
-        IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads = message
-            .Payloads?.Select(x => ParseMessagePayload(x.Filename, x.Content, message.MessageType))
-            .ToList();
-
         _logger.LogInformation(
             "Processing Fiks Arkiv message {MessageType}:{MessageId} with {PayloadCount} payload(s): {Payloads}",
             message.MessageType,
             message.MessageId,
-            payloads?.Count ?? 0,
-            payloads?.Select(x => x.Filename)
+            message.Payloads.Count,
+            message.Payloads.Select(x => x.Filename)
         );
 
-        bool isError =
-            FiksIOConstants.IsErrorType(message.MessageType)
-            || payloads?.OfType<FiksArkivReceivedMessagePayload.Error>().Any() is true;
-
-        if (await InvokeResponseHandler(context, message, payloads, isError) is { } handlerFailure)
+        if (await InvokeMessageHandler(context, message) is { } handlerFailure)
             return handlerFailure;
 
-        if (isError)
+        if (message.IsError)
         {
-            return HandleArchiveError(message, payloads);
+            return HandleArchiveError(message);
         }
 
-        if (FiksIOConstants.IsReceiptType(message.MessageType))
+        if (message.IsReceipt)
         {
-            return await HandleArchiveReceipt(context, message, payloads);
+            return await HandleArchiveReceipt(context, message);
         }
 
-        if (FiksIOConstants.IsAcknowledgementType(message.MessageType))
+        if (message.IsAcknowledgement)
         {
             _logger.LogInformation(
                 "The archive has received the record (message {MessageType}:{MessageId}). Awaiting its receipt.",
@@ -213,43 +205,21 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     }
 
     /// <summary>
-    /// Returns <c>null</c> when the task's own decision should follow. Not called on the closing signal. A throw
-    /// is retryable: the message is frozen at its position, so the next attempt hands it to the same handler.
+    /// Returns <c>null</c> when the task's own decision should follow. A throw is retryable: the message is
+    /// frozen at its position, so the next attempt hands it to the same handler.
     /// </summary>
-    private async Task<ServiceTaskResult?> InvokeResponseHandler(
+    private async Task<ServiceTaskResult?> InvokeMessageHandler(
         ServiceTaskContext context,
-        StoredFiksArkivMessage message,
-        IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads,
-        bool isError
+        FiksArkivReceivedMessage message
     )
     {
-        IFiksArkivResponseHandler handler = _appImplementationFactory.GetRequired<IFiksArkivResponseHandler>();
-        FiksIOReceivedMessage replayed = FiksIOReceivedMessage.Replay(
-            new FiksIOReplayedMessage
-            {
-                MessageId = message.MessageId,
-                MessageType = message.MessageType,
-                SendersReference = message.SendersReference,
-                InReplyToMessage = message.InReplyToMessage,
-                CorrelationId = message.CorrelationId,
-                Sender = message.Sender,
-                Recipient = message.Recipient,
-                MessageLifetime = message.MessageLifetime,
-                IsReSent = message.IsReSent,
-                Headers = message.Headers,
-                Payloads = [.. message.Payloads?.Select(x => (x.Filename, x.Content)) ?? []],
-            }
-        );
+        IFiksArkivMessageHandler? handler = _appImplementationFactory.Get<IFiksArkivMessageHandler>();
+        if (handler is null)
+            return null;
 
         try
         {
-            Instance instance = context.InstanceDataMutator.Instance;
-            await (
-                isError
-                    ? handler.HandleError(instance, replayed, payloads, context.CancellationToken)
-                    : handler.HandleSuccess(instance, replayed, payloads, context.CancellationToken)
-            );
-
+            await handler.HandleMessage(message, context);
             return null;
         }
         catch (Exception e)
@@ -257,29 +227,28 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             _logger.LogError(
                 e,
                 "The configured {Handler} failed on Fiks Arkiv message {MessageType}:{MessageId}: {Error}",
-                nameof(IFiksArkivResponseHandler),
+                nameof(IFiksArkivMessageHandler),
                 message.MessageType,
                 message.MessageId,
                 e.Message
             );
 
             return ServiceTaskResult.FailedRetryable(
-                $"The app's {nameof(IFiksArkivResponseHandler)} failed on Fiks Arkiv message {message.MessageId}, "
+                $"The app's {nameof(IFiksArkivMessageHandler)} failed on Fiks Arkiv message {message.MessageId}, "
                     + $"so the archive's answer has not been fully handled: {e.Message}"
             );
         }
     }
 
-    private ServiceTaskResult HandleArchiveError(
-        StoredFiksArkivMessage message,
-        IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads
-    )
+    private ServiceTaskResult HandleArchiveError(FiksArkivReceivedMessage message)
     {
         _logger.LogError(
             "Fiks Arkiv message {MessageType}:{MessageId} is an error response: {MessageContent}",
             message.MessageType,
             message.MessageId,
-            payloads?.Select(x => x.Content) ?? ["Message contains no content."]
+            message.Payloads.Count > 0
+                ? message.Payloads.Select(x => x.Content)
+                : (IEnumerable<string>)["Message contains no content."]
         );
 
         if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is true)
@@ -293,11 +262,10 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
 
     private async Task<ServiceTaskResult> HandleArchiveReceipt(
         ServiceTaskContext context,
-        StoredFiksArkivMessage message,
-        IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads
+        FiksArkivReceivedMessage message
     )
     {
-        if (payloads?.OfType<FiksArkivReceivedMessagePayload.Receipt>().FirstOrDefault() is not { } receipt)
+        if (message.Payloads.OfType<FiksArkivReceivedMessagePayload.Receipt>().FirstOrDefault() is not { } receipt)
         {
             // A failure rather than warn-and-advance: the confirmation record is the artifact this task exists to
             // produce.
@@ -305,7 +273,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
                 "No readable receipt payload found in Fiks Arkiv message {MessageType}:{MessageId}. Payloads were: {Payloads}",
                 message.MessageType,
                 message.MessageId,
-                payloads?.Select(x => x.Filename)
+                message.Payloads.Select(x => x.Filename)
             );
 
             return ServiceTaskResult.FailedPermanent(
@@ -364,11 +332,12 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     }
 
     /// <summary>The body is verified round-tripped but originated outside, so it is read defensively.</summary>
-    private StoredFiksArkivMessage? ReadForwardedMessage(ServiceTaskReply reply)
+    private FiksArkivReceivedMessage? ReadForwardedMessage(ServiceTaskReply reply)
     {
+        StoredFiksArkivMessage? stored;
         try
         {
-            return JsonSerializer.Deserialize<StoredFiksArkivMessage>(reply.Payload);
+            stored = JsonSerializer.Deserialize<StoredFiksArkivMessage>(reply.Payload);
         }
         catch (Exception e)
         {
@@ -380,6 +349,23 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             );
             return null;
         }
+
+        if (stored is null)
+            return null;
+
+        return new FiksArkivReceivedMessage
+        {
+            MessageId = stored.MessageId,
+            MessageType = stored.MessageType,
+            SendersReference = stored.SendersReference,
+            InReplyToMessage = stored.InReplyToMessage,
+            Sender = stored.Sender,
+            Recipient = stored.Recipient,
+            Payloads =
+            [
+                .. stored.Payloads?.Select(x => ParseMessagePayload(x.Filename, x.Content, stored.MessageType)) ?? [],
+            ],
+        };
     }
 
     private FiksArkivReceivedMessagePayload ParseMessagePayload(string filename, string payload, string messageType)

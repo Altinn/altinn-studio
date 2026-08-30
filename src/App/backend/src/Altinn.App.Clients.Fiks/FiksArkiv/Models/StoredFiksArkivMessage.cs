@@ -4,9 +4,8 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv.Models;
 
 /// <summary>
 /// A received Fiks Arkiv message reduced to what later processing needs — the body the subscriber delivers
-/// into the mailbox (decryption needs the live connection, so it happens at receipt). The transport
-/// metadata lets the reply handler rebuild a replayed <c>FiksIOReceivedMessage</c> for
-/// <see cref="IFiksArkivResponseHandler"/>.
+/// into the mailbox (decryption needs the live connection, so it happens at receipt). The reply handler
+/// reads it back and builds the <see cref="FiksArkivReceivedMessage"/> it acts on.
 /// </summary>
 internal sealed record StoredFiksArkivMessage
 {

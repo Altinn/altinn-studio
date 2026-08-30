@@ -64,14 +64,14 @@ internal abstract class FiksSetupBuilder(IServiceCollection services)
     }
 
     /// <summary>
-    /// Registers a custom message response handler for Fiks Arkiv messages.
+    /// Registers a message handler for the messages the archive sends back.
     /// </summary>
-    /// <typeparam name="THandler">The implementation of the message response handler.</typeparam>
+    /// <typeparam name="THandler">The implementation of the message handler.</typeparam>
     /// <returns>The builder instance.</returns>
-    protected FiksSetupBuilder UseMessageResponseHandler<THandler>()
-        where THandler : IFiksArkivResponseHandler
+    protected FiksSetupBuilder UseMessageHandler<THandler>()
+        where THandler : IFiksArkivMessageHandler
     {
-        services.AddTransient(typeof(IFiksArkivResponseHandler), typeof(THandler));
+        services.AddTransient(typeof(IFiksArkivMessageHandler), typeof(THandler));
         return this;
     }
 
@@ -164,9 +164,9 @@ internal sealed class FiksArkivSetupBuilder(IServiceCollection services)
         (IFiksArkivSetupBuilder)ConfigureFiksArkiv(configSectionPath);
 
     /// <inheritdoc />
-    public IFiksArkivSetupBuilder WithResponseHandler<TMessageHandler>()
-        where TMessageHandler : IFiksArkivResponseHandler =>
-        (IFiksArkivSetupBuilder)UseMessageResponseHandler<TMessageHandler>();
+    public IFiksArkivSetupBuilder WithMessageHandler<TMessageHandler>()
+        where TMessageHandler : IFiksArkivMessageHandler =>
+        (IFiksArkivSetupBuilder)UseMessageHandler<TMessageHandler>();
 
     /// <inheritdoc />
     public IFiksArkivSetupBuilder WithPayloadGenerator<TMessageHandler>()

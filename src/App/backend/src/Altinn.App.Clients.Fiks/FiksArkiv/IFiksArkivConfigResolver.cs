@@ -44,16 +44,10 @@ public interface IFiksArkivConfigResolver
 
     /// <summary>
     /// Gets the instance reference for the shipment — the instance URL by default, and what lets
-    /// someone reading the archived record find the instance it came from.
+    /// someone reading the archived record find the instance it came from. It travels to the archive
+    /// inside the arkivmelding via <see cref="GetRecipientParty"/>.
     /// </summary>
-    /// <remarks>
-    /// Despite the name it is <strong>no longer the Fiks IO transport correlation id</strong>
-    /// (<c>klientKorrelasjonsId</c>) for a shipment the Fiks Arkiv service task sends: that field is the one Fiks IO
-    /// echoes back on every reply, so it now carries the id of the mailbox the archive's answer must be delivered
-    /// into. This value still travels to the archive inside the arkivmelding via <see cref="GetRecipientParty"/>,
-    /// and is still the transport correlation id for the <c>IFiksArkivHost</c> overload that takes no reply address.
-    /// </remarks>
-    string GetCorrelationId(Instance instance);
+    string GetInstanceReference(Instance instance);
 
     /// <summary>
     /// Gets the recipient party (korrespondansepart).
