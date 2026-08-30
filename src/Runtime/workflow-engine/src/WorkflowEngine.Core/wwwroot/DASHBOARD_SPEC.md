@@ -263,11 +263,11 @@ Response:
             "disposedAt": "2026-08-19T14:00:00Z",
             "nextIdx": 2,
             "nextSeq": 2,
-            "unconsumedDeliveries": 0,
+            "unpairedDeliveries": 0,
             "positions": [
                 {
                     "position": 0,
-                    "state": "delivered | consumed | waiting | closed",
+                    "state": "delivered | paired | waiting | closed",
                     "deliveryKey": "the forwarding source's own message id",
                     "acceptedAt": "2026-08-19T12:30:00Z",
                     "receiverWorkflowId": "guid",
@@ -288,8 +288,8 @@ The four `state` values:
 
 | State       | Meaning                                                                                 |
 | ----------- | --------------------------------------------------------------------------------------- |
-| `delivered` | A message stands here and no receiver has been enqueued for it — an unconsumed delivery |
-| `consumed`  | A receiver holds this position and its message is standing at it                        |
+| `delivered` | A message stands here and no receiver has been enqueued for it — an unpaired delivery |
+| `paired`    | A receiver holds this position and its message is standing at it                        |
 | `waiting`   | A receiver is parked here and its message has not arrived                               |
 | `closed`    | A receiver holds this position, no message ever came, and the mailbox closed            |
 
@@ -591,14 +591,14 @@ Each block is a header and a row of position chips:
 
 - **Header** — the mailbox id abbreviated (full id in the tooltip, alongside the mint instant), the
   mint idempotency key, an `open` / `closed · request` / `closed · deadline` pill, both log counters
-  as `idx N · seq N`, an amber `N unconsumed` badge when accepted messages were never enqueued for,
+  as `idx N · seq N`, an amber `N unpaired` badge when accepted messages were never enqueued for,
   and the deadline. An open mailbox counts down to its deadline live (`closes in 20d 4h`, turning red
   and counting up as `overdue …` past it); a closed one says when it closed instead. The absolute
   deadline follows either way, as an ordinary timestamp honoring the UTC and show-timestamps
   settings — whether a closed mailbox was closed _at_ its deadline or long before it is the difference
   between an exchange that timed out and one that concluded.
 - **Position chips** — one per position, numbered, colored by state: `delivered` amber (a message
-  standing unconsumed), `consumed` green, `waiting` dashed cyan (borrowing the `Held` pill's chrome,
+  standing unpaired), `paired` green, `waiting` dashed cyan (borrowing the `Held` pill's chrome,
   since that is the workflow status on the other side of the same rendezvous), `closed` dashed gray.
   Everything else about the position — the source's message id, the accept/park/release/claim
   instants, the park duration — is in the chip's tooltip. A `waiting` chip carries a live count-up

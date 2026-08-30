@@ -1144,17 +1144,17 @@ internal sealed partial class EngineRepository
             return default;
 
         // The sweep's alone to publish: a mailbox that aged out has no caller to report the number to.
-        var unconsumed = closed.Mailbox.UnconsumedDeliveries;
-        if (unconsumed > 0)
+        var unpaired = closed.Mailbox.UnpairedDeliveries;
+        if (unpaired > 0)
         {
-            Metrics.MailboxDeliveriesUnconsumed.Add(unconsumed);
-            logger.MailboxClosedWithUnconsumedDeliveries(mailboxId, unconsumed);
+            Metrics.MailboxDeliveriesUnpaired.Add(unpaired);
+            logger.MailboxClosedWithUnpairedDeliveries(mailboxId, unpaired);
         }
 
         return new MailboxSweepResult(
             Closed: 1,
             ReceiversReleased: closed.Released.Closed,
-            UnconsumedDeliveries: unconsumed,
+            UnpairedDeliveries: unpaired,
             Failed: 0
         );
     }
@@ -1731,7 +1731,7 @@ internal readonly record struct MailboxReleaseCounts(int Delivered, int Closed)
 internal readonly record struct MailboxSweepResult(
     int Closed = 0,
     int ReceiversReleased = 0,
-    long UnconsumedDeliveries = 0,
+    long UnpairedDeliveries = 0,
     int Failed = 0
 )
 {
@@ -1739,7 +1739,7 @@ internal readonly record struct MailboxSweepResult(
         new(
             left.Closed + right.Closed,
             left.ReceiversReleased + right.ReceiversReleased,
-            left.UnconsumedDeliveries + right.UnconsumedDeliveries,
+            left.UnpairedDeliveries + right.UnpairedDeliveries,
             left.Failed + right.Failed
         );
 

@@ -57,7 +57,7 @@ public class EnqueueReceiveWorkflowTests
                         },
                     ],
                     IsHead = true,
-                    DependsOnHeads = false,
+                    DependsOnHeads = true,
                 },
             ],
         };
@@ -163,7 +163,7 @@ public class EnqueueReceiveWorkflowTests
         WorkflowRequest receiver = Assert.Single(captured.Request.Workflows);
         Assert.Equal(_mailboxId, receiver.Mailbox?.Id);
         Assert.True(receiver.IsHead);
-        Assert.False(receiver.DependsOnHeads);
+        Assert.True(receiver.DependsOnHeads);
         Assert.Equal(SignedTestState, receiver.State);
         Assert.Null(receiver.StartAt);
     }

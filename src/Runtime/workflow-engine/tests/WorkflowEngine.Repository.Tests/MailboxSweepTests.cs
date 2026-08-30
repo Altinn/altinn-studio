@@ -105,7 +105,7 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var result = await repository.SweepOverdueMailboxes(Now, batchSize: 100, Ct);
 
         Assert.Equal(1, result.Closed);
-        Assert.Equal(2, result.UnconsumedDeliveries);
+        Assert.Equal(2, result.UnpairedDeliveries);
 
         await using var context = fixture.CreateDbContext();
         Assert.Equal(3, await context.MailboxDeliveries.CountAsync(d => d.MailboxId == mailbox.Id, Ct));

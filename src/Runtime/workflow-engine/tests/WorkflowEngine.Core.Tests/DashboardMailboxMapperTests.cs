@@ -30,8 +30,8 @@ public class DashboardMailboxMapperTests
     // Every shape the rendezvous can leave at a position; the cases are named in the arguments.
     [InlineData("message only", true, false, false, false, "delivered")]
     [InlineData("parked receiver", false, true, true, false, "waiting")]
-    [InlineData("receiver woken by its message", true, true, true, true, "consumed")]
-    [InlineData("receiver born with its message", true, true, false, true, "consumed")]
+    [InlineData("receiver woken by its message", true, true, true, true, "paired")]
+    [InlineData("receiver born with its message", true, true, false, true, "paired")]
     [InlineData("receiver released by the closure", false, true, true, true, "closed")]
     [InlineData("receiver born with the closing signal", false, true, false, true, "closed")]
     [Theory]
@@ -75,7 +75,7 @@ public class DashboardMailboxMapperTests
     }
 
     [Fact]
-    public void MapMailbox_CarriesTheDeadlineTheCountersAndTheUnconsumedCount()
+    public void MapMailbox_CarriesTheDeadlineTheCountersAndTheUnpairedCount()
     {
         var mailbox = new MailboxResponse
         {
@@ -104,8 +104,8 @@ public class DashboardMailboxMapperTests
         Assert.Equal(_at.AddHours(2), dto.Deadline);
         Assert.Equal(3, dto.NextIdx);
         Assert.Equal(1, dto.NextSeq);
-        Assert.Equal(2, dto.UnconsumedDeliveries);
-        Assert.Equal("consumed", Assert.Single(dto.Positions).State);
+        Assert.Equal(2, dto.UnpairedDeliveries);
+        Assert.Equal("paired", Assert.Single(dto.Positions).State);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class DashboardMailboxMapperTests
         Assert.Equal("Open", dto.Status);
         Assert.Null(dto.DisposedReason);
         Assert.Null(dto.DisposedAt);
-        Assert.Equal(0, dto.UnconsumedDeliveries);
+        Assert.Equal(0, dto.UnpairedDeliveries);
         Assert.Empty(dto.Positions);
     }
 }

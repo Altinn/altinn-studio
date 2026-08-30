@@ -225,9 +225,10 @@ internal sealed class ProcessNextRequestFactory
                     {
                         OperationId = $"{MailboxReceiveOperationIdPrefix} {fromTaskId} -> {toTaskId}",
                         Steps = [receive.Step],
-                        // A head that depends on no head: visible to the frontier, gated by nothing but the rendezvous.
+                        // A head that depends on the current head — Main itself, so a failed transition
+                        // condemns its receiver instead of leaving it parked on the rendezvous.
                         IsHead = true,
-                        DependsOnHeads = false,
+                        DependsOnHeads = true,
                     },
                 ],
             };

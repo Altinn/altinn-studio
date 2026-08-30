@@ -2753,7 +2753,7 @@ pre.diff-remove {
     color: var(--red);
     font-weight: 700;
 }
-.mbx-unconsumed {
+.mbx-unpaired {
     font-size: 10px;
     font-weight: 700;
     color: var(--amber);
@@ -2790,7 +2790,7 @@ pre.diff-remove {
     border-color: var(--amber);
     background: rgba(var(--amber-rgb), 0.08);
 }
-.mbx-pos.consumed {
+.mbx-pos.paired {
     color: var(--green);
     border-color: var(--green);
     background: rgba(var(--green-rgb), 0.08);

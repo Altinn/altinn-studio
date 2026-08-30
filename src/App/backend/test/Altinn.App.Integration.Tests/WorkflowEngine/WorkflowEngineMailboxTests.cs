@@ -169,7 +169,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // recorder.
         Assert.Equal(2, mailbox.NextIdx);
         Assert.Equal(2, mailbox.NextSeq);
-        Assert.Equal(0, mailbox.UnconsumedDeliveries);
+        Assert.Equal(0, mailbox.UnpairedDeliveries);
 
         // The declaration's Timeout reached the mint, and the mint keyed the mailbox on the executing
         // step id under the instance's collection key - so a replayed attempt of that step is handed this
@@ -441,6 +441,6 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         [property: JsonPropertyName("disposedReason")] string? DisposedReason,
         [property: JsonPropertyName("nextIdx")] long NextIdx,
         [property: JsonPropertyName("nextSeq")] long NextSeq,
-        [property: JsonPropertyName("unconsumedDeliveries")] long UnconsumedDeliveries
+        [property: JsonPropertyName("unpairedDeliveries")] long UnpairedDeliveries
     );
 }

@@ -58,7 +58,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - `GET /api/v1/{namespace}/collections` — list all collections in the namespace (ordered by most recently updated; heads as bare IDs), or `204 No Content` when none exist
 - `GET /api/v1/{namespace}/collections/{key}` — get a single workflow collection by key, including head workflow statuses
 - `POST /api/v1/{namespace}/mailboxes` — mint a mailbox, idempotent on `idempotencyKey` per namespace (201 fresh, 200 replay, 429 at the per-collection cap)
-- `GET /api/v1/{namespace}/mailboxes/{mailboxId:guid}` — status, deadline, both log counters, and the unconsumed-delivery count
+- `GET /api/v1/{namespace}/mailboxes/{mailboxId:guid}` — status, deadline, both log counters, and the unpaired-delivery count
 - `DELETE /api/v1/{namespace}/mailboxes/{mailboxId:guid}` — close for deliveries and release every parked receiver, in one transaction; terminal and idempotent (202 effected, 200 replay with the original disposal)
 - `POST /api/v1/{namespace}/mailboxes/{mailboxId:guid}/deliveries` — deliver one message (202 appended, idempotent 200 on a replayed key, 409 always means _too late_). Full status tables for all four endpoints are in the [technical guide's API reference](docs/technical-guide.md#api-reference)
 - Health endpoints: `/health`, `/health/ready`, `/health/live`

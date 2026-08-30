@@ -67,14 +67,14 @@ internal sealed record DashboardMailboxPositionDto(
 
 /// <summary>
 /// The four states of a position. <see cref="Closed"/> is deliberately not folded into
-/// <see cref="Waiting"/> (the wait is over) or <see cref="Consumed"/> (there was no message).
+/// <see cref="Waiting"/> (the wait is over) or <see cref="Paired"/> (there was no message).
 /// </summary>
 internal static class DashboardMailboxPositionState
 {
-    /// <summary>A message nobody has been enqueued for — an unconsumed delivery.</summary>
+    /// <summary>A message nobody has been enqueued for — an unpaired delivery.</summary>
     internal const string Delivered = "delivered";
 
-    internal const string Consumed = "consumed";
+    internal const string Paired = "paired";
 
     internal const string Waiting = "waiting";
 
@@ -94,7 +94,7 @@ internal sealed record DashboardMailboxDto(
     DateTimeOffset? DisposedAt,
     long NextIdx,
     long NextSeq,
-    long UnconsumedDeliveries,
+    long UnpairedDeliveries,
     IReadOnlyList<DashboardMailboxPositionDto> Positions
 );
 
@@ -169,7 +169,7 @@ internal static class DashboardMapper
             mailbox.DisposedAt,
             mailbox.NextIdx,
             mailbox.NextSeq,
-            mailbox.UnconsumedDeliveries,
+            mailbox.UnpairedDeliveries,
             [.. snapshot.Positions.Select(MapMailboxPosition)]
         );
     }
@@ -200,7 +200,7 @@ internal static class DashboardMapper
             return DashboardMailboxPositionState.Delivered;
 
         if (position.AcceptedAt is not null)
-            return DashboardMailboxPositionState.Consumed;
+            return DashboardMailboxPositionState.Paired;
 
         return position is { HeldAt: not null, ReleasedAt: null }
             ? DashboardMailboxPositionState.Waiting

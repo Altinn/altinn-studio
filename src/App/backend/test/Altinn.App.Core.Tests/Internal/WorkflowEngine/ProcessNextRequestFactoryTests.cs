@@ -918,7 +918,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_MailboxPipeline_PreAssemblesTheReceiveWorkflowAsAnIndependentHead()
+    public async Task Create_MailboxPipeline_PreAssemblesTheReceiveWorkflowAsAHeadThatDependsOnHeads()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -929,7 +929,7 @@ public class ProcessNextRequestFactoryTests
         WorkflowRequest receiver = Assert.Single(payload.EnqueueRequest.Workflows);
 
         Assert.True(receiver.IsHead);
-        Assert.False(receiver.DependsOnHeads);
+        Assert.True(receiver.DependsOnHeads);
         Assert.StartsWith(
             ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix,
             receiver.OperationId,

@@ -82,8 +82,8 @@ public sealed class MailboxSweepEndpointTests(EngineAppFixture<Program> fixture)
         var closure = Assert.Single(collector.GetMeasurements("engine.mailboxes.closed"));
         Assert.Equal("deadline", closure.Tags.Single(t => t.Key == "reason").Value);
 
-        var unconsumed = Assert.Single(collector.GetMeasurements("engine.mailboxes.deliveries.unconsumed"));
-        Assert.Equal(2L, Convert.ToInt64(unconsumed.Value, CultureInfo.InvariantCulture));
+        var unpaired = Assert.Single(collector.GetMeasurements("engine.mailboxes.deliveries.unpaired"));
+        Assert.Equal(2L, Convert.ToInt64(unpaired.Value, CultureInfo.InvariantCulture));
     }
 
     /// <summary>Runs one pass of the sweep the host has running, rather than waiting out its cadence.</summary>

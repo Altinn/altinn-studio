@@ -312,8 +312,8 @@ public static class Metrics
     );
 
     /// <summary>The deadline is the one closure with no caller to report the number to.</summary>
-    public static readonly Counter<long> MailboxDeliveriesUnconsumed = Meter.CreateCounter<long>(
-        "engine.mailboxes.deliveries.unconsumed",
+    public static readonly Counter<long> MailboxDeliveriesUnpaired = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.unpaired",
         description: "Number of accepted deliveries no receiver was ever enqueued for, counted when a mailbox closes at its deadline"
     );
 

@@ -488,10 +488,10 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
 
     #endregion
 
-    #region The unconsumed count
+    #region The unpaired count
 
     [Fact]
-    public async Task UnconsumedDeliveries_MatchesTheDeliveriesNoReceiverCouldHaveRead()
+    public async Task UnpairedDeliveries_MatchesTheDeliveriesNoReceiverCouldHaveRead()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -510,7 +510,7 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
                 TestContext.Current.CancellationToken
             );
             Assert.Equal(i, rows);
-            Assert.Equal((long)rows, read.UnconsumedDeliveries);
+            Assert.Equal((long)rows, read.UnpairedDeliveries);
             Assert.Equal((long)rows, read.NextIdx);
         }
 
@@ -518,7 +518,7 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
 
         var afterReplay = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
         Assert.NotNull(afterReplay);
-        Assert.Equal(4L, afterReplay.UnconsumedDeliveries);
+        Assert.Equal(4L, afterReplay.UnpairedDeliveries);
     }
 
     #endregion
@@ -537,7 +537,7 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
         Assert.NotNull(afterwards);
         Assert.Equal(1L, afterwards.NextIdx);
         Assert.Equal(0L, afterwards.NextSeq);
-        Assert.Equal(1L, afterwards.UnconsumedDeliveries);
+        Assert.Equal(1L, afterwards.UnpairedDeliveries);
 
         await using var context = fixture.CreateDbContext();
         Assert.Equal(0, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));

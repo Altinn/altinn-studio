@@ -73,11 +73,11 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
         Assert.Equal(mailbox.Deadline, read.GetProperty("deadline").GetDateTimeOffset());
         Assert.Equal(1, read.GetProperty("nextIdx").GetInt64());
         Assert.Equal(1, read.GetProperty("nextSeq").GetInt64());
-        Assert.Equal(0, read.GetProperty("unconsumedDeliveries").GetInt64());
+        Assert.Equal(0, read.GetProperty("unpairedDeliveries").GetInt64());
 
         var position = Assert.Single(read.GetProperty("positions").EnumerateArray().ToList());
         Assert.Equal(delivery.Idx, position.GetProperty("position").GetInt64());
-        Assert.Equal("consumed", position.GetProperty("state").GetString());
+        Assert.Equal("paired", position.GetProperty("state").GetString());
         Assert.Equal("source-msg-1", position.GetProperty("deliveryKey").GetString());
         Assert.Equal(receiver, position.GetProperty("receiverWorkflowId").GetGuid());
         Assert.True(position.TryGetProperty("heldAt", out _));

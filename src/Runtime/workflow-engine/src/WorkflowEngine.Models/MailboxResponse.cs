@@ -54,11 +54,11 @@ public sealed record MailboxResponse
     public required long NextSeq { get; init; }
 
     /// <summary>
-    /// Accepted deliveries no receiver was enqueued for. Derived from the two counters, exact because both
-    /// logs are gapless.
+    /// Accepted deliveries no receiver was enqueued for — a failed receiver still pairs its position.
+    /// Derived from the two counters, exact because both logs are gapless.
     /// </summary>
-    [JsonPropertyName("unconsumedDeliveries")]
-    public long UnconsumedDeliveries => Math.Max(0, NextIdx - NextSeq);
+    [JsonPropertyName("unpairedDeliveries")]
+    public long UnpairedDeliveries => Math.Max(0, NextIdx - NextSeq);
 
     /// <summary>Gets when the mailbox was minted.</summary>
     [JsonPropertyName("createdAt")]

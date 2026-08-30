@@ -270,8 +270,8 @@ const startMailboxPoll = () => {
 
 /** The four position states in words, for the tooltip that has room to spell them out. */
 const POSITION_MEANING = {
-    delivered: 'a message stands here, unconsumed — no receiver has been enqueued for it',
-    consumed: 'a receiver holds this position and its message was standing at it',
+    delivered: 'a message stands here, unpaired — no receiver has been enqueued for it',
+    paired: 'a receiver holds this position and its message was standing at it',
     waiting: 'a receiver is parked here and its message has not arrived',
     closed: 'a receiver was released with the closing signal — no message ever came',
 };
@@ -331,8 +331,8 @@ const mailboxBlockHTML = (ns, key, mbx, spineIds) => {
     html += '<span class="header-spacer"></span>';
     // idx and seq are the API's and the schema's own words; not prettified.
     html += `<span class="mbx-counts" title="Deliveries log: ${mbx.nextIdx} position(s) taken. Receivers log: ${mbx.nextSeq} position(s) assigned.">idx ${mbx.nextIdx} · seq ${mbx.nextSeq}</span>`;
-    if (mbx.unconsumedDeliveries > 0) {
-        html += `<span class="mbx-unconsumed" title="Accepted messages no receiver was ever enqueued for. They stay readable until retention purges the mailbox.">${mbx.unconsumedDeliveries} unconsumed</span>`;
+    if (mbx.unpairedDeliveries > 0) {
+        html += `<span class="mbx-unpaired" title="Accepted messages no receiver was ever enqueued for. They stay readable until retention purges the mailbox.">${mbx.unpairedDeliveries} unpaired</span>`;
     }
     // The deadline shows on a closed mailbox too: timed out and concluded read differently.
     html += open

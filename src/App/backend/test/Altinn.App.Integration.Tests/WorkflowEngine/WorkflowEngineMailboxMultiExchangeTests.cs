@@ -289,16 +289,12 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Null(SingleDashboard(dashboard, continuation.DatabaseId).MailboxId);
         Assert.NotNull(SingleDashboard(dashboard, concludingReceiver.DatabaseId).MailboxId);
 
-        // A head, so the chain stays visible to the frontier; depending on no head, so nothing gates a
-        // workflow enqueued from inside the very receiver that is still running. The head set was non-empty
-        // throughout the hand-over (asserted above), so an injected head dependency would have shown up here.
+        // The continuation is enqueued from inside the concluding receiver — still running, still the
+        // head — so the injected head dependency is exactly that receiver.
         Assert.True(continuation.IsHead);
         EngineWorkflow continuationDetail = await GetWorkflow(engineClient, ns, continuation.DatabaseId);
-        Assert.True(
-            continuationDetail.Dependencies is null || continuationDetail.Dependencies.Count == 0,
-            $"The continuation depends on {continuationDetail.Dependencies?.Count} workflow(s); it is enqueued "
-                + "with DependsOnHeads = false precisely so nothing gates it."
-        );
+        Assert.NotNull(continuationDetail.Dependencies);
+        Assert.Equal(concludingReceiver.DatabaseId, Guid.Parse(Assert.Single(continuationDetail.Dependencies).Key));
 
         // The transition's labels are re-derived onto the continuation, so the collection lookup that gates
         // downstream work still finds this workflow once retention has purged the earlier ones. A
@@ -380,10 +376,10 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // either mailbox would show up here as a third (or second) consumer.
         Assert.Equal(2, archiveAfterTask.NextIdx);
         Assert.Equal(2, archiveAfterTask.NextSeq);
-        Assert.Equal(0, archiveAfterTask.UnconsumedDeliveries);
+        Assert.Equal(0, archiveAfterTask.UnpairedDeliveries);
         Assert.Equal(1, journalAfterTask.NextIdx);
         Assert.Equal(1, journalAfterTask.NextSeq);
-        Assert.Equal(0, journalAfterTask.UnconsumedDeliveries);
+        Assert.Equal(0, journalAfterTask.UnpairedDeliveries);
 
         // ================= Task_Upfront: both sends on the transition =================
 
@@ -1048,7 +1044,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         [property: JsonPropertyName("disposedAt")] DateTimeOffset? DisposedAt,
         [property: JsonPropertyName("nextIdx")] long NextIdx,
         [property: JsonPropertyName("nextSeq")] long NextSeq,
-        [property: JsonPropertyName("unconsumedDeliveries")] long UnconsumedDeliveries
+        [property: JsonPropertyName("unpairedDeliveries")] long UnpairedDeliveries
     );
 
     private sealed record DashboardPage([property: JsonPropertyName("workflows")] List<DashboardWorkflow> Workflows);

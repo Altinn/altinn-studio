@@ -540,9 +540,14 @@ Every mailbox carries two gapless positions:
 | `nextIdx` | the next position the deliveries log will assign |
 | `nextSeq` | the next position the receivers log will assign  |
 
-Together they yield `unconsumedDeliveries` — how many messages arrived at positions no receiver was
+Together they yield `unpairedDeliveries` — how many messages arrived at positions no receiver was
 ever enqueued for. It is derived from the counters rather than counted from rows, which is exact
 because both logs are gapless and neither is pruned piecemeal.
+
+Pairing is about the two logs, **not about processing**: a receiver that fails — or is condemned by a
+dependency — still pairs its position, so its message is not in this number even though no handler ever
+read it. The receiver's terminal state is the record for that position, and a resume re-derives the
+rendezvous and reads the message still sitting there.
 
 ### Deliveries: a gapless log
 
@@ -791,7 +796,7 @@ deliveries, so all their truths froze at the same instant. A repeat close releas
 need to: the first close released everything parked, and later enqueues against a closed mailbox are
 born runnable.
 
-The response reports `unconsumedDeliveries` — accepted positions no receiver was ever enqueued for,
+The response reports `unpairedDeliveries` — accepted positions no receiver was ever enqueued for,
 messages that arrived while the app was concluding or past the relay's last hop. The rows stay
 readable until retention, so an operator can see what turned up too late.
 
@@ -827,7 +832,7 @@ token's validity.
   exists and carries the app's own steps, so closing _releases_ it.
 
 The sweep counts what it finds: `engine.mailboxes.closed` tagged `reason=deadline`,
-`engine.mailboxes.receivers.released`, and `engine.mailboxes.deliveries.unconsumed` — the last is the
+`engine.mailboxes.receivers.released`, and `engine.mailboxes.deliveries.unpaired` — the last is the
 sweep's alone, since a `DELETE` reports the same number to a caller who can act on it.
 
 **No leak backstop exists, and none is needed.** Every mailbox closes by its deadline, so an open
@@ -1017,7 +1022,7 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 | `engine.mailboxes.created`                | Counter   | —                                                                                        |
 | `engine.mailboxes.closed`                 | Counter   | `reason` (`request`/`deadline`)                                                          |
 | `engine.mailboxes.deliveries.received`    | Counter   | `outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
-| `engine.mailboxes.deliveries.unconsumed`  | Counter   | — (recorded by the deadline sweep alone)                                                 |
+| `engine.mailboxes.deliveries.unpaired`  | Counter   | — (recorded by the deadline sweep alone)                                                 |
 | `engine.mailboxes.receivers.created`      | Counter   | `birth` (`delivered`/`closed`/`held`)                                                    |
 | `engine.mailboxes.receivers.released`     | Counter   | `cause` (`delivered`/`closed`)                                                           |
 | `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
@@ -1440,7 +1445,7 @@ POST /api/v1/{namespace}/mailboxes
     "status": "Open",
     "nextIdx": 0,
     "nextSeq": 0,
-    "unconsumedDeliveries": 0,
+    "unpairedDeliveries": 0,
     "createdAt": "2026-03-19T10:00:00+00:00"
 }
 ```
@@ -1459,7 +1464,7 @@ GET /api/v1/{namespace}/mailboxes/{mailboxId}
 ```
 
 **Response (200 OK):** the same shape as the mint returns — status, deadline, both counters, and the
-unconsumed-delivery count. `404 Not Found` when no mailbox with that id exists in the namespace.
+unpaired-delivery count. `404 Not Found` when no mailbox with that id exists in the namespace.
 
 ### Close Mailbox
 
@@ -1480,7 +1485,7 @@ DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
     "disposedReason": "Request",
     "nextIdx": 0,
     "nextSeq": 0,
-    "unconsumedDeliveries": 0,
+    "unpairedDeliveries": 0,
     "createdAt": "2026-03-19T10:00:00+00:00",
     "disposedAt": "2026-03-19T10:04:00+00:00"
 }

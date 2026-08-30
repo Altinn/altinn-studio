@@ -201,11 +201,11 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
             .CountAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(3, unclaimed);
-        Assert.Equal(unclaimed, closed.Mailbox.UnconsumedDeliveries);
+        Assert.Equal(unclaimed, closed.Mailbox.UnpairedDeliveries);
     }
 
     [Fact]
-    public async Task Close_WithMoreReceiversThanDeliveries_ReportsNoneUnconsumed()
+    public async Task Close_WithMoreReceiversThanDeliveries_ReportsNoneUnpaired()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -215,7 +215,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
 
         var closed = Assert.IsType<MailboxCloseResult.Closed>(await Close(repository, mailbox.Id));
 
-        Assert.Equal(0L, closed.Mailbox.UnconsumedDeliveries);
+        Assert.Equal(0L, closed.Mailbox.UnpairedDeliveries);
         Assert.Equal(1, closed.Released.Closed);
     }
 

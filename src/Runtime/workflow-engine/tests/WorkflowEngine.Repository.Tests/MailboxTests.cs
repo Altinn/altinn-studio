@@ -68,7 +68,7 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
 
         Assert.Equal(0L, mailbox.NextIdx);
         Assert.Equal(0L, mailbox.NextSeq);
-        Assert.Equal(0L, mailbox.UnconsumedDeliveries);
+        Assert.Equal(0L, mailbox.UnpairedDeliveries);
     }
 
     [Fact]

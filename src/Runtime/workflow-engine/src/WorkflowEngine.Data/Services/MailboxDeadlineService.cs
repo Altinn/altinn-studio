@@ -111,7 +111,7 @@ internal sealed class MailboxDeadlineService(
             logger.MailboxDeadlinesPassed(
                 total.Closed,
                 total.ReceiversReleased,
-                total.UnconsumedDeliveries,
+                total.UnpairedDeliveries,
                 total.Failed
             );
         }
@@ -133,13 +133,13 @@ internal static partial class MailboxDeadlineServiceLogs
 
     [LoggerMessage(
         LogLevel.Information,
-        "Mailbox deadline sweep closed {Closed} overdue mailbox(es), releasing {ReceiversReleased} parked receiver(s) and finding {UnconsumedDeliveries} unconsumed delivery(ies); {Failed} could not be closed and stay claimable"
+        "Mailbox deadline sweep closed {Closed} overdue mailbox(es), releasing {ReceiversReleased} parked receiver(s) and finding {UnpairedDeliveries} unpaired delivery(ies); {Failed} could not be closed and stay claimable"
     )]
     internal static partial void MailboxDeadlinesPassed(
         this ILogger<MailboxDeadlineService> logger,
         int closed,
         int receiversReleased,
-        long unconsumedDeliveries,
+        long unpairedDeliveries,
         int failed
     );
 

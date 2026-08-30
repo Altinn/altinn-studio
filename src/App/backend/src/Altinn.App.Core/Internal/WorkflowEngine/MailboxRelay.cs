@@ -320,10 +320,10 @@ internal sealed class MailboxRelay
                     Steps = [receiveStep],
                     Mailbox = new MailboxReference { Id = continuation.MailboxId },
                     State = request.State,
-                    // A head, so the exchange stays visible to the frontier; depending on no head, so nothing
-                    // gates a workflow whose only release is the rendezvous.
+                    // A head that depends on the current head — the previous hop — so the exchange stays
+                    // visible to the frontier and a failed hop condemns everything downstream.
                     IsHead = true,
-                    DependsOnHeads = false,
+                    DependsOnHeads = true,
                 },
             ],
         };
@@ -388,7 +388,7 @@ internal sealed class MailboxRelay
                             + receive.OpeningStageIndex.ToString(CultureInfo.InvariantCulture),
                         Steps = [receive.Step.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)],
                         IsHead = true,
-                        DependsOnHeads = false,
+                        DependsOnHeads = true,
                     },
                 ],
             };
@@ -431,7 +431,7 @@ internal sealed class MailboxRelay
                                 + "handler published."
                         ),
                     IsHead = true,
-                    DependsOnHeads = false,
+                    DependsOnHeads = true,
                 },
             ],
         };

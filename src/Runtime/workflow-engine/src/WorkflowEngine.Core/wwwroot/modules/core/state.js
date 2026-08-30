@@ -65,7 +65,7 @@
  * (count up from `heldAt`) and for one that never parked.
  * @typedef {{
  *   position:           number,
- *   state:              'delivered' | 'consumed' | 'waiting' | 'closed',
+ *   state:              'delivered' | 'paired' | 'waiting' | 'closed',
  *   deliveryKey:        string | undefined,
  *   acceptedAt:         string | undefined,
  *   receiverWorkflowId: string | undefined,
@@ -90,7 +90,7 @@
  *   disposedAt:           string | undefined,
  *   nextIdx:              number,
  *   nextSeq:              number,
- *   unconsumedDeliveries: number,
+ *   unpairedDeliveries: number,
  *   positions:            MailboxPosition[],
  * }} Mailbox
  */

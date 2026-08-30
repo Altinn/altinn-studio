@@ -276,7 +276,7 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     #region What the mailbox reports
 
     [Fact]
-    public async Task GetMailbox_AfterDeliveries_ReportsTheRealCountersAndUnconsumedCount()
+    public async Task GetMailbox_AfterDeliveries_ReportsTheRealCountersAndUnpairedCount()
     {
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
@@ -288,7 +288,7 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         Assert.NotNull(read);
         Assert.Equal(2L, read.NextIdx);
         Assert.Equal(0L, read.NextSeq);
-        Assert.Equal(2L, read.UnconsumedDeliveries);
+        Assert.Equal(2L, read.UnpairedDeliveries);
     }
 
     [Fact]
@@ -303,7 +303,7 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         Assert.NotNull(read);
         Assert.Equal(MailboxStatus.Disposed, read.Status);
         Assert.Equal(1L, read.NextIdx);
-        Assert.Equal(1L, read.UnconsumedDeliveries);
+        Assert.Equal(1L, read.UnpairedDeliveries);
     }
 
     #endregion

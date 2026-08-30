@@ -600,7 +600,7 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public async Task SuccessorReceiver_IsAHeadThatDependsOnNoHead_AndCarriesTheExchangesMailbox()
+    public async Task SuccessorReceiver_IsAHeadThatDependsOnHeads_AndCarriesTheExchangesMailbox()
     {
         var recorder = new RelayRecorder();
 
@@ -617,7 +617,7 @@ public class MailboxRelayTests
 
         WorkflowRequest successor = Assert.Single(request.Workflows);
         Assert.True(successor.IsHead);
-        Assert.False(successor.DependsOnHeads);
+        Assert.True(successor.DependsOnHeads);
         Assert.Null(successor.StartAt);
         Assert.Equal(_mailboxId, successor.Mailbox?.Id);
         Assert.Equal("published-state", successor.State);
@@ -1145,7 +1145,7 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public async Task Continuation_IsAHeadThatDependsOnNoHead_AndCarriesThePublishedStateButNoRendezvous()
+    public async Task Continuation_IsAHeadThatDependsOnHeads_AndCarriesThePublishedStateButNoRendezvous()
     {
         var stepId = new Guid("018f4e00-0000-7000-8000-00000000beef");
         var recorder = new RelayRecorder();
@@ -1163,7 +1163,7 @@ public class MailboxRelayTests
 
         WorkflowRequest continuation = Assert.Single(request.Workflows);
         Assert.True(continuation.IsHead);
-        Assert.False(continuation.DependsOnHeads);
+        Assert.True(continuation.DependsOnHeads);
         Assert.Null(continuation.StartAt);
         Assert.Equal("published-state", continuation.State);
         Assert.Null(continuation.Mailbox);
@@ -1214,7 +1214,7 @@ public class MailboxRelayTests
         Assert.Equal(JournalIndex, receive.OpeningStageIndex);
         WorkflowRequest receiver = Assert.Single(receive.EnqueueRequest.Workflows);
         Assert.True(receiver.IsHead);
-        Assert.False(receiver.DependsOnHeads);
+        Assert.True(receiver.DependsOnHeads);
         Assert.StartsWith(
             ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix,
             receiver.OperationId,

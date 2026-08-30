@@ -89,7 +89,7 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
 
         Assert.Equal(3L, closed.NextIdx);
         Assert.Equal(1L, closed.NextSeq);
-        Assert.Equal(2L, closed.UnconsumedDeliveries);
+        Assert.Equal(2L, closed.UnpairedDeliveries);
     }
 
     #endregion

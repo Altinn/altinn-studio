@@ -180,7 +180,7 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     #region Read
 
     [Fact]
-    public async Task GetMailbox_ReportsStatusDeadlineCountersAndUnconsumedCount()
+    public async Task GetMailbox_ReportsStatusDeadlineCountersAndUnpairedCount()
     {
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(6), collectionKey: "instance-1");
 
@@ -192,13 +192,13 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         Assert.Equal(0L, read.NextIdx);
         Assert.Equal(0L, read.NextSeq);
 
-        Assert.Equal(0L, read.UnconsumedDeliveries);
+        Assert.Equal(0L, read.UnpairedDeliveries);
     }
 
     [Fact]
-    public async Task GetMailbox_EmitsUnconsumedDeliveriesOnTheWire()
+    public async Task GetMailbox_EmitsUnpairedDeliveriesOnTheWire()
     {
-        // Asserted against the raw JSON: UnconsumedDeliveries is a computed get-only property, so a typed
+        // Asserted against the raw JSON: UnpairedDeliveries is a computed get-only property, so a typed
         // round-trip recomputes it client-side and would pass even if the server never emitted the field.
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
@@ -207,10 +207,10 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
 
         using var document = JsonDocument.Parse(json);
         Assert.True(
-            document.RootElement.TryGetProperty("unconsumedDeliveries", out var unconsumed),
-            $"The mailbox response did not carry unconsumedDeliveries: {json}"
+            document.RootElement.TryGetProperty("unpairedDeliveries", out var unpaired),
+            $"The mailbox response did not carry unpairedDeliveries: {json}"
         );
-        Assert.Equal(0, unconsumed.GetInt64());
+        Assert.Equal(0, unpaired.GetInt64());
     }
 
     [Fact]

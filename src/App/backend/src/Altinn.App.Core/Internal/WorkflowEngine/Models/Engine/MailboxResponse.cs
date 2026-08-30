@@ -48,8 +48,8 @@ internal sealed record MailboxResponse
     /// Accepted deliveries no receiver was enqueued for, as the engine computed it. Carried through rather than
     /// recomputed: duplicating the arithmetic is the one drift the wire-contract guard cannot catch.
     /// </summary>
-    [JsonPropertyName("unconsumedDeliveries")]
-    public long UnconsumedDeliveries { get; init; }
+    [JsonPropertyName("unpairedDeliveries")]
+    public long UnpairedDeliveries { get; init; }
 
     [JsonPropertyName("createdAt")]
     public required DateTimeOffset CreatedAt { get; init; }
