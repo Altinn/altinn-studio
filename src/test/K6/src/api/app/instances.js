@@ -33,7 +33,7 @@ export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userTy
   if (userType == 'ssn') {
     requestBody.instanceOwner.personNumber = value;
   } else if (userType == 'org') {
-    requestBody.instanceOwner.organizationNumber = value;
+    requestBody.instanceOwner.organisationNumber = value;
   }
   requestBody = JSON.stringify(requestBody);
   return http.post(endpoint, requestBody, params);
