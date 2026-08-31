@@ -639,7 +639,7 @@ var orgPickerTemplate = template.Must(template.New("orgpicker").Parse(`<!DOCTYPE
 
     <div class="choice-group">
       <label><input type="radio" name="choice" value="org" checked onchange="document.getElementById('org-list').style.display='block'"> Virksomhet</label>
-      <label><input type="radio" name="choice" value="self" onchange="document.getElementById('org-list').style.display='none'"> Meg self</label>
+      <label><input type="radio" name="choice" value="self" onchange="document.getElementById('org-list').style.display='none'"> Meg selv</label>
     </div>
 
     <div id="org-list" class="org-list">

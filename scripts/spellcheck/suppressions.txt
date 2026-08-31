@@ -272,3 +272,8 @@ additons
 Endorsment
 initialled
 litres
+
+# Norwegian UI text inside Go template strings on the fake-ansattporten
+# login page; no Nordic letter or signal word on the line for the classifier
+@paths src/Designer/development/fake-ansattporten/main.go
+selv
