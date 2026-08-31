@@ -51,29 +51,42 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         : base(factory, outputHelper) { }
 
     /// <summary>A pipeline answered by messages, whose handlers return whatever the test wants.</summary>
+    /// <param name="trailingStage">
+    /// Composes a plain stage between the send and the terminal, which makes the send a stage the exchange's
+    /// handler does <em>not</em> follow — the shape whose send hands over to a continuation rather than to a
+    /// receiver.
+    /// </param>
     private sealed class RelayProbeTask(
         Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult> onMessage,
         Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult> onClosed,
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null
+        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
+        bool trailingStage = false
     ) : IPipelineServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage(
-                    (context, mailbox) =>
-                        Task.FromResult(
-                            onSend is null ? ServiceTaskOpeningStageResult.Completed() : onSend(context, mailbox)
-                        ),
-                    new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
-                    out MailboxHandle archive
-                )
-                .ConcludeOnReplies(
-                    archive,
-                    (context, reply) => Task.FromResult(onMessage(context, reply)),
-                    (context, reason) => Task.FromResult(onClosed(context, reason))
-                );
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
+        {
+            pipeline.Stage(
+                (context, mailbox) =>
+                    Task.FromResult(
+                        onSend is null ? ServiceTaskOpeningStageResult.Completed() : onSend(context, mailbox)
+                    ),
+                new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
+                out MailboxHandle archive
+            );
+
+            if (trailingStage)
+            {
+                pipeline.Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()));
+            }
+
+            return pipeline.ConcludeOnReplies(
+                archive,
+                (context, reply) => Task.FromResult(onMessage(context, reply)),
+                (context, reason) => Task.FromResult(onClosed(context, reason))
+            );
+        }
     }
 
     /// <summary>Every engine call the callback makes, in the order it made them.</summary>
@@ -201,8 +214,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
 
     /// <summary>
-    /// Drives the send stage's own callback — the segment's last Main step, whose payload carries the
-    /// exchange it hands over to.
+    /// Drives the send stage's own callback — Main's last step, whose payload carries the exchange it hands
+    /// over to.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallback(
         Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
@@ -219,6 +232,22 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             onSend
         );
 
+    /// <summary>
+    /// The same callback for a pipeline whose send is followed by a stage rather than by the handler: the
+    /// step's payload carries no exchange, so its completion hands over to the pipeline's next segment.
+    /// </summary>
+    private Task<CallbackOutcome> RunSendStageCallbackWithTrailingStage(
+        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
+    ) =>
+        RunCallback(
+            mailbox: null,
+            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
+            onMessage: null,
+            onClosed: null,
+            onSend,
+            trailingStage: true
+        );
+
     private async Task<CallbackOutcome> RunCallback(
         AppCallbackMailbox? mailbox,
         ExecuteServiceTaskPayload stepPayload,
@@ -226,7 +255,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
         Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
         Exception? engineThrowsOnEnqueue = null,
-        CallRecorder? recorder = null
+        CallRecorder? recorder = null,
+        bool trailingStage = false
     )
     {
         var instanceGuid = Guid.NewGuid();
@@ -242,7 +272,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                     new RelayProbeTask(
                         onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
                         onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),
-                        onSend
+                        onSend,
+                        trailingStage
                     )
                 );
 
@@ -542,6 +573,53 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
 
         // The blob the conclusion published carries no exchange it just closed.
+        Assert.Null(outcome.Returned!.Mailboxes);
+    }
+
+    /// <summary>
+    /// The same callback for a send the handler does not follow: the continuation is enqueued from inside the
+    /// still-unsettled step, on the blob this callback published, and keyed on this step — and it declares no
+    /// mailbox of its own, since it runs stages rather than waiting for an answer.
+    /// </summary>
+    [Fact]
+    public async Task SendStageWithATrailingStage_EnqueuesTheNextSegmentFromItsOwnCallback()
+    {
+        CallbackOutcome outcome = await RunSendStageCallbackWithTrailingStage(
+            (_, _) => ServiceTaskOpeningStageResult.Completed()
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["enqueue"], outcome.Recorder.Calls);
+        Assert.Empty(outcome.Recorder.Closed);
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+
+        WorkflowRequest continuation = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
+        Assert.Null(continuation.Mailbox);
+        Assert.True(continuation.IsHead);
+        Assert.True(continuation.DependsOnHeads);
+        // The trailing stage, ending on the exchange this send opened.
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", Assert.Single(continuation.Steps).OperationId);
+
+        // The exchange is still to be answered: its entry keeps traveling.
+        Assert.NotNull(outcome.Returned!.Mailboxes);
+        Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
+    }
+
+    /// <summary>
+    /// And the conclusion from that same stage, which the runtime honors wherever the stage sits: the mailbox
+    /// closes, the process advances, and no continuation is enqueued for the items composed after it.
+    /// </summary>
+    [Fact]
+    public async Task SendStageWithATrailingStage_Concludes_ClosesTheMailboxAndStartsNoContinuation()
+    {
+        CallbackOutcome outcome = await RunSendStageCallbackWithTrailingStage(
+            (_, _) => ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success(action: "confirm"))
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
+        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Equal("confirm", Assert.Single(outcome.Recorder.AfterWorkflowActions));
         Assert.Null(outcome.Returned!.Mailboxes);
     }
 

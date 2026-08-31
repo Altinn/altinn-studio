@@ -21,9 +21,10 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// <para>
 /// The unit tests own the pieces (mint outcomes, the relay's verdicts, the receipt-block guards); the
 /// composition they cannot span is this: the mint really is its own engine step sitting immediately
-/// before its declaring stage, the transition-into-the-task workflow really ends by enqueueing the
-/// first receiver instead of a concluding step, and a multi-message exchange really walks
-/// <c>AwaitNextReply</c> → successor receiver → conclusion → auto-advance.
+/// before its declaring stage, the transition-into-the-task workflow really ends on that stage instead of
+/// on a concluding step, the continuation it hands over to really enqueues the first receiver, and a
+/// multi-message exchange really walks <c>AwaitNextReply</c> → successor receiver → conclusion →
+/// auto-advance.
 /// </para>
 /// <para>
 /// Deliberately assertion-based rather than snapshot-based: this suite auto-accepts new and changed
@@ -40,6 +41,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
     private const string RecordStageLabel = "RecordDispatch";
     private const string MainOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
+    private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 
     private const string AckPayload = """{"kind":"ack","reference":"ark-1"}""";
     private const string ReceiptPayload = """{"kind":"receipt","reference":"ark-1"}""";
@@ -100,19 +102,32 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal("ExecuteServiceTask: 0", mainOperationIds[mintIndex - 1]);
         Assert.Equal("ExecuteServiceTask: 1", mainOperationIds[mintIndex + 1]);
         Assert.Single(mainOperationIds, id => id.StartsWith("MintMailbox", StringComparison.Ordinal));
-        Assert.Contains("ExecuteServiceTask: 2", mainOperationIds);
 
         // A mailbox-opening task expands to no concluding Main step - the reply handler runs on the
-        // receive workflows - and Main ends with the segment's last stage, whose completion enqueues the
-        // first receiver from inside the still-unsettled step, so the frontier is never empty while the
-        // exchange is open.
+        // receive workflows - and Main ends on the stage that opened the mailbox, whose completion enqueues
+        // what follows from inside the still-unsettled step, so the frontier is never empty from the moment
+        // the mailbox exists.
         //
-        // The conclusion is this pipeline's item 3, and every step names the item it runs, so
-        // "ExecuteServiceTask: 3" is a step id that really does get emitted - on the receive workflows,
-        // asserted below. Exact-match, not a StartsWith predicate: this is the collection overload of
-        // DoesNotContain, and a prefix predicate would invert the assertion into one that can never hold.
+        // The stage composed after the send is this pipeline's item 2 and its conclusion item 3, and every
+        // step names the item it runs, so both are step ids that really do get emitted - on the continuation
+        // and the receive workflows respectively, asserted below. Exact-match, not a StartsWith predicate:
+        // this is the collection overload of DoesNotContain, and a prefix predicate would invert the
+        // assertion into one that can never hold.
+        Assert.DoesNotContain("ExecuteServiceTask: 2", mainOperationIds);
         Assert.DoesNotContain("ExecuteServiceTask: 3", mainOperationIds);
-        Assert.Equal("ExecuteServiceTask: 2", mainOperationIds[^1]);
+        Assert.Equal("ExecuteServiceTask: 1", mainOperationIds[^1]);
+
+        // The stage the send hands over to rides one continuation, and that stage is what enqueues the
+        // exchange's first receiver: keyed on Main's last step, so a replay of that step continues onto the
+        // same workflow instead of forking the pipeline.
+        EngineWorkflow continuation = await WaitForWorkflow(
+            engineClient,
+            ns,
+            collectionKey,
+            $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
+        );
+        Assert.Equal(["ExecuteServiceTask: 2"], continuation.Steps.Select(s => s.OperationId).ToList());
+        Assert.Equal(main.Steps[^1].DatabaseId.ToString(), continuation.IdempotencyKey);
 
         // ---- The address reached the declaring stage, once ----
         ExchangeState afterSend = await WaitForExchangeState(fixture, state => state.MailboxId is not null);
@@ -311,6 +326,30 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         throw new UnreachableException();
     }
 
+    /// <summary>The one workflow with this exact OperationId, once it exists.</summary>
+    private static async Task<EngineWorkflow> WaitForWorkflow(
+        HttpClient engineClient,
+        string ns,
+        string collectionKey,
+        string operationId
+    )
+    {
+        DateTimeOffset deadline = DateTimeOffset.UtcNow + _exchangeTimeout;
+        string seen = "(nothing)";
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
+            if (workflows.SingleOrDefault(w => w.OperationId == operationId) is { } found)
+                return found;
+
+            seen = string.Join(", ", workflows.Select(w => $"{w.OperationId}: {w.OverallStatus}"));
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+        }
+
+        Assert.Fail($"No '{operationId}' workflow within {_exchangeTimeout.TotalSeconds:0}s. Saw: [{seen}]");
+        throw new UnreachableException();
+    }
+
     private static async Task<EngineMailbox> GetMailbox(HttpClient engineClient, string ns, Guid mailboxId)
     {
         using var response = await engineClient.GetAsync($"/api/v1/{ns}/mailboxes/{mailboxId}");
@@ -423,6 +462,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
     private sealed record EnginePage([property: JsonPropertyName("data")] List<EngineWorkflow> Data);
 
     private sealed record EngineWorkflow(
+        [property: JsonPropertyName("idempotencyKey")] string IdempotencyKey,
         [property: JsonPropertyName("operationId")] string OperationId,
         [property: JsonPropertyName("overallStatus")] string OverallStatus,
         [property: JsonPropertyName("steps")] List<EngineStep> Steps

@@ -54,7 +54,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// <paramref name="handle"/>. Otherwise an ordinary stage — except that its vocabulary,
     /// <see cref="ServiceTaskOpeningStageResult"/>, adds
     /// <see cref="ServiceTaskOpeningStageResult.Conclude"/> for the send whose failure already settles the
-    /// task, honored only from the last stage before the segment's reply handler (see that member's remarks).
+    /// task (see that member's remarks).
     /// </summary>
     /// <param name="work">The stage's work, handed the mailbox it opened.</param>
     /// <param name="mailbox">How long the mailbox accepts messages.</param>

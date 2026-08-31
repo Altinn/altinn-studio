@@ -678,8 +678,10 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal("archiving", continuing.ServiceTaskType);
-        Assert.Equal(ContinuingSegmentIndex, continuing.HandlerItemIndex);
-        Assert.Equal(OpeningIndex, continuing.OpeningStageIndex);
+        // The hand-over is the segment this handler's decide planned, named for the handler it follows.
+        MailboxHandover.NextSegment segment = Assert.IsType<MailboxHandover.NextSegment>(continuing.Handover);
+        Assert.Equal(ContinuingSegmentIndex, segment.AfterItemIndex);
+        Assert.NotEmpty(segment.Plan.Steps);
     }
 
     [Theory]

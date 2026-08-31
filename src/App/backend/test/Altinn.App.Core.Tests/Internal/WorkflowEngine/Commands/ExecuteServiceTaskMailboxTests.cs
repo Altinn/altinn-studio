@@ -350,11 +350,11 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The segment's last stage: completing it starts the receive leg, and — for a mailbox-opening
-    // stage — concluding from it ends the whole task.
+    // A segment's last stage: completing it starts the receive leg or the next segment, and — for a
+    // mailbox-opening stage — concluding from it ends the whole task.
     // ---------------------------------------------------------------------------------------------
 
-    /// <summary>The Fiks Arkiv shape: the opening stage is the segment's last step.</summary>
+    /// <summary>The Fiks Arkiv shape: the reply handler is composed right after the opening stage.</summary>
     private sealed class SendOnlyTask : IPipelineServiceTask
     {
         public string Type => "archiving";
@@ -422,16 +422,73 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Equal(SendStageIndex, first.OpeningStageIndex);
     }
 
+    /// <summary>
+    /// A plain stage in the middle of a segment hands over to nothing: the steps after it are already in this
+    /// workflow's step list, so the engine simply runs the next one.
+    /// </summary>
     [Fact]
-    public async Task MidSegmentStage_Completed_StartsNoReceiveLeg()
+    public async Task MidSegmentPlainStage_Completed_StartsNothing()
     {
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
+            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Null(success.MailboxContinuation);
+    }
+
+    /// <summary>
+    /// A mailbox-opening stage is always its workflow's last step, so completing one with the exchange's
+    /// handler further off hands the pipeline over to the segment carrying the items in between — the shape
+    /// <see cref="ArchivingTask"/> has, with a plain stage composed between the send and the terminal.
+    /// </summary>
+    [Fact]
+    public async Task MidPipelineOpeningStage_Completed_AsksForTheNextSegment()
+    {
+        var task = new ArchivingTask();
+        WorkflowCallbackStateCarry carry = MintedCarry();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(carry), Payload(SendStageIndex));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+        MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal("archiving", continuing.ServiceTaskType);
+        // The plan rides the verdict: the stage composed after the send, ending on this exchange.
+        Assert.Equal(SendStageIndex, continuing.Segment.AfterItemIndex);
+        Assert.Equal(
+            [$"{ExecuteServiceTask.Key}: 1"],
+            continuing.Segment.Plan.Steps.Select(step => step.OperationId).ToList()
+        );
+        // The exchange has not started: its entry keeps traveling.
+        Assert.NotNull(carry.FindMailbox(SendStageIndex));
+    }
+
+    /// <summary>
+    /// The reshape this hop can meet, through the dispatch switch: the step was assembled when a segment
+    /// followed the send (so its payload carries no exchange), and the composition now answers that exchange
+    /// right after the stage. Permanent and named, like every other drift guard on this path — a throw would
+    /// be caught into a retryable failure and re-run the send on every attempt.
+    /// </summary>
+    [Fact]
+    public async Task OpeningStage_WhoseFollowingSegmentIsNowAReplyHandler_FailsPermanently()
+    {
+        var task = new SendOnlyTask();
+        WorkflowCallbackStateCarry carry = MintedCarry();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(carry), Payload(SendStageIndex));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("PipelineSegmentNotFound", failed.ExceptionType);
+        Assert.Contains($"stage at index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
+        Assert.NotNull(carry.FindMailbox(SendStageIndex));
     }
 
     [Fact]
@@ -484,28 +541,32 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The runtime half of the mid-segment refusal — the builder cannot see whether a stage's work concludes,
-    /// so the misplacement surfaces here, permanently and naming the stage.
+    /// The conclusion an opening stage with items composed after it returns: honored exactly as one from the
+    /// stage a handler follows, because that stage ended its workflow too — the items after it are a segment
+    /// this verdict never starts rather than steps it would have to cancel. No continuation is asked for, the
+    /// mailbox closes, and the process advances per the carried result.
     /// </summary>
     [Fact]
-    public async Task OpeningStageConclusion_FromAStageThatIsNotSegmentFinal_FailsPermanently()
+    public async Task OpeningStageConclusion_FromAStageWithItemsComposedAfterIt_IsHonored()
     {
-        var task = new MidSegmentConcluderTask();
+        var task = new MidPipelineConcluderTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxConclusionMidSegment", failed.ExceptionType);
-        Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
-        // Refusing the verdict is not concluding: the exchange stays open, bounded by its own deadline.
-        Assert.NotNull(carry.FindMailbox(SendStageIndex));
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+
+        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(_carriedMailboxId, Assert.Single(conclude.MailboxIds));
+        Assert.Null(carry.FindMailbox(SendStageIndex));
     }
 
-    /// <summary>The archiving shape with a conclusion misplaced onto the mid-segment opening stage.</summary>
-    private sealed class MidSegmentConcluderTask : IPipelineServiceTask
+    /// <summary>The archiving shape concluding from its opening stage, with a plain stage composed after it.</summary>
+    private sealed class MidPipelineConcluderTask : IPipelineServiceTask
     {
         public string Type => "archiving";
 

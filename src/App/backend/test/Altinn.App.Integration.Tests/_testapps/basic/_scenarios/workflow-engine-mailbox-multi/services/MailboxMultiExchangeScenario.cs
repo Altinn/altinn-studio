@@ -174,10 +174,10 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 /// <list type="bullet">
 /// <item>
 /// <description>
-/// <strong>A conclusion that closes one of two carried mailboxes.</strong> Because both mints ride the
-/// transition, the blob carries Alpha <em>and</em> Beta when Alpha's handler concludes — so "close only
-/// this exchange's mailbox" has something to get wrong. The sequential task drops each mailbox from the
-/// carry before the next is minted, so it never carries two.
+/// <strong>A conclusion that closes one of two carried mailboxes.</strong> Because both sends run before
+/// either handler, the blob carries Alpha <em>and</em> Beta when Alpha's handler concludes — so "close
+/// only this exchange's mailbox" has something to get wrong. The sequential task drops each mailbox from
+/// the carry before the next is minted, so it never carries two.
 /// </description>
 /// </item>
 /// <item>
@@ -196,8 +196,9 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 /// </item>
 /// </list>
 /// <para>
-/// It also makes the sequential task's deadline claim falsifiable: here the two mints are milliseconds
-/// apart because both ride the transition, whereas there they are a whole exchange apart.
+/// It also makes the sequential task's deadline claim falsifiable: here the two mints are one engine hop
+/// apart — each send ends its own workflow, and the second rides the continuation the first enqueues —
+/// whereas there they are a whole exchange apart.
 /// </para>
 /// </remarks>
 public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask

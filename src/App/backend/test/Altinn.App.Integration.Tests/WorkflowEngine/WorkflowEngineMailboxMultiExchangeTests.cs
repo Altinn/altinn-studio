@@ -258,7 +258,8 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             engineClient,
             ns,
             collectionKey,
-            $"{MailboxContinueOperationIdPrefix} {SequentialTaskId} · after 0"
+            // Named for the item it follows: the handler that concluded exchange A, at item index 1.
+            $"{MailboxContinueOperationIdPrefix} {SequentialTaskId} · after 1"
         );
 
         // Each step performs at most one keyed enqueue, so the bare executing step id is the whole key -
@@ -381,14 +382,12 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
         EngineWorkflow upfrontMain = await WaitForCompletedMainWorkflow(engineClient, ns, collectionKey, UpfrontTaskId);
 
-        // The other side of decision 3: composed before either handler, both mints ride the transition, and
-        // both deadlines therefore start together. This is what makes the sequential task's claim above
-        // falsifiable rather than a restatement of whatever the code does.
-        Assert.Equal(
-            new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0", "MintMailbox: 1", "ExecuteServiceTask: 1" },
-            PipelineSteps(upfrontMain)
-        );
-        Assert.Equal("ExecuteServiceTask: 1", OperationIds(upfrontMain)[^1]);
+        // The other side of decision 3, and the split rule that carries it: a mailbox-opening stage always
+        // ends its workflow, so the transition carries the *first* send only and the second rides a
+        // continuation of its own. Both are still composed before either handler, which is what makes the
+        // sequential task's claim above falsifiable rather than a restatement of whatever the code does.
+        Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(upfrontMain));
+        Assert.Equal("ExecuteServiceTask: 0", OperationIds(upfrontMain)[^1]);
 
         MultiExchangeState afterUpfrontSends = await WaitForState(
             fixture,
@@ -397,9 +396,53 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Guid alphaId = afterUpfrontSends.Mailboxes[AlphaStage].Id;
         Guid betaId = afterUpfrontSends.Mailboxes[BetaStage].Id;
 
-        // No temporal "the two deadlines are close together" check to go with it: the step list above already
-        // says both mints are steps of this one workflow, which is the claim exactly. A milliseconds-apart
-        // assertion against a seconds-wide threshold would only look like it was pinning something.
+        // The second send's own hop: one continuation carrying its mint and itself, named for the stage it
+        // follows and keyed on that stage's step, so a replayed attempt of the first send continues onto this
+        // same workflow instead of sending twice.
+        EngineWorkflow upfrontSecondSend = await WaitForCompletedWorkflow(
+            engineClient,
+            ns,
+            collectionKey,
+            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 0"
+        );
+        Assert.Equal(new List<string> { "MintMailbox: 1", "ExecuteServiceTask: 1" }, OperationIds(upfrontSecondSend));
+        Assert.Equal(upfrontMain.Steps[^1].DatabaseId.ToString(), upfrontSecondSend.IdempotencyKey);
+
+        // ---- Each exchange gets its declared budget, measured from its own mint ----
+        // Which hop minted which mailbox is pinned by the step id the engine keyed the mailbox on, not by
+        // comparing two instants: Alpha's mint is a step of the transition and Beta's a step of the
+        // continuation, so a mint hoisted onto the wrong hop fails here even when the two are milliseconds
+        // apart - and a mint deferred behind Alpha's handler leaves this continuation without a mint step at
+        // all. Both budgets are undiminished: the hop before spends none of them, which is the whole
+        // difference from an exchange whose send is composed after a handler.
+        EngineMailbox alphaMailbox = await GetMailbox(engineClient, ns, alphaId);
+        EngineMailbox betaMailbox = await GetMailbox(engineClient, ns, betaId);
+        Assert.Equal(_declaredTimeout, alphaMailbox.Timeout);
+        Assert.Equal(_declaredTimeout, betaMailbox.Timeout);
+        Assert.Equal(
+            upfrontMain.Steps.Single(step => step.OperationId == "MintMailbox: 0").DatabaseId.ToString(),
+            alphaMailbox.IdempotencyKey
+        );
+        Assert.Equal(
+            upfrontSecondSend.Steps.Single(step => step.OperationId == "MintMailbox: 1").DatabaseId.ToString(),
+            betaMailbox.IdempotencyKey
+        );
+
+        // Beta's clock starts at its own mint, one hop after Alpha's and never before it - the mint hugs the
+        // stage that sends, so an earlier start would mean the mint was hoisted ahead of the stage it
+        // addresses. Both mailboxes exist before this test forwards anything, which is what "both sends go
+        // out up front" means for the exchanges themselves.
+        DateTimeOffset betaMintedAt = betaMailbox.Deadline - betaMailbox.Timeout;
+        Assert.True(
+            betaMailbox.Deadline >= alphaMailbox.Deadline,
+            $"Beta's deadline ({betaMailbox.Deadline:O}) precedes Alpha's ({alphaMailbox.Deadline:O}), so its "
+                + "clock started before the send it belongs to."
+        );
+        Assert.True(
+            betaMintedAt >= upfrontSecondSend.CreatedAt - TimeSpan.FromSeconds(5),
+            $"Beta's mailbox was minted at {betaMintedAt:O}, before the continuation that carries its mint step "
+                + $"was even created ({upfrontSecondSend.CreatedAt:O})."
+        );
 
         // ---- Alpha concludes while Beta is open: two carried mailboxes, exactly one closed ----
         await ForwardReply(fixture, alphaId, idempotencyKey: "alpha-receipt-1", payload: ReceiptPayload);
@@ -426,7 +469,9 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         List<EngineWorkflow> upfrontWorkflows = await ListWorkflows(engineClient, ns, collectionKey);
         Assert.DoesNotContain(
             upfrontWorkflows,
-            w => w.OperationId == $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 0"
+            // The handler that just concluded sits at item index 2, so this is the name a continuation of
+            // its own would have had. The one named "after 0" above is the *first send's*, a hop earlier.
+            w => w.OperationId == $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 2"
         );
         EngineWorkflow betaReceiver = Single(upfrontWorkflows, betaReceiverOperationId);
         EngineWorkflow alphaConcludingReceiver = Single(
@@ -443,7 +488,8 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         List<EngineWorkflow> finalWorkflows = await ListWorkflows(engineClient, ns, collectionKey);
         EngineWorkflow betaContinuation = Single(
             finalWorkflows,
-            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 1"
+            // Beta's handler is the pipeline's item 3.
+            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 3"
         );
 
         // The last segment ends in the pipeline's Finally rather than an exchange, so the concluding step

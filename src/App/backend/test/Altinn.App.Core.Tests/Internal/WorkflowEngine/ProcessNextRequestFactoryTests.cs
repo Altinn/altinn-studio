@@ -788,10 +788,11 @@ public class ProcessNextRequestFactoryTests
         Assert.NotEqual(-1, mint);
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", operationIds[mint - 1]);
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[mint + 1]);
-        // The declaring stage need not be last: an unrelated stage may follow the send, and only the send gets
-        // a mint.
-        Assert.Equal($"{ExecuteServiceTask.Key}: 2", operationIds[mint + 2]);
         Assert.Single(operationIds, id => id.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
+        // The declaring stage ends Main whether or not the exchange's handler follows it: the unrelated stage
+        // composed after the send rides the continuation that stage's completion enqueues.
+        Assert.DoesNotContain($"{ExecuteServiceTask.Key}: 2", operationIds);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[^1]);
 
         MintMailboxPayload payload = ExtractMintPayload(bundle);
         Assert.Equal("archiving", payload.ServiceTaskType);
@@ -895,13 +896,13 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// Main runs the segment's stages and stops there: the handler that answers the exchange — this
-    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone, never one of Main's. The
-    /// exchange rides the segment's <em>last</em> stage, which here is the plain stage after the send: what
-    /// carries the hand-over is position in the segment, not having opened the mailbox.
+    /// Main runs the stages up to and including the first mailbox-opening one and stops there: the plain stage
+    /// composed after the send is a later segment's step, and the handler that answers the exchange — this
+    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone. Nothing hands over to that
+    /// exchange from Main: the stage between the two is what will, from the continuation it rides.
     /// </summary>
     [Fact]
-    public async Task Create_MailboxPipeline_NamesOnlyStagesOnMainsSteps()
+    public async Task Create_MailboxPipeline_EndsMainAtTheOpeningStage()
     {
         var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -909,12 +910,11 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        Assert.Equal([0, 1, 2], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
-        Assert.Null(serviceTaskSteps[0].Payload.Receive);
-        Assert.Null(serviceTaskSteps[1].Payload.Receive);
-        MailboxReceivePlan receive = Assert.IsType<MailboxReceivePlan>(serviceTaskSteps[2].Payload.Receive);
-        Assert.Equal(3, receive.HandlerItemIndex);
-        Assert.Equal(1, receive.OpeningStageIndex);
+        Assert.Equal([0, 1], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
+        Assert.All(serviceTaskSteps, step => Assert.Null(step.Payload.Receive));
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
 
     [Fact]

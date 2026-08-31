@@ -25,8 +25,9 @@ public abstract record ServiceTaskOpeningStageResult
     /// The stage is complete: the pipeline advances. Recorded durably by the engine — a completed
     /// stage never runs again. Data changes made through
     /// <see cref="ServiceTaskContext.InstanceDataMutator"/> are saved, so the stages after this
-    /// one see them. From the last stage before the exchange's reply handler, completing is also what
-    /// starts the exchange's receive leg.
+    /// one see them. Completing a mailbox-opening stage is also the hand-over to whatever comes next: this
+    /// exchange's receive leg when its reply handler is composed right after the stage, and otherwise the
+    /// items composed after it.
     /// </summary>
     public static ServiceTaskOpeningStageResult Completed() => CompletedServiceTaskOpeningStageResult.Instance;
 
@@ -91,11 +92,9 @@ public abstract record ServiceTaskOpeningStageResult
     /// nothing and acts exactly as the stage vocabulary's own member.
     /// </param>
     /// <remarks>
-    /// Honored only from the <strong>last stage before the segment's reply handler</strong> — the pipeline
-    /// runs any stage composed between this one and the handler as its own later engine step, which a
-    /// conclusion here cannot cancel. A conclusion from any earlier stage fails the step permanently. The
-    /// composition cannot reject the misplacement eagerly: whether a stage's work concludes is invisible
-    /// until it runs.
+    /// Honored from <strong>every</strong> mailbox-opening stage, wherever it sits in the composition: such a
+    /// stage always ends its own workflow, so the items composed after it are work this verdict simply never
+    /// starts rather than steps it would have to cancel.
     /// </remarks>
     public static ServiceTaskOpeningStageResult Conclude(ServiceTaskResult result)
     {

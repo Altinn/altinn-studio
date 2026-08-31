@@ -9,10 +9,10 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The exchange a segment ends on, baked into the segment's last stage step at assembly time: the reply
-/// handler that answers it, named by its own item index, and the stage whose mint addresses it. Two positions
-/// with disjoint jobs — the handler index is what the receiver's step names, the opening index is what looks
-/// the mailbox up in the carry. Fixed when the workflow is enqueued and never re-derived at a hop.
+/// The exchange a segment ends on, baked into the segment's last step at assembly time: the reply handler
+/// that answers it, named by its own item index, and the stage whose mint addresses it. Two positions with
+/// disjoint jobs — the handler index is what the receiver's step names, the opening index is what looks the
+/// mailbox up in the carry. Fixed when the workflow is enqueued and never re-derived at a hop.
 /// </summary>
 internal sealed record MailboxReceivePlan(int HandlerItemIndex, int OpeningStageIndex);
 
@@ -20,8 +20,7 @@ internal sealed record MailboxReceivePlan(int HandlerItemIndex, int OpeningStage
 /// Request payload for the ExecuteServiceTask command: the service task type, and the one pipeline item this
 /// engine step runs, named by its position in <see cref="ServiceTaskPipeline.Items"/>. A non-null
 /// <see cref="Receive"/> marks the step as the last of a segment ending on an exchange: completing it
-/// enqueues that exchange's first receiver from inside this still-unsettled step, and it is the one place a
-/// mailbox-opening stage's conclusion is honorable.
+/// enqueues that exchange's first receiver from inside this still-unsettled step.
 /// </summary>
 /// <remarks>
 /// <see cref="ItemIndex"/> is semantically required but nullable: deserialization runs outside any handler, so
@@ -114,7 +113,8 @@ internal sealed class ExecuteServiceTask(
                     itemIndex,
                     payload.Receive,
                     serviceTask,
-                    serviceTaskContext
+                    serviceTaskContext,
+                    pipeline
                 ),
 
                 ReplySegment segment when rendezvous is { } segmentReceipt => await ExecuteSegmentReply(
@@ -163,7 +163,8 @@ internal sealed class ExecuteServiceTask(
         int stageIndex,
         MailboxReceivePlan? receive,
         IPipelineServiceTask serviceTask,
-        ServiceTaskContext serviceTaskContext
+        ServiceTaskContext serviceTaskContext,
+        ServiceTaskPipeline pipeline
     ) =>
         stage switch
         {
@@ -179,14 +180,16 @@ internal sealed class ExecuteServiceTask(
                 stageIndex,
                 receive,
                 serviceTask,
-                serviceTaskContext
+                serviceTaskContext,
+                pipeline
             ),
             _ => throw new UnreachableException($"Unknown service task stage type: {stage.GetType().Name}"),
         };
 
     /// <summary>
     /// The stage that opens the exchange's mailbox: handed the address the mint step published, so it can send
-    /// it.
+    /// it. The resolved <paramref name="pipeline"/> travels with it because such a stage ends its workflow, so
+    /// its completion plans what follows — exactly as a mid-pipeline reply handler's does.
     /// </summary>
     private static async Task<ProcessEngineCommandResult> ExecuteMailboxOpeningStage(
         ProcessEngineCommandContext context,
@@ -194,7 +197,8 @@ internal sealed class ExecuteServiceTask(
         int stageIndex,
         MailboxReceivePlan? receive,
         IPipelineServiceTask serviceTask,
-        ServiceTaskContext serviceTaskContext
+        ServiceTaskContext serviceTaskContext,
+        ServiceTaskPipeline pipeline
     )
     {
         if (context.StateCarry.FindMailbox(stageIndex) is not { } carried)
@@ -214,7 +218,8 @@ internal sealed class ExecuteServiceTask(
             serviceTask,
             context,
             stageIndex,
-            receive
+            receive,
+            pipeline
         );
     }
 
@@ -426,8 +431,8 @@ internal sealed class ExecuteServiceTask(
     ) =>
         result switch
         {
-            // A completed stage never advances the process — the pipeline just moves on to its next step;
-            // for a segment's last stage, "next" is the exchange's first receiver.
+            // A completed stage never advances the process — the pipeline just moves on to its next step; for
+            // the stage a reply handler follows, "next" is the exchange's first receiver.
             CompletedServiceTaskStageResult when receive is { } exchange => MailboxRelay.DecideSegmentEnd(
                 task.Type,
                 context.Payload.StepId,
@@ -458,16 +463,19 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// The mailbox-opening stage's widened vocabulary: the stage members map exactly as
-    /// <see cref="MapStageResult"/> maps them, and a conclusion — honorable only on the segment's last step,
-    /// where no later Main step exists to run past it — is handed to the relay to close every carried
-    /// mailbox before anything downstream starts.
+    /// <see cref="MapStageResult"/> maps them, except that such a stage always ends its workflow — completing
+    /// it hands over to this exchange's receive leg, or to the workflow carrying the items composed after it —
+    /// and a conclusion is handed to the relay to close every carried mailbox before anything downstream
+    /// starts. The conclusion is honorable wherever the stage sits, precisely because no later step of this
+    /// workflow exists for it to have to cancel.
     /// </summary>
     private static ProcessEngineCommandResult MapOpeningStageResult(
         ServiceTaskOpeningStageResult result,
         IPipelineServiceTask task,
         ProcessEngineCommandContext context,
         int stageIndex,
-        MailboxReceivePlan? receive
+        MailboxReceivePlan? receive,
+        ServiceTaskPipeline pipeline
     ) =>
         result switch
         {
@@ -477,7 +485,12 @@ internal sealed class ExecuteServiceTask(
                 context.StateCarry,
                 exchange
             ),
-            CompletedServiceTaskOpeningStageResult => new SuccessfulProcessEngineCommandResult(),
+            CompletedServiceTaskOpeningStageResult => MailboxRelay.DecideOpeningStageEnd(
+                task.Type,
+                context.Payload.StepId,
+                stageIndex,
+                pipeline
+            ),
             DeferredServiceTaskOpeningStageResult deferred => new DeferredProcessEngineCommandResult
             {
                 Delay = deferred.Delay,
@@ -488,7 +501,6 @@ internal sealed class ExecuteServiceTask(
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
-            ConcludedServiceTaskOpeningStageResult when receive is null => ConclusionMidSegment(task.Type, stageIndex),
             ConcludedServiceTaskOpeningStageResult concluded => MailboxRelay.DecideOpeningStageConclusion(
                 concluded.Result,
                 task.Type,
@@ -507,22 +519,6 @@ internal sealed class ExecuteServiceTask(
                     + $"{nameof(ServiceTaskOpeningStageResult.Conclude)}"
             ),
         };
-
-    /// <summary>
-    /// Permanent, not honored halfway: the steps composed after this stage are already in the workflow's
-    /// step list, and a step's success is what lets the engine run the next one — there is no verdict that
-    /// both succeeds and stops them. Mailboxes stay open: refusing the verdict is not concluding, and the
-    /// deadline still bounds every open exchange.
-    /// </summary>
-    private static FailedProcessEngineCommandResult ConclusionMidSegment(string serviceTaskType, int itemIndex) =>
-        FailedProcessEngineCommandResult.Permanent(
-            $"The mailbox-opening stage at index {itemIndex} of service task '{serviceTaskType}' concluded the "
-                + "task, but stages composed after it run as later steps of this same workflow, which a "
-                + "conclusion here cannot cancel. Only the last stage before the segment's reply handler can "
-                + "conclude. Move the conclusion to that stage, or return FailedPermanent here to fail the "
-                + "task instead.",
-            "MailboxConclusionMidSegment"
-        );
 
     private static ProcessEngineCommandResult MapServiceTaskResult(
         ServiceTaskResult result,

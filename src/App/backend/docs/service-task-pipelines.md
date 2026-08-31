@@ -117,11 +117,9 @@ address that does not exist — where waiting out the exchange would only delay 
   fails the task with the mailboxes closed.
 - A wrapped `FailedRetryable` or `Defer` concludes nothing: it acts exactly as the stage vocabulary's own
   member, and every open mailbox stays open.
-- It is honored only from the **last stage before the segment's reply handler**: any stage composed
-  between this one and the handler runs as its own later engine step, which a conclusion cannot cancel. A
-  conclusion returned anywhere else fails the step permanently (`MailboxConclusionMidSegment`) — the
-  composition cannot reject the misplacement eagerly, because whether a stage's work concludes is
-  invisible until it runs.
+- It is honored from **every** mailbox-opening stage, wherever that stage sits in the composition: the
+  items composed after it are work the conclusion never starts, not steps it would have to cancel. Nothing
+  about what you compose around the send decides whether concluding from it works.
 - Conclude only on a verdict that is already final. A send whose outcome is unknown (a timeout, a
   cancelled attempt) must return `FailedRetryable` instead: the shipment may have left, and concluding
   would close the mailbox its answer needs.
