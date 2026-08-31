@@ -18,7 +18,7 @@ public class FileScanController : ControllerBase
     private readonly IInstanceClient _instanceClient;
 
     /// <summary>
-    /// Initialises a new instance of the <see cref="FileScanController"/> class
+    /// Initializes a new instance of the <see cref="FileScanController"/> class
     /// </summary>
     public FileScanController(IInstanceClient instanceClient)
     {
@@ -28,8 +28,8 @@ public class FileScanController : ControllerBase
     /// <summary>
     /// Checks that file scan result for an instance and it's data elements.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
     [HttpGet]

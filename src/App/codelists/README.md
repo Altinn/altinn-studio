@@ -32,7 +32,7 @@ This guide assumes you have an existing Altinn 3 application. If not please see 
    ```csharp
    services.AddAltinnCodelists();
    ```
-   By calling this you will register all codelists accross all sources listed below in available codelists. You can also register codelists one by one if you for example would like to provide your own codelist id, or if you would like to control the mappings to description and help texts.
+   By calling this you will register all codelists across all sources listed below in available codelists. You can also register codelists one by one if you for example would like to provide your own codelist id, or if you would like to control the mappings to description and help texts.
 
 ### 3. Connect your application to the codelist you would like to use  
    See the section below for available codelist id's.
@@ -55,7 +55,7 @@ Example using codelist from SSB overriding the option id:
 ### Add a codelist with default parameters
 Some of the codelists accepts parameters controlling what's returned.
 
-Example using the codelist from SSB specifiying a level filter to only get values from the first level (this particular codelist is hierarchical).
+Example using the codelist from SSB specifying a level filter to only get values from the first level (this particular codelist is hierarchical).
 
 ```csharp
    services.AddSSBClassificationCodelistProvider("næring", Classification.IndustryGrouping, new Dictionary<string, string>() { { "level", "1" } });
@@ -73,7 +73,7 @@ The following example enables the notes field from SSB classification to populat
         new Dictionary<string, string>() { { "level", "1" } });
 ```
 The above example enables a predefined way of adding a description text. If you would like to customize the description text even further you can pass inn a function.
-The follwing examples passes in a function that that will be evaluated when populating the code list and will return a combination of the classification code and the notes fields separated by colon.
+The following examples passes in a function that that will be evaluated when populating the code list and will return a combination of the classification code and the notes fields separated by colon.
 
 ```csharp
 services.AddSSBClassificationCodelistProvider(
@@ -119,14 +119,14 @@ Below are the sources used for the various codelists above. The underlying api's
 ### [Statistisk Sentralbyrå/SSB](https://www.ssb.no/)
 Doc: https://data.ssb.no/api/klass/v1/api-guide.html
 
-Licence: https://data.ssb.no/api/klass/v1/api-guide.html#_license
+License: https://data.ssb.no/api/klass/v1/api-guide.html#_license
 
 ### [Kartverket/KV](https://www.kartverket.no/)
 Doc: https://kartkatalog.geonorge.no/metadata/administrative-enheter-kommuner/041f1e6e-bdbc-4091-b48f-8a5990f3cc5b
 
 Api: https://ws.geonorge.no/kommuneinfo/v1/
 
-Licence: https://www.kartverket.no/api-og-data/vilkar-for-bruk
+License: https://www.kartverket.no/api-og-data/vilkar-for-bruk
 
 ### [Posten](https://www.bring.no)
 Doc: https://www.bring.no/tjenester/adressetjenester/postnummer/postnummertabeller-veiledning

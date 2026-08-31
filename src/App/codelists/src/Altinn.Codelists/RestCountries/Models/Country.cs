@@ -54,7 +54,7 @@ public class Country(Name name)
     public bool UnitedNationsMember { get; set; }
 
     /// <summary>
-    /// Emojii flag character
+    /// Emoji flag character
     /// </summary>
     [JsonPropertyName("flag")]
     public string EmojiFlag { get; set; } = "";

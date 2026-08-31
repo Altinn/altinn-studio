@@ -75,10 +75,10 @@ export const Subexpression = ({
     errors.length && classes.hasError,
   );
 
-  const dataColour: FieldsetProps['data-color'] = errors.length ? 'danger' : 'neutral';
+  const dataColor: FieldsetProps['data-color'] = errors.length ? 'danger' : 'neutral';
 
   return (
-    <StudioFieldset className={className} hideLegend legend={legend} data-color={dataColour}>
+    <StudioFieldset className={className} hideLegend legend={legend} data-color={dataColor}>
       <div className={classes.fieldsetContent}>
         <SubexpressionValueSelector
           className={classes.editableItem}

@@ -2,16 +2,16 @@
 
 Tilbakemeldinger fra CodeRabbit som ikke er adressert ennå.
 Prioriterer validering av applikasjonen i et miljø først — arkitekturen
-kan endre seg vesentlig (tilstand, lastbalansering, filsystem-avhengigheter).
+kan endre seg vesentlig (tilstand, lastbalansering, filesystem-avhengigheter).
 
 ---
 
 ## Arkitektur / Miljø-avhengigheter
 
-- [ ] **Lokalt filsystem for temp-filer (PdfGeneratorService)**
+- [ ] **Lokalt filesystem for temp-filer (PdfGeneratorService)**
   Bruker `Path.GetTempPath()` for midlertidige Typst-filer.
-  Fungerer ikke med flere pod-replika / lastbalansering uten delt lagring.
-  Vurder om dette er OK for POC eller om vi trenger delt volum / blob storage.
+  Fungerer ikke med flere pod-replika / lastbalansering uten dealt lagring.
+  Vurder om dette er OK for POC eller om vi trenger dealt volum / blob storage.
 
 ---
 
@@ -28,7 +28,7 @@ kan endre seg vesentlig (tilstand, lastbalansering, filsystem-avhengigheter).
 
 ## CallbackUrlValidator-forbedringer
 
-- [ ] **Scheme-sammenligning er case-sensitiv** (`CallbackUrlValidator.cs:74`)
+- [ ] **Scheme-sammenligning er case-sensitive** (`CallbackUrlValidator.cs:74`)
   `uri.Scheme` returnerer alltid lowercase, men pattern-scheme sammenlignes as-is.
   Bør normalisere til lowercase.
 
@@ -40,13 +40,13 @@ kan endre seg vesentlig (tilstand, lastbalansering, filsystem-avhengigheter).
 
 ## Feilhåndtering
 
-- [ ] **GenerateEndpoints: Uhåndterte PDF-feil gir 500** (`GenerateEndpoints.cs:39`)
+- [ ] **GenerateEndpoints: Uhåndterte PDF-feil git 500** (`GenerateEndpoints.cs:39`)
   `GeneratePdfAsync` kan kaste `InvalidOperationException` (timeout, kompileringsfeil),
   men dette er ikke håndtert i `/generate`-endpointet. Bør fange og returnere
   passende feilkode (f.eks. 422/500 med feilmelding).
 
 - [ ] **Caller-cancellation maskert som timeout** (`PdfGeneratorService.cs:56-68`)
-  Når den linkede `CancellationTokenSource` avfyres, gir både caller-cancellation
+  Når den linkede `CancellationTokenSource` avfyres, git både caller-cancellation
   og intern timeout `OperationCanceledException`. Bør skille mellom de to for
   riktig logging og feilmelding.
 
@@ -75,7 +75,7 @@ kan endre seg vesentlig (tilstand, lastbalansering, filsystem-avhengigheter).
   `List<UploadedFile>` er mutable i en `record`-type. Vurder `IReadOnlyList`.
 
 - [ ] **Test-prosjekt: Wildcard package-versjoner** (`Tests.csproj`)
-  `"2.*"` og `"17.*"` gir ikke-deterministiske builds. Vurder å pinne versjoner
+  `"2.*"` og `"17.*"` git ikke-deterministiske builds. Vurder å pinne versjoner
   eller bruk `Directory.Packages.props`.
 
 - [ ] **UploadedFile: byte[] bryter record-equality** (`UploadedFile.cs:3`)

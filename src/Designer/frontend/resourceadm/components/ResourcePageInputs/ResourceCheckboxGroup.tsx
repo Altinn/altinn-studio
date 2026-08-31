@@ -32,7 +32,7 @@ type ResourceCheckboxGroupProps = {
    */
   errors: ResourceFormError[];
   /**
-   * Fucntion to execute on change
+   * Function to execute on change
    * @param val the values selected
    * @returns void
    */
@@ -56,7 +56,7 @@ type ResourceCheckboxGroupProps = {
  * @property {string}[legend] - The legend of the group
  * @property {string}[description] - The description of the group
  * @property {ResourceFormError[]}[errors] -  Field errors
- * @property {function}[onChange] - Fucntion to execute on change
+ * @property {function}[onChange] - Function to execute on change
  * @property {string[]}[value] - The selected options
  * @property {boolean}[required] - Whether this field is required or not
  *

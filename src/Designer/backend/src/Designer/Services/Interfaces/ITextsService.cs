@@ -13,7 +13,7 @@ public interface ITextsService
     /// <summary>
     /// Creates the default text resource file in old text format with appName
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     public Task CreateLanguageResources(string org, string repo, string developer);
@@ -21,8 +21,8 @@ public interface ITextsService
     /// <summary>
     /// Returns the app languages
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="developer">Username of developer</param>
     /// <returns>The text</returns>
     public List<string> GetLanguages(string org, string app, string developer);
@@ -31,7 +31,7 @@ public interface ITextsService
     /// Gets texts file in old format in app repository according to
     /// specified languageCode.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="languageCode">LanguageCode</param>
@@ -41,7 +41,7 @@ public interface ITextsService
     /// <summary>
     /// Saves text resource in old format.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="textResource">The text resource to be saved</param>
@@ -69,7 +69,7 @@ public interface ITextsService
     /// <summary>
     /// Updates references to text keys in layout files.
     /// </summary>
-    /// <param name="org">Identifier for the organisation</param>
+    /// <param name="org">Identifier for the organization</param>
     /// <param name="app">Identifier for the application</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="keyMutations">A list of the keys that are updated</param>

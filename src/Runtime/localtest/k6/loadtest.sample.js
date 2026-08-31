@@ -7,7 +7,7 @@ import { check, sleep } from 'k6';
 
 // Configuration for k6
 // In this case, the loadtester will spin up 10 virtual users, each running the test once concurrently
-// When iteraions are 5 like below, each user will continue to repeat 5 times sequentially
+// When iterations are 5 like below, each user will continue to repeat 5 times sequentially
 export const options = {
   scenarios: {
     ui: {

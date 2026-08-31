@@ -1,6 +1,6 @@
 namespace Altinn.App.Core.Helpers;
 
-internal static class RemoveBomExtentions
+internal static class RemoveBomExtensions
 {
     private static readonly byte[] _utf8bom = [0xEF, 0xBB, 0xBF];
 

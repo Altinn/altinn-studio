@@ -1,7 +1,7 @@
 // Package gitea is a minimal admin client for Gitea — just enough to mint
-// per-organisation Actions runner registration tokens.
+// per-organization Actions runner registration tokens.
 //
-// The endpoint targeted is Gitea's organisation-scoped runner registration
+// The endpoint targeted is Gitea's organization-scoped runner registration
 // token API. The returned token is a one-shot string that an act_runner
 // process uses to register itself with Gitea; once registered the runner
 // keeps its own long-lived identity.
@@ -33,7 +33,7 @@ const (
 // policy (e.g. ErrUnauthorized → fatal; ErrOrgNotFound → skip & continue).
 var (
 	ErrUnauthorized = errors.New("gitea: unauthorized (bad PAT)")
-	ErrOrgNotFound  = errors.New("gitea: organisation not found")
+	ErrOrgNotFound  = errors.New("gitea: organization not found")
 	ErrOrgRequired  = errors.New("gitea: org is required")
 	ErrServer       = errors.New("gitea: server error")
 	ErrUnexpected   = errors.New("gitea: unexpected status")
@@ -63,7 +63,7 @@ func WithUserAgent(ua string) Option {
 
 // NewClient constructs a Client. baseURL should be the Gitea instance root
 // (e.g. "http://altinn-repositories-public.default.svc.cluster.local"); the
-// trailing slash is normalised away.
+// trailing slash is normalized away.
 func NewClient(baseURL, pat string, opts ...Option) *Client {
 	c := &Client{
 		httpClient: &http.Client{Timeout: defaultTimeout},
@@ -78,7 +78,7 @@ func NewClient(baseURL, pat string, opts ...Option) *Client {
 }
 
 // MintRegistrationToken returns a fresh runner registration token for the
-// given organisation. org is the short Gitea organisation name (e.g. "ttd").
+// given organization. org is the short Gitea organization name (e.g. "ttd").
 //
 // The endpoint requires HTTP POST in Gitea 1.26+ (the GET form was removed).
 // Tokens themselves have no time-based expiry. However, each POST atomically

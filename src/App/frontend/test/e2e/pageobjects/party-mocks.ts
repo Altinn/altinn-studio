@@ -7,7 +7,7 @@ import type { IParty } from 'src/types/shared';
 
 const ExampleOrgWithSubUnit: IParty = {
   partyId: 500000,
-  partyTypeName: PartyType.Organisation,
+  partyTypeName: PartyType.Organization,
   orgNumber: '897069650',
   ssn: null,
   unitType: 'AS',
@@ -19,7 +19,7 @@ const ExampleOrgWithSubUnit: IParty = {
   childParties: [
     {
       partyId: 500001,
-      partyTypeName: PartyType.Organisation,
+      partyTypeName: PartyType.Organization,
       orgNumber: '897069651',
       ssn: null,
       unitType: 'BEDR',
@@ -35,7 +35,7 @@ const ExampleOrgWithSubUnit: IParty = {
 
 const ExampleDeletedOrg: IParty = {
   partyId: 500600,
-  partyTypeName: PartyType.Organisation,
+  partyTypeName: PartyType.Organization,
   orgNumber: '897069631',
   ssn: null,
   unitType: 'AS',

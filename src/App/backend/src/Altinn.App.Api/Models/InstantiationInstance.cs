@@ -8,7 +8,7 @@ namespace Altinn.App.Api.Models;
 /// <summary>
 /// Specialized model for instantiation of instances
 /// </summary>
-public class InstansiationInstance
+public class InstantiationInstance
 {
     /// <summary>
     /// Gets or sets the instance owner information.
@@ -36,7 +36,7 @@ public class InstansiationInstance
     public string SourceInstanceId { get; set; }
 
     /// <summary>
-    /// Gets or sets the notifications to send to the instance owner related to the instansiation of the instance.
+    /// Gets or sets the notifications to send to the instance owner related to the instantiation of the instance.
     /// </summary>
     public InstantiationNotification Notification { get; set; }
 

@@ -44,10 +44,10 @@ body:
       description: Add tasks to be done as part of this story.
 
   - type: textarea
-    id: acceptance-criterias
+    id: acceptance-criteria
     attributes:
-      label: Acceptance Criterias
-      description: Define the acceptance criterias that this user story should be tested against
+      label: Acceptance Criteria
+      description: Define the acceptance criteria that this user story should be tested against
 
   - type: markdown
     attributes:

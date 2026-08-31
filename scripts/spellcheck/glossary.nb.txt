@@ -28,7 +28,9 @@ appens
 applikasjonsfeil
 applikasjonsmetrikker
 applikasjonsnavnet
+appversjon
 arbeidslagsnavn
+arbeidstidsdata
 autentiseringer
 autentiseringsapplikasjonen
 autentiseringstjeneren
@@ -54,6 +56,8 @@ bildeopplaster
 brukerdataene
 brukerkontoer
 brukerpålogging
+brukersynkronisering
+claimet
 datamodellbinding
 datamodellfelt
 datamodellfeltet
@@ -81,6 +85,7 @@ filsti
 filstørrelsen
 filvedlegg
 flytkontroll
+forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
@@ -88,6 +93,7 @@ funksjonsflagg
 gjenopprettingsprosessen
 handlingsknapp
 handlingstype
+headerne
 infoside
 innboks
 innboksen
@@ -110,9 +116,11 @@ kvitteringsside
 lagringsnavn
 låsstatus
 medieposisjon
+medlemsprofil
 metadataene
 migreringsverktøyene
 minimumshøyde
+målgren
 navigasjonsfelt
 navigasjonsknapper
 navigasjonslinje
@@ -121,21 +129,28 @@ navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
 nedtrekksliste
+nedtrekkslisten
 nedtrekksmeny
 nesteknapp
 nettstedsadministrator
 nettverksfeil
 oppdateringssjekker
+oppryddingsregel
+oppryddingsregelen
+oppryddingsregler
 oppstartskontroll
 oppsummeringsfelt
 oppsummeringskomponenten
 oppsummeringssiden
+organisasjonsadministrasjon
 organisasjonsbibliotek
 organisasjonsbiblioteket
 organisasjonsinnstillinger
 organisasjonskoden
 organisasjonsnavn
 organisasjonsnavnet
+organisasjonsprofilen
+organisasjonsprosjekt
 pagineringsvalg
 portnummer
 postdomenet
@@ -145,13 +160,20 @@ publiseringshistorikk
 publiseringsrettigheter
 publiseringsstatus
 påloggede
+påloggingsnavn
+påloggingsopplysninger
+påloggingstokenet
 redigerbare
 redigeringsknapp
 redigeringsvalg
 redigeringsverktøy
 registreringssidene
+reindekseringskøen
+reinitialiser
 reinstallere
+renderingsregel
 renderingsregler
+resynkroniser
 rotbane
 rutenettoppsett
 samarbeidskodelagre
@@ -172,14 +194,17 @@ skjemaeditor
 skjemagenerert
 skjemaoppsett
 skjemautfyllingen
+sorteringsproblemene
 sosialnettverkskontoer
 spørreparameter
 spørringsparameter
 syntaksfeil
 tekstsøk
+temaets
 tilbakemeldingsoppgave
 tilgangsliste
 tilgangslisten
+tilgangslistene
 tilgangslister
 tilgangspakke
 tilgangspakken
@@ -189,6 +214,7 @@ tilgangsregler
 tilgangsressurs
 tilgangsstyring
 tilgangstoken
+tillatelseslisten
 tilleggsadresse
 tilleggskontroller
 tittelraden
@@ -196,7 +222,9 @@ tjenerdomene
 tjenerport
 tredjepartsapplikasjon
 tredjepartsbiblioteker
+tvangsslett
 uarkiverte
+ukategoriserte
 ulagrede
 underenhet
 underenheter
@@ -212,6 +240,7 @@ utformingsfanen
 utfyllingsoppgaver
 utfyllingssteget
 utviklingsteamet
+validér
 validering
 valideringsfeil
 valideringsfeilene
@@ -219,8 +248,8 @@ valideringsmelding
 valideringsmeldinger
 valideringsregel
 valideringstyper
-validér
 vedleggstype
+vedlikeholderen
 versjonsfeil
 vertsadresse
 vertsnavn
@@ -240,15 +269,19 @@ monitorering
 popups
 releasen
 repoet
+repositoriene
 repositorier
 repositoriet
+repositoriets
 repositorium
+requesten
 subdomener
 webserveren
 
 # Halves of legitimately hyphenated compounds — the tokenizer splits
 # them at the hyphen, so the halves need their own entries.
 aktiverings             # aktiverings-e-post
+autoriserings           # Autoriserings-URL
 bekreftelses            # bekreftelses-e-post
 påloggings              # påloggings- og registreringssidene
 tofaktor                # tofaktor-autentisering

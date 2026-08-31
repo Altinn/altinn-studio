@@ -55,22 +55,31 @@ wecom
 addr        # "SMTP Addr" config label in the Gitea UI
 agit        # Gitea's AGit workflow
 api
+authorization # the HTTP Authorization header
+authorized    # the authorized_keys file
 backend
 bpmn
+cmd         # the Cmd key in shortcut hints
+com         # slack.com
 condarc
 config
 devtool
 ecdsa
 fsck
+gemfile       # Ruby Gemfile
 gitignore
+goroutines
+homeserver    # Matrix homeserver
 iframe
 iframes
 ini         # app.ini
 io          # code.gitea.io
-com         # slack.com
 json
+kanban
 likert      # the Likert scale component
+mcache        # Go runtime metric
 md          # README.md
+mspan         # Go runtime metric
 nistp       # ecdsa-sha2-nistp256
 noreply
 npmrc
@@ -79,14 +88,16 @@ oids
 openid
 png
 pom         # pom.xml
+proto         # the X-Forwarded-Proto header
 regex
 rprofile    # Rprofile.site
 rsa
 sha
 srcdoc
 ui          # the App/ui/ folder
-url
 uris
+url
+vendored      # Gitea's diff badge for vendored files
 webauthn
 webhook
 webhooks
@@ -94,9 +105,6 @@ xml
 yml
 
 # Identifiers and placeholders quoted verbatim in UI text
-allof
-anyof
-oneof
 applicationmetadata
 componentref
 deletionstrategy
@@ -108,17 +116,24 @@ labelsettings
 layoutsets
 maskinportenscope
 metadatanavn
+oid         # the "oid" claim named in the OIDC admin help text
 pagebreak
 pageref
 showaddbutton
 
+# JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
+# schema-editor UI text
+allof
+anyof
+oneof
+
 # Abbreviations and literals
 dd          # yyyy-mm-dd
-yyyy
 ifm         # i forbindelse med
 orgnr
 param
 personnr
+yyyy
 æøå         # quoted as literal letters in a validation message
 
 # Language names, from the ISO 639 language picker in Designer
@@ -133,7 +148,6 @@ dzongkha
 fulfulde
 herero
 hiri        # Hiri Motu
-motu
 interlingue
 kanuri
 katanga     # Luba-Katanga
@@ -143,6 +157,7 @@ kirundi
 kwanyama
 limburgsk
 lingala
+motu
 ndebele
 ndonga
 sango

@@ -223,7 +223,7 @@ internal sealed class MaskinportenSettingsCollisionDetector
 
     /// <summary>
     /// The property names of the file's <c>MaskinportenSettings</c> object, or <c>null</c> when the file
-    /// has no such section. Unparseable files are skipped rather than reported: appsettings files legally
+    /// has no such section. Unparsable files are skipped rather than reported: appsettings files legally
     /// contain comments and trailing commas, and a JSON complaint from an upgrade step about Maskinporten
     /// would be a confusing way to learn that.
     /// </summary>

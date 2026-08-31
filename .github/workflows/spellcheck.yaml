@@ -27,12 +27,6 @@ jobs:
     name: Spell check
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # ADVISORY until the backlog of existing findings is fixed: the job runs
-    # everything and annotates, but cannot block a merge. The stacked
-    # corrections PR removes this line. The advisory phase changes nothing
-    # else — every check still runs on every PR because of the `if: always()`
-    # on each step below.
-    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

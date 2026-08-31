@@ -125,14 +125,14 @@ function removeLanguageFromTextInstance(
   return newInstance as MultiLanguageText;
 }
 
-export function initialiseSelectedLanguage(
+export function initializeSelectedLanguage(
   codeList: CodeList,
   fallbackLanguageCode: string,
 ): string {
-  return initialiseLanguageOptions(codeList, fallbackLanguageCode)[0];
+  return initializeLanguageOptions(codeList, fallbackLanguageCode)[0];
 }
 
-export function initialiseLanguageOptions(
+export function initializeLanguageOptions(
   codeList: CodeList,
   fallbackLanguageCode: string,
 ): [string, ...string[]] {

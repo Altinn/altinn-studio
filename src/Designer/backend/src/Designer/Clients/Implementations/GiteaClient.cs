@@ -457,8 +457,8 @@ public class GiteaClient(
 
             if (httpContextAccessor.HttpContext is not null)
             {
-                Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
-                if (organisation.Id != -1)
+                Organization organization = await GetCachedOrg(returnRepository.Owner.Login);
+                if (organization.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
@@ -835,7 +835,7 @@ public class GiteaClient(
 
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
         logger.LogError(
-            "User {Developer}, method {MethodName} failed with statuscode {StatusCode} for organisation {OrgName}",
+            "User {Developer}, method {MethodName} failed with statuscode {StatusCode} for organization {OrgName}",
             developer,
             nameof(GetOrganization),
             response.StatusCode,
@@ -892,19 +892,19 @@ public class GiteaClient(
     {
         string cachekey = "org_" + org;
 
-        if (!memoryCache.TryGetValue(cachekey, out Organization organisation))
+        if (!memoryCache.TryGetValue(cachekey, out Organization organization))
         {
             try
             {
-                organisation = await GetOrganization(org);
+                organization = await GetOrganization(org);
             }
             catch
             {
-                organisation = new Organization { Id = -1 };
+                organization = new Organization { Id = -1 };
             }
 
             // Null value is not cached. so set id property to -1
-            organisation ??= new Organization { Id = -1 };
+            organization ??= new Organization { Id = -1 };
 
             // Keep in cache for this time, reset time if accessed.
             MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(
@@ -912,10 +912,10 @@ public class GiteaClient(
             );
 
             // Save data in cache.
-            memoryCache.Set(cachekey, organisation, cacheEntryOptions);
+            memoryCache.Set(cachekey, organization, cacheEntryOptions);
         }
 
-        return organisation;
+        return organization;
     }
 
     public async Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default)

@@ -12,7 +12,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     private string? _emailAddress;
     private string? _mobileNumber;
     private NationalIdentityNumber? _nationalIdentityNumber;
-    private OrganisationNumber? _organizationNumber;
+    private OrganizationNumber? _organizationNumber;
 
     private CorrespondenceNotificationOverrideBuilder() { }
 
@@ -46,22 +46,22 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganisationNumber? organizationNumber)
+    public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganizationNumber? organizationNumber)
     {
         _organizationNumber = organizationNumber;
         return this;
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(
-        OrganisationOrPersonIdentifier? organisationOrPersonIdentifier
+    public ICorrespondenceNotificationOverrideBuilder WithOrganizationOrPersonIdentifier(
+        OrganizationOrPersonIdentifier? organizationOrPersonIdentifier
     )
     {
-        if (organisationOrPersonIdentifier is OrganisationOrPersonIdentifier.Organisation org)
+        if (organizationOrPersonIdentifier is OrganizationOrPersonIdentifier.Organization org)
         {
             _organizationNumber = org.Value;
         }
-        else if (organisationOrPersonIdentifier is OrganisationOrPersonIdentifier.Person person)
+        else if (organizationOrPersonIdentifier is OrganizationOrPersonIdentifier.Person person)
         {
             _nationalIdentityNumber = person.Value;
         }

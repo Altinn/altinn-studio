@@ -17,7 +17,7 @@ public interface ICorrespondenceNotificationOverrideBuilder
     /// Sets the organization number override for the recipient.
     /// </summary>
     /// <param name="organizationNumber">The organization number to override</param>
-    public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganisationNumber? organizationNumber);
+    public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganizationNumber? organizationNumber);
 
     /// <summary>
     /// Sets the national identity number override for the recipient.
@@ -40,11 +40,11 @@ public interface ICorrespondenceNotificationOverrideBuilder
     public ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber);
 
     /// <summary>
-    /// Sets the organisation or person identifier override for the recipient.
+    /// Sets the organization or person identifier override for the recipient.
     /// </summary>
-    /// <param name="organisationOrPersonIdentifier">The organization or person identifier</param>
-    public ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(
-        OrganisationOrPersonIdentifier? organisationOrPersonIdentifier
+    /// <param name="organizationOrPersonIdentifier">The organization or person identifier</param>
+    public ICorrespondenceNotificationOverrideBuilder WithOrganizationOrPersonIdentifier(
+        OrganizationOrPersonIdentifier? organizationOrPersonIdentifier
     );
 
     /// <summary>

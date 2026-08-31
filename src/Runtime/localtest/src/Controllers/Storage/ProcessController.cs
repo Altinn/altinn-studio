@@ -227,7 +227,7 @@ public class ProcessController : ControllerBase
     /// Get the process history for an instance.
     /// </summary>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-    /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
+    /// <param name="instanceGuid">The id of the instance whose process history to retrieve.</param>
     /// <returns>Returns a list of the process events.</returns>
     [HttpGet("history")]
     [Authorize(Policy = "InstanceRead")]

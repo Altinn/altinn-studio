@@ -85,7 +85,7 @@ export const calculateNewPosition = <T>(
 };
 
 /**
- * Checks that two items have the same parent and that thi first one comes right before the second one.
+ * Checks that two items have the same parent and that the first one comes right before the second one.
  * @param firstItem
  * @param secondItem
  * @returns boolean True if the first item comes right before the second one, false otherwise.

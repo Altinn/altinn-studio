@@ -9,7 +9,7 @@ namespace Altinn.Studio.DataModeling.Utils;
 public static class RestrictionsHelper
 {
     /// <summary>
-    /// UsedFo
+    /// Used for restriction expressions.
     /// </summary>
     public static bool IsRestrictionOnDateType(XmlSchemaFacet facet)
     {

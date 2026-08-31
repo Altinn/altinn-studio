@@ -13,11 +13,11 @@ import { useParams } from 'react-router-dom';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
 
-interface DataModellingProps {
+interface DataModelingProps {
   createPathOption?: boolean;
 }
 
-export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
+export function DataModeling({ createPathOption = false }: DataModelingProps): ReactNode {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
   const { status: jsonStatus, error: jsonError, data: jsonData } = useDataModelsJsonQuery(org, app);
@@ -25,7 +25,7 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
-      return <StudioPageSpinner spinnerTitle={t('data_modelling.loading')} />;
+      return <StudioPageSpinner spinnerTitle={t('data_modeling.loading')} />;
     case 'error':
       return (
         <StudioCenter>
