@@ -1,12 +1,12 @@
 import logging
 
-import pytest
-
 from services.token_usage.aggregate import Observation, Trace, aggregate_token_usage
 
 LOADED_AT = "2026-05-04T02:00:00.000Z"
 SERVICE_OWNER = "ttd"
 DEFAULT_TRACE_ID = "trace-1"
+JUDGE_ENVIRONMENT = "langfuse-llm-as-a-judge"
+CODE_EVAL_ENVIRONMENT = "langfuse-code-eval"
 
 
 def make_observation(
@@ -43,11 +43,17 @@ def make_observation(
 def make_trace(
     *,
     trace_id=DEFAULT_TRACE_ID,
-    app_name="ttd-my-app",
+    app_name: str | None = "ttd-my-app",
     user_id=SERVICE_OWNER,
+    environment="default",
 ) -> Trace:
     metadata = {"app_name": app_name} if app_name is not None else {}
-    return {"id": trace_id, "user_id": user_id, "metadata": metadata}
+    return {
+        "id": trace_id,
+        "user_id": user_id,
+        "environment": environment,
+        "metadata": metadata,
+    }
 
 
 class TestBucketing:
@@ -96,6 +102,36 @@ class TestBucketing:
 
         assert len(rows) == 2
         assert sorted(row["serviceownercode"] for row in rows) == ["skd", "ttd"]
+
+    def test_one_row_per_langfuse_internal_environment(self):
+        """The environments share an owner code, so only the app name keeps them apart."""
+        observations = [
+            make_observation(trace_id="trace-judge", start_time="2026-05-03T10:00:00Z"),
+            make_observation(trace_id="trace-eval", start_time="2026-05-03T11:00:00Z"),
+        ]
+        traces = {
+            "trace-judge": make_trace(
+                trace_id="trace-judge",
+                user_id="",
+                app_name=None,
+                environment=JUDGE_ENVIRONMENT,
+            ),
+            "trace-eval": make_trace(
+                trace_id="trace-eval",
+                user_id="",
+                app_name=None,
+                environment=CODE_EVAL_ENVIRONMENT,
+            ),
+        }
+
+        rows = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert len(rows) == 2
+        assert sorted(row["serviceresourcetitle"] for row in rows) == [
+            "langfuse-code-eval",
+            "langfuse-llm-as-a-judge",
+        ]
+        assert {row["serviceownercode"] for row in rows} == {"internal"}
 
 
 class TestTokenSums:
@@ -151,12 +187,35 @@ class TestEdgeCases:
         assert rows[0]["serviceresourceid"] == "app_ttd_unknown"
         assert DEFAULT_TRACE_ID in caplog.text
 
-    def test_raises_when_user_id_empty(self):
-        observations = [make_observation()]
+    def test_warns_when_user_id_empty(self, caplog):
+        """An ownerless trace we can't account for must not crash the run."""
+        observations = [make_observation(input_tokens=100, output_tokens=50)]
         traces = {DEFAULT_TRACE_ID: make_trace(user_id="")}
 
-        with pytest.raises(ValueError, match="Missing service owner code"):
-            aggregate_token_usage(observations, traces, LOADED_AT)
+        with caplog.at_level(logging.WARNING):
+            [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceownercode"] == "unknown"
+        assert row["total_tokens"] == 150
+        assert DEFAULT_TRACE_ID in caplog.text
+
+    def test_attributes_langfuse_internal_traces_to_langfuse(self, caplog):
+        """Langfuse's own evaluators stamp no user and no app metadata, but the
+        environment names them"""
+        observations = [make_observation(input_tokens=100, output_tokens=50)]
+        traces = {
+            DEFAULT_TRACE_ID: make_trace(
+                user_id="", app_name=None, environment=JUDGE_ENVIRONMENT
+            )
+        }
+
+        with caplog.at_level(logging.WARNING):
+            [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceownercode"] == "internal"
+        assert row["serviceresourcetitle"] == "langfuse-llm-as-a-judge"
+        assert row["total_tokens"] == 150
+        assert caplog.text == ""
 
     def test_skips_observation_when_parent_trace_missing(self, caplog):
         observations = [make_observation(trace_id="unknown-trace")]
