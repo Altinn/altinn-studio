@@ -10,7 +10,6 @@ export * from './StudioInputTable';
 export * from './StudioLabelWrapper';
 export * from './StudioNativeSelect';
 export * from './StudioParagraph';
-export * from './StudioPopover';
 export * from './StudioTable';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
