@@ -1,3 +1,3 @@
-import type { CodeListItem } from './CodeListItem';
+import type { MultiLanguageCodeListItem } from './CodeListItem';
 
-export type CodeList = CodeListItem[];
+export type CodeList = MultiLanguageCodeListItem[];

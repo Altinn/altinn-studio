@@ -1,4 +1,4 @@
-import type { CodeListItem } from '../types/CodeListItem';
+import type { MultiLanguageCodeListItem } from '../types/CodeListItem';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
 import type {
@@ -23,11 +23,11 @@ import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
   error?: ValueError | null;
-  item: CodeListItem;
+  item: MultiLanguageCodeListItem;
   language: string;
   number: number;
   onDeleteButtonClick: () => void;
-  onChangeCodeListItem: (newItem: CodeListItem) => void;
+  onChangeCodeListItem: (newItem: MultiLanguageCodeListItem) => void;
 };
 
 export function StudioCodeListEditorRow({
