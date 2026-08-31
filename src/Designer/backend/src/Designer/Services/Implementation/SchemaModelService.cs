@@ -597,30 +597,23 @@ public class SchemaModelService : ISchemaModelService
         string id
     )
     {
-        HashSet<string> processTaskIds;
+        IEnumerable<string> processTaskIds;
         try
         {
             processTaskIds =
-                altinnAppGitRepository.GetProcessDefinitions()?.Process?.Tasks?.Select(task => task.Id).ToHashSet()
-                ?? [];
+                altinnAppGitRepository.GetProcessDefinitions()?.Process?.Tasks?.Select(task => task.Id) ?? [];
         }
         catch (NotFoundHttpRequestException)
         {
             return null;
         }
 
-        IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders();
-        foreach (string layoutSetName in uiFolders)
+        foreach (string taskId in processTaskIds)
         {
-            if (!processTaskIds.Contains(layoutSetName))
-            {
-                continue;
-            }
-
             LayoutSettings layoutSettings;
             try
             {
-                layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
+                layoutSettings = await altinnAppGitRepository.GetLayoutSettings(taskId);
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
@@ -629,7 +622,7 @@ public class SchemaModelService : ISchemaModelService
 
             if (layoutSettings.DefaultDataType == id)
             {
-                return layoutSetName;
+                return taskId;
             }
         }
 
