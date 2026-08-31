@@ -58,15 +58,14 @@ authorization # the HTTP Authorization header
 authorized    # the authorized_keys file
 backend
 bpmn
+cmd         # the Cmd key in shortcut hints
 com         # slack.com
 condarc
-config
 devtool
 ecdsa
 fsck
 gemfile       # Ruby Gemfile
 gitignore
-gobuild
 goroutines
 homeserver    # Matrix homeserver
 iframe
@@ -113,6 +112,7 @@ labelsettings
 layoutsets
 maskinportenscope
 metadatanavn
+oid         # the "oid" claim named in the OIDC admin help text
 pagebreak
 pageref
 showaddbutton

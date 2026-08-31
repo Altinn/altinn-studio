@@ -31,14 +31,19 @@ applikasjonsmetrikker
 applikasjonsnavn
 applikasjonsnavnet
 appversjon
+arbeidsflytavhengigheter
 arbeidsflytfil
-arbeidsflytgraf
+arbeidsflytfilen
+arbeidsflytfilene
+arbeidsflytfiler
 arbeidsflythendelser
+arbeidsflytinnholdet
 arbeidsflytjobb
 arbeidsflytjobber
 arbeidsflytkjøring
 arbeidsflytkjøringen
 arbeidsflytkjøringer
+arbeidsflytlogikken
 arbeidskøen
 arbeidslagsnavn
 arbeidstidsdata
@@ -56,6 +61,7 @@ autentiseringstype
 autorisasjonsforespørselen
 autorisasjonsnavn
 avatarattributt
+avhakingen
 avmerkingsboks
 avmerkingsbokser
 avpubliser
@@ -162,6 +168,7 @@ kjøretidsavhengigheter
 kjøringsdetaljer
 kodelageradministrasjon
 kodelageravatarer
+kodelagers
 kodelistefil
 kodenes
 kodesøk
@@ -191,6 +198,7 @@ malelementer
 malkodelager
 malkodelageret
 malkodelagre
+medforfattet
 medieposisjon
 medlemsprofil
 meldingsdetaljer
@@ -199,7 +207,6 @@ mellomlagerelementer
 mellomlagerintervall
 mellomlagerkonfigurasjon
 mellomlagertesten
-mellomlagertilkobling
 metadataene
 metaobjekter
 migreringsstatus
@@ -210,6 +217,7 @@ minnefrigjøringer
 mønstersyntaks
 målgren
 målgrenen
+målgrener
 målkodelager
 målkodelagre
 målrammeverk
@@ -233,6 +241,7 @@ nettverksfeil
 nøkkelpar
 omfangsetiketter
 operasjonsnavn
+oppdateringsmåte
 oppdateringssjekker
 opplåsing
 oppryddingsregel
@@ -254,6 +263,8 @@ organisasjonsprofilen
 organisasjonsprosjekt
 organisasjonsprosjekter
 pagineringsvalg
+pakkesynlighet
+pakkesynligheten
 passordgjenoppretting
 passordhashing
 pekerfiler
@@ -294,6 +305,7 @@ saksavhengigheter
 sakssporingssystem
 samarbeidskodelagre
 sammendragsvisningsceller
+sammenligningsgren
 sammenligningstype
 samtykkemal
 samtykkemetadata
@@ -328,7 +340,9 @@ speilingsintervallet
 spøkelseskommentarer
 spørreparameter
 spørringsparameter
+stegskriptene
 synkroniseringsintervall
+synlighetsinnstillingene
 syntaksfeil
 syntaksutheving
 systemovervåkingsstatus
@@ -460,6 +474,7 @@ requesten
 requestene
 runneradministrasjon
 runnerens
+scopet
 slugen
 subdomener
 tokenene
