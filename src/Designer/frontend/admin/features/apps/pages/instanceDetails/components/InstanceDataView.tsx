@@ -95,7 +95,7 @@ const InstanceDataViewWithData = ({
   processMetadata,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
-  const { mutate: deleteInstance } = useInstanceDeletionMutation(
+  const { mutate: deleteInstance, isPending: isDeletionPending } = useInstanceDeletionMutation(
     org,
     environment,
     app,
@@ -117,7 +117,7 @@ const InstanceDataViewWithData = ({
             onClick={handleDelete}
             data-color='danger'
             icon={<StudioDeleteIcon />}
-            disabled={!!instance.softDeletedAt}
+            disabled={!!instance.softDeletedAt || isDeletionPending}
           >
             {t('general.delete')}
           </StudioButton>

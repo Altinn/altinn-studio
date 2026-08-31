@@ -87,6 +87,19 @@ describe('InstanceDataView', () => {
     });
   });
 
+  it('disables the delete button while the deletion is pending so only one request is sent', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    (axios.delete as jest.Mock).mockReturnValue(new Promise(() => {}));
+    renderInstanceDataView();
+
+    await user.click(getDeleteButton());
+    expect(getDeleteButton()).toBeDisabled();
+    await user.click(getDeleteButton());
+
+    expect(axios.delete).toHaveBeenCalledTimes(1);
+  });
+
   it('does not delete the instance when the user cancels the confirmation', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(false);
