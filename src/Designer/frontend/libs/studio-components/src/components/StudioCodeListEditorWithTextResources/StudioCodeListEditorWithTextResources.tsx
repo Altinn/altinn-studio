@@ -171,22 +171,26 @@ function ControlledCodeListEditor({
   }, [codeList, codeType, onChange, onUpdateCodeList]);
 
   return (
-    <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable
-        codeList={codeList}
-        codeType={codeType}
-        dispatch={dispatch}
-        errorMap={errorMap}
-        onChange={onChange}
-        onChangeCodeType={setCodeType}
-        onCreateTextResource={onCreateTextResource}
-        onUpdateCodeList={onUpdateCodeList}
-        onUpdateTextResource={onUpdateTextResource}
-        textResources={textResources}
-      />
-      <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
+    <>
+      <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
+        <CodeListTable
+          codeList={codeList}
+          codeType={codeType}
+          dispatch={dispatch}
+          errorMap={errorMap}
+          onChange={onChange}
+          onChangeCodeType={setCodeType}
+          onCreateTextResource={onCreateTextResource}
+          onUpdateCodeList={onUpdateCodeList}
+          onUpdateTextResource={onUpdateTextResource}
+          textResources={textResources}
+        />
+        <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
+      </StudioFieldset>
+      {/* Rendered outside the fieldset because a ValidationMessage within it marks every input
+          inside as invalid, not just the rows that actually have errors. */}
       <Errors errorMap={errorMap} />
-    </StudioFieldset>
+    </>
   );
 }
 

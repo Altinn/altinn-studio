@@ -106,10 +106,8 @@ describe('StudioCodeListEditorWithTextResources', () => {
     renderCodeListEditor();
     const firstLabelCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
     await switchToSearchMode(user, firstLabelCoords);
-    await user.click(getTextResourcePicker(firstLabelCoords));
-    const { noTextResourceOptionLabel } = texts.textResourceTexts(...firstLabelCoords);
-    const noTextResourceOption = screen.queryByRole('option', { name: noTextResourceOptionLabel });
-    expect(noTextResourceOption).not.toBeInTheDocument();
+    await openTextResourcePicker(user, firstLabelCoords);
+    expect(hasUnsetTextResourceOption()).toBe(false);
   });
 
   it.each([CodeListItemTextProperty.Description, CodeListItemTextProperty.HelpText])(
@@ -119,10 +117,8 @@ describe('StudioCodeListEditorWithTextResources', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, property];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      const { noTextResourceOptionLabel } = texts.textResourceTexts(...propertyCoords);
-      const noTextResourceOption = screen.getByRole('option', { name: noTextResourceOptionLabel });
-      expect(noTextResourceOption).toBeInTheDocument();
+      await openTextResourcePicker(user, propertyCoords);
+      expect(hasUnsetTextResourceOption()).toBe(true);
     },
   );
 
@@ -196,8 +192,8 @@ describe('StudioCodeListEditorWithTextResources', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      await user.click(getTextResourceOption(label4Resource));
+      await openTextResourcePicker(user, propertyCoords);
+      await user.click(await getTextResourceOption(label4Resource));
       await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
@@ -212,8 +208,8 @@ describe('StudioCodeListEditorWithTextResources', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Description];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      await user.click(getTextResourceOption(description4Resource));
+      await openTextResourcePicker(user, propertyCoords);
+      await user.click(await getTextResourceOption(description4Resource));
       await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
@@ -228,8 +224,8 @@ describe('StudioCodeListEditorWithTextResources', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.HelpText];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      await user.click(getTextResourceOption(helpText4Resource));
+      await openTextResourcePicker(user, propertyCoords);
+      await user.click(await getTextResourceOption(helpText4Resource));
       await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
@@ -631,6 +627,20 @@ async function switchToSearchMode(
 
 type TextPropertyCoords = [number, CodeListItemTextProperty];
 
+function hasUnsetTextResourceOption(): boolean {
+  const options = screen.getAllByRole('option');
+  return options.some((option) => option.getAttribute('value') === '');
+}
+
+async function openTextResourcePicker(
+  user: UserEvent,
+  textPropertyCoords: TextPropertyCoords,
+): Promise<void> {
+  const picker = getTextResourcePicker(textPropertyCoords);
+  await user.click(picker);
+  await user.clear(picker);
+}
+
 function getTextResourcePicker(textPropertyCoords: TextPropertyCoords): HTMLElement {
   const name = texts.textResourceTexts(...textPropertyCoords).textResourcePickerLabel;
   // Todo: Match the name exactly when https://github.com/digdir/designsystemet/issues/4626 is fixed
@@ -642,9 +652,9 @@ function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTML
   return screen.getByRole('textbox', { name });
 }
 
-function getTextResourceOption(textResource: TextResource): HTMLElement {
+async function getTextResourceOption(textResource: TextResource): Promise<HTMLElement> {
   const name = retrieveTextResourceOptionName(textResource);
-  return screen.getByRole('option', { name });
+  return screen.findByRole('option', { name });
 }
 
 function retrieveTextResourceOptionName(textResource: TextResource): string {
