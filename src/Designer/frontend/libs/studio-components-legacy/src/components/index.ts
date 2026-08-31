@@ -9,7 +9,6 @@ export * from './StudioGridSelector';
 export * from './StudioInputTable';
 export * from './StudioLabelWrapper';
 export * from './StudioNativeSelect';
-export * from './StudioPageHeader';
 export * from './StudioParagraph';
 export * from './StudioPopover';
 export * from './StudioTable';
