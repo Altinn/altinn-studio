@@ -5,6 +5,8 @@ from services.token_usage.aggregate import Observation, Trace, aggregate_token_u
 LOADED_AT = "2026-05-04T02:00:00.000Z"
 SERVICE_OWNER = "ttd"
 DEFAULT_TRACE_ID = "trace-1"
+JUDGE_ENVIRONMENT = "langfuse-llm-as-a-judge"
+CODE_EVAL_ENVIRONMENT = "langfuse-code-eval"
 
 
 def make_observation(
@@ -41,7 +43,7 @@ def make_observation(
 def make_trace(
     *,
     trace_id=DEFAULT_TRACE_ID,
-    app_name="ttd-my-app",
+    app_name: str | None = "ttd-my-app",
     user_id=SERVICE_OWNER,
     environment="default",
 ) -> Trace:
@@ -112,13 +114,13 @@ class TestBucketing:
                 trace_id="trace-judge",
                 user_id="",
                 app_name=None,
-                environment="langfuse-llm-as-a-judge",
+                environment=JUDGE_ENVIRONMENT,
             ),
             "trace-eval": make_trace(
                 trace_id="trace-eval",
                 user_id="",
                 app_name=None,
-                environment="langfuse-code-eval",
+                environment=CODE_EVAL_ENVIRONMENT,
             ),
         }
 
@@ -203,7 +205,7 @@ class TestEdgeCases:
         observations = [make_observation(input_tokens=100, output_tokens=50)]
         traces = {
             DEFAULT_TRACE_ID: make_trace(
-                user_id="", app_name=None, environment="langfuse-llm-as-a-judge"
+                user_id="", app_name=None, environment=JUDGE_ENVIRONMENT
             )
         }
 
