@@ -116,7 +116,9 @@ def aggregate_token_usage(
 
 
 def _is_langfuse_internal(trace: Trace) -> bool:
-    return trace["environment"].startswith(LANGFUSE_ENVIRONMENT_PREFIX)
+    return not trace["user_id"] and trace["environment"].startswith(
+        LANGFUSE_ENVIRONMENT_PREFIX
+    )
 
 
 def _get_service_owner_code(trace: Trace) -> str:
@@ -134,7 +136,7 @@ def _get_service_owner_code(trace: Trace) -> str:
 
 
 def _get_app_name(trace: Trace) -> str:
-    if not trace["user_id"] and _is_langfuse_internal(trace):
+    if _is_langfuse_internal(trace):
         return trace["environment"]
 
     metadata = trace["metadata"] or {}
