@@ -24,6 +24,12 @@ export const notificationRoute = async (req, res) => {
     console.log(
       `[${id}]: Notification email sent: ${JSON.stringify({ to: emailAddress, from: senderEmailAddress, subject, body }, null, 2)}`,
     );
+    const attachments = req.body.recipient.recipientEmail.emailSettings.attachments;
+    if (attachments) {
+      console.log(
+        `[${id}]: Email attachments: ${JSON.stringify(attachments.map((a) => ({ filename: a.filename, contentType: a.contentType, bytes: Buffer.from(a.data, 'base64').length })))}`,
+      );
+    }
   }
 
   if (req.body.recipient.recipientSms) {
