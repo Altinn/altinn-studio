@@ -134,7 +134,7 @@ def _get_service_owner_code(trace: Trace) -> str:
 
 
 def _get_app_name(trace: Trace) -> str:
-    if _is_langfuse_internal(trace):
+    if not trace["user_id"] and _is_langfuse_internal(trace):
         return trace["environment"]
 
     metadata = trace["metadata"] or {}
