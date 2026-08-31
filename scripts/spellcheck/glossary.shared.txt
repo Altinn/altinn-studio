@@ -83,7 +83,6 @@ nistp       # ecdsa-sha2-nistp256
 noreply
 npmrc
 oauth
-oids
 openid
 png
 pom         # pom.xml
@@ -94,7 +93,6 @@ rsa
 sha
 srcdoc
 ui          # the App/ui/ folder
-uris
 url
 vendored      # Gitea's diff badge for vendored files
 webauthn
