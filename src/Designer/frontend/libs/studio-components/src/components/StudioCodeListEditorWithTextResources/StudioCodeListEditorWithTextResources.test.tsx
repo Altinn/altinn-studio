@@ -644,7 +644,9 @@ async function openTextResourcePicker(
 function getTextResourcePicker(textPropertyCoords: TextPropertyCoords): HTMLElement {
   const name = texts.textResourceTexts(...textPropertyCoords).textResourcePickerLabel;
   // Todo: Match the name exactly when https://github.com/digdir/designsystemet/issues/4626 is fixed
-  return screen.getByRole('combobox', { name: RegExp('^' + name) });
+  return screen.getByRole('combobox', {
+    name: (accessibleName) => accessibleName.startsWith(name),
+  });
 }
 
 function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTMLElement {
