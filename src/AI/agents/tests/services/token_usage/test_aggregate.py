@@ -43,9 +43,15 @@ def make_trace(
     trace_id=DEFAULT_TRACE_ID,
     app_name="ttd-my-app",
     user_id=SERVICE_OWNER,
+    environment="default",
 ) -> Trace:
     metadata = {"app_name": app_name} if app_name is not None else {}
-    return {"id": trace_id, "user_id": user_id, "metadata": metadata}
+    return {
+        "id": trace_id,
+        "user_id": user_id,
+        "environment": environment,
+        "metadata": metadata,
+    }
 
 
 class TestBucketing:
@@ -94,6 +100,36 @@ class TestBucketing:
 
         assert len(rows) == 2
         assert sorted(row["serviceownercode"] for row in rows) == ["skd", "ttd"]
+
+    def test_one_row_per_langfuse_internal_environment(self):
+        """The environments share an owner code, so only the app name keeps them apart."""
+        observations = [
+            make_observation(trace_id="trace-judge", start_time="2026-05-03T10:00:00Z"),
+            make_observation(trace_id="trace-eval", start_time="2026-05-03T11:00:00Z"),
+        ]
+        traces = {
+            "trace-judge": make_trace(
+                trace_id="trace-judge",
+                user_id="",
+                app_name=None,
+                environment="langfuse-llm-as-a-judge",
+            ),
+            "trace-eval": make_trace(
+                trace_id="trace-eval",
+                user_id="",
+                app_name=None,
+                environment="langfuse-code-eval",
+            ),
+        }
+
+        rows = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert len(rows) == 2
+        assert sorted(row["serviceresourcetitle"] for row in rows) == [
+            "langfuse-code-eval",
+            "langfuse-llm-as-a-judge",
+        ]
+        assert {row["serviceownercode"] for row in rows} == {"internal"}
 
 
 class TestTokenSums:
@@ -150,7 +186,7 @@ class TestEdgeCases:
         assert DEFAULT_TRACE_ID in caplog.text
 
     def test_warns_when_user_id_empty(self, caplog):
-        """Langfuse spawns ownerless traces of its own; they must not crash the run."""
+        """An ownerless trace we can't account for must not crash the run."""
         observations = [make_observation(input_tokens=100, output_tokens=50)]
         traces = {DEFAULT_TRACE_ID: make_trace(user_id="")}
 
@@ -160,6 +196,54 @@ class TestEdgeCases:
         assert row["serviceownercode"] == "unknown"
         assert row["total_tokens"] == 150
         assert DEFAULT_TRACE_ID in caplog.text
+
+    def test_attributes_langfuse_internal_traces_to_langfuse(self, caplog):
+        """Langfuse's own evaluators stamp no user and no app metadata, but the
+        environment names them — so they are expected traffic, not an anomaly."""
+        observations = [make_observation(input_tokens=100, output_tokens=50)]
+        traces = {
+            DEFAULT_TRACE_ID: make_trace(
+                user_id="", app_name=None, environment="langfuse-llm-as-a-judge"
+            )
+        }
+
+        with caplog.at_level(logging.WARNING):
+            [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceownercode"] == "internal"
+        assert row["serviceresourcetitle"] == "langfuse-llm-as-a-judge"
+        assert row["total_tokens"] == 150
+        assert caplog.text == ""
+
+    def test_gives_langfuse_internal_traces_no_billable_resource_id(self):
+        """Platform overhead is not a service resource anyone can be billed for."""
+        observations = [make_observation()]
+        traces = {
+            DEFAULT_TRACE_ID: make_trace(
+                user_id="", app_name=None, environment="langfuse-llm-as-a-judge"
+            )
+        }
+
+        [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceresourceid"] is None
+
+    def test_keeps_the_user_id_of_a_langfuse_internal_trace(self):
+        """The environment only fills in what Langfuse left blank."""
+        observations = [make_observation()]
+        traces = {DEFAULT_TRACE_ID: make_trace(environment="langfuse-llm-as-a-judge")}
+
+        [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceownercode"] == SERVICE_OWNER
+
+    def test_keeps_the_resource_id_of_ordinary_traces(self):
+        observations = [make_observation()]
+        traces = {DEFAULT_TRACE_ID: make_trace()}
+
+        [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceresourceid"] == "app_ttd_ttd-my-app"
 
     def test_skips_observation_when_parent_trace_missing(self, caplog):
         observations = [make_observation(trace_id="unknown-trace")]
