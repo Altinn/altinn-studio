@@ -8,10 +8,13 @@ use sandbox_microsandbox::{MicrosandboxNetworkBackend, MicrosandboxProvider};
 use crate::{Error, authorization::AgentPolicyEngine, control_plane::AgentRecord, persistence};
 
 mod execution;
+mod forward;
 mod preparation;
 mod terminal;
 
 pub(super) use execution::start_execution;
+pub(super) use forward::guest_tcp_dialer;
+pub use forward::{GuestConnection, GuestDialer};
 pub use terminal::attach_terminal;
 
 use preparation::Preparation;
