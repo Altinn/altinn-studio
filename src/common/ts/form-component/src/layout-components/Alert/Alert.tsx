@@ -21,7 +21,7 @@ function calculateRole(severity: AlertSeverity): 'alert' | 'status' {
 export interface AlertProps {
   /** The indexed component ID; drives the form-content wrapper. */
   componentId: string;
-  /** Severity of the alert; controls the colour and the screen-reader role. */
+  /** Severity of the alert; controls the color and the screen-reader role. */
   severity: AlertSeverity;
   /** Text resource key for the alert title. */
   title?: string;

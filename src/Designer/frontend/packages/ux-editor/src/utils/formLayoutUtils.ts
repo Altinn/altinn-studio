@@ -428,7 +428,7 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
 /**
  * Checks if there are component with duplicated ids across all layouts in the layoutset.
  * @param layouts The layouts to check.
- * @returns dublicated layouts.
+ * @returns duplicated layouts.
  */
 export const findLayoutsContainingDuplicateComponents = (
   layouts: Record<string, IInternalLayout>,

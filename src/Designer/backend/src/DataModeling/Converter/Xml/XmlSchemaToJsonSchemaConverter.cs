@@ -866,28 +866,28 @@ public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
     }
 
     private void HandleComplexContentExtension(
-        XmlSchemaComplexContentExtension complexConentExtension,
+        XmlSchemaComplexContentExtension complexContentExtension,
         bool optional,
         bool array,
         JsonSchemaBuilder builder
     )
     {
-        HandleAnnotation(complexConentExtension, builder);
+        HandleAnnotation(complexContentExtension, builder);
 
         StepsBuilder steps = new StepsBuilder();
         PropertiesBuilder properties = new PropertiesBuilder();
 
-        steps.Add(b => HandleType(complexConentExtension.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
+        steps.Add(b => HandleType(complexContentExtension.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
-        HandleParticle(complexConentExtension.Particle, optional, array, steps);
+        HandleParticle(complexContentExtension.Particle, optional, array, steps);
 
-        AddAttributes(complexConentExtension.Attributes, optional, array, steps, properties);
+        AddAttributes(complexContentExtension.Attributes, optional, array, steps, properties);
 
         properties.AddCurrentPropertiesToStep(steps);
 
         steps.BuildWithAllOf(builder);
 
-        AddAnyAttribute(complexConentExtension.AnyAttribute, builder);
+        AddAnyAttribute(complexContentExtension.AnyAttribute, builder);
     }
 
     private void HandleParticle(XmlSchemaParticle particle, bool optional, bool array, StepsBuilder steps)
@@ -1408,7 +1408,7 @@ public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
          * The XML schema spec specifies that floating point numbers are represented using a period and
          * not using a comma. The locale doesn't have any affect on what is valid XML.
          *
-         * Default behaviour of TryParse is to use CurrentCulture. This must be overridden.
+         * Default behavior of TryParse is to use CurrentCulture. This must be overridden.
          *
          * We assumed that XSD do not allow the use of group separators. This is why we have not
          * made a similar override for parsing of whole numbers like integer.

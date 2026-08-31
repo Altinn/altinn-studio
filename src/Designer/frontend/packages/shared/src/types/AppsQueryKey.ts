@@ -3,4 +3,5 @@ export enum AppsQueryKey {
   AppLayoutSets = 'fetchLayoutSets',
   AppLayoutSettings = 'layoutSettings',
   AppTextResources = 'fetchTextResources',
+  AppFormBootstrap = 'formBootstrap',
 }

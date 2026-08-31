@@ -1,0 +1,58 @@
+# Nynorsk glossary — see glossary.nb.txt for the rules. The two files are
+# separate because the languages are: a term correct in bokmål is not
+# automatically correct in nynorsk. Language-neutral tokens (names,
+# identifiers, formats) live in glossary.shared.txt instead. Keep entries
+# alphabetized within each section (Norwegian collation: æ, ø, å sort last).
+
+
+# Domain compounds and derivations in UI text: standard Norwegian
+# compounding that the frozen dictionary lacks.
+betalingskvittering
+bildefil
+bildefiler
+datoformat
+deaktivert
+enhetsregisteret
+feilforsøk
+feilkonfigurert
+filopplastingskomponentar
+filstorleik
+filtypane
+filtype
+førehandsvis
+førehandsvise
+handsamingsreferanse
+innboks
+innboksen
+instansier
+lagringsnamn
+migreringsverktøya
+organisasjonsnamn
+piltastane
+profilinnstillingane
+prosesstrinn
+signatarliste
+signaturdata
+signeringsstatus
+signeringssteg
+sikkerheitsnivå
+søkefunksjonaliteten
+søkemoglegheita
+tidsformat
+tilgangsstyring
+tilleggsadresse
+utløpsdato
+utviklarverktøya
+validér
+vedleggstype
+versjonsfeil
+
+# Halves of legitimately hyphenated compounds — the tokenizer splits
+# them at the hyphen, so the halves need their own entries.
+betalings               # Betalings-ID
+
+# Unusual but deliberate phrasings in shipped UI text, reviewed and
+# accepted by a native speaker.
+anbefalar                   # 'anbefale' is contested nynorsk (tilrå is often preferred), but deliberate here
+beskjæringsområde           # same form as the nb value
+filas                       # s-genitive ('filas merking')

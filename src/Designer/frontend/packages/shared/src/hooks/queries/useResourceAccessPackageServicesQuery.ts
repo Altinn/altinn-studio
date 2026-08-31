@@ -6,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AxiosError } from 'axios';
 
 /**
- * Query to get all services using a spesific access package
+ * Query to get all services using a specific access package
  *
  * @param accessPackageUrn urn of the access package
  * @param env environment

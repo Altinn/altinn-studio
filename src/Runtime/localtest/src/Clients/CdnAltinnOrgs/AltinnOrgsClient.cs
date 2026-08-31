@@ -24,6 +24,6 @@ public class AltinnOrgsClient
     public async Task<CdnOrgs> GetCdnOrgs()
     {
         var orgsJson = await _client.GetByteArrayAsync(_authOptions.GetOrganisationRepositoryLocation);
-        return JsonSerializer.Deserialize<CdnOrgs>(orgsJson, JSON_OPTIONS) ?? throw new JsonException("altinn-orgs respones was \"null\"");
+        return JsonSerializer.Deserialize<CdnOrgs>(orgsJson, JSON_OPTIONS) ?? throw new JsonException("altinn-orgs response was \"null\"");
     }
 }

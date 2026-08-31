@@ -24,7 +24,7 @@ public sealed record ProcessNextRequest
     public required string? Action { get; init; }
 
     /// <summary>
-    /// The organisation number of the party the user is acting on behalf of
+    /// The organization number of the party the user is acting on behalf of
     /// </summary>
     public string? ActionOnBehalfOf { get; set; }
 

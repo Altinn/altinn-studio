@@ -138,7 +138,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     }
 
     /// <summary>
-    /// Initialises, uploads, and polls each attachment to Published status in parallel.
+    /// Initializes, uploads, and polls each attachment to Published status in parallel.
     /// Returns the attachment + assigned ID pairs in the original list order.
     /// </summary>
     private async Task<IReadOnlyList<(CorrespondenceAttachment Attachment, Guid Id)>> InitializeAndUploadAttachments(

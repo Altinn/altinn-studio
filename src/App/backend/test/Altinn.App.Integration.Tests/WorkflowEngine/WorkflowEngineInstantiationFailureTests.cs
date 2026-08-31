@@ -28,7 +28,7 @@ public class WorkflowEngineInstantiationFailureTests(ITestOutputHelper output, A
 
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readProblem = await instantiationResponse.Read<ProblemDetails>();
 

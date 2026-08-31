@@ -27,14 +27,14 @@ export const ClonePopoverContent = () => {
   return (
     <div className={classes.modalContainer}>
       <StudioLabelAsParagraph data-size='sm'>
-        {t('sync_header.favourite_tool')}
+        {t('sync_header.favorite_tool')}
       </StudioLabelAsParagraph>
       <StudioLink
         href={altinnDocsUrl({ language: 'nb' })}
         target='_blank'
         rel='noopener noreferrer'
       >
-        {t('sync_header.favourite_tool_link')}
+        {t('sync_header.favorite_tool_link')}
       </StudioLink>
 
       {dataModel.length === 0 && (

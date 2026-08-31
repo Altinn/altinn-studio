@@ -77,8 +77,8 @@ public class ProcessController : ControllerBase
     /// <summary>
     /// Get the process state of an instance.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="includeWorkflowStatus">
@@ -138,8 +138,8 @@ public class ProcessController : ControllerBase
     /// <summary>
     /// Starts the process of an instance.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="startEvent">a specific start event id to start the process, must be used if there are more than one start events</param>
@@ -241,8 +241,8 @@ public class ProcessController : ControllerBase
     /// Gets a list of the next process elements that can be reached from the current process element.
     /// If process is not started it returns the possible start events.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <returns>list of next process element identifiers (tasks or events)</returns>
@@ -311,8 +311,8 @@ public class ProcessController : ControllerBase
     /// Change the instance's process state to next process element in accordance with process definition.
     /// </summary>
     /// <returns>new process state, or the full enriched instance when <paramref name="returnInstance"/> is true</returns>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="ct">Cancellation token, populated by the framework</param>
@@ -483,11 +483,11 @@ public class ProcessController : ControllerBase
     }
 
     /// <summary>
-    /// Attemts to end the process by running next until an end event is reached.
+    /// Attempts to end the process by running next until an end event is reached.
     /// Notice that process must have been started.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>

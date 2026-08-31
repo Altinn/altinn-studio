@@ -153,8 +153,8 @@ public class RepositoryService : IRepository
     /// <summary>
     /// Returns the path to the app folder
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>A string containing the path</returns>
     public string GetAppPath(string org, string app)
     {
@@ -470,7 +470,7 @@ public class RepositoryService : IRepository
     /// <summary>
     /// create a repository in gitea for the given org and options
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="options">the options for creating a repository</param>
     /// <returns>The newly created repository</returns>
     public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)

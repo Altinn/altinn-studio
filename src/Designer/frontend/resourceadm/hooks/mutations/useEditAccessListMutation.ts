@@ -7,7 +7,7 @@ import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 /**
  * Mutation to edit metadata of a access list
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param listIdentifier the identifier of access list to delete
  * @param env the list environment
  */

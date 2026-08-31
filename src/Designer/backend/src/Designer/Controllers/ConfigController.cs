@@ -47,8 +47,8 @@ public class ConfigController : Controller
     /// <summary>
     /// Method to retrieve the app description from the metadata file
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The service configuration</returns>
     [HttpGet]
     public async Task<ServiceConfiguration> GetServiceConfig(string org, string app)
@@ -63,8 +63,8 @@ public class ConfigController : Controller
     /// <summary>
     /// Method to set the app description in the metadata file
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="serviceConfig">the service config</param>
     [HttpPost]
     public async Task SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
