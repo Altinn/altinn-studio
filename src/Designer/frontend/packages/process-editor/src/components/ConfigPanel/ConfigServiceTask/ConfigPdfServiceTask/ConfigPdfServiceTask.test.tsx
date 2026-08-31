@@ -249,7 +249,7 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       // PdfAutomaticTaskSelection renders a combobox
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('should render PdfLayoutBasedSection when in layout-based mode', async () => {
