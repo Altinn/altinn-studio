@@ -26,6 +26,8 @@ public class AdminAuditLogConfiguration : IEntityTypeConfiguration<AdminAuditLog
 
         builder.Property(e => e.Action).HasColumnType("character varying").HasColumnName("action").IsRequired();
 
+        builder.Property(e => e.Status).HasColumnType("character varying").HasColumnName("status").IsRequired();
+
         builder.Property(e => e.UserName).HasColumnType("character varying").HasColumnName("user_name").IsRequired();
 
         builder.Property(e => e.Env).HasColumnType("character varying").HasColumnName("env").IsRequired();

@@ -132,8 +132,35 @@ public class InstancesController : ControllerBase
         CancellationToken ct
     )
     {
-        await _instancesClient.DeleteInstance(org, env, app, instanceId, ct);
-        await _auditLogger.LogInstanceDeletedAsync(org, env, app, instanceId, ct);
+        // The audit log entry is durably committed before the deletion is sent to storage,
+        // so a deletion can never happen without an audit trace.
+        long auditEntryId = await _auditLogger.LogInstanceDeletionRequestedAsync(org, env, app, instanceId, ct);
+
+        try
+        {
+            await _instancesClient.DeleteInstance(org, env, app, instanceId, ct);
+        }
+        catch
+        {
+            await TryLogDeletionFailedAsync(auditEntryId);
+            throw;
+        }
+
+        // Once storage has deleted the instance, a client disconnect must not prevent
+        // the completion from being recorded.
+        await _auditLogger.LogInstanceDeletionCompletedAsync(auditEntryId, CancellationToken.None);
         return NoContent();
+    }
+
+    private async Task TryLogDeletionFailedAsync(long auditEntryId)
+    {
+        try
+        {
+            await _auditLogger.LogInstanceDeletionFailedAsync(auditEntryId, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to mark admin audit log entry {AuditEntryId} as failed", auditEntryId);
+        }
     }
 }

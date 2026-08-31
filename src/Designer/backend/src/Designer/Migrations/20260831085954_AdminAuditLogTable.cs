@@ -28,6 +28,7 @@ namespace Altinn.Studio.Designer.Migrations
                     app = table.Column<string>(type: "character varying", nullable: false),
                     instance_id = table.Column<string>(type: "character varying", nullable: false),
                     action = table.Column<string>(type: "character varying", nullable: false),
+                    status = table.Column<string>(type: "character varying", nullable: false),
                     user_name = table.Column<string>(type: "character varying", nullable: false),
                     env = table.Column<string>(type: "character varying", nullable: false),
                     timestamp = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),

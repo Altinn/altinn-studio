@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20260831082044_AdminAuditLogTable")]
+    [Migration("20260831085954_AdminAuditLogTable")]
     partial class AdminAuditLogTable
     {
         /// <inheritdoc />
@@ -59,6 +59,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .IsRequired()
                         .HasColumnType("character varying")
                         .HasColumnName("org");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("status");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamptz")

@@ -27,7 +27,7 @@ public class AdminAuditLogger : IAdminAuditLogger
         _timeProvider = timeProvider;
     }
 
-    public async Task LogInstanceDeletedAsync(
+    public async Task<long> LogInstanceDeletionRequestedAsync(
         string org,
         string env,
         string app,
@@ -46,10 +46,21 @@ public class AdminAuditLogger : IAdminAuditLogger
             App = app,
             InstanceId = instanceId,
             Action = AdminAuditActions.DeleteInstance,
+            Status = AdminAuditStatuses.Requested,
             UserName = userName,
             Timestamp = _timeProvider.GetUtcNow(),
         };
 
-        await _repository.AddAsync(entry, cancellationToken);
+        return await _repository.AddAsync(entry, cancellationToken);
+    }
+
+    public async Task LogInstanceDeletionCompletedAsync(long entryId, CancellationToken cancellationToken = default)
+    {
+        await _repository.UpdateStatusAsync(entryId, AdminAuditStatuses.Completed, cancellationToken);
+    }
+
+    public async Task LogInstanceDeletionFailedAsync(long entryId, CancellationToken cancellationToken = default)
+    {
+        await _repository.UpdateStatusAsync(entryId, AdminAuditStatuses.Failed, cancellationToken);
     }
 }

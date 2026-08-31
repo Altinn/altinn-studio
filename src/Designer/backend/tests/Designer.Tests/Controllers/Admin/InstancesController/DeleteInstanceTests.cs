@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -24,6 +25,7 @@ public class DeleteInstanceTests
     private const string Env = "tt02";
     private const string App = "test-app";
     private const string InstanceId = "51e58b12-6de1-4d0f-9052-ec2ee9d43adf";
+    private const long AuditEntryId = 42;
 
     private readonly Mock<IAltinnStorageInstancesClient> _instancesClientMock = new();
     private readonly Mock<IAdminAuditLogger> _auditLoggerMock = new();
@@ -55,18 +57,28 @@ public class DeleteInstanceTests
     }
 
     [Fact]
-    public async Task DeleteInstance_WhenUserIsOrgOwner_DeletesInstanceAndWritesAuditLog()
+    public async Task DeleteInstance_WhenUserIsOrgOwner_DeletesInstanceAndCompletesAuditEntry()
     {
+        SetUpSuccessfulAuditEntryCreation();
+
         using var response = await HttpClient.DeleteAsync(ApiUrl(OwnedOrg));
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        _auditLoggerMock.Verify(
+            l => l.LogInstanceDeletionRequestedAsync(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         _instancesClientMock.Verify(
             c => c.DeleteInstance(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>()),
             Times.Once
         );
         _auditLoggerMock.Verify(
-            l => l.LogInstanceDeletedAsync(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>()),
+            l => l.LogInstanceDeletionCompletedAsync(AuditEntryId, It.IsAny<CancellationToken>()),
             Times.Once
+        );
+        _auditLoggerMock.Verify(
+            l => l.LogInstanceDeletionFailedAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
+            Times.Never
         );
     }
 
@@ -91,7 +103,7 @@ public class DeleteInstanceTests
         );
         _auditLoggerMock.Verify(
             l =>
-                l.LogInstanceDeletedAsync(
+                l.LogInstanceDeletionRequestedAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -103,18 +115,20 @@ public class DeleteInstanceTests
     }
 
     [Fact]
-    public async Task DeleteInstance_WhenStorageCallFails_DoesNotWriteAuditLog()
+    public async Task DeleteInstance_WhenAuditEntryCannotBeWritten_DoesNotDeleteInstance()
     {
-        _instancesClientMock
-            .Setup(c => c.DeleteInstance(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new HttpRequestWithStatusException("Not found") { StatusCode = HttpStatusCode.NotFound });
+        _auditLoggerMock
+            .Setup(l =>
+                l.LogInstanceDeletionRequestedAsync(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
         using var response = await HttpClient.DeleteAsync(ApiUrl(OwnedOrg));
 
         Assert.False(response.IsSuccessStatusCode);
-        _auditLoggerMock.Verify(
-            l =>
-                l.LogInstanceDeletedAsync(
+        _instancesClientMock.Verify(
+            c =>
+                c.DeleteInstance(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -124,6 +138,34 @@ public class DeleteInstanceTests
             Times.Never
         );
     }
+
+    [Fact]
+    public async Task DeleteInstance_WhenStorageCallFails_MarksAuditEntryAsFailed()
+    {
+        SetUpSuccessfulAuditEntryCreation();
+        _instancesClientMock
+            .Setup(c => c.DeleteInstance(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestWithStatusException("Not found") { StatusCode = HttpStatusCode.NotFound });
+
+        using var response = await HttpClient.DeleteAsync(ApiUrl(OwnedOrg));
+
+        Assert.False(response.IsSuccessStatusCode);
+        _auditLoggerMock.Verify(
+            l => l.LogInstanceDeletionFailedAsync(AuditEntryId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _auditLoggerMock.Verify(
+            l => l.LogInstanceDeletionCompletedAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    private void SetUpSuccessfulAuditEntryCreation() =>
+        _auditLoggerMock
+            .Setup(l =>
+                l.LogInstanceDeletionRequestedAsync(OwnedOrg, Env, App, InstanceId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(AuditEntryId);
 
     private static string ApiUrl(string org) => $"designer/api/v1/admin/instances/{org}/{Env}/{App}/{InstanceId}";
 }

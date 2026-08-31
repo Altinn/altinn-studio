@@ -57,6 +57,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("org");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("status");
+
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamptz")
                         .HasColumnName("timestamp");

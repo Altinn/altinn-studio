@@ -18,7 +18,7 @@ public class AdminAuditLogRepository : IAdminAuditLogRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(AdminAuditLogEntry entry, CancellationToken cancellationToken = default)
+    public async Task<long> AddAsync(AdminAuditLogEntry entry, CancellationToken cancellationToken = default)
     {
         var dbModel = new AdminAuditLogDbModel
         {
@@ -26,6 +26,7 @@ public class AdminAuditLogRepository : IAdminAuditLogRepository
             App = entry.App,
             InstanceId = entry.InstanceId,
             Action = entry.Action,
+            Status = entry.Status,
             UserName = entry.UserName,
             Env = entry.Env,
             Timestamp = entry.Timestamp,
@@ -33,6 +34,14 @@ public class AdminAuditLogRepository : IAdminAuditLogRepository
 
         _dbContext.AdminAuditLog.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        return dbModel.Id;
+    }
+
+    public async Task UpdateStatusAsync(long entryId, string status, CancellationToken cancellationToken = default)
+    {
+        await _dbContext
+            .AdminAuditLog.Where(e => e.Id == entryId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Status, status), cancellationToken);
     }
 
     public async Task<IReadOnlyList<AdminAuditLogEntry>> GetForOrgAsync(
@@ -51,6 +60,7 @@ public class AdminAuditLogRepository : IAdminAuditLogRepository
                 App = e.App,
                 InstanceId = e.InstanceId,
                 Action = e.Action,
+                Status = e.Status,
                 UserName = e.UserName,
                 Env = e.Env,
                 Timestamp = e.Timestamp,

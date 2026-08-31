@@ -41,6 +41,7 @@ public class GetForOrgAsyncTests : DbIntegrationTestsBase
             App = app,
             InstanceId = Guid.NewGuid().ToString(),
             Action = AdminAuditActions.DeleteInstance,
+            Status = AdminAuditStatuses.Completed,
             UserName = "testDeveloper",
             Timestamp = timestamp,
         };

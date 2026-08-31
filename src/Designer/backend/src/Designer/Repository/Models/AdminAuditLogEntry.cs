@@ -9,6 +9,7 @@ public record AdminAuditLogEntry
     public required string App { get; init; }
     public required string InstanceId { get; init; }
     public required string Action { get; init; }
+    public required string Status { get; init; }
     public required string UserName { get; init; }
     public required string Env { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
