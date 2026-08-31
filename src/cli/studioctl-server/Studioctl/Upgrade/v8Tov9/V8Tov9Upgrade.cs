@@ -170,6 +170,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -661,6 +664,23 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Datepicker timeStamp defaults", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
+    /// so a customized validation message keeps applying after the v9 key rename.
+    /// </summary>
+    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Datepicker text keys");
+        try
+        {
+            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Datepicker text-resource keys", ex);
         }
     }
 
