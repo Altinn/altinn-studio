@@ -1,0 +1,24 @@
+# Per-key declarations: facts about specific translation entries that the
+# checks cannot infer — the counterpart of suppressions.txt for the language
+# passes. A CORRECT word the Norwegian checker doesn't know still belongs in
+# a glossary; a WRONG code spelling still belongs in suppressions.txt. This
+# file is for keys whose shape is deliberate:
+#
+# Format: '#' comments and blank lines are free. A section is one or more
+# @directives followed by one key per line. A directive after a key starts a
+# new section; nothing is inherited. Say WHY in a comment next to the
+# section:
+#
+#   @files <glob> <glob> …   which language files the keys live in (required)
+#   @empty                   the value may be deliberately empty
+#   @key-contract            the KEY's spelling is a code contract (an ISO
+#                            code, a name keyed by a wire value) the en check
+#                            must accept; the value is still checked
+#   @language <nb|nn>        the VALUE is deliberately in this language — it
+#                            is checked with that language's dictionary
+#                            instead of the file's own, never skipped
+#
+# Entries must earn their keep: one that no longer matches a key, rescues a
+# flagged key, or re-routes a value is reported as stale by the check that
+# consumes it.
+

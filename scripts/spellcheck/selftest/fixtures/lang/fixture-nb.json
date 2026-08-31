@@ -1,0 +1,18 @@
+{
+  "planted.colour_key": "Farge",
+  "planted.compound_ok": "Kodelisten og datamodellen er oppdatert",
+  "planted.dictionary_gap_ok": "Det er noen som har sett skjemaet",
+  "planted.duplicate": "En gang",
+  "planted.duplicate": "To ganger",
+  "planted.empty_in_nb": "",
+  "planted.empty_ok": "",
+  "planted.glossary_ok": "Altinn og Maskinporten er tilgjengelige",
+  "planted.loanword_ok": "Se dashboard for status",
+  "planted.missing_in_nn": "Denne finnes ikke på nynorsk",
+  "planted.norwegian_typo": "Fyll inn din Gateadrese",
+  "planted.nynorsk_ok": "Nei, eg vil ikkje svare",
+  "planted.organisation_key_ok": "Velg farge",
+  "planted.param_mismatch": "Bruk {{count}} tegn",
+  "planted.typo_in_en": "Du får svar snart",
+  "planted.us_spelling": "Velg farge"
+}

@@ -1,0 +1,185 @@
+# Suppressions for the code (en-US) pass: WRONG spellings this repository
+# must accept anyway — someone else's API, a wire contract — each scoped to
+# where it is load-bearing. A CORRECT word the checker doesn't know belongs
+# in a glossary instead (glossary.shared/nb/nn.txt). Norwegian in code that
+# the classifier cannot see (identifiers, JSX text nodes) is also suppressed
+# here, path-scoped, though extracting the copy to a language file is the
+# better fix.
+#
+# Format: '#' comments and blank lines are free. A section is one or more
+# @directives followed by one token per line (the exact word typos
+# reports). A directive after a token starts a new section; nothing is
+# inherited. Every section needs exactly one scope — say WHY in a comment
+# next to the section or token:
+#
+#   @paths glob glob …         tokens allowed anywhere in matching files
+#   @identifiers Name Name …   tokens allowed only as/inside these exact
+#                              identifiers (narrow with @paths if needed)
+#   @identifier-part           tokens allowed inside any LONGER identifier
+#                              within @paths; the bare word stays enforced
+#
+# Scope is the point: typos' own allowlists are repo-wide, so a bare
+# `organisation` entry would license the word in every ADR and comment. A
+# token here is still reported OUTSIDE its scope, and an entry that matches
+# nothing is reported as stale — the registry cannot quietly rot.
+#
+# Keep tokens alphabetized within each section.
+
+# ---------------------------------------------- platform wire contracts ---
+
+# Altinn Platform (Storage/Register) spells its DTO members the British
+# way, and our SDK surface is built around them: OrganisationNumber,
+# GetOrganisationNumber, … 30+ derived identifiers and growing. Enumerating
+# them would churn on every PR, so the family is allowed inside identifiers
+# in the contract-adjacent trees. The bare word stays enforced everywhere:
+# prose, comments, docs and any standalone `organisation` variable.
+@identifier-part
+@paths src/App/backend/** src/App/frontend/** src/Designer/backend/** src/Designer/frontend/** src/Runtime/localtest/**
+Organisation
+organisation
+
+# plural identifier forms derived from the same DTO family (OrganisationNumbers, …)
+@identifier-part
+@paths src/App/backend/** src/Designer/backend/** src/Runtime/localtest/**
+Organisations
+organisations
+
+# Altinn.Platform.Storage.Interface ProcessElementInfo.Occured wire property
+@identifiers Occured
+@paths src/Runtime/localtest/** src/App/backend/**
+Occured
+
+# Storage InstanceEventType.Submited enum member (instance event wire value)
+@identifiers Submited
+@paths src/App/backend/** src/Runtime/localtest/**
+Submited
+
+# doc comments quoting the submited instance-event wire value in query examples
+@identifiers submited
+@paths src/Runtime/localtest/**
+submited
+
+# Storage application metadata wire field
+@identifiers AllowedContributers allowedContributers
+Contributers
+
+# Storage application metadata wire field
+@identifiers EnabledFileAnalysers enabledFileAnalysers
+Analysers
+
+# file-analyzer id that deployed apps reference by name
+@identifiers mimeTypeAnalyser enabledFileAnalysers
+Analyser
+
+# deprecated layout-settings alias apps still have on disk; see AutoSaveBehaviorLegacy
+@identifiers autoSaveBehaviour
+Behaviour
+
+# MaskinportenSettings member name apps configure by key
+@identifiers ExhangeToAltinnToken
+Exhange
+
+# @navikt/aksel-icons export names
+@identifiers MenuElipsisVerticalIcon MenuElipsisHorizontalIcon
+Elipsis
+
+# mirrors the W3C aria-labelledby attribute
+@identifiers ariaLabelledBy AriaLabelledBy hasAriaLabelledBy
+Labelled
+
+# BuildKit SolveStatus field name
+@paths src/Runtime/devenv/pkg/container/dockerapi/**
+Vertexes
+vertexes
+
+# axe-core accessibility tooling (cypress-axe)
+@paths **/cypress.config.js
+axe
+Axe
+
+# --------------------------------------------------- codes and slugs ---
+
+# Altinn service-owner org slug used as config/test values
+@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/development/setup.js
+als
+
+# Altinn org slug (uppercased) in fixtures and policy data
+@paths src/runner-org-sync/** src/AI/agents/**
+ACN
+
+# Azure Kubernetes Service, in infra config and the code that talks to it
+@paths charts/** infra/** src/**
+AKS
+aks
+
+# file extensions and schemes in the MIME type map
+@paths **/MimeTypeMap.cs
+caf
+itms
+mak
+odf
+thn
+
+# ISO 4217 currency code (Jordanian dinar) in generated-schema source data
+@paths src/App/frontend/src/codegen/**
+JOD
+
+# gpg --with-colons fingerprint field selector
+@paths src/Runtime/pdf3/**
+fpr
+
+# botAccount shorthand, and ba inside git SHAs in test fixtures
+@paths src/App/backend/Makefile **/BotAccounts/**
+ba
+
+# "Statistisk sentralbyrå" named in the codelists docs
+@paths src/App/codelists/**
+Statistisk
+
+# --------------- foreign-language content in otherwise-English code ---
+# Only the specific foreign tokens are accepted, and only where they occur
+# — a whole-directory exclude would hide real English typos as collateral.
+
+# KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
+@paths src/App/backend/**/Altinn.App.Clients.Fiks*/**
+Registrering
+registrering
+Dokument
+Som
+
+# the v8 API really was named Authorisation; the upgrade tooling matches it to rewrite it, and release notes describe it
+@paths src/cli/**/Upgrade/** **/CHANGELOG.md
+Authorisation
+
+# v8 API names in upgrade tooling and changelogs; sample data in pagination stories
+@paths src/cli/**/Upgrade/** **/CHANGELOG.md **/StudioTable*Pagination/**
+authorisation
+
+# v8 API names the upgrade tooling matches in order to rewrite them
+@paths src/cli/**/Upgrade/**
+Organisation
+
+# official English name of a Norwegian ministry, used as sample table data
+@paths **/StudioTable*Pagination/**
+Labour
+
+# Norwegian field names in Tenor test-person data and e2e selectors
+@paths **/Services/Tenor/**
+Adresse
+adresse
+hel
+Hel
+
+# Norwegian sample content in Storybook stories and JSX text nodes
+@paths **/MergeConflictWarning/**
+som
+Noen
+appen
+
+# Norwegian JSX text nodes
+@paths **/AddItem/ToggleAddComponentPoc.tsx **/DownloadXMLButton/DownloadXMLButton.tsx
+ned
+
+# Norwegian JSX text node
+@paths **/AddItem/ToggleAddComponentPoc.tsx
+designet
