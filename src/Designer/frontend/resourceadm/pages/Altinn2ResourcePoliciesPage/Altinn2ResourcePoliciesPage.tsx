@@ -1,0 +1,325 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+  PolicyEditor,
+  type Policy,
+} from '@altinn/policy-editor';
+import { useUrlParams } from '../../hooks/useUrlParams';
+import { useGetAltinn2ResourcePoliciesQuery } from '../../hooks/queries/useGetAltinn2ResourcePoliciesQuery';
+import { getDeprecatedAltinn2SubjectsFromRules } from 'app-shared/utils/altinn2RoleUtils';
+import classes from './Altinn2ResourcePoliciesPage.module.css';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioDialog,
+  StudioHeading,
+  StudioSpinner,
+  StudioTableLocalPagination,
+  StudioToggleGroup,
+} from '@studio/components';
+import type { ResourceTypeOption } from 'app-shared/types/ResourceAdm';
+import {
+  useResourceAccessPackagesQuery,
+  useResourcePolicyActionsQuery,
+  useResourcePolicySubjectsQuery,
+} from 'app-shared/hooks/queries';
+import { getResourceSubjects } from '../../utils/resourceUtils';
+import { usePublishResourcePolicyMutation } from '../../hooks/mutations/usePublishResourcePolicyMutation';
+
+const ALTINN_APP = 'AltinnApp';
+const MIGRATED_APP = 'MigratedApp';
+
+type TableRowData = {
+  identifier: string;
+  a2Roles: string[];
+  otherRoles: string[];
+  policy: Policy;
+  resourceType: string;
+};
+
+type ResourcePolicyData = {
+  identifier?: string;
+  policy?: Policy;
+  resourceType: string;
+};
+
+const getTableData = (resource: ResourcePolicyData) => {
+  const subjects = resource.policy?.rules
+    .flatMap((rule) => rule.subject)
+    .filter((s) => !s.startsWith('urn:altinn:org'))
+    .map((s) => s.toLowerCase());
+  const a2Subjects = new Set(
+    getDeprecatedAltinn2SubjectsFromRules(resource.policy?.rules || []).map((subject) =>
+      subject.urn.toLowerCase(),
+    ),
+  );
+
+  const otherSubjects = new Set(subjects).difference(a2Subjects);
+  const accessPackages = resource.policy?.rules.flatMap((rule) => rule.accessPackages);
+
+  return {
+    identifier: resource.identifier,
+    resourceType: resource.resourceType,
+    a2Roles: [...a2Subjects].sort(),
+    otherRoles: [...[...otherSubjects].sort(), ...[...accessPackages].sort()],
+    policy: resource.policy,
+  };
+};
+
+export const Altinn2ResourcePoliciesPage = () => {
+  const { org } = useUrlParams();
+  const [env, setEnv] = useState<'tt02' | 'prod'>('tt02');
+  const [splittedData, setSplittedData] = useState<TableRowData[]>([]);
+
+  const { data: policyData, isLoading } = useGetAltinn2ResourcePoliciesQuery(org, env);
+
+  useEffect(() => {
+    if (policyData) {
+      setSplittedData(policyData.map((resource) => getTableData(resource)));
+    }
+  }, [policyData]);
+
+  const a2AndOtherRoles = splittedData.filter((x) => x.otherRoles.length > 0);
+  const onlyA2Roles = splittedData.filter((x) => x.otherRoles.length === 0);
+
+  const onPolicyUpdated = (updatedData: ResourcePolicyData) => {
+    const newData = getTableData(updatedData);
+    setSplittedData((oldSplittedData) => {
+      return oldSplittedData.map((x) => (x.identifier === newData.identifier ? newData : x));
+    });
+  };
+
+  const getResourceTypeCountHeading = (heading: string, policies: TableRowData[]) => {
+    const appsCount = policies.filter((x) => x.resourceType === ALTINN_APP).length;
+    const migratedAppCount = policies.filter((x) => x.resourceType === MIGRATED_APP).length;
+    const resourceCount = policies.filter(
+      (x) => x.resourceType !== ALTINN_APP && x.resourceType !== MIGRATED_APP,
+    ).length;
+    return `${heading} (${appsCount} apper, ${migratedAppCount} migrerte apper, ${resourceCount} ressurser)`;
+  };
+
+  return (
+    <div className={classes.wrapper}>
+      <StudioHeading level={1} data-size='lg'>
+        Ressurser og apps med Altinn 2-roller
+      </StudioHeading>
+      <StudioToggleGroup
+        data-toggle-group='envSelect'
+        value={env}
+        onChange={(newValue: string) => setEnv(newValue as 'tt02' | 'prod')}
+      >
+        <StudioToggleGroup.Item value='tt02'>TT02</StudioToggleGroup.Item>
+        <StudioToggleGroup.Item value='prod'>Prod</StudioToggleGroup.Item>
+      </StudioToggleGroup>
+      {isLoading ? (
+        <StudioSpinner aria-label='Laster inn data' />
+      ) : (
+        <>
+          <StudioHeading level={2}>
+            {getResourceTypeCountHeading('Bare Altinn 2-roller', onlyA2Roles)}
+          </StudioHeading>
+          {onlyA2Roles.length === 0 ? (
+            <StudioAlert data-color='success'>
+              Det finnes ingen ressurser med bare Altinn 2-roller
+            </StudioAlert>
+          ) : (
+            <ResourcePolicyTable
+              data={onlyA2Roles}
+              isOnlyA2Roles={true}
+              env={env}
+              onPolicyUpdated={onPolicyUpdated}
+            />
+          )}
+          <StudioHeading level={2}>
+            {getResourceTypeCountHeading(
+              'Altinn 2-roller med ER-roller eller tilgangspakker',
+              a2AndOtherRoles,
+            )}
+          </StudioHeading>
+          {a2AndOtherRoles.length === 0 ? (
+            <StudioAlert data-color='success'>
+              Det finnes ingen ressurser med Altinn 2-roller og andre roller eller tilgangspakker
+            </StudioAlert>
+          ) : (
+            <ResourcePolicyTable
+              data={a2AndOtherRoles}
+              isOnlyA2Roles={false}
+              env={env}
+              onPolicyUpdated={onPolicyUpdated}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export const ResourcePolicyTable = ({
+  data,
+  env,
+  isOnlyA2Roles,
+  onPolicyUpdated,
+}: {
+  data: TableRowData[];
+  env: string;
+  isOnlyA2Roles: boolean;
+  onPolicyUpdated: (data: ResourcePolicyData) => void;
+}) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [selectedPolicy, setSelectedPolicy] = useState<TableRowData | null>(null);
+
+  const onCloseDialog = () => {
+    setSelectedPolicy(null);
+    dialogRef.current.close();
+  };
+
+  return (
+    <div className={isOnlyA2Roles ? classes.onlyA2Subjects : classes.a2subjectsAndOtherSubjects}>
+      <StudioTableLocalPagination
+        size='small'
+        columns={[
+          {
+            accessor: 'identifier',
+            heading: 'Ressurs-id',
+            sortable: true,
+          },
+          {
+            accessor: 'a2Roles',
+            heading: 'Altinn 2 roller',
+            sortable: true,
+          },
+          {
+            accessor: 'otherRoles',
+            heading: 'Andre roller',
+            sortable: true,
+          },
+          {
+            accessor: 'actions',
+            heading: '',
+          },
+        ]}
+        rows={data.map((x) => {
+          return {
+            id: x.identifier,
+            identifier: x.identifier,
+            a2Roles: x.a2Roles.join(', '),
+            otherRoles: x.otherRoles.join(', '),
+            actions: (
+              <div>
+                {x.resourceType !== ALTINN_APP && (
+                  <StudioButton
+                    data-size='sm'
+                    onClick={() => {
+                      dialogRef.current?.showModal();
+                      setSelectedPolicy(x);
+                    }}
+                  >
+                    Edit
+                  </StudioButton>
+                )}
+              </div>
+            ),
+          };
+        })}
+      />
+      <StudioDialog ref={dialogRef} placement='right'>
+        {selectedPolicy && (
+          <LocalPolicyEditor
+            tableData={selectedPolicy}
+            env={env}
+            onClose={onCloseDialog}
+            onPolicyUpdated={(updatedData: ResourcePolicyData) => {
+              onPolicyUpdated(updatedData);
+              onCloseDialog();
+            }}
+          />
+        )}
+      </StudioDialog>
+    </div>
+  );
+};
+
+export const LocalPolicyEditor = ({
+  tableData,
+  env,
+  onClose,
+  onPolicyUpdated,
+}: {
+  tableData: TableRowData;
+  env: string;
+  onClose: () => void;
+  onPolicyUpdated: (data: ResourcePolicyData) => void;
+}) => {
+  const { org, app } = useUrlParams();
+  const [updatedPolicy, setUpdatedPolicy] = useState<Policy>(tableData.policy);
+
+  // Get the data
+  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
+  const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
+    org,
+    app,
+  );
+  const { data: accessPackages, isPending: isLoadingAccessPackages } =
+    useResourceAccessPackagesQuery(org, app);
+
+  const { mutate: updatePolicyMutation } = usePublishResourcePolicyMutation(
+    org,
+    app,
+    tableData.identifier,
+  );
+
+  const publishNewPolicy = () => {
+    updatePolicyMutation(
+      { env: env, payload: updatedPolicy },
+      {
+        onSuccess: () => {
+          onPolicyUpdated({
+            identifier: tableData.identifier,
+            policy: updatedPolicy,
+            resourceType: tableData.resourceType,
+          });
+        },
+      },
+    );
+  };
+
+  const mergedActions = mergeActionsFromPolicyWithActionOptions(
+    updatedPolicy.rules,
+    actionData || [],
+  );
+  const subjects = getResourceSubjects(
+    [],
+    subjectData || [],
+    org,
+    tableData.resourceType as ResourceTypeOption,
+  );
+  const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(updatedPolicy.rules, subjects);
+
+  if (isActionPending || isSubjectsPending || isLoadingAccessPackages) {
+    return <StudioSpinner aria-label='Laster...' />;
+  }
+
+  return (
+    <>
+      <StudioDialog.Block>
+        <PolicyEditor
+          policy={updatedPolicy}
+          actions={mergedActions}
+          subjects={mergedSubjects}
+          accessPackages={accessPackages || []}
+          resourceId={tableData.identifier}
+          onSave={(policy: Policy) => setUpdatedPolicy(policy)}
+          showAllErrors={false}
+          usageType='resource'
+        />
+      </StudioDialog.Block>
+      <StudioDialog.Block className={classes.buttonRow}>
+        <StudioButton onClick={publishNewPolicy}>Publiser endringer</StudioButton>
+        <StudioButton variant='tertiary' onClick={onClose}>
+          Avbryt
+        </StudioButton>
+      </StudioDialog.Block>
+    </>
+  );
+};

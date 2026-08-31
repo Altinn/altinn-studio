@@ -14,6 +14,7 @@ import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { ListAdminPage } from '../pages/ListAdminPage';
 import { AccessListPage } from '../pages/AccessListPage';
+import { Altinn2ResourcePoliciesPage } from '../pages/Altinn2ResourcePoliciesPage/Altinn2ResourcePoliciesPage';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 export const App = (): React.JSX.Element => {
@@ -52,6 +53,10 @@ export const App = (): React.JSX.Element => {
           <Routes>
             <Route element={<PageLayout />}>
               <Route path={basePath} element={<ResourceDashboardPage />} />
+              <Route
+                path={`${basePath}/altinn2resourcepolicies`}
+                element={<Altinn2ResourcePoliciesPage />}
+              />
               <Route path={`${basePath}/accesslists/:env?`} element={<ListAdminPage />} />
               <Route
                 path={`${basePath}/accesslists/:env/:accessListId`}

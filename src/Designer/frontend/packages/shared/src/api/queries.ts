@@ -40,6 +40,7 @@ import {
   repoStatusPath,
   resourceActionsPath,
   resourceListPath,
+  altinn2ResourcePoliciesPath,
   resourcePolicyPath,
   resourcePublishStatusPath,
   resourceSinglePath,
@@ -227,6 +228,7 @@ export const getAccessPackages = (org: string, repo: string) => get<PolicyAccess
 export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getResourceList = (org: string, skipGiteaFields = false, skipParseJson = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields, skipParseJson));
+export const getAltinn2ResourcePolicies = (org: string, env: string) => get<{ identifier?: string; policy?: Policy; resourceType: string }[]>(altinn2ResourcePoliciesPath(org, env));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));

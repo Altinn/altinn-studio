@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -15,6 +18,8 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
+using Altinn.Studio.PolicyAdmin;
+using Altinn.Studio.PolicyAdmin.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -272,6 +277,106 @@ public class ResourceAdminController : ControllerBase
         }
 
         return StatusCode(204);
+    }
+
+    [HttpGet]
+    [Route("designer/api/{org}/resources/altinn2resourcepolicies/{env}")]
+    public async Task<ActionResult<List<ResourceWithAltinn2Subject>>> GetMigratedResourcePolicy(string org, string env)
+    {
+        var environmentResources = await _resourceRegistry.GetServiceResourceList(
+            env,
+            includeApps: true,
+            includeMigratedApps: true
+        );
+
+        List<string> altinn2Subjects =
+        [
+            "urn:altinn:rolecode:a0238",
+            "urn:altinn:rolecode:a0236",
+            "urn:altinn:rolecode:kladm",
+            "urn:altinn:rolecode:a0293",
+            "urn:altinn:rolecode:hvask",
+            "urn:altinn:rolecode:a0294",
+            "urn:altinn:rolecode:utinn",
+            "urn:altinn:rolecode:gkbht",
+            "urn:altinn:rolecode:loper",
+            "urn:altinn:rolecode:boadm",
+            "urn:altinn:rolecode:apiadmnuf",
+            "urn:altinn:rolecode:pasig",
+            "urn:altinn:rolecode:ektj",
+            "urn:altinn:rolecode:siskd",
+            "urn:altinn:rolecode:sens01",
+            "urn:altinn:rolecode:revai",
+            "urn:altinn:rolecode:pavad",
+            "urn:altinn:rolecode:admai",
+            "urn:altinn:rolecode:uiluf",
+            "urn:altinn:rolecode:sens",
+            "urn:altinn:rolecode:bobes",
+            "urn:altinn:rolecode:a0288",
+            "urn:altinn:rolecode:attst",
+            "urn:altinn:rolecode:regna",
+            "urn:altinn:rolecode:a0278",
+            "urn:altinn:rolecode:priut",
+            "urn:altinn:rolecode:a0241",
+            "urn:altinn:rolecode:bobel",
+            "urn:altinn:rolecode:a0286",
+            "urn:altinn:rolecode:a0240",
+            "urn:altinn:rolecode:utomr",
+            "urn:altinn:rolecode:uihtl",
+            "urn:altinn:rolecode:komab",
+            "urn:altinn:rolecode:a0237",
+            "urn:altinn:rolecode:a0212",
+            "urn:altinn:rolecode:a0298",
+            "urn:altinn:rolecode:hadm",
+            "urn:altinn:rolecode:a0287",
+            "urn:altinn:rolecode:eckeyrole",
+            "urn:altinn:rolecode:apiadm",
+            "urn:altinn:rolecode:signe",
+            "urn:altinn:rolecode:a0239",
+            "urn:altinn:rolecode:a0282",
+        ];
+        List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(altinn2Subjects, env);
+
+        List<ResourceWithAltinn2Subject> altinn2resourcepolicies = [];
+
+        for (int i = 0; i < environmentResources.Count; i++)
+        {
+            if (environmentResources[i]?.HasCompetentAuthority?.Orgcode == org)
+            {
+                List<SubjectResources> filteredSubjectResources = subjectResources
+                    .Where(sr => sr.Resources.Any(r => r.Value == environmentResources[i].Identifier))
+                    .ToList();
+
+                if (filteredSubjectResources.Count > 0)
+                {
+                    try
+                    {
+                        XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(
+                            environmentResources[i].Identifier,
+                            env
+                        );
+                        ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(policy);
+
+                        altinn2resourcepolicies.Add(
+                            new ResourceWithAltinn2Subject()
+                            {
+                                Identifier = environmentResources[i].Identifier,
+                                ResourceType = environmentResources[i].ResourceType,
+                                Policy = resourcePolicy,
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(
+                            $"Error fetching policy for resource {environmentResources[i].Identifier} in env {env}: {ex.Message}"
+                        );
+                    }
+                }
+            }
+        }
+
+        return altinn2resourcepolicies;
     }
 
     [HttpGet]
@@ -770,6 +875,47 @@ public class ResourceAdminController : ControllerBase
             string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, resourceFileStructureName);
             ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
             _memoryCache.Remove($"resourcelist_${env}");
+            return publishResult;
+        }
+        else
+        {
+            Console.WriteLine("Invalid repository for resource");
+            return new StatusCodeResult(400);
+        }
+    }
+
+    /*
+    * This endpoint is only used for publishing updated policies with Altinn 2 subjects. Policy files
+    * are usually published together with resource metadata. When the Altinn 2 roles are deprecated on
+    * 01.01.27, this endpoint can be removed
+    */
+    [HttpPost]
+    [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+    [Route("designer/api/{org}/resources/publish/{repository}/{id}/{env}/policy")]
+    public async Task<ActionResult> PublishResourcePolicy(
+        string org,
+        string repository,
+        string id,
+        string env,
+        [FromBody] ResourcePolicy policyData
+    )
+    {
+        // check if resource exists
+        if (repository == $"{org}-resources")
+        {
+            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(policyData);
+
+            byte[] policyContent;
+            await using (MemoryStream stream = new MemoryStream())
+            await using (XmlWriter xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                XacmlSerializer.WritePolicy(xw, xacmlPolicy);
+                xw.Flush();
+                stream.Position = 0;
+                policyContent = stream.ToArray();
+            }
+
+            ActionResult publishResult = await _resourceRegistry.PublishResourcePolicy(env, id, policyContent);
             return publishResult;
         }
         else

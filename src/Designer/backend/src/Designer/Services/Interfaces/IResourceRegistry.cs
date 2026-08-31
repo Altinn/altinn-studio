@@ -19,6 +19,15 @@ public interface IResourceRegistry
     /// <returns></returns>
     Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, byte[] policyContent = null);
 
+    /// <summary>
+    /// Pushing resource policy to the ResourceRegistry
+    /// </summary>
+    /// <param name="identifier">The environment the resource policy should be published to</param>
+    /// <param name="env">The environment the resource policy should be published to</param>
+    /// <param name="policyContent">The policy file content</param>
+    /// <returns></returns>
+    Task<ActionResult> PublishResourcePolicy(string identifier, string env, byte[] policyContent = null);
+
     Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,

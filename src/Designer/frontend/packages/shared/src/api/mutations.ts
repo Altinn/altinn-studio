@@ -87,6 +87,7 @@ import {
   chatFeedbackPath,
   taskNavigationGroupPath,
   layoutSetsV4Path,
+  publishResourcePolicyPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -219,6 +220,7 @@ export const removeAccessListMember = (org: string, listId: string, environment:
 export const addResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => post(resourceAccessListPath(org, resourceId, listId, environment));
 export const removeResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => del(resourceAccessListPath(org, resourceId, listId, environment));
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
+export const publishResourcePolicy = (org: string, repo: string, id: string, env: string, payload: Policy) => post(publishResourcePolicyPath(org, repo, id, env), payload);
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 
