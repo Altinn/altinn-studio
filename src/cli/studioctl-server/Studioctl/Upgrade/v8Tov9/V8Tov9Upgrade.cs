@@ -920,9 +920,9 @@ internal static class V8Tov9Upgrade
                 return ExitSuccess;
             }
 
-            foreach (var warning in result.Warnings)
+            foreach (var todo in result.Todos)
             {
-                UpgradeConsole.Warning(warning);
+                UpgradeConsole.Todo(todo);
             }
 
             UpgradeConsole.Ok($"Migrated {result.MigratedFolderCount} UI folder(s)");
