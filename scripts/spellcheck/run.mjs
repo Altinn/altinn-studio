@@ -1295,6 +1295,18 @@ async function main() {
       `  ${r.error || r.findings.length || (r.skipped && ci) ? '✗' : r.skipped ? '⚠' : '✓'} ${r.name.padEnd(10)} ${status}${r.counts ? `  [${r.counts}]` : ''}`,
     );
   }
+  if (exitCode === 1) {
+    console.log(`
+How to fix: prefer correcting the spelling. Deliberate exceptions are
+declared in scripts/spellcheck/ — suppressions.txt (WRONG spellings that
+are contracts, scoped to where they are load-bearing), glossary.nb/nn/
+shared.txt (CORRECT words the dictionaries lack; shared = language-neutral
+tokens only), keys.txt (per-key @empty / @key-contract / @language). Each
+file's header documents its grammar; every entry is stale-checked, so an
+entry that stops doing work becomes a finding itself. Conventions: root
+AGENTS.md, "Spelling and language". Never run bare typos or
+typos --write-changes — use yarn spell:quick / spell:check / spell:fix.`);
+  }
   process.exitCode = exitCode;
 }
 

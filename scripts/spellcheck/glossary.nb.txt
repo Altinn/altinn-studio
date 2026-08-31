@@ -5,7 +5,8 @@
 #
 # The dictionary is full-form (inflections are separate entries), so an
 # accepted term's other forms need their own lines — add them as the check
-# reports them.
+# reports them. Keep entries alphabetized within each section (Norwegian
+# collation: æ, ø, å sort last).
 #
 # Glossary or suppression? One rule: a CORRECT word the checker doesn't
 # know belongs here; a WRONG spelling that cannot change belongs in

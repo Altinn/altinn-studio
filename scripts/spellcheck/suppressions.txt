@@ -22,6 +22,8 @@
 # `organisation` entry would license the word in every ADR and comment. A
 # token here is still reported OUTSIDE its scope, and an entry that matches
 # nothing is reported as stale — the registry cannot quietly rot.
+#
+# Keep tokens alphabetized within each section.
 
 # ---------------------------------------------- platform wire contracts ---
 
