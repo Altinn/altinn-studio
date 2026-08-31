@@ -71,7 +71,12 @@ def aggregate_token_usage(
 
         service_owner_code = trace["user_id"]
         if not service_owner_code:
-            raise ValueError(f"Missing service owner code for {trace['id']}")
+            log.warning(
+                "Missing service owner code for trace %s — bucketing under '%s'",
+                trace["id"],
+                UNKNOWN,
+            )
+            service_owner_code = UNKNOWN
 
         app_name = _get_app_name(trace)
         observation_date = _to_date_string(observation["start_time"])

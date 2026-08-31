@@ -1,7 +1,5 @@
 import logging
 
-import pytest
-
 from services.token_usage.aggregate import Observation, Trace, aggregate_token_usage
 
 LOADED_AT = "2026-05-04T02:00:00.000Z"
@@ -151,12 +149,17 @@ class TestEdgeCases:
         assert rows[0]["serviceresourceid"] == "app_ttd_unknown"
         assert DEFAULT_TRACE_ID in caplog.text
 
-    def test_raises_when_user_id_empty(self):
-        observations = [make_observation()]
+    def test_warns_when_user_id_empty(self, caplog):
+        """Langfuse spawns ownerless traces of its own; they must not crash the run."""
+        observations = [make_observation(input_tokens=100, output_tokens=50)]
         traces = {DEFAULT_TRACE_ID: make_trace(user_id="")}
 
-        with pytest.raises(ValueError, match="Missing service owner code"):
-            aggregate_token_usage(observations, traces, LOADED_AT)
+        with caplog.at_level(logging.WARNING):
+            [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["serviceownercode"] == "unknown"
+        assert row["total_tokens"] == 150
+        assert DEFAULT_TRACE_ID in caplog.text
 
     def test_skips_observation_when_parent_trace_missing(self, caplog):
         observations = [make_observation(trace_id="unknown-trace")]
