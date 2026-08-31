@@ -1,0 +1,52 @@
+name: Common TypeScript - Unit tests
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/common/ts/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/common-typescript-unit-test.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    name: Unit tests
+    defaults:
+      run:
+        working-directory: src/common/ts/
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: install node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: install dependencies
+        run: yarn --immutable
+
+      - name: type-check
+        run: yarn typecheck
+
+      - name: run eslint
+        run: yarn lint
+
+      - name: run tests
+        run: yarn test:ci
+        # TODO : Run with coverage (yarn test:ci --coverage ?)

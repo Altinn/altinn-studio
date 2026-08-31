@@ -38,6 +38,38 @@ func TestSelfUninstallConfirmationRequiresYesWithoutTerminal(t *testing.T) {
 	}
 }
 
+func TestIsSameReleaseVersion(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		current string
+		target  string
+		want    bool
+	}{
+		{name: "identical", current: "v0.1.0-preview.15", target: "v0.1.0-preview.15", want: true},
+		{
+			name:    "tolerates studioctl prefix",
+			current: "studioctl/v0.1.0-preview.15",
+			target:  "v0.1.0-preview.15",
+			want:    true,
+		},
+		{name: "tolerates missing v prefix", current: "0.1.0-preview.15", target: "v0.1.0-preview.15", want: true},
+		{name: "different version", current: "v0.1.0-preview.14", target: "v0.1.0-preview.15", want: false},
+		{name: "empty current never matches", current: "", target: "v0.1.0-preview.15", want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := isSameReleaseVersion(tc.current, tc.target); got != tc.want {
+				t.Fatalf("isSameReleaseVersion(%q, %q) = %v, want %v", tc.current, tc.target, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestSelfUsageHidesInternalSubcommands(t *testing.T) {
 	t.Parallel()
 

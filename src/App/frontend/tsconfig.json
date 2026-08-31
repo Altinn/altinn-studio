@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "preserve",
     "target": "es6",
-    "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "types": ["vitest/globals"],
     "rootDir": "./",
     "noEmit": true,
     "skipLibCheck": true,
@@ -18,14 +18,15 @@
     "strictBindCallApply": true,
     "allowUnusedLabels": false,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "paths": {
-      "src/*": ["src/*"],
-      "test/*": ["test/*"],
-      "schemas/*": ["schemas/*"],
-      "scripts/*": ["scripts/*"]
+      "@app/form-component/*": ["./../../common/ts/form-component/src/*"],
+      "@app/language/*": ["./../../common/ts/language/src/*"],
+      "src/*": ["./src/*"],
+      "test/*": ["./test/*"],
+      "schemas/*": ["./schemas/*"],
+      "scripts/*": ["./scripts/*"]
     },
     "allowSyntheticDefaultImports": true,
     "exactOptionalPropertyTypes": false,

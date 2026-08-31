@@ -64,9 +64,9 @@ public sealed class SigningServiceTests : IDisposable
         );
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn }
@@ -220,9 +220,9 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(synchronizedSigneeContexts);
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn, Name = "A person" }
@@ -409,7 +409,7 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync((signeeContexts, true));
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
 
         // Act
@@ -463,6 +463,507 @@ public sealed class SigningServiceTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
+        _signingDelegationService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task AbortRuntimeDelegatedSigning_Revokes_Delegation_Before_Removing_SigningData()
+    {
+        // Arrange
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+
+        var signeeStateDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SigneeStatesDataTypeId,
+        };
+
+        var signatureDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SignatureDataType,
+        };
+
+        const string taskId = "task1";
+        var instance = new Instance
+        {
+            Id = new InstanceIdentifier(123, Guid.NewGuid()).ToString(),
+            AppId = "ttd/app1",
+            InstanceOwner = new InstanceOwner { PartyId = Guid.NewGuid().ToString(), OrganisationNumber = "ttd" },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [signeeStateDataElement, signatureDataElement],
+        };
+
+        // Strict, so that a call made out of turn relative to the `MockSequence` below
+        // (i.e. cleanup running before revocation reads signee state) throws instead of silently no-oping.
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x => x.TaskId).Returns(instance.Process.CurrentTask.ElementId);
+
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                Signee = new PersonSignee
+                {
+                    SocialSecurityNumber = "12345678910",
+                    FullName = "Name",
+                    Party = new Party(),
+                },
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+            },
+        };
+
+        List<SignDocument> signDocuments =
+        [
+            new SignDocument { SigneeInfo = new StorageSignee { PersonNumber = "12345678910" } },
+        ];
+
+        var signeeContextsWithDocuments = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                Signee = new PersonSignee
+                {
+                    SocialSecurityNumber = "12345678910",
+                    FullName = "Name",
+                    Party = new Party(),
+                },
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+                SignDocument = signDocuments[0],
+            },
+        };
+
+        _signeeContextsManager
+            .Setup(x =>
+                x.GetSigneeContexts(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync(signeeContexts);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.GetSignDocuments(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync(signDocuments);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.SynchronizeSigneeContextsWithSignDocuments(
+                    taskId,
+                    signeeContexts,
+                    signDocuments,
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync(signeeContextsWithDocuments);
+
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
+
+        // Asserts call order across mocks: revocation must read signee state (position 0)
+        // before the signee state / signature data elements are removed (positions 1 and 2).
+        // Since `cachedInstanceMutator` is Strict, a call made before its turn has no matching
+        // setup and throws, failing the test.
+        var sequence = new MockSequence();
+
+        _signingDelegationService
+            .InSequence(sequence)
+            .Setup(x =>
+                x.RevokeSigneeRights(
+                    taskId,
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<List<SigneeContext>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync((signeeContexts, true));
+
+        cachedInstanceMutator.InSequence(sequence).Setup(x => x.RemoveDataElement(signeeStateDataElement));
+        cachedInstanceMutator.InSequence(sequence).Setup(x => x.RemoveDataElement(signatureDataElement));
+
+        // Act
+        await _signingService.AbortRuntimeDelegatedSigning(
+            cachedInstanceMutator.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        // Assert
+        _signingDelegationService.Verify(
+            x =>
+                x.RevokeSigneeRights(
+                    taskId,
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<List<SigneeContext>>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+
+        cachedInstanceMutator.Verify(x => x.RemoveDataElement(signeeStateDataElement), Times.Once);
+        cachedInstanceMutator.Verify(x => x.RemoveDataElement(signatureDataElement), Times.Once);
+    }
+
+    [Fact]
+    public async Task RevokeSigneeRightsOnTaskEnd_Revokes_Delegation_Without_Removing_SigningData()
+    {
+        // Arrange
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+
+        var signeeStateDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SigneeStatesDataTypeId,
+        };
+
+        var signatureDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SignatureDataType,
+        };
+
+        const string taskId = "task1";
+        var instance = new Instance
+        {
+            Id = new InstanceIdentifier(123, Guid.NewGuid()).ToString(),
+            AppId = "ttd/app1",
+            InstanceOwner = new InstanceOwner { PartyId = Guid.NewGuid().ToString(), OrganisationNumber = "ttd" },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [signeeStateDataElement, signatureDataElement],
+        };
+
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
+
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x => x.TaskId).Returns(instance.Process.CurrentTask.ElementId);
+
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                Signee = new PersonSignee
+                {
+                    SocialSecurityNumber = "12345678910",
+                    FullName = "Name",
+                    Party = new Party(),
+                },
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+            },
+        };
+
+        List<SignDocument> signDocuments =
+        [
+            new SignDocument { SigneeInfo = new StorageSignee { PersonNumber = "12345678910" } },
+        ];
+
+        var signeeContextsWithDocuments = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                Signee = new PersonSignee
+                {
+                    SocialSecurityNumber = "12345678910",
+                    FullName = "Name",
+                    Party = new Party(),
+                },
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+                SignDocument = signDocuments[0],
+            },
+        };
+
+        _signeeContextsManager
+            .Setup(x =>
+                x.GetSigneeContexts(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync(signeeContexts);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.GetSignDocuments(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync(signDocuments);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.SynchronizeSigneeContextsWithSignDocuments(
+                    taskId,
+                    signeeContexts,
+                    signDocuments,
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync(signeeContextsWithDocuments);
+
+        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+
+        _signingDelegationService
+            .Setup(x =>
+                x.RevokeSigneeRights(
+                    taskId,
+                    instance.Id,
+                    instanceOwnerPartyUuid,
+                    It.Is<AppIdentifier>(a => a.Org == "ttd" && a.App == "app1"),
+                    signeeContextsWithDocuments,
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync((signeeContextsWithDocuments, true));
+
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid });
+
+        // Act
+        await _signingService.RevokeSigneeRightsOnTaskEnd(
+            cachedInstanceMutator.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        // Assert
+        cachedInstanceMutator.Verify(x => x.Instance);
+        cachedInstanceMutator.Verify(x => x.TaskId);
+
+        // The signing data (signee state and signatures) must be left untouched - only the delegated rights are revoked
+        cachedInstanceMutator.VerifyNoOtherCalls();
+
+        _signingDelegationService.Verify(
+            x =>
+                x.RevokeSigneeRights(
+                    taskId,
+                    instance.Id,
+                    instanceOwnerPartyUuid,
+                    It.IsAny<AppIdentifier>(),
+                    signeeContextsWithDocuments,
+                    CancellationToken.None
+                ),
+            Times.Once
+        );
+        _signingDelegationService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task RevokeSigneeRightsOnTaskEnd_Revokes_Delegation_When_ProcessHasMovedPastTheTask()
+    {
+        // Arrange
+        // Simulates the state of `instance` when SigningProcessTask.End runs as the last task in the process:
+        // by the time the end-task event is handled, instance.Process.CurrentTask has already been
+        // cleared (process moved to the end event), so the task ID can only be read from TaskId.
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+
+        var signeeStateDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SigneeStatesDataTypeId,
+        };
+
+        var signatureDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SignatureDataType,
+        };
+
+        const string taskId = "task1";
+        var instance = new Instance
+        {
+            Id = new InstanceIdentifier(123, Guid.NewGuid()).ToString(),
+            AppId = "ttd/app1",
+            InstanceOwner = new InstanceOwner { PartyId = Guid.NewGuid().ToString(), OrganisationNumber = "ttd" },
+            Process = new ProcessState
+            {
+                CurrentTask = null,
+                EndEvent = "EndEvent",
+                Ended = DateTime.UtcNow,
+            },
+            Data = [signeeStateDataElement, signatureDataElement],
+        };
+
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
+
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x => x.TaskId).Returns(taskId);
+
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                Signee = new PersonSignee
+                {
+                    SocialSecurityNumber = "12345678910",
+                    FullName = "Name",
+                    Party = new Party(),
+                },
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+            },
+        };
+
+        List<SignDocument> signDocuments =
+        [
+            new SignDocument { SigneeInfo = new StorageSignee { PersonNumber = "12345678910" } },
+        ];
+
+        var signeeContextsWithDocuments = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                Signee = new PersonSignee
+                {
+                    SocialSecurityNumber = "12345678910",
+                    FullName = "Name",
+                    Party = new Party(),
+                },
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+                SignDocument = signDocuments[0],
+            },
+        };
+
+        _signeeContextsManager
+            .Setup(x =>
+                x.GetSigneeContexts(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync(signeeContexts);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.GetSignDocuments(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync(signDocuments);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.SynchronizeSigneeContextsWithSignDocuments(
+                    taskId,
+                    signeeContexts,
+                    signDocuments,
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync(signeeContextsWithDocuments);
+
+        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+
+        _signingDelegationService
+            .Setup(x =>
+                x.RevokeSigneeRights(
+                    taskId,
+                    instance.Id,
+                    instanceOwnerPartyUuid,
+                    It.Is<AppIdentifier>(a => a.Org == "ttd" && a.App == "app1"),
+                    signeeContextsWithDocuments,
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync((signeeContextsWithDocuments, true));
+
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid });
+
+        // Act
+        await _signingService.RevokeSigneeRightsOnTaskEnd(
+            cachedInstanceMutator.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        // Assert
+        cachedInstanceMutator.Verify(x => x.Instance);
+        cachedInstanceMutator.Verify(x => x.TaskId);
+
+        // The signing data (signee state and signatures) must be left untouched - only the delegated rights are revoked
+        cachedInstanceMutator.VerifyNoOtherCalls();
+        _signingDelegationService.Verify(
+            x =>
+                x.RevokeSigneeRights(
+                    taskId,
+                    instance.Id,
+                    instanceOwnerPartyUuid,
+                    It.IsAny<AppIdentifier>(),
+                    signeeContextsWithDocuments,
+                    CancellationToken.None
+                ),
+            Times.Once
+        );
+        _signingDelegationService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task RevokeSigneeRightsOnTaskEnd_Does_Nothing_If_No_Delegated_Access()
+    {
+        // Arrange
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "task1" } },
+            Data = [],
+        };
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x => x.TaskId).Returns(instance.Process.CurrentTask.ElementId);
+
+        _signDocumentManager
+            .Setup(x =>
+                x.GetSignDocuments(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync([]);
+        _signDocumentManager
+            .Setup(x =>
+                x.SynchronizeSigneeContextsWithSignDocuments(
+                    instance.Process.CurrentTask.ElementId,
+                    It.IsAny<List<SigneeContext>>(),
+                    It.IsAny<List<SignDocument>>(),
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync([]);
+
+        _signeeContextsManager
+            .Setup(x =>
+                x.GetSigneeContexts(cachedInstanceMutator.Object, signatureConfiguration, CancellationToken.None)
+            )
+            .ReturnsAsync([]);
+
+        // Act
+        await _signingService.RevokeSigneeRightsOnTaskEnd(
+            cachedInstanceMutator.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        // Assert
+        // TaskId alone is enough to determine the task ID, so Instance is never accessed.
+        cachedInstanceMutator.Verify(x => x.TaskId, Times.AtLeastOnce);
+        cachedInstanceMutator.VerifyNoOtherCalls();
+
         _signingDelegationService.VerifyNoOtherCalls();
     }
 
@@ -616,6 +1117,88 @@ public sealed class SigningServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task InitializeSignees_StoresSigneeStatesTaggedWithGeneratedFromTask()
+    {
+        // Signee states are tagged with the signing task so re-entry cleanup owns their lifecycle.
+        // Creating the tagged element during task START is safe: Storage's stale-data cleanup is
+        // timestamp-guarded and spares elements created by the in-flight transition.
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+        var instance = new Instance
+        {
+            Id = "123/abc",
+            AppId = "ttd/app1",
+            InstanceOwner = new InstanceOwner { PartyId = "123" },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [],
+        };
+        List<SigneeContext> signeeContexts = [];
+        var applicationMetadata = new ApplicationMetadata("ttd/app")
+        {
+            DataTypes = [new DataType { Id = "signeeStates", ActionRequiredToRead = "restricted-read" }],
+        };
+
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x =>
+            x.OverrideAuthenticationMethod(
+                It.Is<DataType>(dataType => dataType.Id == "signeeStates"),
+                It.IsAny<StorageAuthenticationMethod>()
+            )
+        );
+        cachedInstanceMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    "signeeStates",
+                    "application/json",
+                    null,
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    "Task_1",
+                    null
+                )
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Created,
+                    new DataType { Id = "signeeStates" },
+                    "application/json",
+                    null,
+                    null,
+                    ReadOnlyMemory<byte>.Empty,
+                    "Task_1"
+                )
+            );
+        _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _signingDelegationService
+            .Setup(x =>
+                x.DelegateSigneeRights(
+                    "Task_1",
+                    "123/abc",
+                    It.IsAny<Guid?>(),
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<List<SigneeContext>>(),
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync((signeeContexts, false));
+
+        List<SigneeContext> result = await _signingService.InitializeSignees(
+            cachedInstanceMutator.Object,
+            signeeContexts,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        Assert.Same(signeeContexts, result);
+        cachedInstanceMutator.VerifyAll();
+        _appMetadata.VerifyAll();
+    }
+
+    [Fact]
     public async Task GetInstanceOwnerParty_WithTtdOrganization_UsesDigitaliseringsdirektoratetOrgNumber()
     {
         // Arrange
@@ -692,7 +1275,9 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd" });
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827")))
+            .Setup(x =>
+                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827"), It.IsAny<StorageAuthenticationMethod?>())
+            )
             .ReturnsAsync(
                 new Party
                 {
@@ -713,7 +1298,7 @@ public sealed class SigningServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task AbortRuntimeDelegatedSigning_WithExceptionInPartyLookup_LogsErrorAndThrowsException()
+    public async Task AbortRuntimeDelegatedSigning_WithExceptionInPartyLookup_LogsErrorAndContinues()
     {
         // Arrange
         var signatureConfiguration = new AltinnSignatureConfiguration
@@ -777,19 +1362,18 @@ public sealed class SigningServiceTests : IDisposable
         // Setup to throw exception during party lookup
         _altinnPartyClient.Reset();
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ThrowsAsync(new Exception("Party lookup failed"));
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<SigningException>(() =>
-            _signingService.AbortRuntimeDelegatedSigning(
-                cachedInstanceMutator.Object,
-                signatureConfiguration,
-                CancellationToken.None
-            )
+        // Act
+        // Revocation failure must not throw - it should be logged and the process should continue.
+        await _signingService.AbortRuntimeDelegatedSigning(
+            cachedInstanceMutator.Object,
+            signatureConfiguration,
+            CancellationToken.None
         );
 
-        Assert.Contains("Failed to lookup party information for instance owner.", exception.Message);
+        // Assert
         _logger.Verify(
             x =>
                 x.Log(
@@ -801,5 +1385,9 @@ public sealed class SigningServiceTests : IDisposable
                 ),
             Times.AtLeastOnce
         );
+
+        // Cleanup must still happen even though revocation failed.
+        cachedInstanceMutator.Verify(x => x.RemoveDataElement(signeeStateDataElement), Times.Once);
+        cachedInstanceMutator.Verify(x => x.RemoveDataElement(signatureDataElement), Times.Once);
     }
 }

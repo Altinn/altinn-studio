@@ -10,7 +10,7 @@ import (
 
 const (
 	devImageTagPDF3   = "localtest-pdf3:dev"
-	buildCacheRefPDF3 = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
+	buildCacheRefPDF3 = "ghcr.io/altinn/altinn-studio/localtest-pdf3-dev-cache:buildcache"
 )
 
 func registerPDFComponents(manifest *Manifest, opts *Options) {
@@ -28,7 +28,7 @@ func registerPDFComponents(manifest *Manifest, opts *Options) {
 
 func pdfImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.LocalImage{
+		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/pdf3")),
 			Dockerfile: filepath.ToSlash(
@@ -36,9 +36,9 @@ func pdfImage(ctx *Options) resource.ImageResource {
 			),
 			Build: buildCacheOptions(buildCacheRefPDF3),
 			Tag:   devImageTagPDF3,
-		}
+		})
 	}
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.PDF3.Ref(),
 		PullPolicy: resource.PullIfNotPresent,
@@ -46,7 +46,7 @@ func pdfImage(ctx *Options) resource.ImageResource {
 }
 
 func pdfContainer(ctx *Options) *ContainerSpec {
-	return newContainerSpec(
+	spec := newContainerSpec(
 		ContainerPDF3,
 		// TODO: same as above, we only need host port mapping here because old
 		[]types.PortMapping{newPort("5300", "5031")},
@@ -56,6 +56,9 @@ func pdfContainer(ctx *Options) *ContainerSpec {
 		[]string{ContainerLocaltest},
 		nil,
 	)
+	// PDF runs as an internal service and has no host-writable mounts, so avoid host UID/GID remapping.
+	spec.UseDefaultUser = true
+	return spec
 }
 
 func pdfEnv(topology envtopology.Local) map[string]string {

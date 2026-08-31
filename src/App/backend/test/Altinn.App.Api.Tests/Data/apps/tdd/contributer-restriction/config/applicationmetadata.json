@@ -16,6 +16,7 @@
     "dataTypes": [
         {
             "id": "default",
+            "description": {"en": "Default data type for FormData elements"},
             "allowedContentTypes": [
                 "application/xml"
             ],
@@ -31,6 +32,7 @@
         },
         {
             "id": "customElement",
+            "description": {"en": "Data type for an element with limited contributors"},
             "maxCount": 1,
             "allowedContributers": [
                 "org:tdd",
@@ -48,6 +50,7 @@
         },
         {
             "id": "specificFileType",
+            "description": {"en": "Data type for attachments with specific file types allowed"},
             "taskId": "Task_1",
             "maxSize": 1,
             "maxCount": 1,

@@ -8,12 +8,6 @@ namespace Altinn.Studio.Designer.Hubs.Altinity;
 public interface IAltinityClient
 {
     /// <summary>
-    /// Receives a backend-generated session ID when client connects
-    /// </summary>
-    /// <param name="sessionId">The unique session identifier</param>
-    Task SessionCreated(string sessionId);
-
-    /// <summary>
     /// Receives a message from the Altinity agent
     /// </summary>
     /// <param name="message">The message data from the agent</param>

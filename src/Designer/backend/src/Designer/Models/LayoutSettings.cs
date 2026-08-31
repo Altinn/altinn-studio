@@ -12,7 +12,7 @@ public class LayoutSettings
     public Pages? Pages { get; set; }
 
     [JsonPropertyName("defaultDataType")]
-    public string? DataType { get; set; }
+    public string? DefaultDataType { get; set; }
 
     [JsonPropertyName("type")]
     public string? Type { get; set; }

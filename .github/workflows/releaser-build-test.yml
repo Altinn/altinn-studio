@@ -6,6 +6,8 @@ on:
     paths:
       - "src/tools/releaser/**"
       - ".github/workflows/releaser-build-test.yml"
+      - "!**/AGENTS.md"
+      - "!**/CLAUDE.md"
   workflow_dispatch:
 
 concurrency:
@@ -22,15 +24,14 @@ jobs:
         working-directory: src/tools/releaser
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: src/tools/releaser/go.mod
-          cache-dependency-path: src/tools/releaser/go.sum
+          module: src/tools/releaser
 
       - name: Build
         run: make build
@@ -51,7 +52,7 @@ jobs:
 
       - name: Upload e2e test logs
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: releaser-e2e-test-logs
           path: src/tools/releaser/test/e2e/_logs/

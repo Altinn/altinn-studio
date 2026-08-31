@@ -55,6 +55,9 @@ const (
 	// EnvInternalDevMode enables local internal dev image mode.
 	EnvInternalDevMode = "STUDIOCTL_INTERNAL_DEV"
 
+	// EnvPrebuiltDevImages uses locally available dev images without rebuilding them.
+	EnvPrebuiltDevImages = "STUDIOCTL_PREBUILT_DEV_IMAGES"
+
 	// EnvRegistryCacheWrite enables pushing BuildKit registry cache entries.
 	EnvRegistryCacheWrite = "STUDIOCTL_REGISTRY_CACHE_WRITE"
 
@@ -280,6 +283,11 @@ func persistedConfigPath(homeDir string) string {
 // CredentialsPath returns the path to the credentials file.
 func (c *Config) CredentialsPath() string {
 	return filepath.Join(c.Home, "credentials.yaml")
+}
+
+// UpdateCheckCachePath returns the path to the passive update-check cache file.
+func (c *Config) UpdateCheckCachePath() string {
+	return filepath.Join(c.Home, "update-check.yaml")
 }
 
 // Validate checks that the configuration is valid.

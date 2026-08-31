@@ -16,6 +16,7 @@ const heading = 'The test library';
 const defaultProps: ContentLibraryProps = {
   heading,
   router: {
+    contactPagePath: '/contact/',
     location: PageName.LandingPage,
     navigate: navigateMock,
     renderLink: (_, props) => <a {...props} />,

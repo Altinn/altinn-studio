@@ -15,6 +15,8 @@ describe('useSchemaEditorAppContext', () => {
       setSelectedTypePointer: jest.fn(),
       setSelectedUniquePointer: jest.fn(),
       name: 'test',
+      prefillConfig: {},
+      savePrefillConfig: jest.fn(),
     };
     const { result } = renderHook(() => useSchemaEditorAppContext(), {
       wrapper: ({ children }) => (

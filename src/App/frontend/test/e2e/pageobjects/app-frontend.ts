@@ -23,6 +23,9 @@ export class AppFrontend {
     /** @see https://dev.altinn.studio/repos/ttd/payment-test */
     paymentTest: 'payment-test',
 
+    /** @see https://altinn.studio/repos/ttd/process-transition-test */
+    processTransitionTest: 'process-transition-test',
+
     /** @see https://altinn.studio/repos/ttd/service-task */
     serviceTask: 'service-task',
 
@@ -35,7 +38,7 @@ export class AppFrontend {
     /** @see https://dev.altinn.studio/repos/ttd/stateless-app */
     stateless: 'stateless-app',
 
-    /** @see https://dev.altinn.studio/repos/ttd/subform-test */
+    /** @see https://altinn.studio/repos/ttd/subform-test */
     subformTest: 'subform-test',
   };
 
@@ -66,7 +69,7 @@ export class AppFrontend {
     alertOpen: 'div[data-testid="helptext"]:popover-open',
   };
 
-  public deleteWarningPopover = 'div[data-testid="delete-warning-popover"]';
+  public confirmPopover = 'div.ds-popover:popover-open';
 
   public navMenu = '#navigation-menu';
   public navMenuButtons = '#navigation-menu li > button';

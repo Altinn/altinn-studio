@@ -38,7 +38,7 @@ public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinO
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -91,7 +91,7 @@ public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinO
         /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, XsdMinOccursKeyword value, JsonSerializerOptions options)
         {
-            writer.WriteNumber(Name, value.Value);
+            writer.WriteNumberValue(value.Value);
         }
     }
 }

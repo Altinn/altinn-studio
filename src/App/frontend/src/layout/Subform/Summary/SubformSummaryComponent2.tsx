@@ -92,7 +92,7 @@ const DoSummaryWrapper = ({
   const item = useItemWhenType(baseComponentId, 'Subform');
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   if (isSubformDataFetching) {
     return <Loader reason='subform-data' />;

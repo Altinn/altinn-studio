@@ -138,8 +138,16 @@ public abstract class EngineAppFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Polls until no workflows remain in an active state or until <paramref name="timeout"/> elapses.
-    /// Active workflows indicate the engine still holds DB transactions that would deadlock a concurrent TRUNCATE.
+    /// Polls until no workflow can be claimed by the fetch gate, or until <paramref name="timeout"/>
+    /// elapses. Runnable workflows indicate the engine still holds (or is about to take) DB
+    /// transactions that would deadlock a concurrent TRUNCATE.
+    /// <para>
+    /// Deliberately narrower than "active": a workflow parked behind a future <c>BackoffUntil</c> —
+    /// a requeued step waiting out its retry backoff, or a deferred step in <c>Waiting</c> — holds no
+    /// lease and no transaction, so it cannot race the TRUNCATE. Waiting for those to drain would
+    /// also never succeed, since nothing wakes them before their timer: a test that parks a step for
+    /// ten minutes would burn the whole timeout and then fail the next test's Reset.
+    /// </para>
     /// </summary>
     private async Task WaitForDbIdle(TimeSpan? timeout = null)
     {
@@ -151,9 +159,9 @@ public abstract class EngineAppFixture : IAsyncLifetime
             while (!cts.IsCancellationRequested)
             {
                 var repo = Services.GetRequiredService<IEngineRepository>();
-                var activeWorkflows = await repo.CountActiveWorkflows(cts.Token);
+                var runnableWorkflows = await repo.CountRunnableWorkflows(cts.Token);
 
-                if (activeWorkflows == 0)
+                if (runnableWorkflows == 0)
                     return;
 
                 await Task.Delay(100, cts.Token);

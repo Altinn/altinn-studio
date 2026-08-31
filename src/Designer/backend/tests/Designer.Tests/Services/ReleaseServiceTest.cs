@@ -25,7 +25,6 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
 using Microsoft.Rest.TransientFaultHandling;
 using Moq;
 using Newtonsoft.Json;
@@ -40,7 +39,6 @@ public class ReleaseServiceTest
     private readonly Mock<IAppScopesService> _appScopesService;
     private readonly Mock<IGiteaClient> _giteaClient;
     private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
-    private readonly Mock<IFeatureManager> _featureManager;
     private readonly Mock<IApiKeyService> _apiKeyService;
     private readonly Mock<ILogger<ReleaseService>> _logger;
     private readonly GeneralSettings _generalSettings;
@@ -62,7 +60,6 @@ public class ReleaseServiceTest
         _appScopesService = new Mock<IAppScopesService>();
         _giteaClient = new Mock<IGiteaClient>();
         _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
-        _featureManager = new Mock<IFeatureManager>();
         _apiKeyService = new Mock<IApiKeyService>();
         _logger = new Mock<ILogger<ReleaseService>>();
         _generalSettings = new GeneralSettings();
@@ -262,7 +259,6 @@ public class ReleaseServiceTest
         {
             BaseUri = "https://dev.azure.com/brreg/altinn-studio/_apis/",
             BuildDefinitionId = 69,
-            DeployDefinitionId = 81,
         };
     }
 
@@ -276,14 +272,13 @@ public class ReleaseServiceTest
             _giteaClient.Object,
             GetAzureDevOpsSettings(),
             _generalSettings,
-            _featureManager.Object,
             _apiKeyService.Object,
             TimeProvider.System,
             _logger.Object
         );
     }
 
-    private void SetupAppLibVersion(string version)
+    private void SetupAppLibVersion(string version, bool includeUtf8Bom = false)
     {
         string csprojContent = $"""
             <Project Sdk="Microsoft.NET.Sdk.Web">
@@ -292,12 +287,15 @@ public class ReleaseServiceTest
               </ItemGroup>
             </Project>
             """;
+        byte[] csprojBytes = Encoding.UTF8.GetBytes(csprojContent);
+        if (includeUtf8Bom)
+        {
+            csprojBytes = [.. Encoding.UTF8.GetPreamble(), .. csprojBytes];
+        }
 
         _giteaClient
             .Setup(c => c.GetFileAsync(_org, _app, "App/App.csproj", It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new FileSystemObject { Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(csprojContent)) }
-            );
+            .ReturnsAsync(new FileSystemObject { Content = Convert.ToBase64String(csprojBytes) });
     }
 
     private void VerifyWarningLog()
@@ -550,7 +548,7 @@ public class ReleaseServiceTest
     }
 
     [Fact]
-    public async Task CreateAsync_WithAppLibVersion9PreviewAndNullAppScopes_AddsDefaultMaskinportenScopes()
+    public async Task CreateAsync_WithUtf8BomAppLibVersion9PreviewAndNullAppScopes_AddsDefaultMaskinportenScopes()
     {
         // Arrange
         ReleaseEntity releaseEntity = new()
@@ -601,7 +599,7 @@ public class ReleaseServiceTest
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
-        SetupAppLibVersion("9.0.0-preview.1");
+        SetupAppLibVersion("9.0.0-preview.1", includeUtf8Bom: true);
 
         ReleaseService releaseService = CreateReleaseService();
 
@@ -866,8 +864,6 @@ public class ReleaseServiceTest
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
-        _featureManager.Setup(f => f.IsEnabledAsync("StudioOidc")).ReturnsAsync(true);
-
         string expectedApiKey = "generated-api-key";
         _apiKeyService
             .Setup(s =>
@@ -911,75 +907,6 @@ public class ReleaseServiceTest
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task CreateAsync_WithStudioOidcDisabled_UsesOAuthTokenWithoutAuthHeader()
-    {
-        // Arrange
-        ReleaseEntity releaseEntity = new()
-        {
-            TagName = "1",
-            Name = "1",
-            Body = "test-app",
-            TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
-            Org = _org,
-            App = _app,
-        };
-
-        List<string> buildStatus = new()
-        {
-            BuildStatus.InProgress.ToEnumMemberAttributeValue(),
-            BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
-        };
-
-        List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
-
-        _releaseRepository
-            .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult))
-            .ReturnsAsync(new List<ReleaseEntity>());
-        _releaseRepository
-            .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
-            .ReturnsAsync(GetReleases("createdRelease.json").First());
-        _appScopesService
-            .Setup(r =>
-                r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())
-            )
-            .ReturnsAsync((AppScopesEntity)null);
-        _azureDevOpsBuildClient
-            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetBuild());
-
-        _featureManager.Setup(f => f.IsEnabledAsync("StudioOidc")).ReturnsAsync(false);
-
-        ReleaseService releaseService = CreateReleaseService();
-
-        // Act
-        await releaseService.CreateAsync(releaseEntity);
-
-        // Assert
-        _azureDevOpsBuildClient.Verify(
-            b =>
-                b.QueueAsync(
-                    It.Is<QueueBuildParameters>(p => p.AppAuthHeaderName == null),
-                    It.IsAny<int>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-
-        _apiKeyService.Verify(
-            s =>
-                s.CreateAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<Altinn.Studio.Designer.Models.ApiKey.ApiKeyType>(),
-                    It.IsAny<DateTimeOffset>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
         );
     }
 }

@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
@@ -14,14 +15,17 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
+    private readonly IAppVersionService _appVersionService;
 
     public ProcessDataTypesChangedLayoutSetsHandler(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
+        _appVersionService = appVersionService;
     }
 
     public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
@@ -39,7 +43,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                     notification.EditingContext.Developer
                 );
 
-                if (!repository.AppUsesLayoutSets())
+                SemanticVersion version = _appVersionService.GetAppLibVersion(notification.EditingContext);
+                if (!repository.AppUsesLayoutSets() || version != null && version.Major >= 9)
                 {
                     return hasChanges;
                 }

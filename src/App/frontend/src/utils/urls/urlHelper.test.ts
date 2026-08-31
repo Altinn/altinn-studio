@@ -10,6 +10,7 @@ import {
   returnUrlToArchive,
   returnUrlToProfile,
 } from 'src/utils/urls/urlHelper';
+import type { IPlatformFrontendSettings } from 'src/types/shared';
 
 const hostTT = 'ttd.apps.tt02.altinn.no';
 const hostAT = 'ttd.apps.at21.altinn.cloud';
@@ -23,23 +24,17 @@ const hostUnknown = 'www.vg.no';
 
 describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessageBox() returning correct environemnts', () => {
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
     expect(getMessageBoxUrl()).toBe('https://af.tt02.altinn.no/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostAT } as Location);
-    expect(getMessageBoxUrl()).toBe('https://af.at21.altinn.cloud/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostYT } as Location);
-    expect(getMessageBoxUrl()).toBe('https://af.yt01.altinn.cloud/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostProd } as Location);
-    expect(getMessageBoxUrl()).toBe('https://af.altinn.no/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
     expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
     expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud:8000/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudio } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudio } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudioDev } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudioDev } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostUnknown } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostUnknown } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
   });
 
@@ -57,11 +52,9 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlTProfile() returning correct environments', () => {
     expect(returnUrlToProfile(hostTT)).toBe('https://af.tt02.altinn.no/profile');
-    expect(returnUrlToProfile(hostAT)).toBe('https://af.at21.altinn.cloud/profile');
-    expect(returnUrlToProfile(hostYT)).toBe('https://af.yt01.altinn.cloud/profile');
-    expect(returnUrlToProfile(hostProd)).toBe('https://af.altinn.no/profile');
-    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/profile');
-    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/profile');
+    // localtest has no profile page, so it gets the front page like returnUrlToArchive does
+    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToProfile(hostStudio)).toBe(undefined);
     expect(returnUrlToProfile(hostStudioDev)).toBe(undefined);
     expect(returnUrlToProfile(hostUnknown)).toBe(undefined);
@@ -84,15 +77,6 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToArchive(hostTT, partyId)).toBe(
       'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2F',
     );
-    expect(returnUrlToArchive(hostAT, partyId)).toBe(
-      'https://am.ui.at21.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.at21.altinn.cloud%2F',
-    );
-    expect(returnUrlToArchive(hostYT, partyId)).toBe(
-      'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F',
-    );
-    expect(returnUrlToArchive(hostProd, partyId)).toBe(
-      'https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.altinn.no%2F',
-    );
     expect(returnUrlToArchive(hostDocker, partyId)).toBe('http://local.altinn.cloud/');
     expect(returnUrlToArchive(hostPodman, partyId)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToArchive(hostStudio, partyId)).toBe(undefined);
@@ -106,24 +90,12 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToArchive(hostTT, partyId, dialogId)).toBe(
       'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
     );
-    expect(returnUrlToArchive(hostAT, partyId, dialogId)).toBe(
-      'https://am.ui.at21.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.at21.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
-    );
-    expect(returnUrlToArchive(hostYT, partyId, dialogId)).toBe(
-      'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
-    );
-    expect(returnUrlToArchive(hostProd, partyId, dialogId)).toBe(
-      'https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
-    );
     expect(returnUrlToArchive(hostDocker, partyId, dialogId)).toBe('http://local.altinn.cloud/');
     expect(returnUrlToArchive(hostPodman, partyId, dialogId)).toBe('http://local.altinn.cloud:8000/');
   });
 
   test('returnUrlToArchive() returning correct environments without partyId', () => {
     expect(returnUrlToArchive(hostTT, undefined)).toBe('https://af.tt02.altinn.no/');
-    expect(returnUrlToArchive(hostAT, undefined)).toBe('https://af.at21.altinn.cloud/');
-    expect(returnUrlToArchive(hostYT, undefined)).toBe('https://af.yt01.altinn.cloud/');
-    expect(returnUrlToArchive(hostProd, undefined)).toBe('https://af.altinn.no/');
     expect(returnUrlToArchive(hostDocker, undefined)).toBe('http://local.altinn.cloud/');
     expect(returnUrlToArchive(hostPodman, undefined)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToArchive(hostStudio, undefined)).toBe(undefined);
@@ -136,15 +108,102 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe(
       'https://af.tt02.altinn.no/inbox/123e4567-e89b-12d3-a456-426614174000',
     );
-    expect(returnUrlToArchive(hostAT, undefined, dialogId)).toBe(
-      'https://af.at21.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
-    );
-    expect(returnUrlToArchive(hostYT, undefined, dialogId)).toBe(
-      'https://af.yt01.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
-    );
-    expect(returnUrlToArchive(hostProd, undefined, dialogId)).toBe(
-      'https://af.altinn.no/inbox/123e4567-e89b-12d3-a456-426614174000',
-    );
+  });
+
+  describe('arbeidsflate URLs come from the runtime config map', () => {
+    const dialogId = '123e4567-e89b-12d3-a456-426614174000';
+
+    function configureArbeidsflate(overrides: Partial<IPlatformFrontendSettings>) {
+      window.altinnAppGlobalData.platformFrontendSettings = {
+        ...window.altinnAppGlobalData.platformFrontendSettings,
+        arbeidsflateInboxUrl: undefined,
+        arbeidsflateDialogUrl: undefined,
+        arbeidsflateProfileUrl: undefined,
+        accessManagementChangeAndRedirectUrl: undefined,
+        ...overrides,
+      };
+    }
+
+    // Configures yt01 URLs while asking for a tt02 host: host derivation would answer
+    // af.tt02.altinn.no, so every assertion below fails if the config is not what is read.
+    test('the configured URLs are used, not ones derived from the host', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://af.yt01.altinn.cloud/',
+        arbeidsflateDialogUrl: 'https://af.yt01.altinn.cloud/inbox/{dialogId}',
+        arbeidsflateProfileUrl: 'https://af.yt01.altinn.cloud/profile',
+        accessManagementChangeAndRedirectUrl:
+          'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
+      });
+
+      expect(returnUrlToProfile(hostTT)).toBe('https://af.yt01.altinn.cloud/profile');
+      expect(returnUrlToArchive(hostTT)).toBe('https://af.yt01.altinn.cloud/');
+      expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe(
+        'https://af.yt01.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
+      );
+      expect(returnUrlToArchive(hostTT, 12345)).toBe(
+        'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F',
+      );
+
+      // getMessageBoxUrl() reads the host off window.location rather than taking it as an argument
+      vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+      expect(getMessageBoxUrl()).toBe('https://af.yt01.altinn.cloud/');
+    });
+
+    // Guards the reason these are whole URL templates rather than a base URL: the arbeidsflate can
+    // restructure its routes and we change configuration, not the frontend bundle.
+    test('a changed route structure needs no frontend change', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://ny.altinn.no/meldingsboks',
+        arbeidsflateDialogUrl: 'https://ny.altinn.no/meldingsboks?dialog={dialogId}',
+        arbeidsflateProfileUrl: 'https://ny.altinn.no/min-profil',
+        accessManagementChangeAndRedirectUrl: 'https://ny.altinn.no/bytt?aktor={partyId}&videre={goTo}',
+      });
+
+      expect(returnUrlToProfile(hostTT)).toBe('https://ny.altinn.no/min-profil');
+      expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe(
+        'https://ny.altinn.no/meldingsboks?dialog=123e4567-e89b-12d3-a456-426614174000',
+      );
+      expect(returnUrlToArchive(hostTT, 12345)).toBe(
+        'https://ny.altinn.no/bytt?aktor=12345&videre=https%3A%2F%2Fny.altinn.no%2Fmeldingsboks',
+      );
+    });
+
+    test('localtest ignores the configured URLs', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://af.yt01.altinn.cloud/',
+        arbeidsflateProfileUrl: 'https://af.yt01.altinn.cloud/profile',
+      });
+
+      expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+      expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe('http://local.altinn.cloud:8000/');
+    });
+
+    test('no arbeidsflate link in environments where it is not deployed', () => {
+      configureArbeidsflate({});
+
+      expect(returnUrlToProfile(hostTT)).toBe(undefined);
+      expect(returnUrlToArchive(hostTT)).toBe(undefined);
+      expect(returnUrlToArchive(hostTT, 12345, dialogId)).toBe(undefined);
+      vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+      expect(getMessageBoxUrl()).toBe(undefined);
+    });
+
+    test('falls back to the inbox when the dialog or party-switch URL is missing', () => {
+      configureArbeidsflate({ arbeidsflateInboxUrl: 'https://af.at23.altinn.cloud/' });
+
+      expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe('https://af.at23.altinn.cloud/');
+      expect(returnUrlToArchive(hostTT, 12345)).toBe('https://af.at23.altinn.cloud/');
+      expect(returnUrlToArchive(hostTT, 12345, dialogId)).toBe('https://af.at23.altinn.cloud/');
+    });
+
+    test('placeholder values are encoded', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
+        arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
+      });
+
+      expect(returnUrlToArchive(hostTT, undefined, 'a/b?c=d')).toBe('https://af.tt02.altinn.no/inbox/a%2Fb%3Fc%3Dd');
+    });
   });
 
   test('getDialogIdFromDataValues() extracts dialog.id correctly', () => {
@@ -165,15 +224,25 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('logoutUrlAltinn() returning correct environments', () => {
-    expect(logoutUrlAltinn(hostTT)).toBe('https://tt02.altinn.no/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostAT)).toBe('https://at21.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostYT)).toBe('https://yt01.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostProd)).toBe('https://altinn.no/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostTT)).toBe('https://platform.tt02.altinn.no/authentication/api/v1/logout');
     expect(logoutUrlAltinn(hostDocker)).toBe('http://local.altinn.cloud/');
     expect(logoutUrlAltinn(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(logoutUrlAltinn(hostStudio)).toBe(undefined);
     expect(logoutUrlAltinn(hostStudioDev)).toBe(undefined);
     expect(logoutUrlAltinn(hostUnknown)).toBe(undefined);
+  });
+
+  test('logoutUrlAltinn() uses the configured url, not one derived from the host', () => {
+    window.altinnAppGlobalData.platformFrontendSettings.logoutUrl = 'https://ny.altinn.no/logg-ut';
+
+    expect(logoutUrlAltinn(hostTT)).toBe('https://ny.altinn.no/logg-ut');
+    expect(logoutUrlAltinn(hostProd)).toBe('https://ny.altinn.no/logg-ut');
+  });
+
+  test('logoutUrlAltinn() returns undefined when no logout url is configured', () => {
+    window.altinnAppGlobalData.platformFrontendSettings.logoutUrl = undefined;
+
+    expect(logoutUrlAltinn(hostTT)).toBe(undefined);
   });
 
   test('customEncodeURI() returning correct encoding', () => {

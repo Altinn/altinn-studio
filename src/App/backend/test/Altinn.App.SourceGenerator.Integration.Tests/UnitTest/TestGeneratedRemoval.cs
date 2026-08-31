@@ -63,8 +63,8 @@ public class TestGeneratedRemoval
             },
         };
         IFormDataWrapper wrapper = reflection
-            ? new ReflectionFormDataWrapper(data)
-            : new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(data);
+            ? new ReflectionFormDataWrapper(data, null!)
+            : new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(data, null!);
         var copy = wrapper.Copy().BackingData<Skjema>();
         Assert.NotSame(data, copy);
         Assert.Equivalent(data, copy);

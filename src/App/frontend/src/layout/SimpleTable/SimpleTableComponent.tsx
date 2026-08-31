@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 
-import { AppTable, FieldRenderer } from '@app/form-component';
+import {
+  AppTable,
+  DatePickerDropdownCaption,
+  FieldRenderer,
+  type FormDataObject,
+  getDatepickerFormat,
+  type TableActionButton,
+} from '@app/form-component';
+import { useIsMobile } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { pick } from 'dot-object';
-import type { FormDataObject, TableActionButton } from '@app/form-component';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
@@ -12,11 +19,8 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForTable } from 'src/layout/SimpleTable/config.generated';
@@ -65,6 +69,11 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
       buttonText: <Lang id='general.delete' />,
       icon: <TrashIcon />,
       color: 'danger',
+      confirm: {
+        message: <Lang id='group.row_popover_delete_message' />,
+        confirmText: <Lang id='group.row_popover_delete_button_confirm' />,
+        cancelText: <Lang id='general.cancel' />,
+      },
     });
   }
 
@@ -132,7 +141,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
             setShowEdit(false);
           }}
           backdropClose={true}
-          DropdownCaption={DropdownCaption}
+          DropdownCaption={DatePickerDropdownCaption}
         />
       )}
 
@@ -197,7 +206,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
                     handleChange(nextValue, rowIndex);
                   }}
                   schema={schema}
-                  DropdownCaption={DropdownCaption}
+                  DropdownCaption={DatePickerDropdownCaption}
                   buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
                   calendarIconTitle={langAsString('date_picker.aria_label_icon')}
                 />

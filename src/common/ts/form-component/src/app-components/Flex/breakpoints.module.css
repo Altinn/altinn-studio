@@ -1,0 +1,10 @@
+/* Keep these values in sync with breakpoints.ts in this directory. */
+@value mediaSmUp: (min-width: 600px);
+@value mediaSmDown: (max-width: 599px);
+@value mediaMdUp: (min-width: 1024px);
+@value mediaMdDown: (max-width: 1023px);
+@value mediaLgUp: (min-width: 1440px);
+@value mediaScreenSmUp: screen and mediaSmUp;
+@value mediaScreenSmDown: screen and mediaSmDown;
+@value mediaOnlyScreenSmUp: only screen and mediaSmUp;
+@value mediaOnlyScreenMdUp: only screen and mediaMdUp;

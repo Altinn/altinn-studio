@@ -53,21 +53,49 @@ internal sealed class ProjectFileRewriter
         await Save();
     }
 
-    /// <summary>
-    /// Removes a package reference from the project file
-    /// </summary>
-    /// <param name="packageName">The name of the package to remove</param>
-    public async Task RemovePackageReference(string packageName)
+    /// <summary>Removes every <c>PackageReference</c> to <paramref name="packageName"/>.</summary>
+    /// <returns>Whether the project referenced the package at all, so the caller can report accurately.</returns>
+    public async Task<bool> RemovePackageReference(string packageName)
     {
         var packageElements = GetPackageReferenceElement(packageName);
         packageElements?.ForEach(e => e.Remove());
         await Save();
+        return packageElements is { Count: > 0 };
     }
 
     public async Task SetTargetFramework()
     {
         GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
         await Save();
+    }
+
+    /// <summary>
+    /// Sets the <c>Version</c> attribute of existing <c>PackageReference</c> elements. Used to raise
+    /// explicit package versions to the floors a newer Altinn.App version requires (NU1605 downgrades).
+    /// Only packages already referenced explicitly are updated; the returned set is those that were
+    /// found and changed, so the caller can report packages that need a manual reference added.
+    /// </summary>
+    /// <param name="versionsByPackage">Package id → required version.</param>
+    /// <returns>The package ids that had an explicit reference and were updated.</returns>
+    public async Task<IReadOnlyCollection<string>> SetPackageReferenceVersions(
+        IReadOnlyDictionary<string, string> versionsByPackage
+    )
+    {
+        var updated = new List<string>();
+        foreach (var (packageName, version) in versionsByPackage)
+        {
+            var packageElements = GetPackageReferenceElement(packageName);
+            if (packageElements is null || packageElements.Count == 0)
+            {
+                continue;
+            }
+
+            packageElements.ForEach(e => e.SetAttributeValue("Version", version));
+            updated.Add(packageName);
+        }
+
+        await Save();
+        return updated;
     }
 
     /// <summary>

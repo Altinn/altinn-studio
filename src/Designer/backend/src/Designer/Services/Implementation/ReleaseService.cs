@@ -4,14 +4,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Models;
@@ -27,7 +25,6 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
 using Microsoft.Rest.TransientFaultHandling;
 using NuGet.Versioning;
 
@@ -45,7 +42,6 @@ public class ReleaseService : IReleaseService
     private readonly IGiteaClient _giteaClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly GeneralSettings _generalSettings;
-    private readonly IFeatureManager _featureManager;
     private readonly IApiKeyService _apiKeyService;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<ReleaseService> _logger;
@@ -61,7 +57,6 @@ public class ReleaseService : IReleaseService
         IGiteaClient giteaClient,
         AzureDevOpsSettings azureDevOpsOptions,
         GeneralSettings generalSettings,
-        IFeatureManager featureManager,
         IApiKeyService apiKeyService,
         TimeProvider timeProvider,
         ILogger<ReleaseService> logger
@@ -74,7 +69,6 @@ public class ReleaseService : IReleaseService
         _giteaClient = giteaClient;
         _httpContextAccessor = httpContextAccessor;
         _generalSettings = generalSettings;
-        _featureManager = featureManager;
         _apiKeyService = apiKeyService;
         _timeProvider = timeProvider;
         _logger = logger;
@@ -186,19 +180,14 @@ public class ReleaseService : IReleaseService
 
     private async Task<(string Token, string AuthHeaderName)> GetDeployTokenAsync(HttpContext httpContext)
     {
-        if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
-        {
-            string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
-            var (rawKey, _) = await _apiKeyService.CreateAsync(
-                username,
-                $"release-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
-                Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
-                _timeProvider.GetUtcNow().AddHours(1)
-            );
-            return (rawKey, "X-Api-Key");
-        }
-
-        return (await httpContext.GetDeveloperAppTokenAsync(), null);
+        string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
+        var (rawKey, _) = await _apiKeyService.CreateAsync(
+            username,
+            $"release-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+            _timeProvider.GetUtcNow().AddHours(1)
+        );
+        return (rawKey, "X-Api-Key");
     }
 
     private async Task<AppScopesEntity> EnsureDefaultMaskinportenScopesForBuild(
@@ -277,7 +266,7 @@ public class ReleaseService : IReleaseService
 
         try
         {
-            string csprojContent = Encoding.UTF8.GetString(Convert.FromBase64String(appCsproj.Content));
+            byte[] csprojContent = Convert.FromBase64String(appCsproj.Content);
             string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
             return PackageVersionHelper.TryGetPackageVersionFromCsprojContent(

@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Authorization.ABAC.Xacml;
 using System.IO;
 using System.Threading.Tasks;

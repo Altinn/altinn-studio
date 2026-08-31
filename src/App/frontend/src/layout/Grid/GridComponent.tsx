@@ -1,20 +1,19 @@
 import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper } from '@app/form-component';
+import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import css from 'src/layout/Grid/Grid.module.css';
 import {
@@ -27,9 +26,8 @@ import {
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -166,6 +164,7 @@ interface GridRowsProps {
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   hiddenColumnIndices?: number[];
+  bodyClassName?: string;
 }
 
 export function GridRowsRenderer({
@@ -174,6 +173,7 @@ export function GridRowsRenderer({
   isNested,
   mutableColumnSettings,
   hiddenColumnIndices = [],
+  bodyClassName,
 }: GridRowsProps) {
   const batches: { type: 'header' | 'body'; rows: GridRow[] }[] = [];
 
@@ -193,7 +193,10 @@ export function GridRowsRenderer({
         const WrapperComponent = batch.type === 'header' ? Table.Head : Table.Body;
 
         return (
-          <WrapperComponent key={batchIdx}>
+          <WrapperComponent
+            key={batchIdx}
+            className={batch.type === 'body' ? bodyClassName : undefined}
+          >
             {batch.rows.map((row, rowIdx) => (
               <GridRowRenderer
                 key={rowIdx}

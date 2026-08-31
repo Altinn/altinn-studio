@@ -249,7 +249,7 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       // PdfAutomaticTaskSelection renders a combobox
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toBeInTheDocument();
     });
 
     it('should render PdfLayoutBasedSection when in layout-based mode', async () => {
@@ -298,16 +298,14 @@ const renderConfigPdfServiceTask = (options: RenderOptions = {}) => {
       ...contextProps?.bpmnContextProps,
     },
     bpmnApiContextProps: {
-      layoutSets: {
-        sets: withLayoutSet
-          ? [
-              {
-                id: 'pdf-layout-set',
-                tasks: [bpmnDetails.id],
-              },
-            ]
-          : [],
-      },
+      layoutSets: withLayoutSet
+        ? [
+            {
+              id: 'pdf-layout-set',
+              taskId: bpmnDetails.id,
+            },
+          ]
+        : [],
       ...contextProps?.bpmnApiContextProps,
     },
   });

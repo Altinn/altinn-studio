@@ -53,8 +53,8 @@ const inputComponent: FormComponent<ComponentType.Input> = {
   ...commonProps(ComponentType.Input),
   dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
 };
-const headerComponent: FormComponent<ComponentType.Header> = {
-  ...commonProps(ComponentType.Header),
+const headingComponent: FormComponent<ComponentType.Heading> = {
+  ...commonProps(ComponentType.Heading),
   size: 'medium',
 };
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
@@ -71,7 +71,7 @@ const imageComponent: FormComponent<ComponentType.Image> = {
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),
   dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
-  timeStamp: true,
+  timeStamp: false,
 };
 
 const dividerComponent: FormComponent<ComponentType.Divider> = {
@@ -111,19 +111,6 @@ const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   maxFileSizeInMB: 1,
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
-};
-const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
-  ...commonProps(ComponentType.FileUploadWithTag),
-  dataModelBindings: undefined,
-  description: 'test',
-  displayMode: 'list',
-  hasCustomFileEndings: false,
-  maxFileSizeInMB: 1,
-  maxNumberOfAttachments: 1,
-  minNumberOfAttachments: 1,
-  optionsId: '',
-  propertyPath: 'definitions/fileUploadComponent',
-  pageIndex: null,
 };
 const buttonComponent: FormComponent<ComponentType.Button> = {
   ...commonProps(ComponentType.Button),
@@ -226,10 +213,9 @@ export const componentMocks = {
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Divider]: dividerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
-  [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
   [ComponentType.FileUpload]: fileUploadComponent,
   [ComponentType.Group]: groupContainer,
-  [ComponentType.Header]: headerComponent,
+  [ComponentType.Heading]: headingComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
   [ComponentType.Link]: linkComponent,

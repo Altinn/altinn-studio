@@ -159,20 +159,6 @@ describe('DataModelBindings', () => {
     expect(switchElement).toBeInTheDocument();
   });
 
-  it('should render multiple attachment switch when component is FileUploadWithTag', () => {
-    render({
-      props: {
-        formItem: componentMocks[ComponentType.FileUploadWithTag],
-        formItemId: componentMocks[ComponentType.FileUploadWithTag].id,
-      },
-    });
-
-    const switchElement = screen.getByRole('switch', {
-      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
-    });
-    expect(switchElement).toBeInTheDocument();
-  });
-
   it('should render multiple attachment switch as selected when list dataModelBinding is present', () => {
     render({
       props: {
@@ -321,9 +307,10 @@ const render = async ({
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],
   );
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], {
-    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
-  });
+  queryClientMock.setQueryData(
+    [QueryKey.LayoutSets, org, app],
+    [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
+  );
   queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
     dataTypes: [
       { id: defaultDataModel, maxCount: 1, appLogic: {} },

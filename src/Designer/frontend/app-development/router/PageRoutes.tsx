@@ -38,7 +38,7 @@ const router = createBrowserRouter(
             key={route.path}
             path={route.path}
             element={
-              <Suspense fallback={<StudioPageSpinner spinnerTitle='' />}>
+              <Suspense key={route.path} fallback={<StudioPageSpinner spinnerTitle='' />}>
                 <route.subapp />
               </Suspense>
             }

@@ -54,7 +54,7 @@ export class Custom extends CustomDef {
     );
   }
 
-  useDataModelBindingValidation(): string[] {
+  validateDataModelBindings(): string[] {
     return [];
   }
 }

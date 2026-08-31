@@ -85,6 +85,137 @@ func RunValidationWithDeps(ctx context.Context, req ValidationRequest, git *GitC
 		return fmt.Errorf("%w: %s", ErrChangelogNotModified, clPath)
 	}
 
+	return parseAndValidateChangelog(ctx, git, root, clPath, req.Base)
+}
+
+// vendoredChangelogFragments are path fragments that mark a CHANGELOG.md as
+// third-party or generated, so it must not be structurally validated against
+// our Keep a Changelog conventions.
+//
+//nolint:gochecknoglobals // Read-only package constant.
+var vendoredChangelogFragments = []string{
+	"node_modules/",
+	"/.nuget/",
+	"/_testapps/",
+	".claude/",
+	"/obj/",
+	"/bin/",
+}
+
+// RunStructureValidation validates the Keep a Changelog structure of every
+// changed CHANGELOG.md between base and head (or, when base/head are empty,
+// every tracked CHANGELOG.md). It is component-agnostic: any project's
+// changelog is covered automatically, with no registry or workflow wiring.
+// Vendored and generated changelogs are skipped. Only structural errors
+// (category order, invalid categories, version ordering, duplicates) fail;
+// release-policy semantics are intentionally not enforced here.
+func RunStructureValidation(ctx context.Context, base, head string, log Logger) error {
+	if log == nil {
+		log = NopLogger{}
+	}
+	git := NewGitCLI(WithLogger(log))
+	return RunStructureValidationWithDeps(ctx, base, head, git, log)
+}
+
+// RunStructureValidationWithDeps validates changelog structure with an
+// injected git dependency.
+func RunStructureValidationWithDeps(ctx context.Context, base, head string, git *GitCLI, log Logger) error {
+	if ctx == nil {
+		return errContextRequired
+	}
+	if git == nil {
+		return errGitRequired
+	}
+	if log == nil {
+		log = NopLogger{}
+	}
+
+	root, err := git.RepoRoot(ctx)
+	if err != nil {
+		return fmt.Errorf("get repo root: %w", err)
+	}
+
+	paths, err := discoverChangelogPaths(ctx, git, base, head)
+	if err != nil {
+		return err
+	}
+	if len(paths) == 0 {
+		log.Info("no changelog changes to validate")
+		return nil
+	}
+
+	var errs []error
+	for _, clPath := range paths {
+		log.Info("validating changelog structure: %s", clPath)
+		if perr := validateChangelogStructure(root, clPath); perr != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", clPath, perr))
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// discoverChangelogPaths returns the repo-relative CHANGELOG.md paths to
+// validate: those changed between base and head when both are provided,
+// otherwise all tracked changelogs. Vendored/generated paths are excluded.
+func discoverChangelogPaths(ctx context.Context, git *GitCLI, base, head string) ([]string, error) {
+	var raw string
+	var err error
+	if base != "" && head != "" {
+		// --diff-filter=d excludes deletions so we never read a removed file.
+		raw, err = git.Run(ctx, "diff", "--name-only", "--diff-filter=d", base, head, "--", "*CHANGELOG.md")
+		if err != nil {
+			return nil, fmt.Errorf("git diff: %w", err)
+		}
+	} else {
+		raw, err = git.Run(ctx, "ls-files", "*CHANGELOG.md")
+		if err != nil {
+			return nil, fmt.Errorf("git ls-files: %w", err)
+		}
+	}
+
+	var paths []string
+	for line := range strings.SplitSeq(raw, "\n") {
+		path := strings.TrimSpace(line)
+		if path == "" || filepath.Base(path) != "CHANGELOG.md" || isVendoredChangelog(path) {
+			continue
+		}
+		paths = append(paths, path)
+	}
+	return paths, nil
+}
+
+func isVendoredChangelog(path string) bool {
+	for _, fragment := range vendoredChangelogFragments {
+		if strings.Contains(path, fragment) {
+			return true
+		}
+	}
+	return false
+}
+
+// validateChangelogStructure reads and parses a single changelog on disk,
+// surfacing only structural (format) errors.
+func validateChangelogStructure(root, clPath string) error {
+	changelogFile := clPath
+	if !filepath.IsAbs(changelogFile) {
+		changelogFile = filepath.Join(root, changelogFile)
+	}
+
+	//nolint:gosec // G304: path derived from git-tracked changelog paths.
+	content, err := os.ReadFile(changelogFile)
+	if err != nil {
+		return fmt.Errorf("read changelog: %w", err)
+	}
+
+	if _, err := changelog.Parse(string(content)); err != nil {
+		return fmt.Errorf("parse changelog: %w", err)
+	}
+	return nil
+}
+
+// parseAndValidateChangelog reads, parses and validates a single component
+// changelog on disk (the head working tree) against its base revision.
+func parseAndValidateChangelog(ctx context.Context, git *GitCLI, root, clPath, base string) error {
 	changelogFile := clPath
 	if !filepath.IsAbs(changelogFile) {
 		changelogFile = filepath.Join(root, changelogFile)
@@ -101,7 +232,7 @@ func RunValidationWithDeps(ctx context.Context, req ValidationRequest, git *GitC
 		return fmt.Errorf("parse changelog: %w", err)
 	}
 
-	return ValidateUnreleasedOrReleasePromotion(ctx, git, cl, req.Base, clPath)
+	return ValidateUnreleasedOrReleasePromotion(ctx, git, cl, base, clPath)
 }
 
 // ChangelogWasModified reports whether changelogPath exists in git diff --name-only output.

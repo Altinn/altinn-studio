@@ -23,7 +23,7 @@ describe('Properties', () => {
 
   describe('Page config', () => {
     it('shows empty content message when selectedItem is undefined', () => {
-      renderProperties({ selectedItem: undefined });
+      renderProperties({ selectedItem: undefined, selectedFormLayoutName: undefined });
       const pageConfigPanel = screen.getByRole('heading', {
         name: textMock('right_menu.content_empty'),
       });
@@ -52,7 +52,13 @@ describe('Properties', () => {
   });
 });
 
-const renderProperties = ({ selectedItem }: { selectedItem: SelectedItem }) => {
+const renderProperties = ({
+  selectedItem,
+  selectedFormLayoutName,
+}: {
+  selectedItem: SelectedItem;
+  selectedFormLayoutName?: string | undefined;
+}) => {
   const queryClientMock = createQueryClientMock();
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
@@ -66,6 +72,7 @@ const renderProperties = ({ selectedItem }: { selectedItem: SelectedItem }) => {
     queryClient: queryClientMock,
     appContextProps: {
       selectedItem,
+      selectedFormLayoutName,
     },
   });
 };

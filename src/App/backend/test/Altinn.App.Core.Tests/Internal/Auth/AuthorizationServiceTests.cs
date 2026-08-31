@@ -110,7 +110,10 @@ public class AuthorizationServiceTests
         // Arrange
         Mock<IAuthorizationClient> authorizationClientMock = new Mock<IAuthorizationClient>();
         List<Party> partyList = new List<Party>();
-        fixture.Mock<IAuthorizationClient>().Setup(a => a.GetPartyList(userId)).ReturnsAsync(partyList);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>()))
+            .ReturnsAsync(partyList);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
         // Act
@@ -118,7 +121,9 @@ public class AuthorizationServiceTests
 
         // Assert
         result.Should().BeSameAs(partyList);
-        fixture.Mock<IAuthorizationClient>().Verify(a => a.GetPartyList(userId), Times.Once);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Verify(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>()), Times.Once);
 
         await Verify(fixture.TelemetrySink.GetSnapshot());
     }
@@ -132,7 +137,10 @@ public class AuthorizationServiceTests
 
         // Arrange
         Mock<IAuthorizationClient> authorizationClientMock = new Mock<IAuthorizationClient>();
-        fixture.Mock<IAuthorizationClient>().Setup(a => a.ValidateSelectedParty(userId, partyId)).ReturnsAsync(true);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Setup(a => a.ValidateSelectedParty(userId, partyId, It.IsAny<StorageAuthenticationMethod?>()))
+            .ReturnsAsync(true);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
         // Act
@@ -140,7 +148,12 @@ public class AuthorizationServiceTests
 
         // Assert
         result.Should().BeTrue();
-        fixture.Mock<IAuthorizationClient>().Verify(a => a.ValidateSelectedParty(userId, partyId), Times.Once);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Verify(
+                a => a.ValidateSelectedParty(userId, partyId, It.IsAny<StorageAuthenticationMethod?>()),
+                Times.Once
+            );
     }
 
     [Fact]

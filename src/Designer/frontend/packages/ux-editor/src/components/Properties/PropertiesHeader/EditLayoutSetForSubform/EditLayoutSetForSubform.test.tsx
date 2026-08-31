@@ -22,7 +22,7 @@ jest.mock('react-router-dom', () => ({
 
 const handleComponentChangeMock = jest.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
-const layoutSetsDefault = { sets: [{ id: subformLayoutSetId, type: 'subform' }] } as LayoutSets;
+const layoutSetsDefault = [{ id: subformLayoutSetId, type: 'subform' }] as LayoutSets;
 
 describe('EditLayoutSetForSubform', () => {
   afterEach(() => {

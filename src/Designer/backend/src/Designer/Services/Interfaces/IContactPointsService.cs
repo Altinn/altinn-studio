@@ -10,10 +10,15 @@ public interface IContactPointsService
 {
     Task<IReadOnlyList<ContactPoint>> GetContactPointsAsync(string org, CancellationToken cancellationToken = default);
 
-    Task<ContactPoint> AddContactPointAsync(ContactPoint contactPoint, CancellationToken cancellationToken = default);
+    Task<ContactPoint> AddContactPointAsync(
+        ContactPoint contactPoint,
+        string username,
+        CancellationToken cancellationToken = default
+    );
 
     Task<ContactPoint> UpdateContactPointAsync(
         ContactPoint contactPoint,
+        string username,
         CancellationToken cancellationToken = default
     );
 

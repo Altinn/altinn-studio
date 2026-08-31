@@ -9,6 +9,7 @@ import {
   usePartiesAllowedToInstantiate as usePartiesAllowedToInstantiateBase,
   useSetSelectedParty as useSetSelectedPartyMutation,
 } from 'src/core/queries/party';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
@@ -63,6 +64,7 @@ const { Provider: RealSelectedPartyProvider, useCtx: useSelectedPartyCtx } = cre
 const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   const { data: validPartiesHierarchy, isPending, error } = usePartiesAllowedToInstantiateQuery();
   const validParties = flattenParties(validPartiesHierarchy ?? []);
+  const instanceId = useLaxInstanceId();
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const {
     setSelectedPartyAsync: mutateAsync,
@@ -83,7 +85,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
     return <DisplayError error={errorFromMutation} />;
   }
 
-  if (!validParties?.length) {
+  if (!instanceId && !validParties?.length) {
     return <NoValidPartiesError />;
   }
 

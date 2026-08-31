@@ -62,7 +62,7 @@
                       Plan Rows: {Scrubbed},
                       Plan Width: {Scrubbed},
                       Disabled: false,
-                      Filter: ((status = ANY ('{0,2}'::integer[])) AND ((backoff_until IS NULL) OR (backoff_until <= '2026-03-19 12:00:00+00'::timestamp with time zone)))
+                      Filter: (((backoff_until IS NULL) OR (backoff_until <= '2026-03-19 12:00:00+00'::timestamp with time zone) OR (cancellation_requested_at IS NOT NULL)) AND (status = ANY ('{0,2,8}'::integer[])))
                     },
                     {
                       Node Type: Nested Loop,
@@ -108,7 +108,7 @@
                           Plan Width: {Scrubbed},
                           Disabled: false,
                           Index Cond: (id = wd.depends_on_workflow_id),
-                          Filter: ((status <> 3) AND (status <> 4) AND (status <> 6) AND (status <> 5))
+                          Filter: ((status <> 3) AND (status <> 4) AND (status <> 6) AND (status <> 5) AND (status <> 7))
                         }
                       ]
                     }

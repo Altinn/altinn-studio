@@ -35,21 +35,21 @@ internal interface IRegisterClient
     /// This API does not validate that the requestor (based on token)
     /// can represent the given/returned party. Use with caution
     /// </summary>
-    /// <param name="partyId">Party ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns></returns>
-    /// <exception cref="ServiceException"></exception>
-    Task<Party?> GetPartyUnchecked(int partyId, CancellationToken cancellationToken);
+    Task<Party?> GetPartyUnchecked(
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// This API does not validate that the requestor (based on token)
     /// can represent the given/returned party. Use with caution
     /// </summary>
-    /// <param name="partyIds">Party IDs</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns></returns>
-    /// <exception cref="ServiceException"></exception>
-    Task<IReadOnlyList<Party>> GetPartyListUnchecked(IReadOnlyList<int> partyIds, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Party>> GetPartyListUnchecked(
+        IReadOnlyList<int> partyIds,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 }
 
 internal sealed class RegisterClient : IRegisterClient
@@ -57,16 +57,18 @@ internal sealed class RegisterClient : IRegisterClient
     private readonly ILogger _logger;
     private readonly HttpClient _client;
     private readonly IAppMetadata _appMetadata;
-    private readonly IUserTokenProvider _userTokenProvider;
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly Telemetry? _telemetry;
+
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     public RegisterClient(
         ILogger<RegisterClient> logger,
         IOptions<PlatformSettings> platformSettings,
         HttpClient client,
         IAppMetadata appMetadata,
-        IUserTokenProvider userTokenProvider,
+        IAuthenticationTokenResolver authenticationTokenResolver,
         IAccessTokenGenerator accessTokenGenerator,
         Telemetry? telemetry = null
     )
@@ -77,27 +79,35 @@ internal sealed class RegisterClient : IRegisterClient
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = client;
         _appMetadata = appMetadata;
-        _userTokenProvider = userTokenProvider;
+        _authenticationTokenResolver = authenticationTokenResolver;
         _accessTokenGenerator = accessTokenGenerator;
         _telemetry = telemetry;
     }
 
-    public async Task<Party?> GetPartyUnchecked(int partyId, CancellationToken cancellationToken)
+    public async Task<Party?> GetPartyUnchecked(
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         int[] partyIds = [partyId];
-        var partyList = await GetPartyListUnchecked(partyIds, cancellationToken);
+        var partyList = await GetPartyListUnchecked(partyIds, authenticationMethod, cancellationToken);
         return partyList.SingleOrDefault(p => p.PartyId == partyId);
     }
 
     public async Task<IReadOnlyList<Party>> GetPartyListUnchecked(
         IReadOnlyList<int> partyIds,
-        CancellationToken cancellationToken
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartGetPartyListForPartyIds(partyIds);
 
         string endpointUrl = $"parties/partylist?fetchSubUnits=true";
-        string token = _userTokenProvider.GetUserToken();
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         var platformAccessToken = _accessTokenGenerator.GenerateAccessToken(
             application.Org,

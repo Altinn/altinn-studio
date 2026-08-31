@@ -47,12 +47,14 @@ export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offere
  * @param {*} rulesList list of rules to add to the request
  * @returns response of the POST request
  */
- export function addMultipleRules(altinnToken, rulesList) {
+export function addMultipleRules(altinnToken, rulesList) {
   var endpoint = config.platformAuthorization.addRules;
   var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
   var body = [];
-  rulesList.forEach(r => {
-    body.push(generatePolicyMatch(r.policyMatchKeys, r.delegatedByUserId, r.offeredByPartyId, r.coveredBy, r.appOwner, r.appName, r.altinnTask, r.altinnAction));
+  rulesList.forEach((r) => {
+    body.push(
+      generatePolicyMatch(r.policyMatchKeys, r.delegatedByUserId, r.offeredByPartyId, r.coveredBy, r.appOwner, r.appName, r.altinnTask, r.altinnAction),
+    );
   });
   return http.post(endpoint, JSON.stringify(body), params);
 }

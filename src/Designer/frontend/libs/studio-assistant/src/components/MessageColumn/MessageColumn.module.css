@@ -1,0 +1,18 @@
+.messagesWrapper {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ds-size-6);
+}
+
+.hasMessages {
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+}

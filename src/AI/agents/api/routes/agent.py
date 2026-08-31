@@ -4,26 +4,37 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
-from agents.graph.nodes import assistant
-from agents.services.events import sink, AgentEvent
+from agents.services.events import permission_broker, sink
 
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
+from api.rate_limiting import RateLimiter
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
+from shared.utils.path_utils import app_name_from_repo_url
 from pathlib import Path
 from typing import Optional, List
 from shared.models import AttachmentUpload, AgentAttachment
 from shared.models.attachments import get_session_dir, cleanup_session_attachments
+from shared.models.experiment import ExperimentContext
 
 router = APIRouter()
 log = get_logger(__name__)
 config = get_config()
 
-_active_tasks: set = set()
-
-
+PER_DEVELOPER_LIMIT = 5
+ALL_DEVELOPERS_LIMIT = 30
 _SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
+
+def _require_developer(request: Request) -> str:
+    developer = request.headers.get("X-Developer")
+    if not developer:
+        raise HTTPException(status_code=400, detail="Missing X-Developer header")
+    return developer
+
+
+rate_limit_start_all_developers = RateLimiter(ALL_DEVELOPERS_LIMIT, "all-developers")
+rate_limit_start_developer = RateLimiter(PER_DEVELOPER_LIMIT, _require_developer)
 
 
 class StartReq(BaseModel):
@@ -31,9 +42,12 @@ class StartReq(BaseModel):
     goal: str
     repo_url: str  # Git repository URL to clone
     branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
-    allow_app_changes: bool = True  # If False, run in chat-only mode (no modifications)
+    # Fail closed: write access is opt-in. A caller that omits the flag
+    # gets a read-only (chat mode) session, never silent write access.
+    allow_app_changes: bool = False
     org: str
     attachments: List[AttachmentUpload] = Field(default_factory=list)
+    experiment: Optional[ExperimentContext] = None
 
     @field_validator("session_id")
     @classmethod
@@ -42,7 +56,10 @@ class StartReq(BaseModel):
             raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
         return v
 
-@router.post("/api/agent/start")
+@router.post(
+    "/api/agent/start",
+    dependencies=[Depends(rate_limit_start_all_developers), Depends(rate_limit_start_developer)],
+)
 async def start_agent(
     req: StartReq,
     request: Request,
@@ -53,26 +70,12 @@ async def start_agent(
         session_id = req.session_id
 
         # Extract headers passed by Designer backend
-        developer = request.headers.get("X-Developer")
-        if not developer:
-            raise HTTPException(status_code=400, detail="Missing X-Developer header")
+        developer = _require_developer(request)
 
         sink.register_developer_session(developer, req.session_id)
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
 
-        # MCP gate — workflow mode requires MCP, check before creating artifacts
-        if req.allow_app_changes:
-            from agents.services.mcp import get_mcp_client
-            mcp = get_mcp_client()
-            try:
-                await mcp.check_server_status()
-            except Exception as ping_err:
-                log.warning(f"🔌 MCP health ping failed: {ping_err}")
-                mcp._mark_disconnected(error=ping_err)
-                raise HTTPException(
-                    status_code=503,
-                    detail="MCP server is not available. Please retry shortly.",
-                ) from ping_err
+        app_name = app_name_from_repo_url(req.repo_url)
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
@@ -105,182 +108,42 @@ async def start_agent(
                 log.error(f"Failed to process attachments for session {req.session_id}: {e}")
                 raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}") from e
 
-        # Route based on allow_app_changes flag
-        if not req.allow_app_changes:
-            # Chat mode - skip intent validation for questions
-            log.info("💬 Chat mode: skipping intent validation for Q&A")
-            # Chat mode - answer questions without making changes
-            log.info(f"💬 Chat mode enabled for session {req.session_id}")
-            
-            # Run chat query in background so API returns immediately
-            # This allows frontend to subscribe to events before they're sent
-            async def _run_chat():
-                from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled
-                from langfuse import get_client as get_langfuse_client, propagate_attributes
+        # Unified path: chat vs workflow is a permission on the same agentic
+        # loop, not a separate pipeline.  allow_app_changes=False runs the
+        # loop read-only (write tools denied) — the model can still scan and
+        # read the repo, load skills, and fetch docs to answer questions.
+        log.info(
+            f"{'🔧 Write' if req.allow_app_changes else '💬 Read-only'} mode "
+            f"enabled for session {req.session_id}"
+        )
 
-                init_langfuse()
-                langfuse = get_langfuse_client() if is_langfuse_enabled() else None
+        from agents.graph.state import ConversationMessage
+        stored_history = sink.get_conversation_history(req.session_id)
+        conversation_history = [
+            ConversationMessage(role=msg["role"], content=msg["content"], sources=msg.get("sources"))
+            for msg in stored_history
+        ]
 
-                async def _run_chat_inner():
-                    sink.send(AgentEvent(
-                        type="status",
-                        session_id=req.session_id,
-                        data={
-                            "message": "Tenker...",
-                            "mode": "chat"
-                        }
-                    ))
+        state = AgentState(
+            session_id=req.session_id,
+            user_goal=req.goal,
+            repo_path=str(repo_path),
+            app_name=app_name,
+            developer=developer,
+            org=req.org,
+            allow_app_changes=req.allow_app_changes,
+            attachments=saved_attachments,
+            designer_api_key=designer_api_key,
+            conversation_history=conversation_history,
+            experiment=req.experiment,
+        )
 
-                    try:
-                        from agents.graph.state import ConversationMessage
-                        stored_history = sink.get_conversation_history(req.session_id)
-                        conversation_history = [
-                            ConversationMessage(role=msg["role"], content=msg["content"], sources=msg.get("sources"))
-                            for msg in stored_history
-                        ]
+        sink.add_to_conversation_history(req.session_id, "user", req.goal)
 
-                        sink.add_to_conversation_history(req.session_id, "user", req.goal)
+        sink.mark_session_started(req.session_id)
+        run_in_background(state, sink)
 
-                        state = AgentState(
-                            session_id=req.session_id,
-                            user_goal=req.goal,
-                            repo_path=str(repo_path),
-                            developer=developer,
-                            org=req.org,
-                            attachments=saved_attachments,
-                            conversation_history=conversation_history,
-                        )
-
-                        result_state = await assistant(state)
-
-                        if (result_state.assistant_response or {}).get("cancelled"):
-                            log.info(f"🛑 Chat query cancelled for session {req.session_id}, skipping completion event")
-                            return result_state
-
-                        reply = (result_state.assistant_response or {}).get("response", "")
-                        cited_sources = (result_state.assistant_response or {}).get("sources")
-                        if reply:
-                            sink.add_to_conversation_history(
-                                req.session_id, "assistant", reply, sources=cited_sources
-                            )
-
-                        sink.send(AgentEvent(
-                            type="status",
-                            session_id=req.session_id,
-                            data={
-                                "message": "Chat query completed",
-                                "status": "completed",
-                                "mode": "chat",
-                                "no_branch_operations": True
-                            }
-                        ))
-
-                        log.info(f"✅ Chat query completed for session {req.session_id}")
-                        return result_state
-
-                    except Exception as chat_error:
-                        log.error(f"Chat query failed for session {req.session_id}: {chat_error}")
-                        sink.send(AgentEvent(
-                            type="error",
-                            session_id=req.session_id,
-                            data={
-                                "message": f"Chat query failed: {str(chat_error)}",
-                                "mode": "chat"
-                            }
-                        ))
-                        return None
-
-                try:
-                    if langfuse:
-                        history_for_trace = [
-                            {"role": msg["role"], "content": msg["content"][:300]}
-                            for msg in sink.get_conversation_history(req.session_id)
-                        ]
-                        with langfuse.start_as_current_observation(
-                            as_type="span",
-                            name="Altinity Assistant Query",
-                            input={
-                                "user_goal": str(req.goal)[:500],
-                                "session_id": req.session_id,
-                                "conversation_history": history_for_trace,
-                            },
-                            metadata={"span_type": "AGENT", "session_id": req.session_id, "developer": developer},
-                        ) as root_span:
-                            with propagate_attributes(user_id=req.org):
-                                result_state_ref = await _run_chat_inner()
-                                if result_state_ref is not None:
-                                    ar = result_state_ref.assistant_response or {}
-                                    reply = ar.get("response", "")
-                                    root_span.update(output={"response": reply[:1000] if reply else ""})
-
-                                    async def _run_no_hallucination_chat() -> None:
-                                        import asyncio as _asyncio
-                                        try:
-                                            from agents.services.evaluation.hallucination_judge import (
-                                                format_sources,
-                                                run_hallucination_judge,
-                                            )
-                                            await run_hallucination_judge(
-                                                user_goal=req.goal,
-                                                agent_response=ar.get("response", ""),
-                                                sources=format_sources(ar.get("sources") or []),
-                                                trace_id=root_span.trace_id,
-                                            )
-                                        except _asyncio.CancelledError:
-                                            raise
-                                        except Exception:
-                                            log.exception("Evaluation pipeline error (no_hallucination, chat mode)")
-
-                                    import asyncio as _asyncio
-                                    eval_task = _asyncio.create_task(_run_no_hallucination_chat())
-                                    _active_tasks.add(eval_task)
-                                    eval_task.add_done_callback(_active_tasks.discard)
-                    else:
-                        await _run_chat_inner()
-                except Exception as outer_error:
-                    log.error(f"Unexpected error in chat task for session {req.session_id}: {outer_error}")
-                    sink.send(AgentEvent(
-                        type="error",
-                        session_id=req.session_id,
-                        data={"message": f"Chat query failed: {str(outer_error)}", "mode": "chat"}
-                    ))
-            
-            # Mark session as started and create background task - API returns immediately
-            import asyncio
-            sink.mark_session_started(req.session_id)
-            task = asyncio.create_task(_run_chat())
-            _active_tasks.add(task)
-            task.add_done_callback(_active_tasks.discard)
-        else:
-            # Normal workflow mode - make changes (MCP already verified above)
-            log.info(f"🔧 Workflow mode enabled for session {req.session_id}")
-            
-            # Load conversation history from previous interactions in this session
-            from agents.graph.state import ConversationMessage
-            stored_history = sink.get_conversation_history(req.session_id)
-            conversation_history = [
-                ConversationMessage(role=msg["role"], content=msg["content"], sources=msg.get("sources"))
-                for msg in stored_history
-            ]
-            
-            state = AgentState(
-                session_id=req.session_id,
-                user_goal=req.goal,
-                repo_path=str(repo_path),
-                developer=developer,
-                org=req.org,
-                attachments=saved_attachments,
-                designer_api_key=designer_api_key,
-                conversation_history=conversation_history
-            )
-            
-            sink.add_to_conversation_history(req.session_id, "user", req.goal)
-
-            # Intent validation + workflow run in background (single Langfuse trace)
-            sink.mark_session_started(req.session_id)
-            run_in_background(state, sink)
-
-            log.info(f"Started agent workflow for session {req.session_id}, goal: {req.goal}")
+        log.info(f"Started agent session {req.session_id}, goal: {req.goal}")
 
         mode = "chat" if not req.allow_app_changes else "workflow"
         
@@ -309,6 +172,29 @@ async def start_agent(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class PermissionResponseReq(BaseModel):
+    request_id: str
+    granted: bool
+
+
+@router.post("/api/agent/permission/{session_id}")
+async def respond_to_permission(session_id: str, req: PermissionResponseReq, request: Request):
+    """Deliver the user's answer to an in-flight permission request.
+
+    Emitted as a `permission_request` event when a read-only session's
+    model attempts a write; the loop is blocked awaiting this answer.
+    """
+    caller = _require_developer(request)
+    owner = sink.get_session_developer(session_id)
+    if caller != owner:
+        raise HTTPException(status_code=403, detail="Not the session owner")
+
+    resolved = permission_broker.resolve(session_id, req.request_id, req.granted)
+    if not resolved:
+        raise HTTPException(status_code=404, detail="No matching permission request")
+    return {"session_id": session_id, "granted": req.granted}
+
+
 @router.post("/api/agent/cancel/{session_id}")
 async def cancel_session(session_id: str, request: Request):
     """Cancel a running session. Sends a terminal event so the frontend stops loading."""
@@ -318,9 +204,9 @@ async def cancel_session(session_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Session not found")
 
     # Enforce ownership: only the developer who started the session may cancel it
-    caller = request.headers.get("X-Developer")
+    caller = _require_developer(request)
     owner = sink.get_session_developer(session_id)
-    if owner and caller and caller != owner:
+    if caller != owner:
         raise HTTPException(status_code=403, detail="Not the session owner")
 
     current_status = status.get("status")
@@ -328,6 +214,9 @@ async def cancel_session(session_id: str, request: Request):
         return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
 
     sink.cancel_session(session_id)
+    # Wake a run blocked on a permission prompt — it must observe the
+    # cancellation now, not after the prompt timeout.
+    permission_broker.cancel_pending(session_id)
     log.info(f"🛑 Session {session_id} cancelled via API")
     return {"session_id": session_id, "status": "cancelled", "message": "Session cancelled"}
 

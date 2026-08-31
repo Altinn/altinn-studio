@@ -11,6 +11,7 @@ import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { Policy } from '@altinn/policy-editor';
 
 const mockResourceId: string = 'r1';
 const mockOrg: string = 'test';
@@ -338,6 +339,28 @@ describe('DeployResourcePage', () => {
     expect(
       screen.getByLabelText(textMock('resourceadm.deploy_status_card_loading')),
     ).toBeInTheDocument();
+  });
+
+  it('renders warning if altinn 2 roles are used', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getPolicy: () =>
+        Promise.resolve<Policy>({
+          rules: [
+            {
+              ruleId: 'rule-1',
+              description: 'Test rule',
+              subject: ['urn:altinn:rolecode:a0238'],
+              actions: ['read'],
+              resources: [['res:1']],
+            },
+          ],
+          requiredAuthenticationLevelEndUser: '3',
+          requiredAuthenticationLevelOrg: '3',
+        }),
+    });
+
+    const roleWarning = screen.getByText(textMock('altinn2_role_warning.heading'));
+    expect(roleWarning).toBeInTheDocument();
   });
 });
 

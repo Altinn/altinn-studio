@@ -3,24 +3,23 @@ import { useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
-import { randomUUID } from 'crypto';
 
-import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
-import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
-jest.mock('src/utils/layout/useNodeItem');
-jest.mock('react-router');
-jest.mock('src/features/language/useLanguage');
-jest.mock('src/features/language/Lang');
-jest.mock('src/features/instance/useProcessQuery');
-jest.mock('src/layout/SigneeList/api');
-jest.mock('src/layout/SigneeList/SigneeListError');
+vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/DataModelLocation', () => ({
+  useIndexedId: (baseId: string) => baseId,
+}));
+vi.mock('react-router');
+vi.mock('src/features/language/useLanguage');
+vi.mock('src/features/language/Lang');
+vi.mock('src/layout/SigneeList/api');
+vi.mock('src/layout/SigneeList/SigneeListError');
 
 const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [
   {
@@ -61,26 +60,26 @@ const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [
   },
 ];
 
-const mockedUseSigneeList = jest.mocked(useSigneeList);
+const mockedUseSigneeList = vi.mocked(useSigneeList);
 
 describe('SigneeListComponent', () => {
   beforeEach(() => {
-    // resets all mocked functions to jest.fn()
-    jest.resetAllMocks();
+    // resets all mocked functions to vi.fn()
+    vi.resetAllMocks();
 
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    jest.mocked(SigneeListError).mockImplementation(({ error }: { error: Error }) => <>{error.message}</>);
+    vi.mocked(SigneeListError).mockImplementation(({ error }: { error: Error }) => <>{error.message}</>);
 
-    jest.mocked(useTaskTypeFromBackend).mockReturnValue(ProcessTaskType.Signing);
-    jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
-    jest.mocked(useLanguage).mockReturnValue({
+    vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    vi.mocked(useLanguage).mockReturnValue({
       langAsString: (inputString: string) => inputString,
     } as unknown as ReturnType<typeof useLanguage>);
-    jest.mocked(useParams).mockReturnValue({
-      partyId: 'partyId',
-      instanceGuid: randomUUID(),
+    vi.mocked(useParams).mockReturnValue({
+      instanceOwnerPartyId: 'partyId',
+      instanceGuid: 'instanceGuid',
+      taskId: 'taskId',
     });
-    jest.mocked(useItemWhenType).mockReturnValue({
+    vi.mocked(useItemWhenType).mockReturnValue({
       textResourceBindings: {
         title: 'Signee List',
         description: 'description',
@@ -98,12 +97,17 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        baseComponentId='whatever'
+        baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
 
+    screen.getByRole('heading', { name: /Signee List/ });
+    screen.getByText('description');
+    expect(screen.queryByRole('caption')).not.toBeInTheDocument();
+
     screen.getByRole('table', { name: /Signee List/ });
+    expect(screen.getByTestId('signee-list')).toHaveAttribute('aria-label', 'Signee List');
     screen.getByRole('columnheader', { name: 'signee_list.header_name' });
     screen.getByRole('columnheader', { name: 'signee_list.header_on_behalf_of' });
     screen.getByRole('columnheader', { name: 'signee_list.header_status' });
@@ -125,7 +129,7 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        baseComponentId='whatever'
+        baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
@@ -142,12 +146,13 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        baseComponentId='whatever'
+        baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
 
     screen.getByRole('table', { name: /Signee List/ });
+    expect(screen.getByTestId('signee-list')).toHaveAttribute('aria-label', 'Signee List');
     screen.getByRole('columnheader', { name: 'signee_list.header_name' });
     screen.getByRole('columnheader', { name: 'signee_list.header_on_behalf_of' });
     screen.getByRole('columnheader', { name: 'signee_list.header_status' });

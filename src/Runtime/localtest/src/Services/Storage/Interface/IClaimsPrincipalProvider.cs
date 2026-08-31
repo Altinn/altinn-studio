@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+#nullable disable
+
+using System.Security.Claims;
 
 namespace Altinn.Platform.Storage.Authorization;
 

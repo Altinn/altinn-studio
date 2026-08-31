@@ -112,3 +112,11 @@ export const validateTextId = (textIdToValidate: string): string | null => {
 
   return null;
 };
+
+export const filterRows = (rows: TextTableRow[], searchString: string): TextTableRow[] =>
+  rows.filter((row) =>
+    filterFunction({
+      entry: { id: row.textKey, translations: row.translations },
+      searchString,
+    }),
+  );

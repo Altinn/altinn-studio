@@ -7,16 +7,23 @@ on:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
-      - 'libs/form-component/src/**'
-      - 'libs/form-component/package.json'
+      - 'src/common/ts/form-component/src/**'
+      - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
+      - 'src/common/ts/language/src/**'
+      - 'src/common/ts/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -26,22 +33,26 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Frontend
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
   k6-browser:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: K6 Browser
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     needs: [build-frontend]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
@@ -56,7 +67,7 @@ jobs:
       - name: Run k6 browser test
         run: |
           docker run --rm -i --security-opt seccomp=./src/App/frontend/test/e2e/k6-browser/chrome.json \
-            --network host --cap-add=SYS_ADMIN \
+            --network host --add-host local.altinn.cloud:127.0.0.1 --cap-add=SYS_ADMIN \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_TIMEOUT=120000 \
@@ -68,7 +79,7 @@ jobs:
         run: sudo chown -R runner:runner k6-browser-screenshots/ || echo "No screenshots to fix ownership"
 
       - name: Upload screenshots
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: k6-browser-screenshots

@@ -1,0 +1,123 @@
+/* Designsystemet — Altinn-tema (ren CSS, ikke Tailwind v4-varianten) */
+@import '@digdir/designsystemet-theme/altinn.css';
+@import '@digdir/designsystemet-css';
+
+/* Inter — fonten Designsystemet er designet for */
+@import url('https://rsms.me/inter/inter.css');
+
+/* Tailwind: hopp over preflight som ellers resetter Designsystemet sin base.
+   Vi bruker bare components+utilities (klasser som flex, gap, grid). */
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal reset — det som Tailwind preflight pleier å gjøre, men begrenset
+   til det Designsystemet IKKE allerede gjør. Designsystemet styler
+   buttons/inputs/select/etc selv via @layer ds.components. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  max-width: 100%;
+}
+
+:root {
+  font-family:
+    'Inter',
+    'Inter var',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+html,
+body {
+  background-color: var(--ds-color-neutral-background-default);
+  color: var(--ds-color-neutral-text-default);
+}
+
+/* Indeterminate progress bar — used while waiting for first progress event */
+@keyframes fleet-indeterminate {
+  0% {
+    left: -30%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Activity dot — pulse */
+@keyframes fleet-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+/* Fade-in for rotating activity messages */
+@keyframes fleet-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Recharts → match designsystemet palett */
+.recharts-cartesian-grid line {
+  stroke: var(--ds-color-neutral-border-subtle);
+}
+.recharts-text {
+  fill: var(--ds-color-neutral-text-subtle);
+}
+.recharts-tooltip-wrapper {
+  font-family: inherit;
+}

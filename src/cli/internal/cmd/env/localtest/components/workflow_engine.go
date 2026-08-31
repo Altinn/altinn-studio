@@ -24,8 +24,8 @@ const (
 
 	postgresHealthInterval    = 10 * time.Second
 	postgresHealthTimeout     = 5 * time.Second
-	postgresHealthRetries     = 5
-	postgresHealthStartPeriod = 5 * time.Second
+	postgresHealthRetries     = 9
+	postgresHealthStartPeriod = 30 * time.Second
 
 	postgresUser     = "postgres"
 	postgresPassword = "postgres"
@@ -45,7 +45,7 @@ func registerWorkflowEngineComponents(manifest *Manifest, opts *Options) {
 }
 
 func workflowEngineDbImage(ctx *Options) resource.ImageResource {
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.WorkflowEngineDb.Ref(),
 		PullPolicy: resource.PullIfNotPresent,
@@ -54,14 +54,14 @@ func workflowEngineDbImage(ctx *Options) resource.ImageResource {
 
 func workflowEngineImage(ctx *Options) resource.ImageResource {
 	if ctx.DevWorkflowEngine {
-		return &resource.RemoteImage{
+		return &resource.PulledImage{
 			Enabled:    resourceEnabledRef(false),
 			Ref:        imageRef(ctx.Images.Core.WorkflowEngine.Ref(), ContainerWorkflowEngine, false),
 			PullPolicy: resource.PullIfNotPresent,
 		}
 	}
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.LocalImage{
+		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile: filepath.ToSlash(
@@ -72,9 +72,9 @@ func workflowEngineImage(ctx *Options) resource.ImageResource {
 				CacheTo:   nil,
 			},
 			Tag: devImageTagWorkflowEngine,
-		}
+		})
 	}
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.WorkflowEngine.Ref(),
 		PullPolicy: resource.PullIfNotPresent,
@@ -121,7 +121,7 @@ func workflowEngineDbContainer(ctx *Options) *ContainerSpec {
 }
 
 func workflowEngineContainer(ctx *Options) *ContainerSpec {
-	return newContainerSpec(
+	spec := newContainerSpec(
 		ContainerWorkflowEngine,
 		nil,
 		workflowEngineEnv(ctx.Topology),
@@ -130,6 +130,9 @@ func workflowEngineContainer(ctx *Options) *ContainerSpec {
 		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
 		nil,
 	)
+	// Workflow-engine has no host-writable mounts, so use the image user instead of host UID/GID remapping.
+	spec.UseDefaultUser = true
+	return spec
 }
 
 func workflowEngineEnv(topology envtopology.Local) map[string]string {

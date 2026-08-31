@@ -394,6 +394,7 @@ internal static class DashboardEndpoints
                                     "COMPLETED" => PersistentItemStatus.Completed,
                                     "FAILED" => PersistentItemStatus.Failed,
                                     "REQUEUED" => PersistentItemStatus.Requeued,
+                                    "WAITING" => PersistentItemStatus.Waiting,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
                                     "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
@@ -543,6 +544,81 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        // On-demand relations for cards whose source query does not eager-load them (the recent
+        // section and the query tab); active cards get relations inline from the live stream.
+        app.MapGet(
+                "/dashboard/relations",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
+                {
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
+
+                    if (workflow is null)
+                        return Results.NotFound();
+
+                    return Results.Json(
+                        new
+                        {
+                            isHead = workflow.IsHead,
+                            dependsOn = DashboardMapper.MapRelations(workflow.Dependencies) ?? [],
+                            dependents = DashboardMapper.MapRelations(workflow.Dependents) ?? [],
+                            links = DashboardMapper.MapRelations(workflow.Links) ?? [],
+                        },
+                        _jsonCompact
+                    );
+                }
+            )
+            .ExcludeFromDescription();
+
+        // Connected dependency graph for the chain views: every workflow reachable from the given
+        // one through dependency/link relations in either direction, as full card DTOs plus typed
+        // edges so the frontend can lay out the spine without re-deriving relations. Capped at the
+        // most recently created nodes so a pathologically long-lived collection can't produce an
+        // unbounded payload; `truncated` tells the frontend the story has an older, unshown tail.
+        const int graphNodeCap = 200;
+        app.MapGet(
+                "/dashboard/graph",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
+                {
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    IReadOnlyList<Workflow>? graph = await repo.GetWorkflowDependencyGraph(
+                        wf,
+                        ns,
+                        limit: graphNodeCap + 1,
+                        ct
+                    );
+
+                    if (graph is null)
+                        return Results.NotFound();
+
+                    // The list is CreatedAt-ascending; the +1 sentinel (when present) is the oldest.
+                    bool truncated = graph.Count > graphNodeCap;
+                    if (truncated)
+                        graph = [.. graph.Skip(graph.Count - graphNodeCap)];
+
+                    return Results.Json(
+                        new
+                        {
+                            root = wf,
+                            truncated,
+                            workflows = graph.Select(DashboardMapper.MapWorkflow),
+                            edges = EngineRequestHandlers
+                                .BuildDependencyGraphEdges(graph)
+                                .Select(e => new
+                                {
+                                    from = e.From,
+                                    to = e.To,
+                                    kind = e.Kind == WorkflowDependencyGraphEdgeKind.Dependency ? "dependency" : "link",
+                                }),
+                        },
+                        _jsonCompact
+                    );
+                }
+            )
+            .ExcludeFromDescription();
+
         app.MapPost(
                 "/dashboard/retry",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
@@ -583,7 +659,7 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapPost(
-                "/dashboard/skip-backoff",
+                "/dashboard/nudge",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
                     using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
@@ -606,17 +682,20 @@ internal static class DashboardEndpoints
 
                     string ns = nsProp2.GetString() ?? throw new UnreachableException();
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
 
-                    bool updated = await repo.SkipBackoff(workflowId, ns, ct);
-                    if (updated)
-                        return Results.Ok();
+                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/nudge — routed through the
+                    // engine rather than the repository so the dashboard button also wakes the
+                    // processor immediately instead of waiting for its next poll tick.
+                    var result = await engine.NudgeWorkflow(workflowId, ns, ct);
 
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ns, ct);
-                    if (status is null)
-                        return Results.NotFound();
-
-                    return Results.Conflict($"Workflow is in {status} state");
+                    return result switch
+                    {
+                        NudgeWorkflowResult.Nudged or NudgeWorkflowResult.AlreadyRunnable => Results.Ok(),
+                        NudgeWorkflowResult.NotFound => Results.NotFound(),
+                        NudgeWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
+                        _ => throw new UnreachableException(),
+                    };
                 }
             )
             .ExcludeFromDescription();

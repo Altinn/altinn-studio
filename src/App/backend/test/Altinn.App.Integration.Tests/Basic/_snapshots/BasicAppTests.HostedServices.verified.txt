@@ -39,6 +39,34 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.EFormidling.EFormidlingConfigValidationService
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.WorkflowEngine.WorkflowStepOptionsValidator
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.WorkflowEngine.ServiceTaskRegistrationValidator
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Features.Maskinporten.MaskinportenWellKnownRefreshService
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Microsoft.AspNetCore.Hosting.GenericWebHostService
   }
 ]

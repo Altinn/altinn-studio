@@ -21,4 +21,14 @@ partial class Telemetry
 
         return activity;
     }
+
+    internal Activity? StartUpdateInstanceLockActivity(Guid instanceGuid, int instanceOwnerPartyId, TimeSpan ttl)
+    {
+        var activity = ActivitySource.StartActivity("UpdateInstanceLock");
+        activity?.SetInstanceId(instanceGuid);
+        activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
+        activity?.SetTag("lock.ttl_seconds", (int)ttl.TotalSeconds);
+
+        return activity;
+    }
 }

@@ -185,10 +185,7 @@ export const FDSetValueEqual = Symbol('FDSetValueEqual');
 export const FDSetValueUnset = Symbol('FDSetValueUnset');
 
 export type FDSetValueResult =
-  | FDSetValueSuccessful
-  | typeof FDSetValueEqual
-  | typeof FDSetValueReadOnly
-  | typeof FDSetValueUnset;
+  FDSetValueSuccessful | typeof FDSetValueEqual | typeof FDSetValueReadOnly | typeof FDSetValueUnset;
 
 export interface FormDataMethods {
   // Methods used for updating the data model. These methods will update the currentData model, and after
@@ -368,6 +365,7 @@ function makeActions(
         dot.str(reference.field, newValue, state.data.models[reference.dataType].invalidCurrentData);
       } else {
         dot.delete(reference.field, state.data.models[reference.dataType].invalidCurrentData);
+        dot.delete(reference.field, state.data.models[reference.dataType].currentData);
         dot.str(reference.field, convertedValue, state.data.models[reference.dataType].currentData);
       }
       return { newValue, convertedValue, error, hadError };

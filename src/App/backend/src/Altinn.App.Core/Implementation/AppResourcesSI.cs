@@ -361,7 +361,7 @@ public class AppResourcesSI : IAppResources
             PathHelper.EnsureLegalPath(folder, pagePath);
             var pageBytes = File.ReadAllBytes(pagePath);
             using var document = JsonDocument.Parse(
-                pageBytes,
+                pageBytes.AsMemory().RemoveBom(),
                 new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
             );
             pages.Add(PageComponent.Parse(document.RootElement, page, folderId));
@@ -443,7 +443,8 @@ public class AppResourcesSI : IAppResources
         return Deserialize<LayoutSettings>(fileData, _jsonSerializerOptions);
     }
 
-    private GlobalPageSettings? GetGlobalUiSettings()
+    /// <inheritdoc />
+    public GlobalPageSettings? GetGlobalUiSettings()
     {
         string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
         string? settingsString = null;
@@ -469,7 +470,10 @@ public class AppResourcesSI : IAppResources
 
         if (File.Exists(fullFileName))
         {
-            return File.ReadAllBytes(fullFileName);
+            var fileContents = File.ReadAllBytes(fullFileName);
+            // The files read here are json, and callers parse them, so strip the UTF-8 BOM (if any)
+            var withoutBom = fileContents.RemoveBom();
+            return withoutBom.Length == fileContents.Length ? fileContents : withoutBom.ToArray();
         }
 
 #nullable disable
@@ -506,5 +510,38 @@ public class AppResourcesSI : IAppResources
         }
 
         return filedata;
+    }
+
+    /// <inheritdoc />
+    public string? GetXsdSchema(string modelId)
+    {
+        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
+        string filename = Path.Join(legalPath, $"{modelId}.xsd");
+        PathHelper.EnsureLegalPath(legalPath, filename);
+
+        string? filedata = null;
+        if (File.Exists(filename))
+        {
+            filedata = File.ReadAllText(filename, Encoding.UTF8);
+        }
+
+        return filedata;
+    }
+
+    /// <inheritdoc />
+    public string? GetCalculationConfiguration(string dataTypeId)
+    {
+        using var activity = _telemetry?.StartGetCalculationConfigurationActivity();
+        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
+        string filename = Path.Join(legalPath, $"{dataTypeId}.{_settings.CalculationConfigurationFileName}");
+        PathHelper.EnsureLegalPath(legalPath, filename);
+
+        string? fileData = null;
+        if (File.Exists(filename))
+        {
+            fileData = File.ReadAllText(filename, Encoding.UTF8);
+        }
+
+        return fileData;
     }
 }

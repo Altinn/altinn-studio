@@ -20,7 +20,6 @@
         "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
-        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -92,7 +91,7 @@
           { "$ref": "#/definitions/SubformSummaryOverrideProps" },
           { "$ref": "#/definitions/LikertSummaryOverrideProps" },
           { "$ref": "#/definitions/PaymentSummaryOverrideProps" },
-          { "$ref": "#/definitions/HeaderSummaryOverrideProps" },
+          { "$ref": "#/definitions/HeadingSummaryOverrideProps" },
           { "$ref": "#/definitions/ParagraphSummaryOverrideProps" },
           { "$ref": "#/definitions/TextSummaryOverrideProps" },
           { "$ref": "#/definitions/NumberSummaryOverrideProps" },

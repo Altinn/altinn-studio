@@ -4,8 +4,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/gitea-runner/**'
+      - 'src/ci/gitea-runner/**'
       - '.github/workflows/gitea-runner-test.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
@@ -18,11 +20,13 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Build Docker image
         run: docker build -t gitea-runner-test .
-        working-directory: src/gitea-runner
+        working-directory: src/ci/gitea-runner
 
       - name: Test renovate command is available
         run: |

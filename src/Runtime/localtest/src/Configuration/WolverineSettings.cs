@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace Altinn.Platform.Storage.Configuration;
 
 /// <summary>

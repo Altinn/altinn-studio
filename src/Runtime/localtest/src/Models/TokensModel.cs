@@ -1,4 +1,3 @@
-#nullable enable
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LocalTest.Models;

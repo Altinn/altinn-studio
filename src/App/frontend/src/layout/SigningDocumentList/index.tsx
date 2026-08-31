@@ -6,18 +6,23 @@ import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/Sig
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SigningDocumentList extends SigningDocumentListDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SigningDocumentList'>>(
     function SigningDocumentListComponentRender(props, _): JSX.Element | null {
       const { textResourceBindings } = useItemWhenType(props.baseComponentId, 'SigningDocumentList');
-      return <SigningDocumentListComponent textResourceBindings={textResourceBindings} />;
+      return (
+        <SigningDocumentListComponent
+          baseComponentId={props.baseComponentId}
+          textResourceBindings={textResourceBindings}
+        />
+      );
     },
   );
 
-  renderLayoutValidators(props: NodeValidationProps<'SigningDocumentList'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'SigningDocumentList'>): JSX.Element | null {
     return <ValidateSigningTaskType {...props} />;
   }
 
@@ -30,6 +35,7 @@ export class SigningDocumentList extends SigningDocumentListDef {
         content={SummaryContains.SomeUserContent}
       >
         <SigningDocumentListComponent
+          baseComponentId={targetBaseComponentId}
           textResourceBindings={{
             ...textResourceBindings,
             title:

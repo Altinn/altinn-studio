@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { StudioProperty, StudioSwitch } from '@studio/components';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioProperty, StudioSwitch, StudioAlert } from '@studio/components';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../hooks';
@@ -51,12 +50,11 @@ export const DataModelBindings = (): React.JSX.Element => {
 
   return (
     <>
-      {(formItem.type === ComponentType.FileUploadWithTag ||
-        formItem.type === ComponentType.FileUpload) &&
+      {formItem.type === ComponentType.FileUpload &&
         isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
-          <Alert size='small' severity='warning' className={classes.alert}>
+          <StudioAlert data-size='sm' data-color='warning' className={classes.alert}>
             {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
-          </Alert>
+          </StudioAlert>
         )}
       {dataModelBindings.anyOf && (
         <StudioSwitch

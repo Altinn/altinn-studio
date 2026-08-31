@@ -6,14 +6,13 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { type BackendValidationIssue } from 'src/features/validation';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
+import printStyles from 'src/styles/print.module.css';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 describe('SummaryComponent', () => {
-  const layoutMock = (
-    components: string[] = ['Input', 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'],
-  ): ILayoutCollection => ({
+  const layoutMock = (components: string[] = ['Input', 'Group', 'FileUpload', 'Checkboxes']): ILayoutCollection => ({
     FormLayout: {
       data: {
         layout: [
@@ -46,6 +45,106 @@ describe('SummaryComponent', () => {
       },
     });
     expect(screen.getByTestId('summary-group-component')).toBeInTheDocument();
+  });
+
+  test('applies page breaks to print markers around Summary2', async () => {
+    await render({
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        pageBreak: {
+          breakBefore: 'always',
+          breakAfter: 'avoid',
+        },
+      },
+    });
+
+    expect(screen.getByTestId('summary2-page-break-before')).toHaveClass(
+      printStyles.pageBreakMarker,
+      printStyles.breakBeforeAlways,
+    );
+    expect(screen.getByTestId('summary2-page-break-after')).toHaveClass(
+      printStyles.pageBreakMarker,
+      printStyles.breakAfterAvoid,
+    );
+  });
+
+  test('preserves an explicit page break on the referenced boundary component', async () => {
+    await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'Input',
+                type: 'Input',
+                dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
+                pageBreak: { breakBefore: 'always', breakAfter: 'always' },
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        pageBreak: { breakBefore: 'auto', breakAfter: 'avoid' },
+        target: { type: 'component', id: 'Input' },
+      },
+    });
+
+    expect(screen.getByTestId('summary2-page-break-before')).toHaveClass(printStyles.breakBeforeAuto);
+    expect(screen.getByTestId('summary2-page-break-after')).toHaveClass(printStyles.breakAfterAvoid);
+    expect(document.querySelector('[data-summary-target="Input"]')).toHaveClass(
+      printStyles.breakBeforeAlways,
+      printStyles.breakAfterAlways,
+    );
+  });
+
+  test('does not render page break markers when all Summary2 content is hidden because it is empty', async () => {
+    await render({
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        hideEmptyFields: true,
+        pageBreak: { breakBefore: 'always', breakAfter: 'always' },
+        target: { type: 'component', id: 'Input' },
+      },
+    });
+
+    expect(screen.queryByTestId('summary2-page-break-before')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('summary2-page-break-after')).not.toBeInTheDocument();
+  });
+
+  test('keeps page break markers when empty Summary2 content is displayed', async () => {
+    await render({
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        hideEmptyFields: false,
+        pageBreak: { breakBefore: 'always', breakAfter: 'always' },
+        target: { type: 'component', id: 'Input' },
+      },
+    });
+
+    expect(screen.getByTestId('summary2-page-break-before')).toBeInTheDocument();
+    expect(screen.getByTestId('summary2-page-break-after')).toBeInTheDocument();
+  });
+
+  test('does not count layout-set accordion containers as content', async () => {
+    await render({
+      layout: layoutMock(['Input']),
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        hideEmptyFields: true,
+        showPageInAccordion: true,
+        pageBreak: { breakBefore: 'always', breakAfter: 'always' },
+      },
+    });
+
+    expect(screen.queryByTestId('summary2-page-break-before')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('summary2-page-break-after')).not.toBeInTheDocument();
   });
 
   test('Should render in compact mode when set', async () => {
@@ -477,9 +576,11 @@ describe('SummaryComponent', () => {
       type: 'Summary2',
       id: 'mySummary2',
       hideEmptyFields: summary2Config.hideEmptyFields,
+      showPageInAccordion: summary2Config.showPageInAccordion,
       isCompact: summary2Config.isCompact,
       target: summary2Config.target,
       overrides: summary2Config?.overrides ?? [],
+      pageBreak: summary2Config.pageBreak,
     });
 
     return await renderWithInstanceAndLayout({

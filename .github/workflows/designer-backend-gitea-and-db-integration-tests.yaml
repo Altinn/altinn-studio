@@ -9,6 +9,8 @@ on:
       - 'src/Designer/development/fake-ansattporten/**'
       - 'src/gitea/**'
       - '.github/workflows/designer-backend-gitea-and-db-integration-tests.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -24,19 +26,21 @@ jobs:
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
-      - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          dotnet-version: |
-            9.0.x
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/Designer/backend/global.json
 
       - name: Build
         run: |
-           dotnet build backend/Designer.sln -v m
-        working-directory: src/Designer
+           dotnet build Designer.sln -v m
+        working-directory: src/Designer/backend
 
       - name: Run integration tests
         run: |
-           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=StudioOidcGiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
-        working-directory: src/Designer
+           dotnet test Designer.sln --filter "(Category=StudioOidcGiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
+        working-directory: src/Designer/backend

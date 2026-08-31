@@ -41,6 +41,14 @@ type MaskinportenClientStatus struct {
 	ClientId  string   `json:"clientId,omitempty"`
 	Authority string   `json:"authority,omitempty"`
 	KeyIds    []string `json:"keyIds,omitempty"`
+	// PendingSecretRotationFingerprint identifies a rotated Maskinporten secret that still needs an app rollout.
+	PendingSecretRotationFingerprint string `json:"pendingSecretRotationFingerprint,omitempty"`
+	// PendingSecretRotationDetectedAt is when the pending rotated secret was observed.
+	PendingSecretRotationDetectedAt *metav1.Time `json:"pendingSecretRotationDetectedAt,omitempty"`
+	// LastSecretRotationRestartedFingerprint identifies the latest rotated secret version that triggered an app rollout.
+	LastSecretRotationRestartedFingerprint string `json:"lastSecretRotationRestartedFingerprint,omitempty"`
+	// LastSecretRotationRestartedAt is when the latest Maskinporten compatibility rollout was triggered.
+	LastSecretRotationRestartedAt *metav1.Time `json:"lastSecretRotationRestartedAt,omitempty"`
 	// ActionHistory contains up to 10 recent actions, ordered oldest to newest
 	ActionHistory []ActionRecord `json:"actionHistory,omitempty"`
 	// Conditions represent the latest available observations of the resource's state

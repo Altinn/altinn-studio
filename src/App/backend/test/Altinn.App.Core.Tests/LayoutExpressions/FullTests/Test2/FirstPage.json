@@ -52,7 +52,10 @@
         "type": "Group",
         "children": ["comp","comp1", "comp2"],
         "dataModelBindings": {
-          "group": "some.data"
+          "group": {
+              "dataType": "default",
+              "field": "some.data"
+          }
         },
         "maxCount": 5,
         "hidden": ["notEquals", ["dataModel", "some.notRepeating"], "showGroup"]

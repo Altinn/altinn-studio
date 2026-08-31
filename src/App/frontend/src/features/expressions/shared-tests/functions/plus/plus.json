@@ -12,19 +12,19 @@
       "expects": -4.2
     },
     {
-      "name": "Should return null when both of the arguments are null",
+      "name": "Should return 0 when both of the arguments are null",
       "expression": ["plus", null, null],
-      "expects": null
+      "expects": 0
     },
     {
-      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "name": "Should return the first term when the second term is null",
       "expression": ["plus", 4.3, null],
-      "expects": null
+      "expects": 4.3
     },
     {
-      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "name": "Should return the second term when the first term is null",
       "expression": ["plus", null, 4.3],
-      "expects": null
+      "expects": 4.3
     },
     {
       "name": "Should add two integers",
@@ -147,14 +147,19 @@
       "expectsFailure": "Expected number, got value \"e2\""
     },
     {
-      "name": "Should throw exception when less than two arguments are provided",
-      "expression": ["plus", 0.2],
+      "name": "Should throw exception when no arguments are provided",
+      "expression": ["plus"],
       "expectsFailure": "Invalid"
     },
     {
-      "name": "Should throw exception when more than two arguments are present",
+      "name": "Should return the only term when only one is provided",
+      "expression": ["plus", 0.2],
+      "expects": 0.2
+    },
+    {
+      "name": "Should return the sum when more than two terms are present",
       "expression": ["plus", 0.1, 0.2, 15, 1.50],
-      "expectsFailure": "Invalid"
+      "expects": 16.8
     },
     {
       "name": "Should add negative and positive decimal numbers",

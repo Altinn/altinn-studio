@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Dropzone from 'react-dropzone';
 
 import { Button } from '@app/form-component';
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
@@ -9,7 +10,6 @@ import axios from 'axios';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import comboboxClasses from 'src/styles/combobox.module.css';
 import { optionFilter } from 'src/utils/options';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 

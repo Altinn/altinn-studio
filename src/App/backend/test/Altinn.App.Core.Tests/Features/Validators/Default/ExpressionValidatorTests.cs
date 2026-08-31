@@ -1,11 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
@@ -31,7 +29,6 @@ public class ExpressionValidatorTests
     private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(
         new FrontEndSettings()
     );
-    private readonly Mock<ILayoutEvaluatorStateInitializer> _layoutInitializer = new(MockBehavior.Strict);
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
@@ -52,7 +49,6 @@ public class ExpressionValidatorTests
         _validator = new ExpressionValidator(
             _logger.Object,
             _appResources.Object,
-            _layoutInitializer.Object,
             _appMetadata.Object,
             serviceProviderMock.Object
         );
@@ -88,8 +84,6 @@ public class ExpressionValidatorTests
         var dataType = new DataType() { Id = "default" };
         var appMedatada = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
 
-        var dataModel = DynamicClassBuilder.DataAccessorFromJsonDocument(instance, testCase.FormData, dataElement);
-
         var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new TranslationService(
@@ -97,17 +91,23 @@ public class ExpressionValidatorTests
             _appResources.Object,
             FakeLoggerXunit.Get<TranslationService>(_output)
         );
-        var evaluatorState = new LayoutEvaluatorState(
-            dataModel,
-            componentModel,
+
+        var dataModel = DynamicClassBuilder.DataObjectFromJsonDocument(testCase.FormData);
+
+        var dataAccessor = new InstanceDataAccessorFake(
+            instance,
+            appMedatada,
             translationService,
-            _frontendSettings.Value
-        );
-        _layoutInitializer
-            .Setup(init =>
-                init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
-            )
-            .ReturnsAsync(evaluatorState);
+            componentModel,
+            new FrontEndSettings(),
+            null,
+            null
+        )
+        {
+            { dataElement, dataModel },
+        };
+        var evaluatorState = dataAccessor.GetLayoutEvaluatorState();
+        Assert.NotNull(evaluatorState);
 
         _appResources
             .Setup(ar => ar.GetTexts("org", "app", "nb"))
@@ -117,14 +117,10 @@ public class ExpressionValidatorTests
                     : new TextResource { Language = "nb", Resources = testCase.TextResources }
             );
 
-        var dataAccessor = new InstanceDataAccessorFake(instance, appMedatada) { { dataElement, dataModel } };
-
         var validationIssues = await _validator.ValidateFormData(
             dataElement,
             dataAccessor,
-            JsonSerializer.Serialize(testCase.ValidationConfig),
-            "Task_1",
-            null
+            JsonSerializer.Serialize(testCase.ValidationConfig)
         );
 
         var result = validationIssues.Select(i => new

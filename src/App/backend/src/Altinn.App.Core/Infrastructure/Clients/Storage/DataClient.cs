@@ -12,6 +12,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -34,6 +35,7 @@ public sealed class DataClient : IDataClient
     private readonly ModelSerializationService _modelSerializationService;
     private readonly Telemetry? _telemetry;
     private readonly HttpClient _client;
+    private readonly IInstanceLocker _instanceLocker;
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
@@ -52,6 +54,7 @@ public sealed class DataClient : IDataClient
         _platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<DataClient>>();
         _telemetry = serviceProvider.GetService<Telemetry>();
+        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
 
         httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
@@ -162,10 +165,11 @@ public sealed class DataClient : IDataClient
         StreamContent streamContent = new(new MemoryAsStream(serializedBytes));
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             streamContent,
+            lockToken: _instanceLocker.CurrentLockToken,
             cancellationToken: cts.Token
         );
 
@@ -177,7 +181,7 @@ public sealed class DataClient : IDataClient
             return dataElement;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -235,16 +239,16 @@ public sealed class DataClient : IDataClient
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadAsStreamAsync(cts.Token);
+            // Ownership of the response moves to the returned stream — a `using` here would dispose the
+            // content the caller is about to read.
+            return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        // Nothing takes the response over on the failure path, so this scope owns it.
+        using (response)
         {
-            // ! TODO: Remove null return in v9 and throw exception instead
-            return null!;
+            throw await PlatformHttpException.Create(response, cts.Token);
         }
-
-        throw await PlatformHttpException.CreateAsync(response);
     }
 
     /// <inheritdoc />
@@ -271,19 +275,16 @@ public sealed class DataClient : IDataClient
 
         if (response.IsSuccessStatusCode)
         {
-            try
-            {
-                Stream stream = await response.Content.ReadAsStreamAsync(cts.Token);
-                return new ResponseWrapperStream(response, stream);
-            }
-            catch (Exception)
-            {
-                response.Dispose();
-                throw;
-            }
+            // Ownership of the response moves to the returned stream — a `using` here would dispose the
+            // content the caller is about to read.
+            return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
-        throw await PlatformHttpResponseSnapshotException.CreateAndDisposeHttpResponse(response, cts.Token);
+        // Nothing takes the response over on the failure path, so this scope owns it.
+        using (response)
+        {
+            throw await PlatformHttpException.Create(response, cts.Token);
+        }
     }
 
     /// <inheritdoc />
@@ -318,7 +319,7 @@ public sealed class DataClient : IDataClient
             );
         }
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.IsSuccessStatusCode)
         {
             var bytes = await response.Content.ReadAsByteArrayAsync(cts.Token);
@@ -334,7 +335,7 @@ public sealed class DataClient : IDataClient
             }
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -387,14 +388,14 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadAsByteArrayAsync(cts.Token);
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -418,7 +419,7 @@ public sealed class DataClient : IDataClient
         DataElementList dataList;
         List<AttachmentList> attachmentList = [];
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.StatusCode == HttpStatusCode.OK)
         {
             string instanceData = await response.Content.ReadAsStringAsync(cts.Token);
@@ -433,7 +434,7 @@ public sealed class DataClient : IDataClient
 
         _logger.Log(LogLevel.Error, "Unable to fetch attachment list {StatusCode}", response.StatusCode);
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
@@ -491,7 +492,12 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.DeleteAsync(
+            token,
+            apiUrl,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -501,7 +507,7 @@ public sealed class DataClient : IDataClient
         _logger.LogError(
             $"Deleting data element {dataGuid} for instance {instanceIdentifier} failed with status code {response.StatusCode}"
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -529,7 +535,13 @@ public sealed class DataClient : IDataClient
         );
 
         StreamContent content = request.CreateContentStream();
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -543,7 +555,7 @@ public sealed class DataClient : IDataClient
         _logger.LogError(
             $"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}"
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -582,7 +594,13 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -599,7 +617,7 @@ public sealed class DataClient : IDataClient
             response.StatusCode,
             await response.Content.ReadAsStringAsync(cts.Token)
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -627,7 +645,13 @@ public sealed class DataClient : IDataClient
 
         StreamContent content = request.CreateContentStream();
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -641,7 +665,7 @@ public sealed class DataClient : IDataClient
         _logger.LogError(
             $"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}"
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -676,7 +700,13 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
         _logger.LogInformation("Update binary data result: {ResultCode}", response.StatusCode);
         if (response.IsSuccessStatusCode)
         {
@@ -686,7 +716,7 @@ public sealed class DataClient : IDataClient
 
             return dataElement;
         }
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -707,7 +737,13 @@ public sealed class DataClient : IDataClient
         );
 
         StringContent jsonString = new(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            jsonString,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -719,7 +755,7 @@ public sealed class DataClient : IDataClient
             return result;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -745,11 +781,12 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             content: null,
             platformAccessToken: null,
+            lockToken: _instanceLocker.CurrentLockToken,
             cts.Token
         );
         if (response.IsSuccessStatusCode)
@@ -766,7 +803,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             response.StatusCode
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -792,7 +829,12 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.DeleteAsync(
+            token,
+            apiUrl,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
         if (response.IsSuccessStatusCode)
         {
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
@@ -807,7 +849,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             response.StatusCode
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     private static bool TypeAllowsJson(string? classRef, ApplicationMetadata appMetadata)

@@ -18,4 +18,14 @@ public interface IAltinityAgentClient
         string? comment,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Removes the Langfuse score holding a user's thumbs-up/thumbs-down for the given trace.
+    /// </summary>
+    Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Triggers deletion of Langfuse traces older than the agents service's retention window.
+    /// </summary>
+    Task TriggerTraceCleanupAsync(CancellationToken cancellationToken);
 }

@@ -227,6 +227,35 @@ public class TestFunctions
     [SharedTest("round")]
     public async Task Round_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
+    [Theory]
+    [SharedTestCases("list")]
+    public async Task List_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("object")]
+    public async Task Object_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTest("jmespath")]
+    public async Task Jmespath_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTestCases("sum")]
+    public async Task Sum_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("average")]
+    public async Task Average_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("count")]
+    public async Task Count_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
     private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
         ExpressionTestCaseRoot testCase = new();
@@ -271,11 +300,7 @@ public class TestFunctions
         List<DataType> dataTypes = new();
         if (test.DataModels is null)
         {
-            dataTypes.Add(new DataType() { Id = "default" });
-            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
-                test.Instance,
-                test.DataModel ?? JsonDocument.Parse("{}").RootElement
-            );
+            dataTypes.Add(new DataType { Id = "default" });
         }
         else
         {
@@ -289,7 +314,6 @@ public class TestFunctions
                         AppLogic = new() { ClassRef = "not-in-user" },
                     })
             );
-            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
         }
 
         var positionalArguments = test
@@ -354,15 +378,33 @@ public class TestFunctions
             FakeLoggerXunit.Get<TranslationService>(_output)
         );
 
-        var state = new LayoutEvaluatorState(
-            dataAccessor,
-            componentModel,
-            translationService,
-            test.FrontEndSettings ?? new FrontEndSettings(),
-            test.GatewayAction,
-            language,
-            TimeZoneInfo.Utc // Frontend uses UTC when formating dates
-        );
+        if (test.DataModels is null)
+        {
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService,
+                componentModel,
+                test.FrontEndSettings ?? new FrontEndSettings(),
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement,
+                test.GatewayAction,
+                language
+            );
+        }
+        else
+        {
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService,
+                componentModel,
+                test.FrontEndSettings ?? new FrontEndSettings(),
+                test.DataModels,
+                test.GatewayAction,
+                language
+            );
+        }
+
+        var state = dataAccessor.GetLayoutEvaluatorState();
+        Assert.NotNull(state);
 
         ComponentContext? context = null;
         if (test.Context is not null)
@@ -371,7 +413,7 @@ public class TestFunctions
         }
         else if (componentModel is not null)
         {
-            context = (await componentModel.GenerateComponentContexts(state)).First();
+            context = (await componentModel.GenerateComponentContexts(dataAccessor)).First();
         }
 
         if (test.ExpectsFailure is not null && test.ParsingException is not null)
@@ -382,17 +424,20 @@ public class TestFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        await RunTestCaseItem(
-            new ExpressionTestCaseRoot.TestCaseItem()
-            {
-                Expects = test.Expects,
-                Expression = test.Expression,
-                ExpectsFailure = test.ExpectsFailure,
-            },
-            state,
-            context,
-            positionalArguments
-        );
+        if (test.Expression != null)
+        {
+            await RunTestCaseItem(
+                new ExpressionTestCaseRoot.TestCaseItem()
+                {
+                    Expects = test.Expects,
+                    Expression = (Expression)test.Expression,
+                    ExpectsFailure = test.ExpectsFailure,
+                },
+                state,
+                context,
+                positionalArguments
+            );
+        }
 
         if (test.TestCases != null)
         {

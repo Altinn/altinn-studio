@@ -20,7 +20,9 @@ function checksToTestcase(checks, failures) {
         testCases.push(`<testcase name="${escapeHTML(check.name)}"/>`);
       } else {
         failures++;
-        testCases.push(`<testcase name="${escapeHTML(check.name)}"><failure message="failed"/></testcase>`);
+        testCases.push(
+          `<testcase name="${escapeHTML(check.name)}"><failure message="failed ${check.fails} of ${check.passes + check.fails} times"/></testcase>`,
+        );
       }
     });
   }

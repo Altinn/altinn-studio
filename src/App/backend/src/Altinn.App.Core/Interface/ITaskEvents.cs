@@ -5,7 +5,11 @@ namespace Altinn.App.Core.Interface;
 /// <summary>
 /// Interface for implementing a receiver handling task process events.
 /// </summary>
-[Obsolete(message: "Use Altinn.App.Core.Internal.Process.ITaskEvents instead", error: true)]
+[Obsolete(
+    message: "Use the task lifecycle handlers in Altinn.App.Core.Features.Process instead: "
+        + "IOnTaskStartingHandler, IOnTaskEndingHandler and IOnTaskAbandonHandler.",
+    error: true
+)]
 public interface ITaskEvents
 {
     /// <summary>

@@ -1329,7 +1329,7 @@
         }
       ],
       "title": "Workflow Outcomes",
-      "description": "Rate of workflow lifecycle events (5m avg). Failed/Canceled/Requeued broken down by reason \u2014 failed: execution / dependency_failed / poison; canceled: before_processing / during_processing; requeued: step_retry / shutdown.",
+      "description": "Rate of workflow lifecycle events (5m avg). Failed/Canceled/Requeued broken down by reason \u2014 failed: execution / dependency_failed / poisoned; canceled: before_processing / during_processing; requeued: step_retry / shutdown.",
       "type": "timeseries"
     },
     {

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -8,6 +9,8 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
     private static readonly SemaphoreSlim _lock = new(1, 1);
     private static int _references;
     private static bool _startedByFixture;
+    private static bool _envEnsured;
+    private static bool _processExitHooked;
 
     private readonly ILogger _logger;
     private bool _disposed;
@@ -22,12 +25,14 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
         await _lock.WaitAsync(cancellationToken);
         try
         {
-            if (_references == 0)
+            // The localtest environment is a process-wide singleton. It is brought up once on the first
+            // acquire and kept running for the whole test run; tearing it down between test classes
+            // caused repeated env up/down churn and let parallel collections kill each other's in-flight
+            // requests. When the fixture started it, teardown happens once on process exit.
+            if (!_envEnsured)
             {
                 try
                 {
-                    // This lease only avoids repeated env up/down when test classes overlap in parallel.
-                    // If classes run sequentially, the count falls back to zero between classes.
                     var status = await GetStatus(logger, cancellationToken);
                     if (!status.Running)
                     {
@@ -40,6 +45,14 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
                         _startedByFixture = false;
                         logger.LogInformation("Reusing running studioctl localtest environment");
                     }
+
+                    if (_startedByFixture)
+                        HookProcessExitTeardown(logger);
+
+                    // Confirm the engine is up and reachable through localtest before any test runs, so
+                    // app->engine enqueues and engine->app callbacks do not race environment startup.
+                    await WaitForEngineReady(logger, cancellationToken);
+                    _envEnsured = true;
                 }
                 catch
                 {
@@ -58,26 +71,92 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         if (_disposed)
-            return;
+            return ValueTask.CompletedTask;
 
         _disposed = true;
+        // The shared environment is intentionally kept running for the whole test run (see Acquire).
+        // References are tracked only for diagnostics; teardown is handled once on process exit.
+        Interlocked.Decrement(ref _references);
+        return ValueTask.CompletedTask;
+    }
 
-        await _lock.WaitAsync(CancellationToken.None);
-        try
+    private static void HookProcessExitTeardown(ILogger logger)
+    {
+        if (_processExitHooked)
+            return;
+
+        _processExitHooked = true;
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
-            _references--;
-            if (_references != 0)
+            if (!_startedByFixture)
                 return;
 
-            await StopStartedResources(_logger, throwOnFailure: true);
-            _startedByFixture = false;
-        }
-        finally
+            try
+            {
+                logger.LogInformation("Stopping localtest with studioctl env down (process exit)");
+                // ProcessExit handlers are synchronous, so block on the async teardown within the
+                // runtime's exit window. Best-effort: a leftover environment is recoverable via
+                // 'studioctl env down'.
+                Run("env down", logger, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "studioctl env down failed on process exit");
+            }
+        };
+    }
+
+    private static async Task WaitForEngineReady(ILogger logger, CancellationToken cancellationToken)
+    {
+        using var client = new HttpClient
         {
-            _lock.Release();
+            BaseAddress = new Uri("http://workflow-engine.local.altinn.cloud:8000"),
+            Timeout = TimeSpan.FromSeconds(10),
+        };
+        client.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
+
+        var deadline = TimeSpan.FromSeconds(60);
+        var timer = Stopwatch.StartNew();
+        var attempts = 0;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            attempts++;
+            var lastStatus = "connection failure";
+            try
+            {
+                using var response = await client.GetAsync("/api/v1/namespaces", cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    logger.LogInformation(
+                        "Workflow engine ready after {ElapsedSeconds}s ({Attempts} attempts)",
+                        timer.Elapsed.TotalSeconds.ToString("0.00"),
+                        attempts
+                    );
+                    return;
+                }
+
+                lastStatus = $"{(int)response.StatusCode} {response.StatusCode}";
+            }
+            catch (HttpRequestException)
+            {
+                // engine/localtest not yet routing - retry.
+            }
+            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Per-request timeout - retry.
+            }
+
+            if (timer.Elapsed > deadline)
+                throw new InvalidOperationException(
+                    $"Workflow engine was not reachable through localtest within {deadline.TotalSeconds:0}s "
+                        + $"(last status: {lastStatus})."
+                );
+
+            await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
         }
     }
 
@@ -202,6 +281,11 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
 internal sealed class StudioctlAppProcess : IAsyncDisposable
 {
     private static readonly TimeSpan _stopTimeout = TimeSpan.FromSeconds(10);
+    private static readonly HashSet<string> _reservedEnvironmentVariables = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AppFixture__ConfigurationPath",
+        "NUGET_PACKAGES",
+    };
 
     private readonly ILogger _logger;
 
@@ -237,6 +321,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string fixtureConfigurationPath,
         string nugetPackagesDirectory,
         string appFrontendAssetBaseUrl,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken
     )
@@ -245,6 +330,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath,
             nugetPackagesDirectory,
+            environmentVariables,
             logger,
             cancellationToken,
             appFrontendAssetBaseUrl,
@@ -282,6 +368,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath: null,
             nugetPackagesDirectory: null,
+            environmentVariables: null,
             logger,
             CancellationToken.None,
             appFrontendAssetBaseUrl: null,
@@ -405,6 +492,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string workingDirectory,
         string? fixtureConfigurationPath,
         string? nugetPackagesDirectory,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken,
         string? appFrontendAssetBaseUrl,
@@ -424,6 +512,16 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             process.StartInfo.Environment["NUGET_PACKAGES"] = nugetPackagesDirectory;
         if (appFrontendAssetBaseUrl is not null)
             process.StartInfo.Environment["AppSettings__AppFrontendAssetBaseUrl"] = appFrontendAssetBaseUrl;
+        if (environmentVariables is not null)
+        {
+            foreach (var (key, value) in environmentVariables)
+            {
+                if (_reservedEnvironmentVariables.Contains(key))
+                    throw new InvalidOperationException($"Environment variable '{key}' is reserved by the fixture.");
+
+                process.StartInfo.Environment[key] = value;
+            }
+        }
         foreach (var argument in arguments)
             process.StartInfo.ArgumentList.Add(argument);
 

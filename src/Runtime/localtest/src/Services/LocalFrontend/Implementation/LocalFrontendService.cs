@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Studio.EnvTopology;
 using LocalTest.Configuration;
 using LocalTest.Models;

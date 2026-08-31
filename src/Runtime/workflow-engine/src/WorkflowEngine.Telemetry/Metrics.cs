@@ -109,7 +109,24 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of workflows that terminated in a <c>Failed</c> state.
+    /// Counter of workflows parked in <c>Waiting</c> because a step deferred (not a failure signal).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsDeferred = Meter.CreateCounter<long>(
+        "engine.workflows.execution.deferred",
+        description: "Number of workflow attempts that ended in Waiting because a step deferred"
+    );
+
+    /// <summary>
+    /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
+    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c>) and
+    /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
+    /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
+    /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
+    /// workflows (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
+    /// <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
+    /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
+    /// the default alert: a step's wait budget running out means the awaited external outcome
+    /// never arrived, not that the engine or command failed — route it to the owning team instead.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
@@ -131,6 +148,24 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of unsuccessful terminal workflows marked <c>Abandoned</c> (failure written off by a caller).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsAbandoned = Meter.CreateCounter<long>(
+        "engine.workflows.execution.abandoned",
+        description: "Number of unsuccessful terminal workflows whose failure was written off by a caller"
+    );
+
+    /// <summary>
+    /// Counter of parked workflows (<c>Requeued</c> or <c>Waiting</c>) whose pending backoff was cleared
+    /// by a caller asking for an immediate re-check. For a <c>Waiting</c> step this is the push signal
+    /// that accelerates a poll; it is an optimization, never load-bearing for correctness.
+    /// </summary>
+    public static readonly Counter<long> WorkflowsNudged = Meter.CreateCounter<long>(
+        "engine.workflows.execution.nudged",
+        description: "Number of parked workflows whose pending backoff was cleared for an immediate re-check"
+    );
+
+    /// <summary>
     /// Counter of stale workflows reclaimed from crashed workers.
     /// </summary>
     public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
@@ -139,11 +174,19 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of in-flight workflows this host abandoned because their lease was reclaimed by another host.
+    /// Counter of DependencyFailed workflows re-enqueued because their dependencies have since completed.
+    /// </summary>
+    public static readonly Counter<long> WorkflowsDependencyRecovered = Meter.CreateCounter<long>(
+        "engine.workflows.execution.dependency_recovered",
+        description: "Number of DependencyFailed workflows re-enqueued because their dependencies have since completed"
+    );
+
+    /// <summary>
+    /// Counter of in-flight workflows this host gave up processing because their lease was reclaimed by another host.
     /// </summary>
     public static readonly Counter<long> WorkflowsLeaseLost = Meter.CreateCounter<long>(
         "engine.workflows.execution.lease_lost",
-        description: "Number of in-flight workflows this host abandoned because their lease was reclaimed by another host"
+        description: "Number of in-flight workflows this host gave up processing because their lease was reclaimed by another host"
     );
 
     /// <summary>
@@ -199,6 +242,12 @@ public static class Metrics
     public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
 
     /// <summary>
+    /// Counter of step deferrals (successful executions whose awaited outcome was not available yet).
+    /// Deliberately separate from <see cref="StepsRequeued"/>/<see cref="StepsFailed"/>: a deferral is not a failure.
+    /// </summary>
+    public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
+
+    /// <summary>
     /// Counter of steps that terminated in failure.
     /// </summary>
     public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.steps.execution.failed");
@@ -228,6 +277,17 @@ public static class Metrics
         "engine.steps.time.total",
         "s",
         "Total time for this step within the workflow attempt — queue + service (seconds). Recorded once per step per attempt."
+    );
+
+    /// <summary>
+    /// Histogram of wait budget consumed by a deferring step, from its first deferral to the moment it
+    /// resolved (completed, expired, or failed). The only signal that shows budgets being approached
+    /// rather than blown — compare upper percentiles against the configured <c>command.waitBudget</c>.
+    /// </summary>
+    public static readonly Histogram<double> StepWaitDuration = Meter.CreateHistogram<double>(
+        "engine.steps.wait.duration",
+        "s",
+        "Wait budget consumed by a deferring step, from first deferral to resolution (seconds). Recorded once per deferring step."
     );
 
     /// <summary>
@@ -313,6 +373,16 @@ public static class Metrics
     public static readonly ObservableGauge<long> ScheduledWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.scheduled",
         static () => _scheduledWorkflowsCount
+    );
+
+    private static long _waitingWorkflowsCount;
+
+    /// <summary>
+    /// Gauge of workflows currently parked in <c>Waiting</c> (deferred steps awaiting an external outcome).
+    /// </summary>
+    public static readonly ObservableGauge<long> WaitingWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.waiting",
+        static () => _waitingWorkflowsCount
     );
 
     private static long _failedWorkflowsCount;
@@ -444,6 +514,11 @@ public static class Metrics
     /// Sets the value reported by <see cref="ScheduledWorkflows"/>.
     /// </summary>
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
+
+    /// <summary>
+    /// Sets the value reported by <see cref="WaitingWorkflows"/>.
+    /// </summary>
+    public static void SetWaitingWorkflowsCount(long count) => _waitingWorkflowsCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="FailedWorkflows"/>.

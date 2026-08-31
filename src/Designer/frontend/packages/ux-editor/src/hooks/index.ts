@@ -11,3 +11,4 @@ export { useComponentPropertyDescription } from './useComponentPropertyDescripti
 export { useAppContext } from './useAppContext';
 export { useGetLayoutSetByName } from './useGetLayoutSetByName';
 export { useComponentPropertyHelpText } from './useComponentPropertyHelpText';
+export { useConfigurationMode } from './useConfigurationMode';

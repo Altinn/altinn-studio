@@ -118,10 +118,11 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport)
       .should('be.inViewport')
-      .should('contain.text', texts.errorReport)
-      .should('contain.text', texts.requiredFieldLastName)
-      .should('contain.text', texts.requiredFieldDateFrom)
-      .should('contain.text', texts.next);
+      .and('be.focused')
+      .and('contain.text', texts.errorReport)
+      .and('contain.text', texts.requiredFieldLastName)
+      .and('contain.text', texts.requiredFieldDateFrom)
+      .and('contain.text', texts.next);
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 4);
     cy.get(appFrontend.errorReport)
@@ -141,11 +142,12 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newLastName).should('be.focused');
 
     // Go to the summary page
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.gotoNavPage('summary');
     cy.get(appFrontend.errorReport)
       .should('contain.text', texts.errorReport)
-      .should('contain.text', texts.requiredFieldLastName)
-      .should('contain.text', texts.requiredFieldDateFrom);
+      .and('contain.text', texts.requiredFieldLastName)
+      .and('contain.text', texts.requiredFieldDateFrom)
+      .and('not.be.focused');
     cy.get(lastNameError).should('not.exist');
 
     // Click the error text, which should lead us back to the change name form and focus the field
@@ -286,7 +288,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.comments).type('test');
     cy.get(appFrontend.fieldValidation('comments-0-0')).should('have.text', texts.testIsNotValidValue);
-    cy.get(appFrontend.errorReport).should('exist').should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     // Hide field that contains validation error and verify validation messages are gone
     cy.get(appFrontend.group.hideCommentField).findByRole('checkbox', { name: 'Ja' }).check();
@@ -312,8 +314,11 @@ describe('Validation', () => {
 
     // Try to click next to observe the error report
     cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport)
+      .should('contain.text', 'Tullevalidering')
+      .and('be.focused')
+      .findAllByRole('listitem')
+      .should('have.length', 1);
 
     // The navigation should be stopped, so we should still be on the 'hide' page
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
@@ -367,6 +372,8 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(2).nestedGroup.row(0).comments).should('be.visible');
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.editContainer).should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();
     cy.get(appFrontend.group.row(2).currentValue).should('exist').and('be.focused');
@@ -390,10 +397,13 @@ describe('Validation', () => {
     cy.get(appFrontend.group.addNewItemSubGroup).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).should('be.visible');
     cy.get(appFrontend.group.saveSubGroup).click();
-    cy.get(appFrontend.errorReport).should('contain.text', texts.requiredComment);
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByText(texts.requiredComment);
     cy.gotoNavPage('prefill');
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).should('be.visible');
     cy.gotoNavPage('repeating');
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.findByRole('button', { name: 'Se innhold NOK 1 233' }).click();
     cy.get(appFrontend.errorReport).findByText(texts.requiredComment).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).should('be.focused');
@@ -427,6 +437,7 @@ describe('Validation', () => {
 
     // The currentValue field is required, but as it's implicitly hidden in the expanded edit, it should not produce
     // a validation message or be visible in the error report.
+    cy.get(appFrontend.navButtons).findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
@@ -846,13 +857,11 @@ describe('Validation', () => {
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.group.currentValue).should('be.visible');
     cy.get(appFrontend.group.newValue).should('be.visible');
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2); // No error about minCount yet
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.get(appFrontend.navButtons).findByRole('button', { name: /Neste/ }).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut 1. endre fra');
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut 2. endre verdi til');
-
-    // Try to navigate to the next page, which should add the third error about minCount
-    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
     cy.get(appFrontend.errorReport).should('contain.text', 'Minst 2 rader er påkrevd');
 
     // Filling those out will allow us to close the row
@@ -868,13 +877,21 @@ describe('Validation', () => {
 
     // Add one more row, this time navigating to the next page inside it to openByDefault a new row in the nested group
     cy.get(appFrontend.group.addNewItem).click();
-    cy.get(appFrontend.errorReport).should('not.exist');
+    // The failed page navigation above intentionally keeps the page validation mask active. Adding a row resolves
+    // minCount, but the same mask should keep revealing new required errors on the page. This is a change in v9,
+    // previously only older/existing errors would show up in the error report, new ones that appeared after the error
+    // report was triggered would not appear yet.
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+    cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut 1. endre fra');
+    cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut 2. endre verdi til');
     cy.get(appFrontend.group.currentValue).type('1234');
     cy.get(appFrontend.group.newValue).type('4321');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.comments).should('be.visible'); // Required field in the nested group
-    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('not.contain.text', 'Rett feil her');
-    cy.get(appFrontend.group.row(1).tableRow).should('not.contain.text', 'Rett feil her');
+    // The page validation mask also applies to the nested group row now that its required field is visible,
+    // and the main group row reports deep validations for its descendants.
+    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');
     cy.get(appFrontend.group.saveMainGroup).click({ force: true });
     cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
     cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');
@@ -932,7 +949,7 @@ describe('Validation', () => {
       },
     };
 
-    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
+    cy.intercept('GET', '**/bootstrap-form/Task_2**', (req) => {
       req.on('response', (res) => {
         const body = res.body as FormBootstrapResponse;
         body.dataModels['ServiceModel-test'].initialValidationIssues!.push({
@@ -961,6 +978,12 @@ describe('Validation', () => {
       'have.text',
       'Verdien kan ikke være lengre enn 10, den er nå 19',
     );
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.get(appFrontend.changeOfName.newFirstName).type('a');
+    cy.get(appFrontend.changeOfName.confirmChangeName)
+      .findByRole('checkbox', { name: /Ja[a-z, ]*/ })
+      .check();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Verdien kan ikke være lengre enn 10, den er nå 19');
   });
 });

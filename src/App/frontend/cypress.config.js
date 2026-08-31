@@ -1,19 +1,30 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { defineConfig } = require('cypress');
+const { vitePreprocessor } = require('cypress-vite');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { existsSync } = require('node:fs');
 const env = require('dotenv').config();
+const configureCypressShard = require('./scripts/cypress-shard');
 
 const CYPRESS_WINDOW_WIDTH = env.parsed?.CYPRESS_WINDOW_WIDTH || 1920;
 const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
 
 // noinspection JSUnusedGlobalSymbols
 module.exports = defineConfig({
+  allowCypressEnv: false,
   e2e: {
     setupNodeEvents(on, config) {
       const snapshotsPath = path.resolve('snapshots.json');
       require('cypress-terminal-report/src/installLogsPrinter')(on, { printLogsToConsole: 'always' });
+      on(
+        'file:preprocessor',
+        vitePreprocessor({
+          configFile: path.resolve(__dirname, 'vite.config.cypress.mts'),
+          configLoader: 'native',
+        }),
+      );
+
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.name === 'electron') {
           launchOptions.preferences.width = CYPRESS_WINDOW_WIDTH;
@@ -70,7 +81,36 @@ module.exports = defineConfig({
 
       const validEnvironments = ['localtest', 'tt02'];
       if (validEnvironments.includes(config.env.environment)) {
-        return getConfigurationByFile(config.env.environment);
+        return getConfigurationByFile(config.env.environment).then((fileConfig) => {
+          const configured = {
+            ...config,
+            ...fileConfig,
+            env: {
+              ...config.env,
+              ...fileConfig.env,
+            },
+            expose: {
+              ...config.expose,
+              ...fileConfig.expose,
+              // Specs that assert on backend-local date/time values need the backend's timezone.
+              // Only in localtest does the app backend run on the same machine as Cypress, so only
+              // then is the machine timezone valid - read it here in the Node process, since the
+              // browser's timezone may be emulated via CDP and cannot be trusted. Against remote
+              // environments (tt02) this is deliberately left unset; specs fall back to UTC, which
+              // is what those backends run in.
+              ...(config.env.environment === 'localtest'
+                ? { machineTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+                : {}),
+            },
+          };
+
+          return configureCypressShard(configured, {
+            specRoot: path.resolve(__dirname, 'test/e2e/integration'),
+            timingsFile: path.resolve(__dirname, 'test/e2e/cypress-timings.json'),
+            total: process.env.E2E_SHARD_TOTAL,
+            number: process.env.E2E_SHARD_NUMBER,
+          });
+        });
       }
 
       throw new Error(`Unknown environment "${config.env.environment}"
@@ -79,6 +119,17 @@ Valid environments are:
     },
     specPattern: ['test/e2e/integration/', 'test/e2e/manual/'],
     supportFile: 'test/e2e/support/index.ts',
+  },
+  // cypress-axe locates axe-core with `require.resolve`, which throws "require is not defined" in a
+  // browser bundle (webpack provided a bare `require` inside bundled modules, Rolldown does not),
+  // and its fallback path assumes axe-core sits in this project's node_modules - in this monorepo
+  // Yarn hoists it to the repo root. Resolve it here in the Node process instead and hand it to
+  // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
+  expose: {
+    axeCorePath: require.resolve('axe-core/axe.min.js'),
+    // Percy uses this public local endpoint to communicate with its CLI. Exposing it prevents
+    // @percy/cypress from falling back to the disabled Cypress.env() API when Percy is not running.
+    PERCY_SERVER_ADDRESS: process.env.PERCY_SERVER_ADDRESS || 'http://localhost:5338',
   },
   fixturesFolder: 'test/e2e/fixtures',
   downloadsFolder: 'test/downloads',

@@ -42,7 +42,6 @@ public class ReceiveDeployEventTests
             $$"""
             {
                 "FeatureManagement": {
-                    "{{StudioFeatureFlags.GitOpsDeploy}}": true,
                     "{{StudioFeatureFlags.Maskinporten}}": true
                 },
                 "Maskinporten": {
@@ -63,8 +62,8 @@ public class ReceiveDeployEventTests
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory
-            .WithWebHostBuilder(builder =>
+        return CreateTestClient(
+            builder =>
             {
                 builder.UseConfiguration(configuration);
                 builder.ConfigureAppConfiguration(
@@ -123,8 +122,9 @@ public class ReceiveDeployEventTests
                             }
                         );
                 });
-            })
-            .CreateDefaultClient(new CookieContainerHandler());
+            },
+            new CookieContainerHandler()
+        );
     }
 
     [Theory]

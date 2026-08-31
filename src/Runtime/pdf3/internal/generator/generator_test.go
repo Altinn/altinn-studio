@@ -13,7 +13,6 @@ import (
 
 	"altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/internal/types"
-	"altinn.studio/pdf3/test/harness"
 )
 
 func TestPostProcessPDFConvertsWhenPDFAIsEnabled(t *testing.T) {
@@ -93,11 +92,7 @@ func TestGenerateFallsBackToOriginalPDFWhenPDFAConversionFails(t *testing.T) {
 func loadPDFAFixture(t *testing.T) []byte {
 	t.Helper()
 
-	projectRoot, err := harness.FindProjectRoot()
-	if err != nil {
-		t.Fatalf("FindProjectRoot() error = %v", err)
-	}
-	inputPath := filepath.Join(projectRoot, "internal", "pdfa", "testdata", "pdfa-conversion-input.pdf")
+	inputPath := filepath.Join("..", "pdfa", "testdata", "pdfa-conversion-input.pdf")
 	input, err := os.ReadFile(inputPath)
 	if err != nil {
 		t.Fatalf("ReadFile() error = %v", err)

@@ -28,10 +28,10 @@ const partyWithChildParties = {
 
 describe('altinnParty', () => {
   it('should call onSelectParty callback with the clicked party', async () => {
-    const handleSelectParty = jest.fn();
+    const handleSelectParty = vi.fn();
     await render({ onSelectParty: handleSelectParty });
 
-    const party = screen.getByText(/personnr\. 01017512345/i);
+    const party = screen.getByText(/personnr\. 010175\*\*\*\*\*/i);
 
     await user.click(party);
 
@@ -98,7 +98,7 @@ describe('altinnParty', () => {
 const render = async (props: Partial<IAltinnPartyProps> = {}) => {
   const allProps = {
     party: getPartyMock(),
-    onSelectParty: jest.fn(),
+    onSelectParty: vi.fn(),
     showSubUnits: false,
     ...props,
   };

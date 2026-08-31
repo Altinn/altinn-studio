@@ -16,6 +16,11 @@ public static class General
     public const string CustomReceiptId = "CustomReceipt";
 
     /// <summary>
+    /// The name of subforms in the application
+    /// </summary>
+    public const string SubformId = "subform";
+
+    /// <summary>
     /// The name of the default branch used by Gitea
     /// </summary>
     public const string DefaultBranch = "master";

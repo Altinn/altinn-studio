@@ -1,5 +1,1 @@
-export {
-  setLastChangedAndSortResourceListByDate,
-  mapAltinn2LinkServiceToSelectOption,
-  mapSelectOptiontoAltinn2LinkService,
-} from './mapperUtils';
+export { setLastChangedAndSortResourceListByDate } from './mapperUtils';

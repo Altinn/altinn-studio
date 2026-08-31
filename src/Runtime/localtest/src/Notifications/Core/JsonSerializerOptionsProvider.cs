@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+#nullable disable
+
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Core

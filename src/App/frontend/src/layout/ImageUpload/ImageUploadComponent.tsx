@@ -1,20 +1,25 @@
 import React from 'react';
 
-import { Label } from '@app/form-component';
+import { IMAGE_TYPE, ImageUploadLayout } from '@app/form-component';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { ImageCropper } from 'src/layout/ImageUpload/ImageCropper';
-import { getCropArea, IMAGE_TYPE, isAllowedContentTypesValid } from 'src/layout/ImageUpload/imageUploadUtils';
-import { useLabel } from 'src/utils/layout/useLabel';
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
+import { isAllowedContentTypesValid } from 'src/layout/ImageUpload/imageUploadUtils';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useLabelData } from 'src/utils/layout/useLabelData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function ImageUploadComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'ImageUpload'>) {
   const { dataTypes } = getApplicationMetadata();
-  const { id, crop, grid, required, readOnly } = useItemWhenType(baseComponentId, 'ImageUpload');
-  const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId, overrideDisplay });
+  const { crop, readOnly } = useItemWhenType(baseComponentId, 'ImageUpload');
+  const { storedImage, imageUrl, saveImage, deleteImage } = useImageFile(baseComponentId);
+  const { title, help, description, required, showOptionalMarking } = useLabelData({
+    baseComponentId,
+    overrideDisplay,
+  });
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
 
   if (!isAllowedContentTypesValid({ baseComponentId, dataTypes })) {
     throw new Error(
@@ -23,23 +28,24 @@ export function ImageUploadComponent({ baseComponentId, overrideDisplay }: Props
   }
 
   return (
-    <Label
-      htmlFor={id}
-      label={labelText}
-      grid={grid?.labelGrid}
+    <ImageUploadLayout
+      componentId={componentId}
+      crop={crop}
+      readOnly={readOnly}
       required={required}
-      requiredIndicator={getRequiredComponent()}
-      optionalIndicator={getOptionalComponent()}
-      help={getHelpTextComponent()}
-      description={getDescriptionComponent()}
-    >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <ImageCropper
-          cropArea={getCropArea(crop)}
-          baseComponentId={baseComponentId}
-          readOnly={!!readOnly}
-        />
-      </ComponentStructureWrapper>
-    </Label>
+      showOptionalMarking={showOptionalMarking}
+      title={title}
+      help={help}
+      description={description}
+      storedImage={storedImage}
+      imageUrl={imageUrl}
+      onSave={saveImage}
+      onDelete={deleteImage}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+      }
+    />
   );
 }

@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.model;
 using Altinn.Platform.Storage.Interface.Models;
@@ -19,7 +19,7 @@ public class ExampleServiceTask : IServiceTask
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
 
         if (formData.property1 != "true")
-            return ServiceTaskResult.FailedAbortProcessNext();
+            return ServiceTaskResult.FailedPermanent("property1 must be 'true' for the service task to succeed.");
 
         return ServiceTaskResult.Success();
     }

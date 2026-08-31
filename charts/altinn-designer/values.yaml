@@ -1,4 +1,5 @@
 replicaCount: 1
+terminationGracePeriodSeconds: 30
 
 environment: dev
 
@@ -38,10 +39,8 @@ environmentVariables:
       value: dev.altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: GeneralSettings__CheckTeamMembershipForDeploy
       value: true
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -84,10 +83,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__StudioOidc
-      value: "true"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "false"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -96,6 +91,20 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__Enabled
+      value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__RetentionDays
+      value: "90"
+    - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
+      value: "200"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
+      value: "3"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
+      value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
+      value: "120"
+    - name: SchedulingSettings__RepositoryCleanup__CronExpression
+      value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -126,10 +135,8 @@ environmentVariables:
       value: staging.altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: GeneralSettings__CheckTeamMembershipForDeploy
       value: true
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -172,10 +179,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__StudioOidc
-      value: "true"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "true"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -184,6 +187,20 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__Enabled
+      value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__RetentionDays
+      value: "90"
+    - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
+      value: "200"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
+      value: "3"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
+      value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
+      value: "120"
+    - name: SchedulingSettings__RepositoryCleanup__CronExpression
+      value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -214,10 +231,8 @@ environmentVariables:
       value: altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -258,10 +273,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
-    - name: FeatureManagement__StudioOidc
-      value: "true"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "false"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -270,6 +281,20 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__Enabled
+      value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__RetentionDays
+      value: "90"
+    - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
+      value: "200"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
+      value: "3"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
+      value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
+      value: "120"
+    - name: SchedulingSettings__RepositoryCleanup__CronExpression
+      value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -350,5 +375,4 @@ lifecycle:
         - -c
         - >
           mkdir -p wwwroot/designer/config &&
-          STUDIO_OIDC_FLAG=$([ "${FeatureManagement__StudioOidc}" = "true" ] && echo true || echo false) &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": ${STUDIO_OIDC_FLAG}}}" > wwwroot/designer/config/env.json
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": true}}" > wwwroot/designer/config/env.json

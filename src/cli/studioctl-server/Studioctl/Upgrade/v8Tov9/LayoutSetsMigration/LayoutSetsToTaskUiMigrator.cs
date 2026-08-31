@@ -1,24 +1,16 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 
-internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
+internal sealed class LayoutSetsToTaskUiMigrator
 {
     private readonly string _projectFolder;
-    private readonly GitOperations? _git;
 
     public LayoutSetsToTaskUiMigrator(string projectFolder)
     {
         _projectFolder = projectFolder;
-        _git = GitOperations.TryCreate(projectFolder);
-    }
-
-    public void Dispose()
-    {
-        _git?.Dispose();
     }
 
     public MigrationResult Migrate()
@@ -71,24 +63,23 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 {
                     if (plan.DestinationIds.Count == 1)
                     {
-                        MoveDirectory(plan.SourcePath, destinationPath);
+                        Directory.Move(plan.SourcePath, destinationPath);
                         renamedFolderCount++;
                     }
                     else
                     {
                         CopyDirectory(plan.SourcePath, destinationPath);
-                        _git?.StageDirectory(destinationPath);
                         copiedFolderCount++;
                     }
                 }
 
                 touchedFolders.Add(destinationId);
-                UpsertDefaultDataType(destinationPath, plan.DataType);
+                UpsertLayoutSetMetadata(destinationPath, plan.DataType, plan.Type);
             }
 
             if (plan.DestinationIds.Count > 1 && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal))
             {
-                DeleteDirectory(plan.SourcePath);
+                Directory.Delete(plan.SourcePath, recursive: true);
                 deletedSourceFolderCount++;
             }
         }
@@ -99,13 +90,10 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             var globalSettingsPath = Path.Combine(uiPath, "Settings.json");
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(globalSettingsPath, uiSettingsObject.ToJsonString(options));
-            _git?.StageFile(globalSettingsPath);
             migratedGlobalSettings = true;
         }
 
         // Restore whitespace-only changes to preserve original formatting in Settings.json files.
-        // UpsertDefaultDataType intentionally leaves files unstaged so the processor can diff
-        // the working directory against the index (which has the original formatting).
         try
         {
             var whitespaceRestorer = new WhitespaceRestorationProcessor(uiPath);
@@ -116,18 +104,7 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             // Non-fatal: whitespace restoration is best-effort
         }
 
-        // Stage settings files after whitespace restoration has cleaned them up
-        foreach (var destinationId in touchedFolders)
-        {
-            var settingsPath = Path.Combine(uiPath, destinationId, "Settings.json");
-            if (File.Exists(settingsPath))
-            {
-                _git?.StageFile(settingsPath);
-            }
-        }
-
         File.Delete(layoutSetsPath);
-        _git?.StageRemoval(layoutSetsPath);
 
         return new MigrationResult
         {
@@ -138,30 +115,6 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             DeletedSourceFolderCount = deletedSourceFolderCount,
             MigratedGlobalSettings = migratedGlobalSettings,
         };
-    }
-
-    private void MoveDirectory(string sourcePath, string destinationPath)
-    {
-        if (_git is not null)
-        {
-            _git.MoveDirectory(sourcePath, destinationPath);
-        }
-        else
-        {
-            Directory.Move(sourcePath, destinationPath);
-        }
-    }
-
-    private void DeleteDirectory(string path)
-    {
-        if (_git is not null)
-        {
-            _git.DeleteDirectory(path);
-        }
-        else
-        {
-            Directory.Delete(path, recursive: true);
-        }
     }
 
     /// <summary>
@@ -214,7 +167,8 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                     sourceId,
                     sourcePath,
                     ResolveDestinationFolderIds(sourceId, setObject["tasks"] as JsonArray),
-                    setObject["dataType"]?.GetValue<string>()
+                    setObject["dataType"]?.GetValue<string>(),
+                    setObject["type"]?.GetValue<string>()
                 )
             );
         }
@@ -277,9 +231,9 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         return taskIds;
     }
 
-    private void UpsertDefaultDataType(string folderPath, string? dataType)
+    private void UpsertLayoutSetMetadata(string folderPath, string? dataType, string? type)
     {
-        if (string.IsNullOrWhiteSpace(dataType))
+        if (string.IsNullOrWhiteSpace(dataType) && string.IsNullOrWhiteSpace(type))
         {
             return;
         }
@@ -297,11 +251,18 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             settings = [];
         }
 
-        settings["defaultDataType"] = dataType;
+        if (!string.IsNullOrWhiteSpace(dataType))
+        {
+            settings["defaultDataType"] = dataType;
+        }
+
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            settings["type"] = type;
+        }
+
         var options = new JsonSerializerOptions { WriteIndented = true };
         File.WriteAllText(settingsPath, settings.ToJsonString(options));
-        // Don't stage here — leave in working dir so the whitespace restoration
-        // processor can detect and revert formatting-only changes against the index.
     }
 
     private static void CopyDirectory(string sourceDir, string destinationDir)
@@ -335,5 +296,6 @@ internal sealed record LayoutSetMigrationPlan(
     string SourceId,
     string SourcePath,
     List<string> DestinationIds,
-    string? DataType
+    string? DataType,
+    string? Type
 );

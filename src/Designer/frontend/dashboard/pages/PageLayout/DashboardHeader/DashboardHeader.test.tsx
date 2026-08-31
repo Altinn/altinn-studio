@@ -75,7 +75,7 @@ describe('DashboardHeader', () => {
     const giteaItem = screen.getByRole('menuitem', { name: textMock('shared.header_go_to_gitea') });
     expect(giteaItem).toBeInTheDocument();
 
-    const logoutItem = screen.getByRole('menuitemradio', {
+    const logoutItem = screen.getByRole('menuitem', {
       name: textMock('shared.header_logout'),
     });
     expect(logoutItem).toBeInTheDocument();

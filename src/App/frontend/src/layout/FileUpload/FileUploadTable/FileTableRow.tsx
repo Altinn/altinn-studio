@@ -13,10 +13,11 @@ import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/Attach
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
 
 interface IFileUploadTableRowProps {
@@ -35,8 +36,9 @@ export function FileTableRow({
   isSummary,
 }: IFileUploadTableRowProps) {
   const { langAsString } = useLanguage();
-  const component = useExternalItem(baseComponentId);
-  const hasTag = component?.type === 'FileUploadWithTag';
+  const item = useItemWhenType(baseComponentId, 'FileUpload');
+  const hasTag = fileUploadHasTag(item);
+  const { readOnly } = item;
   const pdfModeActive = usePdfModeActive();
   const readableSize = getSizeWithUnit(attachment.data.size, 2);
 
@@ -102,7 +104,7 @@ export function FileTableRow({
           mobileView={mobileView}
         />
       )}
-      {isSummary && !pdfModeActive && (
+      {isSummary && !pdfModeActive && !readOnly && (
         <td>
           <EditButton
             className={classes.marginLeftAuto}

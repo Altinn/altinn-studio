@@ -143,20 +143,23 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        // The retention query should use the UpdatedAt filtered index on terminal statuses
+        // The retention query must range-scan the UpdatedAt partial index on terminal statuses.
+        // AssertNoSeqScan alone is not enough: when the index filter fell out of sync with the
+        // query's status list, the plan silently degraded to a bitmap scan over ix_workflows_status.
         QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "workflows", "ix_workflows_updated_at");
         await VerifyJson(plan.GetRawText());
     }
 
     [Fact]
-    public async Task AbandonStaleWorkflows_UsesIndexScans()
+    public async Task FailPoisonedWorkflows_UsesIndexScans()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var plan = await QueryPlanHelper.ExplainAsync(
             dataSource,
-            DbMaintenanceService.Sql.AbandonStaleWorkflows,
+            DbMaintenanceService.Sql.FailPoisonedWorkflows,
             [
                 new NpgsqlParameter<DateTimeOffset>("now", _now),
                 new NpgsqlParameter<DateTimeOffset>("staleDeadline", _now.AddSeconds(-15)),

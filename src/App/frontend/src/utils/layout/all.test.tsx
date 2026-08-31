@@ -10,15 +10,16 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { FormStore } from 'src/features/form/FormContext';
+import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-jest.mock('src/features/applicationMetadata');
-jest.mock('src/features/form/ui');
-jest.mock('src/queries/queries');
+vi.mock('src/features/applicationMetadata');
+vi.mock('src/features/form/ui');
+vi.mock('src/queries/queries');
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
@@ -41,7 +42,7 @@ const ignoreLogAndErrors = [
 ];
 
 function TestApp() {
-  const errors = FormStore.nodes.useFullErrorList();
+  const errors = FormStore.layoutDiagnostics.useFullErrorList();
   const filteredErrors: Record<string, string[]> = {};
 
   for (const key in errors) {
@@ -59,9 +60,11 @@ function TestApp() {
 
 function RenderAllComponents() {
   const state = FormStore.raw.useStore().getState();
-  const all = Object.values(state.nodes.nodeData)
-    .filter((nodeData) => nodeData.isValid && nodeData.parentId === undefined)
-    .map((nodeData) => nodeData.id);
+  const pageOrder = useRawPageOrder();
+  const pdfLayoutName = usePdfLayoutName();
+  const all = Object.entries(state.bootstrap.layoutLookups.topLevelComponents)
+    .filter(([pageKey]) => pageOrder.includes(pageKey) || pageKey === pdfLayoutName)
+    .flatMap(([, componentIds]) => componentIds ?? []);
 
   return (
     <>
@@ -89,17 +92,17 @@ const consoleLoggers = ['error', 'warn', 'log'];
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
   beforeAll(() => {
-    window.forceNodePropertiesValidation = 'on';
+    window.forceLayoutPropertiesValidation = 'on';
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
-      jest
+      vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(global, func as any)
         .mockImplementation(() => {})
         .mockName(`global.${func}`);
     }
     for (const func of consoleLoggers) {
-      jest
+      vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(console, func as any)
         .mockImplementation(() => {})
@@ -108,13 +111,13 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    window.forceNodePropertiesValidation = 'off';
+    window.forceLayoutPropertiesValidation = 'off';
     window.location.pathname = pathnameWas;
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const dir = ensureAppsDirIsSet();
@@ -187,11 +190,11 @@ describe('All known UI folders should render successfully', () => {
     }
 
     // Inject errors from console/window.logError into the full error list for this layout-set
-    const devToolsLoggers = windowLoggers.map((func) => window[func] as jest.Mock);
+    const devToolsLoggers = windowLoggers.map((func) => window[func] as Mock);
     // eslint-disable-next-line no-console
-    const browserLoggers = consoleLoggers.map((func) => console[func] as jest.Mock);
+    const browserLoggers = consoleLoggers.map((func) => console[func] as Mock);
     for (const _mock of [...devToolsLoggers, ...browserLoggers]) {
-      const mock = _mock as jest.Mock;
+      const mock = _mock as Mock;
       const calls = filterAndCleanMockCalls(mock);
       if (calls.length) {
         errors[mock.getMockName()] = calls;
@@ -205,7 +208,7 @@ describe('All known UI folders should render successfully', () => {
   it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
 });
 
-function filterAndCleanMockCalls(mock: jest.Mock): string[] {
+function filterAndCleanMockCalls(mock: Mock): string[] {
   return mock.mock.calls
     .map((_call) => {
       let shouldIgnore = false;
@@ -247,3 +250,4 @@ function filterAndCleanMockCalls(mock: jest.Mock): string[] {
     .filter((x) => x)
     .map((x) => (x ?? []).join('\n'));
 }
+import type { Mock } from 'vitest';

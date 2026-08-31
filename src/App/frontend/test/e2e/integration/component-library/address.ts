@@ -8,7 +8,10 @@ describe('Address component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.get('ul#navigation-menu > li').last().click();
     cy.contains('button', 'Send inn').click();
-    cy.contains('button', 'Du må fylle ut postnr').click();
+    // There are multiple validation buttons with this text on the page, we need to filter by the one targeting AddressPage-Address
+    cy.get('button[data-target-node="AddressPage-Address"]:contains("Du må fylle ut postnr")')
+      .should('have.length', 1)
+      .click();
     cy.url().should('include', '/Task_1/AddressPage');
     cy.get('input[data-bindingkey="zipCode"]').should('exist').and('have.focus');
   });
@@ -47,7 +50,7 @@ describe('Address component', () => {
     cy.findByText('Du må fylle ut postnr').should('not.exist');
     cy.findByText('Du må fylle ut bolignummer').should('not.exist');
 
-    cy.findByRole('button', { name: /next/i }).click();
+    cy.findByRole('button', { name: /neste/i }).click();
 
     cy.findAllByText('Du må fylle ut gateadresse').first().should('exist');
     cy.findAllByText('Du må fylle ut C/O eller annen tilleggsadresse').first().should('exist');

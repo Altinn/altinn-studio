@@ -12,25 +12,7 @@ public interface ICorrespondenceRequestBuilderResourceId
     /// Sets the Resource Id for the correspondence.
     /// </summary>
     /// <param name="resourceId">The resource ID as registered in the Altinn Resource Registry</param>
-    ICorrespondenceRequestBuilderSender WithResourceId(string resourceId);
-}
-
-/// <summary>
-/// Indicates that the <see cref="CorrespondenceRequestBuilder"/> instance is on the <see cref="CorrespondenceRequest.Sender"/> step.
-/// </summary>
-public interface ICorrespondenceRequestBuilderSender
-{
-    /// <summary>
-    /// Sets the sender of the correspondence.
-    /// </summary>
-    /// <param name="sender">The correspondence sender</param>
-    ICorrespondenceRequestBuilderSendersReference WithSender(OrganisationNumber sender);
-
-    /// <summary>
-    /// Sets the sender of the correspondence.
-    /// </summary>
-    /// <param name="sender">A string representing a Norwegian organisation number (e.g. 991825827 or 0192:991825827)</param>
-    ICorrespondenceRequestBuilderSendersReference WithSender(string sender);
+    ICorrespondenceRequestBuilderSendersReference WithResourceId(string resourceId);
 }
 
 /// <summary>
@@ -140,7 +122,6 @@ public interface ICorrespondenceRequestBuilderContent
 /// </summary>
 public interface ICorrespondenceRequestBuilder
     : ICorrespondenceRequestBuilderResourceId,
-        ICorrespondenceRequestBuilderSender,
         ICorrespondenceRequestBuilderSendersReference,
         ICorrespondenceRequestBuilderRecipients,
         ICorrespondenceRequestBuilderContent
@@ -150,13 +131,6 @@ public interface ICorrespondenceRequestBuilder
     /// </summary>
     /// <param name="dueDateTime">The point in time when the correspondence is due</param>
     ICorrespondenceRequestBuilder WithDueDateTime(DateTimeOffset dueDateTime);
-
-    /// <summary>
-    /// Sets when Altinn can remove the correspondence from its database.
-    /// </summary>
-    /// <param name="allowSystemDeleteAfter">The point in time when the correspondence can be deleted</param>
-    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-    ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter);
 
     /// <summary>
     /// Sets the requested publish time for the correspondence.
@@ -293,6 +267,15 @@ public interface ICorrespondenceRequestBuilder
     /// </summary>
     /// <param name="attachments">A List of <see cref="CorrespondenceAttachment"/> items</param>
     ICorrespondenceRequestBuilder WithAttachments(IEnumerable<CorrespondenceAttachment> attachments);
+
+    /// <summary>
+    /// Sets a key that prevents the same correspondence being created twice.
+    /// </summary>
+    /// <remarks>Reuse the same key when retrying a send that may already have succeeded. See
+    /// <see cref="CorrespondenceRequest.IdempotentKey"/> for how a duplicate is reported and what the key
+    /// cannot be combined with.</remarks>
+    /// <param name="idempotentKey">A stable, non-empty key for this correspondence</param>
+    ICorrespondenceRequestBuilder WithIdempotentKey(Guid idempotentKey);
 
     /// <summary>
     /// Builds the <see cref="CorrespondenceRequest"/> instance.

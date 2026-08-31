@@ -134,7 +134,6 @@ const common = {
       new CG.prop('sm', CG.common('IGridSize').optional({ default: 'auto' })),
       new CG.prop('md', CG.common('IGridSize').optional({ default: 'auto' })),
       new CG.prop('lg', CG.common('IGridSize').optional({ default: 'auto' })),
-      new CG.prop('xl', CG.common('IGridSize').optional({ default: 'auto' })),
     ),
   IGrid: () =>
     new CG.obj(
@@ -374,12 +373,6 @@ const common = {
           .optional()
           .setTitle('Dynamic options (fetched from server)')
           .setDescription('ID of the option list to fetch from the server'),
-      ),
-      new CG.prop(
-        'mapping',
-        CG.common('IMapping')
-          .optional()
-          .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
       ),
       new CG.prop(
         'queryParameters',
@@ -798,6 +791,13 @@ const common = {
           .setDescription('Shows the listed tasks in the sidebar navigation menu'),
       ),
       new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+      new CG.prop(
+        'hideAppNameInPdf',
+        new CG.expr(ExprVal.Boolean)
+          .setTitle('Hide app name in PDF')
+          .setDescription('Controls whether the app name is hidden in the PDF header and footer.')
+          .optional({ default: false }),
+      ),
     ),
   IPagesBaseSettings: () =>
     new CG.obj(
@@ -817,7 +817,6 @@ const common = {
             'Name of a custom layout file to use for PDF creation instead of the automatically generated PDF.',
           ),
       ),
-      new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
     ),
   INavigationBasePageGroup: () =>
     new CG.obj(

@@ -1,10 +1,12 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
@@ -43,17 +45,25 @@ public class TestInvalid
                 componentModel = new LayoutModel([layout], null);
             }
 
-            var state = new LayoutEvaluatorState(
-                DynamicClassBuilder.DataAccessorFromJsonDocument(
-                    test.Instance,
-                    test.DataModel ?? JsonDocument.Parse("{}").RootElement
-                ),
-                componentModel,
-                null!,
-                test.FrontEndSettings ?? new()
-            );
+            var translationServiceMock = new Mock<ITranslationService>(MockBehavior.Strict);
 
-            await ExpressionEvaluator.EvaluateExpression(state, test.Expression, await test.GetContextOrNull(state));
+            var dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService: translationServiceMock.Object,
+                componentModel,
+                test.FrontEndSettings ?? new(),
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement,
+                gatewayAction: null,
+                language: null
+            );
+            var state = dataAccessor.GetLayoutEvaluatorState();
+            Assert.NotNull(state);
+
+            await ExpressionEvaluator.EvaluateExpression(
+                state,
+                test.Expression!.Value,
+                await test.GetContextOrNull(state)
+            );
         };
         (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure + "*");
     }

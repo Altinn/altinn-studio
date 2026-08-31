@@ -1,4 +1,3 @@
-﻿#nullable enable
 using System.Security.Claims;
 using Altinn.Platform.Authorization.Services.Interface;
 using LocalTest.Services.TestData;

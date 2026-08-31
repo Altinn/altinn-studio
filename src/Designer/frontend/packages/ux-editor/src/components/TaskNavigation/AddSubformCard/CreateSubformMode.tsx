@@ -129,6 +129,7 @@ export const CreateSubformMode = ({
           <StudioSelect
             label={t('ux_editor.task_card.select_data_model')}
             onChange={(e) => handleDataModelName(e.target.value)}
+            value={newSubform.dataModelName}
           >
             {RenderDataModelOptions(dataModelIds)}
           </StudioSelect>

@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,10 +27,21 @@ namespace Altinn.Studio.Designer.Controllers;
 public class UiFoldersController : Controller
 {
     private readonly IUiFoldersService _uiFoldersService;
+    private readonly IAppVersionService _appVersionService;
+    private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IPublisher _publisher;
 
-    public UiFoldersController(IUiFoldersService uiFoldersService)
+    public UiFoldersController(
+        IUiFoldersService uiFoldersService,
+        IAppVersionService appVersionService,
+        IAppDevelopmentService appDevelopmentService,
+        IPublisher publisher
+    )
     {
         _uiFoldersService = uiFoldersService;
+        _appVersionService = appVersionService;
+        _appDevelopmentService = appDevelopmentService;
+        _publisher = publisher;
     }
 
     private AltinnRepoEditingContext CreateContext(string org, string app)
@@ -34,12 +50,128 @@ public class UiFoldersController : Controller
         return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
     }
 
+    [HttpGet("layout-sets")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!_appVersionService.IsV9App(editingContext))
+        {
+            return Ok(await GetLegacyLayoutSetConfigs(editingContext, cancellationToken));
+        }
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.GetLayoutSets(
+            editingContext,
+            cancellationToken
+        );
+        return Ok(layoutSets.Select(layoutSet => LayoutSetConfigDto.From(layoutSet)));
+    }
+
+    [HttpPost("layout-sets")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> AddLayoutSet(
+        string org,
+        string app,
+        [FromBody] LayoutSetPayload layoutSetPayload,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        LayoutSetConfig layoutSetConfig = layoutSetPayload.LayoutSetConfigDto.ToLayoutSetConfig();
+        if (!_appVersionService.IsV9App(editingContext))
+        {
+            await _appDevelopmentService.AddLayoutSet(
+                editingContext,
+                layoutSetConfig,
+                layoutSetPayload.TaskType,
+                cancellationToken
+            );
+            await _publisher.Publish(
+                new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = layoutSetConfig },
+                cancellationToken
+            );
+            return Ok(await GetLegacyLayoutSetConfigs(editingContext, cancellationToken));
+        }
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
+            editingContext,
+            layoutSetConfig,
+            layoutSetPayload.TaskType,
+            cancellationToken
+        );
+        return Ok(layoutSets.Select(layoutSet => LayoutSetConfigDto.From(layoutSet)));
+    }
+
+    [HttpPut("layout-sets/{layoutSetId}")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> UpdateLayoutSetName(
+        string org,
+        string app,
+        [FromRoute] string layoutSetId,
+        [FromBody] string newLayoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!_appVersionService.IsV9App(editingContext))
+        {
+            await _appDevelopmentService.UpdateLayoutSetName(
+                editingContext,
+                layoutSetId,
+                newLayoutSetName,
+                cancellationToken
+            );
+            await _publisher.Publish(
+                new LayoutSetIdChangedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = layoutSetId,
+                    NewLayoutSetName = newLayoutSetName,
+                },
+                cancellationToken
+            );
+            return Ok(await GetLegacyLayoutSetConfigs(editingContext, cancellationToken));
+        }
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
+            editingContext,
+            layoutSetId,
+            newLayoutSetName,
+            cancellationToken
+        );
+        return Ok(layoutSets.Select(layoutSet => LayoutSetConfigDto.From(layoutSet)));
+    }
+
+    [HttpDelete("layout-sets/{layoutSetId}")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> DeleteLayoutSet(
+        string org,
+        string app,
+        [FromRoute] string layoutSetId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!_appVersionService.IsV9App(editingContext))
+        {
+            await _publisher.Publish(
+                new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetId },
+                cancellationToken
+            );
+            await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetId, cancellationToken);
+            return Ok(await GetLegacyLayoutSetConfigs(editingContext, cancellationToken));
+        }
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
+            editingContext,
+            layoutSetId,
+            cancellationToken
+        );
+        return Ok(layoutSets.Select(layoutSet => LayoutSetConfigDto.From(layoutSet)));
+    }
+
     [HttpGet("layout-sets/extended")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
+        IEnumerable<UiFolderLayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
             editingContext,
             cancellationToken
         );
@@ -48,43 +180,70 @@ public class UiFoldersController : Controller
 
     [HttpGet("settings/validation-on-navigation")]
     [UseSystemTextJson]
-    public async Task<IActionResult> GetGlobalValidationOnNavigation(
+    public async Task<IActionResult> GetValidationOnNavigation(
         string org,
         string app,
+        [FromQuery] ValidationOnNavigationLevel level,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        ValidationOnNavigation? config = await _uiFoldersService.GetGlobalValidationOnNavigation(
-            editingContext,
-            cancellationToken
-        );
-        return Ok(config);
+
+        return level switch
+        {
+            ValidationOnNavigationLevel.Pages => Ok(
+                await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, cancellationToken)
+            ),
+            ValidationOnNavigationLevel.LayoutSets => Ok(
+                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, cancellationToken)
+            ),
+            _ => Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken)),
+        };
     }
 
     [HttpPost("settings/validation-on-navigation")]
     [UseSystemTextJson]
-    public async Task<IActionResult> SaveGlobalValidationOnNavigation(
+    public async Task<IActionResult> SaveValidationOnNavigation(
         string org,
         string app,
-        [FromBody] ValidationOnNavigation config,
+        [FromQuery] ValidationOnNavigationLevel level,
+        [FromBody] JsonElement config,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
-        return Ok();
-    }
 
-    [HttpDelete("settings/validation-on-navigation")]
-    public async Task<IActionResult> DeleteGlobalValidationOnNavigation(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
-    {
-        AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, null, cancellationToken);
+        try
+        {
+            switch (level)
+            {
+                case ValidationOnNavigationLevel.Pages:
+                    await _uiFoldersService.SavePagesValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<List<PageValidationOnNavigationDto>>() ?? [],
+                        cancellationToken
+                    );
+                    break;
+                case ValidationOnNavigationLevel.LayoutSets:
+                    await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<List<ValidationOnNavigationDto>>() ?? [],
+                        cancellationToken
+                    );
+                    break;
+                default:
+                    await _uiFoldersService.SaveGlobalValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<ValidationOnNavigation>(),
+                        cancellationToken
+                    );
+                    break;
+            }
+        }
+        catch (JsonException)
+        {
+            return BadRequest("Invalid JSON format for the provided configuration.");
+        }
         return Ok();
     }
 
@@ -129,5 +288,14 @@ public class UiFoldersController : Controller
         {
             return BadRequest(exception.Message);
         }
+    }
+
+    private async Task<IEnumerable<LayoutSetConfigDto>> GetLegacyLayoutSetConfigs(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
+        return layoutSets.Sets.Select(layoutSet => LayoutSetConfigDto.From(layoutSet));
     }
 }

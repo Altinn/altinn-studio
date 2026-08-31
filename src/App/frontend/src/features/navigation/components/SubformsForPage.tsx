@@ -12,15 +12,15 @@ import classes from 'src/features/navigation/components/SubformsForPage.module.c
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useEnterSubform } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import {
   getSubformEntryDisplayName,
   useExpressionDataSourcesForSubform,
   useSubformFormData,
 } from 'src/layout/Subform/utils';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
@@ -124,9 +124,9 @@ function SubformLink({
   hasErrors: boolean;
 }) {
   const disabled = useIsAnyProcessing();
-  const { enterSubform } = useNavigatePage();
+  const enterSubform = useEnterSubform();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const subformEntryName =
     !isSubformDataFetching && !subformDataError

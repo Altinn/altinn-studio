@@ -41,7 +41,7 @@ public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNam
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -107,7 +107,6 @@ public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNam
         /// </summary>
         public override void Write(Utf8JsonWriter writer, XsdNamespacesKeyword value, JsonSerializerOptions options)
         {
-            writer.WritePropertyName(Name);
             writer.WriteStartObject();
             foreach ((string prefix, string ns) in value.Namespaces)
             {

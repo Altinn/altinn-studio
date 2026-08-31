@@ -13,12 +13,12 @@ import classes from './TaskAction.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useTaskNavigationGroupQuery } from '../../hooks/queries/useTaskNavigationGroupQuery';
+import { useLayoutSetsExtendedQuery } from '../../hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
 import { EditNameAction } from './EditNameAction';
 import { Link } from 'react-router-dom';
-import getLayoutSetPath from '../../utils/routeUtils';
+import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
 
 export type TaskActionProps = {
   task: TaskNavigationGroup;
@@ -38,6 +38,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const layoutSetPath = useLayoutSetPath(org, app, getLayoutSetIdForTask(task, layoutSets));
   const [isOpen, setIsOpen] = useState(false);
 
   const addTaskToNavigationGroup = () => {
@@ -123,9 +124,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
               icon={<ArrowRightIcon />}
               disabled={isDefaultReceiptTask(task, layoutSets)}
             >
-              <Link to={getLayoutSetPath(org, app, getLayoutSetIdForTask(task, layoutSets))}>
-                {t('ux_editor.task_table.menu_task_redirect')}
-              </Link>
+              <Link to={layoutSetPath}>{t('ux_editor.task_table.menu_task_redirect')}</Link>
             </StudioButton>
           </div>
         )}

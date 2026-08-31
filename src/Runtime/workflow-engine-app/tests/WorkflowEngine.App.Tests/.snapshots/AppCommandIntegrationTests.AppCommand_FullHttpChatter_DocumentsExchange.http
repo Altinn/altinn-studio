@@ -12,14 +12,15 @@ Content-Type: application/json; charset=utf-8
   },
   "context": {
     "actor": {
-      "userIdOrOrgNumber": "test-user",
+      "orgId": "test-user",
       "language": null
     },
     "lockToken": "e2e-lock-token-abc123",
     "org": "ttd",
     "app": "e2e-tests",
     "instanceOwnerPartyId": 50001,
-    "instanceGuid": "Guid_2"
+    "instanceGuid": "Guid_2",
+    "callbackToken": "test-callback-token"
   },
   "workflows": [
     {
@@ -31,6 +32,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-1",
               "payload": "step-1-payload"
@@ -44,6 +46,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-2",
               "payload": "step-2-payload"
@@ -82,6 +85,7 @@ Content-Type: application/json; charset=utf-8
 
 POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/workflow-engine-callbacks/chatter-step-1 HTTP/1.1
 Host: localhost
+Authorization: Bearer test-callback-token
 Collection-Key: Guid_1
 Content-Type: application/json; charset=utf-8
 Idempotency-Key: Guid_4
@@ -92,13 +96,20 @@ Workflow-Id: Guid_3
 {
   "commandKey": "chatter-step-1",
   "actor": {
-    "userIdOrOrgNumber": "test-user",
+    "orgId": "test-user",
     "language": null
   },
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
-  "state": "initial-workflow-state"
+  "stepId": "Guid_4",
+  "executionReferenceTime": "{Scrubbed}",
+  "state": "initial-workflow-state",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
+  "deferCount": 0,
+  "firstDeferredAt": null,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -114,6 +125,7 @@ Content-Type: application/json
 
 POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/workflow-engine-callbacks/chatter-step-2 HTTP/1.1
 Host: localhost
+Authorization: Bearer test-callback-token
 Collection-Key: Guid_1
 Content-Type: application/json; charset=utf-8
 Idempotency-Key: Guid_5
@@ -124,13 +136,20 @@ Workflow-Id: Guid_3
 {
   "commandKey": "chatter-step-2",
   "actor": {
-    "userIdOrOrgNumber": "test-user",
+    "orgId": "test-user",
     "language": null
   },
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
-  "state": "step-1-result"
+  "stepId": "Guid_5",
+  "executionReferenceTime": "{Scrubbed}",
+  "state": "step-1-result",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
+  "deferCount": 0,
+  "firstDeferredAt": null,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -177,6 +196,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-1-result"
     },
     {
@@ -189,6 +209,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-2-result"
     }
   ]

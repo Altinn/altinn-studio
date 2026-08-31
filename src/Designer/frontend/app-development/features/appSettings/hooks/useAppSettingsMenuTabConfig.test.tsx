@@ -1,7 +1,8 @@
-import { waitFor } from '@testing-library/react';
 import { useAppSettingsMenuTabConfigs } from './useAppSettingsMenuTabConfigs';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import type { OrgList } from 'app-shared/types/OrgList';
 
 const orgListWithTestOrg: OrgList = {
@@ -17,13 +18,8 @@ const orgListWithTestOrg: OrgList = {
 };
 
 describe('useAppSettingsMenuTabConfigs', () => {
-  it('returns correct tab configurations with translated names and icons for service owner apps', async () => {
-    const getOrgList = jest.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg));
-    const { renderHookResult } = renderHookWithProviders({ getOrgList })(() =>
-      useAppSettingsMenuTabConfigs(),
-    );
-
-    await waitFor(() => expect(renderHookResult.result.current).toHaveLength(6));
+  it('returns correct tab configurations with translated names and icons for service owner apps', () => {
+    const { renderHookResult } = renderUseAppSettingsMenuTabConfigs(orgListWithTestOrg);
 
     expect(renderHookResult.result.current).toEqual([
       {
@@ -59,13 +55,8 @@ describe('useAppSettingsMenuTabConfigs', () => {
     ]);
   });
 
-  it('hides the service owner only tabs for personal apps', async () => {
-    const getOrgList = jest.fn().mockImplementation(() => Promise.resolve<OrgList>({ orgs: {} }));
-    const { renderHookResult } = renderHookWithProviders({ getOrgList })(() =>
-      useAppSettingsMenuTabConfigs(),
-    );
-
-    await waitFor(() => expect(getOrgList).toHaveBeenCalledTimes(1));
+  it('hides the service owner only tabs for personal apps', () => {
+    const { renderHookResult } = renderUseAppSettingsMenuTabConfigs();
 
     expect(renderHookResult.result.current).toHaveLength(4);
     expect(renderHookResult.result.current).not.toContainEqual(
@@ -76,3 +67,9 @@ describe('useAppSettingsMenuTabConfigs', () => {
     );
   });
 });
+
+const renderUseAppSettingsMenuTabConfigs = (orgList?: OrgList) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.OrgList], orgList?.orgs);
+  return renderHookWithProviders({}, queryClient)(() => useAppSettingsMenuTabConfigs());
+};

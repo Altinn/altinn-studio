@@ -8,7 +8,6 @@ export const useLayoutSetsQuery = (org: string, app: string): UseQueryResult<Lay
   const { getLayoutSets } = useServicesContext();
   return useQuery<LayoutSets>({
     queryKey: [QueryKey.LayoutSets, org, app],
-    queryFn: () =>
-      getLayoutSets(org, app).then((layoutSets) => (layoutSets?.sets ? layoutSets : null)),
+    queryFn: () => getLayoutSets(org, app).then((layoutSets) => (layoutSets ? layoutSets : null)),
   });
 };

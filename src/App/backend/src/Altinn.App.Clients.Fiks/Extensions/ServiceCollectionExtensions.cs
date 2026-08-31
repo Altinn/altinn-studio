@@ -6,8 +6,8 @@ using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.AltinnCdn;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using KS.Fiks.IO.Send.Client.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -51,13 +51,14 @@ public static class ServiceCollectionExtensions
         services.AddFiksIOClient();
         services.AddAltinnCdnClient();
         services.AddSingleton<IServiceTask, FiksArkivServiceTask>();
-        services.AddSingleton<IFiksArkivHost, FiksArkivHost>();
+        services.AddSingleton<FiksArkivHost>();
+        services.AddSingleton<IFiksArkivHost>(sp => sp.GetRequiredService<FiksArkivHost>());
         services.AddSingleton<IFiksArkivPayloadGenerator, FiksArkivDefaultPayloadGenerator>();
         services.AddSingleton<IFiksArkivResponseHandler, FiksArkivDefaultResponseHandler>();
         services.AddSingleton<IFiksArkivInstanceClient, FiksArkivInstanceClient>();
         services.AddSingleton<IFiksArkivConfigResolver, FiksArkivConfigResolver>();
         services.AddHostedService<FiksArkivConfigValidationService>();
-        services.AddHostedService(sp => (FiksArkivHost)sp.GetRequiredService<IFiksArkivHost>());
+        services.AddHostedService(sp => sp.GetRequiredService<FiksArkivHost>());
 
         return new FiksArkivSetupBuilder(services);
     }

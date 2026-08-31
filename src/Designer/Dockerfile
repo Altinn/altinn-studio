@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:01743339035a5c3c11a373cd7c83aeab6ed1457b55da6a69e014a95ac4e4700b AS generate-studio-frontend
+FROM node:lts-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -42,8 +42,10 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
-COPY libs/form-component/package.json ./libs/form-component/
-COPY libs/form-engine/package.json ./libs/form-engine/
+COPY src/common/ts/package.json ./src/common/ts/
+COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
+COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
+COPY src/common/ts/language/package.json ./src/common/ts/language/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
@@ -54,28 +56,39 @@ RUN yarn --immutable
 
 COPY . .
 RUN cd src/Designer/frontend && yarn build
+# Build the Altinn app frontend so Designer can serve it locally for v9 app previews (no CDN dependency)
+RUN cd src/App/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:3ea83f1463983ba8b51babffebb8556f8b94041fbc5eee2190cc77e913cc6325 AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
-COPY src/Designer/backend .
-RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
+COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/Designer/backend ./src/Designer/backend
+RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
-# Prepare app template
-FROM alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS app-template-release
+# Prepare app templates, one release tree per selectable template.
+# The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
+# at the repository folder without a second path convention. rsync will not create intermediate
+# directories, hence the mkdir.
+FROM alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS app-template-release
 RUN apk add --no-cache rsync
+RUN mkdir -p /app-template-release/v8 /app-template-release/v9
 
-COPY ./src/App/template/src /app-template-dotnet-src
-WORKDIR /app-template-dotnet-src
-RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
+COPY ./src/App/template/v8/src /app-template-dotnet-src/v8
+WORKDIR /app-template-dotnet-src/v8
+RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v8/src
+
+COPY ./src/App/template/v9/src /app-template-dotnet-src/v9
+WORKDIR /app-template-dotnet-src/v9
+RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v9/src
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:3af07ffc67cf14710da8a6d15f8ce963e0eb7f2e73a57445edd964a505a2557c AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:27b6b84beeede74fd16886177d360799c8e4299ceadfbd64eef57bafead7878a AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
@@ -92,9 +105,12 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/di
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
 
+# Altinn app frontend bundle, served by Designer for v9 app previews at /altinn-app-frontend/
+COPY --from=generate-studio-frontend /build/src/App/frontend/dist ./wwwroot/altinn-app-frontend/
+
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
-## Copying app template
+## Copying app templates. GeneralSettings decides which one new applications default to.
 COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

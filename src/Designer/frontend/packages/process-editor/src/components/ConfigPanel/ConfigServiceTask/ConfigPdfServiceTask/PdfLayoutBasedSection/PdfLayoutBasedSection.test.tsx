@@ -23,6 +23,9 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
+const getDataModelSuggestion = (): HTMLElement =>
+  screen.getByLabelText(textMock('process_editor.configuration_panel_pdf_select_data_model_label'));
+
 describe('PdfLayoutBasedSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,14 +38,12 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
-              },
-            ],
-          },
+          layoutSets: [
+            {
+              id: 'pdf-layout-set',
+              taskId: pdfBpmnDetails.id,
+            },
+          ],
         },
       });
 
@@ -60,14 +61,12 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
-              },
-            ],
-          },
+          layoutSets: [
+            {
+              id: 'pdf-layout-set',
+              taskId: pdfBpmnDetails.id,
+            },
+          ],
         },
       });
 
@@ -88,7 +87,7 @@ describe('PdfLayoutBasedSection', () => {
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: { layoutSets: { sets: [] } },
+        bpmnApiContextProps: { layoutSets: [] },
       });
 
       expect(
@@ -104,7 +103,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
         },
       });
@@ -123,18 +122,16 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
         },
       });
 
-      const dataModelCombobox = screen.getByRole('combobox', {
-        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-      });
+      const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
 
-      expect(screen.getByRole('option', { name: 'dataModel1' })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'dataModel2' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'dataModel1', hidden: true })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'dataModel2', hidden: true })).toBeInTheDocument();
     });
 
     it('should show empty state when no data models are available', async () => {
@@ -144,14 +141,12 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: [],
         },
       });
 
-      const dataModelCombobox = screen.getByRole('combobox', {
-        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-      });
+      const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
 
       expect(
@@ -165,7 +160,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -183,16 +178,14 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
 
-      const dataModelCombobox = screen.getByRole('combobox', {
-        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-      });
+      const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
-      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+      await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
       await user.keyboard('{Escape}');
 
       const createButton = screen.getByRole('button', {
@@ -208,7 +201,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -231,7 +224,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -241,11 +234,9 @@ describe('PdfLayoutBasedSection', () => {
       );
       await user.type(layoutSetNameInput, 'invalid-name');
 
-      const dataModelCombobox = screen.getByRole('combobox', {
-        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-      });
+      const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
-      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+      await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
       await user.keyboard('{Escape}');
 
       const createButton = screen.getByRole('button', {
@@ -261,7 +252,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
         },
       });
@@ -279,11 +270,9 @@ describe('PdfLayoutBasedSection', () => {
 
       expect(createButton).toBeDisabled();
 
-      const dataModelCombobox = screen.getByRole('combobox', {
-        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-      });
+      const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
-      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+      await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
 
       await waitFor(() => expect(createButton).not.toBeDisabled());
     });
@@ -296,7 +285,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
           addLayoutSet: addLayoutSetMock,
         },
@@ -307,11 +296,9 @@ describe('PdfLayoutBasedSection', () => {
       );
       await user.type(layoutSetNameInput, 'my-pdf-layout');
 
-      const dataModelCombobox = screen.getByRole('combobox', {
-        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-      });
+      const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
-      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+      await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
 
       const createButton = await screen.findByRole('button', {
         name: textMock('process_editor.configuration_panel_pdf_create_button'),
@@ -321,12 +308,11 @@ describe('PdfLayoutBasedSection', () => {
 
       await waitFor(() => expect(addLayoutSetMock).toHaveBeenCalledTimes(1));
       expect(addLayoutSetMock).toHaveBeenCalledWith({
-        layoutSetIdToUpdate: 'my-pdf-layout',
         taskType: 'pdf',
         layoutSetConfig: {
           id: 'my-pdf-layout',
           dataType: 'dataModel1',
-          tasks: [pdfBpmnDetails.id],
+          taskId: pdfBpmnDetails.id,
         },
       });
     });
@@ -339,7 +325,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
           addLayoutSet: addLayoutSetMock,
         },

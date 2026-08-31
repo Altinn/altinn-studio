@@ -13,7 +13,7 @@ import { layoutSets } from 'app-shared/mocks/mocks';
 
 const handleComponentChange = jest.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
-const subformLayoutSet = { sets: [{ id: subformLayoutSetId, type: 'subform' }] } as LayoutSets;
+const subformLayoutSet = [{ id: subformLayoutSetId, type: 'subform' }] as LayoutSets;
 
 describe('EditLayoutSet', () => {
   afterEach(jest.clearAllMocks);

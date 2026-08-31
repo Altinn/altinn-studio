@@ -6,7 +6,6 @@ import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
 import { isOrg } from '../orgUtils/orgUtils';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import { type StudioProfileMenuGroup } from '@studio/components';
-import { FeatureFlag } from '@studio/feature-flags';
 import { ADMIN_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
@@ -22,7 +21,6 @@ export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
       `${ADMIN_BASENAME}/${isOrg(selectedContext) ? selectedContext : ''}`,
     name: 'admin.apps.title',
     group: HeaderMenuGroupKey.Tools,
-    featureFlag: FeatureFlag.Admin,
     isExternalLink: true,
     isBeta: true,
   },

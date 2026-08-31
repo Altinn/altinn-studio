@@ -17,18 +17,29 @@ internal interface IWorkflowExecutor
 
 internal class WorkflowExecutor : IWorkflowExecutor
 {
+    /// <summary>
+    /// The largest delay <see cref="CancellationTokenSource.CancelAfter(TimeSpan)"/> accepts. Timeouts
+    /// outside (0, this] would throw <see cref="ArgumentOutOfRangeException"/> from the executor, which
+    /// upstream treats as an engine fault (workflow reclaim → poisoned), so they are rejected as a
+    /// critical step error instead. Enqueue validation bounds new requests; this guards persisted steps.
+    /// </summary>
+    private static readonly TimeSpan _maxSupportedExecutionTimeout = TimeSpan.FromMilliseconds(uint.MaxValue - 2);
+
     private readonly EngineSettings _engineSettings;
     private readonly ICommandRegistry _registry;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkflowExecutor> _logger;
 
     public WorkflowExecutor(
         IOptions<EngineSettings> engineSettings,
         ICommandRegistry registry,
+        TimeProvider timeProvider,
         ILogger<WorkflowExecutor> logger
     )
     {
         _engineSettings = engineSettings.Value;
         _registry = registry;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -42,7 +53,19 @@ internal class WorkflowExecutor : IWorkflowExecutor
         );
         _logger.ExecutingStep(step, workflow);
 
-        using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
+        var timeout = step.Command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
+        if (timeout <= TimeSpan.Zero || timeout > _maxSupportedExecutionTimeout)
+        {
+            return ExecutionResult.CriticalError(
+                $"Step has an invalid execution timeout ({timeout}); it must be positive and at most {_maxSupportedExecutionTimeout}."
+            );
+        }
+
+        // Shared with the cancellation source below: the deadline a command paces itself against must
+        // be the instant that will actually cut it off.
+        var executionDeadline = _timeProvider.GetUtcNow().Add(timeout);
+
+        using CancellationTokenSource cts = CreateExecutionTokenSource(timeout, cancellationToken);
         var startTimestamp = Stopwatch.GetTimestamp();
 
         try
@@ -89,6 +112,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 TypedCommandData = typedCommandData,
                 TypedWorkflowContext = typedWorkflowContext,
                 StateIn = stateIn,
+                ExecutionDeadline = executionDeadline,
+                WaitDeadline = step.ResolveWaitDeadline(_engineSettings),
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
 
@@ -96,6 +121,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             if (result.IsSuccess())
                 _logger.SuccessfulExecution(step, Stopwatch.GetElapsedTime(startTimestamp));
+            else if (result.IsDeferred())
+                _logger.DeferredExecution(
+                    step,
+                    Stopwatch.GetElapsedTime(startTimestamp),
+                    result.Message ?? "outcome not available yet"
+                );
             else
                 _logger.FailedExecution(
                     step,
@@ -138,8 +169,21 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
     }
 
+    /// <summary>
+    /// Resolves the state handed to a step: its own output if it has produced one, otherwise the most
+    /// recent output of an earlier step (or the workflow's initial state for the first step).
+    /// </summary>
+    /// <remarks>
+    /// Preferring its own output is what makes deferral stateful across polls: a command that yields
+    /// resumes from the state it produced, not from whatever the previous step left behind. Narrower
+    /// than it looks — only a success-shaped outcome writes <c>StateOut</c>, so deferral is the only
+    /// path that produces state and then re-executes.
+    /// </remarks>
     private static string? ResolveStateIn(Workflow workflow, Step step)
     {
+        if (step.StateOut is not null)
+            return step.StateOut;
+
         if (step.ProcessingOrder == 0)
             return workflow.InitialState;
 
@@ -150,10 +194,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
             .FirstOrDefault(s => s is not null);
     }
 
-    private CancellationTokenSource CreateExecutionTokenSource(Step step, CancellationToken cancellationToken)
+    private static CancellationTokenSource CreateExecutionTokenSource(
+        TimeSpan timeout,
+        CancellationToken cancellationToken
+    )
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var timeout = step.Command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
         cts.CancelAfter(timeout);
 
         return cts;
@@ -170,6 +216,14 @@ internal static partial class WorkflowExecutorLogs
         this ILogger<WorkflowExecutor> logger,
         Step step,
         TimeSpan elapsed
+    );
+
+    [LoggerMessage(LogLevel.Information, "Step {Step} deferred after {Elapsed}: {Message}")]
+    internal static partial void DeferredExecution(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        TimeSpan elapsed,
+        string message
     );
 
     [LoggerMessage(LogLevel.Error, "Step {Step} executed with error in {Elapsed}: {Message}")]

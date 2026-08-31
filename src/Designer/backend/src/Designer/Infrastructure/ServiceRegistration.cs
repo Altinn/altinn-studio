@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Implementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
@@ -51,8 +50,14 @@ public static class ServiceRegistration
     {
         services.AddTransient<IRepository, RepositoryService>();
         services.AddTransient<ISchemaModelService, SchemaModelService>();
+        services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+        services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
+        services.AddTransient<RepositoryCleanupCandidateSource>();
+        services.AddTransient<RepositoryCleanupCandidateProcessor>();
+        services.AddTransient<RepositoryFileTimestampScanner>();
+        services.AddTransient<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
 
         services.AddTransient<ISourceControl, SourceControlService>();
 
@@ -111,10 +116,13 @@ public static class ServiceRegistration
         services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
+        services.AddTransient<IAppVersionService, AppVersionService>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
         services.AddTransient<IUiFoldersService, UiFoldersService>();
+        services.AddTransient<ILayoutReferenceUpdater, LayoutReferenceUpdater>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
+        services.AddTransient<IPreviewBootstrapService, PreviewBootstrapService>();
         services.AddTransient<IDataService, DataService>();
         services.AddTransient<IInstanceService, InstanceService>();
         services.AddTransient<IProcessModelingService, ProcessModelingService>();
@@ -123,14 +131,13 @@ public static class ServiceRegistration
         services.AddTransient<IOrgTextsService, OrgTextsService>();
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
         services.RegisterDatamodeling(configuration);
-        services.RegisterSettingsSingleton<KafkaSettings>(configuration);
-        services.AddTransient<IKafkaProducer, KafkaProducer>();
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
         services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+        services.AddSingleton<IAppTemplateCatalog, AppTemplateCatalog>();
         services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
         services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IBotAccountService, BotAccountService>();

@@ -268,6 +268,15 @@ public sealed partial class Telemetry : IDisposable
         internal const string AuthorizationAction = "authorization.action";
         internal const string AuthorizerAction = "authorization.authorizer.action";
         internal const string AuthorizerTaskId = "authorization.authorizer.task.id";
+
+        /// <summary>
+        /// Set (to true, and otherwise absent) when a platform call was refused while the app acted
+        /// as the service owner - which usually means the app's own policy is missing a service-owner
+        /// grant rather than that anything transient happened. A policy gap looks like any other
+        /// failed workflow in the engine's metrics, so this is the attribute that separates the two:
+        /// it affects every instance of the app, and needs a policy change rather than a redrive.
+        /// </summary>
+        internal const string ServiceOwnerAuthorizationDenied = "authorization.service_owner.denied";
         internal const string ValidatorType = "validator.type";
         internal const string ValidatorSource = "validator.source";
         internal const string ValidatorRemoveHiddenData = "validator.remove_hidden_data";
@@ -279,6 +288,9 @@ public sealed partial class Telemetry : IDisposable
         internal const string ProcessErrorType = "process.error.type";
         internal const string ProcessAction = "process.action";
         internal const string ProcessServiceTaskType = "process.service.task.type";
+        internal const string ProcessCallbackCommand = "process.callback.command";
+        internal const string ProcessEventType = "process.event.type";
+        internal const string ProcessCurrentElement = "process.current.element";
 
         internal const string ProblemType = "problem.type";
         internal const string ProblemTitle = "problem.title";

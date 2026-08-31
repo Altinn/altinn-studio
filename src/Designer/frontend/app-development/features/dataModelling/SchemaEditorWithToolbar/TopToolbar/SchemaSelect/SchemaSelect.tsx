@@ -4,10 +4,10 @@ import {
   groupMetadataOptions,
 } from '../../../../../utils/metadataUtils';
 import type { MetadataOption } from '../../../../../types/MetadataOption';
-import { NativeSelect } from '@digdir/designsystemet-react';
 import classes from './SchemaSelect.module.css';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
+import { StudioSelect } from '@studio/components';
 
 export interface ISchemaSelectProps {
   dataModels: DataModelMetadata[];
@@ -29,26 +29,26 @@ export const SchemaSelect = ({
     setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoryUrl));
 
   return (
-    <NativeSelect
+    <StudioSelect
       aria-label={t('schema_editor.choose_model')}
       className={classes.select}
       disabled={disabled}
       onChange={(e) => handleChange(e.target.value)}
       value={selectedOption?.value.repositoryRelativeUrl}
-      size='small'
+      label=''
     >
       {optionGroups.map((group) => (
-        <optgroup label={group.label} key={group.label}>
+        <StudioSelect.OptGroup label={group.label} key={group.label}>
           {group.options.map((option) => (
-            <option
+            <StudioSelect.Option
               value={option.value.repositoryRelativeUrl}
               key={option.value.repositoryRelativeUrl}
             >
               {option.label}
-            </option>
+            </StudioSelect.Option>
           ))}
-        </optgroup>
+        </StudioSelect.OptGroup>
       ))}
-    </NativeSelect>
+    </StudioSelect>
   );
 };

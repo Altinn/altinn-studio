@@ -13,3 +13,9 @@
   flex-wrap: wrap;
   gap: var(--ds-size-1);
 }
+
+.titleCell {
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
 
 import { useSetOptions } from 'src/features/options/useGetOptions';
-import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
+import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface Props {
+  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  parent: RuntimeNodeParent;
   valueType: OptionsValueType;
   preselectedOption: IOptionInternal | undefined;
   options: IOptionInternal[];
@@ -18,11 +20,9 @@ interface Props {
  * If given the 'preselectedOptionIndex' property, we should automatically select the given option index as soon
  * as options are ready. The code is complex to guard against overwriting data that has been set by the user.
  */
-export function EffectPreselectedOptionIndex({ preselectedOption, valueType, options }: Props) {
-  const parent = GeneratorInternal.useParent();
+export function EffectPreselectedOptionIndex({ item, parent, preselectedOption, valueType, options }: Props) {
   const isHidden = useIsHidden(parent.baseId);
   const hasSelectedInitial = useRef(false);
-  const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const { unsafeSelectedValues, setData } = useSetOptions(valueType, dataModelBindings, options);
   const hasValue = unsafeSelectedValues.length > 0;

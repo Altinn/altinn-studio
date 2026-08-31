@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"regexp"
 	"slices"
 	"time"
 
-	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -19,9 +19,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/runtimes/kind"
-	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/cnpgapi"
 	"altinn.studio/operator/test/utils"
 )
 
@@ -31,6 +33,7 @@ var errHelmReleaseNotReady = errors.New("HelmRelease not ready")
 var errHelmReleaseNoReadyCondition = errors.New("HelmRelease has no Ready condition")
 var errPasswordKeyMissing = errors.New("password key missing from secret")
 var errManagedRolesStatusMissing = errors.New("no managed roles status yet")
+var errManagedRoleSpecMissing = errors.New("managed role missing from cluster spec")
 var errRoleNotReconciled = errors.New("managed role not yet reconciled")
 var errDatabaseNotApplied = errors.New("database not yet applied")
 var errPostgresqlJSONMissing = errors.New("postgresql.json key missing from app secret")
@@ -57,11 +60,51 @@ var _ = Describe("cnpgsync", Ordered, func() {
 	var Runtime *kind.KindContainerRuntime
 	var Client *utils.K8sClient
 
+	fetchCNPGSpec := func(
+		ctx context.Context,
+		resource string,
+		name string,
+		obj *unstructured.Unstructured,
+	) (map[string]any, error) {
+		err := Client.CNPG.Get().
+			Resource(resource).
+			Namespace(cnpgNamespace).
+			Name(name).
+			Do(ctx).
+			Into(obj)
+		if err != nil {
+			return nil, fmt.Errorf("fetch %s: %w", obj.GetKind(), err)
+		}
+		spec, err := cnpgapi.Spec(obj)
+		if err != nil {
+			return nil, fmt.Errorf("read %s spec: %w", obj.GetKind(), err)
+		}
+		return spec, nil
+	}
+
+	clusterSpecSnapshot := func(spec map[string]any) map[string]any {
+		snapshot := make(map[string]any, len(spec))
+		maps.Copy(snapshot, spec)
+
+		// Keep the snapshot focused on the fields this operator writes or relies on.
+		// Raw unstructured reads include CNPG CRD defaults that the old typed snapshot omitted.
+		delete(snapshot, "failoverDelay")
+		delete(snapshot, "maxSyncReplicas")
+		delete(snapshot, "minSyncReplicas")
+		if monitoring, ok := snapshot["monitoring"].(map[string]any); ok {
+			monitoringSnapshot := make(map[string]any, len(monitoring))
+			maps.Copy(monitoringSnapshot, monitoring)
+			delete(monitoringSnapshot, "enablePodMonitor")
+			snapshot["monitoring"] = monitoringSnapshot
+		}
+		return snapshot
+	}
+
 	BeforeAll(func() {
 		By("loading kind runtime")
 
 		var err error
-		projectRoot, err := config.TryFindProjectRootByGoMod()
+		projectRoot, err := projectroot.Find(projectroot.Marker)
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 		Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
@@ -182,26 +225,25 @@ var _ = Describe("cnpgsync", Ordered, func() {
 	It("should create ImageCatalog", func() {
 		ctx := context.Background()
 
-		var readyCatalog *cnpgv1.ImageCatalog
+		var readyCatalog map[string]any
 
 		By("checking ImageCatalog exists")
 		Eventually(func() error {
-			catalog := &cnpgv1.ImageCatalog{}
-			err := Client.CNPG.Get().
-				Resource("imagecatalogs").
-				Namespace(cnpgNamespace).
-				Name(imageCatalogName).
-				Do(ctx).
-				Into(catalog)
+			spec, err := fetchCNPGSpec(
+				ctx,
+				"imagecatalogs",
+				imageCatalogName,
+				cnpgapi.NewImageCatalog(cnpgNamespace, imageCatalogName),
+			)
 			if err != nil {
-				return fmt.Errorf("fetch ImageCatalog: %w", err)
+				return err
 			}
-			readyCatalog = catalog
+			readyCatalog = spec
 			return nil
 		}, 30*time.Second, time.Second).Should(Succeed())
 
 		By("snapshotting ImageCatalog spec")
-		specJSON, err := json.Marshal(readyCatalog.Spec)
+		specJSON, err := json.Marshal(readyCatalog)
 		Expect(err).NotTo(HaveOccurred())
 		snaps.WithConfig(snaps.Filename("cnpg-imagecatalog-spec")).MatchJSON(GinkgoT(), specJSON)
 	})
@@ -209,26 +251,28 @@ var _ = Describe("cnpgsync", Ordered, func() {
 	It("should create Cluster", func() {
 		ctx := context.Background()
 
-		var readyCluster *cnpgv1.Cluster
+		var readyCluster map[string]any
 
 		By("checking Cluster exists")
 		Eventually(func() error {
-			cluster := &cnpgv1.Cluster{}
-			err := Client.CNPG.Get().
-				Resource("clusters").
-				Namespace(cnpgNamespace).
-				Name(clusterName).
-				Do(ctx).
-				Into(cluster)
+			spec, err := fetchCNPGSpec(
+				ctx,
+				"clusters",
+				clusterName,
+				cnpgapi.NewCluster(cnpgNamespace, clusterName),
+			)
 			if err != nil {
-				return fmt.Errorf("fetch Cluster: %w", err)
+				return err
 			}
-			readyCluster = cluster
+			if _, ok := spec["managed"].(map[string]any); !ok {
+				return errManagedRoleSpecMissing
+			}
+			readyCluster = spec
 			return nil
 		}, 60*time.Second, time.Second).Should(Succeed())
 
 		By("snapshotting Cluster spec")
-		specJSON, err := json.Marshal(readyCluster.Spec)
+		specJSON, err := json.Marshal(clusterSpecSnapshot(readyCluster))
 		Expect(err).NotTo(HaveOccurred())
 		snaps.WithConfig(snaps.Filename("cnpg-cluster-spec")).MatchJSON(GinkgoT(), specJSON)
 	})
@@ -280,7 +324,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 
 		By("checking managed role is reconciled in cluster status")
 		Eventually(func() error {
-			cluster := &cnpgv1.Cluster{}
+			cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
 			err := Client.CNPG.Get().
 				Resource("clusters").
 				Namespace(cnpgNamespace).
@@ -290,14 +334,17 @@ var _ = Describe("cnpgsync", Ordered, func() {
 			if err != nil {
 				return fmt.Errorf("fetch cluster managed roles: %w", err)
 			}
-			if cluster.Status.ManagedRolesStatus.ByStatus == nil {
+			reconciledRoles, err := cnpgapi.ReconciledRoleNames(cluster)
+			if err != nil {
+				return fmt.Errorf("read reconciled roles: %w", err)
+			}
+			if reconciledRoles == nil {
 				return errManagedRolesStatusMissing
 			}
-			reconciledRoles := cluster.Status.ManagedRolesStatus.ByStatus[cnpgv1.RoleStatusReconciled]
 			if slices.Contains(reconciledRoles, appId) {
 				return nil
 			}
-			return fmt.Errorf("%w: role=%s status=%+v", errRoleNotReconciled, appId, cluster.Status.ManagedRolesStatus)
+			return fmt.Errorf("%w: role=%s status=%+v", errRoleNotReconciled, appId, cluster.Object["status"])
 		}, 120*time.Second, 2*time.Second).Should(Succeed())
 	})
 
@@ -305,11 +352,11 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		ctx := context.Background()
 
 		dbName := fmt.Sprintf(databaseNameFmt, appId)
-		var appliedDb *cnpgv1.Database
+		var appliedDb map[string]any
 
 		By("checking Database exists and is applied")
 		Eventually(func() error {
-			db := &cnpgv1.Database{}
+			db := cnpgapi.NewDatabase(cnpgNamespace, dbName)
 			err := Client.CNPG.Get().
 				Resource("databases").
 				Namespace(cnpgNamespace).
@@ -319,15 +366,23 @@ var _ = Describe("cnpgsync", Ordered, func() {
 			if err != nil {
 				return fmt.Errorf("fetch database: %w", err)
 			}
-			if db.Status.Applied == nil || !*db.Status.Applied {
+			applied, err := cnpgapi.DatabaseApplied(db)
+			if err != nil {
+				return fmt.Errorf("read database status: %w", err)
+			}
+			if !applied {
 				return errDatabaseNotApplied
 			}
-			appliedDb = db
+			spec, err := cnpgapi.Spec(db)
+			if err != nil {
+				return fmt.Errorf("read Database spec: %w", err)
+			}
+			appliedDb = spec
 			return nil
 		}, 180*time.Second, 2*time.Second).Should(Succeed())
 
 		By("snapshotting Database spec")
-		specJSON, err := json.Marshal(appliedDb.Spec)
+		specJSON, err := json.Marshal(appliedDb)
 		Expect(err).NotTo(HaveOccurred())
 		snaps.WithConfig(snaps.Filename("cnpg-database-spec")).MatchJSON(GinkgoT(), specJSON)
 	})

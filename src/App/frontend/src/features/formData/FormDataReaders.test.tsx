@@ -158,16 +158,13 @@ async function render(props: TestProps) {
 
 describe('FormDataReaders', () => {
   beforeAll(() => {
-    jest
-      .spyOn(window, 'logWarnOnce')
+    vi.spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
       .mockName('window.logWarnOnce');
-    jest
-      .spyOn(window, 'logError')
+    vi.spyOn(window, 'logError')
       .mockImplementation(() => {})
       .mockName('window.logError');
-    jest
-      .spyOn(window, 'logErrorOnce')
+    vi.spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
       .mockName('window.logErrorOnce');
   });
@@ -207,7 +204,7 @@ describe('FormDataReaders', () => {
   );
 
   it('advanced, should fetch data from multiple models, handle failures', async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const missingError = new Error('This should fail when fetching');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (missingError as any).isAxiosError = true;
@@ -310,7 +307,7 @@ describe('FormDataReaders', () => {
     expect(screen.getByTestId('test2')).toHaveTextContent('Hello ...');
     expect(screen.getByTestId('test3')).toHaveTextContent('You are ... year(s) old');
 
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     await waitFor(() => expect(screen.getByTestId('test1')).toHaveTextContent('Hello World'));
     await waitFor(() => expect(screen.getByTestId('test2')).toHaveTextContent('Hello Universe'));

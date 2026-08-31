@@ -22,9 +22,7 @@ const availableComponents = [
 describe('DefaultItems', () => {
   it('should render default items', () => {
     renderDefaultItems({});
-    expect(
-      screen.getByText(textMock('ux_editor.add_item.select_component_header')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.add_item.components_header'))).toBeInTheDocument();
   });
 
   it('should render all available components', () => {
@@ -47,7 +45,6 @@ describe('DefaultItems', () => {
 const renderDefaultItems = (props: Partial<DefaultItemsProps>) => {
   const defaultProps: DefaultItemsProps = {
     availableComponents,
-    onCancel: jest.fn(),
     onAddItem: jest.fn(),
     showAllButton: <StudioButton>Show all</StudioButton>,
   };

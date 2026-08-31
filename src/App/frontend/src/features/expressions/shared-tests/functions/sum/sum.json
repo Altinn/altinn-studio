@@ -1,0 +1,110 @@
+{
+  "name": "Sum tests",
+  "testCases": [
+    {
+      "name": "Should add the numbers in the array together",
+      "expression": ["sum", ["list", 0.1, 0.2, 0.3]],
+      "expects": 0.6
+    },
+    {
+      "name": "Should add the negative numbers in the array together",
+      "expression": ["sum", ["list", -4, -0.2, -0.1]],
+      "expects": -4.3
+    },
+    {
+      "name": "Should return 0 when all numbers in the array is null",
+      "expression": ["sum", ["list", null, null, null]],
+      "expects": 0
+    },
+    {
+      "name": "Should return the only value in the array when the rest is null",
+      "expression": ["sum", ["list", 4.3, null, null]],
+      "expects": 4.3
+    },
+    {
+      "name": "Should add all numbers that is not null in the array together",
+      "expression": ["sum", ["list", 4.3, null, 3.1]],
+      "expects": 7.4
+    },
+    {
+      "name": "Should sum integers in array",
+      "expression": ["sum", ["list", 10, 20, 30]],
+      "expects": 60
+    },
+    {
+      "name": "Should sum mixed floats and integers in array",
+      "expression": ["sum", ["list", 10.5, 20, 5.5]],
+      "expects": 36
+    },
+    {
+      "name": "Should sum strings as numbers in array",
+      "expression": ["sum", ["list", "10", "20.5", "5"]],
+      "expects": 35.5
+    },
+    {
+      "name": "Should sum negative and positive integers in array",
+      "expression": ["sum", ["list", 50, -30, 20, -10]],
+      "expects": 30
+    },
+    {
+      "name": "Should sum numbers in scientific notation in array",
+      "expression": ["sum", ["list", 1e3, 2e3, 1e2]],
+      "expects": 3100
+    },
+    {
+      "name": "Should sum numbers with negative exponents in array",
+      "expression": ["sum", ["list", 1e-3, 2e-3, 3e-3]],
+      "expects": 0.006
+    },
+    {
+      "name": "Should sum very small numbers in array",
+      "expression": ["sum", ["list", 0.0000001, 0.0000002, 0.0000003]],
+      "expects": 0.0000006
+    },
+    {
+      "name": "Should sum string scientific notation in array",
+      "expression": ["sum", ["list", "5E2", "1E2", "5e1"]],
+      "expects": 650
+    },
+    {
+      "name": "Should sum negative and positive decimal numbers in array",
+      "expression": ["sum", ["list", 50.55, -30.66, 10.11]],
+      "expects": 30
+    },
+    {
+      "name": "Should return 0 for empty array",
+      "expression": ["sum", ["list"]],
+      "expects": 0
+    },
+    {
+      "name": "Should fail with invalid string in array",
+      "expression": ["sum", ["list", "10", "not a number", "5"]],
+      "expectsFailure": "Expected number, got value \"not a number\""
+    },
+    {
+      "name": "Should fail with boolean in array",
+      "expression": ["sum", ["list", 10, true, 5]],
+      "expectsFailure": "Expected number, got value true"
+    },
+    {
+      "name": "Should fail when no arguments are provided",
+      "expression": ["sum"],
+      "expectsFailure": "Expected 1 argument(s), got 0"
+    },
+    {
+      "name": "Should fail when non-array argument is provided",
+      "expression": ["sum", 10],
+      "expectsFailure": "Expected argument to be list, got number"
+    },
+    {
+      "name": "Should sum single element array",
+      "expression": ["sum", ["list", 42]],
+      "expects": 42
+    },
+    {
+      "name": "Should sum large numbers in array",
+      "expression": ["sum", ["list", 900719925474099, 1, 900719925474099]],
+      "expects": 1801439850948199
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IQueryParameters } from 'src/layout/common.generated';
 import type { ExprResolver } from 'src/layout/LayoutComponent';

@@ -1,23 +1,11 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
-  margin-top: var(--fds-spacing-3);
+  gap: var(--ds-size-4);
+  margin-top: var(--ds-size-3);
 }
 
-.inputFields {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-2);
-}
-
-.customReceiptField {
-  display: flex;
-  align-items: center;
-}
-
-.buttonWrapper {
-  display: flex;
-  gap: var(--fds-spacing-2);
-  padding-inline: var(--custom-receipt-spacing);
+.deleteButton {
+  width: fit-content;
+  margin-inline: var(--custom-receipt-spacing);
 }

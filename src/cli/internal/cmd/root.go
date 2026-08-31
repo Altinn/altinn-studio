@@ -14,6 +14,7 @@ import (
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
+	"altinn.studio/studioctl/internal/updatecheck"
 )
 
 // version is set at build time via ldflags.
@@ -103,12 +104,27 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 		return 1
 	}
 
-	if err := cmd.Run(ctx, args[1:]); err != nil {
-		c.out.Error(err.Error())
-		return 1
+	runErr := cmd.Run(ctx, args[1:])
+	if runErr != nil {
+		c.out.Error(runErr.Error())
 	}
 
+	c.notifyUpdateAvailable(ctx, cmdName)
+
+	if runErr != nil {
+		return 1
+	}
 	return 0
+}
+
+// notifyUpdateAvailable prints a notice when a newer studioctl release exists.
+// It is skipped for the 'self' command so it does not interfere with a self
+// update or uninstall the user is already performing.
+func (c *CLI) notifyUpdateAvailable(ctx context.Context, cmdName string) {
+	if cmdName == "self" {
+		return
+	}
+	updatecheck.New(c.cfg, c.out).Run(ctx)
 }
 
 func (c *CLI) printUsage() {

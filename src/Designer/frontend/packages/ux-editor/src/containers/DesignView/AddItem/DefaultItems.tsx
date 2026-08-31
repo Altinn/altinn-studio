@@ -1,8 +1,7 @@
 import React from 'react';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './DefaultItems.module.css';
-import { StudioButton, StudioHeading } from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+import { StudioHeading } from '@studio/components';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
 import { useFormLayouts } from '../../../hooks';
@@ -13,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 
 export type DefaultItemsProps = {
   onAddItem: (addedItem: AddedItem) => void;
-  onCancel: () => void;
   availableComponents: IToolbarElement[];
   showAllButton: React.ReactNode;
 };
@@ -21,24 +19,14 @@ export type DefaultItemsProps = {
 export const DefaultItems = ({
   onAddItem,
   availableComponents,
-  onCancel,
   showAllButton,
 }: DefaultItemsProps) => {
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
 
   return (
-    <div className={classes.root}>
-      <div className={classes.closeButtonContainer}>
-        <StudioHeading level={4} className={classes.header}>
-          {t('ux_editor.add_item.select_component_header')}
-        </StudioHeading>
-        <StudioButton
-          icon={<XMarkIcon title={t('general.close')} />}
-          onClick={onCancel}
-          variant='tertiary'
-        />
-      </div>
+    <>
+      <StudioHeading level={4}>{t('ux_editor.add_item.components_header')}</StudioHeading>
       <div className={classes.componentsWrapper}>
         {availableComponents.map((key) => {
           return (
@@ -59,6 +47,6 @@ export const DefaultItems = ({
         })}
         {showAllButton}
       </div>
-    </div>
+    </>
   );
 };

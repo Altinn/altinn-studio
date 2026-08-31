@@ -4,9 +4,14 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/App/backend/**'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
+      - 'src/Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/**'
       - '.github/workflows/app-backend-tests.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -17,9 +22,11 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-ubuntu
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/app-build-frontend
   analyze:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
@@ -28,25 +35,28 @@ jobs:
       matrix:
         os:
           - id: ubuntu-latest
+            runner: self-hosted-ubuntu
             workingDir: src/App/backend/
           - id: macos-latest
+            runner: macos-latest
             workingDir: src/App/backend/
           - id: windows-latest
+            runner: windows-latest
             workingDir: src\App\backend\
     name: Build and test
-    runs-on: ${{ matrix.os.id }}
-    timeout-minutes: 15
+    runs-on: ${{ matrix.os.runner }}
+    timeout-minutes: 25
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
       - name: Enable long paths for git on Windows
         if: matrix.os.id == 'windows-latest'
         run: git config --system core.longpaths true
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          persist-credentials: false
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           global-json-file: src/App/backend/global.json
       - name: Tool restore
@@ -60,7 +70,7 @@ jobs:
 
       - name: Download built frontend
         if: matrix.os.id == 'ubuntu-latest'
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app-frontend-dist
           path: src/App/frontend/dist

@@ -13,10 +13,13 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Workflow Lifecycle](#workflow-lifecycle)
     - [Command System](#command-system)
     - [Retry \& Error Handling](#retry--error-handling)
+    - [Deferral (Durable Yield)](#deferral-durable-yield)
     - [Concurrency Model](#concurrency-model)
     - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
     - [Cancellation](#cancellation)
     - [Resume](#resume)
+    - [Abandon](#abandon)
+    - [Nudge](#nudge)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
     - [Dashboard](#dashboard)
@@ -128,8 +131,9 @@ Additional states:
 
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
+- **Abandoned** — an unsuccessful terminal workflow whose failure a caller explicitly wrote off. See [Abandon](#abandon).
 
-Terminal workflows (Failed, Canceled, DependencyFailed) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
 
 ### Processing Loop
 
@@ -233,6 +237,140 @@ When a workflow fails:
 3. Dependent workflows marked `DependencyFailed`
 4. All visible via API, dashboard, and telemetry
 
+## Deferral (Durable Yield)
+
+Some work is "start now, confirm eventually": an eFormidling shipment, a payment capture, a signing
+order. The outcome arrives on someone else's schedule, and the only honest thing a step can say is
+*"I ran fine; the answer isn't ready yet."* That is a **deferral** — not a failure, and not a retry.
+
+```csharp
+return ExecutionResult.Defer(TimeSpan.FromMinutes(5), "delivery not confirmed yet");
+```
+
+The engine parks the step in `Waiting` and schedules its next execution through the workflow's
+`backoff_until` — the same durable timer `StartAt` rides on. A parked workflow holds **no lease, no
+worker slot and no HTTP slot**; it is simply a row the fetch gate will not claim until its timer
+elapses. `Waiting` is non-terminal and counts as *active*: consumers must never read a parked
+workflow as settled.
+
+The reason string is persisted as the step's `lastDeferReason` (overwritten on every deferral,
+cleared on resume) and surfaced wherever the wait is visible: the step on workflow status reads,
+and `waitingReason` on a `Waiting` collection head — populated only while the head is parked, so a
+consumer never sees a stale reason. Phrase it for a reader: it is the one place a waiting step gets
+to say, in its own words, what it is waiting for.
+
+Deferrals are kept rigorously separate from errors:
+
+| | Retryable error | Deferral |
+| --- | --- | --- |
+| Status | `Requeued` | `Waiting` |
+| `ErrorHistory` | Appends an entry | Records nothing |
+| `RequeueCount` | Incremented | **Reset to 0** |
+| Metric | `engine.steps.execution.requeued` | `engine.steps.execution.deferred` |
+| Bounded by | `RetryStrategy` | The step's wait budget |
+
+Resetting `RequeueCount` is deliberate: retries bound *consecutive errors between* deferrals, not
+errors across the step's whole lifetime. A poll that fails transiently, recovers, and then polls for
+another six hours should not arrive at hour six with its retry budget already spent.
+
+### Two vocabularies, on purpose
+
+`Defer`/`Deferred` is what a **command returns**; `Waiting` is the **state the engine puts the step
+in**. The same split already exists for failures — a command returns `RetryableError`, the engine
+records `Requeued` — and it is worth keeping: the command describes its own outcome, the engine
+describes what it did about it. So counters count the event (`engine.steps.execution.deferred`) while
+the gauge measures the state (`engine.workflows.waiting`).
+
+### Three separate clocks
+
+Each bounds a different thing, and none of them substitutes for another:
+
+| Clock | Bounds | Anchored at | Default | A command reads |
+| --- | --- | --- | --- | --- |
+| `command.maxExecutionTime` | One execution attempt | Attempt start | 100s | `ExecutionDeadline` |
+| `RetryStrategy` | A run of consecutive *errors* | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount` |
+| `command.waitBudget` | Cumulative time spent *waiting* | `Step.FirstDeferredAt` | 24h | `Step.DeferCount` + `WaitDeadline` |
+
+Each clock is observable from `CommandExecutionContext`, one field per clock, so a command can pace
+itself against the same limits the engine will enforce instead of guessing at them. Both deadlines are
+absolute instants rather than remaining durations: a duration starts aging the moment it is computed,
+and a command that receives one across a network boundary (as the Altinn app callback does) cannot tell
+how much has already been spent.
+
+Two persisted anchors, because they measure different spans and collapsing them breaks one of the two.
+`FirstDeferredAt` never moves once set, so the budget measures the whole wait. `LastDeferredAt` moves
+with each deferral, so an error run that begins after a long wait still gets its full retry allowance.
+Anchoring retries on `UpdatedAt` instead looks equivalent and is not: `UpdatedAt` advances on *every*
+write-back, including each failed attempt, which slides the retry deadline forward one backoff at a
+time and stops `MaxDuration` binding at all — a deferred step whose command starts failing would then
+retry forever, never reaching a terminal status and never raising a failure metric.
+
+**Total allowed duration.** There is no workflow-level lifetime cap; the clocks above are all
+per-step. A step's worst case after a deferral is `waitBudget + RetryStrategy.MaxDuration` (48h on
+defaults), and a workflow's is that summed over its steps — up to `MaxStepsPerWorkflow` of them.
+A parked workflow also blocks its dependents and holds its collection head for the whole time, is
+never purged by retention (it is `Incomplete`), protects its already-finished dependencies from being
+purged, and counts toward `BackpressureThreshold`. Size budgets accordingly, and note that `resume`
+clears both anchors — a resumed step starts its budget over. Its `StateOut` is deliberately kept:
+only a deferring step can produce state and later fail (a completed step never re-executes), and a
+resumed poller should replay from what it last recorded rather than from the previous step's output.
+
+### The wait budget
+
+`command.waitBudget` (default `EngineSettings.DefaultStepWaitBudget` = 24h, rejected at enqueue above
+`MaxStepWaitBudget` = 14d) caps total waiting, measured from the step's **first** deferral
+(`Step.FirstDeferredAt`, persisted), so it survives restarts and re-fetches. The cap is deliberately
+small: real polls resolve in minutes to hours, an instance pinned for two weeks should fail loudly
+rather than wait on — and the cap is one side of the callback-token lifetime invariant documented on
+`EngineSettings.MaxStepWaitBudget` (tokens minted at enqueue never refresh, so worst-case workflow
+lifetime must stay below the signing code's remaining validity).
+
+It is a **cumulative allowance, not a poll interval.** The command chooses the delay before each
+re-check; the budget caps the sum of those delays. A step deferring 5 minutes at a time under the 24h
+default therefore polls ~288 times — it does not sit idle for a day between checks.
+
+The budget bounds waiting; it does not shorten the last poll. A deferral asking for longer than the
+budget has left is **clamped to land exactly on the deadline**, so the step always spends its whole
+budget and always gets one final execution before expiring. (Rejecting the overshooting deferral
+instead would forfeit the remainder of the budget, and would make `Defer(24h)` under a 24h budget fail
+without ever having waited.) A deferral *at or past* the deadline is what fails the step — with a
+distinct classification:
+
+```text
+engine.workflows.execution.failed{reason="wait_expired"}
+```
+
+Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
+not that the engine or the command broke. Route it to the team that owns the integration. A
+non-positive delay, by contrast, is a command bug and fails the step under the ordinary `execution`
+reason. A *positive but negligible* delay is the same class of mistake handled gently: it is clamped
+up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
+"wait no time at all", and a spinning park would hammer the callback target for the whole budget.
+
+### Deferral is stateful across attempts
+
+A deferring step is handed **its own** `StateOut` back as the next attempt's `StateIn` — see
+`ResolveStateIn`. Without that, a command that yields state would have it persisted and then silently
+discarded on every re-execution, so each poll would restart from whatever the *previous step* left
+behind. A polling command therefore resumes from what it last recorded, and the state channel needs no
+special-casing for waiting.
+
+`DeferCount` and `FirstDeferredAt` are exposed on `StepStatusResponse`. A command reads `DeferCount`
+from `CommandExecutionContext.Step` and `WaitDeadline` from the context itself, so it can back off its
+own cadence adaptively — or give up early, deliberately, instead of being failed anonymously when the
+budget expires. `WaitDeadline` is an absolute instant rather than a remaining duration: a duration
+starts aging the moment it is computed, and a command that receives it across a network boundary (as
+the Altinn app callback does) cannot tell how much has already been spent.
+`engine.steps.wait.duration` records the budget a step actually consumed, once per deferring step at
+the moment it resolves — the only signal that shows budgets being *approached* rather than blown, so
+compare its upper percentiles against the configured budget when sizing one.
+
+### Push as an optimization of pull
+
+The step's own cadence is always the source of truth. When an external signal *does* arrive early, use
+[Nudge](#nudge) to collapse the remaining wait — the step then re-executes and decides for itself
+whether the outcome is ready. A lost signal therefore costs latency, never correctness.
+
 ## Concurrency Model
 
 Three independent semaphore pools via `IConcurrencyLimiter`:
@@ -258,22 +396,33 @@ This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims
 
 ## Cancellation
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/cancel
 ```
 
-1. Sets `CancellationRequestedAt` in the database
+1. Sets `CancellationRequestedAt` in the database (durable, atomic — this is the source of truth)
 2. `CancellationWatcherService` polls for pending cancellations
 3. In-flight workflows receive a cancellation token signal
 4. `WorkflowHandler` catches the cancellation and marks the workflow `Canceled`
 
 Cancellation is **idempotent** — multiple calls return the original timestamp.
 
+### Immediate vs. distributed cancellation
+
+Setting the database flag always succeeds atomically, but _when_ the workflow actually stops depends on where it is running. The `canceledImmediately` field in the response distinguishes the two paths:
+
+- **Immediate (`canceledImmediately: true`)** — the pod that received the cancel request is the same pod currently executing the workflow. Its `CancellationTokenSource` is triggered synchronously before the response returns, aborting the running step's in-flight work (e.g. the outbound HTTP call) right away. Sub-second, bounded only by how promptly the command honors its token.
+- **Distributed (`canceledImmediately: false`)** — the flag is set, but the workflow isn't in the receiving pod's in-flight set. It is either:
+    - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
+    - **not yet started or parked** (Enqueued/Requeued/Waiting) — finalized as `Canceled` the next time the processor fetches it, without executing any step. A pending cancellation bypasses the fetch gate's backoff check, so a workflow parked behind a retry backoff or a deferred step's wait timer is claimed on the next fetch cycle rather than when its timer elapses. (Unsettled dependencies still gate the fetch: a cancelled dependent is finalized once its dependency settles.)
+
+In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `202` response means this call requested the cancellation; a `200` means cancellation was already pending (idempotent re-request).
+
 ## Resume
 
-Terminal workflows (Failed, Canceled, DependencyFailed) can be resumed for re-processing:
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be resumed for re-processing:
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 ```
 
@@ -283,7 +432,7 @@ POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 
 When `cascade=true`, all transitively dependent workflows in `DependencyFailed` state are also resumed. This is useful when a parent workflow's failure cascaded to its children — resuming the parent with cascade fixes the entire chain.
 
-**Response (200 OK):**
+**Response (202 Accepted):** the workflow is back in `Enqueued`; the processor picks it up on its next cycle.
 
 ```json
 {
@@ -294,6 +443,67 @@ When `cascade=true`, all transitively dependent workflows in `DependencyFailed` 
 ```
 
 Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed` or `Processing`).
+
+## Abandon
+
+An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **abandoned** — its failure is explicitly written off by a caller:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/abandon
+```
+
+Dependency edges carry two things: sequencing (a dependent waits until its dependencies are terminal) and outcome gating (a failed dependency condemns dependents to `DependencyFailed`). Abandoning removes only the gating, prospectively:
+
+- **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
+- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed`. If a written-off casualty should also be built past, abandon it too.
+- **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
+- **The enqueue fingerprint is released.** Abandoned means the action may be retried: atomically with the transition, the idempotency key of the request that created the workflow is deleted, so replaying the same fingerprint — even with an identical body — creates and runs a fresh workflow (`201 Created`) instead of deduplicating onto the write-off or conflicting. For batch enqueues the key covers the whole batch, so abandoning any member releases the fingerprint for all of them (the surviving members themselves are untouched).
+
+The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "abandonedAt": "2026-03-19T10:02:00+00:00"
+}
+```
+
+The transition is a compare-and-set from the three source states: 202 Accepted when this call wrote off the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
+
+## Nudge
+
+A parked workflow — `Requeued` between retry attempts, or `Waiting` on a [deferral](#deferral-durable-yield) —
+can be told to stop waiting:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/nudge
+```
+
+This clears `backoff_until` and signals the processor, so the workflow is claimed on the next fetch
+cycle instead of when its timer would have elapsed. The workflow is **re-executed, not skipped**: the
+step runs again and reaches its own conclusion. Nudging a poller that still has nothing to report
+simply produces another deferral.
+
+This is the engine's push channel. It exists so an external signal (a webhook, an event) can
+*accelerate* a poll, never to carry it: the step's own cadence remains the source of truth, so a lost
+nudge costs one poll interval of latency and nothing else. Never build a flow whose correctness
+depends on the nudge arriving.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "nudgedAt": "2026-03-19T10:03:00+00:00"
+}
+```
+
+Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
+the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
+does not exist. The dashboard's *Retry now* / *Check now* buttons drive the same operation through
+`POST /dashboard/nudge`.
 
 ## Dependency Graphs
 
@@ -353,7 +563,7 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 
 ### Enqueue Workflows
 
-```
+```http
 POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
@@ -368,7 +578,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
         "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     },
     "context": {
-        "actor": { "userIdOrOrgNumber": "12345678901" },
+        "actor": { "orgId": "12345678901" },
         "lockToken": "lock-token-from-app",
         "org": "ttd",
         "app": "my-app",
@@ -432,7 +642,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
 
 **Response (200 OK — duplicate idempotency key):**
 
-Same shape. The original workflow is returned, no new workflow is created.
+Same shape. The original workflow is returned, no new workflow is created. This dedup guarantee lasts for the key row's lifetime: it ends when retention purges the key, or immediately when a workflow it created is [abandoned](#abandon) — the abandon releases the fingerprint so the request can be retried as new work.
 
 **Response (400 Bad Request — validation failure):**
 
@@ -444,7 +654,7 @@ Same shape. The original workflow is returned, no new workflow is created.
 
 ### Get Single Workflow
 
-```
+```http
 GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
@@ -506,10 +716,30 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 
 ### List Workflows
 
-Filter by labels:
+```http
+GET /api/v1/{namespace}/workflows
+```
+
+Supports the following optional query parameters (all repeatable params can be supplied multiple times):
+
+| Parameter       | Repeatable | Description                                                                                                                                                                                                                    |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
+
+Filter by status — e.g. all failed workflows (combine values to widen the set):
 
 ```http
-GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
+GET /api/v1/ttd:my-app/workflows?status=Failed&status=DependencyFailed
+```
+
+Filter by labels (repeated `label` param, `key:value` format):
+
+```http
+GET /api/v1/ttd:my-app/workflows?label=org:ttd&label=app:my-app
 ```
 
 Find all workflows for a specific collection via collectionKey:
@@ -518,13 +748,26 @@ Find all workflows for a specific collection via collectionKey:
 GET /api/v1/ttd:my-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
-Or combine filters — e.g. all workflows for a specific instance owner:
+Or combine filters — e.g. all failed workflows for a specific instance owner:
 
 ```http
-GET /api/v1/ttd:my-app/workflows?labels.instanceOwnerPartyId=50001234
+GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
 ```
 
-Returns an array of `WorkflowStatusResponse` (same shape as the single workflow GET above).
+**Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
+
+```json
+{
+    "data": [
+        /* WorkflowStatusResponse items */
+    ],
+    "pageSize": 25,
+    "totalCount": 142,
+    "nextCursor": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+}
+```
+
+Paginate by passing `nextCursor` back as `?cursor=`. A `null` `nextCursor` indicates the last page.
 
 ### Cancel Workflow
 
@@ -532,7 +775,7 @@ Returns an array of `WorkflowStatusResponse` (same shape as the single workflow 
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ```
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {
@@ -542,19 +785,80 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 }
 ```
 
+`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `200 OK` instead when cancellation was already pending (idempotent replay), `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
+
 ### Resume Workflow
 
-```
+```http
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
 ```
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {
     "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "resumedAt": "2026-03-19T10:02:00+00:00",
     "cascadeResumed": []
+}
+```
+
+### Nudge Workflow
+
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/nudge
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "nudgedAt": "2026-03-19T10:03:00+00:00"
+}
+```
+
+Clears the pending backoff of a parked (`Requeued` or `Waiting`) workflow so it runs on the next fetch
+cycle — see [Nudge](#nudge). Returns `200 OK` with a null `nudgedAt` when it was already due,
+`409 Conflict` when the workflow is not parked, and `404 Not Found` when it doesn't exist.
+
+### List Collections
+
+Lists all collections in the namespace, ordered by most recently updated. Each entry carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for head statuses).
+
+```http
+GET /api/v1/{namespace}/collections
+```
+
+**Response (200 OK):** an array of collection summaries. Returns `204 No Content` when the namespace has no collections.
+
+```json
+[
+    {
+        "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "namespace": "ttd:my-app",
+        "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
+        "createdAt": "2026-03-19T10:00:00+00:00",
+        "updatedAt": "2026-03-19T10:00:05+00:00"
+    }
+]
+```
+
+### Get Collection
+
+```http
+GET /api/v1/{namespace}/collections/{key}
+```
+
+**Response (200 OK):** a single collection with its head workflow statuses, or `404 Not Found` when the key is unknown in the namespace.
+
+```json
+{
+    "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "namespace": "ttd:my-app",
+    "heads": [{ "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "status": "Completed" }],
+    "createdAt": "2026-03-19T10:00:00+00:00",
+    "updatedAt": "2026-03-19T10:00:05+00:00"
 }
 ```
 
@@ -759,3 +1063,15 @@ AppCommand reads `{ "state": "..." }` from the response body and stores it as `s
 ```
 
 Placeholders are expanded from `AppWorkflowContext` at execution time.
+
+### Callback Authentication
+
+Callbacks into an Altinn app are secured with a JWT that the **app** mints and the **engine** relays — the engine never issues credentials of its own:
+
+1. **At enqueue time**, the app mints a short-lived JWT signed with a `WorkflowEngineCallback` app-code. The `jti` claim is set to the instance guid, and the token's lifetime is bound to the signing code's expiry.
+2. The token rides through the engine opaquely in `AppWorkflowContext.CallbackToken`. The engine stores it and **replays it on every callback** in the `Authorization: Bearer` header.
+3. **On each callback**, the app validates the token's signature and lifetime against its `WorkflowEngineCallback` codes, and checks that `jti` matches the `instanceGuid` in the route — so a token can only act on its own instance.
+
+Because the callback bearer token shares the `Authorization` header with platform (JwtCookie) auth, a selector-policy scheme routes only callback requests to the `WorkflowEngineCallback` scheme and everything else to the default scheme, avoiding collisions.
+
+Data writes performed during callbacks run as `StorageAuthenticationMethod.ServiceOwner()`. This is why an app's `policy.xml` must grant ServiceOwner write rights on all tasks.

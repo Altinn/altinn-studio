@@ -15,7 +15,7 @@ type RenderTaskOptionsProps = {
 const RenderTaskOptions = ({ tasksWithRules, initialSelectedTasks }: RenderTaskOptionsProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
-  const layoutSets = layoutSetsSchema?.sets || [];
+  const layoutSets = layoutSetsSchema || [];
   const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, initialSelectedTasks);
 
   return availableTasks.map((task) => (

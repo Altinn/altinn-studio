@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using CorrespondenceResult = Altinn.App.Core.Features.Telemetry.Correspondence.CorrespondenceResult;
-#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace Altinn.App.Core.Features.Correspondence;
 
@@ -27,13 +26,11 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly PlatformSettings _platformSettings;
     private readonly Telemetry? _telemetry;
-    private readonly CorrespondenceAuthorisationFactory _authorisationFactory;
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
 
     public CorrespondenceClient(
         IHttpClientFactory httpClientFactory,
         IOptions<PlatformSettings> platformSettings,
-        IServiceProvider serviceProvider,
         ILogger<CorrespondenceClient> logger,
         IAuthenticationTokenResolver authenticationTokenResolver,
         Telemetry? telemetry = null
@@ -44,7 +41,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         _platformSettings = platformSettings.Value;
         _telemetry = telemetry;
         _authenticationTokenResolver = authenticationTokenResolver;
-        _authorisationFactory = new CorrespondenceAuthorisationFactory(serviceProvider);
     }
 
     /// <inheritdoc />
@@ -309,7 +305,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             Correspondence = new CorrespondenceDetailsRequest
             {
                 ResourceId = request.ResourceId,
-                Sender = request.Sender.ToUrnFormattedString(),
                 SendersReference = request.SendersReference,
                 MessageSender = request.MessageSender,
                 Content = BuildCorrespondenceContent(request.Content),
@@ -327,6 +322,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             },
             Recipients = request.Recipients.Select(r => r.ToUrnFormattedString()).ToList(),
             ExistingAttachments = allExistingAttachments.Count > 0 ? allExistingAttachments : [],
+            IdempotentKey = request.IdempotentKey,
         };
     }
 
@@ -358,16 +354,10 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             NotificationChannel = notification.NotificationChannel,
             ReminderNotificationChannel = notification.ReminderNotificationChannel,
             SendersReference = notification.SendersReference,
-            CustomRecipient = notification.CustomRecipient is null
+            CustomRecipients = notification.CustomRecipients is null or { Count: 0 }
                 ? null
-                : BuildNotificationRecipient(notification.CustomRecipient),
-            CustomNotificationRecipients = notification
-                .CustomNotificationRecipients?.Select(x => new CorrespondenceCustomNotificationRecipientRequest
-                {
-                    RecipientToOverride = x.RecipientToOverride.ToUrnFormattedString(),
-                    Recipients = x.CorrespondenceNotificationRecipients.Select(BuildNotificationRecipient).ToList(),
-                })
-                .ToList(),
+                : [.. notification.CustomRecipients.Select(BuildNotificationRecipient)],
+            OverrideRegisteredContactInformation = notification.OverrideRegisteredContactInformation,
         };
     }
 
@@ -392,9 +382,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     )
     {
         _logger.LogDebug("Fetching access token via factory");
-        JwtToken accessToken = payload.AuthenticationMethod is not null
-            ? await _authenticationTokenResolver.GetAccessToken(payload.AuthenticationMethod)
-            : await _authorisationFactory.Resolve(payload);
+        JwtToken accessToken = await _authenticationTokenResolver.GetAccessToken(payload.AuthenticationMethod);
 
         _logger.LogDebug("Constructing authorized http request for target uri {TargetEndpoint}", uri);
         HttpRequestMessage request = new(method, uri) { Content = content };

@@ -75,6 +75,7 @@ func NewReconciler(
 // +kubebuilder:rbac:groups=resources.altinn.studio,resources=maskinportenclients/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=resources.altinn.studio,resources=maskinportenclients/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;update
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -377,6 +378,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 			if result.Err == nil {
 				instance.Status.Authority = result.Authority
 				instance.Status.KeyIds = result.KeyIds
+				markRotationRestartPending(instance, result.RotationFingerprint, cmdResult.Timestamp.UTC())
 				apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
 					Type:               maskinporten.ConditionTypeSecretSynced,
 					Status:             metav1.ConditionTrue,
@@ -430,6 +432,26 @@ func (r *MaskinportenClientReconciler) updateStatus(
 		return fmt.Errorf("update status: %w", err)
 	}
 	return nil
+}
+
+func markRotationRestartPending(
+	instance *resourcesv1alpha1.MaskinportenClient,
+	fingerprint string,
+	detectedAt time.Time,
+) {
+	if fingerprint == "" || fingerprint == instance.Status.LastSecretRotationRestartedFingerprint {
+		return
+	}
+	timestamp := metav1.NewTime(detectedAt.UTC())
+	instance.Status.PendingSecretRotationFingerprint = fingerprint
+	instance.Status.PendingSecretRotationDetectedAt = &timestamp
+	apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+		Type:               maskinporten.ConditionTypeRotationRestart,
+		Status:             metav1.ConditionTrue,
+		ObservedGeneration: instance.GetGeneration(),
+		Reason:             "PendingCompatibilityRollout",
+		Message:            "Maskinporten secret rotation is pending an app Deployment rollout for compatibility",
+	})
 }
 
 func (r *MaskinportenClientReconciler) updateStatusWithError(
@@ -735,6 +757,7 @@ func shouldRequireClientIdentityForDeletion(instance *resourcesv1alpha1.Maskinpo
 	return condition != nil && condition.Status == metav1.ConditionTrue
 }
 
+//nolint:maintidx // Existing production reconciliation flow is intentionally kept together; this change only annotates one command path.
 func (r *MaskinportenClientReconciler) reconcile(
 	ctx context.Context,
 	configValue *config.Config,
@@ -824,6 +847,13 @@ func (r *MaskinportenClientReconciler) reconcile(
 				"Secret.Manifest must exist for UpdateSecretContentCommand",
 			)
 			err := r.updateSecretWithRetry(ctx, currentState.Secret.Manifest, func(s *corev1.Secret) error {
+				if data.RotationFingerprint != "" {
+					if s.Annotations == nil {
+						s.Annotations = map[string]string{}
+					}
+					s.Annotations[maskinporten.AnnotationSecretVersion] = data.RotationFingerprint
+					s.Annotations[maskinporten.AnnotationSecretRotatedAt] = clock.Now().UTC().Format(time.RFC3339)
+				}
 				return data.SecretContent.SerializeTo(s)
 			}, false)
 			if err != nil {
@@ -839,8 +869,9 @@ func (r *MaskinportenClientReconciler) reconcile(
 				}
 			}
 			builders[i].WithUpdateSecretContentResult(&maskinporten.UpdateSecretContentCommandResult{
-				Authority: data.SecretContent.Authority,
-				KeyIds:    keyIds,
+				Authority:           data.SecretContent.Authority,
+				KeyIds:              keyIds,
+				RotationFingerprint: data.RotationFingerprint,
 			})
 
 		case *maskinporten.DeleteClientInApiCommand:
@@ -958,6 +989,9 @@ func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		WithOptions(controller.Options{MaxConcurrentReconciles: goruntime.NumCPU() * 4}).
 		Complete(r); err != nil {
 		return fmt.Errorf("complete Maskinporten controller builder: %w", err)
+	}
+	if err := mgr.Add(newRotationRolloutProcessor(r)); err != nil {
+		return fmt.Errorf("add Maskinporten rotation rollout processor: %w", err)
 	}
 	return nil
 }

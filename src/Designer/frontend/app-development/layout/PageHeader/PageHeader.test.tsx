@@ -5,7 +5,7 @@ import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { app } from '@studio/testing/testids';
 import { type PageHeaderContextProps } from 'app-development/contexts/PageHeaderContext/PageHeaderContext';
 import { pageHeaderContextMock, previewContextMock } from 'app-development/test/headerMocks';
-import { PreviewContext } from 'app-development/contexts/PreviewContext';
+import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';

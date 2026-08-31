@@ -9,7 +9,10 @@ public class ContactPoint
     public required string Org { get; init; }
     public required string Name { get; init; }
     public bool IsActive { get; init; }
+    public string? CreatedByUsername { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
+    public string? UpdatedByUsername { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
     public List<string> Environments { get; init; } = [];
     public List<ContactMethod> Methods { get; init; } = [];
 }

@@ -1,11 +1,15 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;
 
@@ -16,9 +20,13 @@ namespace WorkflowEngine.Core.Tests;
 public class WorkflowHandlerTests
 {
     private static readonly TimeProvider _fixedTime = TimeProvider.System;
+
+    /// <summary>Fixed origin for tests that need a controllable clock.</summary>
+    private static readonly DateTimeOffset _t0 = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
     private static readonly EngineSettings _defaultSettings = new()
     {
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+        MaxStepCommandTimeout = TimeSpan.FromHours(2),
         DefaultStepRetryStrategy = RetryStrategy.None(),
         DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
         DatabaseRetryStrategy = RetryStrategy.None(),
@@ -40,13 +48,14 @@ public class WorkflowHandlerTests
     private static WorkflowHandler CreateHandler(
         IWorkflowExecutor executor,
         EngineSettings? settings = null,
-        IWorkflowUpdateBuffer? buffer = null
+        IWorkflowUpdateBuffer? buffer = null,
+        TimeProvider? timeProvider = null
     ) =>
         new(
             executor,
             buffer ?? MockBuffer().Object,
             Options.Create(settings ?? _defaultSettings),
-            _fixedTime,
+            timeProvider ?? _fixedTime,
             NullLogger<WorkflowHandler>.Instance
         );
 
@@ -588,5 +597,380 @@ public class WorkflowHandlerTests
             Assert.True(entries[i].WasRetryable);
             Assert.True(entries[i].Timestamp > DateTimeOffset.MinValue);
         }
+    }
+
+    [Fact]
+    public async Task Handle_StepDefers_WorkflowWaiting_NoErrorHistory()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5), "not delivered yet"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        var before = DateTimeOffset.UtcNow;
+        await handler.Handle(workflow, CancellationToken.None);
+        var after = DateTimeOffset.UtcNow;
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[0].Status);
+        Assert.Equal(1, workflow.Steps[0].DeferCount);
+        Assert.NotNull(workflow.Steps[0].FirstDeferredAt);
+        Assert.Empty(workflow.Steps[0].ErrorHistory);
+        Assert.Equal(0, workflow.Steps[0].RequeueCount);
+        Assert.NotNull(workflow.BackoffUntil);
+        Assert.True(workflow.BackoffUntil.Value >= before.AddMinutes(4));
+        Assert.True(workflow.BackoffUntil.Value <= after.AddMinutes(6));
+    }
+
+    [Fact]
+    public async Task Handle_StepDefers_ResetsRequeueCount()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
+        var handler = CreateHandler(executor.Object);
+        var step = CreateStep();
+        step.RequeueCount = 3; // Transient errors before this successful "not yet" check
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, step.Status);
+        Assert.Equal(0, step.RequeueCount);
+    }
+
+    [Fact]
+    public async Task Handle_StepDefers_PreservesFirstDeferredAtAcrossCycles()
+    {
+        var executor = MockExecutor(
+            ExecutionResult.Defer(TimeSpan.FromMinutes(1)),
+            ExecutionResult.Defer(TimeSpan.FromMinutes(1))
+        );
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+        var firstDeferredAt = workflow.Steps[0].FirstDeferredAt;
+
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(firstDeferredAt, workflow.Steps[0].FirstDeferredAt);
+        Assert.Equal(2, workflow.Steps[0].DeferCount);
+    }
+
+    [Fact]
+    public async Task Handle_DeferThenSuccess_WorkflowCompleted()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)), ExecutionResult.Success());
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+
+        // Simulate re-fetch after backoff elapses
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Empty(workflow.Steps[0].ErrorHistory);
+    }
+
+    [Fact]
+    public async Task Handle_DeferWaitBudgetExhausted_WorkflowFailed_WaitExpired()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5), "still nothing"));
+        var handler = CreateHandler(executor.Object);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", waitBudget: TimeSpan.FromMinutes(1)),
+        };
+        step.DeferCount = 12;
+        step.FirstDeferredAt = DateTimeOffset.UtcNow.AddMinutes(-2); // Budget of 1 min already blown
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Null(workflow.BackoffUntil);
+        var entry = Assert.Single(step.ErrorHistory);
+        Assert.Contains("Wait budget", entry.Message, StringComparison.Ordinal);
+        Assert.Contains("still nothing", entry.Message, StringComparison.Ordinal);
+        Assert.False(entry.WasRetryable);
+    }
+
+    [Fact]
+    public async Task Handle_DeferBeyondRemainingBudget_ClampsDelayToDeadline()
+    {
+        // Budget not yet spent, but the requested delay would overshoot the deadline: the step still
+        // parks, just only until the deadline, so it gets one final check instead of failing early.
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(10)));
+        var handler = CreateHandler(executor.Object);
+        var firstDeferredAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", waitBudget: TimeSpan.FromMinutes(5)),
+        };
+        step.FirstDeferredAt = firstDeferredAt;
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Waiting, step.Status);
+        Assert.Empty(step.ErrorHistory);
+
+        // Clamped to FirstDeferredAt + budget rather than now + 10 minutes.
+        var expectedDeadline = firstDeferredAt.AddMinutes(5);
+        Assert.NotNull(workflow.BackoffUntil);
+        Assert.True((workflow.BackoffUntil.Value - expectedDeadline).Duration() < TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task Handle_FirstDeferralOfExactlyTheBudget_Parks()
+    {
+        // Regression: a delay equal to the whole budget must spend the budget, not fail on arrival.
+        // This is the "durable timer" shape (defer for exactly the default wait duration).
+        var budget = TimeSpan.FromHours(24);
+        var executor = MockExecutor(ExecutionResult.Defer(budget));
+        var handler = CreateHandler(executor.Object);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", waitBudget: budget),
+        };
+        var workflow = CreateWorkflow(step);
+
+        var before = DateTimeOffset.UtcNow;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(1, step.DeferCount);
+        Assert.Empty(step.ErrorHistory);
+        Assert.NotNull(workflow.BackoffUntil);
+        Assert.True(workflow.BackoffUntil.Value >= before.Add(budget).AddMinutes(-1));
+    }
+
+    [Fact]
+    public async Task Handle_DeferAtTheDeadline_FailsWithWaitExpired()
+    {
+        // The clamped final poll runs at the deadline; a deferral there has no budget left to spend.
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
+        var handler = CreateHandler(executor.Object);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", waitBudget: TimeSpan.FromMinutes(5)),
+        };
+        step.DeferCount = 3;
+        step.FirstDeferredAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Null(workflow.BackoffUntil);
+        Assert.Contains("Wait budget", Assert.Single(step.ErrorHistory).Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Handle_DeferNonPositiveDelay_WorkflowFailed()
+    {
+        var executor = MockExecutor(new ExecutionResult(ExecutionStatus.Deferred, DeferDelay: TimeSpan.Zero));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        var entry = Assert.Single(workflow.Steps[0].ErrorHistory);
+        Assert.Contains("non-positive delay", entry.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Handle_DeferBelowMinimumDelay_ClampsUpToTheFloor()
+    {
+        // A positive but negligible delay must not turn the park into a tight re-execution loop.
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMilliseconds(1)));
+        var settings = _defaultSettings with { MinStepDeferDelay = TimeSpan.FromSeconds(30) };
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(executor.Object, settings, timeProvider: time);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(_t0.AddSeconds(30), workflow.BackoffUntil);
+    }
+
+    [Fact]
+    public async Task Handle_StepDefersRepeatedly_AdvancesLastDeferredAt_KeepsFirstDeferredAtFixed()
+    {
+        var executor = MockExecutor(
+            ExecutionResult.Defer(TimeSpan.FromMinutes(5)),
+            ExecutionResult.Defer(TimeSpan.FromMinutes(5))
+        );
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(executor.Object, timeProvider: time);
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+        Assert.Equal(_t0, step.FirstDeferredAt);
+        Assert.Equal(_t0, step.LastDeferredAt);
+
+        time.Advance(TimeSpan.FromMinutes(5));
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        // The two anchors measure different spans and must not collapse onto each other: the budget is
+        // still counted from the first deferral, while the retry deadline moves with the latest one.
+        Assert.Equal(_t0, step.FirstDeferredAt);
+        Assert.Equal(_t0.AddMinutes(5), step.LastDeferredAt);
+    }
+
+    [Fact]
+    public async Task Handle_ErrorsAfterDeferral_RetryMaxDurationStillBinds()
+    {
+        // Regression: the retry deadline must anchor on the last deferral, not on the step's last
+        // write-back. UpdatedAt advances on every attempt, so anchoring there slid the deadline forward
+        // one backoff at a time and MaxDuration never bound — a deferred step whose command started
+        // failing retried forever, never reaching a terminal status and never raising a failure metric.
+        var maxDuration = TimeSpan.FromHours(1);
+        var executor = MockExecutor();
+        executor
+            .Setup(e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ExecutionResult.RetryableError("callback is down"));
+
+        var settings = _defaultSettings with
+        {
+            // No MaxRetries — MaxDuration is the only bound, exactly as in the shipped defaults.
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMinutes(10), maxDuration: maxDuration),
+        };
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(executor.Object, settings, timeProvider: time);
+
+        var step = CreateStep();
+        step.DeferCount = 1;
+        step.FirstDeferredAt = _t0;
+        step.LastDeferredAt = _t0;
+        var workflow = CreateWorkflow(step);
+
+        var attempts = 0;
+        while (step.Status != PersistentItemStatus.Failed && attempts < 100)
+        {
+            workflow.Status = PersistentItemStatus.Processing;
+            await handler.Handle(workflow, TestContext.Current.CancellationToken);
+            attempts++;
+
+            // Stand in for the fetch gate waiting out the backoff the handler just scheduled.
+            if (workflow.BackoffUntil is { } backoff && backoff > time.GetUtcNow())
+                time.SetUtcNow(backoff);
+        }
+
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.True(
+            time.GetUtcNow() - _t0 <= maxDuration,
+            $"Retries ran for {time.GetUtcNow() - _t0}, beyond the {maxDuration} MaxDuration."
+        );
+    }
+
+    [Fact]
+    public async Task Handle_MultiStep_SecondDefers_FirstStaysCompleted_ThirdStaysEnqueued()
+    {
+        var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2)
+        );
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[1].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, workflow.Steps[2].Status);
+    }
+
+    [Fact]
+    public async Task Handle_CancellationBypassClaim_RecordsNoNegativeDurations()
+    {
+        // A cancel racing a deferral write-back is claimed by the fetch gate's cancellation bypass
+        // while backoff_until still points at the next scheduled poll — potentially far in the
+        // future. The duration anchor must clamp to now, or queue/total time record negative values.
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(MockExecutor(ExecutionResult.Success()).Object, timeProvider: time);
+        var workflow = new Workflow
+        {
+            OperationId = "cancel-bypass-durations",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [CreateStep()],
+            CancellationRequestedAt = _t0,
+            BackoffUntil = _t0.AddMinutes(10),
+        };
+
+        using var durations = new WorkflowDurationCollector("cancel-bypass-durations");
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Canceled, workflow.Status);
+        Assert.NotEmpty(durations.Measurements);
+        Assert.All(
+            durations.Measurements,
+            m => Assert.True(m.Value >= 0, $"{m.Instrument} recorded a negative duration: {m.Value}")
+        );
+    }
+
+    /// <summary>
+    /// Captures the workflow queue/total duration histograms for one workflow, filtered by its
+    /// operation-id tag so concurrently running tests never bleed into the assertions.
+    /// </summary>
+    private sealed class WorkflowDurationCollector : IDisposable
+    {
+        private readonly MeterListener _listener;
+
+        public ConcurrentBag<(string Instrument, double Value)> Measurements { get; } = [];
+
+        public WorkflowDurationCollector(string operationId)
+        {
+            _listener = new MeterListener();
+            _listener.InstrumentPublished = (instrument, listener) =>
+            {
+                if (
+                    instrument.Meter.Name == Metrics.Meter.Name
+                    && instrument.Name is "engine.workflows.time.queue" or "engine.workflows.time.total"
+                )
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            };
+            _listener.SetMeasurementEventCallback<double>(
+                (instrument, measurement, tags, _) =>
+                {
+                    foreach (var tag in tags)
+                    {
+                        if (tag.Key == "workflow.operation.id" && Equals(tag.Value, operationId))
+                        {
+                            Measurements.Add((instrument.Name, measurement));
+                            return;
+                        }
+                    }
+                }
+            );
+            _listener.Start();
+        }
+
+        public void Dispose() => _listener.Dispose();
     }
 }

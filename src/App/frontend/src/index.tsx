@@ -1,5 +1,4 @@
-// Needed for "useBuiltIns": "entry" in babel.config.json to resolve
-// all the polyfills we need and inject them here
+// Bundles the core-js polyfills into the app, so it works in older browsers
 import 'core-js';
 
 import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
@@ -29,6 +28,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
+import 'src/styles/shared.css';
 
 const queryClient = createAppQueryClient();
 const apiClients: ApiClients = {
@@ -38,7 +38,7 @@ const apiClients: ApiClients = {
   textResourcesApi,
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+function renderApp() {
   if (isRedirectingFromHashRoute) {
     return;
   }
@@ -56,4 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </ErrorBoundary>
     </AppQueriesProvider>,
   );
-});
+}
+
+// In production the bundle is a classic script that executes before DOMContentLoaded, but in
+// dev mode the code is loaded asynchronously from the Vite dev server, so DOMContentLoaded
+// may already have fired by the time we get here.
+if (document.readyState !== 'loading') {
+  renderApp();
+} else {
+  document.addEventListener('DOMContentLoaded', renderApp);
+}

@@ -13,12 +13,11 @@ import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 
-import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
-import { Link } from '@digdir/designsystemet-react';
+import { StudioLink } from '@studio/components';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
@@ -27,8 +26,6 @@ export type ServicesContextProviderProps = ServicesContextProps & {
   clientConfig?: QueryClientConfig;
 };
 
-const LOG_OUT_TIMER_MS = 5000;
-
 const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
@@ -36,7 +33,6 @@ const handleError = (
   t: (key: string) => string,
   i18n: i18n,
   meta: QueryMeta | MutationMeta,
-  logout: () => Promise<void>,
 ): void => {
   if (isCancel(error)) {
     return;
@@ -76,10 +72,8 @@ const handleError = (
     errorCode === ApiErrorCodes.SessionExpired;
 
   if (isSessionExpiredError) {
-    return renderToast(errorCode || 'Unauthorized', detail, {
-      onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
-      autoClose: LOG_OUT_TIMER_MS,
-    });
+    window.location.assign(userLogoutAfterPath());
+    return;
   }
 
   if (
@@ -102,11 +96,7 @@ const renderDefaultToast = () => {
         <Trans
           i18nKey={'general.error_message'}
           components={{
-            a: (
-              <Link href='/info/contact' inverted={true}>
-                {' '}
-              </Link>
-            ),
+            a: <StudioLink href='/info/contact'> </StudioLink>,
           }}
         />
       </div>
@@ -130,11 +120,11 @@ export const ServicesContextProvider = ({
         ...clientConfig,
         queryCache: new QueryCache({
           onError: (error: AxiosError<ApiError>, query) =>
-            handleError(error, t, i18n, query.options?.meta, queries.logout),
+            handleError(error, t, i18n, query.options?.meta),
         }),
         mutationCache: new MutationCache({
           onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
-            handleError(error, t, i18n, mutation.options?.meta, queries.logout),
+            handleError(error, t, i18n, mutation.options?.meta),
         }),
       }),
   );

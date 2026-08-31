@@ -177,7 +177,6 @@ public static class ApplicationMetadataMapper
             RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
             Delegable = applicationmetadata?.Access?.Delegable,
             Visible = applicationmetadata?.Access?.Visible,
-            AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
     }
 

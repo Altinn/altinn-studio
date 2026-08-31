@@ -74,6 +74,52 @@ public sealed record EngineSettings
     public required TimeSpan DefaultStepCommandTimeout { get; set; }
 
     /// <summary>
+    /// The maximum per-step command timeout a client may request via a step's
+    /// <c>command.maxExecutionTime</c>. Enqueue requests exceeding this cap are rejected, protecting the
+    /// shared worker and HTTP pools from steps that would hold a slot for an unbounded amount of time.
+    /// </summary>
+    [JsonPropertyName("maxStepCommandTimeout")]
+    public required TimeSpan MaxStepCommandTimeout { get; set; }
+
+    /// <summary>
+    /// The default wait budget for steps that defer (<see cref="ExecutionStatus.Deferred"/>): the
+    /// maximum <em>cumulative</em> time a step may spend in <see cref="PersistentItemStatus.Waiting"/>
+    /// across all its deferrals, applied when its command does not specify
+    /// <see cref="CommandDefinition.WaitBudget"/>.
+    /// </summary>
+    /// <remarks>
+    /// A total allowance, not a poll interval: a step deferring 5 minutes at a time under the 1-day
+    /// default polls ~288 times before the budget runs out; it does not sit idle for a day between polls.
+    /// </remarks>
+    [JsonPropertyName("defaultStepWaitBudget")]
+    public TimeSpan DefaultStepWaitBudget { get; set; } = TimeSpan.FromDays(1);
+
+    /// <summary>
+    /// The largest wait budget a client may request via a step's <c>command.waitBudget</c>.
+    /// Enqueue requests exceeding this cap are rejected, bounding how long a waiting step can keep its
+    /// workflow (and any dependents) pending. This caps <see cref="DefaultStepWaitBudget"/>-style
+    /// allowances; it is not itself an allowance any step receives by default.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately small — a step that has not resolved in two weeks should fail loudly rather than
+    /// keep its instance pinned. Raising it also erodes a cross-component invariant: AppCommand
+    /// callback tokens are minted once at enqueue and never refresh, valid until their signing
+    /// app-code expires. Under the operator's rotation policy (<c>appcodesync</c>: 186d acceptance,
+    /// 72d rotation) a token has ≥114d of validity left at enqueue, and the worst-case workflow
+    /// lifetime — a full wait, a resume at the retention edge (60d), and a second full wait, each
+    /// resume replaying the original token — must stay below that floor.
+    /// </remarks>
+    [JsonPropertyName("maxStepWaitBudget")]
+    public TimeSpan MaxStepWaitBudget { get; set; } = TimeSpan.FromDays(14);
+
+    /// <summary>
+    /// The shortest delay a deferral can schedule. A command asking for less is clamped up to it, so a
+    /// deferral cannot become a tight re-execution loop. A non-positive delay still fails the step.
+    /// </summary>
+    [JsonPropertyName("minStepDeferDelay")]
+    public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
     [JsonPropertyName("defaultStepRetryStrategy")]
@@ -107,7 +153,7 @@ public sealed record EngineSettings
 
     /// <summary>
     /// Maximum number of times a workflow can be reclaimed before being marked as Failed.
-    /// Protects against poison workflows that crash workers repeatedly.
+    /// Protects against poisoned workflows that crash workers repeatedly.
     /// </summary>
     [JsonPropertyName("maxReclaimCount")]
     public required int MaxReclaimCount { get; set; }
@@ -117,6 +163,13 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("cancellationWatcherInterval")]
     public TimeSpan CancellationWatcherInterval { get; set; }
+
+    /// <summary>
+    /// Interval at which the database maintenance sweeps run (stale reclaim, poisoned finalization,
+    /// and dependency-recovery of workflows whose dependencies have since completed).
+    /// </summary>
+    [JsonPropertyName("maintenanceInterval")]
+    public TimeSpan MaintenanceInterval { get; set; }
 
     /// <summary>
     /// Concurrency settings.

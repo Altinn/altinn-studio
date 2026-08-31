@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/process-transition-test/App/models/TransitionControl.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "TransitionControl",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "title": "Scenario"
+    },
+    "delayMs": {
+      "type": "integer",
+      "title": "Forsinkelse (ms)"
+    },
+    "attempts": {
+      "type": "integer",
+      "title": "Antall forsøk"
+    },
+    "endState": {
+      "type": "string",
+      "title": "Sluttilstand"
+    },
+    "advance": {
+      "type": "string",
+      "title": "Videreføring etter suksess"
+    },
+    "serviceView": {
+      "type": "string",
+      "title": "Visning under behandling"
+    },
+    "deferrals": {
+      "type": "integer",
+      "title": "Antall utsettelser"
+    },
+    "deferDelayMs": {
+      "type": "integer",
+      "title": "Tid mellom utsettelser (ms)"
+    }
+  }
+}

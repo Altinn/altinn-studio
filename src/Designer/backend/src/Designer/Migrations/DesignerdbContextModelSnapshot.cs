@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.13")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
@@ -264,9 +264,21 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("EventId")
+                        .HasColumnType("character varying")
+                        .HasColumnName("event_id");
+
+                    b.Property<bool?>("FeedbackThumbsUp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("feedback_thumbs_up");
+
                     b.PrimitiveCollection<List<string>>("FilesChanged")
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
+
+                    b.Property<bool?>("AttachmentInstructionFlagged")
+                        .HasColumnType("boolean")
+                        .HasColumnName("attachment_instruction_flagged");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")
@@ -280,9 +292,17 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("thread_id");
 
+                    b.Property<string>("TraceId")
+                        .HasColumnType("character varying")
+                        .HasColumnName("trace_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "ThreadId" }, "idx_chat_messages_thread_id");
+
+                    b.HasIndex(new[] { "ThreadId", "EventId" }, "idx_chat_messages_thread_id_event_id")
+                        .IsUnique()
+                        .HasFilter("event_id IS NOT NULL");
 
                     b.ToTable("chat_messages", "designer");
                 });
@@ -370,6 +390,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<Guid?>("CreatedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_account_id");
+
                     b.PrimitiveCollection<List<string>>("Environments")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -394,8 +418,20 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("org");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by_user_account_id");
+
                     b.HasKey("Id")
                         .HasName("contact_points_pkey");
+
+                    b.HasIndex("CreatedByUserAccountId");
+
+                    b.HasIndex("UpdatedByUserAccountId");
 
                     b.HasIndex(new[] { "Org" }, "idx_contact_points_org");
 
@@ -660,6 +696,23 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasConstraintName("fk_contact_methods_contact_point_id");
 
                     b.Navigation("ContactPoint");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", b =>
+                {
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", "CreatedByUserAccount")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserAccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", "UpdatedByUserAccount")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserAccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUserAccount");
+
+                    b.Navigation("UpdatedByUserAccount");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeployEventDbModel", b =>

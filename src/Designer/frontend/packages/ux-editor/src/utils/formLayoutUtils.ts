@@ -6,19 +6,17 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
-import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import type { FormItemConfigs } from '../data/formItemConfig';
-import { formItemConfigs, allComponents, defaultComponents } from '../data/formItemConfig';
+import type { FormItemConfigs, SupportedComponentType } from '../data/formItemConfig';
+import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
-import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export const mapComponentToToolbarElement = <T extends ComponentType | CustomComponentType>(
+export const mapComponentToToolbarElement = <T extends keyof FormItemConfigs>(
   c: FormItemConfigs[T],
 ): IToolbarElement => ({
   label: c.name,
@@ -230,7 +228,6 @@ export const addNavigationButtons = (layout: IInternalLayout, id: string): IInte
     id,
     itemType: 'COMPONENT',
     onClickAction: () => {},
-    showBackButton: true,
     textResourceBindings: { next: undefined, back: undefined },
     type: ComponentType.NavigationButtons,
   };
@@ -308,14 +305,14 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends ComponentType | CustomComponentType>(
+export const addItemOfType = <T extends SupportedComponentType>(
   layout: IInternalLayout,
   componentType: T,
   id: string,
   parentId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
-  const newItem: FormItem<T> = generateFormItem<T>(componentType, id);
+  const newItem = generateFormItem(componentType, id);
   return newItem.itemType === 'CONTAINER'
     ? addContainer(layout, newItem, id, parentId, position)
     : addComponent(layout, newItem, parentId, position);
@@ -481,72 +478,6 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
  * */
 export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
   ObjectUtils.flattenObjectValues(layout.order);
-
-/**
- * Gets all available componenent types to add for a given container
- * @param layout
- * @param containerId
- * @returns
- */
-export const getAvailableChildComponentsForContainer = (
-  layout: IInternalLayout,
-  containerId: string,
-): KeyValuePairs<IToolbarElement[]> => {
-  const allComponentLists: KeyValuePairs<IToolbarElement[]> = {};
-
-  if (containerId !== BASE_CONTAINER_ID) {
-    const containerType = layout.containers[containerId].type;
-    if (formItemConfigs[containerType]?.validChildTypes) {
-      Object.keys(allComponents).forEach((key) => {
-        const componentListForKey = [];
-        allComponents[key].forEach((element: ComponentType) => {
-          if (formItemConfigs[containerType].validChildTypes.includes(element)) {
-            componentListForKey.push(mapComponentToToolbarElement(formItemConfigs[element]));
-          }
-        });
-
-        if (componentListForKey.length > 0) {
-          allComponentLists[key] = componentListForKey;
-        }
-      });
-    }
-  } else {
-    Object.keys(allComponents).forEach((key) => {
-      allComponentLists[key] = allComponents[key].map((element: ComponentType) =>
-        mapComponentToToolbarElement(formItemConfigs[element]),
-      );
-    });
-  }
-  return allComponentLists;
-};
-
-/**
- * Gets all default componenent types to add for a given container
- * @param layout
- * @param containerId
- * @returns
- */
-export const getDefaultChildComponentsForContainer = (
-  layout: IInternalLayout,
-  containerId: string,
-): IToolbarElement[] => {
-  if (containerId !== BASE_CONTAINER_ID) {
-    const containerType = layout.containers[containerId].type;
-    if (
-      formItemConfigs[containerType]?.validChildTypes &&
-      formItemConfigs[containerType].validChildTypes.length < 10
-    ) {
-      return formItemConfigs[containerType].validChildTypes.map((element: ComponentType) =>
-        mapComponentToToolbarElement(formItemConfigs[element]),
-      );
-    }
-  }
-  const defaultComponentLists: IToolbarElement[] = [];
-  defaultComponents.forEach((element) => {
-    defaultComponentLists.push(mapComponentToToolbarElement(formItemConfigs[element]));
-  });
-  return defaultComponentLists;
-};
 
 /**
  * Get all components in the given layout

@@ -10,6 +10,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type {
   CodeListData as LibraryCodeListData,
   ContentLibraryConfig,
+  OrdinaryCodeListFile,
   PagesConfig,
   TextResources,
   TextResourceWithLanguage,
@@ -328,9 +329,9 @@ describe('OrgContentLibraryPage', () => {
       queries: { updateSharedResources },
     });
 
-    const newCodeLists: LibraryCodeListData[] = [
-      { name: 'list-1', codes: [{ value: '8', label: { nb: 'Åtte' } }] },
-      { name: 'list-2', codes: [{ value: '9', label: { en: 'Nine' } }] },
+    const newCodeLists: OrdinaryCodeListFile[] = [
+      { name: 'list-1.json', content: `[{ "value": "8", "label": { "nb": "Åtte" } }]` },
+      { name: 'list-2.json', content: `[{ "value": "9", "label": { "en": "Nine" } }]` },
     ];
     retrievePagesConfig().codeLists.onSave(newCodeLists);
     await waitFor(expect(updateSharedResources).toHaveBeenCalled);
@@ -340,11 +341,11 @@ describe('OrgContentLibraryPage', () => {
       files: [
         {
           path: 'CodeLists/list-1.json',
-          content: JSON.stringify(newCodeLists[0].codes, null, 2),
+          content: newCodeLists[0].content,
         },
         {
           path: 'CodeLists/list-2.json',
-          content: JSON.stringify(newCodeLists[1].codes, null, 2),
+          content: newCodeLists[1].content,
         },
         {
           path: 'CodeLists/animals.json',

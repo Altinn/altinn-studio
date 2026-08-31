@@ -1,4 +1,5 @@
 """Path utilities"""
+
 from pathlib import Path
 from typing import Union
 
@@ -27,6 +28,13 @@ def get_project_root() -> Path:
     """
     # Assume this file is in shared/utils/ so go up 2 levels
     return Path(__file__).parent.parent.parent
+
+
+def app_name_from_repo_url(repo_url: str) -> str:
+    last_segment = repo_url.rstrip("/").split("/")[-1].removesuffix(".git")
+    if not last_segment:
+        raise ValueError(f"Cannot derive app name from repo_url: {repo_url!r}")
+    return last_segment
 
 
 def normalize_path(path: Union[str, Path]) -> Path:

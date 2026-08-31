@@ -12,7 +12,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
 
-const connectedTaskId = mockBpmnApiContextValue.layoutSets.sets[0].tasks[0];
+const connectedTaskId = mockBpmnApiContextValue.layoutSets[0].taskId;
 const mockOnClose = jest.fn();
 
 const defaultSelectDataTypeProps: SelectDataTypesProps = {

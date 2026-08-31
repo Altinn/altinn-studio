@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.Telemetry;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Configuration;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -30,14 +29,11 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
 /// <param name="authHeadersProvider">The git server auth headers provider.</param>
-/// <param name="configuration">Used instead of IFeatureManager to check feature flags synchronously,
-/// since this class is fully synchronous and refactoring to async would require too many changes.</param>
 /// <param name="httpContextAccessor">The HTTP context accessor.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
     IGitServerAuthHeadersProvider authHeadersProvider,
-    IConfiguration configuration,
     IHttpContextAccessor? httpContextAccessor = null
 ) : ISourceControl
 {
@@ -1361,14 +1357,11 @@ public class SourceControlService(
         return new LibGit2Sharp.Repository(localPath);
     }
 
-    // IConfiguration is used instead of IFeatureManager because this class is fully synchronous
-    // and refactoring to use IFeatureManager's async API would require too many changes.
     private LibGit2Sharp.Handlers.CredentialsHandler? GetCredentialsHandler(
         AltinnAuthenticatedRepoEditingContext authenticatedContext
     )
     {
-        bool isOidcEnabled = configuration.GetValue<bool>($"FeatureManagement:{StudioFeatureFlags.StudioOidc}");
-        if (isOidcEnabled && !authenticatedContext.MustUseTokenAuth)
+        if (!authenticatedContext.MustUseTokenAuth)
         {
             return null;
         }
@@ -1408,8 +1401,7 @@ public class SourceControlService(
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
     {
-        bool isOidcEnabled = configuration.GetValue<bool>($"FeatureManagement:{StudioFeatureFlags.StudioOidc}");
-        if (!isOidcEnabled || authenticatedContext?.MustUseTokenAuth == true)
+        if (authenticatedContext?.MustUseTokenAuth == true)
         {
             return [];
         }

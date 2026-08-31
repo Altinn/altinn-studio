@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -11,8 +12,8 @@ using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Validation;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.Authorization;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
@@ -45,16 +46,14 @@ public static class TracingDI
         services.AddSingleton<IDataListProvider, DataListProvider>();
         services.AddSingleton<IDataProcessor, DataProcessor>();
         services.AddSingleton<IDataWriteProcessor, DataWriteProcessor>();
-        services.AddSingleton<IEventHandler, EventHandler>();
         services.AddSingleton<IFormDataValidator, FormDataValidator>();
         services.AddSingleton<IInstanceAppOptionsProvider, InstanceAppOptionsProvider>();
         services.AddSingleton<IInstanceDataListProvider, InstanceDataListProvider>();
         services.AddSingleton<IInstantiationProcessor, InstantiationProcessor>();
         services.AddSingleton<IInstantiationValidator, InstantiationValidator>();
         services.AddSingleton<IProcessEnd, ProcessEnd>();
-        services.AddSingleton<IProcessTaskAbandon, ProcessTaskAbandon>();
-        services.AddSingleton<IProcessTaskEnd, ProcessTaskEnd>();
-        services.AddSingleton<IProcessTaskStart, ProcessTaskStart>();
+        services.AddSingleton<IProcessTask, TracingDataProcessTask>();
+        services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
         services.AddSingleton<IUserAction, UserAction>();
         services.AddSingleton<IUserActionAuthorizer, UserActionAuthorizer>();
@@ -66,7 +65,6 @@ public static class TracingDI
         services.AddSingleton<IFileValidator, FileValidator>();
         services.AddSingleton<IEFormidlingMetadata, EFormidlingMetadata>();
         services.AddSingleton<IEFormidlingReceivers, EFormidlingReceivers>();
-        services.AddSingleton<IEventSecretCodeProvider, EventSecretCodeProvider>();
         services.AddSingleton<IUserActionAuthorizerProvider, UserActionAuthorizerProvider>();
         return services;
     }
@@ -193,17 +191,6 @@ internal sealed class DataWriteProcessor : IDataWriteProcessor
     }
 }
 
-internal sealed class EventHandler : IEventHandler
-{
-    public string EventType => "tracing-event";
-
-    public Task<bool> ProcessEvent(CloudEvent cloudEvent)
-    {
-        SnapshotLogger.LogInfo("IEventHandler.ProcessEvent");
-        return Task.FromResult(false);
-    }
-}
-
 internal sealed class FormDataValidator : IFormDataValidator
 {
     public string DataType => "*";
@@ -283,29 +270,48 @@ internal sealed class ProcessEnd : IProcessEnd
     }
 }
 
-internal sealed class ProcessTaskAbandon : IProcessTaskAbandon
+internal sealed class TracingDataProcessTask : IProcessTask
 {
-    public Task Abandon(string taskId, Instance instance)
+    public string Type => AltinnTaskTypes.Data;
+
+    public Task Start(ProcessTaskContext context)
     {
-        SnapshotLogger.LogInfo("IProcessTaskAbandon.Abandon");
+        SnapshotLogger.LogInfo("IProcessTask.Start");
+        return Task.CompletedTask;
+    }
+
+    public Task End(ProcessTaskContext context)
+    {
+        SnapshotLogger.LogInfo("IProcessTask.End");
+        return Task.CompletedTask;
+    }
+
+    public Task Abandon(ProcessTaskContext context)
+    {
+        SnapshotLogger.LogInfo("IProcessTask.Abandon");
         return Task.CompletedTask;
     }
 }
 
-internal sealed class ProcessTaskEnd : IProcessTaskEnd
+internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
-    public Task End(string taskId, Instance instance)
+    public string Type => AltinnTaskTypes.Confirmation;
+
+    public Task Start(ProcessTaskContext context)
     {
-        SnapshotLogger.LogInfo("IProcessTaskEnd.End");
+        SnapshotLogger.LogInfo("IProcessTask.Start");
         return Task.CompletedTask;
     }
-}
 
-internal sealed class ProcessTaskStart : IProcessTaskStart
-{
-    public Task Start(string taskId, Instance instance, Dictionary<string, string>? prefill)
+    public Task End(ProcessTaskContext context)
     {
-        SnapshotLogger.LogInfo("IProcessTaskStart.Start");
+        SnapshotLogger.LogInfo("IProcessTask.End");
+        return Task.CompletedTask;
+    }
+
+    public Task Abandon(ProcessTaskContext context)
+    {
+        SnapshotLogger.LogInfo("IProcessTask.Abandon");
         return Task.CompletedTask;
     }
 }
@@ -417,7 +423,9 @@ internal sealed class FileValidator : IFileValidator
 
 internal sealed class EFormidlingMetadata : IEFormidlingMetadata
 {
-    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance)
+    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(
+        IInstanceDataAccessor dataAccessor
+    )
     {
         SnapshotLogger.LogInfo("IEFormidlingMetadata.GenerateEFormidlingMetadata");
         return Task.FromResult(("metadata.xml", (Stream)new MemoryStream()));
@@ -426,19 +434,10 @@ internal sealed class EFormidlingMetadata : IEFormidlingMetadata
 
 internal sealed class EFormidlingReceivers : IEFormidlingReceivers
 {
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
+    public Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig)
     {
         SnapshotLogger.LogInfo("IEFormidlingReceivers.GetEFormidlingReceivers");
         return Task.FromResult(new List<Receiver>());
-    }
-}
-
-internal sealed class EventSecretCodeProvider : IEventSecretCodeProvider
-{
-    public Task<string> GetSecretCode()
-    {
-        SnapshotLogger.LogInfo("IEventSecretCodeProvider.GetSecretCode");
-        return Task.FromResult("secret-code");
     }
 }
 

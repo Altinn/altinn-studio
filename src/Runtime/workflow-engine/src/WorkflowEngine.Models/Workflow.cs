@@ -61,7 +61,7 @@ public sealed record Workflow : PersistentItem
     /// Per-fetch lease identifier. <c>null</c> until the workflow is first fetched; a fresh token is
     /// then issued on every fetch by the engine and asserted on heartbeat and write-back to prevent
     /// a stale worker from writing over a workflow that has been reclaimed by another host. Cleared
-    /// on every transition out of <c>Processing</c> (terminal write-back, resume, poison abandon,
+    /// on every transition out of <c>Processing</c> (terminal write-back, resume, poisoned failure,
     /// stale reclaim) to maintain the invariant "<c>LeaseToken IS NOT NULL iff Status = Processing</c>",
     /// which is what makes a frozen owner's later CAS fail deterministically.
     /// </summary>
@@ -105,7 +105,23 @@ public sealed record Workflow : PersistentItem
     /// </summary>
     public string? InitialState { get; init; }
 
+    /// <summary>
+    /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>),
+    /// persisted verbatim. <c>false</c> identifies workflows deliberately invisible to collection
+    /// head tracking (e.g. non-blocking side chains), so status consumers and telemetry can tell
+    /// them apart from head workflows without inspecting operation ids; <c>null</c> means natural
+    /// leaf detection applied at enqueue.
+    /// </summary>
+    public bool? IsHead { get; init; }
+
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
+
+    /// <summary>
+    /// Failure classification for the current in-memory attempt, used to tag the
+    /// workflow-failure metric (e.g. <c>wait_expired</c> vs the default <c>execution</c>).
+    /// Not persisted.
+    /// </summary>
+    internal string? FailureReason { get; set; }
 
     /// <inheritdoc/>
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";

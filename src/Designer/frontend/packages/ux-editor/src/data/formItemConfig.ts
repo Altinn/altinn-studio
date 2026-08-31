@@ -54,7 +54,20 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-export type FormItemConfigs = { [T in ComponentType | CustomComponentType]: FormItemConfig<T> };
+// ComponentType also contains pre-v9 names used by the legacy ux editors.
+export type SupportedComponentType = Exclude<
+  ComponentType | CustomComponentType,
+  ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
+>;
+
+export type FormItemConfigs = {
+  [T in SupportedComponentType]: FormItemConfig<T>;
+} & Partial<{
+  [ComponentType.OrganisationLookup]: FormItemConfig<ComponentType.OrganisationLookup>;
+  [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
+}>;
+
+export type FormItemConfigEntry = NonNullable<FormItemConfigs[keyof FormItemConfigs]>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -161,8 +174,7 @@ export const formItemConfigs: FormItemConfigs = {
     getDisplayName: ({
       actions,
     }: ComponentSpecificConfig<ComponentType.CustomButton>):
-      | ComponentType
-      | CustomComponentType => {
+      ComponentType | CustomComponentType => {
       const isCloseSubformAction =
         actions?.length === 1 &&
         actions[0]?.id === 'closeSubform' &&
@@ -202,7 +214,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: true,
+      timeStamp: false,
     },
     propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
@@ -232,20 +244,6 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/fileUploadComponent',
     icon: PaperclipIcon,
   },
-  [ComponentType.FileUploadWithTag]: {
-    name: ComponentType.FileUploadWithTag,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      displayMode: 'list',
-      hasCustomFileEndings: false,
-      maxFileSizeInMB: 25,
-      maxNumberOfAttachments: 1,
-      minNumberOfAttachments: 1,
-      optionsId: '',
-    },
-    propertyPath: 'definitions/fileUploadWithTagComponent',
-    icon: PaperclipIcon,
-  },
   [ComponentType.Grid]: {
     name: ComponentType.Grid,
     itemType: LayoutItemType.Component,
@@ -263,13 +261,14 @@ export const formItemConfigs: FormItemConfigs = {
     icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
-  [ComponentType.Header]: {
-    name: ComponentType.Header,
+  // The v9 editor uses the renamed contract; ux-editor-v4 retains Header.
+  [ComponentType.Heading]: {
+    name: ComponentType.Heading,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       size: 'L',
     },
-    propertyPath: 'definitions/headerComponent',
+    propertyPath: 'definitions/headingComponent',
     icon: TitleIcon,
   },
   [ComponentType.IFrame]: {
@@ -402,8 +401,9 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/navigationButtonsComponent',
     icon: FingerButtonIcon,
   },
-  [ComponentType.OrganisationLookup]: {
-    name: ComponentType.OrganisationLookup,
+  // The v9 editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
+  [ComponentType.OrganizationLookup]: {
+    name: ComponentType.OrganizationLookup,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: ShortTextIcon,
@@ -534,7 +534,11 @@ export const formItemConfigs: FormItemConfigs = {
   },
 };
 
-export const advancedItems: FormItemConfigs[ComponentType][] = [
+export const isSupportedComponentType = (
+  componentType: ComponentType | CustomComponentType,
+): componentType is SupportedComponentType => componentType in formItemConfigs;
+
+export const advancedItems: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
@@ -550,20 +554,19 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const schemaComponents: FormItemConfigs[ComponentType][] = [
+export const schemaComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Input],
   formItemConfigs[ComponentType.TextArea],
   formItemConfigs[ComponentType.Checkboxes],
   formItemConfigs[ComponentType.RadioButtons],
   formItemConfigs[ComponentType.Dropdown],
   formItemConfigs[ComponentType.MultipleSelect],
-  formItemConfigs[ComponentType.OrganisationLookup],
+  formItemConfigs[ComponentType.OrganizationLookup],
   formItemConfigs[ComponentType.PersonLookup],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
-  formItemConfigs[ComponentType.FileUploadWithTag],
   formItemConfigs[ComponentType.Button],
   formItemConfigs[ComponentType.CustomButton],
   formItemConfigs[ComponentType.NavigationButtons],
@@ -578,22 +581,22 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const textComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Header],
+export const textComponents: FormItemConfigEntry[] = [
+  formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
   formItemConfigs[ComponentType.Alert],
   formItemConfigs[ComponentType.Text],
 ];
 
-export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Header],
+export const confOnScreenComponents: FormItemConfigEntry[] = [
+  formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
 ];
 
-export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
+export const paymentLayoutComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Payment],
   ...confOnScreenComponents,
 ];
@@ -605,7 +608,7 @@ export const defaultComponents: ComponentType[] = [
   ComponentType.Dropdown,
   ComponentType.Datepicker,
   ComponentType.FileUpload,
-  ComponentType.Header,
+  ComponentType.Heading,
   ComponentType.Paragraph,
   ComponentType.Button,
 ];
@@ -615,11 +618,11 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Input,
     ComponentType.TextArea,
     ComponentType.Datepicker,
-    ComponentType.OrganisationLookup,
+    ComponentType.OrganizationLookup,
     ComponentType.PersonLookup,
   ],
   text: [
-    ComponentType.Header,
+    ComponentType.Heading,
     ComponentType.Paragraph,
     ComponentType.Panel,
     ComponentType.Alert,
@@ -648,12 +651,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.InstantiationButton,
     ComponentType.ActionButton,
   ],
-  attachment: [
-    ComponentType.AttachmentList,
-    ComponentType.FileUpload,
-    ComponentType.FileUploadWithTag,
-    ComponentType.ImageUpload,
-  ],
+  attachment: [ComponentType.AttachmentList, ComponentType.FileUpload, ComponentType.ImageUpload],
   container: [
     ComponentType.Group,
     ComponentType.Grid,
@@ -665,7 +663,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
   ],
   advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
 };
-export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
+export const subformLayoutComponents: FormItemConfigEntry[] = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,

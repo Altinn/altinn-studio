@@ -5,7 +5,7 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 const releases: AppRelease[] = [
   {
     tagName: 'existing-version-tag',
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-ignore
     build: {
       id: '123',

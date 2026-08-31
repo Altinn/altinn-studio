@@ -2,10 +2,13 @@
 package maskinporten
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -26,6 +29,15 @@ const JsonFileName = "maskinporten-settings.json"
 // AnnotationRotateJwk is used to trigger manual JWK rotation (value must be "true").
 const AnnotationRotateJwk = "altinn.studio/maskinporten-rotate-jwk"
 
+// AnnotationSecretVersion identifies the Maskinporten secret content version used by an app Deployment rollout.
+const AnnotationSecretVersion = "altinn.studio/maskinporten-secret-version" // #nosec G101 -- annotation name, not a credential.
+
+// AnnotationSecretRotatedAt records when rotated Maskinporten secret content was written.
+const AnnotationSecretRotatedAt = "altinn.studio/maskinporten-secret-rotated-at" // #nosec G101 -- annotation name.
+
+// AnnotationSecretRotationRestartedAt records when an app Deployment rollout was triggered for a rotated secret.
+const AnnotationSecretRotationRestartedAt = "altinn.studio/maskinporten-secret-rotation-restarted-at" // #nosec G101 -- annotation name.
+
 // FinalizerName is used to ensure cleanup before deletion.
 const FinalizerName = "altinn.studio/maskinporten-finalizer"
 
@@ -34,6 +46,7 @@ const (
 	ConditionTypeReady            = "Ready"
 	ConditionTypeClientRegistered = "ClientRegistered"
 	ConditionTypeSecretSynced     = "SecretSynced"
+	ConditionTypeRotationRestart  = "MaskinportenSecretRotationRestart"
 	ConditionTypeDeleting         = "Deleting"
 )
 
@@ -92,6 +105,32 @@ type SecretStateContent struct {
 	Jwk       *crypto.Jwk  `json:"Jwk"`
 	ClientId  string       `json:"ClientId"`
 	Authority string       `json:"Authority"`
+}
+
+func (c *SecretStateContent) RotationFingerprint() string {
+	if c == nil {
+		return ""
+	}
+	keyIDs := make([]string, 0)
+	if c.Jwks != nil {
+		keyIDs = make([]string, 0, len(c.Jwks.Keys))
+		for _, key := range c.Jwks.Keys {
+			keyIDs = append(keyIDs, key.KeyID())
+		}
+		sort.Strings(keyIDs)
+	}
+
+	activeKeyID := ""
+	if c.Jwk != nil {
+		activeKeyID = c.Jwk.KeyID()
+	}
+
+	hasher := sha256.New()
+	_, _ = fmt.Fprintf(hasher, "clientId=%s\nauthority=%s\nactiveKeyId=%s\n", c.ClientId, c.Authority, activeKeyID)
+	for _, keyID := range keyIDs {
+		_, _ = fmt.Fprintf(hasher, "keyId=%s\n", keyID)
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (c *SecretStateContent) SerializeTo(secret *corev1.Secret) error {
@@ -440,7 +479,11 @@ func (s *ClientState) Reconcile(
 					Jwks:      jwks,
 					Jwk:       jwks.Keys[0],
 				}
-				commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
+				if jwksRotated {
+					commands = append(commands, NewUpdateSecretContentCommandForRotation(secretStateContent))
+				} else {
+					commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
+				}
 			}
 
 			// Remove rotation annotation after successful forced rotation
@@ -554,7 +597,8 @@ type CreateClientInApiCommandResponse struct {
 	Resp *ClientResponse
 }
 type UpdateSecretContentCommand struct {
-	SecretContent *SecretStateContent
+	SecretContent       *SecretStateContent
+	RotationFingerprint string
 }
 type UpdateClientInApiCommand struct {
 	Api *ApiState
@@ -591,6 +635,19 @@ func NewUpdateSecretContentCommand(content *SecretStateContent) Command {
 	assert.That(content != nil, "UpdateSecretContentCommand requires non-nil SecretContent")
 	return Command{
 		Data:     &UpdateSecretContentCommand{SecretContent: content},
+		Callback: nil,
+	}
+}
+
+func NewUpdateSecretContentCommandForRotation(content *SecretStateContent) Command {
+	assert.That(content != nil, "UpdateSecretContentCommand requires non-nil SecretContent")
+	fingerprint := content.RotationFingerprint()
+	assert.That(fingerprint != "", "rotation secret content fingerprint must be non-empty")
+	return Command{
+		Data: &UpdateSecretContentCommand{
+			SecretContent:       content,
+			RotationFingerprint: fingerprint,
+		},
 		Callback: nil,
 	}
 }
@@ -650,9 +707,10 @@ type UpdateClientInApiCommandResult struct {
 }
 
 type UpdateSecretContentCommandResult struct {
-	Err       error
-	Authority string
-	KeyIds    []string
+	Err                 error
+	Authority           string
+	KeyIds              []string
+	RotationFingerprint string
 }
 
 type DeleteClientInApiCommandResult struct {

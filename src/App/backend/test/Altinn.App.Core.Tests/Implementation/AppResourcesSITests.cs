@@ -1,4 +1,4 @@
-#nullable disable
+using System.Text;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Implementation;
@@ -30,7 +30,7 @@ public class AppResourcesSITests
         AppResourcesSI appResources = new(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -81,7 +81,7 @@ public class AppResourcesSITests
         AppResourcesSI appResources = new(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -136,7 +136,7 @@ public class AppResourcesSITests
         AppResourcesSI appResources = new(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -191,7 +191,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -207,7 +207,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -223,7 +223,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -241,7 +241,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -258,7 +258,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -276,7 +276,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -322,12 +322,14 @@ public class AppResourcesSITests
             AppResourcesSI appResources = new(
                 Options.Create(appSettings),
                 appMetadata.Object,
-                null,
+                null!,
                 new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
-            var ui = appResources.GetUiConfiguration();
+            UiConfiguration ui =
+                appResources.GetUiConfiguration()
+                ?? throw new InvalidOperationException("Expected UI configuration to be loaded");
 
             ui.Settings.Should().NotBeNull();
             ui.Settings!.ShowProgress.Should().BeTrue();
@@ -377,7 +379,7 @@ public class AppResourcesSITests
             AppResourcesSI appResources = new(
                 Options.Create(appSettings),
                 appMetadata.Object,
-                null,
+                null!,
                 new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
@@ -391,6 +393,124 @@ public class AppResourcesSITests
             Directory.Delete(tempDir.FullName, true);
         }
     }
+
+    [Fact]
+    public void GetLayoutModelForFolder_accepts_json_with_bom()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Bom-");
+        try
+        {
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
+
+            WriteAllTextWithBom(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "main", "pages": { "order": ["page1"] } }"""
+            );
+            WriteAllTextWithBom(
+                Path.Join(uiDir, "Task_1", "layouts", "page1.json"),
+                """{ "data": { "layout": [] } }"""
+            );
+
+            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.GetApplicationMetadata())
+                .ReturnsAsync(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new()
+                            {
+                                Id = "main",
+                                AppLogic = new() { ClassRef = "Model.Main" },
+                            },
+                        ],
+                    }
+                );
+
+            AppResourcesSI appResources = new(
+                Options.Create(appSettings),
+                appMetadata.Object,
+                null!,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            var model = appResources.GetLayoutModelForFolder("Task_1");
+
+            model.Should().NotBeNull();
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetTexts_accepts_json_with_bom()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Bom-");
+        try
+        {
+            var textsDir = Path.Join(tempDir.FullName, "config", "texts");
+            Directory.CreateDirectory(textsDir);
+            WriteAllTextWithBom(
+                Path.Join(textsDir, "resource.nb.json"),
+                """{ "language": "nb", "resources": [{ "id": "some.id", "value": "Bokmål" }] }"""
+            );
+
+            AppResourcesSI appResources = new(
+                Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
+                Mock.Of<IAppMetadata>(),
+                null!,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            TextResource? textResource = await appResources.GetTexts("ttd", "app", "nb");
+
+            textResource.Should().NotBeNull();
+            textResource!.Resources.Should().ContainSingle(r => r.Id == "some.id" && r.Value == "Bokmål");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetText_strips_bom()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Bom-");
+        try
+        {
+            var textsDir = Path.Join(tempDir.FullName, "config", "texts");
+            Directory.CreateDirectory(textsDir);
+            WriteAllTextWithBom(Path.Join(textsDir, "resource.nb.json"), """{ "language": "nb" }""");
+
+            AppResourcesSI appResources = new(
+                Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
+                Mock.Of<IAppMetadata>(),
+                null!,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            byte[] text = appResources.GetText("ttd", "app", "resource.nb.json");
+
+            using var document = System.Text.Json.JsonDocument.Parse(text.AsMemory());
+            document.RootElement.GetProperty("language").GetString().Should().Be("nb");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    private static void WriteAllTextWithBom(string path, string contents) =>
+        File.WriteAllText(path, contents, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
 
     private AppSettings GetAppSettings(
         string subfolder,
@@ -414,7 +534,7 @@ public class AppResourcesSITests
 
     private static IAppMetadata SetupAppMetadata(
         IOptions<AppSettings> appsettings,
-        IFrontendFeatures frontendFeatures = null
+        IFrontendFeatures? frontendFeatures = null
     )
     {
         var featureManagerMock = new Mock<IFeatureManager>();

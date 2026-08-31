@@ -1,0 +1,49 @@
+name: CLI - Changelog entry
+
+# Requires PRs that change studioctl code or its shared dependencies to add an entry to src/cli/CHANGELOG.md
+# under [Unreleased], via the releaser's `validate-changelog` command. Apply the
+# 'skip-changelog' label to PRs with no user-visible change (refactors, test-only
+# or CI-only work); the labeled/unlabeled triggers re-evaluate the check when the
+# label is toggled. Markdown-only changes under src/cli do not trigger the check.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+    paths:
+      - 'src/cli/**'
+      - '!src/cli/**/*.md'
+      - 'src/Runtime/common/dotnet/**'
+      - '.github/workflows/cli-changelog.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  require-changelog-entry:
+    name: Require studioctl changelog entry
+    if: ${{ !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: ./.github/actions/setup-go-cached
+        with:
+          module: src/tools/releaser
+
+      - name: Validate studioctl changelog entry
+        working-directory: src/tools/releaser
+        run: |
+          go run . validate-changelog \
+            -component studioctl \
+            -base "${{ github.event.pull_request.base.sha }}" \
+            -head "${{ github.event.pull_request.head.sha }}"

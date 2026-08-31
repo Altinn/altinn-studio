@@ -8,6 +8,7 @@ public class SchedulingSettings
     public bool AddHostedService { get; set; } = true;
     public InactivityUndeployJobTimeoutSettings InactivityUndeployJobTimeouts { get; set; } = new();
     public ChatInactivityCleanupSettings ChatInactivityCleanup { get; set; } = new();
+    public RepositoryCleanupSettings RepositoryCleanup { get; set; } = new();
 }
 
 public class InactivityUndeployJobTimeoutSettings
@@ -23,5 +24,22 @@ public class InactivityUndeployJobTimeoutSettings
 
 public class ChatInactivityCleanupSettings
 {
-    public int RetentionDays { get; set; } = 30;
+    public int RetentionDays { get; set; } = 90;
+}
+
+public class RepositoryCleanupSettings
+{
+    public bool Enabled { get; set; }
+    public int RetentionDays { get; set; } = 90;
+    public int MaxRepositoriesPerRun { get; set; } = 200;
+    public int DeletionRetryAttempts { get; set; } = 3;
+    public int DeletionRetryDelayMilliseconds { get; set; } = 1000;
+    public int LockTimeoutSeconds { get; set; } = 5;
+    public int JobTimeoutMinutes { get; set; } = 120;
+    public string CronExpression { get; set; } = "0 0 0 * * ?";
+
+    public TimeSpan RetentionPeriod => TimeSpan.FromDays(RetentionDays);
+    public TimeSpan LockTimeout => TimeSpan.FromSeconds(LockTimeoutSeconds);
+    public TimeSpan JobTimeout => TimeSpan.FromMinutes(JobTimeoutMinutes);
+    public TimeSpan DeletionRetryDelay => TimeSpan.FromMilliseconds(DeletionRetryDelayMilliseconds);
 }

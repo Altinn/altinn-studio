@@ -40,7 +40,25 @@ public enum PersistentItemStatus
     Canceled = 5,
 
     /// <summary>
-    /// The item was abandoned because a workflow it depends on failed.
+    /// The item was marked failed without running because a workflow it depends on failed.
     /// </summary>
     DependencyFailed = 6,
+
+    /// <summary>
+    /// The workflow ended unsuccessfully and a caller has explicitly written it off.
+    /// Unlike <see cref="Failed"/>, an abandoned workflow does not condemn dependents evaluated
+    /// after the marking — new work may depend on it and run. Consequences that already
+    /// materialized (dependents in <see cref="DependencyFailed"/>) stand as historical record.
+    /// May be resumed like any other unsuccessful terminal state.
+    /// </summary>
+    Abandoned = 7,
+
+    /// <summary>
+    /// The item executed successfully but the outcome it is waiting for is not available yet
+    /// (<see cref="ExecutionStatus.Deferred"/>). Non-terminal and not a failure: the item is
+    /// re-fetched once the workflow's <see cref="Workflow.BackoffUntil"/> elapses and the step is
+    /// executed again. Unlike <see cref="Requeued"/>, waiting records no error history and does not
+    /// count against the retry budget.
+    /// </summary>
+    Waiting = 8,
 }

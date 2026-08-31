@@ -46,13 +46,6 @@ export type ApplicationAccessMetadata = {
 
 export type StatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
-export type AvailableForTypeOption =
-  | 'PrivatePerson'
-  | 'LegalEntityEnterprise'
-  | 'Company'
-  | 'BankruptcyEstate'
-  | 'SelfRegisteredUser';
-
 export type ResourceType = 'altinnapp';
 
 export type ContactPoint = {

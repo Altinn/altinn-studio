@@ -1,1 +1,1 @@
-export { CreateCustomReceiptForm } from './CreateCustomReceiptForm';
+export { CreateCustomReceipt } from './CreateCustomReceipt';

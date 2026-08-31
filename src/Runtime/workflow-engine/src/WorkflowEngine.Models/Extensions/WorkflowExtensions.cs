@@ -34,6 +34,9 @@ public static class WorkflowExtensions
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Canceled))
                 return PersistentItemStatus.Canceled;
 
+            if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Waiting))
+                return PersistentItemStatus.Waiting;
+
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Requeued))
                 return PersistentItemStatus.Requeued;
 
@@ -58,5 +61,18 @@ public static class WorkflowExtensions
         /// Step metadata useful for enriching telemetry histograms.
         /// </summary>
         public (string key, object? value)[] GetHistogramTags() => [("workflow.operation.id", workflow.OperationId)];
+
+        /// <summary>
+        /// Low-cardinality metric tag value for the workflow's head-visibility directive. "false"
+        /// identifies deliberately invisible workflows (e.g. non-blocking side chains) whose terminal
+        /// failures surface nowhere else - alert on <c>is_head="false"</c> to catch them.
+        /// </summary>
+        public string IsHeadTagValue() =>
+            workflow.IsHead switch
+            {
+                true => "true",
+                false => "false",
+                null => "unset",
+            };
     }
 }

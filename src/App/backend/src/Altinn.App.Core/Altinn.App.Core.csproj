@@ -28,6 +28,7 @@
     <PackageReference Include="Altinn.Common.PEP"/>
     <PackageReference Include="Altinn.Platform.Models"/>
     <PackageReference Include="Altinn.Platform.Storage.Interface"/>
+    <PackageReference Include="JmesPath.Net"/>
     <PackageReference Include="JsonPatch.Net"/>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore"/>
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid"/>
@@ -47,6 +48,7 @@
 
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="Altinn.App.Api.Tests" />
+    <InternalsVisibleTo Include="Altinn.App.Analyzers.Tests" />
     <InternalsVisibleTo Include="Altinn.App.SourceGenerator.Integration.Tests" />
     <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
     <InternalsVisibleTo Include="Altinn.App.Tests.Common" />

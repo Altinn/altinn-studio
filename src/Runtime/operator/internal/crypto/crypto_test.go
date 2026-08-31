@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	opclock "altinn.studio/operator/internal/clock"
-	"altinn.studio/operator/test/utils"
+	"altinn.studio/operator/internal/testutils"
 )
 
 var testSubject = CertSubject{
@@ -228,7 +228,7 @@ func TestPublicJwksConversion(t *testing.T) {
 
 func createService() (*CryptoService, *opclock.FakeClock) {
 	clock := opclock.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
-	random := utils.NewDeterministicRand()
+	random := testutils.NewDeterministicRand()
 	service := NewDefaultService(clock, random)
 	return service, clock
 }

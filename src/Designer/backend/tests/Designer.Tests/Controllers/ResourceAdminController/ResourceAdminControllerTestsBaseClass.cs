@@ -2,7 +2,6 @@
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +15,12 @@ public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : Desig
     protected readonly string VersionPrefix = "/designer/api";
     protected readonly Mock<IRepository> RepositoryMock;
     protected readonly Mock<IResourceRegistry> ResourceRegistryMock;
-    protected readonly Mock<IAltinn2MetadataClient> Altinn2MetadataClientMock;
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         base.ConfigureTestServices(services);
         services.AddTransient(_ => RepositoryMock.Object);
         services.AddTransient(_ => ResourceRegistryMock.Object);
-        services.AddTransient(_ => Altinn2MetadataClientMock.Object);
     }
 
     protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory)
@@ -31,7 +28,6 @@ public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : Desig
     {
         RepositoryMock = new Mock<IRepository>();
         ResourceRegistryMock = new Mock<IResourceRegistry>();
-        Altinn2MetadataClientMock = new Mock<IAltinn2MetadataClient>();
     }
 
     protected static List<ResourceReference> GetTestResourceReferences()

@@ -18,7 +18,7 @@ namespace WorkflowEngine.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("engine")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -71,6 +71,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<int>("DeferCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("defer_count");
+
                     b.Property<string>("EngineTraceContext")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -80,6 +84,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("error_history");
 
+                    b.Property<DateTimeOffset?>("FirstDeferredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_deferred_at");
+
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid")
                         .HasColumnName("job_id");
@@ -87,6 +95,15 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb")
                         .HasColumnName("labels");
+
+                    b.Property<string>("LastDeferReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("last_defer_reason");
+
+                    b.Property<DateTimeOffset?>("LastDeferredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_deferred_at");
 
                     b.Property<string>("OperationId")
                         .IsRequired()
@@ -216,6 +233,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("initial_state");
 
+                    b.Property<bool?>("IsHead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_head");
+
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb")
                         .HasColumnName("labels");
@@ -275,11 +296,11 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("UpdatedAt")
                         .HasDatabaseName("ix_workflows_updated_at")
-                        .HasFilter("status IN (3, 4, 5, 6)");
+                        .HasFilter("status IN (3, 4, 5, 6, 7)");
 
                     b.HasIndex("BackoffUntil", "CreatedAt")
                         .HasDatabaseName("ix_workflows_backoff_until_created_at")
-                        .HasFilter("status IN (0, 2)");
+                        .HasFilter("status IN (0, 2, 8)");
 
                     NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 

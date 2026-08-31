@@ -13,7 +13,7 @@ import type { AppContextProps } from '../AppContext';
 import { AppContext } from '../AppContext';
 import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
+import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import {
   FeatureFlagsContextProvider,

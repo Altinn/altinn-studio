@@ -6,16 +6,6 @@
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutModel,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetUiConfiguration,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ApplicationMetadata.Service.GetUiConfiguration,
       IdFormat: W3C,
       HasParent: true
@@ -134,8 +124,17 @@
       HasParent: true
     },
     {
-      Name: ProcessClient.GetProcessDefinition,
+      Name: Process.Next,
       IdFormat: W3C,
+      Status: Error,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.error.type: Conflict
+        }
+      ],
       HasParent: true
     },
     {

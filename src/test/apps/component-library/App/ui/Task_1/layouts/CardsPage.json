@@ -8,7 +8,7 @@
       },
       {
         "id": "CardsPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
             "title": "CardsPage"
         },
@@ -296,7 +296,7 @@
       },
       {
         "id": "CardsPage-Summary-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Summary 2"
         },

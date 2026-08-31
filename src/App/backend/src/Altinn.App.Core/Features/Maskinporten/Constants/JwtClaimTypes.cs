@@ -13,6 +13,7 @@ internal static class JwtClaimTypes
     public const string Audience = "aud";
     public const string Scope = "scope";
     public const string Issuer = "iss";
+    public const string SecretId = "secret_id";
 
     public static class Altinn
     {
@@ -38,5 +39,9 @@ internal static class JwtClaimTypes
         public const string Supplier = "supplier";
         public const string DelegationSource = "delegation_source";
         public const string PersonIdentifier = "pid";
+
+        public const string ConsumerOrg = "consumer_org";
+        public const string Resource = "resource";
+        public const string AuthorizationDetails = "authorization_details";
     }
 }

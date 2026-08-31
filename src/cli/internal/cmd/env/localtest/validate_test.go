@@ -7,7 +7,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
-	"altinn.studio/devenv/pkg/resource"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 )
 
@@ -40,7 +40,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+						Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 					}, nil
 				}
 			},
@@ -66,7 +66,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{resource.GraphIDLabel: "other-value"},
+						Labels: map[string]string{containerbackend.GraphIDLabel: "other-value"},
 					}, nil
 				}
 			},
@@ -108,7 +108,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 					}
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+						Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 					}, nil
 				}
 			},

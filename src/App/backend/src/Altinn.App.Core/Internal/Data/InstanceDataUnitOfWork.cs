@@ -14,6 +14,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
+using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -137,7 +138,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 var dataElement = GetDataElement(dataElementIdentifier);
 
                 return FormDataWrapperFactory.Create(
-                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
+                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement),
+                    dataType,
+                    dataElement
                 );
             }
         );
@@ -179,19 +182,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private LayoutEvaluatorState? _layoutEvaluatorStateCache;
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
-        if (TaskId is null)
-        {
-            return null;
-        }
         if (_layoutEvaluatorStateCache is not null)
         {
             return _layoutEvaluatorStateCache;
         }
 
         // Could use a double lock here, but a deadlock is more problematic than creating the state twice
-        var layouts = _appResources.GetLayoutModelForFolder(TaskId);
+        var layouts = TaskId is null ? null : _appResources.GetLayoutModelForFolder(TaskId);
 
         _layoutEvaluatorStateCache = new LayoutEvaluatorState(
             this,
@@ -260,8 +259,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             dataElement: null,
             dataType: dataType,
             contentType: contentType,
-            currentFormDataWrapper: FormDataWrapperFactory.Create(model),
-            previousFormDataWrapper: FormDataWrapperFactory.Create(_modelSerializationService.GetEmpty(dataType)),
+            currentFormDataWrapper: FormDataWrapperFactory.Create(model, dataType, null),
+            previousFormDataWrapper: FormDataWrapperFactory.Create(
+                _modelSerializationService.GetEmpty(dataType),
+                dataType,
+                null
+            ),
             currentBinaryData: bytes,
             previousBinaryData: default // empty memory reference
         );
@@ -274,7 +277,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         string dataTypeId,
         string contentType,
         string? filename,
-        ReadOnlyMemory<byte> bytes
+        ReadOnlyMemory<byte> bytes,
+        string? generatedFromTask = null,
+        List<KeyValueEntry>? metadata = null
     )
     {
         var dataType = GetDataTypeByString(dataTypeId);
@@ -293,7 +298,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             dataType: dataType,
             fileName: filename,
             contentType: contentType,
-            currentBinaryData: bytes
+            currentBinaryData: bytes,
+            generatedFromTask: generatedFromTask,
+            metadata: metadata
         );
         _changesForCreation.Add(change);
         return change;
@@ -377,9 +384,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     contentType: dataElement.ContentType,
                     currentFormDataWrapper: _formDataCache.TryGetCachedValue(dataElementIdentifier, out var cfd)
                         ? cfd
-                        : FormDataWrapperFactory.Create(_modelSerializationService.GetEmpty(dataType)),
+                        : FormDataWrapperFactory.Create(
+                            _modelSerializationService.GetEmpty(dataType),
+                            dataType,
+                            dataElement
+                        ),
                     previousFormDataWrapper: FormDataWrapperFactory.Create(
-                        _modelSerializationService.GetEmpty(dataType)
+                        _modelSerializationService.GetEmpty(dataType),
+                        dataType,
+                        dataElement
                     ),
                     currentBinaryData: ReadOnlyMemory<byte>.Empty,
                     previousBinaryData: _binaryCache.TryGetCachedValue(dataElementIdentifier, out var value)
@@ -388,6 +401,49 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 )
             );
         }
+    }
+
+    /// <summary>
+    /// Preload form data into the cache so that it doesn't need to be fetched from Storage.
+    /// </summary>
+    internal void PreloadFormData(DataElementIdentifier id, IFormDataWrapper wrapper)
+    {
+        _formDataCache.Set(id, wrapper);
+    }
+
+    /// <summary>
+    /// Preload binary data into the cache so that it doesn't need to be fetched from Storage.
+    /// </summary>
+    internal void PreloadBinaryData(DataElementIdentifier id, ReadOnlyMemory<byte> data)
+    {
+        _binaryCache.Set(id, data);
+    }
+
+    /// <summary>
+    /// Captures all form data from the cache for state transport.
+    /// Iterates Instance.Data, finds form data elements (via DataTypes where AppLogic.ClassRef is set),
+    /// ensures each is loaded, and serializes to JSON.
+    /// </summary>
+    internal async Task<List<(string Id, string DataType, System.Text.Json.JsonElement Data)>> CaptureFormData(
+        ModelSerializationService modelSerializationService
+    )
+    {
+        var result = new List<(string Id, string DataType, System.Text.Json.JsonElement Data)>();
+
+        foreach (var dataElement in Instance.Data)
+        {
+            var dataType = DataTypes.FirstOrDefault(dt => dt.Id == dataElement.DataType);
+            if (dataType?.AppLogic?.ClassRef is null)
+                continue;
+
+            DataElementIdentifier identifier = dataElement;
+            var wrapper = await GetFormDataWrapper(identifier);
+            var jsonBytes = modelSerializationService.SerializeToJson(wrapper.BackingData<object>());
+            var jsonElement = System.Text.Json.JsonDocument.Parse(jsonBytes).RootElement.Clone();
+            result.Add((dataElement.Id, dataElement.DataType, jsonElement));
+        }
+
+        return result;
     }
 
     internal List<ValidationIssue> AbandonIssues { get; } = [];
@@ -472,7 +528,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         // For patch requests we could get the previous data from the patch, but it's not available here
                         // and deserializing twice is not a big deal
                         previousFormDataWrapper: FormDataWrapperFactory.Create(
-                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement)
+                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement),
+                            dataType,
+                            dataElement
                         ),
                         currentBinaryData: currentBinary,
                         previousBinaryData: cachedBinary
@@ -543,8 +601,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             change.ContentType,
             (change as BinaryDataChange)?.FileName,
             new MemoryAsStream(bytes),
+            generatedFromTask: (change as BinaryDataChange)?.GeneratedFromTask,
             authenticationMethod: GetAuthenticationMethod(change.DataType)
         );
+
+        // Apply metadata if specified
+        if (change is BinaryDataChange { Metadata: { Count: > 0 } metadata })
+        {
+            dataElement.Metadata = metadata;
+            dataElement = await _dataClient.Update(Instance, dataElement);
+        }
+
         // Update caches
         _binaryCache.Set(dataElement, bytes);
         change.DataElement = dataElement; // Set the data element so that it can be referenced later in the save process
@@ -593,6 +660,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task UpdateInstanceData(DataElementChanges changes)
     {
+        using var activity = _telemetry?.StartUpdateInstanceData(changes);
         if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
@@ -792,7 +860,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
                 new PresentationTexts { Texts = updatedTexts },
-                authenticationMethod: null,
+                GetAuthenticationMethod(dataType),
                 CancellationToken.None
             );
 
@@ -823,7 +891,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
                 new DataValues { Values = updatedValues },
-                authenticationMethod: null,
+                GetAuthenticationMethod(dataType),
                 CancellationToken.None
             );
 

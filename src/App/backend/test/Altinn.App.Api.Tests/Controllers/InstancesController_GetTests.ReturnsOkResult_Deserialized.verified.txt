@@ -44,10 +44,13 @@
         SelfLinks: {
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
+        Size: 147,
         Locked: false,
         IsRead: true
       }
-    ]
+    ],
+    LastChanged: DateTime_3,
+    LastChangedBy: 
   },
   ReadInstance: {
     Id: <instancOwnerPartyId>/<instanceGuid>,
@@ -94,6 +97,7 @@
         SelfLinks: {
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
+        Size: 147,
         Locked: false,
         IsRead: true
       }

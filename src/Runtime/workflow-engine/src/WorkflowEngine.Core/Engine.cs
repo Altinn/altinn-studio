@@ -7,6 +7,7 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -42,6 +43,22 @@ internal interface IEngine
         bool cascade = false,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Marks an unsuccessful terminal workflow as Abandoned, writing off its failure so it
+    /// no longer condemns dependents evaluated after the marking.
+    /// </summary>
+    Task<AbandonWorkflowResult> AbandonWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Clears the pending backoff of a parked workflow (Requeued or Waiting) so the processor picks
+    /// it up immediately instead of when its timer elapses. Idempotent.
+    /// </summary>
+    Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -340,6 +357,67 @@ internal sealed class Engine(
         return new ResumeWorkflowResult.NotResumable(status.Value);
     }
 
+    /// <inheritdoc/>
+    public async Task<AbandonWorkflowResult> AbandonWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = timeProvider.GetUtcNow();
+        var abandoned = await repository.AbandonWorkflow(workflowId, ns, now, cancellationToken);
+
+        if (abandoned)
+        {
+            Metrics.WorkflowsAbandoned.Add(1);
+            return new AbandonWorkflowResult.Abandoned(workflowId, now);
+        }
+
+        var info = await repository.GetWorkflowStatusInfo(workflowId, ns, cancellationToken);
+        if (info is null)
+            return new AbandonWorkflowResult.NotFound();
+
+        // Idempotent replay: the write-off already exists, report success rather than conflict.
+        // The abandon CAS stamped UpdatedAt with the abandonment time, so the replay reports the
+        // original timestamp instead of the replay time.
+        if (info.Status == PersistentItemStatus.Abandoned)
+            return new AbandonWorkflowResult.AlreadyAbandoned(workflowId, info.UpdatedAt ?? now);
+
+        return new AbandonWorkflowResult.NotAbandonable(info.Status);
+    }
+
+    /// <inheritdoc/>
+    public async Task<NudgeWorkflowResult> NudgeWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = timeProvider.GetUtcNow();
+        var cleared = await repository.ClearBackoff(workflowId, ns, cancellationToken);
+
+        if (cleared)
+        {
+            Metrics.WorkflowsNudged.Add(1);
+
+            // Without the signal the nudge would only take effect on the processor's next poll tick,
+            // which defeats the point of asking for an immediate re-check.
+            workflowSignal.Signal();
+
+            return new NudgeWorkflowResult.Nudged(workflowId, now);
+        }
+
+        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
+        if (status is null)
+            return new NudgeWorkflowResult.NotFound();
+
+        // Parked but nothing to clear: the workflow is already due, so the nudge is a no-op success.
+        if (status is PersistentItemStatus.Requeued or PersistentItemStatus.Waiting)
+            return new NudgeWorkflowResult.AlreadyRunnable(workflowId);
+
+        return new NudgeWorkflowResult.NotParked(status.Value);
+    }
+
     /// <summary>
     /// Validates that all command types in the request are known to the registry
     /// and that command-specific validation passes (including typed deserialization).
@@ -478,9 +556,68 @@ internal sealed class Engine(
                     return new RequestConstraintValidationResult.Invalid(
                         $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' contains {step.Labels.Count} labels, maximum is {_settings.MaxLabels}."
                     );
+
+                if (step.Command.MaxExecutionTime is { } maxExecutionTime)
+                {
+                    if (maxExecutionTime <= TimeSpan.Zero)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has a non-positive maxExecutionTime ({maxExecutionTime})."
+                        );
+
+                    if (maxExecutionTime > _settings.MaxStepCommandTimeout)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has maxExecutionTime {maxExecutionTime}, maximum is {_settings.MaxStepCommandTimeout}."
+                        );
+                }
+
+                if (step.Command.WaitBudget is { } waitBudget)
+                {
+                    if (waitBudget <= TimeSpan.Zero)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has a non-positive waitBudget ({waitBudget})."
+                        );
+
+                    if (waitBudget > _settings.MaxStepWaitBudget)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has waitBudget {waitBudget}, maximum is {_settings.MaxStepWaitBudget}."
+                        );
+                }
+
+                if (step.RetryStrategy is { } retryStrategy && ValidateStepRetryStrategy(retryStrategy) is { } error)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' {error}"
+                    );
             }
         }
 
         return new RequestConstraintValidationResult.Valid();
+    }
+
+    /// <summary>
+    /// Validates a client-supplied step retry strategy, returning an error fragment or null when valid.
+    /// A client strategy replaces the engine default wholesale, so degenerate values (negative fields,
+    /// zero-delay retries) must be rejected here — nothing downstream bounds them.
+    /// </summary>
+    private static string? ValidateStepRetryStrategy(RetryStrategy retryStrategy)
+    {
+        if (!Enum.IsDefined(retryStrategy.BackoffType))
+            return $"has an unknown retryStrategy.backoffType ({retryStrategy.BackoffType}).";
+
+        if (retryStrategy.BaseInterval < TimeSpan.Zero)
+            return $"has a negative retryStrategy.baseInterval ({retryStrategy.BaseInterval}).";
+
+        if (retryStrategy.MaxRetries is < 0)
+            return $"has a negative retryStrategy.maxRetries ({retryStrategy.MaxRetries}).";
+
+        if (retryStrategy.BaseInterval == TimeSpan.Zero && retryStrategy.MaxRetries != 0)
+            return "has a retryStrategy with a zero baseInterval while retries are enabled, which would retry in a tight loop.";
+
+        if (retryStrategy.MaxDelay is { } maxDelay && maxDelay < TimeSpan.Zero)
+            return $"has a negative retryStrategy.maxDelay ({maxDelay}).";
+
+        if (retryStrategy.MaxDuration is { } maxDuration && maxDuration <= TimeSpan.Zero)
+            return $"has a non-positive retryStrategy.maxDuration ({maxDuration}).";
+
+        return null;
     }
 }

@@ -36,6 +36,10 @@ spec:
           - --health-probe-bind-address=:8081
         image: controller:latest
         name: manager
+        ports:
+        - containerPort: 8081
+          name: health
+          protocol: TCP
         env:
           - name: POD_UID
             valueFrom:
@@ -94,7 +98,7 @@ spec:
             cpu: 100m
             memory: 128Mi
       serviceAccountName: controller-manager
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 40
       volumes:
         - name: config
           configMap:

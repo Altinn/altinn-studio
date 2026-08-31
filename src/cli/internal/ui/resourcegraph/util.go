@@ -21,9 +21,10 @@ func footerLine(
 
 	successLabel := model.operation.successLabel()
 	totalCount := len(model.order)
+	failedTotal := failedCount + boolToInt(model.operationFailed)
 	parts := []string{
 		fmt.Sprintf("%s %d/%d", successLabel, readyCount, totalCount),
-		fmt.Sprintf("failed %d", failedCount+boolToInt(model.operationFailed)),
+		fmt.Sprintf("failed %d", failedTotal),
 	}
 	if canceledCount > 0 {
 		parts = append(parts, fmt.Sprintf("canceled %d", canceledCount))
@@ -37,8 +38,8 @@ func footerLine(
 	}
 
 	coloredParts := []string{
-		footerReadyStyle.Render(parts[0]),
-		footerFailedStyle.Render(parts[1]),
+		readyFooterStyle(readyCount, totalCount).Render(parts[0]),
+		failedFooterStyle(failedTotal).Render(parts[1]),
 	}
 	nextPart := 2
 	if canceledCount > 0 {
@@ -50,6 +51,27 @@ func footerLine(
 		footerLabelStyle.Render(parts[nextPart+1]),
 	)
 	return strings.Join(coloredParts, " | ")
+}
+
+// readyFooterStyle colors the success count green when everything is ready,
+// orange when only some rows are ready, and red when none are.
+func readyFooterStyle(readyCount, totalCount int) ui.Style {
+	switch {
+	case readyCount >= totalCount:
+		return footerReadyStyle
+	case readyCount == 0:
+		return footerFailedStyle
+	default:
+		return footerPartialStyle
+	}
+}
+
+// failedFooterStyle dims the failure count when there are no failures.
+func failedFooterStyle(failedTotal int) ui.Style {
+	if failedTotal == 0 {
+		return footerLabelStyle
+	}
+	return footerFailedStyle
 }
 
 func rawStateLabel(model *renderModel, row *progressRow) string {

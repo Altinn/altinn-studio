@@ -99,7 +99,7 @@
         IsArchived: false,
         IsSoftDeleted: false,
         IsHardDeleted: false,
-        ReadStatus: Read
+        ReadStatus: UpdatedSinceLastReview
       },
       Data: [
         {
@@ -114,11 +114,11 @@
           },
           Size: 146,
           Locked: false,
-          IsRead: true,
+          IsRead: false,
           Created: DateTime_4,
-          CreatedBy: 1337,
+          CreatedBy: 991825827,
           LastChanged: DateTime_4,
-          LastChangedBy: 1337
+          LastChangedBy: 991825827
         },
         {
           Id: <dataElementId[1]>,
@@ -143,7 +143,7 @@
       Created: DateTime_1,
       CreatedBy: 1337,
       LastChanged: DateTime_6,
-      LastChangedBy: 1337
+      LastChangedBy: 991825827
     }
   }
 }

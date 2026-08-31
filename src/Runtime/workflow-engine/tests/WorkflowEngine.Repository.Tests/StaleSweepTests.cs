@@ -1,13 +1,16 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
 /// Covers the two stale-handling sweeps in <c>DbMaintenanceService</c>:
 /// <see cref="WorkflowEngine.Data.Services.DbMaintenanceService.ReclaimStaleWorkflows"/> and
-/// <see cref="WorkflowEngine.Data.Services.DbMaintenanceService.AbandonStaleWorkflows"/>.
+/// <see cref="WorkflowEngine.Data.Services.DbMaintenanceService.FailPoisonedWorkflows"/>.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
@@ -102,7 +105,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Reclaim_AtOrAboveLimit_IsLeftForAbandon()
+    public async Task Reclaim_AtOrAboveLimit_IsLeftForPoisonedFailure()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -133,7 +136,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Abandon_StaleProcessingAtOrAboveLimit_IsMarkedFailed()
+    public async Task PoisonedFailure_StaleProcessingAtOrAboveLimit_IsMarkedFailed()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -151,7 +154,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        await maintenance.AbandonStaleWorkflows(
+        await maintenance.FailPoisonedWorkflows(
             DateTimeOffset.UtcNow,
             fixture.Settings,
             TestContext.Current.CancellationToken
@@ -165,7 +168,82 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Abandon_StaleProcessingUnderLimit_IsNotTouched()
+    public async Task PoisonedFailure_TagsFailureMetricWithIsHead()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var maintenance = fixture.CreateMaintenanceService();
+
+        using var collector = new FailedWorkflowMetricCollector();
+
+        var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Processing);
+
+        var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat},
+                reclaim_count = {fixture.Settings.MaxReclaimCount},
+                is_head = FALSE
+            WHERE id = {wf.DatabaseId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        await maintenance.FailPoisonedWorkflows(
+            DateTimeOffset.UtcNow,
+            fixture.Settings,
+            TestContext.Current.CancellationToken
+        );
+
+        var dbWf = await fixture.GetWorkflow(wf.DatabaseId);
+        Assert.NotNull(dbWf);
+        Assert.Equal(PersistentItemStatus.Failed, dbWf.Status);
+
+        // Poisoned finalization feeds the same is_head alert dimension as the execution failure
+        // paths: an is_head=false workflow (e.g. a fire-and-forget side chain) that dies poisoned
+        // gates nothing and must be visible to the is_head="false" failure alert.
+        var (value, tags) = Assert.Single(collector.Measurements);
+        Assert.Equal(1L, value);
+        Assert.Equal("poisoned", tags["reason"]);
+        Assert.Equal("false", tags["is_head"]);
+    }
+
+    /// <summary>
+    /// Lightweight meter listener that collects <c>engine.workflows.execution.failed</c>
+    /// measurements with their tags.
+    /// </summary>
+    private sealed class FailedWorkflowMetricCollector : IDisposable
+    {
+        private readonly MeterListener _listener;
+
+        public ConcurrentBag<(long Value, Dictionary<string, object?> Tags)> Measurements { get; } = [];
+
+        public FailedWorkflowMetricCollector()
+        {
+            _listener = new MeterListener();
+            _listener.InstrumentPublished = (instrument, listener) =>
+            {
+                if (
+                    instrument.Meter.Name == Metrics.Meter.Name
+                    && instrument.Name == "engine.workflows.execution.failed"
+                )
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            };
+            _listener.SetMeasurementEventCallback<long>(
+                (_, measurement, tags, _) =>
+                    Measurements.Add((measurement, tags.ToArray().ToDictionary(t => t.Key, t => t.Value)))
+            );
+            _listener.Start();
+        }
+
+        public void Dispose() => _listener.Dispose();
+    }
+
+    [Fact]
+    public async Task PoisonedFailure_StaleProcessingUnderLimit_IsNotTouched()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -183,7 +261,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        await maintenance.AbandonStaleWorkflows(
+        await maintenance.FailPoisonedWorkflows(
             DateTimeOffset.UtcNow,
             fixture.Settings,
             TestContext.Current.CancellationToken
@@ -265,7 +343,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ProgressiveReclaim_EventuallyAbandons()
+    public async Task ProgressiveReclaim_EventuallyFailsPoisoned()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -301,7 +379,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Equal(i, dbWf.ReclaimCount);
         }
 
-        // One more stale Processing at the reclaim limit — abandon marks it Failed.
+        // One more stale Processing at the reclaim limit — the poisoned sweep marks it Failed.
         var finalStaleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
@@ -313,16 +391,16 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        await maintenance.AbandonStaleWorkflows(
+        await maintenance.FailPoisonedWorkflows(
             DateTimeOffset.UtcNow,
             fixture.Settings,
             TestContext.Current.CancellationToken
         );
 
-        var abandonedWf = await fixture.GetWorkflow(wf.DatabaseId);
-        Assert.NotNull(abandonedWf);
-        Assert.Equal(PersistentItemStatus.Failed, abandonedWf.Status);
-        Assert.Null(abandonedWf.HeartbeatAt);
-        Assert.Null(abandonedWf.LeaseToken);
+        var poisonedWf = await fixture.GetWorkflow(wf.DatabaseId);
+        Assert.NotNull(poisonedWf);
+        Assert.Equal(PersistentItemStatus.Failed, poisonedWf.Status);
+        Assert.Null(poisonedWf.HeartbeatAt);
+        Assert.Null(poisonedWf.LeaseToken);
     }
 }

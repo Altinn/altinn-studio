@@ -46,8 +46,8 @@ describe('TaskAction', () => {
       name: textMock('ux_editor.task_table.menu_task_hide'),
     });
     await user.click(hideButton);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [mockTask[1]]);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, [mockTask[1]]);
   });
 
   it('should call addTaskToNavigationGroup when display button is clicked', async () => {
@@ -68,8 +68,8 @@ describe('TaskAction', () => {
       name: textMock('ux_editor.task_table_display'),
     });
     await user.click(displayButton);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, [
       ...mockTask,
       hiddenTask,
     ]);
@@ -84,8 +84,8 @@ describe('TaskAction', () => {
       name: textMock('ux_editor.task_table.menu_task_down'),
     });
     await user.click(downButton);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, [
       mockTask[1],
       mockTask[0],
     ]);
@@ -100,8 +100,8 @@ describe('TaskAction', () => {
       name: textMock('ux_editor.task_table.menu_task_up'),
     });
     await user.click(upButton);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, [
       mockTask[1],
       mockTask[0],
     ]);

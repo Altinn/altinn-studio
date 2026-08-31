@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Instances;
@@ -10,7 +11,12 @@ public interface IInstanceEventClient
     /// <summary>
     /// Stores the instance event
     /// </summary>
-    Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app);
+    Task<string> SaveInstanceEvent(
+        object dataToSerialize,
+        string org,
+        string app,
+        StorageAuthenticationMethod? authenticationMethod = null
+    );
 
     /// <summary>
     /// Gets the instance events related to the instance matching the instance id.
@@ -22,6 +28,7 @@ public interface IInstanceEventClient
         string app,
         string[] eventTypes,
         string from,
-        string to
+        string to,
+        StorageAuthenticationMethod? authenticationMethod = null
     );
 }

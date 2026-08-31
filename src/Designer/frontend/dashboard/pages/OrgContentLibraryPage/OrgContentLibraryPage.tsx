@@ -6,6 +6,7 @@ import type {
   PagesConfig,
   TextResourceWithLanguage,
   CodeListData,
+  OrdinaryCodeListFile,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
@@ -59,6 +60,7 @@ import { usePublishCodeList } from './usePublishCodeList';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -215,26 +217,25 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 
 function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const { data } = useSharedCodeListsQuery(orgName);
-  const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
+  const { mutateAsync } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { publish, isPublishing } = usePublishCodeList(orgName);
   const { t } = useTranslation();
   const { data: publishedCodeLists } = usePublishedResourcesQuery(
     orgName,
     PUBLISHED_CODE_LIST_FOLDER,
   );
-
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
 
   const handleSave = useCallback(
-    (codeListDataList: CodeListData[]): void => {
+    async (codeListFiles: OrdinaryCodeListFile[]): Promise<void> => {
       const payload = libraryCodeListsToUpdatePayload(
         data,
-        codeListDataList,
+        codeListFiles,
         t('org_content_library.code_lists.commit_message_default'),
       );
-      mutate(payload);
+      await mutateAsync(payload);
     },
-    [data, mutate, t],
+    [data, mutateAsync, t],
   );
 
   const handlePublish = useCallback(
@@ -245,9 +246,14 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
     [publish],
   );
 
+  const isPublishingFile = useCallback(
+    (fileName: string): boolean => isPublishing(FileNameUtils.removeExtension(fileName)),
+    [isPublishing],
+  );
+
   return {
     codeLists: libraryCodeLists,
-    isPublishing,
+    isPublishing: isPublishingFile,
     onPublish: handlePublish,
     onSave: handleSave,
     publishedCodeLists,

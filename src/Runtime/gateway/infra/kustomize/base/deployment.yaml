@@ -37,6 +37,9 @@ spec:
       annotations:
         # for mTLS mainly
         linkerd.io/inject: enabled
+        # Linkerd 2026.4.2 uses regular sidecars; mirror the application's 5s drain + 20s shutdown.
+        config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "5"
+        config.linkerd.io/shutdown-grace-period: "20s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
@@ -105,6 +108,10 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
+            # Combination of .NET AddJsonFile (PhysicalFileProvider) and k8s volume mounts
+            # makes us miss updates if we dont poll, since k8s uses symlink shenanigans
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: "1"
             - name: Gateway__AzureSubscriptionId
               valueFrom:
                 configMapKeyRef:

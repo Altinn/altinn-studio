@@ -1,4 +1,6 @@
-﻿using PhoneNumbers;
+#nullable disable
+
+using PhoneNumbers;
 
 namespace Altinn.Notifications.Core.Helpers
 {

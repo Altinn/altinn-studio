@@ -1,0 +1,6 @@
+.errorList {
+  padding: 0;
+  padding-top: var(--ds-size-2);
+  margin: 0;
+  list-style-type: none;
+}

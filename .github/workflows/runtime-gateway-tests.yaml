@@ -4,10 +4,12 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/common/**'
+      - 'src/common/dotnet/**'
       - 'src/Runtime/gateway/**'
       - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-gateway-tests.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -25,21 +27,20 @@ jobs:
         working-directory: src/Runtime/gateway/
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: |
             10.0.x
 
       - name: Setup Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: src/Runtime/gateway/go.mod
-          cache-dependency-path: src/Runtime/gateway/go.sum
+          module: src/Runtime/gateway
 
       - name: Restore
         run: make restore
@@ -59,7 +60,13 @@ jobs:
         run: make test
 
       - name: Run fixture
+        id: fixture
         run: make start-minimal
+
+      - name: Collect fixture diagnostics
+        if: ${{ failure() && steps.fixture.outcome == 'failure' }}
+        continue-on-error: true
+        run: make -C ../devenv diagnostics
 
       - name: Run e2e tests
         run: make test-e2e

@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Helpers;
+#nullable disable
+
+using Altinn.Notifications.Core.Helpers;
 using Altinn.Notifications.Models;
 
 using FluentValidation;

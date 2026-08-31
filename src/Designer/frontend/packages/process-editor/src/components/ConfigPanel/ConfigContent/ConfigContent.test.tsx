@@ -141,7 +141,7 @@ describe('ConfigContent', () => {
   });
 
   it('should display the connected data model as selected by default when data type is connected to task', () => {
-    const connectedDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
+    const connectedDataType = mockBpmnApiContextValue.layoutSets[0].dataType;
     renderConfigContent();
     expect(
       screen.getByRole('button', {

@@ -12,6 +12,7 @@ export type GlobalPageSettings = {
   navigationTitle: ExprValToActualOrExpr<ExprVal.String> | undefined;
   taskNavigation: (NavigationTask | NavigationReceipt)[];
   validationOnNavigation: PageValidation | undefined;
+  hideAppNameInPdf: ExprValToActualOrExpr<ExprVal.Boolean> | undefined;
 };
 
 export type NavigationReceipt = {

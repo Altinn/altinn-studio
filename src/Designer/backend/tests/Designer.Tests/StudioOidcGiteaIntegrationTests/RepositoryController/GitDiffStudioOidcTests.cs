@@ -37,7 +37,7 @@ public class GitDiffStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitDif
         string defaultLayoutSetName = "form";
         string newLayoutSetName = "newLayoutSetName";
         string updateLayoutSetNameUrl =
-            $"designer/api/{org}/{targetRepo}/app-development/layout-set/{defaultLayoutSetName}";
+            $"designer/api/{org}/{targetRepo}/ui-folders/layout-sets/{defaultLayoutSetName}";
         string pathToGitDiffResponse = Path.Combine(
             "..",
             "..",

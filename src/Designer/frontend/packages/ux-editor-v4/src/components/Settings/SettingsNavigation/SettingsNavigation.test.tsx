@@ -2,13 +2,13 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { SettingsNavigation } from './SettingsNavigation';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
+import { useTaskNavigationGroupQuery } from '../../../hooks/queries/useTaskNavigationGroupQuery';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock, layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 
-jest.mock('app-shared/hooks/queries/useTaskNavigationGroupQuery', () => ({
+jest.mock('../../../hooks/queries/useTaskNavigationGroupQuery', () => ({
   useTaskNavigationGroupQuery: jest.fn(),
 }));
 

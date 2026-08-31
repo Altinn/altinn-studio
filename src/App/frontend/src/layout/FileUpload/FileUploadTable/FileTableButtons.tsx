@@ -6,11 +6,12 @@ import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useAttachmentsRemover } from 'src/features/attachments/hooks';
+import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
@@ -28,15 +29,13 @@ export function FileTableButtons({
   mobileView,
   editWindowIsOpen,
 }: IFileTableButtonsProps) {
-  const { alertOnDelete, type, dataModelBindings, readOnly } = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    baseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  );
-  const hasTag = type === 'FileUploadWithTag';
+  const item = useItemWhenType(baseComponentId, 'FileUpload');
+  const hasTag = fileUploadHasTag(item);
+  const { alertOnDelete, dataModelBindings, readOnly } = item;
   const showEditButton = hasTag && !editWindowIsOpen && !readOnly;
   const { langAsString } = useLanguage();
   const { index, setEditIndex, editIndex } = useFileTableRow();
-  const removeAttachment = useAttachmentsRemover();
+  const removeAttachment = AttachmentRemoval.useAttachmentsRemover();
   const nodeId = useIndexedId(baseComponentId);
 
   // Edit button

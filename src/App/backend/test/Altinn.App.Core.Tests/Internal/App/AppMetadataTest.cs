@@ -80,69 +80,6 @@ public class AppMetadataTest
     }
 
     [Fact]
-    public async Task GetApplicationMetadata_eformidling_desrializes_file_from_disk()
-    {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
-
-        AppSettings appSettings = GetAppSettings("AppMetadata", "eformid.applicationmetadata.json");
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        ApplicationMetadata expected = new("tdd/bestilling")
-        {
-            Id = "tdd/bestilling",
-            Org = "tdd",
-            Created = DateTime.Parse("2019-09-16T22:22:22"),
-            CreatedBy = "username",
-            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-            DataTypes =
-            [
-                new()
-                {
-                    Id = "vedlegg",
-                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                    MinCount = 0,
-                    TaskId = "Task_1",
-                },
-                new()
-                {
-                    Id = "ref-data-as-pdf",
-                    AllowedContentTypes = ["application/pdf"],
-                    MinCount = 1,
-                    TaskId = "Task_1",
-                },
-            ],
-            PartyTypesAllowed = new PartyTypesAllowed()
-            {
-                BankruptcyEstate = true,
-                Organisation = true,
-                Person = true,
-                SubUnit = true,
-            },
-            EFormidling = new EFormidlingContract()
-            {
-                ServiceId = "DPF",
-                DPFShipmentType = "altinn3.skjema",
-                Receiver = "910123456",
-                SendAfterTaskId = "Task_1",
-                Process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
-                Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding",
-                TypeVersion = "2.0",
-                Type = "arkivmelding",
-                SecurityLevel = 3,
-                DataTypes = ["372c7af5-71e1-4e99-8e05-4716711a8b53"],
-            },
-            OnEntry = new OnEntry() { Show = "select-instance" },
-            Features = enabledFrontendFeatures,
-            ExternalApiIds = [],
-        };
-        var actual = await appMetadata.GetApplicationMetadata();
-        actual.Should().NotBeNull();
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
     public async Task GetApplicationMetadata_second_read_from_cache()
     {
         AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");

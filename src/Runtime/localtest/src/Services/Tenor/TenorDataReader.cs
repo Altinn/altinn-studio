@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json;
 using Authorization.Interface.Models;
 using LocalTest.Configuration;

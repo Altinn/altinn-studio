@@ -38,7 +38,7 @@ function StudioIconCard(
               <MenuElipsisVerticalIcon />
             </StudioPopoverTrigger>
           </div>
-          <StudioPopover placement='bottom-end' data-size='sm'>
+          <StudioPopover placement='bottom-end' className={classes.popoverContainer}>
             {contextButtons}
           </StudioPopover>
         </StudioPopover.TriggerContext>

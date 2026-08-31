@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { Tabs } from '@digdir/designsystemet-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
@@ -11,6 +10,7 @@ import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { StudioTabs } from '@studio/components';
 
 const setGridOnComponent = <T extends ComponentType>(
   gridValues: GridSizes,
@@ -52,34 +52,34 @@ export const EditGrid = <T extends ComponentType>({
   };
 
   return (
-    <Tabs
+    <StudioTabs
       className={classes.gridContainer}
       key={component.id}
       defaultValue={selectedViewSizeForGridProp}
       onChange={(viewSize: ViewSize) => setSelectedViewSizeForGridProp(viewSize)}
-      size='small'
+      data-size='sm'
     >
-      <Tabs.List className={classes.tabs}>
+      <StudioTabs.List className={classes.tabs}>
         {Object.values(ViewSize).map((viewSize: ViewSize) => {
           return (
-            <Tabs.Tab key={viewSize} value={viewSize} className={classes.tab}>
+            <StudioTabs.Tab key={viewSize} value={viewSize}>
               {iconMapping[viewSize] || null}
               {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
-            </Tabs.Tab>
+            </StudioTabs.Tab>
           );
         })}
-      </Tabs.List>
+      </StudioTabs.List>
       {Object.values(ViewSize).map((viewSize: ViewSize) => {
         return (
-          <Tabs.Content key={viewSize} value={viewSize}>
+          <StudioTabs.Panel key={viewSize} value={viewSize}>
             <EditGridForGivenViewSize
               handleUpdateGrid={(newGridValues: GridSizes) => handleUpdateGrid(newGridValues)}
               gridValues={gridValues}
               viewSize={viewSize}
             />
-          </Tabs.Content>
+          </StudioTabs.Panel>
         );
       })}
-    </Tabs>
+    </StudioTabs>
   );
 };

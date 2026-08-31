@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"altinn.studio/releaser/internal/changelog"
 	semver "altinn.studio/releaser/internal/version"
@@ -25,6 +26,15 @@ type baseBranchSelector struct {
 	isMain bool
 	major  int
 	minor  int
+}
+
+// ResolveWorkflowVersion resolves the release version from the component changelog and base branch.
+func ResolveWorkflowVersion(componentName, baseBranch, repoRoot string) (string, error) {
+	component, err := GetComponent(componentName)
+	if err != nil {
+		return "", err
+	}
+	return resolveWorkflowVersion(component, baseBranch, repoRoot)
 }
 
 func resolveWorkflowVersion(component *Component, baseBranch, repoRoot string) (string, error) {
@@ -105,4 +115,20 @@ func parseBaseBranchSelector(component, baseBranch string) (baseBranchSelector, 
 		major:  major,
 		minor:  minor,
 	}, nil
+}
+
+func parseReleaseLine(line string) (int, int, error) {
+	line = strings.TrimSpace(line)
+	if !strings.HasPrefix(line, "v") {
+		return 0, 0, errReleaseLineInvalid
+	}
+
+	version, err := semver.Parse(line + ".0")
+	if err != nil {
+		return 0, 0, errReleaseLineInvalid
+	}
+	if version.Prerelease != "" || version.Patch != 0 {
+		return 0, 0, errReleaseLineInvalid
+	}
+	return version.Major, version.Minor, nil
 }

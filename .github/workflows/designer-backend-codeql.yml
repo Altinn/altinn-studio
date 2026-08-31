@@ -17,6 +17,8 @@ on:
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
       - '.github/workflows/designer-backend-codeql.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
   schedule:
     - cron: '45 1 * * 0'
@@ -41,12 +43,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
-          dotnet-version: '9.0.x'
+          global-json-file: src/Designer/backend/global.json
 
       - name: Generate CodeQL config
         id: codeql-config
@@ -55,7 +59,7 @@ jobs:
           language: csharp
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
+        uses: github/codeql-action/init@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3.37.6
         with:
           languages: csharp
           build-mode: manual
@@ -63,11 +67,11 @@ jobs:
           config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Build solution
-        run: dotnet build backend/Src.sln -v m
+        run: dotnet build Src.sln -v m
         shell: bash
-        working-directory: src/Designer/
+        working-directory: src/Designer/backend
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
+        uses: github/codeql-action/analyze@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3.37.6
         with:
           category: "/codeql/designer/backend/csharp"

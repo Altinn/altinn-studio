@@ -3,12 +3,19 @@ import { useNavigation } from 'react-router';
 import { toast } from 'react-toastify';
 import type { FileRejection } from 'react-dropzone';
 
-import { Dropzone, mapExtensionToAcceptMime } from '@app/form-component';
+import {
+  Dropzone,
+  getDescriptionId,
+  getLabelId,
+  mapExtensionToAcceptMime,
+  useIsMobileOrTablet,
+} from '@app/form-component';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { getDescriptionId, getLabelId, Label } from 'src/components/label/Label';
-import { useAddRejectedAttachments, useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
+import { Label } from 'src/components/label/Label';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
@@ -16,10 +23,8 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { FailedAttachments } from 'src/layout/FileUpload/Error/FailedAttachments';
-import { InfectedFileAlert } from 'src/layout/FileUpload/Error/InfectedFileAlert';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
@@ -28,13 +33,8 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export function FileUploadComponent({
-  baseComponentId,
-}: PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>): React.JSX.Element {
-  const item = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    baseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  );
+export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): React.JSX.Element {
+  const item = useItemWhenType<'FileUpload'>(baseComponentId, 'FileUpload');
   const {
     id,
     maxFileSizeInMB,
@@ -50,9 +50,9 @@ export function FileUploadComponent({
 
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useIsMobileOrTablet();
-  const attachments = useAttachmentsFor(baseComponentId);
-  const addRejectedAttachments = useAddRejectedAttachments();
-  const uploadAttachments = useAttachmentsUploader();
+  const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
+  const addRejectedAttachments = AttachmentUpload.useAddRejectedAttachments();
+  const uploadAttachments = AttachmentUpload.useAttachmentsUploader();
   const navigation = useNavigation();
   const { langAsString } = useLanguage();
 
@@ -216,7 +216,6 @@ export function FileUploadComponent({
           </button>
         )}
         <FailedAttachments baseComponentId={baseComponentId} />
-        <InfectedFileAlert baseComponentId={baseComponentId} />
       </div>
     </ComponentStructureWrapper>
   );

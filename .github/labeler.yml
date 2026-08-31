@@ -79,7 +79,7 @@ quality/testing:
 
 skip-releasenotes:
 - changed-files:
-  - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'src/Designer/testdata/**/*', 'src/Designer/development/**/*', 'src/**/*']
+  - any-glob-to-any-file: ['.github/**/*', 'lefthook.yml', '.vscode/**/*', '.yarn/**/*', 'src/Designer/testdata/**/*', 'src/Designer/development/**/*', 'src/**/*']
 
 backend:
 - changed-files:

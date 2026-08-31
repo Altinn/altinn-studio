@@ -1,29 +1,48 @@
 import React, { useEffect } from 'react';
 
+import { PDFPreviewButton } from '@app/form-component';
+
 import type { PropsFromGenericComponent } from '..';
 
-import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
 import { FormStore } from 'src/features/form/FormContext';
-import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId, useStrictInstanceId } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { NodeValidationProps } from 'src/layout/layout';
+import { generatePdfPreview } from 'src/utils/pdfPreview/generatePdfPreview';
+import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
-export function PDFPreviewButtonRenderLayoutValidator({ intermediateItem }: NodeValidationProps<'PDFPreviewButton'>) {
+export function PDFPreviewButtonRenderLayoutValidator({
+  externalItem,
+}: ComponentLayoutValidationProps<'PDFPreviewButton'>) {
   const instanceId = useStrictInstanceId();
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     if (!instanceId) {
       const error = `Cannot use PDF preview button in a stateless app`;
-      addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      addError(error, externalItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${externalItem.id}': ${error}`);
     }
-  }, [addError, instanceId, intermediateItem.id]);
+  }, [addError, instanceId, externalItem.id]);
 
   return null;
 }
 
 export function PDFPreviewButtonComponent({ baseComponentId }: PropsFromGenericComponent<'PDFPreviewButton'>) {
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'PDFPreviewButton');
-  return <PDFGeneratorPreview buttonTitle={textResourceBindings?.title} />;
+  const { id, textResourceBindings, buttonStyle } = useItemWhenType(baseComponentId, 'PDFPreviewButton');
+  const { innerGrid } = useComponentStructureData(baseComponentId);
+  const instanceId = useLaxInstanceId();
+  const language = useCurrentLanguage();
+
+  return (
+    <PDFPreviewButton
+      componentId={id}
+      title={textResourceBindings?.title}
+      buttonStyle={buttonStyle}
+      disabled={!instanceId}
+      onGenerate={(signal) => generatePdfPreview(instanceId, language, signal)}
+      innerGrid={innerGrid}
+    />
+  );
 }

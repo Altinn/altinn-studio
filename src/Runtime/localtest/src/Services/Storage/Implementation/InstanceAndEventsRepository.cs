@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Data;
 using Altinn.Platform.Storage.Interface.Models;
 

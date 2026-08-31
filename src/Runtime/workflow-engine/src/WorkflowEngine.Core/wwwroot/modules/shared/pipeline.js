@@ -17,6 +17,8 @@ const stepIcon = (status) => {
             return '&#10007;';
         case 'Requeued':
             return '&#8635;';
+        case 'Waiting':
+            return '&#8987;';
         case 'Canceled':
             return '&#8212;';
         default:
@@ -90,10 +92,16 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     if (step.retryCount > 0) {
         html += `<div class="step-retry">&#8635;${step.retryCount}</div>`;
     }
-    const backoff = step.backoffUntil || (step.status === 'Requeued' ? wf.backoffUntil : null);
-    if (step.status === 'Requeued' && backoff) {
+    const isBackedOff = step.status === 'Requeued' || step.status === 'Waiting';
+    const backoff = step.backoffUntil || (isBackedOff ? wf.backoffUntil : null);
+    if (isBackedOff && backoff) {
+        const action =
+            step.status === 'Waiting'
+                ? 'check now (skip wait timer)'
+                : 'Retry now (skip backoff timer)';
+        const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry now (skip backoff timer)">retry now</button>`;
+        html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="${action}">${label}</button>`;
     }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
@@ -112,7 +120,8 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
  */
 const buildConnectorHTML = (prev, cur, isStatic) => {
     const prevDone = prev.status === 'Completed';
-    const curActive = cur.status === 'Processing' || cur.status === 'Requeued';
+    const curActive =
+        cur.status === 'Processing' || cur.status === 'Requeued' || cur.status === 'Waiting';
     const isLeadingEdge = prevDone && curActive;
 
     const lineClass = isStatic
@@ -146,7 +155,7 @@ export const buildPipelineHTML = (wf, isStatic) => {
     const tx = parseTransition(wf);
 
     if (!tx) {
-        let html = '<div class="pipeline">';
+        let html = `<div class="pipeline${isStatic ? ' pipeline-static' : ''}">`;
         steps.forEach((step, i) => {
             if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
             html += buildStepNodeHTML(wf, step, isStatic);
@@ -180,7 +189,10 @@ export const buildPipelineHTML = (wf, isStatic) => {
         }
     }
 
-    let html = '<div class="pipeline pipeline-grouped">';
+    // The grouped padding reserves headroom for the phase bracket labels — skip it when
+    // no step maps to a phase (e.g. a lone side-effect step), the brackets never render.
+    const hasPhases = phases.some((p) => p !== null);
+    let html = `<div class="pipeline${hasPhases ? ' pipeline-grouped' : ''}${isStatic ? ' pipeline-static' : ''}">`;
     steps.forEach((step, i) => {
         if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
 
@@ -213,7 +225,9 @@ export const scrollPipelineToActive = (card) => {
     const p = card.querySelector('.pipeline');
     if (!p) return;
     const active =
-        p.querySelector('.step-circle.Processing') || p.querySelector('.step-circle.Requeued');
+        p.querySelector('.step-circle.Processing') ||
+        p.querySelector('.step-circle.Requeued') ||
+        p.querySelector('.step-circle.Waiting');
     if (active) {
         const node = /** @type {HTMLElement | null} */ (active.closest('.step-node'));
         if (node) {

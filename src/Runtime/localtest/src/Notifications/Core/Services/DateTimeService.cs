@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+#nullable disable
+
+using System.Diagnostics.CodeAnalysis;
 
 using Altinn.Notifications.Core.Services.Interfaces;
 

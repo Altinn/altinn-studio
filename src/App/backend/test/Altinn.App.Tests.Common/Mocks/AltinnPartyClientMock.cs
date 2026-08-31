@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Tests.Common.Data;
 using Altinn.Platform.Register.Models;
@@ -15,7 +16,7 @@ public class AltinnPartyClientMock : IAltinnPartyClient
 
     private readonly string _partyFolder = CommonTestData.GetAltinnProfilePath();
 
-    public async Task<Party?> GetParty(int partyId)
+    public async Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null)
     {
         var file = Path.Join(_partyFolder, $"{partyId}.json");
         await using var fileHandle = File.OpenRead(file); // Throws exception if missing (helps with debugging tests)
@@ -32,7 +33,10 @@ public class AltinnPartyClientMock : IAltinnPartyClient
         throw new NotImplementedException();
     }
 
-    public async Task<Party> LookupParty(PartyLookup partyLookup)
+    public async Task<Party> LookupParty(
+        PartyLookup partyLookup,
+        StorageAuthenticationMethod? authenticationMethod = null
+    )
     {
         var files = Directory.GetFiles(_partyFolder, "*.json");
         foreach (var file in files)

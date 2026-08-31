@@ -1,3 +1,5 @@
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -81,6 +83,7 @@ public class ApplicationsController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="cancellationToken">A token that is cancelled when the request is aborted.</param>
     /// <returns>The metadata for the identified application.</returns>
     [AllowAnonymous]
     [HttpGet("{org}/{app}")]
@@ -88,11 +91,11 @@ public class ApplicationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
-    public async Task<ActionResult<Application>> GetOne(string org, string app)
+    public async Task<ActionResult<Application>> GetOne(string org, string app, CancellationToken cancellationToken)
     {
         string appId = $"{org}/{app}";
 
-        Application result = await repository.FindOne(appId, org);
+        Application result = await repository.FindOne(appId, org, cancellationToken);
 
         if (result == null)
         {

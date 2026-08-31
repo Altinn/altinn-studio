@@ -80,6 +80,10 @@ services:
       - OTEL_ENDPOINT=localhost:4317
       - OTEL_SERVICE_NAME=studio-loadbalancer
       - OTEL_TRACE=off
+    networks:
+      default:
+        aliases:
+          - studio.localhost
     volumes:
       - ./../load-balancer/local/www:/www:ro
       - ./../load-balancer/local/error-pages:/etc/nginx/error-pages:ro
@@ -98,27 +102,21 @@ services:
     post_start:
       - command: >
           sh -c '
-          STUDIO_OIDC_FLAG=$$([ "$$FeatureManagement__StudioOidc" = "true" ] && echo true || echo false) &&
-          echo "{\"accountLinkUrl\": \"$$StudioOidcLoginSettings__AccountLinkUrl\", \"featureFlags\": {\"studioOidc\": $$STUDIO_OIDC_FLAG}}" > /app/wwwroot/designer/config/env.json
+          echo "{\"accountLinkUrl\": \"$$StudioOidcLoginSettings__AccountLinkUrl\", \"featureFlags\": {\"studioOidc\": true}}" > /app/wwwroot/designer/config/env.json
           '
     volumes:
       - 'designer-git-data:/AltinnCore/Repos'
       - 'keys:/mnt/keys'
     environment:
-      - FeatureManagement__StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
       - StudioOidcLoginSettings__AccountLinkUrl=http://studio.localhost/repos/user/oauth2/fake-ansattporten
       - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
-      - GeneralSettings:AppLocation=Templates/AspNet/App
-      - GeneralSettings:DeploymentLocation=/Templates/deployment
-      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
       - GeneralSettings:EnvironmentsUrl=http://studio-azure-mock:6161/environments.json
-      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
       - GeneralSettings:LanguageFilesLocation=Languages/
-      - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:TemplateLocation=Templates/AspNet
+      - GeneralSettings:DefaultAppTemplate=v8
       - MaskinPortenHttpClientSettings:BaseUrl=http://studio-azure-mock:6161
       - PostgreSQLSettings:AdminConnectionString=Host=studio_db;Port=5432;Username=designer_admin;Password={0};Database=designerdb
       - PostgreSQLSettings:ConnectionString=Host=studio_db;Port=5432;Username=designer;Password={0};Database=designerdb
@@ -148,8 +146,6 @@ services:
       - StudioOidcLoginSettings:AuthorizationDetails:0:OrganizationForm=enterprise
       - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
-      - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
-      - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true
@@ -202,7 +198,6 @@ services:
     environment:
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - GITEA_HOST=studio-repositories:3000
-      - STUDIO_OIDC_ENABLED=${FEATUREFLAGS_STUDIOOIDC:-true}
       - OTEL_ENDPOINT=localhost:4317
       - OTEL_SERVICE_NAME=gitea-proxy
       - OTEL_TRACE=off
@@ -274,7 +269,7 @@ services:
       studio_repositories:
         condition: service_healthy
     build:
-      context: ./../gitea-runner
+      context: ./../ci/gitea-runner
     privileged: false
     environment:
       - GITEA_INSTANCE_URL=http://studio_repositories:3000
@@ -285,7 +280,7 @@ services:
 
   studio_db:
     container_name: studio-db
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -308,8 +303,8 @@ services:
       studio_db:
         condition: service_healthy
     build:
-      context: ./backend
-      dockerfile: Migrations.Dockerfile
+      context: ..
+      dockerfile: Designer/backend/Migrations.Dockerfile
     environment:
       - PGHOST=studio_db
       - PGPORT=5432
@@ -318,7 +313,7 @@ services:
       - PGDATABASE=designerdb
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: docker.io/dpage/pgadmin4
     ports:
       - "81:80"
     environment:
@@ -331,7 +326,7 @@ services:
       - 'host.docker.internal:host-gateway'
 
   redis:
-    image: redis:alpine
+    image: docker.io/library/redis:alpine
     container_name: redis
     restart: always
     command: redis-server --save 60 1 --loglevel warning
@@ -342,7 +337,7 @@ services:
 
   redis-commander:
     container_name: redis-commander
-    image: rediscommander/redis-commander:latest
+    image: docker.io/rediscommander/redis-commander:latest
     restart: always
     environment:
         - REDIS_HOSTS=redis

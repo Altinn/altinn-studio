@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -99,7 +100,7 @@ public class SigningUserActionTests
 
             var signatureWasAdded = false;
             signClient
-                .Setup(x => x.SignDataElements(It.IsAny<SignatureContext>()))
+                .Setup(x => x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>()))
                 .Callback(() =>
                 {
                     signatureWasAdded = true;
@@ -228,8 +229,10 @@ public class SigningUserActionTests
         // Arrange
         var fixture = Fixture.Create();
         fixture
-            .SignClient.Setup(x => x.SignDataElements(It.IsAny<SignatureContext>()))
-            .ThrowsAsync(new PlatformHttpException(new HttpResponseMessage(), "Failed to sign dataelements"));
+            .SignClient.Setup(x =>
+                x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>())
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.OK, "Failed to sign dataelements"));
 
         var userActionContext = new UserActionContext(
             fixture.InstanceDataMutatorMock.Object,
@@ -244,7 +247,10 @@ public class SigningUserActionTests
             errorType: ProcessErrorType.Internal
         );
         Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(result));
-        fixture.SignClient.Verify(x => x.SignDataElements(It.IsAny<SignatureContext>()), Times.Once);
+        fixture.SignClient.Verify(
+            x => x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>()),
+            Times.Once
+        );
     }
 
     [Theory]
@@ -290,7 +296,8 @@ public class SigningUserActionTests
                     signClient.Verify(
                         s =>
                             s.SignDataElements(
-                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))
+                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                                It.IsAny<StorageAuthenticationMethod?>()
                             ),
                         Times.Once
                     );
@@ -310,7 +317,8 @@ public class SigningUserActionTests
                     signClient.Verify(
                         s =>
                             s.SignDataElements(
-                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))
+                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                                It.IsAny<StorageAuthenticationMethod?>()
                             ),
                         Times.Once
                     );
@@ -367,7 +375,11 @@ public class SigningUserActionTests
             new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
         );
         signClientMock.Verify(
-            s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))),
+            s =>
+                s.SignDataElements(
+                    It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                    It.IsAny<StorageAuthenticationMethod?>()
+                ),
             Times.Once
         );
         result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
@@ -397,7 +409,11 @@ public class SigningUserActionTests
             new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
         );
         signClientMock.Verify(
-            s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))),
+            s =>
+                s.SignDataElements(
+                    It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                    It.IsAny<StorageAuthenticationMethod?>()
+                ),
             Times.Once
         );
         result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
@@ -522,7 +538,7 @@ public class SigningUserActionTests
         if (platformHttpExceptionToThrow != null)
         {
             signingClientMock
-                .Setup(p => p.SignDataElements(It.IsAny<SignatureContext>()))
+                .Setup(p => p.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>()))
                 .ThrowsAsync(platformHttpExceptionToThrow);
         }
 

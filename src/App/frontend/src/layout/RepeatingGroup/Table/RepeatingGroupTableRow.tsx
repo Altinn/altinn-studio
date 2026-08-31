@@ -1,7 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
-import { Button, Flex } from '@app/form-component';
+import { Button, Flex, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -13,14 +13,16 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
+import {
+  useDeleteRowAndFocus,
+  useRepeatingGroupsFocusContext,
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
@@ -68,11 +70,11 @@ function getEditButtonText(
   textResourceBindings: GroupExpressions['textResourceBindings'] | undefined,
 ) {
   const buttonTextKey = isEditing
-    ? textResourceBindings?.edit_button_close
-      ? textResourceBindings?.edit_button_close
+    ? textResourceBindings?.editButtonClose
+      ? textResourceBindings?.editButtonClose
       : 'general.save_and_close'
-    : textResourceBindings?.edit_button_open
-      ? textResourceBindings?.edit_button_open
+    : textResourceBindings?.editButtonOpen
+      ? textResourceBindings?.editButtonOpen
       : 'general.edit_alt';
   return langTools.langAsString(buttonTextKey);
 }
@@ -91,7 +93,7 @@ export function RepeatingGroupTableRow({
   const { refSetter } = useRepeatingGroupsFocusContext();
 
   const baseComponentId = useRepeatingGroupComponentId();
-  const deleteRow = RepGroupContext.useDeleteRow();
+  const deleteRow = useDeleteRowAndFocus();
   const toggleEditing = RepGroupContext.useToggleEditing();
   const indexedId = useIndexedId(baseComponentId);
   const langTools = useLanguage();
@@ -125,6 +127,7 @@ export function RepeatingGroupTableRow({
 
   return (
     <Table.Row
+      ref={(node) => refSetter(index, 'row', node)}
       className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
       data-row-num={index}
       data-row-uuid={uuid}
@@ -225,6 +228,7 @@ export function RepeatingGroupTableRow({
                         editButtonText={editButtonText}
                         rowHasErrors={rowHasErrors}
                         compactButtons={compactButtons}
+                        buttonRef={(node) => refSetter(index, 'editButton', node)}
                       />
                     )}
                     {editForRow?.deleteButton !== false && displayDeleteColumn && (
@@ -270,6 +274,7 @@ export function RepeatingGroupTableRow({
                     editButtonText={editButtonText}
                     rowHasErrors={rowHasErrors}
                     compactButtons={compactButtons}
+                    buttonRef={(node) => refSetter(index, 'editButton', node)}
                   />
                 </div>
               </Table.Cell>
@@ -313,6 +318,7 @@ export function RepeatingGroupTableRow({
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
                 compactButtons={compactButtons}
+                buttonRef={(node) => refSetter(index, 'editButton', node)}
               />
             )}
             {editForRow?.deleteButton !== false && (
@@ -366,6 +372,7 @@ function EditElement({
   rowHasErrors,
   uuid,
   compactButtons,
+  buttonRef,
 }: {
   ariaExpanded: boolean;
   indexedId: string;
@@ -375,11 +382,13 @@ function EditElement({
   editButtonText: string;
   rowHasErrors: boolean;
   compactButtons: boolean;
+  buttonRef?: (node: HTMLButtonElement | null) => void;
 }) {
   const ariaLabel = useAriaLabel(editButtonText);
   const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
   return (
     <Button
+      ref={buttonRef}
       aria-expanded={ariaExpanded}
       aria-controls={ariaExpanded ? `group-edit-container-${indexedId}-${uuid}` : undefined}
       variant='tertiary'

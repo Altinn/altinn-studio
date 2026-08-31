@@ -18,9 +18,10 @@ const renderUseGetLayoutSetByName = (name: string) => {
   const org = 'defaultOrg';
   const app = 'defaultApp';
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
-    sets: [{ id: 'mocked-layout-set', type: 'subform' }],
-  });
+  queryClient.setQueryData(
+    [QueryKey.LayoutSets, org, app],
+    [{ id: 'mocked-layout-set', type: 'subform' }],
+  );
   return renderHookWithProviders(() => useGetLayoutSetByName({ name, org, app }), {
     queryClient,
   });

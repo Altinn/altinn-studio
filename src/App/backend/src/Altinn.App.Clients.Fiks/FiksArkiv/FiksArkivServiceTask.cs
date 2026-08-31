@@ -1,7 +1,7 @@
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Features.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -30,6 +30,15 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     /// <inheritdoc />
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
+        Guid sendersReference = context.StepId;
+        if (sendersReference == Guid.Empty)
+        {
+            const string errorMessage =
+                "The workflow engine did not supply a step id, so there is no retry-stable Fiks client message ID to send with.";
+            _logger.LogError("FiksArkivServiceTask cannot execute: {ErrorMessage}", errorMessage);
+            return ServiceTaskResult.FailedPermanent(errorMessage);
+        }
+
         try
         {
             Instance instance = context.InstanceDataMutator.Instance;
@@ -43,8 +52,11 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
             var response = await _fiksArkivHost.GenerateAndSendMessage(
                 taskId,
-                instance,
-                FiksArkivConstants.MessageTypes.CreateArchiveRecord
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                sendersReference,
+                context.ExecutionReferenceTime,
+                context.InstanceDataMutator,
+                context.CancellationToken
             );
 
             _logger.LogInformation(
@@ -59,9 +71,12 @@ internal sealed class FiksArkivServiceTask : IServiceTask
         {
             _logger.LogError(e, "Error occurred while executing FiksArkivServiceTask: {ErrorMessage}", e.Message);
 
-            return _fiksArkivSettings.ErrorHandling?.MoveToNextTask is true
-                ? ServiceTaskResult.FailedContinueProcessNext(_fiksArkivSettings.ErrorHandling?.GetActionOrDefault())
-                : ServiceTaskResult.FailedAbortProcessNext();
+            if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is true)
+            {
+                return ServiceTaskResult.Success(action: _fiksArkivSettings.ErrorHandling.GetActionOrDefault());
+            }
+
+            return ServiceTaskResult.FailedRetryable(e.Message);
         }
     }
 }

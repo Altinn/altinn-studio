@@ -39,6 +39,7 @@ func newAppEnv(current []string) appEnv {
 func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local, appFrontendAssetBaseUrl string) {
 	endpoints := newAppEndpointConfig(topology)
 
+	e.values["STUDIOCTL_APP_RUN"] = "1"
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)
 	if appFrontendAssetBaseUrl != "" {
@@ -59,6 +60,15 @@ func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local, ap
 	e.setDefault("PlatformSettings__ApiCorrespondenceEndpoint", endpoints.platform+"/correspondence/api/v1/")
 	e.setDefault("PlatformSettings__ApiAccessManagementEndpoint", endpoints.platform+"/accessmanagement/api/v1/")
 	e.setDefault("PlatformSettings__ApiWorkflowEngineEndpoint", endpoints.workflowEngine)
+
+	// Workflow engine callbacks are authenticated with an app-minted JWT signed by a
+	// WorkflowEngineCallback app-code. In the cloud the operator provisions these codes; locally we
+	// supply a single fixed dev code so the app can both sign (at enqueue) and validate (on callback).
+	// The app both mints and verifies the token, so this value never has to match anything else.
+	e.setDefault("AppCodes__WorkflowEngineCallback__0__Id", "local-dev")
+	e.setDefault("AppCodes__WorkflowEngineCallback__0__Code", "LOCAL-DEV-ONLY-workflow-engine-callback-secret")
+	e.setDefault("AppCodes__WorkflowEngineCallback__0__IssuedAt", "2020-01-01T00:00:00Z")
+	e.setDefault("AppCodes__WorkflowEngineCallback__0__ExpiresAt", "2999-01-01T00:00:00Z")
 }
 
 func (e appEnv) setDefault(key, value string) {

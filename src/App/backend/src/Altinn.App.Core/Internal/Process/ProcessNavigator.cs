@@ -18,6 +18,7 @@ public class ProcessNavigator : IProcessNavigator
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
+    private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initialize a new instance of <see cref="ProcessNavigator"/>
@@ -26,18 +27,22 @@ public class ProcessNavigator : IProcessNavigator
         IProcessReader processReader,
         ExclusiveGatewayFactory gatewayFactory,
         ILogger<ProcessNavigator> logger,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        Telemetry? telemetry = null
     )
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
         _logger = logger;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
+        _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
     public async Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action)
     {
+        using var activity = _telemetry?.StartProcessNavigatorGetNextTaskActivity(instance, currentElement, action);
+
         List<ProcessElement> directFlowTargets = _processReader.GetNextElements(currentElement);
         List<ProcessElement> filteredNext = await NextFollowAndFilterGateways(
             instance,

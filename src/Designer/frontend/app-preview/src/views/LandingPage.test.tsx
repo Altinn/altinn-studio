@@ -72,7 +72,7 @@ describe('LandingPage', () => {
     );
 
     expect(
-      screen.getByRole('menuitemradio', { name: textMock('shared.header_logout') }),
+      screen.getByRole('menuitem', { name: textMock('shared.header_logout') }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
@@ -99,7 +99,7 @@ describe('LandingPage', () => {
         getLayoutSets: jest
           .fn()
           .mockImplementation(() =>
-            Promise.resolve({ sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] }),
+            Promise.resolve([{ id: layoutSet3SubformNameMock, type: 'subform' }]),
           ),
       },
       layoutSet3SubformNameMock,

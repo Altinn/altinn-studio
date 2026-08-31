@@ -6,7 +6,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 describe('useTaskNavigationGroupMutation', () => {
-  it('Calls updateTaskNavigationGroup with correct arguments and payload', async () => {
+  it('Calls updateTaskNavigationGroupV4 with correct arguments and payload', async () => {
     const { result } = renderTaskNavigationGroupMutation();
     const payload: TaskNavigationGroup[] = [
       {
@@ -19,8 +19,8 @@ describe('useTaskNavigationGroupMutation', () => {
     result.current.mutate(payload);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, payload);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, payload);
   });
 });
 

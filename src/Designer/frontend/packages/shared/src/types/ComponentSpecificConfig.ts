@@ -48,15 +48,35 @@ export type DataModelBindingsSimple = {
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
 
+// Frontend v4 and v9 use different spellings for this component contract. Keep both definitions
+// while Designer supports editing both app versions.
 type DataModelBindingsOrganisationLookup = {
   organisation_lookup_orgnr: ExplicitDataModelBinding;
   organisation_lookup_name?: ExplicitDataModelBinding;
 };
 
+type DataModelBindingsOrganizationLookup = {
+  orgnr: ExplicitDataModelBinding;
+  name?: ExplicitDataModelBinding;
+};
+
 type DataModelBindingsPersonLookup = {
+  ssn: ExplicitDataModelBinding;
+  fullName?: ExplicitDataModelBinding;
+  firstName?: ExplicitDataModelBinding;
+  middleName?: ExplicitDataModelBinding;
+  lastName?: ExplicitDataModelBinding;
+};
+
+// PersonLookup has the same component type in the v4 and v9 contracts. Both ux-editor versions
+// consume this shared type, while their schemas decide which contract they may write.
+type DataModelBindingsPersonLookupV4 = {
   person_lookup_ssn: ExplicitDataModelBinding;
   person_lookup_name: ExplicitDataModelBinding;
 };
+
+type DataModelBindingsPersonLookupForEditor =
+  DataModelBindingsPersonLookup | DataModelBindingsPersonLookupV4;
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
@@ -243,6 +263,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     maxCount?: number;
   };
   [ComponentType.Header]: { size: string };
+  [ComponentType.Heading]: { size: string };
   [ComponentType.IFrame]: {
     sandbox?: {
       allowPopups?: boolean;
@@ -353,9 +374,14 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     validateOnNext?: PageValidation;
     validateOnPrevious?: PageValidation;
   };
+  // Legacy frontend v4 contract; frontend v9 uses the OrganizationLookup entry below.
   [ComponentType.OrganisationLookup]: FormComponentProps &
     SummarizableComponentProps & {
       dataModelBindings: DataModelBindingsOrganisationLookup;
+    };
+  [ComponentType.OrganizationLookup]: FormComponentProps &
+    SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsOrganizationLookup;
     };
   [ComponentType.Panel]: {
     variant?: FormPanelVariant;
@@ -366,7 +392,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.PaymentDetails]: {};
   [ComponentType.PersonLookup]: FormComponentProps &
     SummarizableComponentProps & {
-      dataModelBindings: DataModelBindingsPersonLookup;
+      dataModelBindings: DataModelBindingsPersonLookupForEditor;
     };
   [ComponentType.PrintButton]: {};
   [ComponentType.RadioButtons]: FormComponentProps &

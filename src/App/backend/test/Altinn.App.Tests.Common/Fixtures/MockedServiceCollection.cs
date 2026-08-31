@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
@@ -100,8 +101,7 @@ public sealed class MockedServiceCollection
         Services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
         Services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
         Services.TryAddTransient<IDataService, DataService>();
-
-        // Adding Telemetry and logging infrastructure
+        Services.TryAddSingleton<IInstanceLocker>(Moq.Mock.Of<IInstanceLocker>());
         Services.TryAddSingleton<Telemetry>();
 
         // Add standard mocks

@@ -1,4 +1,3 @@
-#nullable enable
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text.Json;

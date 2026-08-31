@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Register.Models;
 
 namespace LocalTest.Services.Register.Interface

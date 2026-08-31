@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
@@ -12,7 +13,6 @@ import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGe
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -39,7 +39,7 @@ export interface GetOptionsResult {
 
   // Whether the options are currently being fetched from the API. This is usually false in normal components, as
   // options are always fetched on page load, but it can be true if the options are fetched dynamically based on
-  // mapping or query parameters. In those cases you most likely want to render a spinner.
+  // query parameters. In those cases you most likely want to render a spinner.
   isFetching: boolean;
 }
 
@@ -100,24 +100,24 @@ export function useSetOptions(
     [setValue, valueType],
   );
 
-  return {
-    rawData: value,
-    selectedValues,
-    unsafeSelectedValues: currentValues,
-    setData,
-  };
+  return useMemo(
+    () => ({
+      rawData: value,
+      selectedValues,
+      unsafeSelectedValues: currentValues,
+      setData,
+    }),
+    [currentValues, selectedValues, setData, value],
+  );
 }
 
 function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
-  const { optionsId, secure, mapping, queryParameters } = item;
-  return useGetOptionsUrl(optionsId, mapping, queryParameters, secure);
+  const { optionsId, secure, queryParameters } = item;
+  return useGetOptionsUrl(optionsId, queryParameters, secure);
 }
 
 function hasDynamicOptionsConfig(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
-  return Boolean(
-    (item.mapping && Object.keys(item.mapping).length > 0) ||
-    (item.queryParameters && Object.keys(item.queryParameters).length > 0),
-  );
+  return Boolean(item.queryParameters && Object.keys(item.queryParameters).length > 0);
 }
 
 export function useFetchOptions({ item }: FetchOptionsProps) {
@@ -183,15 +183,12 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
 function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
   useEffect(() => {
     if (error) {
-      const { id, optionsId, secure, mapping, queryParameters } = item;
+      const { id, optionsId, secure, queryParameters } = item;
       const _optionsId = optionsId ? `\noptionsId: ${optionsId}` : '';
-      const _mapping = mapping ? `\nmapping: ${JSON.stringify(mapping)}` : '';
       const _queryParameters = queryParameters ? `\nqueryParameters: ${JSON.stringify(queryParameters)}` : '';
       const _secure = secure ? `\nsecure: ${secure}` : '';
 
-      window.logErrorOnce(
-        `Failed to fetch options for node ${id}${_optionsId}${_mapping}${_queryParameters}${_secure}`,
-      );
+      window.logErrorOnce(`Failed to fetch options for node ${id}${_optionsId}${_queryParameters}${_secure}`);
     }
   }, [error, item]);
 }

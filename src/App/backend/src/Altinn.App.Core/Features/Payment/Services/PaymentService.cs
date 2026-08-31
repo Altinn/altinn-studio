@@ -363,7 +363,7 @@ internal class PaymentService : IPaymentService
             System.Text.Encoding.UTF8,
             "application/json"
         );
-        var response = await client.PutAsync($"instances/{instance.Id}/process/next", content);
+        using var response = await client.PutAsync($"instances/{instance.Id}/process/next", content);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError(
@@ -396,24 +396,6 @@ internal class PaymentService : IPaymentService
         }
 
         return paymentInformation.Status;
-    }
-
-    /// <inheritdoc/>
-    public async Task CancelAndDeleteAnyExistingPayment(
-        Instance instance,
-        ValidAltinnPaymentConfiguration paymentConfiguration
-    )
-    {
-        string dataTypeId = paymentConfiguration.PaymentDataType;
-        (Guid dataElementId, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
-            instance,
-            dataTypeId
-        );
-
-        if (paymentInformation == null)
-            return;
-
-        await CancelAndDelete(instance, dataElementId, paymentInformation);
     }
 
     private async Task CancelAndDelete(Instance instance, Guid dataElementId, PaymentInformation paymentInformation)

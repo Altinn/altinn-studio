@@ -36,6 +36,7 @@ export const dataModelsJsonPath = (org, app) => `${apiBasePath}/${org}/${app}/da
 export const dataModelsXsdPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/upload`; // Post
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${apiBasePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
+export const dataModelPrefillPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/prefill?${s({ modelPath })}`; // Get, Put
 
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
@@ -58,10 +59,12 @@ export const ruleConfigPath = (org, app, layoutSetName) => `${apiBasePath}/${org
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${apiBasePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${apiBasePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-names`; // Get
-export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets`; // Get
-export const layoutSetsExtendedPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
+export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders/layout-sets`; // Get
+export const layoutSetsV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets`; // Get
+export const layoutSetsExtendedV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
+export const validationOnNavigationLayoutSetsPath = (org, app) => `${layoutSetsV4Path(org, app)}/validation-on-navigation`; // Get
 export const validateNavigationLayoutSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation`; // Get, Post
 export const validateNavigationPageSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation/pages`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
@@ -73,7 +76,13 @@ export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutP
 export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/page-groups/`;
 export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
 export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
-export const taskNavigationGroupPath = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
+export const taskNavigationGroupV4Path = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
+export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}/settings/task-navigation`;
+export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
+export const uiFoldersLayoutSetsPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets`; // Post
+export const uiFoldersLayoutSetPath = (org, app, layoutSetId) => `${uiFoldersPath(org, app)}/layout-sets/${layoutSetId}`; // Put, Delete
+export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
+export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
 
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
@@ -83,7 +92,6 @@ export const repositoryLayoutPath = (org, app, layout) => `/repos/${org}/${app}/
 export const publishPath = (org, app) => `/editor/${org}/${app}/deploy`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
 export const repositoryBasePath = () => `/repos`;
-export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
 export const userLogoutAfterPath = () => `/Home/Logout`;
@@ -113,6 +121,8 @@ export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
+// v9 app-frontend uses browser routing, so point straight at the browser-router URL and skip its hash redirect
+export const previewPageV9 = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/${org}/${app}/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}?${s({ selectedLayoutSet })}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
@@ -221,13 +231,16 @@ export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/
 export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}`; // Put, Delete
 export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
 export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
-export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${app}/chat/feedback/${traceId}`; // Put
+export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${app}/chat/feedback/${traceId}`; // Put, Delete
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+
+// App Templates (the scaffold a new app is created from)
+export const appTemplatesPath = () => `${apiBasePath}/apptemplates`; // GET
 
 // Custom Templates
 export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET

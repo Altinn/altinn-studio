@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    This targets file is included in the Altinn.App.Api NuGet package and
+    exposes the bundled app frontend as static files in consuming apps.
+   -->
+  <ItemGroup Condition="'$(IsAltinnApp)' == 'true'">
+    <AltinnAppFrontendAsset Include="$(MSBuildThisFileDirectory)Altinn.App.Api/altinn-app-frontend/**/*" />
+    <StaticWebAsset Include="@(AltinnAppFrontendAsset)">
+      <SourceType>Package</SourceType>
+      <SourceId>Altinn.App.Api</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)Altinn.App.Api/</ContentRoot>
+      <BasePath>/</BasePath>
+      <RelativePath>altinn-app-frontend/%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>%(FullPath)</OriginalItemSpec>
+    </StaticWebAsset>
+  </ItemGroup>
+</Project>

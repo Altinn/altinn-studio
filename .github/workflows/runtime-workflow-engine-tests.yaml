@@ -4,13 +4,15 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/common/**'
+      - 'src/common/dotnet/**'
       - 'src/Runtime/workflow-engine/src/**'
       - 'src/Runtime/workflow-engine/tests/**'
       - 'src/Runtime/workflow-engine/Directory.Build.props'
       - 'src/Runtime/workflow-engine/Directory.Packages.props'
       - 'src/Runtime/workflow-engine/typos.toml'
       - '.github/workflows/runtime-workflow-engine-tests.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -21,25 +23,25 @@ jobs:
   build-and-test:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     defaults:
       run:
         working-directory: src/Runtime/workflow-engine/
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Spell check
-        uses: crate-ci/typos@7c572958218557a3272c2d6719629443b5cc26fd # v1.45.2
+        uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
         with:
           config: src/Runtime/workflow-engine/typos.toml
           files: src/Runtime/workflow-engine
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: |
             10.0.x

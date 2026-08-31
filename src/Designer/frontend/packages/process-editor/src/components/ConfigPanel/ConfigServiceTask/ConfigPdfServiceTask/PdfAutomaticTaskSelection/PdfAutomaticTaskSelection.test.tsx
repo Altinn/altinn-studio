@@ -51,7 +51,7 @@ describe('PdfAutomaticTaskSelection', () => {
   it('should render task selector combobox', () => {
     renderPdfAutomaticTaskSelection();
 
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('should display available tasks as options', async () => {
@@ -59,11 +59,15 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('combobox');
+    const combobox = screen.getByRole('textbox');
     await user.click(combobox);
 
-    expect(screen.getByRole('option', { name: /Task 1.*\(task_1\)/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /Task 2.*\(task_2\)/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: /Task 2.*\(task_2\)/, hidden: true }),
+    ).toBeInTheDocument();
   });
 
   it('should call updateTaskIds when selecting a task', async () => {
@@ -71,10 +75,10 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('combobox');
+    const combobox = screen.getByRole('textbox');
     await user.click(combobox);
 
-    const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/ });
+    const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true });
     await user.click(option);
 
     await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalled());
@@ -86,11 +90,13 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection(['task_1']);
 
-    const combobox = screen.getByRole('combobox');
-    await user.click(combobox);
+    await user.click(screen.getByRole('textbox'));
 
-    const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/ });
-    await user.click(option);
+    const selectedTaskChip = screen.getByRole('option', {
+      name: /^Task 1 \(task_1\), /,
+      hidden: true,
+    });
+    await user.click(selectedTaskChip);
 
     await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalledWith([]));
   });
@@ -100,13 +106,13 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('combobox');
+    const combobox = screen.getByRole('textbox');
     await user.click(combobox);
 
-    await user.click(screen.getByRole('option', { name: /Task 1.*\(task_1\)/ }));
+    await user.click(screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true }));
     await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalledWith(['task_1']));
 
-    await user.click(screen.getByRole('option', { name: /Task 2.*\(task_2\)/ }));
+    await user.click(screen.getByRole('option', { name: /Task 2.*\(task_2\)/, hidden: true }));
     await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenLastCalledWith(['task_1', 'task_2']));
   });
 
@@ -127,10 +133,10 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('combobox');
+      const combobox = screen.getByRole('textbox');
       await user.click(combobox);
 
-      expect(screen.getByRole('option', { name: /\(task_1\)/ })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /\(task_1\)/, hidden: true })).toBeInTheDocument();
     });
 
     it('should handle tasks with undefined businessObject name', async () => {
@@ -148,10 +154,10 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('combobox');
+      const combobox = screen.getByRole('textbox');
       await user.click(combobox);
 
-      expect(screen.getByRole('option', { name: /\(task_1\)/ })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /\(task_1\)/, hidden: true })).toBeInTheDocument();
     });
 
     it('should show empty state when no tasks are available', async () => {
@@ -160,7 +166,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('combobox');
+      const combobox = screen.getByRole('textbox');
       await user.click(combobox);
 
       expect(
@@ -175,6 +181,6 @@ const renderPdfAutomaticTaskSelection = (taskIds: string[] = []) => {
 
   return renderWithProviders(<PdfAutomaticTaskSelection />, {
     bpmnContextProps: { bpmnDetails },
-    bpmnApiContextProps: { layoutSets: { sets: [] } },
+    bpmnApiContextProps: { layoutSets: [] },
   });
 };

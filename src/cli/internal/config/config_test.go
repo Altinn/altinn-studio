@@ -98,6 +98,16 @@ func TestNew(t *testing.T) {
 	})
 }
 
+func TestUpdateCheckCachePath(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: filepath.Join("some", "home")}
+	want := filepath.Join("some", "home", "update-check.yaml")
+	if got := cfg.UpdateCheckCachePath(); got != want {
+		t.Errorf("UpdateCheckCachePath() = %q, want %q", got, want)
+	}
+}
+
 func TestNewWithCustomHome(t *testing.T) {
 	t.Parallel()
 

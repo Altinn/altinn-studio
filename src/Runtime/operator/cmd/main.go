@@ -23,13 +23,12 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/cnpgapi"
 	"altinn.studio/operator/internal/controller/appcodesync"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/controller/cnpgsync"
@@ -37,6 +36,7 @@ import (
 	"altinn.studio/operator/internal/controller/inactivityscaler"
 	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/controller/secretsync"
+	"altinn.studio/operator/internal/grafanaapi"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
@@ -47,15 +47,28 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+const (
+	managerGracefulShutdownTimeout = 30 * time.Second
+	telemetryShutdownTimeout       = 5 * time.Second
+)
+
 //nolint:gochecknoinits // Scheme registration follows controller-runtime/Kubebuilder conventions.
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(resourcesv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
+	utilruntime.Must(grafanaapi.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
-	utilruntime.Must(cnpgv1.AddToScheme(scheme))
+	utilruntime.Must(cnpgapi.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
+}
+
+func shutdownTelemetry(shutdown func(context.Context) error) {
+	ctx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
+	defer cancel()
+	if err := shutdown(ctx); err != nil {
+		setupLog.Error(err, "unable to shut down OTel")
+	}
 }
 
 //nolint:funlen,gocyclo,gocognit,gocritic // Keeping Kubebuilder's scaffolded manager setup shape intact is more important here.
@@ -102,9 +115,7 @@ func main() {
 	}
 
 	// Handle shutdown properly so nothing leaks.
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
+	defer shutdownTelemetry(otelShutdown)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -148,9 +159,10 @@ func main() {
 		LeaderElectionID:       "ec156e4c.altinn.studio",
 		// Stretch the lease timings to reduce steady-state renewal chatter while
 		// keeping multiple renewal attempts before leadership is lost.
-		LeaseDuration: ptr.To(leaderElectionLeaseDuration),
-		RenewDeadline: ptr.To(leaderElectionRenewDeadline),
-		RetryPeriod:   ptr.To(leaderElectionRetryPeriod),
+		LeaseDuration:           ptr.To(leaderElectionLeaseDuration),
+		RenewDeadline:           ptr.To(leaderElectionRenewDeadline),
+		RetryPeriod:             ptr.To(leaderElectionRetryPeriod),
+		GracefulShutdownTimeout: new(managerGracefulShutdownTimeout),
 		BaseContext: func() context.Context {
 			return managerCtx
 		},

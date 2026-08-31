@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	errComponentRequired           = errors.New("component is required")
-	errBaseBranchRequired          = errors.New("base-branch is required")
-	errReleaseVersionRequired      = errors.New("version is required")
-	errReleaseCommitBranchRequired = errors.New("commit and branch are required")
-	errBaseHeadRequired            = errors.New("base and head are required")
-	errWorkflowRequiresCI          = errors.New(
+	errComponentRequired         = errors.New("component is required")
+	errBaseBranchRequired        = errors.New("base-branch is required")
+	errReleaseVersionRequired    = errors.New("version or release kind is required")
+	errReleaseCommitLineRequired = errors.New("commit and line are required")
+	errBaseHeadRequired          = errors.New("base and head are required")
+	errWorkflowRequiresCI        = errors.New(
 		"workflow command may only run in CI; use -dry-run for local validation",
 	)
 )
@@ -40,6 +40,10 @@ func main() {
 		err = runBackport(os.Args[2:])
 	case "validate-changelog":
 		err = runValidateChangelog(os.Args[2:])
+	case "validate-changelogs":
+		err = runValidateChangelogs(os.Args[2:])
+	case "resolve-version":
+		err = runResolveVersion(os.Args[2:])
 	case "help", "-h", "--help":
 		printUsage()
 		return
@@ -64,7 +68,9 @@ Commands:
   workflow            Run the complete release workflow (for CI)
   prepare             Create a changelog promotion PR for release
   backport            Cherry-pick a commit to a release branch with changelog handling
-  validate-changelog  Validate changelog was modified and release-ready
+  validate-changelog  Validate a component changelog was modified and release-ready
+  validate-changelogs Validate the structure of every changed CHANGELOG.md (any project)
+  resolve-version     Print the release version resolved from a component changelog
 
 Notes:
   - workflow resolves the release version from CHANGELOG.md using -base-branch
@@ -134,24 +140,72 @@ Examples:
 	return nil
 }
 
+func runResolveVersion(args []string) error {
+	fs := flag.NewFlagSet("resolve-version", flag.ExitOnError)
+	component := fs.String("component", "", "Component name (e.g., studioctl)")
+	baseBranch := fs.String("base-branch", "", "Base branch (main or release/<component>/vX.Y)")
+	fs.Usage = func() {
+		fmt.Print(`Usage: releaser resolve-version -component <name> -base-branch <branch>
+
+Prints the release version resolved from the component changelog.
+
+Version behavior:
+  - base-branch=main -> latest prerelease version
+  - base-branch=release/<component>/vX.Y -> latest stable on that line
+
+Options:
+`)
+		fs.PrintDefaults()
+	}
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("parse flags: %w", err)
+	}
+	if *component == "" {
+		fs.Usage()
+		return errComponentRequired
+	}
+	if *baseBranch == "" {
+		fs.Usage()
+		return errBaseBranchRequired
+	}
+
+	git := internal.NewGitCLI()
+	root, err := git.RepoRoot(context.Background())
+	if err != nil {
+		return fmt.Errorf("get repo root: %w", err)
+	}
+
+	version, err := internal.ResolveWorkflowVersion(*component, *baseBranch, root)
+	if err != nil {
+		return fmt.Errorf("resolve version: %w", err)
+	}
+	fmt.Println(version)
+	return nil
+}
+
 func runPrepare(args []string) error {
 	fs := flag.NewFlagSet("prepare", flag.ExitOnError)
 	component := fs.String("component", "", "Component name (required, e.g., studioctl)")
-	version := fs.String("version", "", "Version to release (required, e.g., v1.2.3)")
+	version := fs.String("version", "", "Explicit version to release (e.g., v1.2.3)")
+	kind := fs.String("kind", "", "Release kind when version is omitted: prerelease, stabilization, or patch")
+	line := fs.String("line", "", "Release line for a planned prerelease or patch release (e.g., v1.0)")
 	dryRun := fs.Bool("dry-run", false, "Show what would be done without making changes")
 	yes := fs.Bool("yes", false, "Skip confirmation prompts")
 	yesShort := fs.Bool("y", false, "Alias for -yes")
 	open := fs.Bool("open", false, "Open created PR in browser")
 	fs.Usage = func() {
-		fmt.Print(`Usage: releaser prepare -component <name> -version <version> [options]
+		fmt.Print(`Usage: releaser prepare -component <name> (-kind <kind> | -version <version>) [options]
 
-Creates a PR to promote [Unreleased] changelog entries to the specified version.
+Creates a PR to promote [Unreleased] changelog entries to the next inferred or specified version.
 After merging the PR, CI can run the release workflow if configured.
 
 Version behavior:
-  - vX.Y.Z-preview.N: prep PR targets main
-  - vX.Y.0: creates release/<component>/vX.Y if missing, prep PR targets it
-  - vX.Y.Z (Z>0): prep PR targets existing release/<component>/vX.Y
+  - Release state is read from the canonical GitHub repository behind the configured fork
+  - -kind prerelease: increments the active prerelease sequence from main
+  - -kind prerelease -line vX.Y: starts a newer line at the current channel's first sequence
+  - -kind stabilization: removes the active prerelease suffix from main
+  - -kind patch -line vX.Y: resolves vX.Y.Z+1 from release/<component>/vX.Y
+  - -version vX.Y.Z: uses the explicit version and existing branch policy
 
 Steps performed:
   1. Creates branch 'release-prep/<component>-<version>'
@@ -172,7 +226,7 @@ Options:
 		fs.Usage()
 		return errComponentRequired
 	}
-	if *version == "" {
+	if *version == "" && *kind == "" {
 		fs.Usage()
 		return errReleaseVersionRequired
 	}
@@ -186,6 +240,8 @@ Options:
 	req := internal.PrepareRequest{
 		Component:     *component,
 		Version:       *version,
+		Kind:          *kind,
+		Line:          *line,
 		ChangelogPath: "",
 		Open:          *open,
 		DryRun:        *dryRun,
@@ -201,13 +257,13 @@ func runBackport(args []string) error {
 	fs := flag.NewFlagSet("backport", flag.ExitOnError)
 	component := fs.String("component", "", "Component name (required, e.g., studioctl)")
 	commit := fs.String("commit", "", "Commit SHA to backport (required)")
-	branch := fs.String("branch", "", "Release branch version (required, e.g., v1.0)")
+	line := fs.String("line", "", "Release line to backport to (required, e.g., v1.0)")
 	dryRun := fs.Bool("dry-run", false, "Show what would be done without making changes")
 	yes := fs.Bool("yes", false, "Skip confirmation prompts")
 	yesShort := fs.Bool("y", false, "Alias for -yes")
 	open := fs.Bool("open", false, "Open created PR in browser")
 	fs.Usage = func() {
-		fmt.Print(`Usage: releaser backport -component <name> -commit <sha> -branch <version> [options]
+		fmt.Print(`Usage: releaser backport -component <name> -commit <sha> -line <version> [options]
 
 Cherry-picks a commit from main to a backport branch, handling changelog entries properly.
 
@@ -223,7 +279,7 @@ Steps performed:
   9. Pushes the backport branch
  10. Creates a PR targeting the release branch (label: backport)
 
-After merging the backport PR, use 'releaser prepare -component <name> -version vX.Y.Z'
+After merging the backport PR, use 'releaser prepare -component <name> -kind patch -line vX.Y'
 to create the release PR (then CI can run the release workflow if configured).
 
 Options:
@@ -237,9 +293,9 @@ Options:
 		fs.Usage()
 		return errComponentRequired
 	}
-	if *commit == "" || *branch == "" {
+	if *commit == "" || *line == "" {
 		fs.Usage()
-		return errReleaseCommitBranchRequired
+		return errReleaseCommitLineRequired
 	}
 
 	assumeYes := *yes || *yesShort
@@ -251,7 +307,7 @@ Options:
 	req := internal.BackportRequest{
 		Component:     *component,
 		Commit:        *commit,
-		Branch:        *branch,
+		Line:          *line,
 		ChangelogPath: "",
 		Open:          *open,
 		DryRun:        *dryRun,
@@ -306,6 +362,46 @@ Options:
 	}
 
 	fmt.Println("changelog validated")
+	return nil
+}
+
+func runValidateChangelogs(args []string) error {
+	fs := flag.NewFlagSet("validate-changelogs", flag.ExitOnError)
+	base := fs.String("base", "", "Base commit SHA (optional; validates all tracked changelogs if omitted)")
+	head := fs.String("head", "", "Head commit SHA (optional; validates all tracked changelogs if omitted)")
+	fs.Usage = func() {
+		fmt.Print(`Usage: releaser validate-changelogs [-base <sha> -head <sha>]
+
+Validates the Keep a Changelog structure of every changed CHANGELOG.md in the
+repository, regardless of component. Component-agnostic: any project's changelog
+is covered automatically with no registry or workflow wiring.
+
+When -base and -head are given, only changelogs changed in that range are
+validated. Otherwise every tracked CHANGELOG.md is validated. Vendored and
+generated changelogs (node_modules, .nuget, _testapps, etc.) are skipped.
+
+Only structural errors fail (category order, invalid categories, version
+ordering, duplicate versions). Release-policy semantics are not enforced here;
+use 'validate-changelog' for a specific component's release readiness.
+
+Options:
+`)
+		fs.PrintDefaults()
+	}
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("parse flags: %w", err)
+	}
+
+	if err := internal.RunStructureValidation(
+		context.Background(),
+		*base,
+		*head,
+		internal.NewConsoleLogger(),
+	); err != nil {
+		return fmt.Errorf("validate changelogs: %w", err)
+	}
+
+	fmt.Println("changelogs validated")
 	return nil
 }
 

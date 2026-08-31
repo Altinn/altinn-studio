@@ -6,17 +6,25 @@ import { SearchParams } from 'src/core/routing/types';
 const appFrontend = new AppFrontend();
 
 describe('Service task', () => {
-  it('should display the default service task layout when failing', { retries: 0 }, () => {
+  it('failure view takes precedence over the custom layout, which still serves the PDF', { retries: 0 }, () => {
     startAppAndFillToFailure();
 
-    // This message comes from a custom layout-set showing an error in this service-task
+    // Task_Fail has a custom layout-set, but a terminal failure owned by the service task renders
+    // the recoverable failure view instead (#18935: failure takes precedence over layout). The
+    // layout's own "Prøv igjen" was a plain process/next Button - a silent no-op on a terminally
+    // failed v9 workflow - while the failure view's retry goes through process/resume and works.
+    cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
     cy.findByText('Uff da! Her tryna denne service-tasken, men det var jo du som valgte at det skulle skje.').should(
-      'be.visible',
+      'not.exist',
     );
 
-    assertAndDismissNotification('Service task fail returned a failed result!');
+    // Deliberately no error toast: the v9 backend never ships the raw failure detail to the client
+    // (a user-safe app-authored failure message is a known follow-up in the live workflow-status
+    // ADR), and the swallowed process/next failure converges on this screen instead.
 
-    // This layout-set does not have a pdfLayoutName, so it will auto-generate a PDF
+    // PDF mode bypasses the failure/waiting dispatch (the render is a snapshot taken during the
+    // transition), so the custom layout still serves the auto-generated PDF. This layout-set does
+    // not have a pdfLayoutName, so it will auto-generate a PDF.
     cy.testPdf({
       snapshotName: 'service-task-with-layout',
       returnToForm: true,
@@ -47,7 +55,6 @@ describe('Service task', () => {
     cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
     cy.findByText(/Du kan prøve å utføre behandlingen på nytt/).should('be.visible');
     cy.visualTesting('service-task-no-layout-set');
-    assertAndDismissNotification('Service task fail returned a failed result!');
 
     cy.testPdf({
       snapshotName: 'service-task-with-multiple-tasks',
@@ -107,17 +114,6 @@ function startAppAndFillToFailure() {
     .click();
   cy.waitUntilSaved();
   cy.findByRole('button', { name: 'Neste' }).click();
-}
-
-function assertAndDismissNotification(notificationText: string) {
-  cy.findByRole('region', { name: /Notifications/ }).should('be.visible');
-  cy.findByRole('region', { name: /Notifications/ })
-    .findByText(notificationText)
-    .should('exist');
-  cy.findByRole('region', { name: /Notifications/ })
-    .findByRole('button', { name: 'close' })
-    .click();
-  cy.findByRole('region', { name: /Notifications/ }).should('not.be.visible');
 }
 
 function goBackAndAchieveSuccess() {

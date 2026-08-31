@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { useText } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
@@ -11,6 +10,7 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
+import { StudioHeading, StudioParagraph } from '@studio/components';
 
 export const Elements = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -19,7 +19,7 @@ export const Elements = () => {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettings?.receiptLayoutName;
-  const layoutSetNames = layoutSetsQuery?.data?.sets;
+  const layoutSetNames = layoutSetsQuery?.data;
 
   const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
 
@@ -28,13 +28,13 @@ export const Elements = () => {
   return (
     <div className={classes.root}>
       {layoutSetNames && <LayoutSetsContainer />}
-      <Heading size='xxsmall' className={classes.componentsHeader}>
+      <StudioHeading data-size='xs' className={classes.componentsHeader}>
         {t('left_menu.components')}
-      </Heading>
+      </StudioHeading>
       {hideComponents ? (
-        <Paragraph className={classes.noPageSelected} size='small'>
+        <StudioParagraph className={classes.noPageSelected} data-size='sm'>
           {t('left_menu.no_components_selected')}
-        </Paragraph>
+        </StudioParagraph>
       ) : receiptName === selectedLayout ? (
         <ConfPageToolbar />
       ) : (

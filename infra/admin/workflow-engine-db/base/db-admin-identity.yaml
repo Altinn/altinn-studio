@@ -1,0 +1,6 @@
+apiVersion: application.dis.altinn.cloud/v1alpha1
+kind: ApplicationIdentity
+metadata:
+  name: workflow-engine-db-admin
+  namespace: studio-admin
+spec: {}

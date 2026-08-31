@@ -3,8 +3,6 @@
 # Mock backend (mendhak/http-https-echo) echoes the request as JSON,
 # so we assert on the headers Gitea would have seen.
 
-# === OIDC enabled ===========================================================
-
 # Designer-resolved username is injected as X-WEBAUTH-USER
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=valid_user
@@ -21,7 +19,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{VALID_USERNAME}}"
 
-# Designer 401: forward to Gitea without leaking client X-WEBAUTH-USER
+# No Designer identity (204): forward to Gitea without leaking client X-WEBAUTH-USER
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=expired
 X-WEBAUTH-USER: attacker
@@ -29,7 +27,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" not contains "attacker"
 
-# No Designer session (401): forward to Gitea with X-WEBAUTH-* cleared,
+# No Designer identity (204): forward to Gitea with X-WEBAUTH-* cleared,
 # so alternate Gitea auth (PAT, basic) can still take over.
 GET {{proxy_on_pub}}/api/v1/repos
 Cookie: scenario=expired
@@ -40,7 +38,15 @@ jsonpath "$.headers['authorization']"      == "token pat-abc"
 jsonpath "$.headers['x-webauth-user']"     not exists
 jsonpath "$.headers['x-webauth-fullname']" not exists
 
-# Designer 403: forward to Gitea without leaking client X-WEBAUTH-USER
+# Designer 401 remains a safe fallback during rollout or rollback
+GET {{proxy_on_pub}}/foo
+Cookie: scenario=unauthorized
+X-WEBAUTH-USER: attacker
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-webauth-user']" not contains "attacker"
+
+# Designer 403 remains a safe fallback during rollout or rollback
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=forbidden
 X-WEBAUTH-USER: attacker
@@ -58,7 +64,7 @@ GET {{proxy_on_pub}}/foo
 Cookie: scenario=malformed
 HTTP 502
 
-# Designer 404 surfaces as 502 (any non-2xx-non-{401,403} hits the catch-all branch)
+# Designer 404 surfaces as 502 (any status other than 200, 204, 401 or 403 hits the catch-all branch)
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=not_found
 HTTP 502
@@ -174,22 +180,9 @@ HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{VALID_USERNAME}}"
 
-# === OIDC disabled ==========================================================
-
-# Client X-WEBAUTH-USER is stripped even with OIDC off
-GET {{proxy_off_pub}}/foo
-X-WEBAUTH-USER: attacker
-HTTP 200
-[Asserts]
-jsonpath "$.headers['x-webauth-user']" not contains "attacker"
-
-# === Internal endpoint boundary (independent of feature flag) ===============
+# === Internal endpoint boundary ===============
 
 # /_internal/userinfo is nginx-internal-only; external calls must 404
 # (regression: removing the `internal;` directive would expose Designer auth proxying)
 GET {{proxy_on_pub}}/_internal/userinfo
-HTTP 404
-
-# Same boundary holds with OIDC off
-GET {{proxy_off_pub}}/_internal/userinfo
 HTTP 404

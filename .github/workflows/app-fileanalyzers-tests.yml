@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/App/fileanalyzers/**'
       - '.github/workflows/app-fileanalyzers-tests.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -34,13 +36,14 @@ jobs:
         if: matrix.os.id == 'windows-latest'
         run: git config --system core.longpaths true
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: |
             10.0.x
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # MinVer needs full history/tags to compute the package version
+          persist-credentials: false
       - name: Build
         working-directory: ${{ matrix.os.workingDir }}
         run: |

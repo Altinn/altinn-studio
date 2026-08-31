@@ -1,4 +1,5 @@
 **/data/*.txt
+!**/data/test_file_morethan_1mb.txt
 **/data/users*.json
 **/data/*.csv
 **/data/xml*.xml

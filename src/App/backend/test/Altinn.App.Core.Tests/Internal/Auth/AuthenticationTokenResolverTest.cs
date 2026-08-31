@@ -1,4 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -115,8 +117,9 @@ public class AuthenticationTokenResolverTest
         // Arrange
         var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
         string requestedUrl = string.Empty;
+        // Scopes are normalised to a deterministic (ordinal) order before use
         string expectedUrl =
-            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=405003309&authenticationLevel=3&scopes=altinn%3Aserviceowner%20altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20a%20b";
+            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=991825827&authenticationLevel=3&scopes=a%20altinn%3Aserviceowner%20altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20b";
 
         await using var fixture = Fixture.Create(
             _generalSettingsLocal,
@@ -132,6 +135,53 @@ public class AuthenticationTokenResolverTest
         // Assert
         Assert.Contains("altinn.no", result.Issuer);
         Assert.Equal(expectedUrl, requestedUrl);
+    }
+
+    [Fact]
+    public async Task GetAccessToken_UnderWorkflowCallbackPrincipal_ResolvesCurrentUserAsServiceOwner()
+    {
+        // Arrange: the ambient principal is an app callback (Authenticated.App), as during a workflow-engine
+        // callback. There is no citizen user, so a CurrentUser() request must fall back to a service-owner
+        // token rather than handing out the callback JWT (which Storage/PDF/register reject with 401).
+        var appAuth = CreateAppCallbackAuthentication();
+        await using var fixture = Fixture.Create(_generalSettingsTt02, currentAuth: appAuth);
+
+        // Act
+        var result = await fixture.AuthenticationTokenResolver.GetAccessToken(AuthenticationMethod.CurrentUser());
+
+        // Assert: resolved via the service-owner (Altinn-exchanged) path, not the callback token.
+        Assert.Contains("altinn.no", result.Issuer);
+        Assert.NotEqual(appAuth.Token, result.Value);
+        fixture.Mocks.MaskinportenClientMock.Verify(
+            x =>
+                x.GetAltinnExchangedToken(
+                    It.Is<IEnumerable<string>>(scopes =>
+                        scopes.SequenceEqual(
+                            new[]
+                            {
+                                "altinn:serviceowner",
+                                "altinn:serviceowner/instances.read",
+                                "altinn:serviceowner/instances.write",
+                            }
+                        )
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    private static Authenticated CreateAppCallbackAuthentication()
+    {
+        var jwt = new JwtSecurityToken(claims: [new Claim("jti", Guid.NewGuid().ToString())]);
+        var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+        return Authenticated.FromApp(
+            tokenStr: token,
+            parsedToken: null,
+            appId: new AppIdentifier("test-org", "test-app"),
+            instanceId: null,
+            appMetadata: _appMetadata
+        );
     }
 
     [Fact]
@@ -152,12 +202,13 @@ public class AuthenticationTokenResolverTest
 
         public static Fixture Create(
             GeneralSettings? generalSettings = null,
-            Action<HttpRequestMessage>? localtestTokenCallback = null
+            Action<HttpRequestMessage>? localtestTokenCallback = null,
+            Authenticated? currentAuth = null
         )
         {
             var mocks = new FixtureMocks();
             mocks.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(_appMetadata);
-            mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(_userAuth);
+            mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(currentAuth ?? _userAuth);
             mocks
                 .MaskinportenClientMock.Setup(x =>
                     x.GetAccessToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())

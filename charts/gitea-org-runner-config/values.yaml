@@ -2,6 +2,8 @@ chartVersion: ""
 releaseName: ""
 imageTag: ""
 giteaInstanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
+runnerCpu: "500m"
+runnerMemory: 2Gi
 
 runtimeClassName: "kata-vm-isolation"
 dockerInDocker:
@@ -15,5 +17,5 @@ shareWorkspace:
 # environment's runners list are harmlessly ignored.
 maxConcurrentDefault: 2
 maxConcurrentOverrides:
-  brg: 5
-  ssb: 5
+  brg: 2
+  ssb: 2

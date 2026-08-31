@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/dom';
 import { render as renderRtl } from '@testing-library/react';
-import { randomUUID } from 'crypto';
+const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
 import { ITextResourceBindings } from 'src/layout/layout';
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
@@ -30,37 +30,42 @@ const mockDocumentList: SigningDocument[] = [
   },
 ];
 
-jest.mock('src/utils/layout/useNodeItem', () => ({}));
+vi.mock('src/utils/layout/useNodeItem', () => ({}));
 
-jest.mock('react-router', () => ({
-  useParams: jest.fn(() => ({
+vi.mock('src/utils/layout/DataModelLocation', () => ({
+  useIndexedId: (baseId: string) => baseId,
+}));
+
+vi.mock('react-router', () => ({
+  useParams: vi.fn(() => ({
     partyId: 'partyId',
     instanceGuid: randomUUID(),
   })),
 }));
 
-jest.mock('src/features/language/useLanguage', () => ({
-  useLanguage: jest.fn(() => ({
+vi.mock('src/features/language/useLanguage', () => ({
+  useLanguage: vi.fn(() => ({
     langAsString: (inputString: string) => inputString,
   })),
 }));
 
-jest.mock('src/features/language/Lang', () => ({
+vi.mock('src/features/language/Lang', () => ({
   Lang: ({ id }: { id: string }) => id,
 }));
 
-jest.mock('src/features/instance/useProcessQuery', () => ({
-  useTaskTypeFromBackend: jest.fn(() => ProcessTaskType.Signing),
+vi.mock('src/features/instance/useProcessQuery', () => ({
+  useTaskTypeFromBackend: vi.fn(() => ProcessTaskType.Signing),
 }));
 
-jest.mock('src/layout/SigningDocumentList/api');
+vi.mock('src/layout/SigningDocumentList/api');
 
-jest.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
-  SigningDocumentListError: jest.fn(({ error }: { error: Error }) => error.message),
+vi.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
+  SigningDocumentListError: vi.fn(({ error }: { error: Error }) => error.message),
 }));
 
 describe('SigningDocumentList', () => {
-  const mockedUseDocumentList = jest.mocked(useDocumentList);
+  const mockedUseDocumentList = vi.mocked(useDocumentList);
+  const baseComponentId = 'signing-document-list';
 
   const textResourceBindings: ITextResourceBindings<'SigningDocumentList'> = {
     title: 'Signing Document List',
@@ -69,8 +74,8 @@ describe('SigningDocumentList', () => {
   };
 
   beforeEach(() => {
-    // resets all mocked functions to jest.fn()
-    jest.clearAllMocks();
+    // resets all mocked functions to vi.fn()
+    vi.clearAllMocks();
 
     mockedUseDocumentList.mockReturnValue({
       data: mockDocumentList,
@@ -80,12 +85,23 @@ describe('SigningDocumentList', () => {
   });
 
   it('should render correctly', () => {
-    render(<SigningDocumentListComponent textResourceBindings={textResourceBindings} />);
+    render(
+      <SigningDocumentListComponent
+        baseComponentId={baseComponentId}
+        textResourceBindings={textResourceBindings}
+      />,
+    );
+
+    screen.getByRole('heading', { name: /Signing Document List/ });
+    screen.getByText('description');
+    expect(screen.queryByRole('caption')).not.toBeInTheDocument();
 
     screen.getByRole('table', { name: /Signing Document List/ });
+    expect(screen.getByTestId('signing-document-list')).toHaveAttribute('aria-label', 'Signing Document List');
     screen.getByRole('columnheader', { name: 'signing_document_list.header_filename' });
     screen.getByRole('columnheader', { name: 'signing_document_list.header_attachment_type' });
     screen.getByRole('columnheader', { name: 'signing_document_list.header_size' });
+    screen.getByRole('columnheader', { name: 'signing_document_list.download' });
 
     expect(screen.getAllByRole('columnheader')).toHaveLength(4);
 
@@ -102,7 +118,12 @@ describe('SigningDocumentList', () => {
       error: new Error('API error'),
     } as unknown as ReturnType<typeof useDocumentList>);
 
-    render(<SigningDocumentListComponent textResourceBindings={textResourceBindings} />);
+    render(
+      <SigningDocumentListComponent
+        baseComponentId={baseComponentId}
+        textResourceBindings={textResourceBindings}
+      />,
+    );
 
     screen.getByText('API error');
   });
@@ -114,8 +135,14 @@ describe('SigningDocumentList', () => {
       error: null,
     } as unknown as ReturnType<typeof useDocumentList>);
 
-    render(<SigningDocumentListComponent textResourceBindings={textResourceBindings} />);
+    render(
+      <SigningDocumentListComponent
+        baseComponentId={baseComponentId}
+        textResourceBindings={textResourceBindings}
+      />,
+    );
 
+    screen.getByRole('heading', { name: /Signing Document List/ });
     screen.getByRole('table', { name: /Signing Document List/ });
     screen.getByRole('columnheader', { name: 'signing_document_list.header_filename' });
     screen.getByRole('columnheader', { name: 'signing_document_list.header_attachment_type' });

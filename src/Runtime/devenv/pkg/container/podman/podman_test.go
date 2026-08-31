@@ -38,6 +38,32 @@ func TestBuildCreateArgs_UserNamespaceAndRelabelBind(t *testing.T) {
 	}
 }
 
+func TestParsePodmanVersionIgnoresNonStringFields(t *testing.T) {
+	t.Parallel()
+
+	version, err := parsePodmanVersion([]byte(`{
+  "Client": {
+    "Version": "5.8.1",
+    "APIVersion": 5.8,
+    "Built": 1780000000
+  },
+  "Server": {
+    "Version": "5.8.2",
+    "APIVersion": 5.8,
+    "Built": 1780000001
+  }
+}`))
+	if err != nil {
+		t.Fatalf("parsePodmanVersion() error = %v", err)
+	}
+	if version.ClientVersion != "5.8.1" {
+		t.Fatalf("ClientVersion = %q, want 5.8.1", version.ClientVersion)
+	}
+	if version.ServerVersion != "5.8.2" {
+		t.Fatalf("ServerVersion = %q, want 5.8.2", version.ServerVersion)
+	}
+}
+
 func TestParseContainerInspect_ImageIDUsesImageNotDigest(t *testing.T) {
 	t.Parallel()
 
@@ -69,7 +95,10 @@ func TestParseContainerInspect_HealthStatus(t *testing.T) {
     "Id": "container-id",
     "Name": "my-container",
     "Image": "sha256:image-id",
-    "Config": { "Labels": {} },
+    "Config": {
+      "Labels": {},
+      "Healthcheck": { "Test": [ "CMD-SHELL", "wget -nv -t1 --spider http://localhost:5101/health || exit 1" ] }
+    },
     "State": {
       "Status": "running",
       "Running": true,
@@ -86,6 +115,68 @@ func TestParseContainerInspect_HealthStatus(t *testing.T) {
 	}
 	if info.State.HealthStatus != "healthy" {
 		t.Fatalf("HealthStatus = %q, want healthy", info.State.HealthStatus)
+	}
+}
+
+func TestParseContainerInspect_IgnoresHealthStatusWithoutConfiguredHealthcheck(t *testing.T) {
+	t.Parallel()
+
+	output := []byte(`[
+  {
+    "Id": "container-id",
+    "Name": "my-container",
+    "Image": "sha256:image-id",
+    "Config": {
+      "Labels": {},
+      "Healthcheck": {}
+    },
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "ExitCode": 0,
+      "Health": { "Status": "starting", "FailingStreak": 0, "Log": null }
+    }
+  }
+]`)
+
+	info, err := parseContainerInspect(output)
+	if err != nil {
+		t.Fatalf("parseContainerInspect() error: %v", err)
+	}
+	if info.State.HealthStatus != "" {
+		t.Fatalf("HealthStatus = %q, want empty", info.State.HealthStatus)
+	}
+}
+
+func TestParseContainerInspect_IgnoresHealthStatusForDisabledHealthcheck(t *testing.T) {
+	t.Parallel()
+
+	output := []byte(`[
+  {
+    "Id": "container-id",
+    "Name": "my-container",
+    "Image": "sha256:image-id",
+    "Config": {
+      "Labels": {},
+      "Healthcheck": { "Test": [ "NONE" ] }
+    },
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "ExitCode": 0,
+      "Health": { "Status": "starting", "FailingStreak": 0, "Log": null }
+    }
+  }
+]`)
+
+	info, err := parseContainerInspect(output)
+	if err != nil {
+		t.Fatalf("parseContainerInspect() error: %v", err)
+	}
+	if info.State.HealthStatus != "" {
+		t.Fatalf("HealthStatus = %q, want empty", info.State.HealthStatus)
 	}
 }
 

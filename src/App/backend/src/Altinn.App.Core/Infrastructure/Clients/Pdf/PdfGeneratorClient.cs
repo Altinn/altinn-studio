@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Pdf;
@@ -16,7 +17,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Pdf;
 /// Implementation of the <see cref="IPdfGeneratorClient"/> interface using a HttpClient to send
 /// requests to the PDF Generator service.
 /// </summary>
-public class PdfGeneratorClient : IPdfGeneratorClient
+internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 {
     private static readonly TextMapPropagator _w3cPropagator = new TraceContextPropagator();
 
@@ -29,8 +30,10 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     private readonly HttpClient _httpClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly PlatformSettings _platformSettings;
-    private readonly IUserTokenProvider _userTokenProvider;
+    private readonly Func<AuthenticationMethod, CancellationToken, Task<string>> _getAccessToken;
     private readonly Telemetry? _telemetry;
+
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfGeneratorClient"/> class.
@@ -41,33 +44,62 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     /// All generic settings needed for communication with the PDF generator service.
     /// </param>
     /// <param name="platformSettings">Links to platform services</param>
-    /// <param name="userTokenProvider">A service able to identify the JWT for currently authenticated user.</param>
+    /// <param name="authenticationTokenResolver">Provides access tokens for storage authentication methods.</param>
     /// <param name="telemetry">Telemetry service</param>
     public PdfGeneratorClient(
         ILogger<PdfGeneratorClient> logger,
         HttpClient httpClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<PlatformSettings> platformSettings,
-        IUserTokenProvider userTokenProvider,
+        IAuthenticationTokenResolver authenticationTokenResolver,
         Telemetry? telemetry = null
+    )
+        : this(
+            logger,
+            httpClient,
+            pdfGeneratorSettings,
+            platformSettings,
+            async (authenticationMethod, cancellationToken) =>
+                await authenticationTokenResolver.GetAccessToken(authenticationMethod, cancellationToken),
+            telemetry
+        ) { }
+
+    private PdfGeneratorClient(
+        ILogger<PdfGeneratorClient> logger,
+        HttpClient httpClient,
+        IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
+        IOptions<PlatformSettings> platformSettings,
+        Func<AuthenticationMethod, CancellationToken, Task<string>> getAccessToken,
+        Telemetry? telemetry
     )
     {
         _logger = logger;
         _httpClient = httpClient;
-        _userTokenProvider = userTokenProvider;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _platformSettings = platformSettings.Value;
+        _getAccessToken = getAccessToken;
         _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
     public async Task<Stream> GeneratePdf(Uri uri, CancellationToken ct)
     {
-        return await GeneratePdf(uri, null, ct);
+        return await GeneratePdf(uri, null, null, ct);
     }
 
     /// <inheritdoc/>
     public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct)
+    {
+        return await GeneratePdf(uri, footerContent, null, ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Stream> GeneratePdf(
+        Uri uri,
+        string? footerContent,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken ct
+    )
     {
         using var activity = _telemetry?.StartGeneratePdfClientActivity();
 
@@ -111,25 +143,35 @@ public class PdfGeneratorClient : IPdfGeneratorClient
             );
         }
 
-        generatorRequest.Cookies.Add(
-            new PdfGeneratorCookieOptions { Value = _userTokenProvider.GetUserToken(), Domain = uri.Host }
-        );
+        string tokenValue = await _getAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        generatorRequest.Cookies.Add(new PdfGeneratorCookieOptions { Value = tokenValue, Domain = uri.Host });
 
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
         using StringContent stringContent = new(requestContent, Encoding.UTF8, "application/json");
-        var httpResponseMessage = await _httpClient.PostAsync(_platformSettings.ApiPdf2Endpoint, stringContent, ct);
+        HttpResponseMessage httpResponseMessage = await _httpClient.PostAsync(
+            _platformSettings.ApiPdf2Endpoint,
+            stringContent,
+            ct
+        );
 
         if (!httpResponseMessage.IsSuccessStatusCode)
         {
-            var content = await httpResponseMessage.Content.ReadAsStringAsync(ct);
-            var ex = new PdfGenerationException("Pdf generation failed");
-            ex.Data.Add("responseContent", content);
-            ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
-            ex.Data.Add("responseReasonPhrase", httpResponseMessage.ReasonPhrase);
+            // Nothing takes the response over on the failure path, so this scope owns it. The diagnostic
+            // content is copied onto the exception, which outlives the response.
+            using (httpResponseMessage)
+            {
+                var content = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+                var ex = new PdfGenerationException("Pdf generation failed");
+                ex.Data.Add("responseContent", content);
+                ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
+                ex.Data.Add("responseReasonPhrase", httpResponseMessage.ReasonPhrase);
 
-            throw ex;
+                throw ex;
+            }
         }
 
-        return await httpResponseMessage.Content.ReadAsStreamAsync(ct);
+        // Ownership of the response moves to the returned stream — a `using` here would dispose the
+        // content the caller is about to read.
+        return await ResponseWrapperStream.Create(httpResponseMessage, ct);
     }
 }

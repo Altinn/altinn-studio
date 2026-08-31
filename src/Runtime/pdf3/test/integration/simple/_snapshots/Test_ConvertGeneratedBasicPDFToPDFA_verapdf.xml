@@ -7,11 +7,11 @@
   </buildInformation>
   <jobs>
     <job>
-      <item size="15148">
+      <item size="15131">
         <name>/data/input.pdf</name>
       </item>
       <validationReport jobEndStatus="normal" profileName="PDF/A-2B validation profile" statement="PDF file is compliant with Validation Profile requirements." isCompliant="true">
-        <details passedRules="144" failedRules="0" passedChecks="2448" failedChecks="0"></details>
+        <details passedRules="144" failedRules="0" passedChecks="2446" failedChecks="0"></details>
       </validationReport>
       <duration start="0" finish="0">00:00:00.000</duration>
     </job>

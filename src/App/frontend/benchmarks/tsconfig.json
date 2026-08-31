@@ -9,7 +9,9 @@
     "noEmit": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "src/*": ["../src/*"],
-    },
+      "@app/form-component/*": ["../../../common/ts/form-component/src/*"],
+      "@app/language/*": ["../../../common/ts/language/src/*"],
+      "src/*": ["../src/*"]
+    }
   }
 }

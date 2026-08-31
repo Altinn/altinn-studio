@@ -103,16 +103,25 @@ public class PaymentController : ControllerBase
             }
             catch (Exception ex)
             {
-                // The persisting path can race with a concurrent webhook callback that advances the process past
-                // finalTaskId after our GetInstance above. Re-fetch to confirm; if the task has moved, fall back to
-                // a read-only result rather than surface a 5xx — the next poll will reconcile.
-                if (!await CurrentTaskMovedAwayFrom(app, org, instanceOwnerPartyId, instanceGuid, finalTaskId))
+                // The persisting path races with a concurrent webhook callback that advances the process and
+                // locks the payment data element after our GetInstance above. Two outcomes are benign for a read:
+                //   1. Storage rejects the write with 409/Conflict because the data element is now locked.
+                //   2. The current task has already visibly advanced past finalTaskId.
+                // Fall back to a read-only result in both cases rather than surface a 5xx — the next poll
+                // reconciles. We check the lock directly because the locked state can become visible before the
+                // current-task change does, so relying on the task having moved is not enough.
+                bool dataElementLocked =
+                    ex is PlatformHttpException { Response.StatusCode: System.Net.HttpStatusCode.Conflict };
+                if (
+                    !dataElementLocked
+                    && !await CurrentTaskMovedAwayFrom(app, org, instanceOwnerPartyId, instanceGuid, finalTaskId)
+                )
                 {
                     throw;
                 }
                 _logger.LogInformation(
                     ex,
-                    "Storing payment status failed because the process advanced past task {TaskId} during the request. Returning read-only status.",
+                    "Storing payment status failed for task {TaskId} (the process likely advanced and locked the data concurrently). Returning read-only status.",
                     LogSanitizer.Sanitize(finalTaskId)
                 );
                 paymentInformation = await _paymentService.CheckPaymentStatus(

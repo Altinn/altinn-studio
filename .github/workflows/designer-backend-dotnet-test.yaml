@@ -4,10 +4,13 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
       - 'src/App/template/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -21,7 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'self-hosted-ubuntu' || matrix.os }}
     timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -30,26 +33,21 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: git config --system core.longpaths true
 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
-          dotnet-version: |
-            9.0.x
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          global-json-file: src/Designer/backend/global.json
       - name: Build
         run: |
-          dotnet build backend/Designer.sln -v m
-        working-directory: src/Designer
+          dotnet build Designer.sln -v m
+        working-directory: src/Designer/backend
       - name: Test
         run: |
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~PolicyControllerTests --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~PreviewController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~DataModelsController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=StudioOidcGiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
-        working-directory: src/Designer
+          dotnet test Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)" -v m --no-build
+        working-directory: src/Designer/backend
+        env:
+          DOTNET_gcServer: 1
+          DOTNET_GCConserveMemory: 1

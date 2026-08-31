@@ -18,4 +18,15 @@ internal static class ProcessUtil
 
         return startInfo;
     }
+
+    public static ProcessStartInfo CreateStartInfo(string fileName, params string[] arguments)
+    {
+        var startInfo = CreateStartInfo(fileName);
+        foreach (var argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        return startInfo;
+    }
 }

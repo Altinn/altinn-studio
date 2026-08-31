@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import classes from './BPMNViewerErrorAlert.module.css';
 import type { BpmnViewerError } from '../../../../types/BpmnViewerError';
 import { useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 
 interface ErrorMessage {
   heading: string;
@@ -50,12 +50,12 @@ export const BPMNViewerErrorAlert = ({ bpmnViewerError }: BPMNViewerErrorAlertPr
 
   return (
     <div className={classes.alertContainer}>
-      <Alert severity='warning'>
-        <Heading size='small' spacing>
+      <StudioAlert data-color='warning'>
+        <StudioHeading data-size='md' spacing>
           {errorToDisplay.heading}
-        </Heading>
-        <Paragraph>{errorToDisplay.body}</Paragraph>
-      </Alert>
+        </StudioHeading>
+        <StudioParagraph>{errorToDisplay.body}</StudioParagraph>
+      </StudioAlert>
     </div>
   );
 };

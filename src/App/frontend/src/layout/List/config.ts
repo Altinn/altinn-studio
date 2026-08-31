@@ -113,14 +113,6 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the options should be instance aware. Defaults to false.'),
     ),
   )
-  .addProperty(
-    new CG.prop(
-      'mapping',
-      CG.common('IMapping')
-        .optional()
-        .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
-    ),
-  )
   .addProperty(new CG.prop('queryParameters', CG.common('IQueryParameters').optional()))
   .addProperty(
     new CG.prop(
@@ -130,19 +122,6 @@ export const Config = new CG.component({
         .setTitle('Data model binding to show in summary')
         .setDescription(
           'Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.',
-        ),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'bindingToShowInSummary',
-      new CG.str()
-        .optional()
-        .setTitle('Binding to show in summary')
-        .setDeprecated('This property will be removed in the next major version, use `summaryBinding` instead.')
-        .setDescription(
-          'The value of this binding will be shown in the summary component for the list. ' +
-            'It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.',
         ),
     ),
   )

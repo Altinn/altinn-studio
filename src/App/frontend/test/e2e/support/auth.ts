@@ -1,6 +1,6 @@
 import type { CyHttpMessages, RouteHandler } from 'cypress/types/net-stubbing';
 
-import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+import type { TenorLoginParams, TenorUser } from 'test/e2e/support/users';
 
 import type { IProcess, ITask } from 'src/types/shared';
 
@@ -17,76 +17,78 @@ export type CyUser =
 type UserInfo = {
   firstName: string;
   displayName: string;
-  userName: string;
-  userPassword: string;
   localPartyId: string;
 };
 
-export const cyUserCredentials: { [K in CyUser]: UserInfo } = {
+export const cyUserInfo: { [K in CyUser]: UserInfo } = {
   default: {
-    firstName: Cypress.env('defaultFirstName'),
-    displayName: Cypress.env('defaultFullName'),
-    userName: Cypress.env('defaultUserName'),
-    userPassword: Cypress.env('defaultUserPwd'),
-    localPartyId: Cypress.env('defaultPartyId'),
+    firstName: Cypress.expose('defaultFirstName'),
+    displayName: Cypress.expose('defaultFullName'),
+    localPartyId: Cypress.expose('defaultPartyId'),
   },
   manager: {
-    firstName: Cypress.env('managerFirstName'),
-    displayName: Cypress.env('managerFullName'),
-    userName: Cypress.env('managerUserName'),
-    userPassword: Cypress.env('managerUserPwd'),
-    localPartyId: Cypress.env('managerPartyId'),
+    firstName: Cypress.expose('managerFirstName'),
+    displayName: Cypress.expose('managerFullName'),
+    localPartyId: Cypress.expose('managerPartyId'),
   },
   accountant: {
-    firstName: Cypress.env('accountantFirstName'),
-    displayName: Cypress.env('accountantFullName'),
-    userName: Cypress.env('accountantUserName'),
-    userPassword: Cypress.env('accountantUserPwd'),
-    localPartyId: Cypress.env('accountantPartyId'),
+    firstName: Cypress.expose('accountantFirstName'),
+    displayName: Cypress.expose('accountantFullName'),
+    localPartyId: Cypress.expose('accountantPartyId'),
   },
   auditor: {
-    firstName: Cypress.env('auditorFirstName'),
-    displayName: Cypress.env('auditorFullName'),
-    userName: Cypress.env('auditorUserName'),
-    userPassword: Cypress.env('auditorUserPwd'),
-    localPartyId: Cypress.env('auditorPartyId'),
+    firstName: Cypress.expose('auditorFirstName'),
+    displayName: Cypress.expose('auditorFullName'),
+    localPartyId: Cypress.expose('auditorPartyId'),
   },
   selfIdentified: {
-    firstName: Cypress.env('selfIdentifiedFirstName'),
-    displayName: Cypress.env('selfIdentifiedFullName'),
-    userName: Cypress.env('selfIdentifiedUserName'),
-    userPassword: Cypress.env('selfIdentifiedUserPwd'),
-    localPartyId: Cypress.env('selfIdentifiedPartyId'),
+    firstName: Cypress.expose('selfIdentifiedFirstName'),
+    displayName: Cypress.expose('selfIdentifiedFullName'),
+    localPartyId: Cypress.expose('selfIdentifiedPartyId'),
   },
   multiPartyPrompt: {
-    firstName: Cypress.env('multiPartyPromptFirstName'),
-    displayName: Cypress.env('multiPartyPromptFullName'),
-    userName: Cypress.env('multiPartyPromptUserName'),
-    userPassword: Cypress.env('multiPartyPromptUserPwd'),
-    localPartyId: Cypress.env('multiPartyPromptPartyId'),
+    firstName: Cypress.expose('multiPartyPromptFirstName'),
+    displayName: Cypress.expose('multiPartyPromptFullName'),
+    localPartyId: Cypress.expose('multiPartyPromptPartyId'),
   },
   multiPartyPrompt2: {
-    firstName: Cypress.env('multiPartyPrompt2FirstName'),
-    displayName: Cypress.env('multiPartyPrompt2FullName'),
-    userName: Cypress.env('multiPartyPrompt2UserName'),
-    userPassword: Cypress.env('multiPartyPrompt2UserPwd'),
-    localPartyId: Cypress.env('multiPartyPrompt2PartyId'),
+    firstName: Cypress.expose('multiPartyPrompt2FirstName'),
+    displayName: Cypress.expose('multiPartyPrompt2FullName'),
+    localPartyId: Cypress.expose('multiPartyPrompt2PartyId'),
   },
   doNotPromptParty: {
-    firstName: Cypress.env('doNotPromptPartyFirstName'),
-    displayName: Cypress.env('doNotPromptPartyFullName'),
-    userName: Cypress.env('doNotPromptPartyUserName'),
-    userPassword: Cypress.env('doNotPromptPartyUserPwd'),
-    localPartyId: Cypress.env('doNotPromptPartyPartyId'),
+    firstName: Cypress.expose('doNotPromptPartyFirstName'),
+    displayName: Cypress.expose('doNotPromptPartyFullName'),
+    localPartyId: Cypress.expose('doNotPromptPartyPartyId'),
   },
 };
 
-export const getDisplayName = (user: CyUser) => cyUserCredentials[user].displayName;
-export const getLocalPartyId = (user: CyUser) => cyUserCredentials[user].localPartyId;
+export const getDisplayName = (user: CyUser) => cyUserInfo[user].displayName;
+export const getLocalPartyId = (user: CyUser) => cyUserInfo[user].localPartyId;
 
-Cypress.Commands.add('assertUser', (user: CyUser) => {
-  cy.get('[data-testid=AppHeader]').should('contain.text', getDisplayName(user));
+Cypress.Commands.add('assertUser', (user: CyUser, tenorUser: TenorUser) => {
+  if (Cypress.expose('type') === 'localtest') {
+    cy.get('[data-testid=AppHeader]').should('contain.text', getDisplayName(user));
+  } else {
+    cy.get('[data-testid=AppHeader]').should('contain.text', tenorUser.reverseName.toUpperCase());
+  }
 });
+
+const emptyPageHtml = `
+<h3>Empty page loaded, proceeding to app</h3>
+<script>
+  (() => {
+    const reloadOnHashChange = () => {
+      if (window.location.hash) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('hashchange', reloadOnHashChange);
+    reloadOnHashChange();
+  })();
+</script>
+`;
 
 type MinimalTask = Pick<ITask, 'read' | 'write' | 'actions'>;
 function getPermissions(format: string): MinimalTask {
@@ -121,13 +123,14 @@ function getPermissions(format: string): MinimalTask {
 }
 
 Cypress.Commands.add('setPermissions', (permissionFormat: string) => {
-  Cypress.env('authPermissions', permissionFormat);
+  authPermissions = permissionFormat;
 });
+
+let authPermissions = '';
 
 Cypress.Commands.add('interceptPermissions', () => {
   const interceptor: RouteHandler = (req) => {
-    const permissionFormat = Cypress.env('authPermissions') ?? '';
-    const permissions = getPermissions(permissionFormat);
+    const permissions = getPermissions(authPermissions);
     req.on('response', (res) => {
       const body = res.body as IProcess;
       if (body.currentTask) {
@@ -144,80 +147,76 @@ Cypress.Commands.add('interceptPermissions', () => {
 type CyUserLoginParams = {
   cyUser: CyUser;
   authenticationLevel: string;
-  appName: string;
 };
 
-export function cyUserLogin({ cyUser, authenticationLevel, appName }: CyUserLoginParams) {
+export function cyUserLogin({ cyUser, authenticationLevel }: CyUserLoginParams) {
   cy.log(`Logging in as user: ${cyUser}`);
-  const user = cyUserCredentials[cyUser];
+  const user = cyUserInfo[cyUser];
 
-  if (Cypress.env('type') === 'localtest') {
-    return localLogin({ partyId: user.localPartyId, authenticationLevel, appName });
+  if (Cypress.expose('type') === 'localtest') {
+    return localLogin({ partyId: user.localPartyId, authenticationLevel });
   }
 
-  const { userName, userPassword } = user;
-  if (userName === cyUserCredentials.selfIdentified.userName) {
-    return loginSelfIdentifiedTt02Login(userName, userPassword);
+  if (cyUser === 'selfIdentified') {
+    return cy
+      .env(['selfIdentifiedUserName', 'selfIdentifiedUserPwd'])
+      .then(({ selfIdentifiedUserName, selfIdentifiedUserPwd }) =>
+        loginSelfIdentifiedTt02Login(selfIdentifiedUserName, selfIdentifiedUserPwd),
+      );
   }
 
-  return cyUserTt02Login(userName, userPassword);
+  throw new Error(`Login not implemented for user: ${cyUser}`);
 }
 
 type LocalLoginParams =
   | {
       partyId: string;
       authenticationLevel: string;
-      appName: string;
     }
   | {
       displayName: string;
       authenticationLevel: string;
-      appName: string;
     };
 
-function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams) {
-  cy.visit(`${Cypress.config('baseUrl')}`);
-
+function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
   if ('partyId' in rest) {
-    const partyId = rest.partyId;
-    cy.log(`Logging in as local user: ${partyId} with authentication level: ${authenticationLevel}`);
-    cy.get('select#UserSelect').select(partyId);
-    cy.get('select#UserSelect').should('have.value', partyId);
-  } else if ('displayName' in rest) {
-    const displayName = rest.displayName;
-    cy.log(`Logging in as local user: ${displayName} with authentication level: ${authenticationLevel}`);
-    cy.findByRole('combobox', { name: /select test users/i })
-      .find('option')
-      .contains(new RegExp(displayName, 'i'))
-      .then(($option) => {
-        cy.get('select#UserSelect').select($option.val() as string);
-        cy.get('select#UserSelect').should('have.value', $option.val() as string);
-      });
+    return logInLocalUser(rest.partyId, authenticationLevel);
   }
 
-  cy.findByRole('combobox', { name: /select app to test/i }).select(`ttd/${appName}`);
+  // Tenor users do not have a party ID in the Cypress configuration. Fetching the page is still much
+  // cheaper than visiting it, and lets us resolve the value expected by Localtest's UserSelect field.
+  return cy.request<string>('/').then(({ body }) => {
+    const document = new DOMParser().parseFromString(body, 'text/html');
+    const userSelect = Array.from(document.querySelectorAll<HTMLOptionElement>('#UserSelect option')).find((option) =>
+      option.textContent?.toLowerCase().includes(rest.displayName.toLowerCase()),
+    )?.value;
+    expect(userSelect, `Localtest user matching ${rest.displayName}`).to.not.be.empty;
+    return logInLocalUser(userSelect!, authenticationLevel);
+  });
+}
 
-  cy.findByRole('combobox', { name: /authentication level/i })
-    .should('exist')
-    .find('option')
-    .contains(new RegExp(authenticationLevel, 'i'))
-    .then(($option) => {
-      cy.get('select#AuthenticationLevel').select($option.val() as string);
-      cy.get('select#AuthenticationLevel').should('have.value', $option.val() as string);
-    });
+function logInLocalUser(userSelect: string, authenticationLevel: string) {
+  cy.log(`Logging in as local user: ${userSelect} with authentication level: ${authenticationLevel}`);
 
-  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
-    req.on('response', (res) => {
-      expect(res.statusCode).to.eq(302);
-      res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
-    });
-  }).as('login');
-
-  cy.findByRole('button', { name: 'Proceed to app' }).click();
-  cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
+  // Localtest's reauthenticate action creates the same authentication and party cookies as the login form,
+  // but deliberately responds without redirecting. Cypress persists cookies from cy.request(), allowing the
+  // following cy.visit() to open the app already authenticated.
+  cy.request({
+    method: 'POST',
+    url: '/Home/LogInTestUser',
+    form: true,
+    body: {
+      action: 'reauthenticate',
+      UserSelect: userSelect,
+      AuthenticationLevel: authenticationLevel,
+    },
+  })
+    .its('status')
+    .should('eq', 204);
 }
 
 function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
+  // TODO: This does not work after A2 sunset, we'll need to find another way to login with a self-identified user in tests
   const loginUrl = 'https://tt02.altinn.no/ui/Authentication/SelfIdentified';
   cy.visit(loginUrl);
   cy.findByRole('textbox', { name: /Brukernavn/i }).type(user);
@@ -232,35 +231,13 @@ function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
     (req) => {
       req.on('response', (res) => {
         expect(res.statusCode).to.eq(302);
-        res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
+        res.send(200, emptyPageHtml);
       });
     },
   ).as('login');
 
   cy.findByRole('button', { name: /Logg inn/i }).click();
   cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
-}
-
-function cyUserTt02Login(user: string, pwd: string) {
-  cy.request({
-    method: 'POST',
-    url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
-    headers: {
-      'Content-Type': 'application/hal+json',
-    },
-    body: JSON.stringify({
-      UserName: user,
-      UserPassword: pwd,
-    }),
-  }).as('login');
-  waitForLogin();
-}
-
-function waitForLogin() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cy.get('@login').should((r: any) => {
-    expect(r?.response?.statusCode ?? r?.status).to.eq(200);
-  });
 }
 
 /************************
@@ -273,45 +250,35 @@ function waitForLogin() {
  *
  ************************/
 
-export type TenorOrg = {
-  name: string;
-  orgNr: string;
-};
-
-export type TenorUser = {
-  name: string;
-  ssn: string;
-  role?: string;
-  orgs?: string[];
-};
-
 export type AppResponseRef = { current: ((res: CyHttpMessages.IncomingHttpResponse) => void) | undefined };
-
-type TenorLoginParams = {
-  appName: string;
-  tenorUser: TenorUser;
-  authenticationLevel: string;
-};
 
 export function tenorUserLogin(props: TenorLoginParams) {
   cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
-  interceptAltinnAppGlobalData((globalData) => {
-    globalData.applicationMetadata.promptForParty = 'never';
-  });
 
-  if (Cypress.env('type') === 'localtest') {
-    return localLogin({ displayName: props.tenorUser.name, ...props });
+  if (Cypress.expose('type') === 'localtest') {
+    return localLogin({ displayName: props.tenorUser.name, authenticationLevel: props.authenticationLevel });
   }
 
   return tenorTt02Login(props);
 }
 
 function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenticationLevel'>) {
-  cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`);
+  // This page was made to have an endpoint serving text/html for Cypress to set the correct origin before logging in
+  // via Tenor (as that happens on another origin). If we just visited the app directly, Cypress would notice the
+  // redirect and think the login page was the app itself, and some things would break (like accessing window.Cypress).
+  const appOrigin = `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}`;
+  const appUrl = `${appOrigin}/ttd/${appName}`;
+  cy.visit(`${appUrl}/login.html`);
+  cy.location('origin').should('eq', appOrigin);
+  cy.get('h2').should('have.text', 'Placeholder page for Cypress to set origin before logging in via Tenor');
+  cy.get('a').click();
 
-  cy.findByRole('link', { name: /testid lag din egen testbruker/i }).click();
-  cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).clear();
-  cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).type(tenorUser.ssn);
+  cy.origin('https://login.test.idporten.no', () => {
+    cy.get('a[href="/authorize/testid1"]').click();
+  });
+  cy.origin('https://testid.test.idporten.no', { args: tenorUser }, (tenorUser) => {
+    cy.get('input[name=pid]').type(tenorUser.ssn);
+  });
 
   cy.get<AppResponseRef>('@appResponse').then((ref) => {
     ref.current = (res) => {
@@ -345,10 +312,13 @@ function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenti
         });
       }
 
-      res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
+      res.send(200, emptyPageHtml);
     };
   });
 
-  cy.findByRole('button', { name: /autentiser/i }).click();
+  cy.origin('https://testid.test.idporten.no', () => {
+    cy.get('button[type=submit]').click();
+  });
+
   cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
 }

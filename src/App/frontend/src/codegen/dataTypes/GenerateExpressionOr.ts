@@ -10,6 +10,8 @@ const toTsMap: { [key in ExprVal]: string } = {
   [ExprVal.Number]: 'ExprValToActualOrExpr<ExprVal.Number>',
   [ExprVal.String]: 'ExprValToActualOrExpr<ExprVal.String>',
   [ExprVal.Date]: 'ExprValToActualOrExpr<ExprVal.Date>',
+  [ExprVal.List]: 'ExprValToActualOrExpr<ExprVal.List>',
+  [ExprVal.Object]: 'ExprValToActualOrExpr<ExprVal.Object>',
 };
 
 const toSchemaMap: { [key in ExprVal]: JSONSchema7 } = {
@@ -18,6 +20,8 @@ const toSchemaMap: { [key in ExprVal]: JSONSchema7 } = {
   [ExprVal.Number]: { $ref: 'expression.schema.v1.json#/definitions/number' },
   [ExprVal.String]: { $ref: 'expression.schema.v1.json#/definitions/string' },
   [ExprVal.Date]: { $ref: 'expression.schema.v1.json#/definitions/string' },
+  [ExprVal.List]: { $ref: 'expression.schema.v1.json#/definitions/list' },
+  [ExprVal.Object]: { $ref: 'expression.schema.v1.json#/definitions/object' },
 };
 
 type TypeMap<Val extends ExprVal> = Val extends ExprVal.Boolean

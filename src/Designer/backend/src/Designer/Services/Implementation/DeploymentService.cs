@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -26,7 +25,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
-using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -51,7 +49,6 @@ public class DeploymentService : IDeploymentService
     private readonly GitOpsSettings _gitOpsSettings;
     private readonly TimeProvider _timeProvider;
     private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
-    private readonly IFeatureManager _featureManager;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly IApiKeyService _apiKeyService;
     private readonly INotificationService _notificationService;
@@ -73,7 +70,6 @@ public class DeploymentService : IDeploymentService
         GeneralSettings generalSettings,
         TimeProvider timeProvider,
         IGitOpsConfigurationManager gitOpsConfigurationManager,
-        IFeatureManager featureManager,
         IRuntimeGatewayClient runtimeGatewayClient,
         IApiKeyService apiKeyService,
         INotificationService notificationService,
@@ -94,7 +90,6 @@ public class DeploymentService : IDeploymentService
         _gitOpsSettings = gitOpsSettings ?? new GitOpsSettings();
         _timeProvider = timeProvider;
         _gitOpsConfigurationManager = gitOpsConfigurationManager;
-        _featureManager = featureManager;
         _runtimeGatewayClient = runtimeGatewayClient;
         _apiKeyService = apiKeyService;
         _notificationService = notificationService;
@@ -157,24 +152,17 @@ public class DeploymentService : IDeploymentService
         // This particular multi-step process can start mutating state via `AddAppToGitOpsRepoIfNotExists`
         cancellationToken = CancellationToken.None;
 
-        bool shouldPushSyncRootImage = false;
+        bool shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(
+            authenticatedContext,
+            AltinnRepoName.FromName(authenticatedContext.Repo),
+            AltinnEnvironment.FromName(deployment.EnvName)
+        );
 
-        if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-        {
-            shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(
-                authenticatedContext,
-                AltinnRepoName.FromName(authenticatedContext.Repo),
-                AltinnEnvironment.FromName(deployment.EnvName)
-            );
-        }
-
-        bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
         Build queuedBuild = await QueueDeploymentBuild(
             release,
             deploymentEntity,
             deployment.EnvName,
             shouldPushSyncRootImage,
-            useGitOpsDefinition,
             traceContext.TraceParent,
             traceContext.TraceState,
             cancellationToken
@@ -474,11 +462,6 @@ public class DeploymentService : IDeploymentService
         CancellationToken cancellationToken = default
     )
     {
-        if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-        {
-            return false;
-        }
-
         bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
         if (removedFromGitOps)
         {
@@ -582,7 +565,6 @@ public class DeploymentService : IDeploymentService
         DeploymentEntity deploymentEntity,
         string envName,
         bool shouldPushSyncRootImage,
-        bool useGitOpsDefinition,
         string traceParent,
         string traceState,
         CancellationToken cancellationToken
@@ -610,27 +592,22 @@ public class DeploymentService : IDeploymentService
             queueBuildParameters.PushSyncRootGitopsImage = "true";
         }
 
-        int definitionId = useGitOpsDefinition
-            ? _azureDevOpsSettings.GitOpsManagerDefinitionId
-            : _azureDevOpsSettings.DeployDefinitionId;
-
-        return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId, cancellationToken);
+        return await _azureDevOpsBuildClient.QueueAsync(
+            queueBuildParameters,
+            _azureDevOpsSettings.GitOpsManagerDefinitionId,
+            cancellationToken
+        );
     }
 
     private async Task<(string Token, string AuthHeaderName)> GetDeployTokenAsync(string username)
     {
-        if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
-        {
-            var (rawKey, _) = await _apiKeyService.CreateAsync(
-                username,
-                $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
-                Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
-                _timeProvider.GetUtcNow().AddHours(1)
-            );
-            return (rawKey, "X-Api-Key");
-        }
-
-        return (await _httpContext.GetDeveloperAppTokenAsync(), null);
+        var (rawKey, _) = await _apiKeyService.CreateAsync(
+            username,
+            $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+            _timeProvider.GetUtcNow().AddHours(1)
+        );
+        return (rawKey, "X-Api-Key");
     }
 
     private static (string TraceParent, string TraceState) GetCurrentTraceContext()

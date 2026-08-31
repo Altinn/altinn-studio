@@ -1,3 +1,3 @@
 module altinn.studio/releaser
 
-go 1.26.1
+go 1.26.4

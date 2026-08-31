@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json.Serialization;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Profile.Models;

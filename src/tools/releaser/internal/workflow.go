@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -45,6 +46,7 @@ type Workflow struct {
 	changelogContent string
 	parsedChangelog  *changelog.Changelog
 	artifacts        []string
+	topology         RepositoryTopology
 	config           WorkflowConfig
 }
 
@@ -70,8 +72,9 @@ func NewWorkflow(
 		return nil, fmt.Errorf("get component: %w", err)
 	}
 
-	if _, err := version.Parse(config.Version); err != nil {
-		return nil, fmt.Errorf("parse version: %w", err)
+	config.Version = normalizeVersionPrefix(config.Version)
+	if _, parseErr := version.Parse(config.Version); parseErr != nil {
+		return nil, fmt.Errorf("parse version: %w", parseErr)
 	}
 
 	if config.ChangelogPath == "" {
@@ -79,9 +82,9 @@ func NewWorkflow(
 	}
 
 	if config.RepoRoot == "" {
-		root, err := git.RepoRoot(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("get repo root: %w", err)
+		root, rootErr := git.RepoRoot(ctx)
+		if rootErr != nil {
+			return nil, fmt.Errorf("get repo root: %w", rootErr)
 		}
 		config.RepoRoot = root
 	}
@@ -91,8 +94,13 @@ func NewWorkflow(
 	} else if !filepath.IsAbs(config.OutputDir) {
 		config.OutputDir = filepath.Join(config.RepoRoot, config.OutputDir)
 	}
-	if err := normalizeAndValidatePaths(&config); err != nil {
-		return nil, err
+	if normalizeErr := normalizeAndValidatePaths(&config); normalizeErr != nil {
+		return nil, normalizeErr
+	}
+	gh.SetWorkdir(config.RepoRoot)
+	topology, err := discoverRepositoryTopology(ctx, git, gh)
+	if err != nil {
+		return nil, fmt.Errorf("discover repository topology: %w", err)
 	}
 
 	return &Workflow{
@@ -106,6 +114,7 @@ func NewWorkflow(
 		changelogContent: "",
 		parsedChangelog:  nil,
 		artifacts:        nil,
+		topology:         topology,
 	}, nil
 }
 
@@ -202,6 +211,13 @@ func (w *Workflow) Run(ctx context.Context) error {
 		return err
 	}
 
+	if w.tag.Version.IsPrerelease {
+		w.log.Step("Rechecking prerelease line before publication")
+		if err := w.ensurePrereleaseLineOpen(ctx); err != nil {
+			return err
+		}
+	}
+
 	if err := w.createGitHubRelease(ctx); err != nil {
 		return err
 	}
@@ -236,7 +252,7 @@ func (w *Workflow) validateTagNotExists(ctx context.Context) error {
 	w.log.Step("Checking tag does not exist")
 
 	tagFull := w.tag.Full()
-	exists, err := w.git.TagExists(ctx, tagFull)
+	exists, err := w.git.TagExists(ctx, w.topology.SourceRemote, tagFull)
 	if err != nil {
 		return fmt.Errorf("check tag exists: %w", err)
 	}
@@ -265,22 +281,43 @@ func (w *Workflow) enforceRefPolicy(ctx context.Context) error {
 	w.log.Detail("Current branch", currentBranch)
 
 	if w.tag.Version.IsPrerelease {
-		return w.enforcePrereleasePolicy(currentBranch)
+		return w.enforcePrereleasePolicy(ctx, currentBranch)
 	}
 
 	return w.enforceStablePolicy(ctx, currentBranch)
 }
 
-func (w *Workflow) enforcePrereleasePolicy(currentBranch string) error {
+func (w *Workflow) enforcePrereleasePolicy(ctx context.Context, currentBranch string) error {
 	if currentBranch != mainBranch {
 		if w.config.UnsafeSkipBranchCheck {
 			w.log.Info("(unsafe-skip-branch-check) Ignoring branch requirement, on %s", currentBranch)
-			return nil
+		} else {
+			w.log.Error("Prerelease versions must be triggered from main branch")
+			return fmt.Errorf("%w: got %s", ErrNotOnMain, currentBranch)
 		}
-		w.log.Error("Prerelease versions must be triggered from main branch")
-		return fmt.Errorf("%w: got %s", ErrNotOnMain, currentBranch)
+	} else {
+		w.log.Success("Prerelease release from main branch")
 	}
-	w.log.Success("Prerelease release from main branch")
+
+	return w.ensurePrereleaseLineOpen(ctx)
+}
+
+func (w *Workflow) ensurePrereleaseLineOpen(ctx context.Context) error {
+	releaseBranch := w.tag.ReleaseBranch()
+	exists, err := w.git.RemoteBranchExists(ctx, w.topology.SourceRemote, releaseBranch)
+	if err != nil {
+		return fmt.Errorf("check release branch: %w", err)
+	}
+	if exists {
+		w.log.Error(
+			"Prerelease line for %s is closed by canonical branch %s",
+			w.tag.Version.String(),
+			releaseBranch,
+		)
+		return fmt.Errorf("%w: %s", errPrereleaseLineClosed, releaseBranch)
+	}
+
+	w.log.Success("Prerelease line is open")
 	return nil
 }
 
@@ -299,7 +336,7 @@ func (w *Workflow) prepareOutputDir() error {
 
 func (w *Workflow) enforceStablePolicy(ctx context.Context, currentBranch string) error {
 	releaseBranch := w.tag.ReleaseBranch()
-	branchExists, err := w.git.RemoteBranchExists(ctx, releaseBranch)
+	branchExists, err := w.git.RemoteBranchExists(ctx, w.topology.SourceRemote, releaseBranch)
 	if err != nil {
 		return fmt.Errorf("check release branch: %w", err)
 	}
@@ -329,7 +366,7 @@ func (w *Workflow) enforceStablePolicy(ctx context.Context, currentBranch string
 	if err := w.git.Checkout(ctx, releaseBranch); err != nil {
 		return fmt.Errorf("checkout release branch: %w", err)
 	}
-	if err := w.git.Pull(ctx, "origin", releaseBranch); err != nil {
+	if err := w.git.Pull(ctx, w.topology.SourceRemote, releaseBranch); err != nil {
 		return fmt.Errorf("pull release branch: %w", err)
 	}
 
@@ -407,6 +444,10 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("extract release notes: %w", err)
 	}
+	notes, err = w.withComponentReleaseNotesIntro(notes)
+	if err != nil {
+		return fmt.Errorf("read release notes intro: %w", err)
+	}
 	if w.config.Draft {
 		previousVersion := previousReleasedVersion(w.parsedChangelog, verStr)
 		previousTag := ""
@@ -458,6 +499,7 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 		Title:           title,
 		NotesFile:       notesFile,
 		Target:          target,
+		Repository:      w.topology.BaseRepository.NameWithOwner,
 		Assets:          assets,
 		Draft:           w.config.Draft,
 		Prerelease:      w.tag.Version.IsPrerelease,
@@ -503,4 +545,49 @@ func (w *Workflow) printSummary() {
 		w.log.Info("")
 		w.log.Success("Release workflow completed successfully!")
 	}
+}
+
+const releaseNotesIntroFile = "RELEASE_NOTES_INTRO.md"
+
+func (w *Workflow) withComponentReleaseNotesIntro(notes string) (string, error) {
+	introPath, err := w.componentReleaseNotesIntroPath()
+	if err != nil {
+		return "", err
+	}
+	intro, err := fs.ReadFile(os.DirFS(w.config.RepoRoot), introPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return strings.TrimSpace(notes), nil
+		}
+		return "", fmt.Errorf("read %s: %w", introPath, err)
+	}
+	return withReleaseNotesIntro(notes, string(intro)), nil
+}
+
+func (w *Workflow) componentReleaseNotesIntroPath() (string, error) {
+	introPath := filepath.Join(w.config.RepoRoot, w.component.SourcePath, releaseNotesIntroFile)
+	rel, err := filepath.Rel(w.config.RepoRoot, introPath)
+	if err != nil {
+		return "", fmt.Errorf("evaluate release notes intro path: %w", err)
+	}
+	if rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	rel = filepath.ToSlash(rel)
+	if !fs.ValidPath(rel) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	return rel, nil
+}
+
+func withReleaseNotesIntro(notes, intro string) string {
+	intro = strings.TrimSpace(intro)
+	notes = strings.TrimSpace(notes)
+	if intro == "" {
+		return notes
+	}
+	if notes == "" {
+		return intro
+	}
+	return intro + "\n\n## Changelog\n\n" + notes
 }

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 void RegisterCustomAppServices(
     IServiceCollection services,
@@ -20,7 +20,7 @@ void RegisterCustomAppServices(
     services.AddTransient<ISigneeProvider, FounderSigneesProvider>();
     services.AddTransient<ISigneeProvider, AuditorSigneesProvider>();
     services.AddTransient<IProcessExclusiveGateway, HasAuditorProcessGateway>();
-    
+
     services.ConfigureMaskinportenClient("MaskinportenSettings-TeamApps1");
 }
 

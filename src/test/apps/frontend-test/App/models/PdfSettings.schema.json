@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "PdfSettings": {
+      "$ref": "#/definitions/PdfSettings"
+    }
+  },
+  "definitions": {
+    "PdfSettings": {
+      "properties": {
+        "CreatePdf": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

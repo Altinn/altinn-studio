@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 
@@ -36,5 +37,17 @@ public class ApplicationMetdataTests
         metadata.AppIdentifier.Should().BeEquivalentTo(expected);
         Assert.Throws<ArgumentOutOfRangeException>(() => metadata.Id = "invalid");
         metadata.AppIdentifier.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void AltinnNugetVersionUsesAssemblyFileVersion()
+    {
+        string? fileVersion = typeof(ApplicationMetadata)
+            .Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()
+            ?.Version;
+
+        Assert.Equal(fileVersion, ApplicationMetadata.LibVersion);
+        Assert.True(Version.TryParse(ApplicationMetadata.LibVersion, out _));
+        Assert.Equal(fileVersion, new ApplicationMetadata("ttd/test").AltinnNugetVersion);
     }
 }

@@ -14,6 +14,12 @@ from openai import AzureOpenAI as AzureResponsesClient, OpenAI as OpenAIResponse
 from langchain_core.messages import SystemMessage, HumanMessage
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
+from shared.utils.spotlight import (
+    ATTACHMENT_TAG,
+    close_delimiter,
+    defang_delimiter,
+    open_delimiter,
+)
 from shared.models import AgentAttachment
 from agents.prompts import get_prompt_content, get_prompt_with_langfuse
 
@@ -45,6 +51,52 @@ def _is_reasoning_model(model_name: Optional[str]) -> bool:
         or m.startswith("gpt-5")
     )
 
+ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
+
+
+def _defang_attachment_value(value: Any) -> Any:
+    """Defang every string in a block; base64 payloads cannot contain the delimiter."""
+    if isinstance(value, str):
+        return defang_delimiter(value, ATTACHMENT_TAG)
+    if isinstance(value, dict):
+        return {
+            key: item if key in ATTACHMENT_PAYLOAD_FIELDS else _defang_attachment_value(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_defang_attachment_value(item) for item in value]
+    return value
+
+
+def _defang_attachment_blocks(blocks: List[dict]) -> List[dict]:
+    """Stop an attachment closing the block it sits inside."""
+    return [_defang_attachment_value(block) for block in blocks]
+
+
+def _build_anthropic_user_content(
+    user_prompt: str,
+    attachments: Optional[List[AgentAttachment]],
+) -> Any:
+    """Compose an Anthropic Messages-API `content` value.
+
+    Returns a bare string when there are no attachments — the API
+    accepts both shapes, and the string form keeps the trace input
+    readable.  When attachments are present, returns a list of content
+    blocks: text first, then each attachment converted via
+    `to_anthropic_blocks` (image/document/text fallback), spotlighted as
+    untrusted data.
+    """
+    stripped = user_prompt.strip() if user_prompt else ""
+    if not attachments:
+        return stripped
+    blocks: List[dict] = [{"type": "text", "text": stripped}] if stripped else []
+    blocks.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
+    for attachment in attachments:
+        blocks.extend(_defang_attachment_blocks(attachment.to_anthropic_blocks()))
+    blocks.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
+    return blocks
+
+
 class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
@@ -58,10 +110,9 @@ class LLMClient:
                         this must be high enough to cover both reasoning + output tokens.
         """
         self.role = role
-        
-        # Select model, version, and temperature based on role
+
+        # Select model and temperature based on role
         model: Optional[str] = None
-        model_version: Optional[str] = None
         temperature: Optional[float] = None
         self.use_completions = False
         self.use_responses = False
@@ -69,7 +120,6 @@ class LLMClient:
 
         if role == "planner":
             model = config.LLM_MODEL_PLANNER
-            model_version = config.LLM_VERSION_PLANNER
             if config.LLM_TEMPERATURE_PLANNER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_PLANNER)
@@ -80,7 +130,6 @@ class LLMClient:
                     )
         elif role == "tool_planner":
             model = config.LLM_MODEL_TOOL_PLANNER
-            model_version = config.LLM_VERSION_TOOL_PLANNER
             if config.LLM_TEMPERATURE_TOOL_PLANNER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_TOOL_PLANNER)
@@ -94,20 +143,10 @@ class LLMClient:
             if self.use_completions and self.use_responses:
                 log.warning("Both completions and responses modes requested for tool planner; defaulting to responses")
                 self.use_completions = False
-        elif role == "actor":
-            model = config.LLM_MODEL_ACTOR
-            model_version = config.LLM_VERSION_ACTOR
-            if config.LLM_TEMPERATURE_ACTOR is not None:
-                try:
-                    temperature = float(config.LLM_TEMPERATURE_ACTOR)
-                except ValueError:
-                    log.warning(
-                        "Invalid actor temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE_ACTOR,
-                    )
         elif role == "reviewer":
+            # Used by the post-workflow LLM-as-judge evaluators
+            # (intent / implementation / hallucination judges).
             model = config.LLM_MODEL_REVIEWER
-            model_version = config.LLM_VERSION_REVIEWER
             if config.LLM_TEMPERATURE_REVIEWER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_REVIEWER)
@@ -116,20 +155,8 @@ class LLMClient:
                         "Invalid reviewer temperature %s; falling back to provider default",
                         config.LLM_TEMPERATURE_REVIEWER,
                     )
-        elif role == "verifier":
-            model = config.LLM_MODEL_VERIFIER
-            model_version = config.LLM_VERSION_VERIFIER
-            if config.LLM_TEMPERATURE_VERIFIER is not None:
-                try:
-                    temperature = float(config.LLM_TEMPERATURE_VERIFIER)
-                except ValueError:
-                    log.warning(
-                        "Invalid verifier temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE_VERIFIER,
-                    )
         elif role == "assistant":
             model = config.LLM_MODEL_ASSISTANT
-            model_version = config.LLM_VERSION_ASSISTANT
             if config.LLM_TEMPERATURE_ASSISTANT is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_ASSISTANT)
@@ -139,8 +166,9 @@ class LLMClient:
                         config.LLM_TEMPERATURE_ASSISTANT,
                     )
         else:
+            # Default fallback — used by parse_intent_with_llm /
+            # suggest_goals_with_llm, which call get_llm_client() with no role.
             model = config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL
-            model_version = None
             if config.LLM_TEMPERATURE is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE)
@@ -149,8 +177,6 @@ class LLMClient:
                         "Invalid default temperature %s; falling back to provider default",
                         config.LLM_TEMPERATURE,
                     )
-        
-        self.model_version = model_version
         self.model = model
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
         self.use_anthropic = False
@@ -177,9 +203,8 @@ class LLMClient:
             self.use_responses = False
         # Prefer Azure OpenAI if available
         elif config.AZURE_API_KEY:
-            version_info = f", version={model_version}" if model_version else ""
             log.info(
-                f"Using Azure OpenAI for LLM operations (role={role}, model={model}{version_info}, temperature={temperature if temperature is not None else 'default'})"
+                f"Using Azure OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
             )
 
             llm_params = {
@@ -353,9 +378,10 @@ class LLMClient:
             )
         if attachments:
             content = [{"type": "text", "text": user_prompt}]
+            content.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
             for attachment in attachments:
-                blocks = attachment.to_content_blocks()
-                content.extend(blocks)
+                content.extend(_defang_attachment_blocks(attachment.to_content_blocks()))
+            content.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
             return HumanMessage(content=content)
         return HumanMessage(content=user_prompt)
 
@@ -407,14 +433,13 @@ class LLMClient:
                 usage_details = {}
 
                 if self.use_anthropic:
-                    if attachments:
-                        log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
+                    user_content = _build_anthropic_user_content(user_prompt, attachments)
 
                     def _call_anthropic():
                         return self.anthropic_client.messages.create(
                             model=self.model,
                             system=system_prompt.strip() if system_prompt else "",
-                            messages=[{"role": "user", "content": user_prompt.strip()}],
+                            messages=[{"role": "user", "content": user_content}],
                             max_tokens=self.max_tokens,
                         )
 
@@ -528,8 +553,6 @@ class LLMClient:
                 "model": str(model_name),
                 "temperature": float(llm_temp) if llm_temp is not None else 0.1,
             }
-            if self.model_version:
-                metadata["model_version"] = str(self.model_version)
             return metadata
         except Exception as e:
             log.warning(f"Error getting model metadata: {e}")
@@ -581,23 +604,30 @@ class LLMClient:
 
             try:
                 if self.use_anthropic:
-                    if attachments:
-                        log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
-                    
+                    user_content = _build_anthropic_user_content(user_message, attachments)
+
                     import time
                     system_len = len(system_message.strip() if system_message else "")
                     user_len = len(user_message.strip())
                     log.info("🔵 Anthropic API call starting")
-                    log.info(f"   System: {system_len} chars, User: {user_len} chars")
+                    log.info(
+                        f"   System: {system_len} chars, User: {user_len} chars, "
+                        f"Attachments: {len(attachments) if attachments else 0}"
+                    )
                     log.info(f"   Model: {self.model}, Max tokens: {self.max_tokens}")
                     log.info("   Client timeout: 600s (10 min)")
-                    
+                    if isinstance(user_content, list):
+                        log.info(
+                            "   Content blocks: %s",
+                            ", ".join(block["type"] for block in user_content),
+                        )
+
                     call_start = time.time()
                     try:
                         response = self.anthropic_client.messages.create(
                             model=self.model,
                             system=system_message.strip() if system_message else "",
-                            messages=[{"role": "user", "content": user_message.strip()}],
+                            messages=[{"role": "user", "content": user_content}],
                             max_tokens=self.max_tokens,
                         )
                         call_elapsed = time.time() - call_start
@@ -725,7 +755,6 @@ def _build_cache_key(role: str) -> Tuple[str, ...]:
         return (
             role,
             str(config.LLM_MODEL_TOOL_PLANNER),
-            str(config.LLM_VERSION_TOOL_PLANNER),
             str(config.LLM_TEMPERATURE_TOOL_PLANNER),
             str(config.LLM_TOOL_PLANNER_USE_COMPLETIONS),
             str(config.LLM_TOOL_PLANNER_USE_RESPONSES),
@@ -734,29 +763,13 @@ def _build_cache_key(role: str) -> Tuple[str, ...]:
         return (
             role,
             str(config.LLM_MODEL_PLANNER),
-            str(config.LLM_VERSION_PLANNER),
             str(config.LLM_TEMPERATURE_PLANNER),
-        )
-    if role == "actor":
-        return (
-            role,
-            str(config.LLM_MODEL_ACTOR),
-            str(config.LLM_VERSION_ACTOR),
-            str(config.LLM_TEMPERATURE_ACTOR),
         )
     if role == "reviewer":
         return (
             role,
             str(config.LLM_MODEL_REVIEWER),
-            str(config.LLM_VERSION_REVIEWER),
             str(config.LLM_TEMPERATURE_REVIEWER),
-        )
-    if role == "verifier":
-        return (
-            role,
-            str(config.LLM_MODEL_VERIFIER),
-            str(config.LLM_VERSION_VERIFIER),
-            str(config.LLM_TEMPERATURE_VERIFIER),
         )
     return (
         role,
@@ -769,9 +782,9 @@ def _build_cache_key(role: str) -> Tuple[str, ...]:
 def get_llm_client(role: str = "default") -> LLMClient:
     """
     Get or create LLM client instance for specific role
-    
+
     Args:
-        role: Agent role (planner, actor, reviewer, verifier, default)
+        role: Agent role (planner, tool_planner, reviewer, assistant, default)
         
     Returns:
         LLMClient configured for the specified role
@@ -787,13 +800,22 @@ def get_llm_client(role: str = "default") -> LLMClient:
     return client
 
 async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
-    """Parse user intent using LLM"""
+    """Parse user intent using LLM.
+
+    The security parser only screens the goal *string* for malicious
+    patterns — sending the attachment payload (a ~13k-token PDF) here
+    burns tokens for no signal.  We surface the filenames so prompt-
+    injection via filename is still in scope, but we drop the bytes.
+    """
     system_prompt, lf_prompt = get_prompt_with_langfuse("intent_security")
 
     user_prompt = f"Parse this goal: {goal}"
+    if attachments:
+        names = ", ".join(a.name for a in attachments)
+        user_prompt = f"{user_prompt}\n\nAttachment filenames (content not shown): {names}"
 
     client = get_llm_client()
-    response = await client.call_async(system_prompt, user_prompt, attachments=attachments, langfuse_prompt=lf_prompt)
+    response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
 
     cleaned_response = response.strip()
     if cleaned_response.startswith("```"):
@@ -822,11 +844,23 @@ async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttac
             "reason": "Failed to parse intent"
         }
 
-def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
+def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = None) -> list[str]:
     """Generate goal suggestions using LLM"""
     system_prompt, lf_prompt = get_prompt_with_langfuse("goal_suggestions")
 
-    user_prompt = f"Suggest clear goals similar to: {unclear_goal}"
+    # "Similar to" is what made the suggestions restate the rejected goal.
+    user_prompt = (
+        f"This goal was rejected: {rejected_goal}\n"
+        f"Reason: {rejection_reason}\n"
+        "Suggest goals the user could ask for instead. Do not restate the rejected goal."
+        if rejection_reason
+        else f"This goal was unclear: {rejected_goal}\nSuggest clearer goals the user could ask for instead."
+    )
+    # The chips sit next to a rejection written in the user's language.
+    user_prompt += (
+        "\nWrite them in the same language as the goal above."
+        "\nOne goal per line, no numbering."
+    )
 
     try:
         client = get_llm_client()
@@ -837,9 +871,6 @@ def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
         return suggestions[:3]  # Limit to 3 suggestions
 
     except Exception as e:
+        # The old fallbacks were English examples shown to Norwegian users.
         log.error(f"Failed to generate suggestions: {e}")
-        return [
-            "add a text field myField to layout main",
-            "add a numeric field totalAmount to layout form bound to model.amount",
-            "add a button submitBtn to layout main"
-        ]
+        return []

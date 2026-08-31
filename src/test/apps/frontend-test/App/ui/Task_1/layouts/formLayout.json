@@ -51,6 +51,29 @@
         }
       },
       {
+        "id": "createPdfToggle",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Generate PDFs for this submission (test toggle)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "PdfSettings",
+            "field": "CreatePdf"
+          }
+        },
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ]
+      },
+      {
         "id": "falsyRadioButton",
         "type": "RadioButtons",
         "textResourceBindings": {

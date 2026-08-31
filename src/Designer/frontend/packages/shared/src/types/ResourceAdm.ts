@@ -22,8 +22,6 @@ export interface Resource {
   version?: string;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
-  selfIdentifiedUserEnabled?: boolean;
-  enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
   accessListMode?: ResourceAccessListMode;
@@ -54,11 +52,7 @@ export type ResourceTypeOption =
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
 export type ResourceAvailableForTypeOption =
-  | 'PrivatePerson'
-  | 'LegalEntityEnterprise'
-  | 'Company'
-  | 'BankruptcyEstate'
-  | 'SelfRegisteredUser';
+  'PrivatePerson' | 'LegalEntityEnterprise' | 'Company' | 'BankruptcyEstate' | 'SelfRegisteredUser';
 
 export interface ResourceKeyword {
   language: ValidLanguage;
@@ -196,17 +190,6 @@ export interface ResourceFormError {
   field: keyof Resource;
   index?: number | keyof SupportedLanguage;
   error: string;
-}
-
-export interface DelegationCountOverview {
-  numberOfDelegations: number;
-  numberOfRelations: number;
-}
-
-export interface MigrateDelegationsRequest {
-  serviceCode: string;
-  serviceEditionCode: number;
-  resourceId: string;
 }
 
 interface ConsentTemplateTypeText {

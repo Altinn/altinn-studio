@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Expressions.FunctionEvaluators;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
@@ -52,6 +55,19 @@ public static partial class ExpressionEvaluator
     }
 
     /// <summary>
+    /// Evaluate a <see cref="Expression" /> from a given <see cref="IInstanceDataAccessor" /> in a <see cref="ComponentContext" />
+    /// </summary>
+    public static async Task<ExpressionValue> EvaluateExpressionToExpressionValue(
+        IInstanceDataAccessor state,
+        Expression expr,
+        ComponentContext context,
+        ExpressionValue[]? positionalArguments = null
+    )
+    {
+        return await EvaluateExpression_internal(state.GetLayoutEvaluatorState(), expr, context, positionalArguments);
+    }
+
+    /// <summary>
     /// Evaluate a <see cref="Expression" /> from a given <see cref="LayoutEvaluatorState" /> in a <see cref="ComponentContext" />
     /// </summary>
     public static async Task<object?> EvaluateExpression(
@@ -63,7 +79,17 @@ public static partial class ExpressionEvaluator
     {
         var positionalArgumentUnions = positionalArguments?.Select(ExpressionValue.FromObject).ToArray();
         var result = await EvaluateExpression_internal(state, expr, context, positionalArgumentUnions);
-        return result.ToObject();
+        return result.ValueKind switch
+        {
+            JsonValueKind.Null => null,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => result.String,
+            JsonValueKind.Number => result.Number,
+            JsonValueKind.Object => result.JsonElement,
+            JsonValueKind.Array => result.JsonElement,
+            _ => throw new InvalidOperationException("Invalid value kind"),
+        };
     }
 
     /// <summary>
@@ -131,6 +157,12 @@ public static partial class ExpressionEvaluator
             ExpressionFunction.minus => Minus(args),
             ExpressionFunction.multiply => Multiply(args),
             ExpressionFunction.divide => Divide(args),
+            ExpressionFunction.list => List(args),
+            ExpressionFunction.@object => Object(args),
+            ExpressionFunction.jmespath => Jmespath(args),
+            ExpressionFunction.sum => Sum(args),
+            ExpressionFunction.average => Average(args),
+            ExpressionFunction.count => Count(args),
             ExpressionFunction.INVALID => throw new ExpressionEvaluatorTypeErrorException(
                 $"Function {expr.Args.FirstOrDefault()} not implemented in backend {expr}"
             ),
@@ -810,7 +842,7 @@ public static partial class ExpressionEvaluator
         return !PrepareBooleanArg(args[0]);
     }
 
-    private static (double?, double?) PrepareNumericArgs(ExpressionValue[] args)
+    private static (double?, double?) PrepareTwoNumericArgs(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
@@ -835,6 +867,18 @@ public static partial class ExpressionEvaluator
 
             _ => null,
         };
+    }
+
+    private static double? PrepareNumericArg(JsonNode? arg)
+    {
+        return PrepareNumericArg(ExpressionValue.FromObject(arg));
+    }
+
+    private static double?[] PrepareNumericArgs(ExpressionValue[] args)
+    {
+        if (args.Length == 0)
+            throw new ExpressionEvaluatorTypeErrorException("Invalid number of args");
+        return args.Select(PrepareNumericArg).ToArray();
     }
 
     private static ExpressionValue IfImpl(ExpressionValue[] args)
@@ -884,7 +928,7 @@ public static partial class ExpressionEvaluator
 
     private static bool LessThan(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
+        var (a, b) = PrepareTwoNumericArgs(args);
 
         if (a is null || b is null)
         {
@@ -893,33 +937,33 @@ public static partial class ExpressionEvaluator
         return a < b; // Actual implementation
     }
 
-    private static double? Plus(ExpressionValue[] args)
+    private static double Plus(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
-        return PerformArithmetic(a, b, (x, y) => x + y);
+        double?[] numbers = PrepareNumericArgs(args);
+        return (double)PerformArithmeticWithReducer(numbers, (x, y) => x + y);
     }
 
-    private static double? Minus(ExpressionValue[] args)
+    private static double Minus(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
+        var (a, b) = PrepareTwoNumericArgs(args);
         return PerformArithmetic(a, b, (x, y) => x - y);
     }
 
-    private static double? Multiply(ExpressionValue[] args)
+    private static double Multiply(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
-        return PerformArithmetic(a, b, (x, y) => x * y);
+        double?[] numbers = PrepareNumericArgs(args);
+        return (double)PerformArithmeticWithReducer(numbers, (x, y) => x * y);
     }
 
-    private static double? Divide(ExpressionValue[] args)
+    private static double Divide(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
+        var (a, b) = PrepareTwoNumericArgs(args);
         return PerformArithmetic(a, b, (x, y) => x / y);
     }
 
     private static bool LessThanEq(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
+        var (a, b) = PrepareTwoNumericArgs(args);
 
         if (a is null || b is null)
         {
@@ -930,7 +974,7 @@ public static partial class ExpressionEvaluator
 
     private static bool GreaterThan(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
+        var (a, b) = PrepareTwoNumericArgs(args);
 
         if (a is null || b is null)
         {
@@ -941,7 +985,7 @@ public static partial class ExpressionEvaluator
 
     private static bool GreaterThanEq(ExpressionValue[] args)
     {
-        var (a, b) = PrepareNumericArgs(args);
+        var (a, b) = PrepareTwoNumericArgs(args);
 
         if (a is null || b is null)
         {
@@ -990,6 +1034,84 @@ public static partial class ExpressionEvaluator
         return positionalArguments[index.Value];
     }
 
+    private static ExpressionValue List(ExpressionValue[] args)
+    {
+        return new JsonArray(args.Select(a => JsonSerializer.SerializeToNode(a)).ToArray());
+    }
+
+    private static ExpressionValue Object(ExpressionValue[] args)
+    {
+        return ObjectFunctionEvaluator.Evaluate(args);
+    }
+
+    private static ExpressionValue Jmespath(ExpressionValue[] args)
+    {
+        return JmespathFunctionEvaluator.Evaluate(args);
+    }
+
+    private static double? Sum(ExpressionValue[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument(s), got {args.Length}");
+        }
+
+        var expressionValue = args[0];
+        if (expressionValue.ValueKind != JsonValueKind.Array)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected argument to be list, got {expressionValue.ValueKind}"
+            );
+        }
+
+        var doubles = expressionValue.JsonArray.Select(PrepareNumericArg).ToArray();
+        return doubles.Length != 0 ? (double)PerformArithmeticWithReducer(doubles, (x, y) => x + y) : 0;
+    }
+
+    private static double? Average(ExpressionValue[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
+        }
+
+        var arrayExpressionValue = args[0];
+        if (arrayExpressionValue.ValueKind != JsonValueKind.Array)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected argument to be list, got {arrayExpressionValue.ValueKind}"
+            );
+        }
+
+        var fallbackForEmptyList = PrepareNumericArg(args[1]);
+
+        if (arrayExpressionValue.JsonArray.Count == 0)
+        {
+            return fallbackForEmptyList;
+        }
+
+        var doubles = arrayExpressionValue.JsonArray.Select(PrepareNumericArg).ToArray();
+        var aggregatedSum = PerformArithmeticWithReducer(doubles, (x, y) => x + y);
+        return (double)(aggregatedSum / doubles.Length);
+    }
+
+    private static int Count(ExpressionValue[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument(s), got {args.Length}");
+        }
+
+        var expressionValue = args[0];
+        if (expressionValue.ValueKind != JsonValueKind.Array)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected argument to be list, got {expressionValue.ValueKind}"
+            );
+        }
+        return expressionValue.JsonArray.Count;
+    }
+
     /// <summary>
     /// Performs arithmetic operation using decimal precision to avoid floating point precision issues.
     /// Converts doubles to decimal, performs the operation, and converts back to double.
@@ -997,30 +1119,44 @@ public static partial class ExpressionEvaluator
     /// <param name="a">First operand</param>
     /// <param name="b">Second operand</param>
     /// <param name="operation">Function that performs the arithmetic operation on two decimals</param>
-    /// <returns>Result of the operation as double, or null if any operand is null</returns>
-    private static double? PerformArithmetic(double? a, double? b, Func<decimal, decimal, decimal> operation)
+    /// <returns>Result of the operation as double</returns>
+    private static double PerformArithmetic(double? a, double? b, Func<decimal, decimal, decimal> operation)
     {
-        if (a.HasValue is false || b.HasValue is false)
-        {
-            return null;
-        }
+        double aDouble = a ?? 0;
+        double bDouble = b ?? 0;
 
         try
         {
-            var aDecimal = (decimal)a.Value;
-            var bDecimal = (decimal)b.Value;
+            var aDecimal = (decimal)aDouble;
+            var bDecimal = (decimal)bDouble;
             var result = operation(aDecimal, bDecimal);
             return (double)result;
         }
         catch (OverflowException)
         {
             throw new ExpressionEvaluatorTypeErrorException(
-                $"Arithmetic overflow: {a.Value} and {b.Value} or operation on them exceeds the supported range"
+                $"Arithmetic overflow: {aDouble} and {bDouble} or operation on them exceeds the supported range"
             );
         }
         catch (DivideByZeroException)
         {
             throw new ExpressionEvaluatorTypeErrorException("The second argument is 0, cannot divide by 0");
+        }
+    }
+
+    private static decimal PerformArithmeticWithReducer(double?[] operands, Func<decimal, decimal, decimal> operation)
+    {
+        double[] numbers = operands.Select(o => o ?? 0).ToArray();
+        try
+        {
+            decimal[] decimalNumbers = numbers.Select(n => (decimal)n).ToArray();
+            return decimalNumbers.Aggregate(operation);
+        }
+        catch (OverflowException)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Arithmetic overflow: One of the operands or the result of the operation exceeds the supported range"
+            );
         }
     }
 

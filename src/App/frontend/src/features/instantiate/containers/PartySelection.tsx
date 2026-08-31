@@ -24,6 +24,7 @@ import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
+import { getHostname } from 'src/utils/urls/appUrlHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
@@ -61,8 +62,14 @@ export const PartySelection = () => {
     navigate('/');
   };
 
+  const numberFilterString = filterString.replace(/\s+/g, '');
+  const hasNumberFilter = numberFilterString.length > 0 && numberFilterString.match(/^\d+$/);
   const filteredParties = partiesAllowedToInstantiate.filter(
-    (party) => party.name.toUpperCase().includes(filterString.toUpperCase()) && !(party.isDeleted && !showDeleted),
+    (party) =>
+      (party.name.toUpperCase().includes(filterString.toUpperCase()) ||
+        (hasNumberFilter &&
+          (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)))) &&
+      !(party.isDeleted && !showDeleted),
   );
 
   const hasMoreParties = filteredParties.length > numberOfPartiesShown;
@@ -206,6 +213,7 @@ export const PartySelection = () => {
                     ? 'party_selection.seeing_this_override'
                     : 'party_selection.seeing_this_preference'
                 }
+                params={[getHostname()]}
               />
             </Paragraph>
           </Flex>

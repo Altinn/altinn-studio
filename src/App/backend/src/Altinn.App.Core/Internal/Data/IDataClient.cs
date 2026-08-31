@@ -319,6 +319,11 @@ public interface IDataClient
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns>
+    /// A stream over the data. The caller owns the stream and should dispose it: it holds the underlying
+    /// HTTP response, which is released with it.
+    /// </returns>
+    /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryData(
         int instanceOwnerPartyId,
         Guid instanceGuid,
@@ -333,6 +338,11 @@ public interface IDataClient
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
+    /// <returns>
+    /// A stream over the data. The caller owns the stream and should dispose it: it holds the underlying
+    /// HTTP response, which is released with it.
+    /// </returns>
+    /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId) =>
         GetBinaryData(instanceOwnerPartyId, instanceGuid, dataId, null, default);
 
@@ -346,6 +356,10 @@ public interface IDataClient
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="timeout">Optional timeout for the operation. Defaults to 100 seconds if not specified.</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns>
+    /// An unbuffered stream over the data. The caller owns the stream and must dispose it: it holds the
+    /// underlying HTTP response — and with it a connection — open until it is disposed.
+    /// </returns>
     /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryDataStream(
         int instanceOwnerPartyId,
@@ -363,6 +377,10 @@ public interface IDataClient
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
+    /// <returns>
+    /// An unbuffered stream over the data. The caller owns the stream and must dispose it: it holds the
+    /// underlying HTTP response — and with it a connection — open until it is disposed.
+    /// </returns>
     /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryDataStream(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId) =>
         GetBinaryDataStream(instanceOwnerPartyId, instanceGuid, dataId, null, null, default);

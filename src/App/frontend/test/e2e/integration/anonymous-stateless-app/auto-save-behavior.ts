@@ -21,7 +21,7 @@ describe('Auto save behavior', () => {
       };
       globalData.ui.settings.autoSaveBehavior = 'onChangeFormData';
     });
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null, tenorUser: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
     cy.wait('@putFormData').then(() => {
@@ -33,7 +33,7 @@ describe('Auto save behavior', () => {
     cy.wait('@putFormData').then(() => {
       expect(postFormDataCounter).to.be.eq(2);
     });
-    cy.findByRole('button', { name: 'next' }).click();
+    cy.findByRole('button', { name: 'Neste' }).click();
     cy.findByText('Welcome to page 2');
   });
   it('onChangePage: Should not save form when interacting with form element(input), but should save on navigating between pages', () => {
@@ -53,7 +53,7 @@ describe('Auto save behavior', () => {
       };
       globalData.ui.settings.autoSaveBehavior = 'onChangePage';
     });
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null, tenorUser: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
     // Doing a hard wait to be sure no request is sent to backend
@@ -64,7 +64,7 @@ describe('Auto save behavior', () => {
     cy.findByRole('radiogroup', { name: 'Velg kjønn' }).within(() => {
       cy.findByRole('radio', { name: 'mann' }).check();
     });
-    cy.findByRole('button', { name: 'next' }).click();
+    cy.findByRole('button', { name: 'Neste' }).click();
     cy.findByText('Welcome to page 2');
     cy.wait('@putFormData').then(() => {
       expect(postFormDataCounter).to.be.eq(1);

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
@@ -40,7 +41,7 @@ public class ExpressionTestCaseRoot
     public string? Name { get; set; }
 
     [JsonPropertyName("expression")]
-    public Expression Expression { get; set; }
+    public Expression? Expression { get; set; }
 
     [JsonPropertyName("context")]
     public ComponentContextForTestSpec? Context { get; set; }
@@ -167,7 +168,7 @@ public class ComponentContextForTestSpec
 
     public ComponentContext ToContext() =>
         new ComponentContext(
-            null!,
+            (IInstanceDataAccessor)null!,
             new UnknownComponent
             {
                 Id = ComponentId,
