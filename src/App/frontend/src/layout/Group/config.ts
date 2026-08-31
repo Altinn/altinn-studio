@@ -31,6 +31,13 @@ export const Config = new CG.component({
       description: 'The description text shown underneath the title',
     }),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
+    }),
+  )
   .addProperty(
     new CG.prop(
       'groupingIndicator',

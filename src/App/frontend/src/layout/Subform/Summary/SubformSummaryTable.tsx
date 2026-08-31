@@ -169,11 +169,13 @@ export function SubformSummaryTable({
           id={`subform-${id}-table`}
           className={classes1.subformTable}
         >
-          <Caption
-            id={`subform-${id}-caption`}
-            title={<Lang id={textResourceBindings?.title} />}
-            description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-          />
+          {textResourceBindings?.title && (
+            <Caption
+              id={`subform-${id}-caption`}
+              title={<Lang id={textResourceBindings.title} />}
+              description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+            />
+          )}
           <Table.Head id={`subform-${id}-table-body`}>
             <Table.Row>
               {tableColumns.length ? (

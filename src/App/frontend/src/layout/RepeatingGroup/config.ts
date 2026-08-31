@@ -37,6 +37,13 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
       name: 'addButtonFull',
       title: 'Add button (full) (for repeating groups)',
       description: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
