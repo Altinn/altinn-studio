@@ -152,7 +152,9 @@ stack (see `README.md`).
   value stays checked), and `@language nb|nn` (the value is deliberately in the other Norwegian
   language and is checked with **that** language's dictionary rather than skipped). Like
   suppressions, every declaration is scoped to files and reported as stale once it stops doing
-  work. Note that
+  work. Each registry file's header documents its exact grammar; keep entries alphabetized
+  within their sections (Norwegian collation — æ, ø, å last — in the Norwegian glossaries), and
+  a failing run prints where each kind of exception belongs. Note that
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`

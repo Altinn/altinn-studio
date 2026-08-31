@@ -7,7 +7,8 @@
 #
 # Entries must earn their keep: the check reports an entry that no longer
 # rescues any flagged word as stale, in either language. Reviewing this file
-# in a PR is a name-spotting exercise, not a language ruling.
+# in a PR is a name-spotting exercise, not a language ruling. Keep entries
+# alphabetized within each section.
 
 # Product and organisation names in UI text
 altinn
