@@ -179,7 +179,7 @@ function TypedInputCell({
 }
 
 const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number | null>>(
-  ({ label, onChange, onUpdateValue, ...rest }, ref) => {
+  ({ label, onChange, onUpdateValue, value, ...rest }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number | null): void => {
         onChange(numberValue);
@@ -198,10 +198,12 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
       <StudioInputTable.Cell.Numberfield
         className={classes.textfieldCell}
         label={label}
-        onChangeNumber={handleNumberChange}
         onBlurNumber={handleNumberBlur}
+        onChangeNumber={handleNumberChange}
         ref={ref}
         {...rest}
+        // StudioDecimalInput accepts null at runtime, but its value prop does not allow it
+        value={value ?? undefined}
       />
     );
   },
