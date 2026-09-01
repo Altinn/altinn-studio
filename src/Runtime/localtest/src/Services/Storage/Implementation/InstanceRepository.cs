@@ -1,6 +1,7 @@
 #nullable disable
 
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
@@ -90,7 +91,7 @@ namespace LocalTest.Services.Storage.Implementation
             return (null, 0);
         }
 
-        // Caller must hold RunWithInstanceLock for this instance.
+        // Caller must already hold this instance's file lock.
         internal async Task<(Instance Instance, long InternalId)> GetOneWithoutLock(
             Guid instanceGuid,
             bool includeElements,
@@ -314,11 +315,29 @@ namespace LocalTest.Services.Storage.Implementation
                 expectedProcessStateVersion,
                 bumpInstanceVersion: true,
                 bumpProcessStateVersion: bumpsProcessStateVersion,
-                () => WriteInstance(instance, cancellationToken),
+                async () =>
+                {
+                    await EnsureIdleProcessStatus(instanceGuid, cancellationToken);
+                    await WriteInstance(instance, cancellationToken);
+                },
                 cancellationToken);
 
             await PostProcess(instance, cancellationToken);
             return instance;
+        }
+
+        // Callers hand in an instance they have already mutated, so the guard has to read the
+        // persisted process status, as updateinstance_v4 reads it off the locked row.
+        private async Task EnsureIdleProcessStatus(
+            Guid instanceGuid,
+            CancellationToken cancellationToken)
+        {
+            (Instance current, _) = await GetOneWithoutLock(instanceGuid, false, cancellationToken);
+            ProcessStatus currentProcessStatus = current?.Process?.Status ?? ProcessStatus.Idle;
+            if (currentProcessStatus != ProcessStatus.Idle)
+            {
+                throw new ProcessStatusConflictException(currentProcessStatus);
+            }
         }
 
         internal async Task<T> RunWithInstanceLock<T>(Instance instance, Func<Task<T>> operation)

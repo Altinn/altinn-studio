@@ -98,7 +98,7 @@ public class InstanceMutationResponseContractTests
                         ["/filename"] = "updated.txt",
                     },
                     createBlobVersion,
-                    EnforceLockCheck: true
+                    IgnoreLock: false
                 ),
             ],
             DeleteDataElements: [],

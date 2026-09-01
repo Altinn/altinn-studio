@@ -64,10 +64,10 @@ public sealed record InstanceMutationDataElementUpdate(
     Guid DataElementId,
     Dictionary<string, object> Properties,
     string ExpectedCurrentBlobVersion,
-    bool EnforceLockCheck
+    bool IgnoreLock
 );
 
 public sealed record InstanceMutationDataElementDelete(
     DataElement DataElement,
-    bool EnforceLockCheck
+    bool IgnoreLock
 );

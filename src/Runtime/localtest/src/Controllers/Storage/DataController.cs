@@ -625,6 +625,18 @@ public class DataController : ControllerBase
             );
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
         }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            await DeleteAllocatedBlobVersion(
+                instance.Org,
+                instanceGuid,
+                Guid.Parse(newData.Id),
+                versionedBlobStoragePath,
+                blobVersionId,
+                application.StorageAccountNumber
+            );
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
 
         DataElement dataElement = createResult.DataElement;
         dataElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
@@ -878,7 +890,7 @@ public class DataController : ControllerBase
                 updatedProperties,
                 new DataElementUpdateContext
                 {
-                    EnforceLockCheck = true,
+                    IgnoreLock = false,
                     ExpectedCurrentBlobVersion = expectedCurrentBlobVersion,
                     ExpectedInstanceVersion = preconditions.InstanceVersion,
                     ExpectedProcessStateVersion = preconditions.ProcessStateVersion,
@@ -1042,6 +1054,7 @@ public class DataController : ControllerBase
                 propertyList,
                 new DataElementUpdateContext
                 {
+                    IgnoreLock = true,
                     ExpectedInstanceVersion = preconditions.InstanceVersion,
                     ExpectedProcessStateVersion = preconditions.ProcessStateVersion,
                 },
@@ -1051,6 +1064,10 @@ public class DataController : ControllerBase
         catch (StorageVersionMismatchException exception)
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
 
         VersionPreconditionHelper.WriteVersionResponseHeaders(Response, updateResult);
@@ -1230,6 +1247,7 @@ public class DataController : ControllerBase
                 },
                 new DataElementUpdateContext
                 {
+                    IgnoreLock = true,
                     ExpectedInstanceVersion = preconditions.InstanceVersion,
                     ExpectedProcessStateVersion = preconditions.ProcessStateVersion,
                 }

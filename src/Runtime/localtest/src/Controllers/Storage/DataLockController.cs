@@ -110,6 +110,10 @@ public class DataLockController : ControllerBase
             VersionPreconditionHelper.WriteVersionResponseHeaders(Response, updatedDataElement);
             return Created(updatedDataElement.DataElement.Id, updatedDataElement.DataElement);
         }
+        catch (ProcessStatusConflictException e)
+        {
+            return Conflict(e.Message);
+        }
         catch (RepositoryException e)
         {
             return e.StatusCodeSuggestion != null
@@ -170,6 +174,10 @@ public class DataLockController : ControllerBase
             );
             VersionPreconditionHelper.WriteVersionResponseHeaders(Response, updatedDataElement);
             return Ok(updatedDataElement.DataElement);
+        }
+        catch (ProcessStatusConflictException e)
+        {
+            return Conflict(e.Message);
         }
         catch (RepositoryException e)
         {

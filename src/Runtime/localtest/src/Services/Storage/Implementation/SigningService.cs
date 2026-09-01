@@ -195,7 +195,7 @@ public class SigningService : ISigningService
                 [],
                 existingSignDocument is null
                     ? []
-                    : [new InstanceMutationDataElementDelete(existingSignDocument.DataElement, false)],
+                    : [new InstanceMutationDataElementDelete(existingSignDocument.DataElement, IgnoreLock: true)],
                 instance,
                 [],
                 expectedInstanceVersion,

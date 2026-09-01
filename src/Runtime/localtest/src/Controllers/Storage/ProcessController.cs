@@ -132,6 +132,10 @@ public class ProcessController : ControllerBase
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
         }
+        catch (ProcessStatusConflictException exception)
+        {
+            return Conflict(exception.Message);
+        }
 
         if (processState?.CurrentTask?.AltinnTaskType == "signing")
         {
@@ -292,7 +296,7 @@ public class ProcessController : ControllerBase
                 [],
                 [
                     .. generatedDataElementsToDelete.Select(dataElement =>
-                        new InstanceMutationDataElementDelete(dataElement, false)
+                        new InstanceMutationDataElementDelete(dataElement, IgnoreLock: true)
                     ),
                 ],
                 existingInstance,
@@ -313,6 +317,10 @@ public class ProcessController : ControllerBase
         catch (StorageVersionMismatchException exception)
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
 
         (updatedInstance, _) = await _instanceRepository.GetOne(

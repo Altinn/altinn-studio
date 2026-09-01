@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
@@ -161,7 +162,7 @@ namespace Altinn.Platform.Storage.Services
             InstanceMutationCommit mutation = new(
                 [],
                 [],
-                [new InstanceMutationDataElementDelete(dataElement, false)],
+                [new InstanceMutationDataElementDelete(dataElement, IgnoreLock: true)],
                 instance,
                 [],
                 expectedInstanceVersion,
@@ -202,12 +203,6 @@ namespace Altinn.Platform.Storage.Services
                     cancellationToken
                 );
 
-            if (detachedBlobVersions.Count == 0)
-            {
-                await DeleteLegacyDataElementBlob(instance, dataElement, storageAccountNumber);
-                return;
-            }
-
             foreach (string blobVersionId in detachedBlobVersions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -238,6 +233,8 @@ namespace Altinn.Platform.Storage.Services
                     // Best-effort metadata cleanup after local metadata has already committed.
                 }
             }
+
+            await DeleteLegacyDataElementBlob(instance, dataElement, storageAccountNumber);
         }
 
         private async Task DeleteLegacyDataElementBlob(
@@ -245,16 +242,21 @@ namespace Altinn.Platform.Storage.Services
             DataElement dataElement,
             int? storageAccountNumber)
         {
-            if (string.IsNullOrEmpty(dataElement.BlobStoragePath))
-            {
-                return;
-            }
+            string legacyBlobStoragePath =
+                string.IsNullOrEmpty(dataElement.BlobVersionId)
+                && !string.IsNullOrEmpty(dataElement.BlobStoragePath)
+                    ? dataElement.BlobStoragePath
+                    : DataElementHelper.DataFileName(
+                        instance.AppId,
+                        dataElement.InstanceGuid,
+                        dataElement.Id
+                    );
 
             try
             {
                 await _blobRepository.DeleteBlob(
                     instance.Org,
-                    dataElement.BlobStoragePath,
+                    legacyBlobStoragePath,
                     storageAccountNumber
                 );
             }

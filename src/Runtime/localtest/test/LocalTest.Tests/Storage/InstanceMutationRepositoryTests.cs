@@ -237,7 +237,7 @@ public sealed class InstanceMutationRepositoryTests
         var mutation = new InstanceMutationCommit(
             CreateDataElements: [],
             UpdateDataElements: [],
-            DeleteDataElements: [new InstanceMutationDataElementDelete(dataElement, true)],
+            DeleteDataElements: [new InstanceMutationDataElementDelete(dataElement, IgnoreLock: false)],
             InstanceUpdates: CreateMutationInstance(instance, instance.LastChanged, "delete-actor"),
             InstanceUpdateProperties: [],
             ExpectedInstanceVersion: versions.InstanceVersion,
@@ -283,7 +283,7 @@ public sealed class InstanceMutationRepositoryTests
         var mutation = new InstanceMutationCommit(
             CreateDataElements: [],
             UpdateDataElements: [],
-            DeleteDataElements: [new InstanceMutationDataElementDelete(dataElement, false)],
+            DeleteDataElements: [new InstanceMutationDataElementDelete(dataElement, IgnoreLock: true)],
             InstanceUpdates: CreateMutationInstance(instance, instance.LastChanged, "delete-actor"),
             InstanceUpdateProperties: [],
             ExpectedInstanceVersion: versions.InstanceVersion,
@@ -334,7 +334,7 @@ public sealed class InstanceMutationRepositoryTests
                         Guid.Parse(dataElement.Id),
                         new Dictionary<string, object> { ["/locked"] = true },
                         null,
-                        EnforceLockCheck: false
+                        IgnoreLock: true
                     ),
                 ],
                 DeleteDataElements: [],
@@ -409,7 +409,7 @@ public sealed class InstanceMutationRepositoryTests
                             ["/currentBlobVersion"] = newBlobVersion,
                         },
                         null,
-                        EnforceLockCheck: true
+                        IgnoreLock: false
                     ),
                 ],
                 DeleteDataElements: [],

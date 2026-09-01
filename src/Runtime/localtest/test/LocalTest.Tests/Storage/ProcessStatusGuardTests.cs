@@ -92,6 +92,99 @@ public class ProcessStatusGuardTests
         Assert.Equal("value", result.Instance.DataValues["key"]);
     }
 
+    [Fact]
+    public async Task Update_WhenPersistedProcessIsProcessing_ThrowsProcessStatusConflict()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await CreateProcessingInstance(storage);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
+            instanceGuid
+        );
+        instance.DataValues = new Dictionary<string, string> { ["key"] = "value" };
+
+        ProcessStatusConflictException exception =
+            await Assert.ThrowsAsync<ProcessStatusConflictException>(() =>
+                storage.InstanceRepository.Update(
+                    instance,
+                    [nameof(Instance.DataValues)],
+                    CancellationToken.None
+                )
+            );
+
+        Assert.Equal(ProcessStatus.Processing, exception.CurrentProcessStatus);
+        (Instance persisted, _) = await storage.InstanceRepository.GetOne(
+            instanceGuid,
+            false,
+            CancellationToken.None
+        );
+        Assert.Null(persisted.DataValues);
+        Assert.Equal(
+            versions.InstanceVersion,
+            (await storage.InstanceRepository.ReadVersions(instanceGuid)).InstanceVersion
+        );
+    }
+
+    [Fact]
+    public async Task Update_WhenTheCallerAlreadySetProcessing_ReadsThePersistedStatusNotThePayload()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await CreateProcessingInstance(storage);
+        Assert.Equal(ProcessStatus.Processing, instance.Process.Status);
+
+        // The very same already-mutated payload that was admitted while the persisted status was
+        // still idle is now rejected, so the guard cannot be reading the status off the payload.
+        ProcessStatusConflictException exception =
+            await Assert.ThrowsAsync<ProcessStatusConflictException>(() =>
+                storage.InstanceRepository.Update(
+                    instance,
+                    [nameof(Instance.Process)],
+                    CancellationToken.None
+                )
+            );
+
+        Assert.Equal(ProcessStatus.Processing, exception.CurrentProcessStatus);
+    }
+
+    [Fact]
+    public async Task Update_WhenVersionMismatchAndProcessing_ReportsTheVersionMismatch()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await CreateProcessingInstance(storage);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
+            instanceGuid
+        );
+        instance.DataValues = new Dictionary<string, string> { ["key"] = "value" };
+
+        await Assert.ThrowsAsync<InstanceVersionMismatchException>(() =>
+            storage.InstanceRepository.Update(
+                instance,
+                [nameof(Instance.DataValues)],
+                CancellationToken.None,
+                versions.InstanceVersion + 1
+            )
+        );
+    }
+
+    [Fact]
+    public async Task UpdateReadStatus_WhenProcessing_RemainsUnguarded()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await CreateProcessingInstance(storage);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        instance.Status.ReadStatus = ReadStatus.Read;
+
+        await storage.InstanceRepository.UpdateReadStatus(instance, CancellationToken.None);
+
+        (Instance persisted, _) = await storage.InstanceRepository.GetOne(
+            instanceGuid,
+            false,
+            CancellationToken.None
+        );
+        Assert.Equal(ReadStatus.Read, persisted.Status.ReadStatus);
+    }
+
     private static Instance InstanceWithStatus(ProcessStatus? status) =>
         new() { Process = new ProcessState { Status = status } };
 
