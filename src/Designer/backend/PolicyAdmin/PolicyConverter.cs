@@ -107,6 +107,19 @@ public static class PolicyConverter
                         policy.RequiredAuthenticationLevelOrg = astr.Value;
                     }
                 }
+
+                if (
+                    attributeAssignmentExpression.Category.AbsoluteUri.Equals(
+                        AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelSystemUser
+                    )
+                )
+                {
+                    XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                    if (astr != null)
+                    {
+                        policy.RequiredAuthenticationLevelSystemUser = astr.Value;
+                    }
+                }
             }
         }
     }
@@ -215,6 +228,13 @@ public static class PolicyConverter
         {
             policyOutput.ObligationExpressions.Add(
                 GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg)
+            );
+        }
+
+        if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelSystemUser))
+        {
+            policyOutput.ObligationExpressions.Add(
+                GetAuthenticationLevelObligationSystemUser(policyInput.RequiredAuthenticationLevelSystemUser)
             );
         }
 
@@ -407,6 +427,28 @@ public static class PolicyConverter
         );
         xacmlAttributeAssignmentExpression.Category = new Uri(
             AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
+        );
+        expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+        expression.FulfillOn = XacmlEffectType.Permit;
+        return expression;
+    }
+
+    private static XacmlObligationExpression GetAuthenticationLevelObligationSystemUser(string level)
+    {
+        XacmlObligationExpression expression = new XacmlObligationExpression(
+            new Uri("urn:altinn:obligation:authenticationLevel3"),
+            XacmlEffectType.Permit
+        );
+
+        XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
+        astr.Value = level;
+
+        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(
+            new Uri("urn:altinn:obligation3-assignment3"),
+            astr
+        );
+        xacmlAttributeAssignmentExpression.Category = new Uri(
+            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelSystemUser
         );
         expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
         expression.FulfillOn = XacmlEffectType.Permit;
