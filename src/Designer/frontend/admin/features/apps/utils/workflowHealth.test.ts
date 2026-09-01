@@ -110,11 +110,32 @@ describe('isEngineUnavailableError', () => {
     expect(isEngineUnavailableError(new Error('boom'))).toBe(false);
     expect(isEngineUnavailableError(undefined)).toBe(false);
   });
+
+  it.each([502, 503, 504])(
+    'recognizes a %i with no problem type, which is what an ingress answers with',
+    (status) => {
+      const error = new AxiosError();
+      error.response = { status, data: '<html>502 Bad Gateway</html>' } as AxiosResponse;
+      expect(isEngineUnavailableError(error)).toBe(true);
+    },
+  );
+
+  it('does not treat other server errors as an unreachable engine', () => {
+    const error = new AxiosError();
+    error.response = { status: 500, data: '' } as AxiosResponse;
+    expect(isEngineUnavailableError(error)).toBe(false);
+  });
+
+  it('recognizes a status-only response with no body at all', () => {
+    const error = new AxiosError();
+    error.response = { status: 502 } as AxiosResponse;
+    expect(isEngineUnavailableError(error)).toBe(true);
+  });
 });
 
 describe('mergeWorkflowHealth', () => {
   it('derives health for every key the engine answered for', () => {
-    const { healthByKey, isUnavailable } = mergeWorkflowHealth([
+    const { healthByKey, pendingKeys } = mergeWorkflowHealth([
       {
         keys: [guid, otherGuid],
         data: {
@@ -137,7 +158,7 @@ describe('mergeWorkflowHealth', () => {
       [guid]: WorkflowHealth.Failed,
       [otherGuid]: WorkflowHealth.Healthy,
     });
-    expect(isUnavailable).toBe(false);
+    expect(pendingKeys.size).toBe(0);
   });
 
   it('reports an unmatched key as no data, never as healthy', () => {
@@ -162,13 +183,14 @@ describe('mergeWorkflowHealth', () => {
     expect(healthByKey[guid]).toBe(WorkflowHealth.NoData);
   });
 
-  it('leaves the keys of an in-flight request out instead of pre-filling no data', () => {
-    const { healthByKey } = mergeWorkflowHealth([{ keys: [guid], isPending: true }]);
+  it('reports the keys of an in-flight request as pending instead of pre-filling a verdict', () => {
+    const { healthByKey, pendingKeys } = mergeWorkflowHealth([{ keys: [guid], isPending: true }]);
     expect(healthByKey).toEqual({});
+    expect(pendingKeys).toEqual(new Set([guid]));
   });
 
   it('keeps answered keys while another page is still in flight', () => {
-    const { healthByKey } = mergeWorkflowHealth([
+    const { healthByKey, pendingKeys } = mergeWorkflowHealth([
       {
         keys: [guid],
         data: {
@@ -182,29 +204,68 @@ describe('mergeWorkflowHealth', () => {
 
     expect(healthByKey[guid]).toBe(WorkflowHealth.Healthy);
     expect(healthByKey[otherGuid]).toBeUndefined();
+    expect(pendingKeys).toEqual(new Set([otherGuid]));
   });
 
-  it('degrades a failed request to no data', () => {
-    const { healthByKey, isUnavailable } = mergeWorkflowHealth([
-      { keys: [guid], error: new Error('boom') },
+  it('degrades a failed request to unknown, never to no data', () => {
+    const { healthByKey } = mergeWorkflowHealth([{ keys: [guid], error: new Error('boom') }]);
+
+    // No data is a claim about the instance that a request which never answered cannot make.
+    expect(healthByKey[guid]).toBe(WorkflowHealth.Unknown);
+  });
+
+  it('reports the keys of an unreachable engine as unavailable', () => {
+    const { healthByKey } = mergeWorkflowHealth([{ keys: [guid], error: unavailableError() }]);
+    expect(healthByKey[guid]).toBe(WorkflowHealth.Unavailable);
+  });
+
+  it('degrades only the keys of the request that failed', () => {
+    const { healthByKey } = mergeWorkflowHealth([
+      {
+        keys: [guid],
+        data: {
+          data: [
+            {
+              key: guid,
+              namespace: 'ttd/app',
+              createdAt: '',
+              workflowCounts: counts({ failedVisible: 1 }),
+            },
+          ],
+          pageSize: 1,
+          totalCount: 1,
+        },
+      },
+      { keys: [otherGuid], error: unavailableError() },
     ]);
 
-    expect(healthByKey[guid]).toBe(WorkflowHealth.NoData);
-    expect(isUnavailable).toBe(false);
+    // One transient failure must not erase a verdict another request already established.
+    expect(healthByKey[guid]).toBe(WorkflowHealth.Failed);
+    expect(healthByKey[otherGuid]).toBe(WorkflowHealth.Unavailable);
   });
 
-  it('flags the whole lookup unavailable when a request hit the unavailable problem', () => {
-    const error = new AxiosError();
-    error.response = {
-      status: 502,
-      data: { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' },
-    } as AxiosResponse;
+  it('reports every key as unavailable when every request hit an unreachable engine', () => {
+    const { healthByKey } = mergeWorkflowHealth([
+      { keys: [guid], error: unavailableError() },
+      { keys: [otherGuid], error: unavailableError() },
+    ]);
 
-    const { isUnavailable } = mergeWorkflowHealth([{ keys: [guid], error }]);
-    expect(isUnavailable).toBe(true);
+    expect(healthByKey).toEqual({
+      [guid]: WorkflowHealth.Unavailable,
+      [otherGuid]: WorkflowHealth.Unavailable,
+    });
   });
 
-  it('is empty and available when nothing was requested', () => {
-    expect(mergeWorkflowHealth([])).toEqual({ isUnavailable: false, healthByKey: {} });
+  it('is empty when nothing was requested', () => {
+    expect(mergeWorkflowHealth([])).toEqual({ healthByKey: {}, pendingKeys: new Set() });
   });
 });
+
+const unavailableError = () => {
+  const error = new AxiosError();
+  error.response = {
+    status: 502,
+    data: { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' },
+  } as AxiosResponse;
+  return error;
+};

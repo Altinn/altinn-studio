@@ -19,7 +19,7 @@ export const useAppInstancesQuery = (
   isSoftDeleted?: boolean,
   isHardDeleted?: boolean,
   createdBefore?: string,
-): UseInfiniteQueryResult<SimpleInstance[]> => {
+): UseInfiniteQueryResult<SimpleInstance[][]> => {
   return useInfiniteQuery({
     initialPageParam: undefined,
     queryKey: [
@@ -55,7 +55,9 @@ export const useAppInstancesQuery = (
         )
       ).data,
     getNextPageParam: (lastPage) => lastPage.continuationToken,
-    select: (data) => data.pages.flatMap((page) => page.instances),
+    // The page boundaries are kept rather than flattened away: the workflow-health enrichment is
+    // requested per loaded page, so its requests stay identified by the page they belong to.
+    select: (data) => data.pages.map((page) => page.instances),
     meta: {
       hideDefaultError: (error: any) =>
         isAxiosError(error) &&

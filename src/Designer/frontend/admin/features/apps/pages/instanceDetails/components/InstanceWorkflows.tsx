@@ -250,20 +250,28 @@ const WorkflowSteps = ({ steps }: { steps: WorkflowStepStatus[] }) => {
 /** A step's own account of what happened: what it is waiting for, and every error it recorded. */
 const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
   const { t } = useTranslation();
-  const hasWaitingReason = !!step.lastDeferReason;
+  const deferReason = step.lastDeferReason;
   const errorHistory = step.errorHistory ?? [];
 
-  if (!hasWaitingReason && !errorHistory.length) {
+  if (!deferReason && !errorHistory.length) {
     return <span>-</span>;
   }
+
+  // The engine leaves the last defer reason on the step after it stops waiting, so only a step that
+  // is actually parked may read as currently blocked. On any other step the same text is history,
+  // which is worth keeping for triage under a label that says so.
+  const deferReasonLabel =
+    step.status === 'Waiting'
+      ? t('admin.workflows.step.waiting_reason')
+      : t('admin.workflows.step.last_waiting_reason');
 
   return (
     <div className={classes.stepDetails}>
       {/* Engine-provided free text (defer reasons, error messages) is rendered as its own node
           rather than interpolated into a translation, since i18next HTML-escapes interpolations. */}
-      {hasWaitingReason && (
+      {deferReason && (
         <span>
-          {t('admin.workflows.step.waiting_reason')}: {step.lastDeferReason}
+          {deferReasonLabel}: {deferReason}
         </span>
       )}
       {(step.deferCount ?? 0) > 1 && (

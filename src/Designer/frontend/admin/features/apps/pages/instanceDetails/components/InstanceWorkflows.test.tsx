@@ -37,6 +37,8 @@ const failedHeadWorkflow = {
       databaseId: 'step-1',
       operationId: 'app-command',
       processingOrder: 0,
+      // A step that stopped waiting keeps the reason it last waited for: it is history, not a live
+      // block, and the engine leaves it on the step either way.
       status: 'Failed',
       command: { type: 'AppCommand' },
       retryCount: 3,
@@ -49,6 +51,16 @@ const failedHeadWorkflow = {
           wasRetryable: true,
         },
       ],
+    },
+    {
+      databaseId: 'step-2',
+      operationId: 'send-eformidling',
+      processingOrder: 1,
+      status: 'Waiting',
+      command: { type: 'AppCommand' },
+      retryCount: 0,
+      deferCount: 1,
+      lastDeferReason: 'venter på kvittering',
     },
   ],
 };
@@ -91,7 +103,7 @@ describe('InstanceWorkflows', () => {
     expect(requestedUrl).toContain(`collectionKey=${instanceId}`);
   });
 
-  it('shows per-step status, retries, the waiting reason and the error history', async () => {
+  it('shows per-step status, retries and the error history', async () => {
     jest
       .mocked(axios.get)
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
@@ -99,13 +111,29 @@ describe('InstanceWorkflows', () => {
 
     expect(await screen.findByRole('cell', { name: 'app-command' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '3' })).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('admin.workflows.step.waiting_reason'), { exact: false }),
-    ).toHaveTextContent('venter på signering');
     expect(screen.getByText('Boom went the pipeline', { exact: false })).toBeInTheDocument();
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
     ).toBeInTheDocument();
+  });
+
+  it('reads the defer reason as live only on the step that is actually waiting', async () => {
+    jest
+      .mocked(axios.get)
+      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    expect(
+      await screen.findByText(textMock('admin.workflows.step.waiting_reason'), { exact: false }),
+    ).toHaveTextContent('venter på kvittering');
+    // The failed step's reason is kept for triage, but under a label that says it is history: the
+    // step is not blocked on anything any more.
+    expect(
+      screen.getByText(textMock('admin.workflows.step.last_waiting_reason'), { exact: false }),
+    ).toHaveTextContent('venter på signering');
+    expect(
+      screen.queryByText(textMock('admin.workflows.step.waiting_reason'), { exact: false }),
+    ).not.toHaveTextContent('venter på signering');
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {

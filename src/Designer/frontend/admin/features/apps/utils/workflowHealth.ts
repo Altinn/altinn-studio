@@ -22,6 +22,11 @@ export enum WorkflowHealth {
   Healthy = 'healthy',
   /** The engine has no data for this instance: pre-v9 app, no transition activity, or pruned. */
   NoData = 'noData',
+  /**
+   * The engine's answer never arrived, so nothing is known about this instance. Distinct from
+   * `NoData`, which asserts that the engine holds nothing — a claim a failed request cannot make.
+   */
+  Unknown = 'unknown',
   /** The engine (or the gateway in front of it) is not reachable in this environment. */
   Unavailable = 'unavailable',
 }
@@ -35,6 +40,14 @@ export const ENGINE_UNAVAILABLE_PROBLEM_TYPES: readonly string[] = [
   'urn:altinn:studio:gateway:workflow-engine-unavailable',
   'urn:altinn:studio:designer:runtime-gateway-unavailable',
 ];
+
+/**
+ * Status codes that mean the same thing as the problem types above when no problem type survived.
+ * Designer's pass-through forwards an empty upstream body as a bare status code, and an ingress or
+ * service mesh in front of it can answer with an HTML body of its own, so the problem type is not
+ * always there to read.
+ */
+const ENGINE_UNAVAILABLE_STATUS_CODES: readonly number[] = [502, 503, 504];
 
 /**
  * Derives the traffic light from the engine's per-collection rollup.
@@ -60,12 +73,22 @@ export function deriveWorkflowHealth(
   return WorkflowHealth.Healthy;
 }
 
+/**
+ * Whether a failed request means "the engine is not reachable here".
+ *
+ * The problem type is the primary signal. A bad gateway, an unavailable upstream or a gateway
+ * timeout says the same thing on its own, so those status codes count even when no problem type
+ * came with them.
+ */
 export function isEngineUnavailableError(error: unknown): boolean {
   if (!isAxiosError(error)) {
     return false;
   }
   const problemType = (error.response?.data as { type?: unknown } | undefined)?.type;
-  return typeof problemType === 'string' && ENGINE_UNAVAILABLE_PROBLEM_TYPES.includes(problemType);
+  if (typeof problemType === 'string' && ENGINE_UNAVAILABLE_PROBLEM_TYPES.includes(problemType)) {
+    return true;
+  }
+  return ENGINE_UNAVAILABLE_STATUS_CODES.includes(error.response?.status ?? 0);
 }
 
 /**
@@ -88,49 +111,60 @@ const GUID_PATTERN =
 /** One annotate request's worth of health: the keys asked for, and what came back. */
 export type WorkflowHealthChunk = {
   keys: string[];
-  /** True while this request is still in flight. Its keys stay absent from the lookup. */
+  /** True while this request is still in flight. Its keys are reported as pending, not as data. */
   isPending?: boolean;
   data?: WorkflowCollectionListResponse | null;
   error?: unknown;
 };
 
 export type WorkflowHealthLookup = {
-  /** True when any request failed because the engine is not reachable in this environment. */
-  isUnavailable: boolean;
   /**
-   * Health per requested key. A key the engine did not answer for maps to `NoData`; a key whose
-   * request has not answered yet is absent, so the caller can tell "not known yet" from "no data".
+   * Health per requested key, from the request that key was asked for in. A key the engine did not
+   * answer for maps to `NoData`; a key whose request has not answered yet is absent.
    */
   healthByKey: Record<string, WorkflowHealth>;
+  /** Keys whose own request is still in flight, so their verdict is not known yet. */
+  pendingKeys: Set<string>;
 };
 
 /**
  * Folds the annotate responses for the loaded instance pages into one lookup.
  *
- * A key the engine did not return a collection for is unmatched — no data. A request that failed
- * for any other reason degrades its keys to no data as well: health enrichment must never turn into
- * an error state for the instance list it decorates. Keys of a request still in flight are left out
- * entirely rather than pre-filled with no data, which would flash a false verdict.
+ * Every verdict is scoped to the request its key was asked for in, so one failed request never
+ * erases what the others answered: only its own keys degrade. A key the engine returned no
+ * collection for is unmatched — no data. A request that failed reports its keys as `Unavailable`
+ * when the engine is not reachable here, and as `Unknown` otherwise: a failed request cannot claim
+ * the engine holds nothing. Health enrichment must never turn into an error state for the instance
+ * list it decorates, so no failure is propagated as one. Keys of a request still in flight are
+ * reported as pending rather than pre-filled with a verdict, which would flash something false.
  */
 export function mergeWorkflowHealth(chunks: WorkflowHealthChunk[]): WorkflowHealthLookup {
   const healthByKey: Record<string, WorkflowHealth> = {};
+  const pendingKeys = new Set<string>();
 
   for (const chunk of chunks) {
     if (chunk.isPending) {
+      for (const key of chunk.keys) {
+        pendingKeys.add(key);
+      }
+      continue;
+    }
+    if (chunk.error) {
+      const health = isEngineUnavailableError(chunk.error)
+        ? WorkflowHealth.Unavailable
+        : WorkflowHealth.Unknown;
+      for (const key of chunk.keys) {
+        healthByKey[key] = health;
+      }
       continue;
     }
     const countsByKey = new Map(
       (chunk.data?.data ?? []).map((collection) => [collection.key, collection.workflowCounts]),
     );
     for (const key of chunk.keys) {
-      healthByKey[key] = chunk.error
-        ? WorkflowHealth.NoData
-        : deriveWorkflowHealth(countsByKey.get(key));
+      healthByKey[key] = deriveWorkflowHealth(countsByKey.get(key));
     }
   }
 
-  return {
-    isUnavailable: chunks.some((chunk) => isEngineUnavailableError(chunk.error)),
-    healthByKey,
-  };
+  return { healthByKey, pendingKeys };
 }

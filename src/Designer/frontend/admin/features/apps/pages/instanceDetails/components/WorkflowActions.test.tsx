@@ -111,7 +111,7 @@ describe('WorkflowActions', () => {
     );
   });
 
-  it('invalidates the drill-down, the health column and the discovery view after a verb', async () => {
+  it('invalidates the engine-backed views and the Storage-backed instance views after a verb', async () => {
     const user = userEvent.setup();
     const client = createQueryClientMock();
     const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
@@ -120,12 +120,14 @@ describe('WorkflowActions', () => {
     await user.click(retryButton());
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
 
-    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(5));
     const invalidatedKeys = invalidateQueries.mock.calls.map(([filters]) => filters?.queryKey);
     expect(invalidatedKeys).toEqual([
       [QueryKey.AppInstanceWorkflows, org, env, app, collectionKey],
       [QueryKey.AppInstancesWorkflowHealth, org, env, app],
       [QueryKey.AppWorkflowProblems, org, env, app],
+      [QueryKey.AppInstances, org, env, app],
+      [QueryKey.AppInstanceDetails, org, env, app],
     ]);
   });
 
@@ -140,25 +142,36 @@ describe('WorkflowActions', () => {
     expect(await screen.findByText(textMock('admin.workflows.actions.error'))).toBeInTheDocument();
   });
 
-  it('confirms success in place', async () => {
+  it('confirms success in place once the retried workflow has left the failed state', async () => {
     const user = userEvent.setup();
-    renderWorkflowActions(workflow('Failed'));
+    const { rerenderWith } = renderWorkflowActions(workflow('Failed'));
 
     await user.click(retryButton());
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
+    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+
+    // Resuming enqueues the workflow, and the invalidated drill-down comes back with it in the
+    // status the verb produced — so the verbs are gone by the time the outcome is known.
+    rerenderWith(workflow('Enqueued'));
 
     expect(
       await screen.findByText(textMock('admin.workflows.actions.retry.success')),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('admin.workflows.actions.retry') }),
+    ).not.toBeInTheDocument();
   });
 });
 
 const renderWorkflowActions = (
   workflowToRender: WorkflowStatus,
   client: QueryClient = createQueryClientMock(),
-) =>
-  render(
+) => {
+  const actionsWith = (workflowToShow: WorkflowStatus) => (
     <QueryClientProvider client={client}>
-      <WorkflowActions context={context} workflow={workflowToRender} />
-    </QueryClientProvider>,
+      <WorkflowActions context={context} workflow={workflowToShow} />
+    </QueryClientProvider>
   );
+  const { rerender, ...renderResult } = render(actionsWith(workflowToRender));
+  return { ...renderResult, rerenderWith: (next: WorkflowStatus) => rerender(actionsWith(next)) };
+};

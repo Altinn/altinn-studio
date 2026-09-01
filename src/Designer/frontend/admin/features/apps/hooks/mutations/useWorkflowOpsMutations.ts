@@ -53,6 +53,12 @@ export const useAbandonWorkflowMutation = (
  * Both verbs change the counts the traffic-light column and the discovery view are derived from, so
  * all three engine-backed queries for this app are invalidated — the health and problems keys by
  * prefix, since their full keys carry the page's key set and the failure filter.
+ *
+ * The two Storage-backed instance reads go with them: a resumed workflow can drive the process
+ * forward, which changes the task and status Storage reports. The engine works asynchronously and
+ * these verbs only enqueue, so this is best-effort freshness rather than a guarantee that the
+ * refetched instance already reflects the verb. Both are invalidated by app prefix, since the
+ * instance list's key carries every filter and the details key carries the route's instance id.
  */
 async function invalidateWorkflowQueries(
   queryClient: QueryClient,
@@ -67,6 +73,12 @@ async function invalidateWorkflowQueries(
     }),
     queryClient.invalidateQueries({
       queryKey: [QueryKey.AppWorkflowProblems, org, env, app],
+    }),
+    queryClient.invalidateQueries({
+      queryKey: [QueryKey.AppInstances, org, env, app],
+    }),
+    queryClient.invalidateQueries({
+      queryKey: [QueryKey.AppInstanceDetails, org, env, app],
     }),
   ]);
 }
