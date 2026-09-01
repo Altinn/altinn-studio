@@ -927,6 +927,7 @@ public class ResourceAdminController : ControllerBase
     */
     [HttpPost]
     [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+    [ValidateAntiForgeryToken]
     [Route("designer/api/{org}/resources/publish/{repository}/{id}/{env}/policy")]
     public async Task<ActionResult> PublishResourcePolicy(
         string org,
