@@ -36,7 +36,13 @@ internal static class FakeMaskinportenTokenGenerator
         if (additionalClaims is not null)
         {
             foreach (var claim in additionalClaims)
-                claims[claim.Key] = claim.Value;
+            {
+                if (!claims.TryAdd(claim.Key, claim.Value))
+                    throw new ArgumentException(
+                        $"Claim '{claim.Key}' would overwrite a claim the generator already sets.",
+                        nameof(additionalClaims)
+                    );
+            }
         }
 
         var descriptor = new SecurityTokenDescriptor
