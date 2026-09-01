@@ -81,7 +81,13 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await EnqueueWithCollection(repo, "my-collection", [wf]);
 
         // Assert
-        var collections = await repo.GetCollections("test-ns", TestContext.Current.CancellationToken);
+        var collections = (
+            await repo.GetCollections(
+                "test-ns",
+                pageSize: 100,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).Collections;
         var collection = Assert.Single(collections);
         Assert.Equal("my-collection", collection.Key);
         Assert.Single(collection.Heads);
@@ -324,7 +330,9 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata, ns: ns, labels: labels);
 
         // Assert
-        var collections = await repo.GetCollections(ns, TestContext.Current.CancellationToken);
+        var collections = (
+            await repo.GetCollections(ns, pageSize: 100, cancellationToken: TestContext.Current.CancellationToken)
+        ).Collections;
         Assert.Empty(collections);
     }
 
@@ -541,7 +549,13 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await EnqueueWithCollection(repo, "col-2", [CreateWorkflowRequest("b")]);
 
         // Act
-        var collections = await repo.GetCollections("test-ns", TestContext.Current.CancellationToken);
+        var collections = (
+            await repo.GetCollections(
+                "test-ns",
+                pageSize: 100,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).Collections;
 
         // Assert
         Assert.Equal(2, collections.Count);
@@ -558,8 +572,12 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await EnqueueWithCollection(repo, "shared-key", [CreateWorkflowRequest("b")], ns: "ns-2");
 
         // Act
-        var ns1Collections = await repo.GetCollections("ns-1", TestContext.Current.CancellationToken);
-        var ns2Collections = await repo.GetCollections("ns-2", TestContext.Current.CancellationToken);
+        var ns1Collections = (
+            await repo.GetCollections("ns-1", pageSize: 100, cancellationToken: TestContext.Current.CancellationToken)
+        ).Collections;
+        var ns2Collections = (
+            await repo.GetCollections("ns-2", pageSize: 100, cancellationToken: TestContext.Current.CancellationToken)
+        ).Collections;
 
         // Assert — each namespace sees only its own collection
         Assert.Single(ns1Collections);
