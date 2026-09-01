@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -69,6 +71,89 @@ public interface IRuntimeGatewayClient
         string app,
         AltinnEnvironment environment,
         bool isUndeploy,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lists workflow collections for an app through the runtime gateway's workflow pass-through.
+    /// Three mutually exclusive modes: list (<paramref name="cursor"/>, <paramref name="pageSize"/>),
+    /// annotate (<paramref name="keys"/>, repeatable), and discover (<paramref name="failures"/>).
+    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowCollectionsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        IReadOnlyList<string>? keys,
+        string? failures,
+        string? cursor,
+        int? pageSize,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets a single workflow collection by key through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowCollectionAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string key,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lists workflows for an app through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string? collectionKey,
+        IReadOnlyList<string>? statuses,
+        IReadOnlyList<string>? labels,
+        bool? isHead,
+        string? cursor,
+        int? pageSize,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets a single workflow by id through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Resumes a terminal workflow through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// </summary>
+    Task<HttpResponseMessage> ResumeWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        bool cascade,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Abandons an unsuccessful terminal workflow through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// </summary>
+    Task<HttpResponseMessage> AbandonWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
         CancellationToken cancellationToken
     );
 }
