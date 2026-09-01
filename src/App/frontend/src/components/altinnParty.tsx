@@ -15,15 +15,27 @@ import type { IParty } from 'src/types/shared';
 
 export interface IAltinnPartyProps {
   party: IParty;
-  onSelectParty: (party: IParty) => void;
+  onSelectParty: (party: IParty) => Promise<void> | void;
   showSubUnits: boolean;
+  selectedPartyId?: number;
 }
 
-export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
+export type AltinnPartyState = 'selectable' | 'noAccess' | 'selected';
+
+function getPartyState(party: IParty, selectedPartyId: number | undefined): AltinnPartyState {
+  if (party.onlyHierarchyElementWithNoAccess) {
+    // Takes precedence — a party without access can never be the chosen one
+    return 'noAccess';
+  }
+  return party.partyId === selectedPartyId ? 'selected' : 'selectable';
+}
+
+export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyId }: IAltinnPartyProps) {
   const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const isOrg = party.partyTypeName === PartyType.Organization;
+  const partyState = getPartyState(party, selectedPartyId);
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();
@@ -102,12 +114,15 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
             <Flex
               key={index}
               role='button'
-              className={classes.subUnit}
+              className={cn(classes.subUnit, {
+                [classes.subUnitSelected]: getPartyState(childParty, selectedPartyId) === 'selected',
+              })}
               container
               direction='column'
               onClick={onClickParty.bind(null, childParty)}
               onKeyPress={onKeyPress.bind(null, childParty)}
               tabIndex={subUnitsExpanded ? 0 : undefined}
+              aria-busy={getPartyState(childParty, selectedPartyId) === 'selected'}
             >
               <Flex
                 container
@@ -130,7 +145,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
   }
 
   return (
-    <div className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
+    <div className={partyState === 'noAccess' ? classes.partyPaperDisabled : classes.partyPaper}>
       <Flex
         id={`party-${party.partyId}`}
         role='button'
@@ -138,10 +153,14 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
         container
         direction='row'
         alignItems='center'
-        className={cn(classes.partyWrapper, { [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess })}
-        onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
-        onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
-        tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
+        className={cn(classes.partyWrapper, {
+          [classes.partyWrapperDisabled]: partyState === 'noAccess',
+          [classes.partyWrapperSelected]: partyState === 'selected',
+        })}
+        onClick={partyState !== 'noAccess' ? onClickParty.bind(null, party) : undefined}
+        onKeyPress={partyState !== 'noAccess' ? onKeyPress.bind(null, party) : undefined}
+        tabIndex={partyState !== 'noAccess' ? 0 : undefined}
+        aria-busy={partyState === 'selected'}
       >
         {isOrg ? (
           <Buildings3Icon

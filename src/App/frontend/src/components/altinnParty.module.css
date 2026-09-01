@@ -12,10 +12,23 @@
 }
 
 .partyWrapper:hover {
+  background-color: var(--colors-primary-blueLight);
   cursor: pointer;
 }
 
+.partyWrapperSelected,
+.partyWrapperSelected:hover {
+  /* Pressed-button look while the selection request is in flight: one step
+     darker than :hover. Applied to the clickable row rather than the paper,
+     so an expanded sub-unit list does not look selected along with it. */
+  background-color: var(--colors-primary-blueLighterActive);
+  /* Temporary busy — distinct from the permanent not-allowed on no-access parties */
+  cursor: progress;
+}
+
 .partyWrapperDisabled:hover {
+  /* No-access rows are not clickable: keep the paper's resting background */
+  background-color: var(--colors-primary-blueLighter);
   cursor: not-allowed;
 }
 
@@ -65,6 +78,14 @@
 .subUnit:hover {
   background: var(--colors-primary-blueLight);
   cursor: pointer;
+}
+
+.subUnitSelected,
+.subUnitSelected:hover {
+  /* Pressed-button look while the selection request is in flight: one step
+     darker than :hover (which is active at the moment of clicking). */
+  background: var(--colors-primary-blueLighterActive);
+  cursor: progress;
 }
 
 .subUnitListHeader {

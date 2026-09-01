@@ -76,6 +76,50 @@ describe('altinnParty', () => {
     });
   });
 
+  describe('selected state', () => {
+    it('should mark the party as selected when selectedPartyId matches', async () => {
+      await render({ selectedPartyId: getPartyMock().partyId });
+
+      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
+      expect(wrapper).toHaveAttribute('aria-busy', 'true');
+      expect(wrapper).toHaveClass('partyWrapperSelected');
+    });
+
+    it('should not mark the party as selected when selectedPartyId does not match', async () => {
+      await render({ selectedPartyId: getPartyMock().partyId + 1 });
+
+      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
+      expect(wrapper).toHaveAttribute('aria-busy', 'false');
+      expect(wrapper).not.toHaveClass('partyWrapperSelected');
+    });
+
+    it('should mark the sub-unit as selected when selectedPartyId matches a child party', async () => {
+      await render({
+        showSubUnits: true,
+        party: partyWithChildParties,
+        selectedPartyId: 1,
+      });
+
+      const subUnit = screen.getByText(/child party 1/i).closest('[role="button"]');
+      expect(subUnit).toHaveAttribute('aria-busy', 'true');
+      expect(subUnit).toHaveClass('subUnitSelected');
+
+      const otherSubUnit = screen.getByText(/child party 2/i).closest('[role="button"]');
+      expect(otherSubUnit).toHaveAttribute('aria-busy', 'false');
+      expect(otherSubUnit).not.toHaveClass('subUnitSelected');
+    });
+
+    it('should never mark a party without access as selected', async () => {
+      const party = { ...getPartyMock(), onlyHierarchyElementWithNoAccess: true };
+      await render({ party, selectedPartyId: party.partyId });
+
+      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
+      expect(wrapper).toHaveAttribute('aria-busy', 'false');
+      expect(wrapper.parentElement).toHaveClass('partyPaperDisabled');
+      expect(wrapper).not.toHaveClass('partyWrapperSelected');
+    });
+  });
+
   describe('should render with correct icon based on what kind of party it is', () => {
     it('should render with person icon if party is a person', async () => {
       await render();

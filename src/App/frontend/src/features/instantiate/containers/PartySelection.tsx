@@ -51,13 +51,25 @@ export const PartySelection = () => {
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
   const [showSubUnits, setShowSubUnits] = React.useState(true);
   const [showDeleted, setShowDeleted] = React.useState(defaultShowDeleted);
+  const [selectedPartyId, setSelectedPartyId] = React.useState<number | undefined>(undefined);
   const navigate = useNavigate();
 
   const appName = useAppName();
   const appOwner = useAppOwner();
 
   const onSelectParty = async (party: IParty) => {
-    await selectParty(party);
+    if (selectedPartyId !== undefined) {
+      // A selection is already in flight — ignore clicks on any party until it completes
+      return;
+    }
+    setSelectedPartyId(party.partyId);
+    const result = await selectParty(party);
+    if (!result) {
+      // selectParty resolves to undefined when the backend did not accept the change
+      // (real errors unmount this page via DisplayError in the provider)
+      setSelectedPartyId(undefined);
+      return;
+    }
     setUserHasSelectedParty(true);
     navigate('/');
   };
@@ -84,6 +96,7 @@ export const PartySelection = () => {
             party={party}
             onSelectParty={onSelectParty}
             showSubUnits={showSubUnits}
+            selectedPartyId={selectedPartyId}
           />
         ))}
         {hasMoreParties ? (
