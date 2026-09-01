@@ -62,6 +62,7 @@ internal static class GatewayExtensions
         builder
             .Services.AddOptions<GatewayContext>()
             .Bind(builder.Configuration.GetSection("Gateway"))
+            .Validate(context => !string.IsNullOrWhiteSpace(context.ServiceOwner), "Gateway.ServiceOwner is required.")
             .ValidateOnStart();
 
         builder.Services.AddKeyedSingleton<IAlertsClient>(

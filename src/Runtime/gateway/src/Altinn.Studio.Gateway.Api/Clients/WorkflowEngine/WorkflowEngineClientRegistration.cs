@@ -20,7 +20,10 @@ internal static class WorkflowEngineClientRegistration
         services
             .AddOptions<WorkflowEngineSettings>()
             .Bind(configuration.GetSection(WorkflowEngineSettings.SectionName))
-            .Validate(settings => settings.BaseUrl.IsAbsoluteUri, "WorkflowEngine.BaseUrl must be an absolute URI.")
+            .Validate(
+                settings => settings.BaseUrl.IsAbsoluteUri && string.IsNullOrEmpty(settings.BaseUrl.Query),
+                "WorkflowEngine.BaseUrl must be an absolute URI without a query string."
+            )
             .ValidateOnStart();
 
         // No resilience handler on purpose: resume/abandon are mutations, and a blanket retry
@@ -33,7 +36,7 @@ internal static class WorkflowEngineClientRegistration
                 var settings = serviceProvider
                     .GetRequiredService<IOptionsMonitor<WorkflowEngineSettings>>()
                     .CurrentValue;
-                client.BaseAddress = settings.BaseUrl;
+                client.BaseAddress = NormalizeBaseUrl(settings.BaseUrl);
                 client.Timeout = _requestTimeout;
             }
         );
@@ -42,4 +45,12 @@ internal static class WorkflowEngineClientRegistration
 
         return services;
     }
+
+    /// <summary>
+    /// Ensures the base URL ends with a trailing slash: under RFC 3986 reference resolution a
+    /// path-bearing base without one silently drops its last segment when a relative path is
+    /// resolved against it.
+    /// </summary>
+    internal static Uri NormalizeBaseUrl(Uri baseUrl) =>
+        baseUrl.AbsolutePath.EndsWith('/') ? baseUrl : new Uri(baseUrl.AbsoluteUri + "/");
 }
