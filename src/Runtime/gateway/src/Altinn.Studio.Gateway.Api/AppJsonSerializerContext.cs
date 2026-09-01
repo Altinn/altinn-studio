@@ -7,6 +7,7 @@ using Altinn.Studio.Gateway.Api.Endpoints.Public;
 using Altinn.Studio.Gateway.Contracts.Alerts;
 using Altinn.Studio.Gateway.Contracts.Deploy;
 using Altinn.Studio.Gateway.Contracts.Metrics;
+using Altinn.Studio.Gateway.Contracts.Workflows;
 
 namespace Altinn.Studio.Gateway.Api;
 
@@ -28,4 +29,5 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(AppActivityMetricsResponse))]
 [JsonSerializable(typeof(List<AppHealthMetric>))]
 [JsonSerializable(typeof(TriggerReconcileRequest))]
+[JsonSerializable(typeof(GatewayProblem))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }
