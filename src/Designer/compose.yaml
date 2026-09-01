@@ -114,6 +114,7 @@ services:
       - ASPNETCORE_URLS=http://+:6000
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
       - GeneralSettings:EnvironmentsUrl=http://studio-azure-mock:6161/environments.json
+      - PlatformSettings:AppClusterUrlPattern=http://studio-azure-mock:6161/apps/{org}/{env}
       - GeneralSettings:LanguageFilesLocation=Languages/
       - GeneralSettings:TemplateLocation=Templates/AspNet
       - GeneralSettings:DefaultAppTemplate=v8

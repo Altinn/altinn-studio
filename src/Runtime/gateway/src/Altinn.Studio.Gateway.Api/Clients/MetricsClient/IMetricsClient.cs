@@ -11,7 +11,12 @@ internal interface IMetricsClient
         int range,
         CancellationToken cancellationToken
     );
+    public Task<IEnumerable<Metric>> GetMetrics(int range, CancellationToken cancellationToken);
     public Task<IEnumerable<AppMetric>> GetAppMetrics(string app, int range, CancellationToken cancellationToken);
+    public Task<IEnumerable<AllAppsFailedRequest>> GetAllAppsFailedRequests(
+        int range,
+        CancellationToken cancellationToken
+    );
     public Uri GetLogsUrl(
         string subscriptionId,
         string org,

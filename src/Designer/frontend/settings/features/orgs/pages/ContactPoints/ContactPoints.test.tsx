@@ -32,6 +32,7 @@ const personContactPoint: ContactPoint = {
   name: 'Test',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'method-1', methodType: 'email', value: 'test@example.com' }],
 };
 
@@ -40,6 +41,7 @@ const slackContactPoint: ContactPoint = {
   name: '#general',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'method-2', methodType: 'slack', value: 'https://hooks.slack.com/test' }],
 };
 
