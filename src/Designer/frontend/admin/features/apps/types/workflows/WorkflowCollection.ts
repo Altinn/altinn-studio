@@ -13,7 +13,7 @@
  * the remainder `total - active - failedVisible - failedInvisible`.
  */
 export type CollectionWorkflowCounts = {
-  /** Workflows still in flight (Enqueued, Processing, Requeued, Waiting). */
+  /** Workflows in a non-terminal status (Enqueued, Processing, Requeued, Waiting, Held). */
   active: number;
   /** Failed workflows visible to the head frontier: the process itself is stuck. */
   failedVisible: number;

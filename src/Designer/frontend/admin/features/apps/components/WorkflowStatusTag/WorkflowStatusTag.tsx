@@ -17,6 +17,7 @@ const STATUS_PRESENTATION: Record<PersistentItemStatus, StatusPresentation> = {
   Processing: { color: 'info', labelKey: 'admin.workflows.status.processing' },
   Requeued: { color: 'info', labelKey: 'admin.workflows.status.requeued' },
   Waiting: { color: 'info', labelKey: 'admin.workflows.status.waiting' },
+  Held: { color: 'info', labelKey: 'admin.workflows.status.held' },
   Completed: { color: 'success', labelKey: 'admin.workflows.status.completed' },
   Failed: { color: 'danger', labelKey: 'admin.workflows.status.failed' },
   Canceled: { color: 'danger', labelKey: 'admin.workflows.status.canceled' },
