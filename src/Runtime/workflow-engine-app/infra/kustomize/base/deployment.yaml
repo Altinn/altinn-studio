@@ -106,7 +106,10 @@ spec:
               mountPath: /tmp
           livenessProbe:
             httpGet:
-              path: /health/live
+              # The versionless /health* paths are 301 redirects to the aggregate endpoint, and
+              # kubelet counts a 3xx as a pass - so probing them made both probes succeed as soon
+              # as Kestrel bound, without ever evaluating a health check. Probe the real endpoints.
+              path: /api/v1/health/live
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 10
@@ -114,7 +117,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /api/v1/health/ready
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 5
