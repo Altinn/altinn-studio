@@ -1,4 +1,3 @@
-export * from './StudioCombobox';
 export * from './StudioDecimalInput';
 export * from './StudioGridSelector';
 export * from './StudioLabelWrapper';
