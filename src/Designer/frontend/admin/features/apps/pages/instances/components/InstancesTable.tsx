@@ -17,6 +17,9 @@ import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { Link } from 'react-router-dom';
+import { useInstancesWorkflowHealthQuery } from 'admin/features/apps/hooks/queries/useInstancesWorkflowHealthQuery';
+import { extractInstanceGuid, WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
+import { WorkflowHealthCell, WorkflowHealthHeaderCell } from './WorkflowHealthColumn';
 
 type InstancesTableProps = {
   org: string;
@@ -82,6 +85,9 @@ export const InstancesTable = ({
     case 'success':
       return (
         <InstancesTableWithData
+          org={org}
+          environment={environment}
+          app={app}
           instances={data}
           hasMoreResults={hasNextPage}
           fetchMoreResults={fetchNextPage}
@@ -103,12 +109,38 @@ const InstancesTableSkeleton = ({ n }: { n: number }) => {
 };
 
 type InstancesTableWithDataProps = {
+  org: string;
+  environment: string;
+  app: string;
   instances: SimpleInstance[];
   hasMoreResults: boolean;
   fetchMoreResults: () => Promise<unknown>;
 };
 
+const COLUMN_COUNT = 5;
+
+/**
+ * An unreachable engine takes the whole column, an unusable instance id has no key to join on, and
+ * anything else is whatever the annotate response said (undefined while it is still in flight).
+ */
+function resolveRowHealth(
+  collectionKey: string | undefined,
+  healthByKey: Record<string, WorkflowHealth>,
+  isEngineUnavailable: boolean,
+): WorkflowHealth | undefined {
+  if (isEngineUnavailable) {
+    return WorkflowHealth.Unavailable;
+  }
+  if (collectionKey === undefined) {
+    return WorkflowHealth.NoData;
+  }
+  return healthByKey[collectionKey];
+}
+
 const InstancesTableWithData = ({
+  org,
+  environment,
+  app,
   instances,
   hasMoreResults,
   fetchMoreResults,
@@ -117,6 +149,23 @@ const InstancesTableWithData = ({
   const { isPending: isFetchingMoreResults, mutate: doFetchMoreResults } = useMutation({
     mutationFn: fetchMoreResults,
   });
+
+  // The engine's collection key is the bare instance GUID, which is exactly what Storage's Studio
+  // instance list already reports as the instance id.
+  const rows = instances.map((instance) => ({
+    instance,
+    collectionKey: extractInstanceGuid(instance.id),
+  }));
+  const {
+    healthByKey,
+    isUnavailable: isEngineUnavailable,
+    isPending: isHealthPending,
+  } = useInstancesWorkflowHealthQuery(
+    org,
+    environment,
+    app,
+    rows.map((row) => row.collectionKey).filter((key): key is string => key !== undefined),
+  );
 
   if (!instances.length) {
     return <StudioAlert data-color='info'>{t('admin.instances.no_results')}</StudioAlert>;
@@ -130,10 +179,13 @@ const InstancesTableWithData = ({
           <StudioTable.Cell>{t('admin.instances.created')}</StudioTable.Cell>
           <StudioTable.Cell>{t('admin.instances.process_task')}</StudioTable.Cell>
           <StudioTable.Cell>{t('admin.instances.status')}</StudioTable.Cell>
+          <StudioTable.Cell>
+            <WorkflowHealthHeaderCell />
+          </StudioTable.Cell>
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
-        {instances.map((instance) => (
+        {rows.map(({ instance, collectionKey }) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
               <Link to={`instances/${instance.id}`}>{instance.id}</Link>
@@ -147,13 +199,19 @@ const InstancesTableWithData = ({
             <StudioTable.Cell>
               <InstanceStatus instance={instance} />
             </StudioTable.Cell>
+            <StudioTable.Cell>
+              <WorkflowHealthCell
+                health={resolveRowHealth(collectionKey, healthByKey, isEngineUnavailable)}
+                isPending={isHealthPending}
+              />
+            </StudioTable.Cell>
           </StudioTable.Row>
         ))}
       </StudioTable.Body>
       {hasMoreResults && (
         <StudioTable.Foot>
           <StudioTable.Row>
-            <StudioTable.Cell className={classes.footerCell} colSpan={4}>
+            <StudioTable.Cell className={classes.footerCell} colSpan={COLUMN_COUNT}>
               <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
                 {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
                 {t('admin.instances.fetch_more')}

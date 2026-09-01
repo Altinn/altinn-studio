@@ -1,0 +1,54 @@
+.description {
+  margin-bottom: var(--ds-size-4);
+}
+
+.workflows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  align-items: flex-start;
+}
+
+.workflows > *:not(button) {
+  width: 100%;
+}
+
+.summary {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}
+
+.summaryOperation {
+  font-weight: 500;
+}
+
+.summaryTime {
+  font-size: var(--ds-font-size-1);
+}
+
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2) var(--ds-size-8);
+  margin-bottom: var(--ds-size-4);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  overflow-x: auto;
+}
+
+.stepDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+  max-width: 32rem;
+}
+
+.errorHistory {
+  margin: 0;
+}
