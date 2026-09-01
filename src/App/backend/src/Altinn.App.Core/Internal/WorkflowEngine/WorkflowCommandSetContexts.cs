@@ -1,6 +1,15 @@
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models.Notifications.Future;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
+
+/// <summary>
+/// A service task the transition enters, together with the pipeline its <c>Define</c> composed — read at
+/// enqueue time, which is the moment the pipeline's shape is fixed for the workflow's lifetime.
+/// </summary>
+/// <param name="Type">The service task type identifier, as the BPMN task declares it.</param>
+/// <param name="Pipeline">The task's composed pipeline.</param>
+internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipeline);
 
 /// <summary>
 /// Context for building the task start command sequence.
@@ -9,17 +18,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record TaskStartContext
 {
     /// <summary>
-    /// If this is a service task, the task type identifier. Otherwise null.
+    /// If this is a service task, the task and its pipeline. Otherwise null.
     /// </summary>
-    public required string? ServiceTaskType { get; init; }
-
-    /// <summary>
-    /// The ordered names of the service task's pipeline stages, read at enqueue time — each
-    /// expands to its own ExecuteServiceTask engine step, before the pipeline's concluding
-    /// unnamed one. Null or empty when the pipeline is just the conclusion (most tasks), or when
-    /// this is not a service task at all.
-    /// </summary>
-    public IReadOnlyList<string>? ServiceTaskStageNames { get; init; }
+    public required ResolvedServiceTask? ServiceTask { get; init; }
 
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.

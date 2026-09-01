@@ -7,7 +7,7 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useLocalStorage } from '@studio/components-legacy';
+import { useLocalStorage } from '@studio/hooks';
 import {
   StudioPageError,
   StudioPageSpinner,
