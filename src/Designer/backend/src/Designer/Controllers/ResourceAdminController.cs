@@ -405,14 +405,19 @@ public class ResourceAdminController : ControllerBase
                     _logger.LogWarning(
                         ex,
                         "Could not fetch policy for resource {Identifier} in environment {Environment}",
-                        resource.Identifier,
-                        env
+                        SanitizeForLog(resource.Identifier),
+                        SanitizeForLog(env)
                     );
                 }
             }
         );
 
         return altinn2ResourcePolicies.OrderBy(resource => resource.Identifier, StringComparer.Ordinal).ToList();
+    }
+
+    private static string SanitizeForLog(string value)
+    {
+        return value?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
     }
 
     [HttpGet]
