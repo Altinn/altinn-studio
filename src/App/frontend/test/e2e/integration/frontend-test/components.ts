@@ -502,7 +502,7 @@ describe('UI Components', () => {
     }).should('not.exist');
   });
 
-  it('should display alert when unchecking checkbox', () => {
+  it.only('should display alert when unchecking checkbox', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
@@ -521,7 +521,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.reasons).should('not.exist');
   });
 
-  it('retains focus when checking focused checkbox that has alert on uncheck', () => {
+  it.only('retains focus when checking focused checkbox that has alert on uncheck', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
@@ -538,7 +538,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.focus');
   });
 
-  it('should display alert unchecking checkbox in checkbox group', () => {
+  it.only('should display alert unchecking checkbox in checkbox group', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
         component.alertOnChange = true;

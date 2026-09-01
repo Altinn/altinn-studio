@@ -24,7 +24,7 @@ export interface MultipleSelectProps {
   componentId: string;
   options: MultipleSelectOption[];
   values: string[];
-  onChange?: (values: string[]) => void;
+  onChange: (values: string[]) => void;
   readOnly?: boolean;
   required?: boolean;
   isValid?: boolean;
@@ -41,13 +41,11 @@ export interface MultipleSelectProps {
   validationMessages?: ReactNode;
 }
 
-function noop() {}
-
 export function MultipleSelect({
   componentId,
   options,
   values,
-  onChange = noop,
+  onChange,
   readOnly,
   required,
   isValid = true,

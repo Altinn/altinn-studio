@@ -25,7 +25,13 @@ const render = (
   options?: Parameters<typeof renderWithTranslations>[1],
 ) =>
   renderWithTranslations(
-    <MultipleSelect componentId='my-multiple-select' options={spraak} values={[]} {...props} />,
+    <MultipleSelect
+      componentId='my-multiple-select'
+      options={spraak}
+      values={[]}
+      onChange={() => {}}
+      {...props}
+    />,
     {
       overrides,
       ...options,
