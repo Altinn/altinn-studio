@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +20,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Polly.CircuitBreaker;
+using Polly.Timeout;
 using Xunit;
 using WorkflowsAdminController = Altinn.Studio.Designer.Controllers.Admin.WorkflowsController;
 
@@ -76,11 +79,28 @@ public class WorkflowsControllerTests
         return new HttpResponseMessage(statusCode) { Content = new StringContent(body, Encoding.UTF8, contentType) };
     }
 
-    private IReadOnlyList<string> AuditMessages() =>
-        _loggerProvider
+    private IReadOnlyList<string> AuditMessages() => AuditMessages(_loggerProvider);
+
+    private static IReadOnlyList<string> AuditMessages(CapturingLoggerProvider loggerProvider) =>
+        loggerProvider
             .Entries.Where(entry => entry.Category == WorkflowsAdminController.AuditLoggerCategory)
             .Select(entry => entry.Message)
             .ToList();
+
+    /// <summary>
+    /// Every mutation records an attempt line before the gateway call and an outcome line after it,
+    /// so a mutation that never completes is still attributed to the operator who asked for it.
+    /// </summary>
+    private (string Attempt, string Outcome) AssertAttemptAndOutcomeAudited() =>
+        AssertAttemptAndOutcomeAudited(AuditMessages());
+
+    private static (string Attempt, string Outcome) AssertAttemptAndOutcomeAudited(IReadOnlyList<string> auditMessages)
+    {
+        Assert.Equal(2, auditMessages.Count);
+        Assert.Contains("Workflow mutation attempted:", auditMessages[0]);
+        Assert.Contains("outcome:", auditMessages[1]);
+        return (auditMessages[0], auditMessages[1]);
+    }
 
     [Fact]
     public async Task GetCollections_ForwardsQueryParameters_AndPassesResponseThrough()
@@ -279,12 +299,15 @@ public class WorkflowsControllerTests
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         _runtimeGatewayClientMock.VerifyAll();
 
-        string auditMessage = Assert.Single(AuditMessages());
-        Assert.Contains("resume", auditMessage);
-        Assert.Contains(workflowId.ToString(), auditMessage);
-        Assert.Contains($"{Org}/{App} ({Env})", auditMessage);
-        Assert.Contains("testUser", auditMessage);
-        Assert.Contains("outcome: 204", auditMessage);
+        (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
+        foreach (string auditMessage in new[] { attempt, outcome })
+        {
+            Assert.Contains("resume", auditMessage);
+            Assert.Contains(workflowId.ToString(), auditMessage);
+            Assert.Contains($"{Org}/{App} ({Env})", auditMessage);
+            Assert.Contains("testUser", auditMessage);
+        }
+        Assert.Contains("outcome: 204", outcome);
     }
 
     [Fact]
@@ -310,11 +333,11 @@ public class WorkflowsControllerTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(upstreamBody, await response.Content.ReadAsStringAsync());
 
-        string auditMessage = Assert.Single(AuditMessages());
-        Assert.Contains("abandon", auditMessage);
-        Assert.Contains(workflowId.ToString(), auditMessage);
-        Assert.Contains("testUser", auditMessage);
-        Assert.Contains("outcome: 200", auditMessage);
+        (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("abandon", attempt);
+        Assert.Contains(workflowId.ToString(), attempt);
+        Assert.Contains("testUser", attempt);
+        Assert.Contains("outcome: 200", outcome);
     }
 
     [Fact]
@@ -421,9 +444,159 @@ public class WorkflowsControllerTests
         Assert.Contains(WorkflowsAdminController.RuntimeGatewayUnavailableType, body);
         Assert.DoesNotContain("internal-host", body);
 
-        string auditMessage = Assert.Single(AuditMessages());
-        Assert.Contains("resume", auditMessage);
-        Assert.Contains("outcome: runtime gateway unavailable", auditMessage);
+        (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("resume", attempt);
+        Assert.Contains("outcome: runtime gateway unavailable", outcome);
+    }
+
+    [Theory]
+    [InlineData(typeof(TimeoutRejectedException))]
+    [InlineData(typeof(BrokenCircuitException))]
+    public async Task ResiliencePipelineRejection_Returns502Problem_WithoutExceptionDetails(Type exceptionType)
+    {
+        var pipelineRejection = (Exception)
+            Activator.CreateInstance(exceptionType, "the pipeline rejected the call to internal-host:5005");
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.GetWorkflowCollectionsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(pipelineRejection);
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        // A pipeline rejection is an outage by another name — it must carry the same URN the
+        // frontend maps to "unavailable", not fall through to a bare 500.
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.Contains(WorkflowsAdminController.RuntimeGatewayUnavailableType, body);
+        Assert.DoesNotContain("internal-host", body);
+    }
+
+    [Fact]
+    public async Task EnvironmentsRegistryUnavailable_Returns503Problem_NotBlamingTheGateway()
+    {
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.AbandonWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(
+                new EnvironmentsRegistryUnavailableException(
+                    "environments.json unreachable at internal-host:5005",
+                    new HttpRequestException("connection refused")
+                )
+            );
+
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/abandon", content: null);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.Contains(WorkflowsAdminController.EnvironmentsRegistryUnavailableType, body);
+        Assert.DoesNotContain(WorkflowsAdminController.RuntimeGatewayUnavailableType, body);
+        Assert.DoesNotContain("internal-host", body);
+
+        (_, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("outcome: environments registry unavailable", outcome);
+    }
+
+    [Fact]
+    public async Task ClientAbortSurfacingAsHttpRequestException_Returns499_AndAuditsCancellation()
+    {
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.ResumeWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("The request was aborted."));
+
+        using var abortedRequest = new CancellationTokenSource();
+        await abortedRequest.CancelAsync();
+        var httpContext = new DefaultHttpContext { RequestAborted = abortedRequest.Token };
+        (WorkflowsAdminController controller, CapturingLoggerProvider logs) = CreateDirectController(httpContext);
+
+        IActionResult result = await controller.ResumeWorkflow(
+            Org,
+            Env,
+            App,
+            workflowId,
+            cascade: null,
+            // The action's own token is bound to RequestAborted at runtime; passing None here proves
+            // the classification does not depend on it.
+            CancellationToken.None
+        );
+
+        var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(499, statusCodeResult.StatusCode);
+
+        (_, string outcome) = AssertAttemptAndOutcomeAudited(AuditMessages(logs));
+        Assert.Contains("outcome: canceled by client", outcome);
+    }
+
+    [Fact]
+    public async Task UnknownEnvironmentOnMutation_Returns404_AndAudits()
+    {
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.AbandonWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new KeyNotFoundException("Environment 'fake-env' not found."));
+
+        using var response = await HttpClient.PostAsync(
+            $"{BasePath(env: "fake-env")}/workflows/{workflowId}/abandon",
+            content: null
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Contains(WorkflowsAdminController.EnvironmentNotFoundType, await response.Content.ReadAsStringAsync());
+
+        (_, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("outcome: environment not found", outcome);
+    }
+
+    [Fact]
+    public async Task Mutation_WithoutAntiforgeryToken_IsRejected_WithoutCallingGateway()
+    {
+        var workflowId = Guid.NewGuid();
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{BasePath()}/workflows/{workflowId}/abandon");
+        // A value in the header short-circuits the test handler's token fetch, so the request
+        // arrives with a header that has no matching cookie token.
+        request.Headers.Add("X-XSRF-TOKEN", "not-a-valid-request-token");
+
+        using var response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        _runtimeGatewayClientMock.VerifyNoOtherCalls();
+        Assert.Empty(AuditMessages());
     }
 
     [Fact]
@@ -466,14 +639,11 @@ public class WorkflowsControllerTests
     // Exercised at controller level: the request-synchronization middleware guards org/app route
     // values with the same app-name regex and throws (a 500) before MVC runs, for every controller
     // with an {app} route value — so the controller's own 400 cannot be reached over HTTP today.
+    // The check is defense in depth, not an HTTP contract.
     [Fact]
     public async Task InvalidAppName_Returns400_WithoutCallingGateway()
     {
-        var controller = new WorkflowsAdminController(
-            _runtimeGatewayClientMock.Object,
-            NullLogger<WorkflowsAdminController>.Instance,
-            NullLoggerFactory.Instance
-        );
+        (WorkflowsAdminController controller, _) = CreateDirectController();
 
         IActionResult result = await controller.GetCollections(
             Org,
@@ -508,6 +678,141 @@ public class WorkflowsControllerTests
         Assert.Equal(HttpStatusCode.Forbidden, mutationResponse.StatusCode);
         _runtimeGatewayClientMock.VerifyNoOtherCalls();
         Assert.Empty(AuditMessages());
+    }
+
+    [Fact]
+    public async Task PassThrough_ForwardsDeclaredContentLength()
+    {
+        byte[] upstreamBody = Encoding.UTF8.GetBytes( /*lang=json,strict*/
+            """{"collections":[]}"""
+        );
+        SetupCollections(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = ByteContent(upstreamBody, "application/json; charset=utf-8"),
+            }
+        );
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(upstreamBody.Length, response.Content.Headers.ContentLength);
+    }
+
+    [Fact]
+    public async Task PassThrough_LeavesAnAbsentUpstreamContentTypeAbsent()
+    {
+        SetupCollections(
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = ByteContent(Encoding.UTF8.GetBytes("[]")) }
+        );
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Null(response.Content.Headers.ContentType);
+    }
+
+    [Fact]
+    public async Task PassThrough_CopiesBodyBytesVerbatim()
+    {
+        // A byte that is not valid UTF-8: a decode/re-encode round trip would replace it.
+        byte[] upstreamBody = [0x7B, 0x22, 0x61, 0x22, 0x3A, 0x22, 0xFF, 0x22, 0x7D];
+        SetupCollections(
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = ByteContent(upstreamBody, "application/json") }
+        );
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        Assert.Equal(upstreamBody, await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task PassThrough_DisposesTheUpstreamResponse_AfterTheResultHasExecuted()
+    {
+        var upstreamContent = new DisposeTrackingContent(
+            Encoding.UTF8.GetBytes( /*lang=json,strict*/
+                """{"a":1}"""
+            )
+        );
+        SetupCollections(new HttpResponseMessage(HttpStatusCode.OK) { Content = upstreamContent });
+
+        (WorkflowsAdminController controller, _) = CreateDirectController();
+        using var body = new MemoryStream();
+        controller.HttpContext.Response.Body = body;
+
+        IActionResult result = await controller.GetCollections(
+            Org,
+            Env,
+            App,
+            keys: null,
+            failures: null,
+            cursor: null,
+            pageSize: null,
+            CancellationToken.None
+        );
+
+        // Ownership moved to the result: the body must still be readable when MVC executes it.
+        Assert.False(upstreamContent.IsDisposed);
+
+        await result.ExecuteResultAsync(controller.ControllerContext);
+
+        Assert.True(upstreamContent.IsDisposed);
+        Assert.Equal("""{"a":1}""", Encoding.UTF8.GetString(body.ToArray()));
+    }
+
+    private void SetupCollections(HttpResponseMessage response) =>
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.GetWorkflowCollectionsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(response);
+
+    private static ByteArrayContent ByteContent(byte[] body, string contentType = null)
+    {
+        var content = new ByteArrayContent(body);
+        content.Headers.ContentType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
+        return content;
+    }
+
+    private (WorkflowsAdminController Controller, CapturingLoggerProvider Logs) CreateDirectController(
+        HttpContext httpContext = null
+    )
+    {
+        var loggerProvider = new CapturingLoggerProvider();
+        var loggerFactory = new LoggerFactory([loggerProvider]);
+        var controller = new WorkflowsAdminController(
+            _runtimeGatewayClientMock.Object,
+            loggerFactory.CreateLogger<WorkflowsAdminController>(),
+            loggerFactory
+        )
+        {
+            ControllerContext = new ControllerContext { HttpContext = httpContext ?? new DefaultHttpContext() },
+        };
+
+        return (controller, loggerProvider);
+    }
+
+    private sealed class DisposeTrackingContent : ByteArrayContent
+    {
+        public DisposeTrackingContent(byte[] content)
+            : base(content) { }
+
+        public bool IsDisposed { get; private set; }
+
+        protected override void Dispose(bool disposing)
+        {
+            IsDisposed = true;
+            base.Dispose(disposing);
+        }
     }
 
     private sealed class CapturingLoggerProvider : ILoggerProvider

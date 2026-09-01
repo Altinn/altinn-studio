@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -17,12 +18,20 @@ public class RuntimeGatewayClientWorkflowsTests
 {
     private const string Org = "ttd";
     private const string App = "my-app";
+
+    // The hosted app cluster pattern is authority-only ("https://{org}.{appPrefix}.{hostName}"), so
+    // Uri canonicalizes it with a trailing slash — exactly as in production. Every expected URL below
+    // is asserted in full, so a stray "//" in the join is a failing test rather than something nginx
+    // quietly papers over.
     private const string ClusterBaseUrl = "https://ttd.apps.at23.altinn.cloud";
-    private const string WorkflowsBasePath = "/runtime/gateway/api/v1/workflows/apps/my-app";
+    private const string CanonicalClusterBaseUrl = ClusterBaseUrl + "/";
+
+    private const string WorkflowsBasePath = "runtime/gateway/api/v1/workflows/apps/my-app";
 
     private static readonly AltinnEnvironment s_environment = AltinnEnvironment.FromName("at23");
 
     private readonly Mock<HttpMessageHandler> _messageHandlerMock = new();
+    private readonly Mock<IEnvironmentsService> _environmentsServiceMock = new();
     private readonly RuntimeGatewayClient _client;
     private HttpRequestMessage _capturedRequest;
 
@@ -43,24 +52,72 @@ public class RuntimeGatewayClientWorkflowsTests
             .Setup(factory => factory.CreateClient("runtime-gateway"))
             .Returns(() => new HttpClient(_messageHandlerMock.Object, disposeHandler: false));
 
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        environmentsServiceMock
+        _environmentsServiceMock
             .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
             .ReturnsAsync(new Uri(ClusterBaseUrl));
 
         _client = new RuntimeGatewayClient(
             httpClientFactoryMock.Object,
             new GeneralSettings(),
-            environmentsServiceMock.Object
+            _environmentsServiceMock.Object
         );
     }
 
-    private void AssertRequest(HttpMethod expectedMethod, string expectedPathAndQuery)
+    private void AssertRequest(HttpMethod expectedMethod, string expectedPathAndQuery) =>
+        AssertRequest(expectedMethod, CanonicalClusterBaseUrl, expectedPathAndQuery);
+
+    private void AssertRequest(HttpMethod expectedMethod, string expectedBaseUrl, string expectedPathAndQuery)
     {
         Assert.NotNull(_capturedRequest);
         Assert.Equal(expectedMethod, _capturedRequest.Method);
-        Assert.EndsWith(expectedPathAndQuery, _capturedRequest.RequestUri.AbsoluteUri);
-        Assert.StartsWith(ClusterBaseUrl, _capturedRequest.RequestUri.AbsoluteUri);
+        Assert.Equal($"{expectedBaseUrl}{expectedPathAndQuery}", _capturedRequest.RequestUri.AbsoluteUri);
+    }
+
+    [Fact]
+    public void HostedClusterAddress_IsTrailingSlashCanonical()
+    {
+        // Guards the premise of the assertions above: the production pattern really does produce a
+        // trailing slash, so the join has to cope with it.
+        Assert.Equal(CanonicalClusterBaseUrl, new Uri(ClusterBaseUrl).AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task WorkflowRequests_JoinTrailingSlashClusterAddressWithoutDoubleSlash()
+    {
+        using var response = await _client.GetWorkflowAsync(
+            Org,
+            App,
+            s_environment,
+            Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"),
+            CancellationToken.None
+        );
+
+        Assert.DoesNotContain("//runtime", _capturedRequest.RequestUri.AbsoluteUri, StringComparison.Ordinal);
+        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/0f8fad5b-d9cb-469f-a165-70867728950e");
+    }
+
+    [Fact]
+    public async Task WorkflowRequests_PreserveThePathOfAClusterAddressWithoutTrailingSlash()
+    {
+        // The local development pattern carries a path and no trailing slash. Joining must not eat
+        // the last segment, so a relative-Uri join is not an option here.
+        const string localClusterBaseUrl = "http://host.docker.internal:6161/apps/ttd/at23";
+        _environmentsServiceMock
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .ReturnsAsync(new Uri(localClusterBaseUrl));
+
+        using var response = await _client.GetWorkflowCollectionsAsync(
+            Org,
+            App,
+            s_environment,
+            keys: null,
+            failures: null,
+            cursor: null,
+            pageSize: null,
+            CancellationToken.None
+        );
+
+        AssertRequest(HttpMethod.Get, $"{localClusterBaseUrl}/", $"{WorkflowsBasePath}/collections");
     }
 
     [Fact]
@@ -232,5 +289,35 @@ public class RuntimeGatewayClientWorkflowsTests
             "urn:altinn:studio:gateway:workflow-engine-unavailable",
             await response.Content.ReadAsStringAsync()
         );
+    }
+
+    [Fact]
+    public async Task WorkflowRequests_WrapEnvironmentsRegistryFailures_WithoutCallingTheGateway()
+    {
+        var registryFailure = new HttpRequestException("environments.json fetch failed");
+        _environmentsServiceMock
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .ThrowsAsync(registryFailure);
+
+        var exception = await Assert.ThrowsAsync<EnvironmentsRegistryUnavailableException>(() =>
+            _client.AbandonWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        Assert.Same(registryFailure, exception.InnerException);
+        Assert.Null(_capturedRequest);
+    }
+
+    [Fact]
+    public async Task WorkflowRequests_PropagateUnknownEnvironmentUnwrapped()
+    {
+        _environmentsServiceMock
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .ThrowsAsync(new KeyNotFoundException("Environment 'at23' not found."));
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _client.AbandonWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        Assert.Null(_capturedRequest);
     }
 }
