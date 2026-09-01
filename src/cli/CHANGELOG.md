@@ -16,10 +16,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports the app owner's required policy rights more accurately. It no longer asks for `pay` or `sign` on payment and signing tasks, which are already covered by `write`. It now grants `delete` when the app deletes its instances at process end, and points out a missing `reject` right for any task that can be rejected.
 - `studioctl app upgrade v9` now replaces the retired `FileUploadWithTag` layout component with `FileUpload`, retaining its configured options so tagged attachments continue to work.
 - `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
+- `studioctl app upgrade v9` now removes an explicit `Microsoft.Extensions.Logging.Debug` package reference, which fails to build on .NET 10 because the debug logger it provides is already built into the framework.
 
 ### Fixed
 
-- `studioctl app upgrade v9` now removes an explicit `Microsoft.Extensions.Logging.Debug` package reference, which fails to build on .NET 10 because the debug logger it provides is already built into the framework.
 - `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
 
 ## [0.1.0-preview.22] - 2026-08-18
