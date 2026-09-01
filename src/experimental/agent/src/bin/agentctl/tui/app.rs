@@ -319,7 +319,9 @@ impl App {
             self.detail_key(key);
             return Action::None;
         }
-        if self.forwards_view {
+        // The error screen renders over the forwards view, so its keys must
+        // win over forwards_key while an error is shown.
+        if self.forwards_view && self.error.is_none() {
             return self.forwards_key(key);
         }
         self.main_key(key)
@@ -1125,6 +1127,19 @@ mod tests {
         assert_eq!(form.guest, "80");
         app.on_key(key(KeyCode::Esc));
         assert!(app.modal.is_none());
+        app.on_key(key(KeyCode::Char('q')));
+        assert!(!app.forwards_view);
+    }
+
+    #[test]
+    fn error_screen_keys_win_over_an_open_forwards_view() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('F')));
+        app.error = Some("control plane unreachable".into());
+        assert_eq!(app.on_key(key(KeyCode::Char('r'))), Action::Refresh);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit);
+        assert!(app.forwards_view);
+        app.error = None;
         app.on_key(key(KeyCode::Char('q')));
         assert!(!app.forwards_view);
     }

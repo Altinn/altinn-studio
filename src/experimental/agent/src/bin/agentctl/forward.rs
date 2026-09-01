@@ -108,6 +108,11 @@ impl PortForward {
         self.status.borrow().clone()
     }
 
+    /// Reports whether the listener task has ended and stopped serving.
+    pub(crate) fn finished(&self) -> bool {
+        self.task.is_finished()
+    }
+
     /// Stops the listener and drops in-flight relays.
     pub(crate) fn stop(&self) {
         self.task.abort();

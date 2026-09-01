@@ -109,9 +109,23 @@ impl GuestTcpDialer {
     }
 }
 
+impl Drop for GuestTcpStream {
+    /// Releases the guest socket and its agent session on every path — normal
+    /// completion, an error, and a cancelled relay task alike.
+    fn drop(&mut self) {
+        let client = Arc::clone(&self.client);
+        let id = self.id;
+        if let Ok(handle) = tokio::runtime::Handle::try_current() {
+            handle.spawn(async move {
+                let _ = client.send(id, MessageType::TcpClose, &TcpClose {}).await;
+            });
+        }
+    }
+}
+
 impl GuestTcpStream {
     /// Pipes bytes between a host socket and the guest connection until either
-    /// side closes, then releases the relay stream.
+    /// side closes; dropping the stream releases the guest session.
     ///
     /// # Errors
     ///
@@ -177,14 +191,12 @@ impl GuestTcpStream {
         // A host-side EOF is a half-close: the guest may still be writing its
         // response, so only a guest-side completion or an error ends the relay.
         tokio::pin!(guest_to_host);
-        let result = tokio::select! {
+        tokio::select! {
             result = &mut guest_to_host => result,
             result = host_to_guest => match result {
                 Ok(()) => guest_to_host.await,
                 Err(error) => Err(error),
             },
-        };
-        let _ = self.client.send(self.id, MessageType::TcpClose, &TcpClose {}).await;
-        result
+        }
     }
 }

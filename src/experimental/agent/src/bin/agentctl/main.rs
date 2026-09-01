@@ -432,6 +432,10 @@ async fn port_forward(
                         *reported = status;
                     }
                 }
+                if forwards.iter().all(forward::PortForward::finished) {
+                    eprintln!("every port forward has stopped");
+                    return Ok(ExitCode::FAILURE);
+                }
             }
         }
     }
