@@ -7,7 +7,6 @@ export * from './StudioFieldset';
 export * from './StudioGridSelector';
 export * from './StudioInputTable';
 export * from './StudioLabelWrapper';
-export * from './StudioNativeSelect';
 export * from './StudioTable';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
