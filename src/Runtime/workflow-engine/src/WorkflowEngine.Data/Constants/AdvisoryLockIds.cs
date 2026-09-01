@@ -17,7 +17,7 @@ internal static class AdvisoryLockIds
     /// <summary>
     /// Makes the namespace throttle sweep a single writer across replicas
     /// (<see cref="Services.NamespaceThrottleService"/>). Acquisition is try-only: a replica that
-    /// finds the lock held skips its cycle — the sweep is periodic, so queueing up behind the
+    /// finds the lock held skips its cycle — the sweep is periodic, so queuing up behind the
     /// holder would only produce redundant back-to-back sweeps.
     /// </summary>
     internal const long ThrottleSweep = 0x5468726F74; // "Throt" in hex

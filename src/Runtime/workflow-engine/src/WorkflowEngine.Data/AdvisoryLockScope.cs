@@ -33,7 +33,7 @@ internal sealed class AdvisoryLockScope : IAsyncDisposable
 
     /// <summary>
     /// Non-blocking variant of <see cref="Acquire"/>: returns <c>null</c> when the lock is
-    /// currently held elsewhere, instead of queueing behind the holder. The lock is session-scoped,
+    /// currently held elsewhere, instead of queuing behind the holder. The lock is session-scoped,
     /// so the caller must keep <paramref name="connection"/> open for as long as the lock is needed.
     /// </summary>
     public static async Task<AdvisoryLockScope?> TryAcquire(

@@ -252,17 +252,17 @@ internal sealed partial class EngineRepository
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var ids = new Guid[stamps.Count];
-        var untils = new DateTimeOffset[stamps.Count];
+        var deadlines = new DateTimeOffset[stamps.Count];
         for (int i = 0; i < stamps.Count; i++)
         {
             ids[i] = stamps[i].WorkflowId;
-            untils[i] = stamps[i].ThrottledUntil;
+            deadlines[i] = stamps[i].ThrottledUntil;
         }
 
         await using var cmd = dataSource.CreateCommand(ThrottleSql.StampThrottledUntil);
         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
         cmd.Parameters.Add(
-            new NpgsqlParameter("untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = untils }
+            new NpgsqlParameter("deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = deadlines }
         );
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -443,7 +443,7 @@ internal sealed partial class EngineRepository
             UPDATE engine.workflows w
             SET throttled_until = v.throttled_until
             FROM (
-                SELECT * FROM unnest(@ids, @untils) AS t(id, throttled_until)
+                SELECT * FROM unnest(@ids, @deadlines) AS t(id, throttled_until)
                 ORDER BY t.id
             ) AS v
             WHERE w.id = v.id
