@@ -23,6 +23,7 @@ public class MutateProcessStateTests
 
         return new ProcessEngineCommandContext
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,

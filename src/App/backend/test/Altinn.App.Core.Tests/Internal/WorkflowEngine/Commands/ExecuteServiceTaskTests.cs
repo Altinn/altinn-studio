@@ -53,11 +53,14 @@ public class ExecuteServiceTaskTests
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var payload = new ExecuteServiceTaskPayload(serviceTaskType);
+        // A simple IServiceTask's pipeline is its conclusion and nothing else, so the concluding step names
+        // item 0.
+        var payload = new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: 0);
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
 
         return new ProcessEngineCommandContext
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
@@ -103,7 +106,12 @@ public class ExecuteServiceTaskTests
         }
         var sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>());
+        return new ExecuteServiceTask(
+            sp.GetRequiredService<AppImplementationFactory>(),
+            // Never consulted: these pipelines declare no mailbox, so the delivery envelope is never
+            // reached.
+            TestMailboxDeliveryEnvelope.Create()
+        );
     }
 
     [Fact]
@@ -157,6 +165,42 @@ public class ExecuteServiceTaskTests
         Assert.False(success.AutoAdvanceProcess);
     }
 
+    /// <summary>
+    /// The result roots declare no constructor an app can call, but they are records, and C# will not let a
+    /// record narrow its synthesized copy constructor below <c>protected</c> — so an app can still chain that
+    /// and hand the runtime a type it cannot map. The old catch-all concluded such a task as a silent
+    /// success; a throw would ride the outer catch's retry ladder forever. It must converge: permanent, and
+    /// naming the type.
+    /// </summary>
+    /// <remarks>
+    /// Self-cleaning, like its three siblings (<c>ExecuteServiceTaskStageTests.RogueStageResult</c>,
+    /// <c>MailboxRelayTests.RogueVerdict</c>, <c>MailboxRelayTests.RogueStageVerdict</c>): should the roots
+    /// ever move off records and close this route,
+    /// <c>base(original)</c> stops compiling and this test goes with the arm it pins.
+    /// </remarks>
+    private sealed record RogueResult : ServiceTaskResult
+    {
+        public RogueResult(ServiceTaskResult original)
+            : base(original) { }
+    }
+
+    [Fact]
+    public async Task Execute_WhenServiceTaskReturnsAnUnrecognisedResultType_FailsPermanentlyAndNamesIt()
+    {
+        var serviceTask = new FakeServiceTask(_ =>
+            Task.FromResult<ServiceTaskResult>(new RogueResult(ServiceTaskResult.Success()))
+        );
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains(nameof(RogueResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Execute_WhenServiceTaskReturnsFailedResult_ReturnsFailedResult()
     {
@@ -190,7 +234,7 @@ public class ExecuteServiceTaskTests
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
         // Act
-        var result = await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        var result = await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert — a deferral is neither a success nor a failure: mapping it onto either would make the
         // engine advance the process or record an error, and it must do neither.
@@ -216,7 +260,7 @@ public class ExecuteServiceTaskTests
         );
 
         // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert
         Assert.NotNull(serviceTask.Observed);
@@ -235,7 +279,7 @@ public class ExecuteServiceTaskTests
         var context = CreateContext(CreateInstance(), "myServiceTask", deferCount: 4, waitDeadline: waitDeadline);
 
         // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert
         Assert.NotNull(serviceTask.Observed);
@@ -260,7 +304,7 @@ public class ExecuteServiceTaskTests
         );
 
         // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert
         Assert.NotNull(serviceTask.Observed);
@@ -275,7 +319,7 @@ public class ExecuteServiceTaskTests
         var command = CreateCommand(serviceTask);
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         Assert.NotNull(serviceTask.Observed);
         Assert.Equal(0, serviceTask.Observed.Wait.DeferCount);

@@ -39,7 +39,12 @@ internal sealed class WorkflowCallbackStateService
     /// <summary>
     /// Captures the current state of the unit of work into an opaque, signed string for transport.
     /// </summary>
-    public async Task<string> CaptureState(InstanceDataUnitOfWork unitOfWork)
+    /// <param name="unitOfWork">The instance data this callback (or enqueue) is publishing.</param>
+    /// <param name="carry">
+    /// The callback's non-data bookkeeping, as restored and possibly added to by the command that just ran. Omitting
+    /// it is what <em>drops</em> the carry, so every capture that continues a workflow must pass it along.
+    /// </param>
+    public async Task<string> CaptureState(InstanceDataUnitOfWork unitOfWork, WorkflowCallbackStateCarry? carry = null)
     {
         var rawFormData = await unitOfWork.CaptureFormData(_modelSerializationService);
         var formData = rawFormData
@@ -50,9 +55,16 @@ internal sealed class WorkflowCallbackStateService
                 Data = x.Data,
             })
             .ToList();
-        var callbackState = new WorkflowCallbackState { Instance = unitOfWork.Instance, FormData = formData };
+        var callbackState = new WorkflowCallbackState
+        {
+            Instance = unitOfWork.Instance,
+            FormData = formData,
+            // A concluded exchange stops traveling: the workflow this blob starts may itself open a mailbox, and a
+            // blob still naming the finished one would make that mint refuse. The carry has already dropped it.
+            Mailboxes = carry?.Mailboxes,
+        };
         string payload = JsonSerializer.Serialize(callbackState);
-        return _stateSigner.Sign(payload);
+        return _stateSigner.Sign(payload, SigningDomain.CallbackState);
     }
 
     /// <summary>
@@ -64,7 +76,11 @@ internal sealed class WorkflowCallbackStateService
     /// </param>
     /// <param name="state">The opaque state blob captured at enqueue time.</param>
     /// <param name="language">The actor language to initialize the unit of work with.</param>
-    public async Task<InstanceDataUnitOfWork> RestoreState(
+    /// <returns>
+    /// The instance data this callback acts on, and the non-data bookkeeping it must hand back to
+    /// <see cref="CaptureState"/> so the steps after it still see it.
+    /// </returns>
+    public async Task<RestoredWorkflowCallbackState> RestoreState(
         InstanceIdentifier expectedInstance,
         string state,
         string? language
@@ -73,7 +89,7 @@ internal sealed class WorkflowCallbackStateService
         // Verify the detached HMAC signature and unwrap the inner payload before trusting any of it. A leaked
         // callback token cannot be combined with a forged/tampered blob: the inner payload is bound to a
         // secret only the app holds. Any failure (tampering, unknown/expired secret) throws and maps to 422.
-        string payload = _stateSigner.Verify(state);
+        string payload = _stateSigner.Verify(state, SigningDomain.CallbackState);
 
         WorkflowCallbackState callbackState =
             JsonSerializer.Deserialize<WorkflowCallbackState>(payload)
@@ -128,6 +144,16 @@ internal sealed class WorkflowCallbackStateService
             unitOfWork.PreloadBinaryData(identifier, storageBytes);
         }
 
-        return unitOfWork;
+        return new RestoredWorkflowCallbackState(unitOfWork, new WorkflowCallbackStateCarry(callbackState));
     }
 }
+
+/// <summary>
+/// What a callback's state blob restores into: the instance data as a unit of work, plus the non-data
+/// bookkeeping the blob was carrying. Both halves must reach
+/// <see cref="WorkflowCallbackStateService.CaptureState"/> for the next step to see them.
+/// </summary>
+internal sealed record RestoredWorkflowCallbackState(
+    InstanceDataUnitOfWork UnitOfWork,
+    WorkflowCallbackStateCarry Carry
+);
