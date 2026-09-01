@@ -7584,6 +7584,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"
     react: "npm:19.2.8"
