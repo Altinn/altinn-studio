@@ -243,7 +243,11 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
-  getAltinn2ResourcePolicies: jest.fn().mockImplementation(() => Promise.resolve<Policy[]>([])),
+  getAltinn2ResourcePolicies: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<{ identifier?: string; policy?: Policy; resourceType: string }[]>([]),
+    ),
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),

@@ -391,14 +391,17 @@ public class ResourceAdminController : ControllerBase
                 {
                     XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resource.Identifier, env);
 
-                    altinn2ResourcePolicies.Add(
-                        new ResourceWithAltinn2Subject()
-                        {
-                            Identifier = resource.Identifier,
-                            ResourceType = resource.ResourceType,
-                            Policy = PolicyConverter.ConvertPolicy(policy),
-                        }
-                    );
+                    if (policy != null)
+                    {
+                        altinn2ResourcePolicies.Add(
+                            new ResourceWithAltinn2Subject()
+                            {
+                                Identifier = resource.Identifier,
+                                ResourceType = resource.ResourceType,
+                                Policy = PolicyConverter.ConvertPolicy(policy),
+                            }
+                        );
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -415,7 +418,7 @@ public class ResourceAdminController : ControllerBase
         return altinn2ResourcePolicies.OrderBy(resource => resource.Identifier, StringComparer.Ordinal).ToList();
     }
 
-    private static string SanitizeForLog(string value)
+    private static string SanitizeForLog(string? value)
     {
         return value?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
     }

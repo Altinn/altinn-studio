@@ -33,6 +33,11 @@ import { Link } from 'react-router-dom';
 const ALTINN_APP = 'AltinnApp';
 const MIGRATED_APP = 'MigratedApp';
 
+enum EnvId {
+  TT02 = 'tt02',
+  PROD = 'prod',
+}
+
 type TableRowData = {
   identifier: string;
   a2Roles: string[];
@@ -73,7 +78,7 @@ const getTableData = (resource: ResourcePolicyData) => {
 export const Altinn2ResourcePoliciesPage = () => {
   const { t } = useTranslation();
   const { org, app } = useUrlParams();
-  const [env, setEnv] = useState<'tt02' | 'prod'>('tt02');
+  const [env, setEnv] = useState<EnvId>(EnvId.TT02);
   const [splitData, setSplitData] = useState<TableRowData[]>([]);
 
   const { data: policyData, isLoading, isError } = useGetAltinn2ResourcePoliciesQuery(org, env);
@@ -119,12 +124,12 @@ export const Altinn2ResourcePoliciesPage = () => {
       <StudioToggleGroup
         data-toggle-group='envSelect'
         value={env}
-        onChange={(newValue: string) => setEnv(newValue as 'tt02' | 'prod')}
+        onChange={(newValue: string) => setEnv(newValue as EnvId)}
       >
-        <StudioToggleGroup.Item value='tt02'>
+        <StudioToggleGroup.Item value={EnvId.TT02}>
           {t('resourceadm.altinn2policy_env_tt02')}
         </StudioToggleGroup.Item>
-        <StudioToggleGroup.Item value='prod'>
+        <StudioToggleGroup.Item value={EnvId.PROD}>
           {t('resourceadm.altinn2policy_env_prod')}
         </StudioToggleGroup.Item>
       </StudioToggleGroup>
@@ -189,7 +194,7 @@ export const ResourcePolicyTable = ({
   onPolicyUpdated,
 }: {
   data: TableRowData[];
-  env: string;
+  env: EnvId;
   isOnlyA2Roles: boolean;
   onPolicyUpdated: (data: ResourcePolicyData) => void;
 }) => {
@@ -275,7 +280,7 @@ export const LocalPolicyEditor = ({
   onPolicyUpdated,
 }: {
   tableData: TableRowData;
-  env: string;
+  env: EnvId;
   onClose: () => void;
   onPolicyUpdated: (data: ResourcePolicyData) => void;
 }) => {
