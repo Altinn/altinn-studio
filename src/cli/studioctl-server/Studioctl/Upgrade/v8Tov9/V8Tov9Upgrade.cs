@@ -108,6 +108,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveLoggingDebugPackage(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
@@ -301,6 +304,33 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing Swashbuckle.AspNetCore package reference", ex);
+        }
+    }
+
+    // net10.0's shared framework now carries Microsoft.Extensions.Logging.Debug's DebugLoggerProvider
+    // itself, so an app's own explicit reference to the (older) NuGet package collides with it at
+    // build time (CS0433, ambiguous 'DebugLoggerProvider'). The provider is still wired up by default
+    // through WebApplication.CreateBuilder, so dropping the package reference loses nothing.
+    static async Task<int> RemoveLoggingDebugPackage(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Logging.Debug package");
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            if (await rewriter.RemovePackageReference("Microsoft.Extensions.Logging.Debug"))
+            {
+                UpgradeConsole.Ok("Microsoft.Extensions.Logging.Debug package reference removed");
+            }
+            else
+            {
+                UpgradeConsole.Skip("No Microsoft.Extensions.Logging.Debug package reference");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing Microsoft.Extensions.Logging.Debug package reference", ex);
         }
     }
 
