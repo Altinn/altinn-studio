@@ -299,7 +299,7 @@ internal sealed class MailboxRelay
             // Reachable from app code: the result roots declare no callable constructor, but they are records,
             // and C# forbids narrowing a record's synthesized copy constructor, so chaining it still compiles.
             // Permanent, not a throw — the outer catch in ExecuteServiceTask would retry an author error
-            // forever. No continuation: an unrecognised verdict is no conclusion, and closing would pick the
+            // forever. No continuation: an unrecognized verdict is no conclusion, and closing would pick the
             // most destructive of the readings it could have meant.
             default:
                 return FailedProcessEngineCommandResult.Permanent(

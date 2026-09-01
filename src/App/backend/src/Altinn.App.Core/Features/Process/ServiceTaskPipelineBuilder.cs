@@ -266,7 +266,7 @@ public sealed class ServiceTaskPipelineBuilder
         None,
 
         /// <summary>
-        /// A <see cref="HandleReplies"/> handler answers it — an item, travelling with every pipeline this
+        /// A <see cref="HandleReplies"/> handler answers it — an item, traveling with every pipeline this
         /// builder can still return.
         /// </summary>
         Segment,

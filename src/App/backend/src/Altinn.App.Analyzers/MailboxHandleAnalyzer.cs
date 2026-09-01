@@ -164,7 +164,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
                 continue;
 
             // No unwrapping of conversions or other wrappers: a reference sitting inside one is not a position
-            // TrackLocalReference recognises as a read, so its local is disqualified there anyway.
+            // TrackLocalReference recognizes as a read, so its local is disqualified there anyway.
             if (argument.Value is ILocalReferenceOperation { IsDeclaration: false } local)
                 state.Local(local.Local).Consumptions.Add(invocation);
             return;
@@ -356,7 +356,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     /// <see cref="ControlFlowBranchSemantics.StructuredExceptionHandling"/> qualifies for a more particular reason:
     /// normal completion of a <c>try</c> is routed <em>around</em> its <c>finally</c> by an ordinary
     /// <see cref="ControlFlowBranchSemantics.Regular"/> branch that records the finally it passes, so no returning
-    /// route ever needs an SEH edge.
+    /// route ever needs a structured-exception-handling edge.
     /// </para>
     /// <para>
     /// <see cref="ControlFlowBranchSemantics.Throw"/> and <see cref="ControlFlowBranchSemantics.Rethrow"/>
