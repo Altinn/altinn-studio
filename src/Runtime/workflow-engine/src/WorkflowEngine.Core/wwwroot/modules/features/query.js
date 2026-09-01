@@ -155,6 +155,7 @@ const fetchQuery = async (opts) => {
     const effectiveCustom = isGuid ? null : customTimeRange;
     const effectiveTimeRange = isGuid ? 0 : queryTimeRange;
     const effectiveRetried = isGuid ? false : retried;
+    const effectiveIsHead = isGuid ? null : headVisibilityParam();
 
     const btn = /** @type {HTMLButtonElement} */ (document.getElementById('query-load'));
     btn.disabled = true;
@@ -188,6 +189,7 @@ const fetchQuery = async (opts) => {
             params.set('since', new Date(Date.now() - effectiveTimeRange * 60000).toISOString());
         }
         if (effectiveRetried) params.set('retried', 'true');
+        if (effectiveIsHead !== null) params.set('isHead', effectiveIsHead ? 'true' : 'false');
         const res = await fetch(`/dashboard/query?${params}`);
         const body = await res.json();
         /** @type {import('../core/state.js').Workflow[]} */
@@ -338,6 +340,8 @@ const queryStatusIds = [
     'completed',
     'failed',
     'canceled',
+    'dependencyfailed',
+    'abandoned',
 ];
 window.toggleQueryStatus = () => {
     const checked = queryStatusIds.filter(
@@ -351,6 +355,27 @@ window.toggleQueryStatus = () => {
 
 // Retried checkbox (query only)
 window.toggleRetried = () => {
+    syncUrl();
+    if (state.queryLoaded) loadQuery();
+};
+
+/**
+ * Head-visibility facet as an isHead query param: null when both (or neither) checkbox is on
+ * (no filter), true for head-only, false for non-head-only. Mirrors the backend semantics —
+ * true is visibility (directive true or unset), false is exactly isHead=false.
+ * @returns {boolean | null}
+ */
+const headVisibilityParam = () => {
+    const head = /** @type {HTMLInputElement | null} */ (document.getElementById('head-check'));
+    const nonHead = /** @type {HTMLInputElement | null} */ (
+        document.getElementById('nonhead-check')
+    );
+    if (!head || !nonHead || head.checked === nonHead.checked) return null;
+    return head.checked;
+};
+
+// Head-visibility checkboxes (query only)
+window.toggleHeadVisibility = () => {
     syncUrl();
     if (state.queryLoaded) loadQuery();
 };
