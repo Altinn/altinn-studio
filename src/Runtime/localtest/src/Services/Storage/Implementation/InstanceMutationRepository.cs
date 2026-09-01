@@ -71,6 +71,7 @@ public sealed class InstanceMutationRepository(
         CancellationToken cancellationToken = default
     )
     {
+        NormalizeMutationPayload(mutation);
         (DateTime mutationLastChanged, string mutationLastChangedBy) = GetMutationStamp(mutation);
         using IDisposable aggregateLock = await _aggregateLocks.Lock(instanceGuid.ToString());
 
@@ -320,7 +321,7 @@ public sealed class InstanceMutationRepository(
                     new DataElementUpdateContext
                     {
                         ExpectedCurrentBlobVersion = update.ExpectedCurrentBlobVersion,
-                        EnforceLockCheck = update.EnforceLockCheck,
+                        IgnoreLock = update.IgnoreLock,
                     },
                     cancellationToken
                 );
@@ -329,7 +330,7 @@ public sealed class InstanceMutationRepository(
             foreach (InstanceMutationDataElementDelete delete in mutation.DeleteDataElements ?? [])
             {
                 DataElement dataElement = delete.DataElement;
-                if (delete.EnforceLockCheck && dataElement.Locked)
+                if (!delete.IgnoreLock && dataElement.Locked)
                 {
                     throw new RepositoryException(
                         $"Data element {dataElement.Id} is locked and cannot be updated or deleted.",
@@ -588,9 +589,154 @@ public sealed class InstanceMutationRepository(
         InstanceMutationCommit mutation
     ) =>
         (
-            mutation.LastChanged ?? DateTime.UtcNow,
+            NormalizePayloadTimestamp(mutation.LastChanged ?? DateTime.UtcNow),
             mutation.LastChangedBy ?? mutation.InstanceUpdates?.LastChangedBy
         );
+
+    private static void NormalizeMutationPayload(InstanceMutationCommit mutation)
+    {
+        foreach (DataElement dataElement in mutation.CreateDataElements ?? [])
+        {
+            if (dataElement.Created is { } created)
+            {
+                dataElement.Created = NormalizePayloadTimestamp(created);
+            }
+
+            NormalizeDeleteStatus(dataElement.DeleteStatus);
+        }
+
+        foreach (InstanceMutationDataElementUpdate update in mutation.UpdateDataElements ?? [])
+        {
+            if (update.Properties.TryGetValue("/deleteStatus", out object deleteStatus))
+            {
+                NormalizeDeleteStatus(deleteStatus as DeleteStatus);
+            }
+        }
+
+        NormalizeInstanceUpdates(mutation);
+
+        foreach (InstanceEvent instanceEvent in mutation.InstanceEvents ?? [])
+        {
+            if (instanceEvent.Created is { } created)
+            {
+                instanceEvent.Created = NormalizePayloadTimestamp(created);
+            }
+
+            NormalizeProcessState(instanceEvent.ProcessInfo);
+        }
+    }
+
+    private static void NormalizeInstanceUpdates(InstanceMutationCommit mutation)
+    {
+        Instance instance = mutation.InstanceUpdates;
+        if (instance is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<string> updateProperties = mutation.InstanceUpdateProperties ?? [];
+
+        if (updateProperties.Contains(nameof(Instance.Created)) && instance.Created is { } created)
+        {
+            instance.Created = NormalizePayloadTimestamp(created);
+        }
+
+        if (
+            updateProperties.Contains(nameof(Instance.DueBefore))
+            && instance.DueBefore is { } dueBefore
+        )
+        {
+            instance.DueBefore = NormalizePayloadTimestamp(dueBefore);
+        }
+
+        if (
+            updateProperties.Contains(nameof(Instance.VisibleAfter))
+            && instance.VisibleAfter is { } visibleAfter
+        )
+        {
+            instance.VisibleAfter = NormalizePayloadTimestamp(visibleAfter);
+        }
+
+        if (updateProperties.Contains(nameof(Instance.Status)) && instance.Status is { } status)
+        {
+            if (status.Archived is { } archived)
+            {
+                status.Archived = NormalizePayloadTimestamp(archived);
+            }
+
+            if (status.SoftDeleted is { } softDeleted)
+            {
+                status.SoftDeleted = NormalizePayloadTimestamp(softDeleted);
+            }
+
+            if (status.HardDeleted is { } hardDeleted)
+            {
+                status.HardDeleted = NormalizePayloadTimestamp(hardDeleted);
+            }
+        }
+
+        if (updateProperties.Contains(nameof(Instance.Process)))
+        {
+            NormalizeProcessState(mutation.ProcessState ?? instance.Process);
+        }
+
+        if (
+            updateProperties.Contains(nameof(Instance.CompleteConfirmations))
+            && instance.CompleteConfirmations is not null
+        )
+        {
+            foreach (CompleteConfirmation confirmation in instance.CompleteConfirmations)
+            {
+                confirmation.ConfirmedOn = NormalizePayloadTimestamp(confirmation.ConfirmedOn);
+            }
+        }
+    }
+
+    private static void NormalizeProcessState(ProcessState process)
+    {
+        if (process?.Started is { } started)
+        {
+            process.Started = NormalizePayloadTimestamp(started);
+        }
+
+        if (process?.Ended is { } ended)
+        {
+            process.Ended = NormalizePayloadTimestamp(ended);
+        }
+
+        if (process?.CurrentTask?.Started is { } currentTaskStarted)
+        {
+            process.CurrentTask.Started = NormalizePayloadTimestamp(currentTaskStarted);
+        }
+
+        if (process?.CurrentTask?.Ended is { } currentTaskEnded)
+        {
+            process.CurrentTask.Ended = NormalizePayloadTimestamp(currentTaskEnded);
+        }
+    }
+
+    private static void NormalizeDeleteStatus(DeleteStatus deleteStatus)
+    {
+        if (deleteStatus?.HardDeleted is { } hardDeleted)
+        {
+            deleteStatus.HardDeleted = NormalizePayloadTimestamp(hardDeleted);
+        }
+    }
+
+    internal static DateTime NormalizePayloadTimestamp(DateTime value)
+    {
+        DateTime utc = value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+        };
+
+        return new DateTime(
+            (utc.Ticks / TimeSpan.TicksPerMicrosecond) * TimeSpan.TicksPerMicrosecond,
+            DateTimeKind.Utc
+        );
+    }
 
     private static void StampDataElement(
         DataElement dataElement,

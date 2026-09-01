@@ -524,7 +524,7 @@ public class InstanceMutationsController(
                         update.DataElementId,
                         propertyList,
                         expectedCurrentBlobVersion,
-                        EnforceLockCheck: hasContentUpdate || update.Locked != false
+                        IgnoreLock: !hasContentUpdate && update.Locked == false
                     )
                 );
             }
@@ -573,7 +573,7 @@ public class InstanceMutationsController(
                 dataElement.LastChanged = mutationLastChanged;
                 dataElement.LastChangedBy = mutationLastChangedBy;
                 deleteDataElements.Add(
-                    new InstanceMutationDataElementDelete(dataElement, !delete.IgnoreLock)
+                    new InstanceMutationDataElementDelete(dataElement, delete.IgnoreLock)
                 );
                 postCommitBlobCleanupDataElements.Add(dataElement);
             }

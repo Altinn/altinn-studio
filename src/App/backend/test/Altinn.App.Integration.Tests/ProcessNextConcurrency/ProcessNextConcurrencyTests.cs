@@ -24,7 +24,7 @@ public sealed class ProcessNextConcurrencyTests(ITestOutputHelper _output, AppFi
         var token = await fixture.Auth.GetUserToken(userId: 1337);
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         var instance = readInstantiationResponse.Data.Model;

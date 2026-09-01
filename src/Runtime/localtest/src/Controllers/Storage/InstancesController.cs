@@ -676,6 +676,10 @@ public class InstancesController : ControllerBase
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
         }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
         catch (Exception e)
         {
             _logger.LogError(
@@ -775,6 +779,10 @@ public class InstancesController : ControllerBase
         catch (StorageVersionMismatchException exception)
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
         catch (Exception e)
         {
@@ -952,6 +960,10 @@ public class InstancesController : ControllerBase
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
         }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
         catch (Exception e)
         {
             _logger.LogError(
@@ -1049,6 +1061,10 @@ public class InstancesController : ControllerBase
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
         }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
 
         await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
         return updatedInstance;
@@ -1129,6 +1145,10 @@ public class InstancesController : ControllerBase
         catch (StorageVersionMismatchException exception)
         {
             return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
 
         await WriteVersionResponseHeaders(instanceGuid, cancellationToken);

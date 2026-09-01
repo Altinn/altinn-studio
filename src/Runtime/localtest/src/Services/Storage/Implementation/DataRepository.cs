@@ -57,6 +57,7 @@ namespace LocalTest.Services.Storage.Implementation
                 bumpProcessStateVersion: false,
                 async () =>
                 {
+                    await EnsureIdleProcessStatus(instanceGuid, cancellationToken);
                     createdDataElement = await CreateCore(dataElement);
                 },
                 cancellationToken
@@ -241,6 +242,7 @@ namespace LocalTest.Services.Storage.Implementation
                         dataElementId,
                         propertylist,
                         context,
+                        ensureIdleProcessStatus: true,
                         cancellationToken
                     );
                 },
@@ -267,6 +269,7 @@ namespace LocalTest.Services.Storage.Implementation
                 dataElementId,
                 propertylist,
                 context,
+                ensureIdleProcessStatus: false,
                 cancellationToken
             );
         }
@@ -305,7 +308,8 @@ namespace LocalTest.Services.Storage.Implementation
                 instanceGuid,
                 dataElementId,
                 new Dictionary<string, object>() { { "/locked", locked } },
-                cancellationToken
+                cancellationToken,
+                ensureIdleProcessStatus: true
             );
         }
 
@@ -332,7 +336,8 @@ namespace LocalTest.Services.Storage.Implementation
             Guid dataElementId,
             Dictionary<string, object> propertylist,
             CancellationToken cancellationToken,
-            Func<DataElement, Task> afterUpdate = null
+            Func<DataElement, Task> afterUpdate = null,
+            bool ensureIdleProcessStatus = false
         )
         {
             DataElement updatedDataElement = null;
@@ -351,6 +356,7 @@ namespace LocalTest.Services.Storage.Implementation
                         dataElementId,
                         propertylist,
                         null,
+                        ensureIdleProcessStatus,
                         cancellationToken
                     );
                     if (afterUpdate is not null)
@@ -407,6 +413,28 @@ namespace LocalTest.Services.Storage.Implementation
             await WriteBlobVersionMetadata(dataElement.InstanceGuid, dataElement.Id, metadata);
         }
 
+        // The data element SQL functions read the process status off the locked parent instance row,
+        // so a missing instance resolves as not_found there before the status is ever compared.
+        private async Task EnsureIdleProcessStatus(
+            Guid instanceGuid,
+            CancellationToken cancellationToken
+        )
+        {
+            string instancePath = GetInstancePath(instanceGuid);
+            if (instancePath is null)
+            {
+                return;
+            }
+
+            string content = await File.ReadAllTextAsync(instancePath, cancellationToken);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(content);
+            ProcessStatus currentProcessStatus = instance?.Process?.Status ?? ProcessStatus.Idle;
+            if (currentProcessStatus != ProcessStatus.Idle)
+            {
+                throw new ProcessStatusConflictException(currentProcessStatus);
+            }
+        }
+
         private async Task UpdateInstanceReadStatusIfNoReadElementsRemain(
             Guid instanceGuid,
             Guid dataElementId,
@@ -448,9 +476,11 @@ namespace LocalTest.Services.Storage.Implementation
             Guid dataElementId,
             Dictionary<string, object> propertylist,
             DataElementUpdateContext context,
+            bool ensureIdleProcessStatus,
             CancellationToken cancellationToken
         )
         {
+            context ??= new DataElementUpdateContext { IgnoreLock = true };
             string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
 
             if (!File.Exists(path))
@@ -486,7 +516,7 @@ namespace LocalTest.Services.Storage.Implementation
                 );
             }
 
-            if (context?.EnforceLockCheck == true && dataElement.Locked)
+            if (!context.IgnoreLock && dataElement.Locked)
             {
                 throw new RepositoryException(
                     $"Data element {dataElementId} is locked and cannot be updated or deleted.",
@@ -506,6 +536,11 @@ namespace LocalTest.Services.Storage.Implementation
                 throw new DataElementBlobVersionMismatchException(
                     $"Current blob version for data element {dataElementId} did not match expected blob version."
                 );
+            }
+
+            if (ensureIdleProcessStatus)
+            {
+                await EnsureIdleProcessStatus(instanceGuid, cancellationToken);
             }
 
             string newCurrentBlobVersion = null;
