@@ -40,6 +40,40 @@ internal abstract class PipelineItem
 }
 
 /// <summary>
+/// What a <strong>reply handler</strong> is, whichever of the two kinds it is: an item that answers the
+/// exchange the stage at <see cref="OpeningIndex"/> opened, and that is therefore alone in its workflow.
+/// Implemented by exactly <see cref="ReplySegment"/> and <see cref="PipelineConclusion.ReplyExchange"/>, and
+/// it exists so that "this item is a reply handler" has one definition: the expansion splits runs on it, a
+/// stage's completion reads it to know whether it is its workflow's last step, and dispatch refuses a handler
+/// handed no message by it. Three type tests spelled out separately would be three places to forget a third
+/// kind of handler.
+/// </summary>
+/// <remarks>
+/// An interface and not a base class because a base class is not available:
+/// <see cref="PipelineConclusion.ReplyExchange"/> is rooted in <see cref="PipelineConclusion"/>, and
+/// <see cref="ServiceTaskPipeline"/>'s only constructor taking
+/// a <see cref="PipelineConclusion"/> and appending it last is what makes "exactly one conclusion, and it is
+/// last" structural — a shared base for both kinds would have to re-root one of them and would take that with
+/// it.
+/// <para>
+/// <strong>What keeps the two vocabularies apart is what this interface leaves out:</strong> it exposes
+/// <see cref="OpeningIndex"/> and nothing else. Neither <c>OnMessage</c> nor <c>OnClosed</c> is here, because
+/// their return types <em>are</em> the two verdict vocabularies — an exchange's, which can conclude the task
+/// and advance the process, and a stage's, which cannot. Nothing holding an <see cref="IReplyHandlerItem"/>
+/// can therefore run a handler at all, let alone run one as though it were the other, and dispatch still has
+/// to name the kind it is running. Adding a handler delegate here is what would break that, so do not.
+/// </para>
+/// </remarks>
+internal interface IReplyHandlerItem
+{
+    /// <summary>
+    /// The item that opened the mailbox this handler answers — the exchange's identity in the carry and in
+    /// the mint step's engine identity.
+    /// </summary>
+    int OpeningIndex { get; }
+}
+
+/// <summary>
 /// One composed stage — a closed set of exactly two shapes, so each shape's work delegate takes the arguments
 /// it actually needs and no execution reads a nullable declaration to rediscover which kind of stage it is
 /// running.
@@ -97,7 +131,7 @@ internal abstract class ServiceTaskStage : PipelineItem
 /// not where it sits — tells the runtime whether answering the exchange ends the task or starts the
 /// pipeline's next leg.
 /// </summary>
-internal sealed class ReplySegment : PipelineItem
+internal sealed class ReplySegment : PipelineItem, IReplyHandlerItem
 {
     internal ReplySegment(
         int openingIndex,
@@ -112,11 +146,8 @@ internal sealed class ReplySegment : PipelineItem
         OnClosed = onClosed;
     }
 
-    /// <summary>
-    /// The item that opened the mailbox this handler answers — the exchange's identity in the carry and in
-    /// the mint step's engine identity.
-    /// </summary>
-    internal int OpeningIndex { get; }
+    /// <inheritdoc />
+    public int OpeningIndex { get; }
 
     /// <summary>Answers one delivered message, with no way to conclude the task.</summary>
     internal Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> OnMessage { get; }
@@ -156,7 +187,7 @@ internal abstract class PipelineConclusion : PipelineItem
     /// delivered message, <see cref="OnClosed"/> once if the mailbox closes with the task still unconcluded.
     /// One shape however many messages an exchange carries.
     /// </summary>
-    internal sealed class ReplyExchange : PipelineConclusion
+    internal sealed class ReplyExchange : PipelineConclusion, IReplyHandlerItem
     {
         public ReplyExchange(
             int openingIndex,
@@ -171,10 +202,7 @@ internal abstract class PipelineConclusion : PipelineItem
             OnClosed = onClosed;
         }
 
-        /// <summary>
-        /// The item that opened the mailbox — the exchange's identity in the carry and in the mint step's
-        /// engine identity.
-        /// </summary>
+        /// <inheritdoc />
         public int OpeningIndex { get; }
 
         /// <summary>Answers one delivered message.</summary>

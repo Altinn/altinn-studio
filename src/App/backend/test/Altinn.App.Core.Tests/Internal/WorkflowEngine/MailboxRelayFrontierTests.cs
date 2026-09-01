@@ -281,9 +281,12 @@ public class MailboxRelayFrontierTests
                 .ConcludeOnReplies(beta, OnMessage, OnClosed);
     }
 
-    /// <summary>The hand-over a deciding hop would have made: the segment planned after that item.</summary>
-    private static MailboxHandover.NextSegment Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
-        new(afterItemIndex, WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex));
+    /// <summary>
+    /// The hand-over a deciding hop would have made: the segment planned after that item. Both call sites
+    /// pass an item the plan after which is an ordinary continuation, so no target rides along.
+    /// </summary>
+    private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
+        new(afterItemIndex, WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
 
     private static Instance CreateInstance() =>
         new()

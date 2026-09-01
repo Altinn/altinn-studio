@@ -158,7 +158,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// A rendezvous sealed the way the forwarder seals one — an unsealed payload never reaches a handler.
+    /// A target sealed the way the forwarder seals one — an unsealed payload never reaches a handler.
     /// </summary>
     private static AppCallbackMailbox Delivered(Guid mailboxId, long seq = 0, string payload = "<receipt/>")
     {
@@ -176,8 +176,7 @@ public class ExecuteServiceTaskMailboxTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(int? itemIndex, MailboxReceivePlan? receive = null) =>
-        new("archiving", itemIndex, receive);
+    private static ExecuteServiceTaskPayload Payload(int? itemIndex) => new("archiving", itemIndex);
 
     /// <summary>A receive step as the runtime enqueues one: it names the handler that answers the message.</summary>
     private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", ItemIndex: ReplyHandlerIndex);
@@ -242,15 +241,18 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// A stage that opens no mailbox needs no carried entry, and gets none: the runtime reads the stage's own
-    /// declaration to decide what to hand it, so an empty carry is not this stage's problem.
+    /// A stage that opens no mailbox is handed none: the runtime reads the stage's own declaration to decide
+    /// what to hand it. The entry travelling in the carry belongs to the exchange an <em>earlier</em> stage
+    /// opened, and this stage never sees it — it is read only to plan the receiver this stage's completion
+    /// starts.
     /// </summary>
     [Fact]
-    public async Task NonDeclaringStage_RunsWithAnEmptyCarry()
+    public async Task NonDeclaringStage_IsHandedNoMailbox()
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Contains("RecordDispatch", task.Seen);
@@ -296,8 +298,8 @@ public class ExecuteServiceTaskMailboxTests
 
     /// <summary>
     /// The reply terminal reached with nothing to answer — a step naming an item that answers messages,
-    /// handed no rendezvous. One general rule, whichever route produced it: an engine that omitted the
-    /// rendezvous, or a redeploy that turned a <c>Finally</c> into a reply terminal while this workflow was
+    /// handed no target. One general rule, whichever route produced it: an engine that omitted the
+    /// target, or a redeploy that turned a <c>Finally</c> into a reply terminal while this workflow was
     /// in flight, so its Main's concluding step now names a handler.
     /// </summary>
     [Fact]
@@ -372,62 +374,66 @@ public class ExecuteServiceTaskMailboxTests
                 );
     }
 
-    /// <summary>The exchange as the expansion bakes it into <see cref="SendOnlyTask"/>'s send step.</summary>
-    private static readonly MailboxReceivePlan _sendOnlyReceive = new(
-        HandlerItemIndex: 1,
-        OpeningStageIndex: SendStageIndex
-    );
+    /// <summary>
+    /// A send followed by two plain stages, then the terminal that answers: the shape that separates a plain
+    /// stage which is its workflow's last step (item 2, with the handler composed next) from one which is not
+    /// (item 1, with a stage composed next).
+    /// </summary>
+    private sealed class SendThenTwoStagesTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
 
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(
+                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
+                    new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
+                    out MailboxHandle archive
+                )
+                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .ConcludeOnReplies(
+                    archive,
+                    (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                    (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+                );
+    }
+
+    /// <summary>
+    /// The exchange's handler is composed right after the send, so completing the send starts that exchange's
+    /// receive leg: one workflow, the handler alone in it, parked on the mailbox the mint carried. Nothing in
+    /// the step's payload says so — it is read off the pipeline this execution resolved.
+    /// </summary>
     [Fact]
-    public async Task SegmentFinalOpeningStage_Completed_AsksForTheFirstReceiver()
+    public async Task OpeningStage_WhoseHandlerIsComposedNext_AsksForThatExchangesReceiver()
     {
         var task = new SendOnlyTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex, _sendOnlyReceive));
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
 
-        MailboxContinuation.AwaitFirstMessage first = Assert.IsType<MailboxContinuation.AwaitFirstMessage>(
+        MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal(_carriedMailboxId, first.MailboxId);
-        Assert.Equal("archiving", first.ServiceTaskType);
-        Assert.Equal(1, first.HandlerItemIndex);
-        Assert.Equal(SendStageIndex, first.OpeningStageIndex);
+        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(continuing.Handover));
+
+        MailboxTarget target = Assert.IsType<MailboxTarget>(continuing.Handover.Target);
+        Assert.Equal(_carriedMailboxId, target.MailboxId);
+        Assert.Equal(SendStageIndex, target.OpeningStageIndex);
     }
 
     /// <summary>
-    /// The segment's last stage need not be the one that opened the exchange: a plain stage composed between
-    /// the send and the handler carries the hand-over just the same.
+    /// The workflow's last stage need not be the one that opened the exchange: a plain stage composed between
+    /// the send and the handler is its workflow's last step too, because the handler after it must be alone —
+    /// and that is derived from the pipeline, since nothing rides in the step's payload.
     /// </summary>
     [Fact]
-    public async Task SegmentFinalPlainStage_Completed_AsksForTheFirstReceiver()
-    {
-        var task = new ArchivingTask();
-
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(
-                CreateContext(MintedCarry()),
-                Payload(itemIndex: 1, new MailboxReceivePlan(ReplyHandlerIndex, SendStageIndex))
-            );
-
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        MailboxContinuation.AwaitFirstMessage first = Assert.IsType<MailboxContinuation.AwaitFirstMessage>(
-            success.MailboxContinuation
-        );
-        Assert.Equal(_carriedMailboxId, first.MailboxId);
-        Assert.Equal(ReplyHandlerIndex, first.HandlerItemIndex);
-        Assert.Equal(SendStageIndex, first.OpeningStageIndex);
-    }
-
-    /// <summary>
-    /// A plain stage in the middle of a segment hands over to nothing: the steps after it are already in this
-    /// workflow's step list, so the engine simply runs the next one.
-    /// </summary>
-    [Fact]
-    public async Task MidSegmentPlainStage_Completed_StartsNothing()
+    public async Task PlainStageBeforeAHandler_Completed_AsksForThatExchangesReceiver()
     {
         var task = new ArchivingTask();
 
@@ -435,13 +441,59 @@ public class ExecuteServiceTaskMailboxTests
             .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(1, continuing.Handover.AfterItemIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: {ReplyHandlerIndex}"], OperationIds(continuing.Handover));
+
+        MailboxTarget target = Assert.IsType<MailboxTarget>(continuing.Handover.Target);
+        Assert.Equal(_carriedMailboxId, target.MailboxId);
+        Assert.Equal(SendStageIndex, target.OpeningStageIndex);
+    }
+
+    /// <summary>
+    /// The other half of that derivation: a plain stage the pipeline follows with another stage starts
+    /// nothing. The steps after it are already in this workflow's step list, so the engine simply runs the
+    /// next one — enqueuing anything here would duplicate them.
+    /// </summary>
+    [Fact]
+    public async Task MidSegmentPlainStage_Completed_StartsNothing()
+    {
+        var task = new SendThenTwoStagesTask();
+
+        // An empty carry on purpose: a stage that starts nothing reads nothing from it.
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Null(success.MailboxContinuation);
     }
 
     /// <summary>
+    /// And the stage after it, on the same pipeline, does hand over: what separates the two is only the shape
+    /// of the item composed next.
+    /// </summary>
+    [Fact]
+    public async Task LastPlainStageOfTheSamePipeline_Completed_AsksForTheReceiver()
+    {
+        var task = new SendThenTwoStagesTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 2));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(continuing.Handover));
+        Assert.Equal(SendStageIndex, Assert.IsType<MailboxTarget>(continuing.Handover.Target).OpeningStageIndex);
+    }
+
+    /// <summary>
     /// A mailbox-opening stage is always its workflow's last step, so completing one with the exchange's
-    /// handler further off hands the pipeline over to the segment carrying the items in between — the shape
-    /// <see cref="ArchivingTask"/> has, with a plain stage composed between the send and the terminal.
+    /// handler further off hands the pipeline over to the workflow carrying the items in between — the shape
+    /// <see cref="ArchivingTask"/> has, with a plain stage composed between the send and the terminal. No
+    /// target: that workflow receives nothing.
     /// </summary>
     [Fact]
     public async Task MidPipelineOpeningStage_Completed_AsksForTheNextSegment()
@@ -458,38 +510,16 @@ public class ExecuteServiceTaskMailboxTests
             success.MailboxContinuation
         );
         Assert.Equal("archiving", continuing.ServiceTaskType);
-        // The plan rides the verdict: the stage composed after the send, ending on this exchange.
-        Assert.Equal(SendStageIndex, continuing.Segment.AfterItemIndex);
-        Assert.Equal(
-            [$"{ExecuteServiceTask.Key}: 1"],
-            continuing.Segment.Plan.Steps.Select(step => step.OperationId).ToList()
-        );
+        // The plan rides the verdict: the stage composed after the send, and nothing more.
+        Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(continuing.Handover));
+        Assert.Null(continuing.Handover.Target);
         // The exchange has not started: its entry keeps traveling.
         Assert.NotNull(carry.FindMailbox(SendStageIndex));
     }
 
-    /// <summary>
-    /// The reshape this hop can meet, through the dispatch switch: the step was assembled when a segment
-    /// followed the send (so its payload carries no exchange), and the composition now answers that exchange
-    /// right after the stage. Permanent and named, like every other drift guard on this path — a throw would
-    /// be caught into a retryable failure and re-run the send on every attempt.
-    /// </summary>
-    [Fact]
-    public async Task OpeningStage_WhoseFollowingSegmentIsNowAReplyHandler_FailsPermanently()
-    {
-        var task = new SendOnlyTask();
-        WorkflowCallbackStateCarry carry = MintedCarry();
-
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(carry), Payload(SendStageIndex));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("PipelineSegmentNotFound", failed.ExceptionType);
-        Assert.Contains($"stage at index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Null(failed.MailboxContinuation);
-        Assert.NotNull(carry.FindMailbox(SendStageIndex));
-    }
+    private static List<string> OperationIds(MailboxHandover handover) =>
+        handover.Plan.Steps.Select(step => step.OperationId).ToList();
 
     [Fact]
     public async Task OpeningStageConclusion_WithSuccessAndAction_ClosesEveryMailboxAndAdvances()
@@ -502,7 +532,7 @@ public class ExecuteServiceTaskMailboxTests
         WorkflowCallbackStateCarry carry = MintedCarry();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive));
+            .Execute(CreateContext(carry), Payload(SendStageIndex));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
@@ -530,7 +560,7 @@ public class ExecuteServiceTaskMailboxTests
         };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex, _sendOnlyReceive));
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -611,7 +641,7 @@ public class ExecuteServiceTaskMailboxTests
         };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex, _sendOnlyReceive));
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -632,7 +662,7 @@ public class ExecuteServiceTaskMailboxTests
                             Task.FromResult(ServiceTaskOpeningStageResult.Defer(TimeSpan.FromMinutes(2), "waiting")),
                     }
                 )
-                .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive))
+                .Execute(CreateContext(carry), Payload(SendStageIndex))
         );
         Assert.Equal(TimeSpan.FromMinutes(2), deferred.Delay);
 
@@ -644,7 +674,7 @@ public class ExecuteServiceTaskMailboxTests
                             Task.FromResult(ServiceTaskOpeningStageResult.FailedRetryable("engine sneezed")),
                     }
                 )
-                .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive))
+                .Execute(CreateContext(carry), Payload(SendStageIndex))
         );
         Assert.False(retryable.NonRetryable);
         Assert.Null(retryable.MailboxContinuation);
@@ -656,7 +686,7 @@ public class ExecuteServiceTaskMailboxTests
                         OnSend = (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.FailedPermanent("no step id")),
                     }
                 )
-                .Execute(CreateContext(carry), Payload(SendStageIndex, _sendOnlyReceive))
+                .Execute(CreateContext(carry), Payload(SendStageIndex))
         );
         Assert.True(permanent.NonRetryable);
         // A stage's own permanent failure concludes nothing: mailboxes stay open for a resume.

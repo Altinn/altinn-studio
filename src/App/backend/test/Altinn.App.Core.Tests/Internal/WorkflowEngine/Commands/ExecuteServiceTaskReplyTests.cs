@@ -345,7 +345,12 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Step(1));
+        // This stage is the last before the terminal that answers, so completing it starts that exchange's
+        // receive leg — which needs the mailbox the pipeline's send minted to be travelling in the carry.
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(0, _mailboxId, new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero));
+
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(carry: carry), Step(1));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Stage);
@@ -679,9 +684,8 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal("archiving", continuing.ServiceTaskType);
         // The hand-over is the segment this handler's decide planned, named for the handler it follows.
-        MailboxHandover.NextSegment segment = Assert.IsType<MailboxHandover.NextSegment>(continuing.Handover);
-        Assert.Equal(ContinuingSegmentIndex, segment.AfterItemIndex);
-        Assert.NotEmpty(segment.Plan.Steps);
+        Assert.Equal(ContinuingSegmentIndex, continuing.Handover.AfterItemIndex);
+        Assert.NotEmpty(continuing.Handover.Plan.Steps);
     }
 
     [Theory]

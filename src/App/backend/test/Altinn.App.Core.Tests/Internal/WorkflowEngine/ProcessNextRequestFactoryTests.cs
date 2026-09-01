@@ -828,8 +828,14 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MintMailbox.Key, ExtractCommandKeys(bundle));
     }
 
+    /// <summary>
+    /// The assembled send stage's whole serialized payload, pinned exactly: the service task and the item it
+    /// runs, and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
+    /// — is worked out by that step when it runs, from the pipeline it resolves then. Pinned on the whole
+    /// string so that a field added to the payload fails here too, not only a field removed.
+    /// </summary>
     [Fact]
-    public async Task Create_MailboxPipeline_BakesTheExchangeIntoTheSendStagePayload()
+    public async Task Create_MailboxPipeline_SendStagePayload_IsTheItemIndexAndNothingElse()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -837,22 +843,22 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         var sendStep = Assert.Single(ExtractServiceTaskSteps(bundle));
-        MailboxReceivePlan receive = Assert.IsType<MailboxReceivePlan>(sendStep.Payload.Receive);
-        // Both positions fixed at assembly time: the terminal that answers (item 1) and the stage whose
-        // mint the receiver is declared against (item 0).
-        Assert.Equal(1, receive.HandlerItemIndex);
-        Assert.Equal(0, receive.OpeningStageIndex);
+        string payloadJson = JsonSerializer.Deserialize<AppCommandData>(sendStep.Step.Command.Data!.Value)!.Payload!;
+        Assert.Equal(
+            "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0}",
+            payloadJson
+        );
     }
 
     /// <summary>
     /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to
     /// split at a reply handler, a composed <c>HandleReplies</c> made Main's planning throw, so this shape
-    /// could not reach the engine at all. Main carries only the pipeline's <em>first</em> segment and hands
-    /// over to the exchange that segment ends on — the mid-pipeline handler's, never the terminal's — with
-    /// the journal's send and the terminal belonging to the continuation the archive's conclusion starts.
+    /// could not reach the engine at all. Main carries only the pipeline's <em>first</em> segment — the
+    /// archive's send, whose completion starts that exchange's receive leg — with the journal's send and the
+    /// terminal belonging to the workflows further down the chain.
     /// </summary>
     [Fact]
-    public async Task Create_MailboxPipelineAnsweredMidPipeline_HandsMainOverToTheFirstExchange()
+    public async Task Create_MailboxPipelineAnsweredMidPipeline_EndsMainAtTheFirstSend()
     {
         var factory = CreateFactory(serviceTasks: new ArchiveThenJournalTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -873,16 +879,10 @@ public class ProcessNextRequestFactoryTests
         // Only the archive's mailbox is minted in Main: the journal's clock starts in the continuation.
         Assert.Single(keys, key => key == MintMailbox.Key);
         Assert.Equal(0, ExtractMintPayload(bundle).StageIndex);
-
-        // The exchange baked into the send: the mid-pipeline handler's own item index — item 1, right after
-        // the send it answers — never the terminal's.
-        MailboxReceivePlan receive = Assert.IsType<MailboxReceivePlan>(sendStep.Payload.Receive);
-        Assert.Equal(1, receive.HandlerItemIndex);
-        Assert.Equal(0, receive.OpeningStageIndex);
     }
 
     [Fact]
-    public async Task Create_PipelineWithoutMailbox_BakesNoExchangeIntoAnyStep()
+    public async Task Create_PipelineWithoutMailbox_RunsTheWholePipelineInMain()
     {
         var factory = CreateFactory(serviceTasks: new SigningTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
@@ -890,7 +890,6 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        Assert.All(serviceTaskSteps, s => Assert.Null(s.Payload.Receive));
         // The signing pipeline's conclusion is its item 1, and Main runs it as an ordinary step.
         Assert.Contains(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
     }
@@ -911,7 +910,6 @@ public class ProcessNextRequestFactoryTests
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         Assert.Equal([0, 1], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
-        Assert.All(serviceTaskSteps, step => Assert.Null(step.Payload.Receive));
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(ExecuteServiceTask.Key, keys[^1]);

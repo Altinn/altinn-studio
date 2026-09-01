@@ -564,7 +564,7 @@ public class ProcessStepOptionsResolverTests
 
     /// <summary>
     /// The identity rides the step, so every hop that enqueues a receiver passes it through by construction:
-    /// both the factory's first receiver and the relay's successors build the step this way.
+    /// the planner's receive workflows and the relay's successor receivers build the step the same way.
     /// </summary>
     [Fact]
     public void ApplyStepOptions_ReceiveStep_ResolvesTheAnsweringHandlersOptions()
@@ -572,7 +572,7 @@ public class ProcessStepOptionsResolverTests
         ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
 
         StepRequest resolved = WorkflowCommandSet
-            .CreateReceiveHandlerStep("exchanges", handlerItemIndex: 1)
+            .CreateItemStep("exchanges", itemIndex: 1)
             .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);

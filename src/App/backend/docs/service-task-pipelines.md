@@ -218,6 +218,16 @@ reads the echo, decrypts, and forwards.
 The expansion fixes a pipeline's shape when a workflow is enqueued, and an item is identified by its
 **position**. Reshaping the composition while workflows are in flight — inserting, reordering or removing
 stages or reply handlers — shifts every index behind the change and strands those workflows with permanent
-failures (`PipelineItemNotFound`, `MailboxDeclarationNotFound`). This is the same versioning problem as
-editing a BPMN file mid-flight, and it is the app developer's to manage: drain or resume in-flight
-workflows on the code that enqueued them, or abandon them deliberately.
+failures (`PipelineItemNotFound`, `MailboxDeclarationNotFound`, and, for a mailbox pipeline,
+`MailboxReceiptMissing` or `MailboxIdMissingFromState`). This is the same versioning problem as editing a
+BPMN file mid-flight, and it is the app developer's to manage: drain or resume in-flight workflows on the
+code that enqueued them, or abandon them deliberately.
+
+Nothing detects a reshape as such: every step reads the composition it finds, so a reshape can also change
+what an in-flight step goes on to do without failing at all. **One case of that loses work silently.** A
+step that was its workflow's last because a reply handler was composed after it stops being its workflow's
+last if the redeploy removes that exchange — so it completes, starts nothing, and its workflow settles
+with the items composed after it never run. The task neither concludes nor fails: the transition is simply
+over, with part of the pipeline dropped. Only a plain stage can end this way. A mailbox-opening stage
+always starts what follows it, so it either continues the pipeline or fails saying why, never silently
+drops the rest.

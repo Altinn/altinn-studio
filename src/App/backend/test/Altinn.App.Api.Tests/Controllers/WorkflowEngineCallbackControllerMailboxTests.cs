@@ -214,19 +214,15 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
 
     /// <summary>
-    /// Drives the send stage's own callback — Main's last step, whose payload carries the exchange it hands
-    /// over to.
+    /// Drives the send stage's own callback — Main's last step. The exchange's handler is composed right
+    /// after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallback(
         Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
     ) =>
         RunCallback(
             mailbox: null,
-            new ExecuteServiceTaskPayload(
-                ServiceTaskType,
-                ItemIndex: 0,
-                Receive: new MailboxReceivePlan(HandlerIndex, OpeningStageIndex: 0)
-            ),
+            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
             onMessage: null,
             onClosed: null,
             onSend
@@ -234,7 +230,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
     /// <summary>
     /// The same callback for a pipeline whose send is followed by a stage rather than by the handler: the
-    /// step's payload carries no exchange, so its completion hands over to the pipeline's next segment.
+    /// same payload, and its completion starts the workflow carrying that stage instead.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallbackWithTrailingStage(
         Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
@@ -597,7 +593,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         Assert.Null(continuation.Mailbox);
         Assert.True(continuation.IsHead);
         Assert.True(continuation.DependsOnHeads);
-        // The trailing stage, ending on the exchange this send opened.
+        // The trailing stage alone: it is what starts this exchange's receive leg, from its own callback.
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", Assert.Single(continuation.Steps).OperationId);
 
         // The exchange is still to be answered: its entry keeps traveling.
@@ -655,11 +651,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         HttpRequestException thrown = await Assert.ThrowsAsync<HttpRequestException>(() =>
             RunCallback(
                 mailbox: null,
-                new ExecuteServiceTaskPayload(
-                    ServiceTaskType,
-                    ItemIndex: 0,
-                    Receive: new MailboxReceivePlan(HandlerIndex, OpeningStageIndex: 0)
-                ),
+                new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
                 onMessage: null,
                 onClosed: null,
                 onSend: (_, _) => ServiceTaskOpeningStageResult.Completed(),

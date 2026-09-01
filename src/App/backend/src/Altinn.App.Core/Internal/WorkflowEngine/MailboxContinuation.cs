@@ -1,7 +1,9 @@
+using System.Globalization;
+
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// What the relay does next — a closed set of exactly five answers, which is where "at most one execution
+/// What the relay does next — a closed set of exactly four answers, which is where "at most one execution
 /// concludes, per exchange" is made structural: no member can express another's action, and no member that
 /// enqueues a receiver or a segment has a path to a closure it did not name.
 /// </summary>
@@ -15,37 +17,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal abstract record MailboxContinuation
 {
     private MailboxContinuation() { }
-
-    /// <summary>
-    /// Enqueue the exchange's <em>first</em> receiver — the segment that opened the mailbox is complete, so
-    /// its receive leg starts. Nothing is closed or started.
-    /// </summary>
-    internal sealed record AwaitFirstMessage : MailboxContinuation
-    {
-        public AwaitFirstMessage(Guid mailboxId, string serviceTaskType, int handlerItemIndex, int openingStageIndex)
-        {
-            MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
-            HandlerItemIndex = handlerItemIndex;
-            OpeningStageIndex = openingStageIndex;
-        }
-
-        /// <summary>The mailbox the receiver parks on, read from the carry at the deciding step.</summary>
-        public Guid MailboxId { get; }
-
-        /// <summary>The service task whose pipeline composes the reply handler.</summary>
-        public string ServiceTaskType { get; }
-
-        /// <summary>
-        /// The handler's own position in the pipeline — what the receiver's step names. Sourced from the
-        /// executing step's own payload, fixed at assembly time, so a mid-flight reshape cannot make the
-        /// receiver run a different handler.
-        /// </summary>
-        public int HandlerItemIndex { get; }
-
-        /// <summary>The stage that opened the exchange — what the receiver's operation id names.</summary>
-        public int OpeningStageIndex { get; }
-    }
 
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
@@ -76,28 +47,26 @@ internal abstract record MailboxContinuation
     }
 
     /// <summary>
-    /// A mailbox-opening stage completed while the pipeline has items composed after it: run them as the
-    /// next segment, on one continuation workflow. Nothing is closed — the exchange this stage opened is
-    /// still to come, and so is any exchange an earlier stage opened.
+    /// A stage that was its workflow's last step completed: start what the pipeline composes after it — the
+    /// receive leg of the exchange the handler composed next answers, or otherwise the workflow carrying the
+    /// items that are composed next. Which exchange that is belongs to the handler, not to this stage: on
+    /// up-front sends the stage that just sent opened a <em>later</em> exchange than the one the handler after
+    /// it answers. Nothing is closed: no exchange of this task has been answered here, neither one this stage
+    /// opened nor one an earlier stage did.
     /// </summary>
     internal sealed record ContinueAfterStage : MailboxContinuation
     {
-        public ContinueAfterStage(string serviceTaskType, MailboxHandover.NextSegment segment)
+        public ContinueAfterStage(string serviceTaskType, MailboxHandover handover)
         {
             ServiceTaskType = serviceTaskType;
-            Segment = segment;
+            Handover = handover;
         }
 
-        /// <summary>The service task whose pipeline the next segment belongs to.</summary>
+        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
         public string ServiceTaskType { get; }
 
-        /// <summary>
-        /// The segment composed after the stage that ended this workflow's run — the plan the decide made,
-        /// carried whole. Typed as the segment member alone rather than as a <see cref="MailboxHandover"/>:
-        /// an opening stage contributes its own mint and stage step, so the segment after it is never the
-        /// empty one a first receiver would have to stand in for.
-        /// </summary>
-        public MailboxHandover.NextSegment Segment { get; }
+        /// <summary>What the pipeline runs next, decided and planned at the verdict this came from.</summary>
+        public MailboxHandover Handover { get; }
     }
 
     /// <summary>
@@ -138,67 +107,93 @@ internal abstract record MailboxContinuation
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// What the pipeline runs once this exchange's mailbox is closed — the two cases as data rather than
-        /// as a nullable and an implicit fallback, both decided at the verdict this continuation came from.
+        /// What the pipeline runs once this exchange's mailbox is closed, decided and planned at the verdict
+        /// this continuation came from.
         /// </summary>
         public MailboxHandover Handover { get; }
     }
 }
 
 /// <summary>
-/// What the pipeline runs after the item a relay hop just ran — a closed pair, decided by that hop's own
-/// verdict and carried whole so nothing downstream re-derives it: the next segment exactly as it was planned
-/// there, or, when that segment has no steps of its own, the next exchange's first receiver.
+/// What the pipeline runs after the item a relay hop just ran: the plan that hop made, carried whole so the
+/// enqueue re-derives nothing, plus — when the plan is a receive workflow — the mailbox it parks on. One
+/// shape rather than a pair, because the difference between a receive workflow and a continuation is one the
+/// enqueue must read anyway (a mailbox to park on, and its own operation id naming) and nothing else
+/// dispatches on. The three guards below are what that collapse costs and pays for: a pair could not express
+/// the disagreements they refuse, so they are stated here rather than left to the planner in another file.
 /// </summary>
-internal abstract record MailboxHandover
+internal sealed record MailboxHandover
 {
-    private MailboxHandover() { }
-
-    /// <summary>
-    /// The pipeline's next segment, planned at the decide from the resolution dispatch ran the item from.
-    /// One plan, authoritative: the enqueue hop applies step options to these steps and enqueues them, and
-    /// never plans again — so nothing rides on the two hops resolving <c>Define</c> to the same shape.
-    /// </summary>
-    internal sealed record NextSegment : MailboxHandover
+    public MailboxHandover(int afterItemIndex, ServiceTaskSegmentPlan plan, MailboxTarget? target)
     {
-        public NextSegment(int afterItemIndex, ServiceTaskSegmentPlan plan)
+        // The one place a plan becomes a hand-over, so the one place worth stating the invariant: the deciding
+        // hop refuses an empty plan before it gets here, and the enqueue has no verdict channel left to refuse
+        // it in — it would enqueue a workflow with no steps, which the engine settles at once, emptying the
+        // frontier under an open mailbox.
+        if (plan.Steps.Count == 0)
         {
-            // The one place a plan becomes a hand-over, so the one place worth stating the invariant: both
-            // deciding hops refuse or reroute an empty plan before they get here, and the enqueue has no
-            // verdict channel left to refuse it in — it would enqueue a workflow with no steps, which the
-            // engine settles at once, emptying the frontier under an open mailbox.
-            if (plan.Steps.Count == 0)
-            {
-                throw new ArgumentException(
-                    "A hand-over to the pipeline's next segment must carry at least one step; an empty plan "
-                        + "means the exchange's first receiver is the continuation, which is FirstReceiver.",
-                    nameof(plan)
-                );
-            }
-
-            AfterItemIndex = afterItemIndex;
-            Plan = plan;
+            throw new ArgumentException(
+                "A hand-over must carry at least one step: an empty plan means the pipeline composes nothing "
+                    + "after the item the deciding hop ran, which that hop refuses.",
+                nameof(plan)
+            );
         }
 
-        /// <summary>
-        /// The item the segment follows — the reply handler that concluded its exchange, or the
-        /// mailbox-opening stage that ended its own workflow. What the continuation workflow's operation id
-        /// names, and where the plan was taken from.
-        /// </summary>
-        public int AfterItemIndex { get; }
+        // A receive workflow parks on a mailbox, so the two halves are one decision: a plan that names an
+        // exchange and no target would enqueue a handler step with nothing to receive from, and a target
+        // without one would park ordinary steps on a mailbox.
+        if ((plan.ReceiveOpeningIndex is null) != (target is null))
+        {
+            throw new ArgumentException(
+                "A receive plan's mailbox travels with it: a plan naming the exchange it answers must be "
+                    + "handed the mailbox that exchange runs on, and a plan naming none must be handed no "
+                    + "mailbox.",
+                nameof(target)
+            );
+        }
 
-        /// <summary>The segment's steps, with options still unresolved: the enqueue hop applies them.</summary>
-        public ServiceTaskSegmentPlan Plan { get; }
+        // A receive workflow's one step is the handler, and the engine resolves a workflow's mailbox
+        // rendezvous for its first step only (ProcessingOrder == 0): a second step would run with none, after
+        // the first had already consumed the message this workflow was parked for.
+        if (target is not null && plan.Steps.Count != 1)
+        {
+            throw new ArgumentException(
+                "A receive workflow runs exactly one step, the reply handler that answers its exchange; this "
+                    + $"plan carries {plan.Steps.Count.ToString(CultureInfo.InvariantCulture)}.",
+                nameof(plan)
+            );
+        }
+
+        AfterItemIndex = afterItemIndex;
+        Plan = plan;
+        Target = target;
     }
 
     /// <summary>
-    /// The next exchange's first receiver, for a segment with no steps of its own (two reply handlers composed
-    /// back to back): there is no continuation workflow to ride, so the receiver is enqueued directly — it
-    /// <em>is</em> the pipeline's continuation. Its mailbox is resolved from the carry at the decide, where a
-    /// missing entry can still fail the verdict legibly.
+    /// The item the plan follows — the reply handler that concluded its exchange, or the stage that was its
+    /// own workflow's last step. What a continuation workflow's operation id names.
     /// </summary>
-    /// <param name="MailboxId">The mailbox the receiver parks on.</param>
-    /// <param name="HandlerItemIndex">The handler its step names.</param>
-    /// <param name="OpeningStageIndex">The stage whose exchange its operation id names.</param>
-    internal sealed record FirstReceiver(Guid MailboxId, int HandlerItemIndex, int OpeningStageIndex) : MailboxHandover;
+    public int AfterItemIndex { get; }
+
+    /// <summary>
+    /// The plan as the deciding hop made it, authoritative: the enqueue hop applies step options to these
+    /// steps and enqueues them, and never plans again — so nothing rides on the two hops resolving
+    /// <c>Define</c> to the same shape.
+    /// </summary>
+    public ServiceTaskSegmentPlan Plan { get; }
+
+    /// <summary>
+    /// The exchange the plan's one handler step is to be parked on, or null when the plan is an ordinary
+    /// continuation. Resolved from the carry at the decide, where a missing entry can still fail the verdict
+    /// legibly.
+    /// </summary>
+    public MailboxTarget? Target { get; }
 }
+
+/// <summary>
+/// Where a receive workflow is to be parked — the outbound half of an exchange's identity, named apart from
+/// the inbound <c>rendezvous</c> the engine hands a receive workflow when a message arrives for it.
+/// </summary>
+/// <param name="MailboxId">The mailbox, resolved from the state carry at the deciding hop.</param>
+/// <param name="OpeningStageIndex">The stage that opened it — what the receiver's operation id names.</param>
+internal sealed record MailboxTarget(Guid MailboxId, int OpeningStageIndex);
