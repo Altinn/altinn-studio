@@ -96,11 +96,16 @@ export const Altinn2ResourcePoliciesPage = () => {
 
   const getResourceTypeCountHeading = (heading: string, policies: TableRowData[]) => {
     const appsCount = policies.filter((x) => x.resourceType === ALTINN_APP).length;
-    const migratedAppCount = policies.filter((x) => x.resourceType === MIGRATED_APP).length;
-    const resourceCount = policies.filter(
+    const migratedAppsCount = policies.filter((x) => x.resourceType === MIGRATED_APP).length;
+    const resourcesCount = policies.filter(
       (x) => x.resourceType !== ALTINN_APP && x.resourceType !== MIGRATED_APP,
     ).length;
-    return `${heading} (${appsCount} apper, ${migratedAppCount} migrerte apper, ${resourceCount} ressurser)`;
+    return t('resourceadm.altinn2policy_heading_count', {
+      heading,
+      appsCount,
+      migratedAppsCount,
+      resourcesCount,
+    });
   };
 
   return (
@@ -109,32 +114,39 @@ export const Altinn2ResourcePoliciesPage = () => {
         <Link to={getResourceDashboardURL(org, app)}>{t('resourceadm.listadmin_back')}</Link>
       </span>
       <StudioHeading level={1} data-size='lg'>
-        Ressurser og apper med Altinn 2-roller
+        {t('resourceadm.altinn2policy_heading')}
       </StudioHeading>
       <StudioToggleGroup
         data-toggle-group='envSelect'
         value={env}
         onChange={(newValue: string) => setEnv(newValue as 'tt02' | 'prod')}
       >
-        <StudioToggleGroup.Item value='tt02'>TT02</StudioToggleGroup.Item>
-        <StudioToggleGroup.Item value='prod'>Prod</StudioToggleGroup.Item>
+        <StudioToggleGroup.Item value='tt02'>
+          {t('resourceadm.altinn2policy_env_tt02')}
+        </StudioToggleGroup.Item>
+        <StudioToggleGroup.Item value='prod'>
+          {t('resourceadm.altinn2policy_env_prod')}
+        </StudioToggleGroup.Item>
       </StudioToggleGroup>
       {isLoading ? (
-        <StudioSpinner aria-label='Laster inn data' />
+        <StudioSpinner aria-label={t('resourceadm.altinn2policy_spinner')} />
       ) : (
         <>
           {isError ? (
             <StudioAlert data-color='danger'>
-              Kunne ikke laste ressurser og apper med Altinn 2 roller
+              {t('resourceadm.altinn2policy_load_error')}
             </StudioAlert>
           ) : (
             <>
               <StudioHeading level={2}>
-                {getResourceTypeCountHeading('Bare Altinn 2-roller', onlyA2Roles)}
+                {getResourceTypeCountHeading(
+                  t('resourceadm.altinn2policy_only_a2_roles_heading'),
+                  onlyA2Roles,
+                )}
               </StudioHeading>
               {onlyA2Roles.length === 0 ? (
                 <StudioAlert data-color='success'>
-                  Det finnes ingen ressurser med bare Altinn 2-roller
+                  {t('resourceadm.altinn2policy_only_a2_roles_empty')}
                 </StudioAlert>
               ) : (
                 <ResourcePolicyTable
@@ -146,14 +158,13 @@ export const Altinn2ResourcePoliciesPage = () => {
               )}
               <StudioHeading level={2}>
                 {getResourceTypeCountHeading(
-                  'Altinn 2-roller med ER-roller eller tilgangspakker',
+                  t('resourceadm.altinn2policy_a2_and_other_roles_heading'),
                   a2AndOtherRoles,
                 )}
               </StudioHeading>
               {a2AndOtherRoles.length === 0 ? (
                 <StudioAlert data-color='success'>
-                  Det finnes ingen ressurser med Altinn 2-roller og andre roller eller
-                  tilgangspakker
+                  {t('resourceadm.altinn2policy_a2_and_other_roles_empty')}
                 </StudioAlert>
               ) : (
                 <ResourcePolicyTable
@@ -182,6 +193,7 @@ export const ResourcePolicyTable = ({
   isOnlyA2Roles: boolean;
   onPolicyUpdated: (data: ResourcePolicyData) => void;
 }) => {
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selectedPolicy, setSelectedPolicy] = useState<TableRowData | null>(null);
 
@@ -197,17 +209,17 @@ export const ResourcePolicyTable = ({
         columns={[
           {
             accessor: 'identifier',
-            heading: 'Ressurs-id',
+            heading: t('resourceadm.altinn2policy_column_identifier'),
             sortable: true,
           },
           {
             accessor: 'a2Roles',
-            heading: 'Altinn 2 roller',
+            heading: t('resourceadm.altinn2policy_column_a2_roles'),
             sortable: true,
           },
           {
             accessor: 'otherRoles',
-            heading: 'Andre roller',
+            heading: t('resourceadm.altinn2policy_column_other_roles'),
             sortable: true,
           },
           {
@@ -231,7 +243,7 @@ export const ResourcePolicyTable = ({
                       setSelectedPolicy(x);
                     }}
                   >
-                    Edit
+                    {t('resourceadm.altinn2policy_edit')}
                   </StudioButton>
                 )}
               </div>
@@ -267,6 +279,7 @@ export const LocalPolicyEditor = ({
   onClose: () => void;
   onPolicyUpdated: (data: ResourcePolicyData) => void;
 }) => {
+  const { t } = useTranslation();
   const { org, app } = useUrlParams();
   const [updatedPolicy, setUpdatedPolicy] = useState<Policy>(tableData.policy);
 
@@ -313,7 +326,7 @@ export const LocalPolicyEditor = ({
   const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(updatedPolicy.rules, subjects);
 
   if (isActionPending || isSubjectsPending || isLoadingAccessPackages) {
-    return <StudioSpinner aria-label='Laster...' />;
+    return <StudioSpinner aria-label={t('resourceadm.altinn2policy_policy_spinner')} />;
   }
 
   return (
@@ -331,9 +344,11 @@ export const LocalPolicyEditor = ({
         />
       </StudioDialog.Block>
       <StudioDialog.Block className={classes.buttonRow}>
-        <StudioButton onClick={publishNewPolicy}>Publiser endringer</StudioButton>
+        <StudioButton onClick={publishNewPolicy}>
+          {t('resourceadm.altinn2policy_publish')}
+        </StudioButton>
         <StudioButton variant='tertiary' onClick={onClose}>
-          Avbryt
+          {t('resourceadm.altinn2policy_cancel')}
         </StudioButton>
       </StudioDialog.Block>
     </>
