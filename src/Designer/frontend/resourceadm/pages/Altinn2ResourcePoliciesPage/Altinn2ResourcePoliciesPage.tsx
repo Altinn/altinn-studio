@@ -58,7 +58,7 @@ const getTableData = (resource: ResourcePolicyData) => {
     ),
   );
 
-  const otherSubjects = new Set(subjects).difference(a2Subjects);
+  const otherSubjects = [...new Set(subjects)].filter((subject) => !a2Subjects.has(subject));
   const accessPackages = resource.policy?.rules.flatMap((rule) => rule.accessPackages);
 
   return {
