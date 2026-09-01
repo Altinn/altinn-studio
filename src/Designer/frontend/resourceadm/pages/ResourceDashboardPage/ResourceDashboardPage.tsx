@@ -133,6 +133,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           >
             <strong>Oversikt over Altinn 2-roller</strong>
           </StudioButton>
+          <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
             onClick={() => navigate(`${getResourceDashboardURL(org, app)}/accesslists`)}
