@@ -5529,6 +5529,7 @@ __metadata:
     "@storybook/addon-links": "npm:10.5.7"
     "@storybook/builder-vite": "npm:10.5.7"
     "@storybook/react-vite": "npm:10.5.7"
+    "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     "@studio/ui-test": "workspace:^"

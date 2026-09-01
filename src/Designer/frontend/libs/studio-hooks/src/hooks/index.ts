@@ -4,6 +4,7 @@ export * from './usePropState';
 export * from './useUniqueKeys';
 export * from './useMediaQuery';
 export * from './usePrevious';
+export * from './useLocalStorage';
 export * from './useOrgAppScopedStorage';
 export * from './useResetState';
 export * from './useUnsavedChangesWarning';
