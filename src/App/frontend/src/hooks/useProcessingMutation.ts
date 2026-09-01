@@ -50,7 +50,7 @@ export function useProcessingMutationWithKey<TProcessKey extends string>(
 
   return useCallback(
     async (processKey: TProcessKey, callback: () => Promise<unknown>): Promise<void> => {
-      // Synchronous check to return early instead of queueing operations
+      // Synchronous check to return early instead of queuing operations
       if (queryClient.isMutating({ mutationKey: PROCESSING_MUTATION_KEY, status: 'pending' }) > 0) {
         return;
       }

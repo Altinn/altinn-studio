@@ -68,7 +68,7 @@ type SecretStore interface {
 	ApplyConfigMap(ctx context.Context, name string, data map[string]string) (bool, error)
 }
 
-// Outcome summarises how a run ended.
+// Outcome summarizes how a run ended.
 type Outcome string
 
 const (
@@ -236,7 +236,7 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 	for _, sec := range existing {
 		org := k8sclient.OrgFromSecret(sec)
 		if org == "" {
-			// Defence in depth: a managed Secret missing the org label is a
+			// Defense in depth: a managed Secret missing the org label is a
 			// drift signal; skip rather than delete on uncertain attribution.
 			continue
 		}

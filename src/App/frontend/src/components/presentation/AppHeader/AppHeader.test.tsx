@@ -39,7 +39,7 @@ describe('presentation/AppHeader', () => {
     orgNumber: '12345678',
     partyId: 54321,
     name: 'Bedrift',
-    partyTypeName: PartyType.Organisation,
+    partyTypeName: PartyType.Organization,
   } as IParty;
 
   const headerBackgroundColor = 'blue';
@@ -99,7 +99,7 @@ describe('presentation/AppHeader', () => {
     expect(screen.getByRole('img')).toHaveAttribute('src', `data:image/svg+xml;utf8,${encodeURIComponent(mockLogo)}`);
   });
 
-  it('Should render Organisation logo if logo options are set', async () => {
+  it('Should render Organization logo if logo options are set', async () => {
     await render({
       party: userPerson.party,
       logo: { source: 'org', displayAppOwnerNameInHeader: false },

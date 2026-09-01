@@ -1,0 +1,55 @@
+# Per-key declarations: facts about specific translation entries that the
+# checks cannot infer — the counterpart of suppressions.txt for the language
+# passes. A CORRECT word the Norwegian checker doesn't know still belongs in
+# a glossary; a WRONG code spelling still belongs in suppressions.txt. This
+# file is for keys whose shape is deliberate:
+#
+# Format: '#' comments and blank lines are free. A section is one or more
+# @directives followed by one key per line. A directive after a key starts a
+# new section; nothing is inherited. Say WHY in a comment next to the
+# section:
+#
+#   @files <glob> <glob> …   which language files the keys live in (required)
+#   @empty                   the value may be deliberately empty
+#   @key-contract            the KEY's spelling is a code contract (an ISO
+#                            code, a name keyed by a wire value) the en check
+#                            must accept; the value is still checked
+#   @language <nb|nn>        the VALUE is deliberately in this language — it
+#                            is checked with that language's dictionary
+#                            instead of the file's own, never skipped
+#
+# Entries must earn their keep: one that no longer matches a key, rescues a
+# flagged key, or re-routes a value is reported as stale by the check that
+# consumes it.
+
+# Gitea's sign-in page: the override deliberately blanks the "or" separator
+# between sign-in methods.
+@files src/gitea/files/locale/custom/locale_nb-NO.json src/gitea/files/locale/custom/locale_en-US.json
+@empty
+sign_in_or
+
+# ISO 639-1 language codes, not English words.
+@files src/Designer/frontend/language/src/*.json
+@key-contract
+language.ba
+language.fo
+language.nd
+
+# Keyed by the v8 OrganisationLookup component type and its data-model
+# binding names. Designer serves v8 apps, whose layouts still carry the old
+# type, so these keys follow the component rename (a versioned product
+# change with a layout migration) — not the spelling pass.
+@files src/Designer/frontend/language/src/*.json
+@key-contract
+ux_editor.component_help_text.OrganisationLookup
+ux_editor.component_title.OrganisationLookup
+ux_editor.modal_properties_data_model_label.organisation_lookup_name
+ux_editor.modal_properties_data_model_label.organisation_lookup_orgnr
+
+# Consent previews deliberately shown in nynorsk inside the bokmål file.
+@files src/Designer/frontend/resourceadm/language/src/nb.json
+@language nn
+resourceadm.about_resource_consent_preview_approve_nn
+resourceadm.about_resource_consent_preview_reject_nn
+resourceadm.about_resource_consent_preview_approve_poa_nn
+resourceadm.about_resource_consent_preview_reject_poa_nn

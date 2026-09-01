@@ -46,7 +46,7 @@ public class DeploymentWebhooksController : ControllerBase
     /// <summary>
     /// Webhook endpoint for receiving deploy events
     /// </summary>
-    /// <param name="org">Organisation name</param>
+    /// <param name="org">Organization name</param>
     /// <param name="app">Application name</param>
     /// <param name="request">Deploy event details</param>
     /// <param name="cancellationToken">Cancellation token</param>

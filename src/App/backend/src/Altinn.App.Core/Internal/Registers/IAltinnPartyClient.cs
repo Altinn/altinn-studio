@@ -17,11 +17,11 @@ public interface IAltinnPartyClient
     Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null);
 
     /// <summary>
-    /// Looks up a party by person or organisation number.
+    /// Looks up a party by person or organization number.
     /// </summary>
     /// <param name="partyLookup">A populated lookup object with information about what to look for.</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
-    /// <returns>The party lookup containing either SSN or organisation number.</returns>
+    /// <returns>The party lookup containing either SSN or organization number.</returns>
     Task<Party> LookupParty(PartyLookup partyLookup, StorageAuthenticationMethod? authenticationMethod = null);
 
     /// <summary>

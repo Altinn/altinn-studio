@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Cli.Upgrade;
 
 /// <summary>
-/// Why a message is being shown. Rendering - colour, label, layout - is the CLI's job; this only says
+/// Why a message is being shown. Rendering - color, label, layout - is the CLI's job; this only says
 /// what the message means.
 /// </summary>
 internal enum UpgradeMessageStatus

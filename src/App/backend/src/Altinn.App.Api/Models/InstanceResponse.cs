@@ -26,7 +26,7 @@ public sealed class InstanceResponse
     public required string AppId { get; init; }
 
     /// <summary>
-    /// Application owner identifier, usually a abbreviation of organisation name. All in lower case.
+    /// Application owner identifier, usually a abbreviation of organization name. All in lower case.
     /// </summary>
     public required string Org { get; init; }
 
@@ -110,7 +110,7 @@ public sealed class InstanceResponse
             {
                 PartyId = instance.InstanceOwner.PartyId,
                 PersonNumber = instance.InstanceOwner.PersonNumber,
-                OrganisationNumber = instance.InstanceOwner.OrganisationNumber,
+                OrganizationNumber = instance.InstanceOwner.OrganisationNumber,
                 Username = instance.InstanceOwner.Username,
                 ExternalIdentifier = instance.InstanceOwner.ExternalIdentifier,
                 Party = PartyResponse.From(instanceOwnerParty),
@@ -150,9 +150,10 @@ public sealed class InstanceOwnerResponse
     public required string PersonNumber { get; init; }
 
     /// <summary>
-    /// The organisation number of the party. Null if the party is not an organisation.
+    /// The organization number of the party. Null if the party is not an organization.
     /// </summary>
-    public required string OrganisationNumber { get; init; }
+    [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
+    public required string OrganizationNumber { get; init; }
 
     /// <summary>
     /// The username of the party. Null if the party is not self identified.
@@ -196,7 +197,7 @@ public sealed class PartyResponse
     public required string SSN { get; init; }
 
     /// <summary>
-    /// The organisation number of the party. Null if the party is not an organisation.
+    /// The organization number of the party. Null if the party is not an organization.
     /// </summary>
     public required string OrgNumber { get; init; }
 

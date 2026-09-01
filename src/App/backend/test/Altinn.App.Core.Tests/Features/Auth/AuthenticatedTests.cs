@@ -299,7 +299,7 @@ public class AuthenticatedTests
             .AddExtraSettings(s =>
             {
                 s.Converters.Add(new ScopesConverter());
-                s.Converters.Add(new OrganisationNumberConverter());
+                s.Converters.Add(new OrganizationNumberConverter());
             });
 
     private sealed class ScopesConverter : WriteOnlyJsonConverter<Scopes>
@@ -310,11 +310,11 @@ public class AuthenticatedTests
         }
     }
 
-    private sealed class OrganisationNumberConverter : WriteOnlyJsonConverter<OrganisationNumber>
+    private sealed class OrganizationNumberConverter : WriteOnlyJsonConverter<OrganizationNumber>
     {
-        public override void Write(VerifyJsonWriter writer, OrganisationNumber value)
+        public override void Write(VerifyJsonWriter writer, OrganizationNumber value)
         {
-            writer.WriteValue(value.Get(OrganisationNumberFormat.International));
+            writer.WriteValue(value.Get(OrganizationNumberFormat.International));
         }
     }
 
@@ -535,8 +535,8 @@ public class AuthenticatedTests
                             var json = Assert.IsType<JsonElement>(claim.Value);
                             var authDetails = AuthorizationDetailsClaim.Parse(json);
                             var systemUserDetails = Assert.IsType<SystemUserAuthorizationDetailsClaim>(authDetails);
-                            var systemUserOrgNo = OrganisationNumber.Parse(systemUserDetails.SystemUserOrg.Id);
-                            Assert.Equal(orgNo, systemUserOrgNo.Get(OrganisationNumberFormat.Local));
+                            var systemUserOrgNo = OrganizationNumber.Parse(systemUserDetails.SystemUserOrg.Id);
+                            Assert.Equal(orgNo, systemUserOrgNo.Get(OrganizationNumberFormat.Local));
                             return Task.FromResult<Party>(
                                 new Party
                                 {

@@ -48,7 +48,7 @@ public class AuthorizationService(
     private const string ResourceId = "r";
 
     /// <inheritdoc/>>
-    public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(List<Instance> instances, bool keyAccessMode)
+    public async Task<List<MessageBoxInstance>> AuthorizeMessageBoxInstances(List<Instance> instances, bool keyAccessMode)
     {
         if (instances.Count <= 0)
         {

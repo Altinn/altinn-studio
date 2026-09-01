@@ -33,8 +33,8 @@ export function en() {
     'date_picker.cancel_label': 'Cancel',
     'date_picker.clear_label': 'Clear',
     'date_picker.today_label': 'Today',
-    'date_picker.min_date_exeeded': 'Date should not be before minimal date',
-    'date_picker.max_date_exeeded': 'Date should not be after maximal date',
+    'date_picker.min_date_exceeded': 'Date should not be before minimal date',
+    'date_picker.max_date_exceeded': 'Date should not be after maximal date',
     'date_picker.aria_label_icon': 'Open date picker',
     'date_picker.aria_label_left_arrow': 'Last month.',
     'date_picker.aria_label_right_arrow': 'Next month.',
@@ -108,9 +108,9 @@ export function en() {
     'form_filler.file_uploader_validation_error_file_ending': 'is not an allowed file type.',
     'form_filler.file_uploader_validation_error_file_number':
       'You need to upload {0} attachment(s) to continue',
-    'form_filler.file_uploader_validation_error_file_size': '{0} exeeds the valid file size.',
+    'form_filler.file_uploader_validation_error_file_size': '{0} exceeds the valid file size.',
     'form_filler.file_uploader_validation_error_general':
-      'There was a problem with the file {0}. Make sure the file has correct file type and does not exeed the size limit.',
+      'There was a problem with the file {0}. Make sure the file has correct file type and does not exceed the size limit.',
     'form_filler.file_uploader_validation_error_upload':
       'Something went wrong trying to upload the file, please try again.',
     'form_filler.file_uploader_validation_error_update':
@@ -135,8 +135,8 @@ export function en() {
     'form_filler.firstName': 'first name',
     'form_filler.middleName': 'middle name',
     'form_filler.lastName': 'last name',
-    'form_filler.orgnr': 'organization number',
-    'form_filler.name': 'organization name',
+    'form_filler.orgnr': 'organisation number',
+    'form_filler.name': 'organisation name',
     'navigation.main': 'Primary',
     'navigation.form': 'Form pages',
     'navigation.to_main_content': 'Go to main content',
@@ -165,7 +165,7 @@ export function en() {
     'general.choose_method': 'Choose method',
     'general.choose': 'Choose',
     'general.close': 'Close',
-    'general.contains': 'Contains{0}',
+    'general.contains': 'Contains',
     'general.control_submit': 'Control and submit',
     'general.copy': 'Copy',
     'general.copied': 'Copied',
@@ -274,9 +274,9 @@ export function en() {
     'instantiate.authorization_error_rights':
       'It looks like you do not have permission to start this service for {0}',
     'instantiate.authorization_error_ask':
-      'If you are representing a person it is the one you are representing that can give you the required rights to start this service. If you are you representing an organization you have to ask for the required rights from persons with access delegation rights within your organization.',
+      'If you are representing a person, it is the one you are representing that can give you the required rights to start this service. If you are representing an organisation, you have to ask for the required rights from persons with access delegation rights within your organisation.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organization"</a>.',
+      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
     'instantiate.authorization_error_info_rights':
       '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Learn more about roles and rights</a>.',
     'instantiate.authorization_error_info_customer_service':
@@ -328,7 +328,7 @@ export function en() {
     'payment.alert.failed': 'Your payment has failed',
     'payment.receipt.title': 'Payment receipt',
     'payment.receipt.payment_id': 'Payment ID',
-    'payment.receipt.altinn_ref': 'Altinn referance',
+    'payment.receipt.altinn_ref': 'Altinn reference',
     'payment.receipt.payment_date': 'Date of purchase',
     'payment.receipt.total_amount': 'Total amount',
     'payment.receipt.receiver': 'Receiver',
@@ -359,7 +359,7 @@ export function en() {
     'organization_lookup.validation_invalid_response_from_server':
       'Invalid response from the server',
     'organization_lookup.unknown_error': 'An unknown error occurred. Please try again later',
-    'organization_lookup.validation_error_orgnr': 'The organization number is invalid',
+    'organization_lookup.validation_error_orgnr': 'The organisation number is invalid',
     'organization_lookup.error_required': 'You have to fill out {0} and fetch details',
     'organization_lookup.submit_button': 'Fetch details',
     'organization_lookup.clear_button': 'Clear',

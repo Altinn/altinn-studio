@@ -10,7 +10,7 @@ const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
 /**
  * Query to get a policy of an app.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param app the app the user is in
  *
  * @returns UseQueryResult with an object of Policy

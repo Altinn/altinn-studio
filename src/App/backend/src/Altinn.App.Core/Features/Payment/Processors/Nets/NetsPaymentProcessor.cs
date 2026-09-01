@@ -107,9 +107,9 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                 {
                     SupportedTypes = NetsMapper.MapConsumerTypes(orderDetails.AllowedPayerTypes),
                 },
-                Appearance = new NetsApparence
+                Appearance = new NetsAppearance
                 {
-                    DisplayOptions = new NetsApparence.NetsDisplayOptions
+                    DisplayOptions = new NetsAppearance.NetsDisplayOptions
                     {
                         ShowOrderSummary = _settings.ShowOrderSummary,
                         ShowMerchantName = _settings.ShowMerchantName,

@@ -358,10 +358,10 @@ namespace Altinn.App.Core.Features.Auth
         {
             public int AuthenticationLevel { get; }
             public string AuthenticationMethod { get; }
-            public Altinn.App.Core.Models.OrganisationNumber SupplierOrgNr { get; }
+            public Altinn.App.Core.Models.OrganizationNumber SupplierOrgNr { get; }
             public string SystemId { get; }
             public System.Collections.Generic.IReadOnlyList<System.Guid> SystemUserId { get; }
-            public Altinn.App.Core.Models.OrganisationNumber SystemUserOrgNr { get; }
+            public Altinn.App.Core.Models.OrganizationNumber SystemUserOrgNr { get; }
             public System.Threading.Tasks.Task<Altinn.App.Core.Features.Auth.Authenticated.SystemUser.Details> LoadDetails() { }
             public sealed class Details : System.IEquatable<Altinn.App.Core.Features.Auth.Authenticated.SystemUser.Details>
             {
@@ -537,8 +537,8 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(Altinn.App.Core.Models.NationalIdentityNumber? nationalIdentityNumber) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(Altinn.App.Core.Models.OrganisationOrPersonIdentifier? organisationOrPersonIdentifier) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(Altinn.App.Core.Models.OrganisationNumber? organizationNumber) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(Altinn.App.Core.Models.OrganizationNumber? organizationNumber) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationOrPersonIdentifier(Altinn.App.Core.Models.OrganizationOrPersonIdentifier? organizationOrPersonIdentifier) { }
         public static Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder Create() { }
     }
     public class CorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
@@ -567,10 +567,10 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithNotificationIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotification? notification) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithPropertyList(System.Collections.Generic.IReadOnlyDictionary<string, string> propertyList) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.NationalIdentityNumber person) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganisationNumber organisation) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganisationOrPersonIdentifier recipient) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganizationNumber organization) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganizationOrPersonIdentifier recipient) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(string recipient) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipients(System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier> recipients) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipients(System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.OrganizationOrPersonIdentifier> recipients) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipients(System.Collections.Generic.IEnumerable<string> recipients) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithReplyOption(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReplyOption replyOption) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithReplyOption(string linkUrl, string linkText) { }
@@ -647,8 +647,8 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(Altinn.App.Core.Models.NationalIdentityNumber? nationalIdentityNumber);
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(Altinn.App.Core.Models.OrganisationOrPersonIdentifier? organisationOrPersonIdentifier);
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(Altinn.App.Core.Models.OrganisationNumber? organizationNumber);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(Altinn.App.Core.Models.OrganizationNumber? organizationNumber);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationOrPersonIdentifier(Altinn.App.Core.Models.OrganizationOrPersonIdentifier? organizationOrPersonIdentifier);
     }
     public interface ICorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
@@ -686,10 +686,10 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public interface ICorrespondenceRequestBuilderRecipients
     {
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.NationalIdentityNumber person);
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganisationNumber organisation);
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganisationOrPersonIdentifier recipient);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganizationNumber organization);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(Altinn.App.Core.Models.OrganizationOrPersonIdentifier recipient);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipient(string recipient);
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipients(System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier> recipients);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipients(System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.OrganizationOrPersonIdentifier> recipients);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent WithRecipients(System.Collections.Generic.IEnumerable<string> recipients);
     }
     public interface ICorrespondenceRequestBuilderResourceId
@@ -820,9 +820,9 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public System.Guid CorrespondenceId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("notifications")]
         public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationDetailsResponse>? Notifications { get; init; }
-        [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.OrganisationOrPersonIdentifierJsonConverter))]
+        [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.OrganizationOrPersonIdentifierJsonConverter))]
         [System.Text.Json.Serialization.JsonPropertyName("recipient")]
-        public required Altinn.App.Core.Models.OrganisationOrPersonIdentifier Recipient { get; init; }
+        public required Altinn.App.Core.Models.OrganizationOrPersonIdentifier Recipient { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("status")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceStatus Status { get; init; }
     }
@@ -906,7 +906,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public string? EmailAddress { get; init; }
         public string? MobileNumber { get; init; }
         public Altinn.App.Core.Models.NationalIdentityNumber? NationalIdentityNumber { get; init; }
-        public Altinn.App.Core.Models.OrganisationNumber? OrganizationNumber { get; init; }
+        public Altinn.App.Core.Models.OrganizationNumber? OrganizationNumber { get; init; }
     }
     public sealed class CorrespondenceNotificationRecipientResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipientResponse>
     {
@@ -920,7 +920,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         [System.Text.Json.Serialization.JsonPropertyName("nationalIdentityNumber")]
         public string? NationalIdentityNumber { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("organizationNumber")]
-        public string? OrganisationNumber { get; init; }
+        public string? OrganizationNumber { get; init; }
     }
     public sealed class CorrespondenceNotificationStatusDetailsResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusDetailsResponse>
     {
@@ -1003,7 +1003,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public string? MessageSender { get; init; }
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotification? Notification { get; init; }
         public System.Collections.Generic.IReadOnlyDictionary<string, string>? PropertyList { get; init; }
-        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.OrganisationOrPersonIdentifier> Recipients { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.OrganizationOrPersonIdentifier> Recipients { get; init; }
         public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReplyOption>? ReplyOptions { get; init; }
         public System.DateTimeOffset? RequestedPublishTime { get; init; }
         public required string ResourceId { get; init; }
@@ -1078,7 +1078,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         [System.Text.Json.Serialization.JsonPropertyName("resourceId")]
         public required string ResourceId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("sender")]
-        public Altinn.App.Core.Models.OrganisationNumber Sender { get; init; }
+        public Altinn.App.Core.Models.OrganizationNumber Sender { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("sendersReference")]
         public required string SendersReference { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("status")]
@@ -1332,9 +1332,9 @@ namespace Altinn.App.Core.Features
             public const string FiksMessageType = "fiks.message.type";
             public const string FiksSendersReference = "fiks.message.sendersReference";
             public const string NotificationSendersReference = "notification.sendersReference";
-            public const string OrganisationName = "organisation.name";
-            public const string OrganisationNumber = "organisation.number";
-            public const string OrganisationSystemUserId = "organisation.systemuser.id";
+            public const string OrganizationName = "organization.name";
+            public const string OrganizationNumber = "organization.number";
+            public const string OrganizationSystemUserId = "organization.systemuser.id";
             public const string UserAuthenticationInAltinnPortal = "user.authentication.inAltinnPortal";
             public const string UserAuthenticationLevel = "user.authentication.level";
             public const string UserAuthenticationMethod = "user.authentication.method";
@@ -1369,8 +1369,8 @@ namespace Altinn.App.Core.Features
         public static System.Diagnostics.Activity SetInstanceId(this System.Diagnostics.Activity activity, string? instanceId) { }
         public static System.Diagnostics.Activity SetInstanceOwnerPartyId(this System.Diagnostics.Activity activity, int? instanceOwnerPartyId) { }
         public static System.Diagnostics.Activity SetInstanceOwnerPartyId(this System.Diagnostics.Activity activity, string? instanceOwnerPartyId) { }
-        public static System.Diagnostics.Activity SetOrganisationName(this System.Diagnostics.Activity activity, string? organisationName) { }
-        public static System.Diagnostics.Activity SetOrganisationNumber(this System.Diagnostics.Activity activity, string? organisationNumber) { }
+        public static System.Diagnostics.Activity SetOrganizationName(this System.Diagnostics.Activity activity, string? organizationName) { }
+        public static System.Diagnostics.Activity SetOrganizationNumber(this System.Diagnostics.Activity activity, string? organizationNumber) { }
         public static System.Diagnostics.Activity SetTaskId(this System.Diagnostics.Activity activity, string? taskId) { }
         public static System.Diagnostics.Activity SetUserId(this System.Diagnostics.Activity activity, int? userId) { }
         public static System.Diagnostics.Activity SetUserPartyId(this System.Diagnostics.Activity activity, int? userPartyId) { }
@@ -1419,7 +1419,7 @@ namespace Altinn.App.Core.Features.DataProcessing
         where TModel :  class
     {
         protected GenericDataProcessor() { }
-        public abstract System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, string? langauge);
+        public abstract System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, string? language);
         public System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, object data, string? language) { }
         public abstract System.Threading.Tasks.Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, TModel? previousModel, string? language);
         public System.Threading.Tasks.Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, object data, object? previousData, string? language) { }
@@ -1457,38 +1457,35 @@ namespace Altinn.App.Core.Features.FileAnalysis
 {
     public class FileAnalysisResult
     {
-        public FileAnalysisResult(string analyserId) { }
-        public string AnalyserId { get; }
+        public FileAnalysisResult(string analyzerId) { }
+        public string AnalyzerId { get; }
         public System.Collections.Generic.List<string> Extensions { get; set; }
         public string? Filename { get; set; }
         public System.Collections.Generic.IDictionary<string, string> Metadata { get; }
         public string? MimeType { get; set; }
     }
-    public interface IFileAnalyser
+    public class FileAnalysisService : Altinn.App.Core.Features.FileAnalysis.IFileAnalysisService
     {
-        string Id { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> Analyse(System.IO.Stream stream, string? filename = null);
+        public FileAnalysisService(Altinn.App.Core.Features.FileAnalysis.IFileAnalyzerFactory fileAnalyzerFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult>> Analyze(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.IO.Stream fileStream, string? filename = null) { }
     }
-}
-namespace Altinn.App.Core.Features.FileAnalyzis
-{
-    public class FileAnalyserFactory : Altinn.App.Core.Features.FileAnalyzis.IFileAnalyserFactory
+    public class FileAnalyzerFactory : Altinn.App.Core.Features.FileAnalysis.IFileAnalyzerFactory
     {
-        public FileAnalyserFactory(System.IServiceProvider serviceProvider) { }
-        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyser> GetFileAnalysers(System.Collections.Generic.IEnumerable<string> analyserIds) { }
-    }
-    public class FileAnalysisService : Altinn.App.Core.Features.FileAnalyzis.IFileAnalysisService
-    {
-        public FileAnalysisService(Altinn.App.Core.Features.FileAnalyzis.IFileAnalyserFactory fileAnalyserFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult>> Analyse(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.IO.Stream fileStream, string? filename = null) { }
-    }
-    public interface IFileAnalyserFactory
-    {
-        System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyser> GetFileAnalysers(System.Collections.Generic.IEnumerable<string> analyserIds);
+        public FileAnalyzerFactory(System.IServiceProvider serviceProvider) { }
+        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyzer> GetFileAnalyzers(System.Collections.Generic.IEnumerable<string> analyzerIds) { }
     }
     public interface IFileAnalysisService
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult>> Analyse(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.IO.Stream fileStream, string? filename = null);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult>> Analyze(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.IO.Stream fileStream, string? filename = null);
+    }
+    public interface IFileAnalyzer
+    {
+        string Id { get; }
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> Analyze(System.IO.Stream stream, string? filename = null);
+    }
+    public interface IFileAnalyzerFactory
+    {
+        System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyzer> GetFileAnalyzers(System.Collections.Generic.IEnumerable<string> analyzerIds);
     }
 }
 namespace Altinn.App.Core.Features.Maskinporten.Exceptions
@@ -1591,12 +1588,12 @@ namespace Altinn.App.Core.Features.Maskinporten.Models
     {
         public MaskinportenSystemUser() { }
         public string? ExternalRef { get; init; }
-        public required Altinn.App.Core.Models.OrganisationNumber Organisation { get; init; }
+        public required Altinn.App.Core.Models.OrganizationNumber Organization { get; init; }
     }
     public sealed class MaskinportenTokenRequest : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest>
     {
         public MaskinportenTokenRequest() { }
-        public Altinn.App.Core.Models.OrganisationNumber? ConsumerOrg { get; init; }
+        public Altinn.App.Core.Models.OrganizationNumber? ConsumerOrg { get; init; }
         public string? Resource { get; init; }
         public required System.Collections.Generic.IEnumerable<string> Scopes { get; init; }
         public Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser? SystemUser { get; init; }
@@ -1714,7 +1711,7 @@ namespace Altinn.App.Core.Features.Options
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
         public bool IsInstanceAppOptionsProviderRegistered(string optionId) { }
     }
-    public static class AppOptionsServiceExtentions
+    public static class AppOptionsServiceExtensions
     {
         public static void AddJoinedAppOptions(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string id, params string[] subLists) { }
     }
@@ -1818,7 +1815,8 @@ namespace Altinn.App.Core.Features.Payment.Models
         public PayerCompany() { }
         public Altinn.App.Core.Features.Payment.Models.PayerPrivatePerson? ContactPerson { get; set; }
         public string? Name { get; set; }
-        public string? OrganisationNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
+        public string? OrganizationNumber { get; set; }
     }
     public class PayerPrivatePerson
     {
@@ -1872,7 +1870,8 @@ namespace Altinn.App.Core.Features.Payment.Models
         public string? BankAccountNumber { get; set; }
         public string? Email { get; set; }
         public string? Name { get; set; }
-        public string? OrganisationNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
+        public string? OrganizationNumber { get; set; }
         public Altinn.App.Core.Features.Payment.Models.PhoneNumber? PhoneNumber { get; set; }
         public Altinn.App.Core.Features.Payment.Models.Address? PostalAddress { get; set; }
     }
@@ -2502,7 +2501,7 @@ namespace Altinn.App.Core.Helpers.DataModel
     public class DataModelWrapper
     {
         public DataModelWrapper(object dataModel) { }
-        public string AddIndicies(string field, System.ReadOnlySpan<int> rowIndexes = default) { }
+        public string AddIndices(string field, System.ReadOnlySpan<int> rowIndexes = default) { }
         public object? GetModelData(string field, System.ReadOnlySpan<int> rowIndexes = default) { }
         public int? GetModelDataCount(string field, System.ReadOnlySpan<int> rowIndexes = default) { }
         public string[] GetResolvedKeys(string field) { }
@@ -4055,7 +4054,7 @@ namespace Altinn.App.Core.Internal.Sign
     public class Signee
     {
         public Signee() { }
-        public string? OrganisationNumber { get; set; }
+        public string? OrganizationNumber { get; set; }
         public string? PersonNumber { get; set; }
         public System.Guid? SystemUserId { get; set; }
         public string UserId { get; set; }
@@ -4569,67 +4568,6 @@ namespace Altinn.App.Core.Models
         [Newtonsoft.Json.JsonProperty(PropertyName="instanceSelection")]
         public Altinn.App.Core.Models.InstanceSelection? InstanceSelection { get; set; }
     }
-    public readonly struct OrganisationNumber : System.IEquatable<Altinn.App.Core.Models.OrganisationNumber>
-    {
-        public bool Equals(Altinn.App.Core.Models.OrganisationNumber other) { }
-        public override bool Equals(object? obj) { }
-        public bool Equals(string? other) { }
-        public string Get(Altinn.App.Core.Models.OrganisationNumberFormat format) { }
-        public override int GetHashCode() { }
-        public override string ToString() { }
-        public static Altinn.App.Core.Models.OrganisationNumber Parse(string value) { }
-        public static bool TryParse(string? value, out Altinn.App.Core.Models.OrganisationNumber organisationNumber) { }
-        public static string op_Implicit(Altinn.App.Core.Models.OrganisationNumber organisationNumber) { }
-        public static bool operator !=(Altinn.App.Core.Models.OrganisationNumber left, Altinn.App.Core.Models.OrganisationNumber right) { }
-        public static bool operator !=(Altinn.App.Core.Models.OrganisationNumber left, string right) { }
-        public static bool operator !=(string left, Altinn.App.Core.Models.OrganisationNumber right) { }
-        public static bool operator ==(Altinn.App.Core.Models.OrganisationNumber left, Altinn.App.Core.Models.OrganisationNumber right) { }
-        public static bool operator ==(Altinn.App.Core.Models.OrganisationNumber left, string right) { }
-        public static bool operator ==(string left, Altinn.App.Core.Models.OrganisationNumber right) { }
-    }
-    public enum OrganisationNumberFormat
-    {
-        Local = 0,
-        International = 1,
-    }
-    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.OrganisationOrPersonIdentifierJsonConverter))]
-    public abstract class OrganisationOrPersonIdentifier : System.IEquatable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier>
-    {
-        protected OrganisationOrPersonIdentifier() { }
-        public abstract string ToUrnFormattedString();
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Person Create(Altinn.App.Core.Models.NationalIdentityNumber value) { }
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organisation Create(Altinn.App.Core.Models.OrganisationNumber value) { }
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier Parse(Altinn.App.Core.Models.Party party) { }
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier Parse(string value) { }
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.NationalIdentityNumber person) { }
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.OrganisationNumber org) { }
-        public static bool operator !=(Altinn.App.Core.Models.NationalIdentityNumber left, Altinn.App.Core.Models.OrganisationOrPersonIdentifier right) { }
-        public static bool operator !=(Altinn.App.Core.Models.OrganisationNumber left, Altinn.App.Core.Models.OrganisationOrPersonIdentifier right) { }
-        public static bool operator !=(Altinn.App.Core.Models.OrganisationOrPersonIdentifier left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
-        public static bool operator !=(Altinn.App.Core.Models.OrganisationOrPersonIdentifier left, Altinn.App.Core.Models.OrganisationNumber right) { }
-        public static bool operator ==(Altinn.App.Core.Models.NationalIdentityNumber left, Altinn.App.Core.Models.OrganisationOrPersonIdentifier right) { }
-        public static bool operator ==(Altinn.App.Core.Models.OrganisationNumber left, Altinn.App.Core.Models.OrganisationOrPersonIdentifier right) { }
-        public static bool operator ==(Altinn.App.Core.Models.OrganisationOrPersonIdentifier left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
-        public static bool operator ==(Altinn.App.Core.Models.OrganisationOrPersonIdentifier left, Altinn.App.Core.Models.OrganisationNumber right) { }
-        public sealed class Organisation : Altinn.App.Core.Models.OrganisationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organisation>
-        {
-            public Organisation(Altinn.App.Core.Models.OrganisationNumber Value) { }
-            public Altinn.App.Core.Models.OrganisationNumber Value { get; init; }
-            public Altinn.App.Core.Models.OrganisationNumber ToOrganisationNumber() { }
-            public override string ToString() { }
-            public override string ToUrnFormattedString() { }
-            public static Altinn.App.Core.Models.OrganisationNumber op_Implicit(Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organisation org) { }
-        }
-        public sealed class Person : Altinn.App.Core.Models.OrganisationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Person>
-        {
-            public Person(Altinn.App.Core.Models.NationalIdentityNumber Value) { }
-            public Altinn.App.Core.Models.NationalIdentityNumber Value { get; init; }
-            public Altinn.App.Core.Models.NationalIdentityNumber ToNationalIdentityNumber() { }
-            public override string ToString() { }
-            public override string ToUrnFormattedString() { }
-            public static Altinn.App.Core.Models.NationalIdentityNumber op_Implicit(Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Person person) { }
-        }
-    }
     public class Organization : System.IEquatable<Altinn.App.Core.Models.Organization>
     {
         public Organization() { }
@@ -4663,6 +4601,67 @@ namespace Altinn.App.Core.Models
         public string? UnitStatus { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("unitType")]
         public string? UnitType { get; set; }
+    }
+    public readonly struct OrganizationNumber : System.IEquatable<Altinn.App.Core.Models.OrganizationNumber>
+    {
+        public bool Equals(Altinn.App.Core.Models.OrganizationNumber other) { }
+        public override bool Equals(object? obj) { }
+        public bool Equals(string? other) { }
+        public string Get(Altinn.App.Core.Models.OrganizationNumberFormat format) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public static Altinn.App.Core.Models.OrganizationNumber Parse(string value) { }
+        public static bool TryParse(string? value, out Altinn.App.Core.Models.OrganizationNumber organizationNumber) { }
+        public static string op_Implicit(Altinn.App.Core.Models.OrganizationNumber organizationNumber) { }
+        public static bool operator !=(Altinn.App.Core.Models.OrganizationNumber left, Altinn.App.Core.Models.OrganizationNumber right) { }
+        public static bool operator !=(Altinn.App.Core.Models.OrganizationNumber left, string right) { }
+        public static bool operator !=(string left, Altinn.App.Core.Models.OrganizationNumber right) { }
+        public static bool operator ==(Altinn.App.Core.Models.OrganizationNumber left, Altinn.App.Core.Models.OrganizationNumber right) { }
+        public static bool operator ==(Altinn.App.Core.Models.OrganizationNumber left, string right) { }
+        public static bool operator ==(string left, Altinn.App.Core.Models.OrganizationNumber right) { }
+    }
+    public enum OrganizationNumberFormat
+    {
+        Local = 0,
+        International = 1,
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.OrganizationOrPersonIdentifierJsonConverter))]
+    public abstract class OrganizationOrPersonIdentifier : System.IEquatable<Altinn.App.Core.Models.OrganizationOrPersonIdentifier>
+    {
+        protected OrganizationOrPersonIdentifier() { }
+        public abstract string ToUrnFormattedString();
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Person Create(Altinn.App.Core.Models.NationalIdentityNumber value) { }
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Organization Create(Altinn.App.Core.Models.OrganizationNumber value) { }
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier Parse(Altinn.App.Core.Models.Party party) { }
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier Parse(string value) { }
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.NationalIdentityNumber person) { }
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.OrganizationNumber org) { }
+        public static bool operator !=(Altinn.App.Core.Models.NationalIdentityNumber left, Altinn.App.Core.Models.OrganizationOrPersonIdentifier right) { }
+        public static bool operator !=(Altinn.App.Core.Models.OrganizationNumber left, Altinn.App.Core.Models.OrganizationOrPersonIdentifier right) { }
+        public static bool operator !=(Altinn.App.Core.Models.OrganizationOrPersonIdentifier left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
+        public static bool operator !=(Altinn.App.Core.Models.OrganizationOrPersonIdentifier left, Altinn.App.Core.Models.OrganizationNumber right) { }
+        public static bool operator ==(Altinn.App.Core.Models.NationalIdentityNumber left, Altinn.App.Core.Models.OrganizationOrPersonIdentifier right) { }
+        public static bool operator ==(Altinn.App.Core.Models.OrganizationNumber left, Altinn.App.Core.Models.OrganizationOrPersonIdentifier right) { }
+        public static bool operator ==(Altinn.App.Core.Models.OrganizationOrPersonIdentifier left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
+        public static bool operator ==(Altinn.App.Core.Models.OrganizationOrPersonIdentifier left, Altinn.App.Core.Models.OrganizationNumber right) { }
+        public sealed class Organization : Altinn.App.Core.Models.OrganizationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Organization>
+        {
+            public Organization(Altinn.App.Core.Models.OrganizationNumber Value) { }
+            public Altinn.App.Core.Models.OrganizationNumber Value { get; init; }
+            public Altinn.App.Core.Models.OrganizationNumber ToOrganizationNumber() { }
+            public override string ToString() { }
+            public override string ToUrnFormattedString() { }
+            public static Altinn.App.Core.Models.OrganizationNumber op_Implicit(Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Organization org) { }
+        }
+        public sealed class Person : Altinn.App.Core.Models.OrganizationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Person>
+        {
+            public Person(Altinn.App.Core.Models.NationalIdentityNumber Value) { }
+            public Altinn.App.Core.Models.NationalIdentityNumber Value { get; init; }
+            public Altinn.App.Core.Models.NationalIdentityNumber ToNationalIdentityNumber() { }
+            public override string ToString() { }
+            public override string ToUrnFormattedString() { }
+            public static Altinn.App.Core.Models.NationalIdentityNumber op_Implicit(Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Person person) { }
+        }
     }
     public class PageGroup
     {
@@ -5566,13 +5565,13 @@ namespace Altinn.App.Core.Models.Notifications.Sms
     }
     public sealed class SmsRecipient : System.IEquatable<Altinn.App.Core.Models.Notifications.Sms.SmsRecipient>
     {
-        public SmsRecipient(string MobileNumber, string? OrganisationNumber = null, string? NationalIdentityNumber = null) { }
+        public SmsRecipient(string MobileNumber, string? OrganizationNumber = null, string? NationalIdentityNumber = null) { }
         [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
         public string MobileNumber { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("nationalIdentityNumber")]
         public string? NationalIdentityNumber { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
-        public string? OrganisationNumber { get; init; }
+        public string? OrganizationNumber { get; init; }
     }
 }
 namespace Altinn.App.Core.Models.Process

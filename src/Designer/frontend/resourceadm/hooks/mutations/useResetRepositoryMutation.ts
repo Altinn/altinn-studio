@@ -3,7 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
- * Resets the respository by removing all current local changes
+ * Resets the repository by removing all current local changes
  *
  * @param owner the owner of the app
  * @param app the app to reset

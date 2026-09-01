@@ -30,7 +30,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly CertificateSettings certSettings;
 
         /// <summary>
-        /// Initialise a new instance of <see cref="OpenIdController"/> with the given input values.
+        /// Initialize a new instance of <see cref="OpenIdController"/> with the given input values.
         /// </summary>
         /// <param name="generalSettings">The application general settings.</param>
         /// <param name="certSettings">The settings section for certificate information.</param>

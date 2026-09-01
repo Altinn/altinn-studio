@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 /// </summary>
 public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement>
 {
-    // ISO 6523 ICD 0192 prefix for organisation numbers
+    // ISO 6523 ICD 0192 prefix for organization numbers
     private const string OrgNumberPrefix = "0192:";
     private const int PrefixLength = 5;
     private readonly IHttpContextAccessor _httpContextAccessor;

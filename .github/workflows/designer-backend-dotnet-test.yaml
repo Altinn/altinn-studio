@@ -7,7 +7,9 @@ on:
       - 'src/common/dotnet/**'
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
+      - 'src/Designer/development/fake-ansattporten/**'
       - 'src/App/template/**'
+      - 'src/gitea/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -51,3 +53,30 @@ jobs:
         env:
           DOTNET_gcServer: 1
           DOTNET_GCConserveMemory: 1
+
+  gitea-and-db-integration-tests:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Run integration tests against actual gitea and dbs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/Designer/backend/global.json
+
+      - name: Build
+        run: |
+          dotnet build Designer.sln -v m
+        working-directory: src/Designer/backend
+
+      - name: Run integration tests
+        run: |
+          dotnet test Designer.sln --filter "(Category=StudioOidcGiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m --no-build
+        working-directory: src/Designer/backend

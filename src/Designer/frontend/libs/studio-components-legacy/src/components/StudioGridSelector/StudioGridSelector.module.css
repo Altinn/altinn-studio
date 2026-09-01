@@ -3,8 +3,8 @@
   --outline: 1px solid var(--fds-semantic-border-action-active);
   --outline-offset: 1px;
   --border-radius: var(--fds-border_radius-small);
-  --selected-square-colour: var(--fds-semantic-surface-action-second-default);
-  --unselected-square-colour: var(--fds-semantic-surface-action-second-no_fill-active);
+  --selected-square-color: var(--fds-semantic-surface-action-second-default);
+  --unselected-square-color: var(--fds-semantic-surface-action-second-no_fill-active);
   --hover-square-color: var(--fds-semantic-surface-action-hover);
   --slider-width: min(100%, 500px);
   --thumb-width: calc(var(--slider-width) / 12);

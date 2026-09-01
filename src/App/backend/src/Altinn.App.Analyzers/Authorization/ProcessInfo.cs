@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace Altinn.App.Analyzers.Authorization;
 
 /// <summary>A task in the process, with what determines the actions the app owner must be permitted.</summary>
-/// <param name="Id">The BPMN element id, used to recognise grants scoped to this task.</param>
+/// <param name="Id">The BPMN element id, used to recognize grants scoped to this task.</param>
 /// <param name="TaskType">The <c>altinn:taskType</c> value.</param>
 /// <param name="AllowsReject">
 /// Whether the task declares <c>reject</c> as a process action, meaning a transition can abandon it.
@@ -81,7 +81,7 @@ internal sealed class ProcessInfo
             var taskElement = FindHostingFlowNode(taskType);
             tasks.Add(
                 new ProcessTaskInfo(
-                    // An id is what makes a task-scoped grant recognisable. Without one there is
+                    // An id is what makes a task-scoped grant recognizable. Without one there is
                     // nothing to compare a scope against, so the task is left unidentified and its
                     // requirement ends up unscoped - which reports 'cannot verify' rather than
                     // 'missing' for a scoped grant.

@@ -1,6 +1,6 @@
 import { fileState, updateCodes, updateName } from './utils';
 import type { FileState } from './utils';
-import { coloursFile, fruitsFile } from '../test-data/codeLists';
+import { colorsFile, fruitsFile } from '../test-data/codeLists';
 import type { CodeList } from '../../../../types/CodeList';
 import { ObjectUtils } from '@studio/pure-functions';
 import type { CodeListFileWithProblem } from '../../../../types/CodeListFile';
@@ -31,7 +31,7 @@ describe('CodeListDataEditor utils', () => {
     });
 
     it('Returns "changed" when savedFile is different from currentFile', () => {
-      expect(fileState(fruitsFile, coloursFile)).toBe('changed' satisfies FileState);
+      expect(fileState(fruitsFile, colorsFile)).toBe('changed' satisfies FileState);
     });
 
     it('Returns "saved" when savedFile and currentFile are equal', () => {

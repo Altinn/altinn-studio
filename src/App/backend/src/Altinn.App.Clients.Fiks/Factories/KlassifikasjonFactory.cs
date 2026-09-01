@@ -41,7 +41,7 @@ internal static class KlassifikasjonFactory
             KlassifikasjonssystemID = FiksArkivConstants.ClassificationId.SystemUserId,
             KlasseID = systemUser.SystemUserId[0].ToString().EnsureNotNullOrEmpty("Classification.Id"),
             Tittel = systemUser
-                .SystemUserOrgNr.Get(OrganisationNumberFormat.Local)
+                .SystemUserOrgNr.Get(OrganizationNumberFormat.Local)
                 .EnsureNotEmpty("Classification.Title"),
         };
 

@@ -1015,7 +1015,7 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert - regression guard: the common path is identical to the pre-split behaviour
+        // Assert - regression guard: the common path is identical to the pre-split behavior
         var workflow = Assert.Single(bundle.Request.Workflows);
         Assert.Null(workflow.Ref);
         Assert.Null(workflow.IsHead);

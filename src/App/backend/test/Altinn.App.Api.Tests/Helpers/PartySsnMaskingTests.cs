@@ -63,7 +63,7 @@ public class PartySsnMaskingTests
     }
 
     [Fact]
-    public void MaskParty_LeavesOrganisationFieldsIntact()
+    public void MaskParty_LeavesOrganizationFieldsIntact()
     {
         var party = new Party
         {

@@ -61,9 +61,9 @@ public interface IDataRepository
     /// </summary>
     /// <param name="instanceGuid">The instance guid</param>
     /// <param name="dataElementId">The data element id</param>
-    /// <param name="propertylist">A dictionary contaning property id (key) and object (value) to be stored</param>
+    /// <param name="propertylist">A dictionary containing property id (key) and object (value) to be stored</param>
     /// <param name="cancellationToken">A cancellation token to pass to async operations</param>
-    /// <remarks>Dictionary can containt at most 10 entries</remarks>
+    /// <remarks>Dictionary can contain at most 10 entries</remarks>
     Task<DataElement> Update(
         Guid instanceGuid,
         Guid dataElementId,

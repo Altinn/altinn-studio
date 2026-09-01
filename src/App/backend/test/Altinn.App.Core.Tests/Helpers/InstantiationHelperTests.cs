@@ -155,7 +155,7 @@ public class InstantiationHelperTests
     }
 
     [Fact]
-    public async Task PartyToInstanceOwner_OrganisationWithOrgNumber_ReturnsInstanceOwnerWithOrganisationNumber()
+    public async Task PartyToInstanceOwner_OrganizationWithOrgNumber_ReturnsInstanceOwnerWithOrganizationNumber()
     {
         // Arrange
         var party = new Party

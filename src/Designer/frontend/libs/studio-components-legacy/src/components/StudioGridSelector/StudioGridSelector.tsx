@@ -99,20 +99,20 @@ export const StudioGridSelector = ({
 const generateLinearGradient = (gridValue: number, hover: boolean): string => {
   const gradientLines: string[] = ['to right'];
   const gap = '1px';
-  const insideColour = hover ? 'var(--hover-square-color)' : 'var(--selected-square-colour)';
-  const outsideColour = 'var(--unselected-square-colour)';
-  const gapColour = 'white';
+  const insideColor = hover ? 'var(--hover-square-color)' : 'var(--selected-square-color)';
+  const outsideColor = 'var(--unselected-square-color)';
+  const gapColor = 'white';
   const totalBgWidth = `(100% + ${gap})`;
 
   const createStep = (option: number) => {
     const startSquarePosition = `calc(${totalBgWidth} * ${option - 1} / 12)`;
     const endSquarePosition = `calc(${totalBgWidth} * ${option} / 12 - ${gap})`;
     const endGapPosition = `calc(${totalBgWidth} * ${option} / 12)`;
-    const squareColour = option <= gridValue ? insideColour : outsideColour;
-    const startSquareLine = `${squareColour} ${startSquarePosition}`;
-    const endSquareLine = `${squareColour} ${endSquarePosition}`;
-    const startGapLine = `${gapColour} ${endSquarePosition}`;
-    const endGapLine = `${gapColour} ${endGapPosition}`;
+    const squareColor = option <= gridValue ? insideColor : outsideColor;
+    const startSquareLine = `${squareColor} ${startSquarePosition}`;
+    const endSquareLine = `${squareColor} ${endSquarePosition}`;
+    const startGapLine = `${gapColor} ${endSquarePosition}`;
+    const endGapLine = `${gapColor} ${endGapPosition}`;
     return [startSquareLine, endSquareLine, startGapLine, endGapLine].join(',\n');
   };
 

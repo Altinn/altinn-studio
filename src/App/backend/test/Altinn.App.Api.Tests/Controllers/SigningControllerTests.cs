@@ -586,7 +586,7 @@ public class SigningControllerTests
         await using var sp = _serviceCollection.BuildStrictServiceProvider();
         var controller = sp.GetRequiredService<SigningController>();
 
-        List<OrganizationSignee> organisationSignees =
+        List<OrganizationSignee> organizationSignees =
         [
             new OrganizationSignee
             {
@@ -621,7 +621,7 @@ public class SigningControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(organisationSignees);
+            .ReturnsAsync(organizationSignees);
 
         // Act
         var actionResult = await controller.GetAuthorizedOrganizations(
@@ -1269,7 +1269,7 @@ public class SigningControllerTests
 
         _processReaderMock.Setup(s => s.GetAltinnTaskExtension("task2")).Returns(altinnTaskExtensionTask2);
 
-        List<OrganizationSignee> organisationSignees =
+        List<OrganizationSignee> organizationSignees =
         [
             new OrganizationSignee
             {
@@ -1293,7 +1293,7 @@ public class SigningControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(organisationSignees);
+            .ReturnsAsync(organizationSignees);
 
         // Act
         var actionResult = await controller.GetAuthorizedOrganizations(

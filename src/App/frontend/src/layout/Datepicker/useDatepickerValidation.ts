@@ -52,14 +52,14 @@ export function validateDatepicker(ctx: ComponentValidationContext<'Datepicker'>
 
   if (date && isBefore(date, minDate)) {
     validations.push({
-      message: { key: 'date_picker.min_date_exeeded' },
+      message: { key: 'date_picker.min_date_exceeded' },
       severity: 'error',
       source: FrontendValidationSource.Component,
       category: ValidationMask.Component,
     });
   } else if (date && isAfter(date, maxDate)) {
     validations.push({
-      message: { key: 'date_picker.max_date_exeeded' },
+      message: { key: 'date_picker.max_date_exceeded' },
       severity: 'error',
       source: FrontendValidationSource.Component,
       category: ValidationMask.Component,
