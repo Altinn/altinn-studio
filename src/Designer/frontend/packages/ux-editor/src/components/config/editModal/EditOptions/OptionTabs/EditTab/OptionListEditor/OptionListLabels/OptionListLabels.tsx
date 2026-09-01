@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioParagraph } from '@studio/components';
-import type { TextResource } from '@studio/components-legacy';
+import type { TextResource } from '@studio/pure-functions';
 import { useConcatOptionListLabels } from '../hooks';
 import type { OptionList } from 'app-shared/types/OptionList';
 import classes from './OptionListLabels.module.css';

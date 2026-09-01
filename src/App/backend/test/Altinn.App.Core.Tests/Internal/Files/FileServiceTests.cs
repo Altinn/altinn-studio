@@ -1,5 +1,4 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
-using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Validation;
@@ -35,7 +34,7 @@ public class FileServiceTests
         // Assert
         result.Should().BeNull();
         fileAnalysisService.Verify(
-            x => x.Analyse(It.IsAny<DataType>(), It.IsAny<Stream>(), It.IsAny<string>()),
+            x => x.Analyze(It.IsAny<DataType>(), It.IsAny<Stream>(), It.IsAny<string>()),
             Times.Never
         );
         fileValidationService.Verify(
@@ -55,22 +54,22 @@ public class FileServiceTests
         var dataType = new DataType
         {
             Id = "test-datatype",
-            EnabledFileAnalysers = new List<string> { "analyser1" },
+            EnabledFileAnalysers = new List<string> { "analyzer1" },
             EnabledFileValidators = null,
         };
         var bytes = new byte[] { 1, 2, 3 };
         var filename = "test.txt";
 
-        var analysisResults = new List<FileAnalysisResult> { new("analyser1") { Filename = filename } };
+        var analysisResults = new List<FileAnalysisResult> { new("analyzer1") { Filename = filename } };
 
-        fileAnalysisService.Setup(x => x.Analyse(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
+        fileAnalysisService.Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
 
         // Act
         var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
 
         // Assert
         result.Should().BeNull();
-        fileAnalysisService.Verify(x => x.Analyse(dataType, It.IsAny<Stream>(), filename), Times.Once);
+        fileAnalysisService.Verify(x => x.Analyze(dataType, It.IsAny<Stream>(), filename), Times.Once);
         fileValidationService.Verify(
             x => x.Validate(It.IsAny<DataType>(), It.IsAny<List<FileAnalysisResult>>()),
             Times.Never
@@ -104,7 +103,7 @@ public class FileServiceTests
         // Assert
         result.Should().BeNull();
         fileAnalysisService.Verify(
-            x => x.Analyse(It.IsAny<DataType>(), It.IsAny<Stream>(), It.IsAny<string>()),
+            x => x.Analyze(It.IsAny<DataType>(), It.IsAny<Stream>(), It.IsAny<string>()),
             Times.Never
         );
         fileValidationService.Verify(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()), Times.Once);
@@ -121,7 +120,7 @@ public class FileServiceTests
         var dataType = new DataType
         {
             Id = "test-datatype",
-            EnabledFileAnalysers = new List<string> { "analyser1" },
+            EnabledFileAnalysers = new List<string> { "analyzer1" },
             EnabledFileValidators = new List<string> { "validator1" },
         };
         var bytes = new byte[] { 1, 2, 3 };
@@ -129,10 +128,10 @@ public class FileServiceTests
 
         var analysisResults = new List<FileAnalysisResult>
         {
-            new("analyser1") { Filename = filename, MimeType = "text/plain" },
+            new("analyzer1") { Filename = filename, MimeType = "text/plain" },
         };
 
-        fileAnalysisService.Setup(x => x.Analyse(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
+        fileAnalysisService.Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
 
         fileValidationService
             .Setup(x => x.Validate(dataType, It.Is<List<FileAnalysisResult>>(list => list.Count == 1)))
@@ -143,7 +142,7 @@ public class FileServiceTests
 
         // Assert
         result.Should().BeNull();
-        fileAnalysisService.Verify(x => x.Analyse(dataType, It.IsAny<Stream>(), filename), Times.Once);
+        fileAnalysisService.Verify(x => x.Analyze(dataType, It.IsAny<Stream>(), filename), Times.Once);
         fileValidationService.Verify(
             x => x.Validate(dataType, It.Is<List<FileAnalysisResult>>(list => list.Count == 1)),
             Times.Once
@@ -161,7 +160,7 @@ public class FileServiceTests
         var dataType = new DataType
         {
             Id = "test-datatype",
-            EnabledFileAnalysers = new List<string> { "analyser1" },
+            EnabledFileAnalysers = new List<string> { "analyzer1" },
             EnabledFileValidators = new List<string> { "validator1" },
         };
         var bytes = new byte[] { 1, 2, 3 };
@@ -169,7 +168,7 @@ public class FileServiceTests
 
         var analysisResults = new List<FileAnalysisResult>
         {
-            new("analyser1") { Filename = filename, MimeType = "application/x-msdownload" },
+            new("analyzer1") { Filename = filename, MimeType = "application/x-msdownload" },
         };
 
         var validationIssues = new List<ValidationIssueWithSource>
@@ -183,7 +182,7 @@ public class FileServiceTests
             },
         };
 
-        fileAnalysisService.Setup(x => x.Analyse(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
+        fileAnalysisService.Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
 
         fileValidationService
             .Setup(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()))
@@ -212,13 +211,13 @@ public class FileServiceTests
         var dataType = new DataType
         {
             Id = "test-datatype",
-            EnabledFileAnalysers = new List<string> { "analyser1" },
+            EnabledFileAnalysers = new List<string> { "analyzer1" },
             EnabledFileValidators = new List<string> { "validator1", "validator2" },
         };
         var bytes = new byte[] { 1, 2, 3 };
         var filename = "bad-file.txt";
 
-        var analysisResults = new List<FileAnalysisResult> { new("analyser1") { Filename = filename } };
+        var analysisResults = new List<FileAnalysisResult> { new("analyzer1") { Filename = filename } };
 
         var validationIssues = new List<ValidationIssueWithSource>
         {
@@ -238,7 +237,7 @@ public class FileServiceTests
             },
         };
 
-        fileAnalysisService.Setup(x => x.Analyse(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
+        fileAnalysisService.Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
 
         fileValidationService
             .Setup(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()))
@@ -265,7 +264,7 @@ public class FileServiceTests
         var dataType = new DataType
         {
             Id = "test-datatype",
-            EnabledFileAnalysers = new List<string> { "analyser1" },
+            EnabledFileAnalysers = new List<string> { "analyzer1" },
             EnabledFileValidators = new List<string> { "validator1" },
         };
         var bytes = new byte[] { 1, 2, 3 };
@@ -273,10 +272,10 @@ public class FileServiceTests
 
         var analysisResults = new List<FileAnalysisResult>
         {
-            new("analyser1") { MimeType = "application/octet-stream" },
+            new("analyzer1") { MimeType = "application/octet-stream" },
         };
 
-        fileAnalysisService.Setup(x => x.Analyse(dataType, It.IsAny<Stream>(), null)).ReturnsAsync(analysisResults);
+        fileAnalysisService.Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), null)).ReturnsAsync(analysisResults);
 
         fileValidationService
             .Setup(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()))
@@ -287,7 +286,7 @@ public class FileServiceTests
 
         // Assert
         result.Should().BeNull();
-        fileAnalysisService.Verify(x => x.Analyse(dataType, It.IsAny<Stream>(), null), Times.Once);
+        fileAnalysisService.Verify(x => x.Analyze(dataType, It.IsAny<Stream>(), null), Times.Once);
         fileValidationService.Verify(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()), Times.Once);
     }
 }

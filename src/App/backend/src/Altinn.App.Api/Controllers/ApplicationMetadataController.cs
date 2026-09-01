@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Controllers;
 
 /// <summary>
-/// Hanldes application metadata
+/// Handles application metadata
 /// AllowAnonymous, because this is static known information and used from LocalTest
 /// </summary>
 [AllowAnonymous]
@@ -32,8 +32,8 @@ public class ApplicationMetadataController : ControllerBase
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="checkOrgApp">Boolean get parameter to skip verification of correct org/app</param>
     /// <returns>Application metadata</returns>
     [ProducesResponseType(typeof(ApplicationMetadata), StatusCodes.Status200OK)]
@@ -63,8 +63,8 @@ public class ApplicationMetadataController : ControllerBase
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>XACML policy file</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/xml")]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
@@ -96,8 +96,8 @@ public class ApplicationMetadataController : ControllerBase
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>BPMN process file</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/xml")]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]

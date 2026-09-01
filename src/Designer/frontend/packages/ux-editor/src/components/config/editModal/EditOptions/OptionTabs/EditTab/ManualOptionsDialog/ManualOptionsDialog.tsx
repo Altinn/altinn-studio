@@ -13,8 +13,11 @@ import type { Option } from 'app-shared/types/Option';
 import { useOptionListEditorTexts } from '../../hooks';
 import { useTextResourcesForLanguage } from '../hooks/useTextResourcesForLanguage';
 import { useHandleUpdateTextResource } from '../hooks/useHandleUpdateTextResource';
-import { StudioCodeListEditor } from '@studio/components-legacy';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import {
+  StudioCodeListEditorWithTextResources,
+  StudioDialog,
+  StudioHeading,
+} from '@studio/components';
 
 export type ManualOptionsDialogProps = {
   textResources: ITextResources;
@@ -56,7 +59,7 @@ export const ManualOptionsDialog = forwardRef<HTMLDialogElement, ManualOptionsDi
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.content}>
           {component.options && (
-            <StudioCodeListEditor
+            <StudioCodeListEditorWithTextResources
               codeList={component.options}
               onCreateTextResource={handleUpdateTextResource}
               onUpdateTextResource={handleUpdateTextResource}

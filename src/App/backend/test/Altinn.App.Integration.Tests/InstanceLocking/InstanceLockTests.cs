@@ -24,7 +24,7 @@ public sealed class InstanceLockTests(ITestOutputHelper _output, AppFixtureClass
 
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         var instance = readInstantiationResponse.Data.Model;

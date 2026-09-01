@@ -112,7 +112,7 @@ def _validate_tool(tool: Tool) -> None:
       - forget to set `name`, `description`, or `input_schema`,
       - shadow a predicate method with a non-callable.
 
-    Cheap to run at registration time, and turns silent mis-wiring into
+    Cheap to run at registration time, and turns silent miswiring into
     a startup error instead of a runtime surprise.
     """
     if not isinstance(tool, Tool):

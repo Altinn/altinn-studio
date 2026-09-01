@@ -29,7 +29,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   const isAnyProcessing = useIsAnyProcessing();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
-  const { title, description } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
+  const { title, description, help } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
   const { data: process, refetch: reFetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
@@ -97,6 +97,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
           orderDetails={paymentInfo?.orderDetails}
           tableTitle={title}
           description={description}
+          help={help}
         />
         <div className={classes.alertContainer}>
           {(paymentInfo?.status === PaymentStatus.Failed || paymentError) && (

@@ -377,7 +377,7 @@ internal class ProcessEngine : IProcessEngine
         bool isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
         string? processNextAction = request.Action;
 
-        // A reject abandons the task; it is only honoured when the bpmn allows it for this task.
+        // A reject abandons the task; it is only honored when the bpmn allows it for this task.
         bool rejectAllowedForTask =
             checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
 
@@ -801,7 +801,7 @@ internal class ProcessEngine : IProcessEngine
                 return new PlatformUser
                 {
                     SystemUserId = auth.SystemUserId[0],
-                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganisationNumberFormat.Local),
+                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganizationNumberFormat.Local),
                     SystemUserName = null, // TODO: will get this name later when a lookup API is implemented or the name is passed in token
                     AuthenticationLevel = auth.AuthenticationLevel,
                 };

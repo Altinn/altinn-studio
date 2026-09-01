@@ -1,0 +1,123 @@
+name: Spell check
+
+# Repo-wide spell check: five checks over three languages, driven by
+# scripts/spellcheck/run.mjs and the registry next to it. See AGENTS.md
+# "Spelling and language" for the policy.
+#
+# Design invariant: no check may pass without proving it ran. Every check
+# step carries `if: always()` so a failure in one NEVER prevents the others
+# from running, and the final step fails unless every check actually
+# succeeded. The self-test runs the production configuration against
+# committed fixtures with planted defects before the real checks run.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  spellcheck:
+    name: Spell check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Install typos (pinned)
+        run: |
+          curl -sSfL -o /tmp/typos.tar.gz \
+            https://github.com/crate-ci/typos/releases/download/v1.49.0/typos-v1.49.0-x86_64-unknown-linux-musl.tar.gz
+          echo "48bd2d58e02ce713b8c0f1aa239e68ee4f7d8c551013135806e6aed3938d9e10  /tmp/typos.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/typos-dist
+          tar -xzf /tmp/typos.tar.gz -C /tmp/typos-dist
+          sudo install /tmp/typos-dist/typos /usr/local/bin/typos
+          typos --version
+
+      - name: Install hunspell
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q hunspell
+          hunspell -v | head -1
+
+      # The dictionaries are fetched (SHA-256-pinned) on first use; the cache
+      # just spares the upstream endpoints on every run. Restore and save are
+      # split because the combined action only saves when the whole job
+      # succeeded — and this job has failing check steps by design while the
+      # backlog exists, so the cache would never be written.
+      - name: Restore dictionary cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: scripts/spellcheck/.cache
+          key: spellcheck-dictionaries-${{ hashFiles('scripts/spellcheck/dictionaries.mjs') }}
+
+      - name: Self-test (planted fixtures, production config)
+        id: selftest
+        if: always()
+        run: node scripts/spellcheck/run.mjs self-test
+
+      - name: Code, comments and docs (en-US)
+        id: code
+        if: always()
+        run: node scripts/spellcheck/run.mjs code
+
+      - name: Language file structure (keys, parameters, empty values)
+        id: structure
+        if: always()
+        run: node scripts/spellcheck/run.mjs structure
+
+      - name: Registry coverage (nothing unchecked, no drift, no dead excludes)
+        id: coverage
+        if: always()
+        run: node scripts/spellcheck/run.mjs coverage
+
+      - name: English UI text (en-GB values, en-US keys)
+        id: en
+        if: always()
+        run: node scripts/spellcheck/run.mjs en
+
+      - name: Norwegian UI text (bokmål and nynorsk)
+        # `no` would be a YAML boolean, so the id differs from the check name.
+        id: norwegian
+        if: always()
+        run: node scripts/spellcheck/run.mjs no
+
+      - name: Save dictionary cache
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: scripts/spellcheck/.cache
+          key: spellcheck-dictionaries-${{ hashFiles('scripts/spellcheck/dictionaries.mjs') }}
+
+      - name: Every check ran and passed
+        if: always()
+        run: |
+          failed=""
+          for check in "selftest:${{ steps.selftest.outcome }}" \
+                       "code:${{ steps.code.outcome }}" \
+                       "structure:${{ steps.structure.outcome }}" \
+                       "coverage:${{ steps.coverage.outcome }}" \
+                       "en:${{ steps.en.outcome }}" \
+                       "no:${{ steps.norwegian.outcome }}"; do
+            [ "${check#*:}" = "success" ] || failed="$failed ${check%%:*}"
+          done
+          if [ -n "$failed" ]; then
+            echo "Checks that did not succeed:$failed"
+            exit 1
+          fi

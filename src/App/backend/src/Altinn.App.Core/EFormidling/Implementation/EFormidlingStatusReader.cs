@@ -5,7 +5,7 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 
 /// <summary>
 /// Reads the integrasjonspunkt's status list for a shipment. The eFormidling status vocabulary, and
-/// the judgement of what counts as delivered or terminally failed, lives here alone — the send
+/// the judgment of what counts as delivered or terminally failed, lives here alone — the send
 /// path's duplicate recovery and the delivery wait ask the same questions, and used to answer them
 /// with two separate sets of predicates that could drift apart.
 /// </summary>

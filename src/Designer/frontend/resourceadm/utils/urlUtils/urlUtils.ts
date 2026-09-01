@@ -3,24 +3,24 @@ import { isOrgNrString } from '../stringUtils';
 import { UrlConstants } from './urlConstants';
 
 /**
- * Returns the path to the dashboard based on the name of the organisation
+ * Returns the path to the dashboard based on the name of the organization
  * and the name of the repo.
  *
- * @param organisation the organisation name
+ * @param organization the organization name
  * @param repo the repo name
  *
  * @returns the path
  */
-export const getResourceDashboardURL = (organisation: string, repo: string): string => {
-  return `/${organisation}/${repo}`;
+export const getResourceDashboardURL = (organization: string, repo: string): string => {
+  return `/${organization}/${repo}`;
 };
 
 /**
  * Returns the path to the resource page, default set to the about page.
- * This is done based on the name of the organisation, the name of the repo,
+ * This is done based on the name of the organization, the name of the repo,
  * and the resource Id
  *
- * @param organisation the organisation name
+ * @param organization the organization name
  * @param repo the repo name
  * @param resourceId the ID of the resource
  * @param resourcePage the type of page in the resource page to view
@@ -28,21 +28,21 @@ export const getResourceDashboardURL = (organisation: string, repo: string): str
  * @returns the path
  */
 export const getResourcePageURL = (
-  organisation: string,
+  organization: string,
   repo: string,
   resourceId: string,
   resourcePage: NavigationBarPage,
 ): string => {
-  return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`;
+  return `/${organization}/${repo}/resource/${resourceId}/${resourcePage}`;
 };
 
 export const getAccessListPageUrl = (
-  organisation: string,
+  organization: string,
   repo: string,
   environment: string,
   listIdentifier: string = '',
 ): string => {
-  return `/${organisation}/${repo}/accesslists/${environment}/${listIdentifier}`;
+  return `/${organization}/${repo}/accesslists/${environment}/${listIdentifier}`;
 };
 
 export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string => {

@@ -7,7 +7,7 @@ import type { ResourceError, ResourceVersionStatus } from 'app-shared/types/Reso
 /**
  * Query to get the status of the versions of a resource.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param id the id of the resource
  *

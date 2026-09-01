@@ -74,7 +74,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               <ErrorBoundary
                 fallback={
                   <SafeErrorView
-                    heading={t('dashboard.favourites')}
+                    heading={t('dashboard.favorites')}
                     title={t('dashboard.view_favorites_error_title')}
                     message={
                       <Trans

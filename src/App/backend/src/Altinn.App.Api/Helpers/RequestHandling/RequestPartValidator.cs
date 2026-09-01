@@ -10,7 +10,7 @@ public class RequestPartValidator
     private readonly Application _appInfo;
 
     /// <summary>
-    /// Initialises a new instance of the <see cref="RequestPartValidator"/> class with the given application info.
+    /// Initializes a new instance of the <see cref="RequestPartValidator"/> class with the given application info.
     /// </summary>
     /// <param name="appInfo">The application metadata to use when validating a <see cref="RequestPart"/>.</param>
     public RequestPartValidator(Application appInfo)

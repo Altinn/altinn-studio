@@ -49,6 +49,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
         var plans = BuildPlans(uiPath, sets);
         ValidateCollisions(uiPath, plans);
 
+        var todos = new List<string>();
         var touchedFolders = new HashSet<string>(StringComparer.Ordinal);
         var copiedFolderCount = 0;
         var renamedFolderCount = 0;
@@ -56,6 +57,13 @@ internal sealed class LayoutSetsToTaskUiMigrator
 
         foreach (var plan in plans)
         {
+            if (string.IsNullOrWhiteSpace(plan.DataType))
+            {
+                todos.Add(
+                    $"Layout set '{plan.SourceId}' had no dataType in layout-sets.json; Settings.json will not get defaultDataType. Connect the datamodel in the process editor after upgrade."
+                );
+            }
+
             foreach (var destinationId in plan.DestinationIds)
             {
                 var destinationPath = Path.Combine(uiPath, destinationId);
@@ -114,6 +122,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
             RenamedFolderCount = renamedFolderCount,
             DeletedSourceFolderCount = deletedSourceFolderCount,
             MigratedGlobalSettings = migratedGlobalSettings,
+            Todos = todos,
         };
     }
 
@@ -290,6 +299,7 @@ internal sealed class MigrationResult
     public int RenamedFolderCount { get; init; }
     public int DeletedSourceFolderCount { get; init; }
     public bool MigratedGlobalSettings { get; init; }
+    public IReadOnlyList<string> Todos { get; init; } = [];
 }
 
 internal sealed record LayoutSetMigrationPlan(

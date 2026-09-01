@@ -10,7 +10,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// the <c>Failed(...)</c>/<c>FailedAbortProcessNext()</c>/<c>FailedContinueProcessNext(...)</c>
 /// factories are replaced by <c>FailedRetryable</c>/<c>FailedPermanent</c>/<c>SuccessWithoutAutoAdvance</c>.
 /// Mapping the old abort/continue strategy onto the new retryable/permanent + auto-advance model is a
-/// judgement call, so this reports the call sites rather than transforming them.
+/// judgment call, so this reports the call sites rather than transforming them.
 /// </summary>
 internal sealed class ServiceTaskResultApiDetector
 {

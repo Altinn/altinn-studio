@@ -1,0 +1,286 @@
+# Suppressions for the code (en-US) pass: WRONG spellings this repository
+# must accept anyway — someone else's API, a wire contract — each scoped to
+# where it is load-bearing. A CORRECT word the checker doesn't know belongs
+# in a glossary instead (glossary.shared/nb/nn.txt). Norwegian in code that
+# the classifier cannot see (identifiers, JSX text nodes) is also suppressed
+# here, path-scoped, though extracting the copy to a language file is the
+# better fix.
+#
+# Format: '#' comments and blank lines are free. A section is one or more
+# @directives followed by one token per line (the exact word typos
+# reports). A directive after a token starts a new section; nothing is
+# inherited. Every section needs exactly one scope — say WHY in a comment
+# next to the section or token:
+#
+#   @paths glob glob …         tokens allowed anywhere in matching files
+#   @identifiers Name Name …   tokens allowed only as/inside these exact
+#                              identifiers (narrow with @paths if needed)
+#   @identifier-part           tokens allowed inside any LONGER identifier
+#                              within @paths; the bare word stays enforced
+#
+# Scope is the point: typos' own allowlists are repo-wide, so a bare
+# `organisation` entry would license the word in every ADR and comment. A
+# token here is still reported OUTSIDE its scope, and an entry that matches
+# nothing is reported as stale — the registry cannot quietly rot.
+#
+# Keep tokens alphabetized within each section.
+
+# ---------------------------------------------- platform wire contracts ---
+
+# Altinn Platform (Storage/Register) spells its DTO members the British
+# way, and our SDK surface is built around them: OrganisationNumber,
+# GetOrganisationNumber, … 30+ derived identifiers and growing. Enumerating
+# them would churn on every PR, so the family is allowed inside identifiers
+# in the contract-adjacent trees. The bare word stays enforced everywhere:
+# prose, comments, docs and any standalone `organisation` variable.
+@identifier-part
+@paths src/App/backend/** src/App/frontend/** src/Designer/backend/** src/Designer/frontend/** src/Runtime/localtest/**
+Organisation
+organisation
+
+# plural identifier forms derived from the same DTO family (OrganisationNumbers, …)
+@identifier-part
+@paths src/App/backend/** src/Designer/backend/** src/Runtime/localtest/**
+Organisations
+
+# Altinn.Platform.Storage.Interface ProcessElementInfo.Occured wire property
+@identifiers Occured
+@paths src/Runtime/localtest/** src/App/backend/**
+Occured
+
+# Storage InstanceEventType.Submited enum member (instance event wire value)
+@identifiers Submited
+@paths src/App/backend/** src/Runtime/localtest/**
+Submited
+
+# doc comments quoting the submited instance-event wire value in query examples
+@identifiers submited
+@paths src/Runtime/localtest/**
+submited
+
+# Storage application metadata wire field
+@identifiers AllowedContributers allowedContributers
+Contributers
+
+# Storage application metadata wire field
+@identifiers EnabledFileAnalysers enabledFileAnalysers
+Analysers
+
+# file-analyzer id that deployed apps reference by name
+@identifiers mimeTypeAnalyser enabledFileAnalysers
+Analyser
+
+# deprecated layout-settings alias apps still have on disk; see AutoSaveBehaviorLegacy
+@identifiers autoSaveBehaviour
+Behaviour
+
+# MaskinportenSettings member name apps configure by key
+@identifiers ExhangeToAltinnToken
+Exhange
+
+# @navikt/aksel-icons export names
+@identifiers MenuElipsisVerticalIcon MenuElipsisHorizontalIcon
+Elipsis
+
+# mirrors the W3C aria-labelledby attribute
+@identifiers ariaLabelledBy AriaLabelledBy hasAriaLabelledBy
+Labelled
+
+# BuildKit SolveStatus field name
+@paths src/Runtime/devenv/pkg/container/dockerapi/** src/experimental/sandbox-microsandbox/src/image.rs
+Vertexes
+vertexes
+
+# axe-core accessibility tooling (cypress-axe)
+@paths **/cypress.config.js
+axe
+Axe
+
+# --------------------------------------------------- codes and slugs ---
+
+# Altinn service-owner org slugs (als, staf) used as config/test values
+@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/development/setup.js
+als
+staf
+
+# Altinn org slug (uppercased) in fixtures and policy data
+@paths src/runner-org-sync/** src/AI/agents/**
+ACN
+
+# Azure Kubernetes Service, in infra config, workflow comments, and the
+# code that talks to it
+@paths charts/** infra/** src/** .github/workflows/**
+AKS
+aks
+
+# file extensions and schemes in the MIME type map
+@paths **/MimeTypeMap.cs
+caf
+itms
+mak
+odf
+thn
+
+# ISO 4217 currency code (Jordanian dinar) in generated-schema source data
+@paths src/App/frontend/src/codegen/**
+JOD
+
+# gpg --with-colons fingerprint field selector
+@paths src/Runtime/pdf3/**
+fpr
+
+# botAccount shorthand, and ba inside git SHAs in test fixtures
+@paths src/App/backend/Makefile **/BotAccounts/**
+ba
+
+# "Statistisk sentralbyrå" named in the codelists docs
+@paths src/App/codelists/**
+Statistisk
+
+# --------------- foreign-language content in otherwise-English code ---
+# Only the specific foreign tokens are accepted, and only where they occur
+# — a whole-directory exclude would hide real English typos as collateral.
+
+# KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
+@paths src/App/backend/**/Altinn.App.Clients.Fiks*/**
+Dokument
+Registrering
+registrering
+Som
+
+# the v8 API really was named Authorisation; the upgrade tooling matches it to rewrite it, and release notes describe it
+@paths src/cli/**/Upgrade/** **/CHANGELOG.md
+Authorisation
+
+# v8 API names in upgrade tooling and changelogs; sample data in pagination stories
+@paths src/cli/**/Upgrade/** **/CHANGELOG.md **/StudioTable*Pagination/**
+authorisation
+
+# v8 API names the upgrade tooling matches in order to rewrite them
+@paths src/cli/**/Upgrade/**
+Organisation
+
+# official English name of a Norwegian ministry, used as sample table data
+@paths **/StudioTable*Pagination/**
+Labour
+
+# Norwegian field names in Tenor test-person data and e2e selectors
+@paths **/Services/Tenor/**
+Adresse
+adresse
+hel
+Hel
+
+# Norwegian sample content in Storybook stories and JSX text nodes
+@paths **/MergeConflictWarning/**
+appen
+Noen
+som
+
+# Norwegian JSX text nodes
+@paths **/AddItem/ToggleAddComponentPoc.tsx **/DownloadXMLButton/DownloadXMLButton.tsx **/MergeConflictWarning/MergeConflictWarning.tsx
+ned
+
+# Norwegian JSX text node
+@paths **/AddItem/ToggleAddComponentPoc.tsx
+designet
+
+# --------------------- Altinn.App public API kept with its shipped names ---
+# Renaming public types, members and OpenAPI schema names is a versioned
+# product decision, not a spelling fix. Each family below is part of the
+# app-facing surface (PublicApi snapshots) or mirrors a platform contract.
+
+# The OrganisationOrPersonIdentifier nested record `Organisation`, the
+# SystemUser/MaskinportenTokenRequest `Organisation` properties and their
+# pattern-match locals, the platform Register/Storage members
+# PartyType.Organisation / PartyTypesAllowed.Organisation, the
+# organisation.* telemetry attribute keys, and Designer's Organisation
+# namespace segment (which cannot become Organization: it would shadow the
+# Gitea Organization model type). Prose in these files stays enforced
+# through the exact-identifier scope.
+@identifiers Organisation organisation
+@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts src/App/frontend/src/features/applicationMetadata/types.ts src/App/frontend/src/features/instantiate/containers/NoValidPartiesError.tsx src/App/frontend/src/features/instantiate/containers/PartySelection.tsx
+Organisation
+organisation
+
+# Designer serializes AutoSaveBehaviour into layout-settings JSON that
+# deployed apps read (the app side accepts it as a legacy alias). Renaming
+# the property changes the wire key — a product fix, not a spelling fix.
+@identifiers AutoSaveBehaviour AutoSaveBehaviourType
+@paths src/Designer/backend/**
+Behaviour
+
+# NIN = national identity number, a domain abbreviation (like SSN).
+@paths src/App/backend/src/Altinn.App.Core/Features/Signing/** src/Runtime/localtest/src/Notifications/**
+nin
+Nin
+
+# The mis- prefix (misCased = wrongly cased) is deliberate English.
+@identifiers MisCasedProperty misCasedProperty isMisCased
+Mis
+mis
+
+# Norwegian devtools messages in multi-line template literals, which the
+# string classifier cannot see (it is scoped to one line).
+@paths src/App/frontend/src/features/devtools/utils/layoutSchemaValidation.ts
+lik
+
+# Norwegian working notes for the augmenter agent.
+@paths src/AI/augmenter-agent/TODO-coderabbit.md
+foldes
+prosess
+som
+
+# The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
+# so the old spellings are its working data: the rename map, the rewrite
+# reporting, the orchestration step, and the user-facing changelog entry
+# all must name the misspellings they remove.
+@paths src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/CSharpApiMigration/MisspelledApiMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/DatepickerTextResourceKeyMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs src/cli/CHANGELOG.md
+Analyse
+analyser
+Analyser
+Analysers
+Analyzis
+exeeded
+Extentions
+Indicies
+instansiation
+Instansiation
+langauge
+Organisation
+
+# v8 OrganisationLookup data-model binding names: the layout migration
+# matches them in order to rewrite them, and the release note names them
+@paths src/cli/**/Upgrade/** src/cli/CHANGELOG.md
+organisation
+
+# Designer API route: the frontend (paths.js) and the controller tests call
+# it by this spelling, so the literal is a wire contract
+@paths src/Designer/backend/src/Designer/Controllers/ProcessModelingController.cs
+modelling
+
+# Norwegian JSX text node in the Storybook docs component
+@paths src/common/ts/form-component/src/layout-components/common/storybook/LayoutComponentDocs.tsx
+som
+
+# Paket is the .NET dependency manager named in the standard gitignore template
+@paths **/.gitignore
+Paket
+
+# eur1.html is the static TAD-form fixture the pdf3 e2e renders; its bytes
+# are baked into the committed PDF snapshots, so its text (typos and British
+# spellings alike) is a contract of those snapshots
+@paths src/Runtime/devenv/pkg/runtimes/kind/config/testserver/eur1.html
+additons
+Endorsment
+initialled
+litres
+
+# Norwegian UI text inside Go template strings on the fake-ansattporten
+# login page; no Nordic letter or signal word on the line for the classifier
+@paths src/Designer/development/fake-ansattporten/main.go
+selv
+
+# didi is the dependency-injection package bpmn-js pulls in (see yarn.lock)
+@paths src/Designer/frontend/jest.config.js
+didi

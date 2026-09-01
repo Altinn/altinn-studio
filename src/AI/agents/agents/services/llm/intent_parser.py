@@ -9,6 +9,8 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+MINIMUM_INTENT_CONFIDENCE = 0.1
+
 class ParsedIntent(BaseModel):
     """Structured representation of user intent"""
     action: str  # add, remove, update, move
@@ -155,10 +157,45 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
     
     return True, None
 
-def suggest_goal_correction(goal: str) -> List[str]:
-    """Suggest corrections for unclear or unsafe goals using LLM"""
+async def suggest_goal_correction(
+    goal: str, rejection_reason: Optional[str] = None
+) -> List[str]:
+    """Suggest goals the user could ask for instead of the rejected one.
+
+    Never raises: a rejection must not turn into a generic error because the
+    suggestions could not be produced.
+    """
     try:
-        return suggest_goals_with_llm(goal)
+        candidates = await asyncio.to_thread(
+            suggest_goals_with_llm, goal, rejection_reason
+        )
     except Exception as e:
-        log.error(f"Failed to get LLM suggestions: {e}")
-        raise Exception(f"Goal suggestions require working LLM connection: {str(e)}")
+        log.warning(f"Could not generate goal suggestions: {e}")
+        return []
+    return await _drop_suggestions_the_gate_would_reject(candidates)
+
+
+async def _drop_suggestions_the_gate_would_reject(candidates: List[str]) -> List[str]:
+    """Offering a suggestion the gate rejects sends the user round in a circle."""
+    if not candidates:
+        return []
+    verdicts = await asyncio.gather(
+        *(_would_be_accepted(candidate) for candidate in candidates)
+    )
+    kept = [candidate for candidate, ok in zip(candidates, verdicts) if ok]
+    if len(kept) != len(candidates):
+        log.info(f"Dropped {len(candidates) - len(kept)} suggestion(s) the gate would reject")
+    return kept
+
+
+async def _would_be_accepted(goal: str) -> bool:
+    is_safe, _ = _validate_goal_safety_quick(goal)
+    if not is_safe:
+        return False
+    try:
+        parsed = await parse_intent_async(goal)
+    except Exception:
+        return False
+    # The workflow gate rejects on confidence too, so a suggestion below the
+    # threshold would be offered and then refused.
+    return parsed.safe and parsed.confidence >= MINIMUM_INTENT_CONFIDENCE

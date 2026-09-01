@@ -22,7 +22,7 @@ describe('accessControlTabUtils', () => {
         'app_settings.access_control_tab_option_bankruptcy_estate',
       );
       expect(partyTypesAllowedMap.organisation).toBe(
-        'app_settings.access_control_tab_option_organisation',
+        'app_settings.access_control_tab_option_organization',
       );
       expect(partyTypesAllowedMap.person).toBe('app_settings.access_control_tab_option_person');
       expect(partyTypesAllowedMap.subUnit).toBe('app_settings.access_control_tab_option_sub_unit');

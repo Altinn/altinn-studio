@@ -59,7 +59,7 @@ public class NetsMapperTests
         result.Should().NotBeNull();
         result!.Company.Should().NotBeNull();
         result.Company!.Name.Should().Be("Firmanavn");
-        result.Company.OrganisationNumber.Should().Be("123456789");
+        result.Company.OrganizationNumber.Should().Be("123456789");
         result.Company.ContactPerson.Should().NotBeNull();
         result.Company.ContactPerson!.FirstName.Should().Be("Ola");
         result.Company.ContactPerson.LastName.Should().Be("Normann");

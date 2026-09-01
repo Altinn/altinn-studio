@@ -375,12 +375,6 @@ const common = {
           .setDescription('ID of the option list to fetch from the server'),
       ),
       new CG.prop(
-        'mapping',
-        CG.common('IMapping')
-          .optional()
-          .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
-      ),
-      new CG.prop(
         'queryParameters',
         CG.common('IQueryParameters')
           .optional()

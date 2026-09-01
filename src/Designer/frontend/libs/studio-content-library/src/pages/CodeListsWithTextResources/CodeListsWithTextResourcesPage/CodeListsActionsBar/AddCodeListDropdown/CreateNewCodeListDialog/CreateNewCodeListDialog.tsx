@@ -1,11 +1,14 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
-import { StudioCodeListEditor } from '@studio/components-legacy';
-import type {
-  CodeListWithTextResources,
-  CodeListEditorTexts,
-  TextResource,
-} from '@studio/components-legacy';
+import {
+  StudioCodeListEditorWithTextResources,
+  StudioDialog,
+  StudioHeading,
+  StudioButton,
+  StudioTextfield,
+} from '@studio/components';
+import type { CodeListWithTextResources, CodeListEditorTexts } from '@studio/components';
+import type { TextResource } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -13,7 +16,6 @@ import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
-import { StudioDialog, StudioHeading, StudioButton, StudioTextfield } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
@@ -146,7 +148,7 @@ function CreateNewCodeList({
         error={codeListTitleError}
       />
       <div className={classes.codeListEditor}>
-        <StudioCodeListEditor
+        <StudioCodeListEditorWithTextResources
           codeList={currentCodeListWithMetadata.codeList}
           onCreateTextResource={onCreateTextResource}
           onInvalid={handleInvalidCodeList}

@@ -322,16 +322,18 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                 ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
             string? traceId = data["traceId"]?.GetValue<string>();
             string? eventId = data["eventId"]?.GetValue<string>();
+            bool? attachmentInstructionFlagged = data["attachmentInstructionFlagged"]?.GetValue<bool>();
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
                 content,
                 AllowAppChanges: null,
                 AttachmentFileNames: null,
-                filesChanged,
-                sources,
-                traceId,
-                eventId
+                FilesChanged: filesChanged,
+                Sources: sources,
+                AttachmentInstructionFlagged: attachmentInstructionFlagged,
+                TraceId: traceId,
+                EventId: eventId
             );
 
             using var scope = _scopeFactory.CreateScope();

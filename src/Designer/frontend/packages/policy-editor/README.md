@@ -107,7 +107,7 @@ This is all the possible props of the component.
 - Type: `boolean`
 - Description: A flag to decide when errors in the policy editor should be shown. Example
   of errors are that a rule is missing actions and subjects. Example of when this flag might
-  be set to true is when a user navigates to another page and you want to hightlight to the
+  be set to true is when a user navigates to another page and you want to highlight to the
   user that there are errors in the policy.
 
 #### usageType

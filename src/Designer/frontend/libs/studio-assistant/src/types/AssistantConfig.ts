@@ -1,13 +1,5 @@
 import type { UserAttachment, Source } from './ChatThread';
 
-export const ErrorMessages = {
-  CONNECTION_ERROR: '**Connection Error**',
-  REQUEST_REJECTED: '**Request Rejected**',
-  REQUEST_FAILED: '**Request Failed**',
-  NO_SESSION_AVAILABLE: "No session available. Please ensure you're connected to the server.",
-  UNKNOWN_ERROR: 'Unknown error occurred',
-} as const;
-
 export interface AssistantMessageData {
   response?: string;
   message?: string;
@@ -18,6 +10,7 @@ export interface AssistantMessageData {
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
   traceId?: string;
+  attachmentInstructionFlagged?: boolean;
   eventId?: string;
   /** Present when the backend already persisted this message; do not persist a copy. */
   persistedMessageId?: string;

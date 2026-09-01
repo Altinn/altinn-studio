@@ -1,7 +1,6 @@
 export * from './StudioButton';
 export * from './StudioCheckbox';
 export * from './StudioCodeFragment';
-export * from './StudioCodeListEditor';
 export * from './StudioCombobox';
 export * from './StudioDecimalInput';
 export * from './StudioFieldset';
@@ -9,9 +8,7 @@ export * from './StudioGridSelector';
 export * from './StudioInputTable';
 export * from './StudioLabelWrapper';
 export * from './StudioNativeSelect';
-export * from './StudioPageHeader';
 export * from './StudioParagraph';
-export * from './StudioPopover';
 export * from './StudioTable';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';

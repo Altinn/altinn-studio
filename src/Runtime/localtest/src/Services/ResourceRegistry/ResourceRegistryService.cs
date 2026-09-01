@@ -21,7 +21,7 @@ namespace Altinn.ResourceRegistry.Core
 
         /// <summary>
         /// Creates a new instance of the <see cref="ResourceRegistryService"/> service.
-        /// The ResourceRegistryService is responcible for business logic and implementations for working with the resource registry
+        /// The ResourceRegistryService is responsible for business logic and implementations for working with the resource registry
         /// </summary>
         /// <param name="repository">Resource registry repository implementation for dependencies to its operations</param>
         /// <param name="policyRepository">Repository implementation for operations on policies</param>

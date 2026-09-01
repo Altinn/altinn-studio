@@ -145,7 +145,7 @@ public class JsonSchemaToMetamodelConverter
     {
         switch (keyword)
         {
-            // We only travese the actual schema and their referenced/used sub-schemas.
+            // We only traverse the actual schema and their referenced/used sub-schemas.
             // This means that there might be types defined in $def/definitions that is
             // not included in the generated model - which is fine since they are not in use.
             case SchemaKeyword:
@@ -884,7 +884,7 @@ public class JsonSchemaToMetamodelConverter
     }
 
     /// <summary>
-    /// Gets the primitive type flag set, either exlusively ie. it's
+    /// Gets the primitive type flag set, either exclusively ie. it's
     /// only one flag set or in combination with null ie. it's a
     /// primitive nullable type.
     /// </summary>

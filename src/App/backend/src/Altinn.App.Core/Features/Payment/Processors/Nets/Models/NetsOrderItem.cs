@@ -36,7 +36,7 @@ internal class NetsOrderItem
     public required int UnitPrice { get; set; }
 
     /// <summary>
-    /// The tax/VAT rate (in percentage times 100). For examlpe, the value 2500 corresponds to 25%. Defaults to 0 if not provided.
+    /// The tax/VAT rate (in percentage times 100). For example, the value 2500 corresponds to 25%. Defaults to 0 if not provided.
     /// </summary>
     public int? TaxRate { get; set; } = 0;
 

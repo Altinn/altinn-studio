@@ -81,7 +81,7 @@ function parseEngineHealth(res) {
 
 /**
  * Polls the workflows list endpoint until it returns 204 No Content (no active workflows).
- * Uses pageSize=1 to minimise data transfer — only the totalCount matters.
+ * Uses pageSize=1 to minimize data transfer — only the totalCount matters.
  * @param {number} pollIntervalMs - milliseconds between polls
  */
 export function waitForQueueDrain(pollIntervalMs = 500) {
