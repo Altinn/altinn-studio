@@ -4,7 +4,6 @@ export * from './StudioCodeFragment';
 export * from './StudioCombobox';
 export * from './StudioDecimalInput';
 export * from './StudioFieldset';
-export * from './StudioGridSelector';
 export * from './StudioInputTable';
 export * from './StudioLabelWrapper';
 export * from './StudioNativeSelect';
