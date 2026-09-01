@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using Altinn.Studio.Gateway.Api.Tests.Models;
 using k8s;
 using k8s.Models;
@@ -23,13 +22,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
 
     public IsAppDeployedIntegrationTests()
     {
-        KubernetesJson.AddJsonOptions(options =>
-        {
-#pragma warning disable NX0003
-            options.TypeInfoResolver = JsonTypeInfoResolver.Combine(TestJsonContext.Default, options.TypeInfoResolver!);
-#pragma warning restore NX0003
-        });
-
+        // Custom types are registered with the k8s JSON serializer by KubernetesJsonTestMetadata.
         var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
         _k8sClient = new Kubernetes(config);
         _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:8020") };
