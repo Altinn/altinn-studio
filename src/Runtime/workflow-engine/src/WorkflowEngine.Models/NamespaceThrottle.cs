@@ -13,7 +13,7 @@ public sealed record NamespaceThrottle
     public required string Namespace { get; init; }
 
     /// <summary>
-    /// Current breaker state. A <see cref="NamespaceThrottleState.Closed"/> row lingers for a
+    /// Current breaker state. A <see cref="NamespaceThrottleState.Clear"/> row lingers for a
     /// grace period instead of being deleted, so stragglers parked by stale replica snapshots
     /// can still be cleared by the sweep.
     /// </summary>

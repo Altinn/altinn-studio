@@ -9,7 +9,7 @@ public class NamespaceThrottleEntityTests
         new()
         {
             Namespace = "ttd/broken-app",
-            State = NamespaceThrottleState.Open,
+            State = NamespaceThrottleState.Tripped,
             TrippedAt = new DateTimeOffset(2026, 8, 13, 10, 0, 0, TimeSpan.Zero),
             CurrentWindow = TimeSpan.FromMinutes(20),
             Canaries =

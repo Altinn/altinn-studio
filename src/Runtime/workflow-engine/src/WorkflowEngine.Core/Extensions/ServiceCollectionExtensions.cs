@@ -340,7 +340,7 @@ public static class OptionsBuilderExtensions
 
             builder.Validate(
                 config => config.Throttling.MinRequeuedRatio is > 0 and <= 1,
-                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.MinRequeuedRatio)} must be in (0, 1]."
+                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.MinRequeuedRatio)} must be greater than 0 and less than or equal to 1."
             );
 
             builder.Validate(

@@ -26,7 +26,7 @@ public sealed class NamespaceThrottleTests(PostgresFixture fixture) : IAsyncLife
         var throttle = new NamespaceThrottle
         {
             Namespace = "ttd/broken-app",
-            State = NamespaceThrottleState.Open,
+            State = NamespaceThrottleState.Tripped,
             TrippedAt = trippedAt,
             CurrentWindow = TimeSpan.FromMinutes(20),
             Canaries = [new ThrottleCanary(Guid.NewGuid(), 7), new ThrottleCanary(Guid.NewGuid(), 3)],

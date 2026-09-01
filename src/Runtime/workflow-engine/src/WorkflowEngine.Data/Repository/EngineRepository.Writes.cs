@@ -40,13 +40,18 @@ internal sealed partial class EngineRepository
     private static readonly Func<NpgsqlConnection, IEnumerable<(Guid, Guid)>, CancellationToken, Task> _insertLinks =
         SqlBulkInserter.CreateForJoinTable("workflow_link", "workflow_id", "linked_workflow_id", SchemaNames.Engine);
 
-    // The FetchAndLockWorkflows SQL, in two compile-time-constant variants ("disabled means
-    // inert"): with throttling disabled the query carries no trace of throttled_until, so the
-    // column costs nothing on the fetch path. The variant is selected once at construction —
-    // engine configuration is restart-only — and both are composed from the same head/tail
-    // constants so they cannot drift apart. Compile-time constancy is what CA2100 demands of
-    // raw command texts; runtime values arrive via the @now/@count parameters.
-    private const string FetchAndLockSqlHead = $"""
+    // The FetchAndLockWorkflows SQL. One compile-time constant — which is what CA2100 demands of
+    // raw command texts; runtime values arrive as the @now/@count/@throttle_gate parameters.
+    //
+    // The throttle gate is always present in the query and switched off by @throttle_gate rather
+    // than compiled out into a second variant, so there is a single query to read here. Disabled,
+    // the gate short-circuits before throttled_until is consulted, so the column has no bearing
+    // on which rows are fetched — including any a previously-enabled run had parked. Planning is
+    // unaffected in the normal case: parameter values are bound per execution, so the planner
+    // folds NOT @throttle_gate away and both settings produce the plan the ungated query did
+    // (QueryPlanTests pins both). Only a generic plan would carry the predicate as a residual
+    // filter, which is the small, deliberate cost of having one query instead of two.
+    private const string FetchAndLockSql = $"""
         WITH ready AS (
             SELECT w.id
             FROM engine.workflows w
@@ -56,15 +61,11 @@ internal sealed partial class EngineRepository
                 OR w.backoff_until <= @now
                 OR w.cancellation_requested_at IS NOT NULL
               )
-        """;
-
-    private const string FetchAndLockSqlThrottleGate = """
-
-              AND (w.throttled_until IS NULL OR w.throttled_until <= @now)
-        """;
-
-    private const string FetchAndLockSqlTail = $"""
-
+              AND (
+                NOT @throttle_gate
+                OR w.throttled_until IS NULL
+                OR w.throttled_until <= @now
+              )
               AND NOT EXISTS (
                   SELECT 1 FROM engine.workflow_dependency wd
                   JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
@@ -88,14 +89,8 @@ internal sealed partial class EngineRepository
         SELECT id AS "Value" FROM updated
         """;
 
-    private const string FetchAndLockSqlWithThrottleGate =
-        FetchAndLockSqlHead + FetchAndLockSqlThrottleGate + FetchAndLockSqlTail;
-
-    private const string FetchAndLockSqlWithoutThrottleGate = FetchAndLockSqlHead + FetchAndLockSqlTail;
-
-    private readonly string _fetchAndLockSql = settings.Value.Throttling.Enabled
-        ? FetchAndLockSqlWithThrottleGate
-        : FetchAndLockSqlWithoutThrottleGate;
+    // Engine configuration is restart-only, so the gate is read once.
+    private readonly bool _throttleGate = settings.Value.Throttling.Enabled;
 
     /// <inheritdoc/>
     public async Task UpdateWorkflow(
@@ -1004,9 +999,8 @@ internal sealed partial class EngineRepository
 
         // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poisoned finalization
         // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
-        // re-enter here as Enqueued. The SQL itself lives in the FetchAndLockSql* constants at the
-        // top of this file; which variant runs (with or without the throttled_until gate) was
-        // decided once at construction from EngineSettings.Throttling.Enabled.
+        // re-enter here as Enqueued. The SQL itself is the FetchAndLockSql constant at the top of
+        // this file; @throttle_gate carries EngineSettings.Throttling.Enabled, read at construction.
         //
         // A pending cancellation bypasses the backoff gate: the handler cancels a flagged workflow
         // before executing anything. Without the bypass, a cancel accepted while the row still read
@@ -1019,9 +1013,10 @@ internal sealed partial class EngineRepository
         // cycle. A cancelled dependent therefore still waits for its dependency to settle.
         var ids = await context
             .Database.SqlQueryRaw<Guid>(
-                _fetchAndLockSql,
+                FetchAndLockSql,
                 new NpgsqlParameter<DateTimeOffset>("now", now),
-                new NpgsqlParameter<int>("count", count)
+                new NpgsqlParameter<int>("count", count),
+                new NpgsqlParameter<bool>("throttle_gate", _throttleGate)
             )
             .ToListAsync(cancellationToken);
 

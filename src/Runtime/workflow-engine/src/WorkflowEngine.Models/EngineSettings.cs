@@ -322,7 +322,7 @@ public sealed record ThrottlingSettings
     /// <summary>
     /// Relative floor: the <c>Requeued</c> population must also exceed this fraction of the
     /// namespace's active workflows before the breaker trips. Keeps large-but-noisy apps from
-    /// tripping. Must be in <c>(0, 1]</c>.
+    /// tripping. Must be greater than 0 and less than or equal to 1.
     /// </summary>
     [JsonPropertyName("minRequeuedRatio")]
     public double MinRequeuedRatio { get; set; }

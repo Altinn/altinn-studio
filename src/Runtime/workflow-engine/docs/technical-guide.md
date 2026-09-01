@@ -921,11 +921,12 @@ All via `EngineSettings` (bound from `appsettings.json`):
 ### Throttling (namespace circuit breaker)
 
 Per-namespace failure-storm throttling (see the failure-throttling ADR). Ships dark: with
-`Enabled: false` (the default) the sweep does not run and the fetch query variant without the
-`throttled_until` predicate is selected at startup, so the schema is fully inert. What exists
-today is the schema, the configuration, and the fetch gate — an enabled repository already skips
-workflows parked behind a future `throttled_until`, but nothing writes that column yet. The sweep
-(the writer) and the handler cooperation land separately.
+`Enabled: false` (the default) the sweep does not run and the fetch query's throttle gate is
+switched off by a parameter, so `throttled_until` has no bearing on which workflows are fetched
+and the schema is fully inert. What exists today is the schema, the configuration, and the fetch
+gate — an enabled repository already skips workflows parked behind a future `throttled_until`,
+but nothing writes that column yet. The sweep (the writer) and the handler cooperation land
+separately.
 
 | Setting                            | Default | Description                                             |
 | ---------------------------------- | ------- | ------------------------------------------------------- |
