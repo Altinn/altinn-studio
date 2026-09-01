@@ -8,7 +8,6 @@ export * from './StudioGridSelector';
 export * from './StudioInputTable';
 export * from './StudioLabelWrapper';
 export * from './StudioNativeSelect';
-export * from './StudioParagraph';
 export * from './StudioTable';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
