@@ -34,9 +34,13 @@ metadata:
   name: workflow-engine-app
   namespace: runtime-workflow-engine-app
 spec:
-  # The app needs a provisioned database. The platform configuration sets this
-  # value to "false" only for clusters that have one. The default keeps the
-  # app suspended everywhere else.
+  # Every serviceowner tt02 cluster applies this file. Only clusters with a
+  # provisioned workflow-engine database can run the app. The platform
+  # configuration sets STUDIO_WORKFLOW_ENGINE_SUSPEND to "false" on exactly
+  # those clusters (today: only ttd). On all other clusters the variable is
+  # not set. The default "true" then suspends this Kustomization. Flux deploys
+  # nothing on those clusters, so they get no failing pods. Remove this gate
+  # when every cluster has a database.
   suspend: ${STUDIO_WORKFLOW_ENGINE_SUSPEND:=true}
   targetNamespace: runtime-workflow-engine-app
   interval: 5m
