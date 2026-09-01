@@ -374,6 +374,7 @@ internal static class DashboardEndpoints
                     string? labels,
                     string? collectionKey,
                     string? @namespace,
+                    bool? isHead,
                     CancellationToken ct
                 ) =>
                 {
@@ -398,7 +399,9 @@ internal static class DashboardEndpoints
                                     "HELD" => PersistentItemStatus.Held,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
-                                    "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
+                                    "CANCELED" => PersistentItemStatus.Canceled,
+                                    "DEPENDENCYFAILED" => PersistentItemStatus.DependencyFailed,
+                                    "ABANDONED" => (PersistentItemStatus?)PersistentItemStatus.Abandoned,
                                     _ => null,
                                 }
                             )
@@ -421,6 +424,7 @@ internal static class DashboardEndpoints
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
                         collectionKey: collectionKey,
+                        isHead: isHead,
                         cancellationToken: ct
                     );
 
