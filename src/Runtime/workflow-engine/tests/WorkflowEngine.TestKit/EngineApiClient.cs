@@ -391,16 +391,16 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Force-opens the namespace's throttle (circuit breaker) and returns the raw response.
+    /// Force-trips the namespace's throttle (circuit breaker) and returns the raw response.
     /// </summary>
-    public Task<HttpResponseMessage> ForceOpenThrottleRaw(string? ns = null) =>
-        _client.PostAsync($"{GetThrottleBasePath(ns)}/open", content: null);
+    public Task<HttpResponseMessage> TripThrottleRaw(string? ns = null) =>
+        _client.PostAsync($"{GetThrottleBasePath(ns)}/trip", content: null);
 
     /// <summary>
-    /// Force-closes the namespace's throttle (circuit breaker) and returns the raw response.
+    /// Force-clears the namespace's throttle (circuit breaker) and returns the raw response.
     /// </summary>
-    public Task<HttpResponseMessage> ForceCloseThrottleRaw(string? ns = null) =>
-        _client.PostAsync($"{GetThrottleBasePath(ns)}/close", content: null);
+    public Task<HttpResponseMessage> ClearThrottleRaw(string? ns = null) =>
+        _client.PostAsync($"{GetThrottleBasePath(ns)}/clear", content: null);
 
     /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches

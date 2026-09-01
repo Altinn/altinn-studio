@@ -15,7 +15,7 @@ namespace WorkflowEngine.Integration.Tests;
 /// End-to-end tests of the throttle manual-override endpoints against a host with throttling
 /// <em>enabled</em> (shares <see cref="ThrottlingEngineAppFixture"/> — sweep interval one hour, so
 /// the sweep stays idle and every state change observed here came from the endpoints). Covers
-/// force-open (trip + canaries + parking), force-close (stamp clearing + the lingering closed
+/// force-trip (trip + canaries + parking), force-clear (stamp clearing + the lingering closed
 /// row), idempotent replays, and the GET observability shapes.
 /// </summary>
 [Collection(ThrottlingEngineCollection.Name)]
@@ -49,18 +49,18 @@ public sealed class ThrottleOverrideEndpointTests(ThrottlingEngineAppFixture fix
     }
 
     [Fact]
-    public async Task ForceOpen_TripsBreaker_SelectsCanaries_AndParksTheRest()
+    public async Task ForceTrip_TripsBreaker_SelectsCanaries_AndParksTheRest()
     {
         var ct = TestContext.Current.CancellationToken;
         var ns = UniqueNamespace();
         var workflowIds = await SeedRequeuedWorkflows(ns, count: 5);
 
-        using var response = await _client.ForceOpenThrottleRaw(ns);
+        using var response = await _client.TripThrottleRaw(ns);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         var body = await EngineApiClient.AssertSuccessAndDeserialize<NamespaceThrottleResponse>(response);
         Assert.Equal(ns, body.Namespace);
-        Assert.Equal(NamespaceThrottleState.Open, body.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, body.State);
         Assert.Equal(_initialWindow, body.CurrentWindow);
         Assert.Equal(CanaryCount, body.CanaryCount);
         Assert.Equal(5, body.LastRequeuedCount);
@@ -78,68 +78,68 @@ public sealed class ThrottleOverrideEndpointTests(ThrottlingEngineAppFixture fix
 
         // The override published the open breaker to this replica's handler snapshot immediately.
         var view = fixture.Services.GetRequiredService<ThrottleStateView>();
-        Assert.Equal(_initialWindow, Assert.Single(view.OpenBreakers, b => b.Key == ns).Value);
+        Assert.Equal(_initialWindow, Assert.Single(view.TrippedBreakers, b => b.Key == ns).Value);
 
         // Observability endpoints report the same state.
         var fetched = await _client.GetThrottle(ns);
         Assert.NotNull(fetched);
-        Assert.Equal(NamespaceThrottleState.Open, fetched.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, fetched.State);
 
         var listed = await _client.ListThrottles();
-        Assert.Contains(listed, t => t.Namespace == ns && t.State == NamespaceThrottleState.Open);
+        Assert.Contains(listed, t => t.Namespace == ns && t.State == NamespaceThrottleState.Tripped);
     }
 
     [Fact]
-    public async Task ForceOpen_AlreadyOpen_ReTripsWith202()
+    public async Task ForceTrip_AlreadyOpen_ReTripsWith202()
     {
         var ns = UniqueNamespace();
         await SeedRequeuedWorkflows(ns, count: 4);
 
-        using (var first = await _client.ForceOpenThrottleRaw(ns))
+        using (var first = await _client.TripThrottleRaw(ns))
         {
             Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);
         }
 
-        // Documented as unconditional: a second force-open re-trips (initial window, fresh canaries).
-        using var second = await _client.ForceOpenThrottleRaw(ns);
+        // Documented as unconditional: a second force-trip re-trips (initial window, fresh canaries).
+        using var second = await _client.TripThrottleRaw(ns);
         Assert.Equal(HttpStatusCode.Accepted, second.StatusCode);
         var body = await EngineApiClient.AssertSuccessAndDeserialize<NamespaceThrottleResponse>(second);
-        Assert.Equal(NamespaceThrottleState.Open, body.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, body.State);
         Assert.Equal(_initialWindow, body.CurrentWindow);
     }
 
     [Fact]
-    public async Task ForceOpen_EmptyNamespace_TripsWithNothingToPark()
+    public async Task ForceTrip_EmptyNamespace_TripsWithNothingToPark()
     {
         // Nothing enqueued in the namespace at all: the breaker still trips (state row written,
         // zero canaries, zero parked) — an operator may pre-emptively open before a storm builds.
         var ns = UniqueNamespace();
 
-        using var response = await _client.ForceOpenThrottleRaw(ns);
+        using var response = await _client.TripThrottleRaw(ns);
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         var body = await EngineApiClient.AssertSuccessAndDeserialize<NamespaceThrottleResponse>(response);
-        Assert.Equal(NamespaceThrottleState.Open, body.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, body.State);
         Assert.Equal(0, body.CanaryCount);
         Assert.Equal(0, body.LastRequeuedCount);
     }
 
     [Fact]
-    public async Task ForceClose_ClearsAllStamps_AndRowLingersClosed()
+    public async Task ForceClear_ClearsAllStamps_AndRowLingersClosed()
     {
         var ct = TestContext.Current.CancellationToken;
         var ns = UniqueNamespace();
         var workflowIds = await SeedRequeuedWorkflows(ns, count: 5);
 
-        using (var open = await _client.ForceOpenThrottleRaw(ns))
+        using (var open = await _client.TripThrottleRaw(ns))
         {
             Assert.Equal(HttpStatusCode.Accepted, open.StatusCode);
         }
 
-        using var close = await _client.ForceCloseThrottleRaw(ns);
+        using var close = await _client.ClearThrottleRaw(ns);
         Assert.Equal(HttpStatusCode.Accepted, close.StatusCode);
         var body = await EngineApiClient.AssertSuccessAndDeserialize<NamespaceThrottleResponse>(close);
-        Assert.Equal(NamespaceThrottleState.Closed, body.State);
+        Assert.Equal(NamespaceThrottleState.Clear, body.State);
         Assert.Equal(0, body.CanaryCount);
 
         // Every throttled_until stamp in the namespace is cleared immediately...
@@ -151,39 +151,39 @@ public sealed class ThrottleOverrideEndpointTests(ThrottlingEngineAppFixture fix
 
         // ... the breaker leaves the handler-facing open set...
         var view = fixture.Services.GetRequiredService<ThrottleStateView>();
-        Assert.DoesNotContain(ns, view.OpenBreakers.Keys);
+        Assert.DoesNotContain(ns, view.TrippedBreakers.Keys);
 
         // ... and the state row lingers Closed (grace period) instead of being deleted.
         var fetched = await _client.GetThrottle(ns);
         Assert.NotNull(fetched);
-        Assert.Equal(NamespaceThrottleState.Closed, fetched.State);
+        Assert.Equal(NamespaceThrottleState.Clear, fetched.State);
     }
 
     [Fact]
-    public async Task ForceClose_AlreadyClosed_IsIdempotent200()
+    public async Task ForceClear_AlreadyClear_IsIdempotent200()
     {
         var ns = UniqueNamespace();
         await SeedRequeuedWorkflows(ns, count: 4);
 
-        using (var open = await _client.ForceOpenThrottleRaw(ns))
+        using (var open = await _client.TripThrottleRaw(ns))
         {
             Assert.Equal(HttpStatusCode.Accepted, open.StatusCode);
         }
-        using (var close = await _client.ForceCloseThrottleRaw(ns))
+        using (var close = await _client.ClearThrottleRaw(ns))
         {
             Assert.Equal(HttpStatusCode.Accepted, close.StatusCode);
         }
 
-        using var replay = await _client.ForceCloseThrottleRaw(ns);
+        using var replay = await _client.ClearThrottleRaw(ns);
         Assert.Equal(HttpStatusCode.OK, replay.StatusCode);
         var body = await EngineApiClient.AssertSuccessAndDeserialize<NamespaceThrottleResponse>(replay);
-        Assert.Equal(NamespaceThrottleState.Closed, body.State);
+        Assert.Equal(NamespaceThrottleState.Clear, body.State);
     }
 
     [Fact]
-    public async Task ForceClose_UnknownNamespace_Returns404()
+    public async Task ForceClear_UnknownNamespace_Returns404()
     {
-        using var response = await _client.ForceCloseThrottleRaw(UniqueNamespace());
+        using var response = await _client.ClearThrottleRaw(UniqueNamespace());
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -231,7 +231,7 @@ public sealed class ThrottleOverrideEndpointTests(ThrottlingEngineAppFixture fix
         return ids;
     }
 
-    private async Task WaitForRequeued(IReadOnlySet<Guid> workflowIds)
+    private async Task WaitForRequeued(HashSet<Guid> workflowIds)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(20));
@@ -255,7 +255,7 @@ public sealed class ThrottleOverrideEndpointTests(ThrottlingEngineAppFixture fix
 /// <summary>
 /// The override endpoints against the default host, where throttling is <em>disabled</em>
 /// (ships dark): force actions are rejected with a 409 explaining why (with the feature off the
-/// fetch gate ignores <c>throttled_until</c>, so a force-open would be inert), while the GET
+/// fetch gate ignores <c>throttled_until</c>, so a force-trip would be inert), while the GET
 /// observability endpoints keep working.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
@@ -272,9 +272,9 @@ public sealed class ThrottleOverrideDisabledTests(EngineAppFixture<Program> fixt
     }
 
     [Fact]
-    public async Task ForceOpen_ThrottlingDisabled_Returns409WithExplanation()
+    public async Task ForceTrip_ThrottlingDisabled_Returns409WithExplanation()
     {
-        using var response = await _client.ForceOpenThrottleRaw();
+        using var response = await _client.TripThrottleRaw();
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -282,9 +282,9 @@ public sealed class ThrottleOverrideDisabledTests(EngineAppFixture<Program> fixt
     }
 
     [Fact]
-    public async Task ForceClose_ThrottlingDisabled_Returns409WithExplanation()
+    public async Task ForceClear_ThrottlingDisabled_Returns409WithExplanation()
     {
-        using var response = await _client.ForceCloseThrottleRaw();
+        using var response = await _client.ClearThrottleRaw();
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);

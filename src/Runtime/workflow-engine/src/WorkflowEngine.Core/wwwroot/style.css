@@ -1074,17 +1074,17 @@ body {
     letter-spacing: 1px;
     min-width: 76px;
 }
-.throttle-state.Open {
+.throttle-state.Tripped {
     color: var(--red);
     border: 1px solid var(--red);
     background: rgba(var(--red-rgb), 0.08);
 }
-.throttle-state.HalfOpen {
+.throttle-state.Recovering {
     color: var(--orange);
     border: 1px solid var(--orange);
     background: rgba(var(--orange-rgb), 0.08);
 }
-.throttle-state.Closed {
+.throttle-state.Clear {
     color: var(--green);
     border: 1px solid var(--green);
     background: rgba(var(--green-rgb), 0.08);
@@ -1115,7 +1115,7 @@ body {
     transition: all 0.15s;
     white-space: nowrap;
 }
-.throttle-action.close {
+.throttle-action.clear {
     background: rgba(var(--green-rgb), 0.1);
     color: var(--green);
     border-color: rgba(var(--green-rgb), 0.3);

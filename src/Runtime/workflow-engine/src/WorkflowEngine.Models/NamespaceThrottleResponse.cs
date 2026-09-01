@@ -16,8 +16,8 @@ public sealed record NamespaceThrottleResponse
     public required string Namespace { get; init; }
 
     /// <summary>
-    /// Current breaker state. A <see cref="NamespaceThrottleState.Closed"/> row lingers for a
-    /// grace period before deletion, so recently closed breakers remain visible here.
+    /// Current breaker state. A <see cref="NamespaceThrottleState.Clear"/> row lingers for a
+    /// grace period before deletion, so recently cleared breakers remain visible here.
     /// </summary>
     [JsonPropertyName("state")]
     [JsonConverter(typeof(JsonStringEnumConverter))]

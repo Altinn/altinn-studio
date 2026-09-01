@@ -106,8 +106,8 @@ internal static class ServiceCollectionExtensions
             // sweep holds no in-flight work and stops instantly, and with Throttling.Enabled off
             // it exits before entering its loop.
             // The sweep service is registered as a singleton and forwarded to both roles: the
-            // hosted service (the sweep loop) and INamespaceThrottleOperator (the force-open/
-            // force-close override endpoints), so overrides share the sweep's trip/close logic
+            // hosted service (the sweep loop) and INamespaceThrottleOperator (the force-trip/
+            // force-clear override endpoints), so overrides share the sweep's trip/clear logic
             // and its in-process state.
             services.AddSingleton<ThrottleStateView>();
             services.AddSingleton<IThrottleStateView>(sp => sp.GetRequiredService<ThrottleStateView>());

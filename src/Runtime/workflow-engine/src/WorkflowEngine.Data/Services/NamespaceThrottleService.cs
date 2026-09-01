@@ -33,7 +33,7 @@ namespace WorkflowEngine.Data.Services;
 /// </para>
 /// <para>
 /// The service doubles as the <see cref="INamespaceThrottleOperator"/> so the manual override
-/// endpoints reuse the sweep's own trip/close logic. Overrides acquire the same advisory lock
+/// endpoints reuse the sweep's own trip/clear logic. Overrides acquire the same advisory lock
 /// (blocking rather than try-only) before mutating state, which both serializes them against a
 /// running sweep cycle across replicas and — because every mutation of the in-memory
 /// <see cref="_releaseCohortSizes"/> happens while holding that lock — makes the dictionary
@@ -195,10 +195,10 @@ internal sealed class NamespaceThrottleService(
     }
 
     /// <inheritdoc/>
-    public async Task<ThrottleForceOpenResult> ForceOpen(string ns, CancellationToken cancellationToken)
+    public async Task<ThrottleForceTripResult> ForceTrip(string ns, CancellationToken cancellationToken)
     {
         if (!options.Value.Throttling.Enabled)
-            return new ThrottleForceOpenResult.ThrottlingDisabled();
+            return new ThrottleForceTripResult.ThrottlingDisabled();
 
         // Blocking acquisition: an operator's override waits for a running sweep cycle to finish
         // instead of skipping (the sweep's try-only rule exists because its cycles are redundant
@@ -217,20 +217,20 @@ internal sealed class NamespaceThrottleService(
 
         var (throttle, parked) = await Trip(counts, options.Value.Throttling.InitialWindow, now, cancellationToken);
 
-        logger.ThrottleForceOpened(ns, parked);
+        logger.ThrottleForceTripped(ns, parked);
 
         // Publish immediately so this replica's handler cooperates right away; other replicas
         // pick the open breaker up on their next snapshot refresh, as after any sweep mutation.
         await RefreshSnapshot(cancellationToken);
 
-        return new ThrottleForceOpenResult.Opened(throttle, parked);
+        return new ThrottleForceTripResult.Tripped(throttle, parked);
     }
 
     /// <inheritdoc/>
-    public async Task<ThrottleForceCloseResult> ForceClose(string ns, CancellationToken cancellationToken)
+    public async Task<ThrottleForceClearResult> ForceClear(string ns, CancellationToken cancellationToken)
     {
         if (!options.Value.Throttling.Enabled)
-            return new ThrottleForceCloseResult.ThrottlingDisabled();
+            return new ThrottleForceClearResult.ThrottlingDisabled();
 
         await using var lockConnection = await dataSource.OpenConnectionAsync(cancellationToken);
         await using var overrideLock = await AdvisoryLockScope.Acquire(
@@ -243,32 +243,32 @@ internal sealed class NamespaceThrottleService(
             t.Namespace == ns
         );
         if (throttle is null)
-            return new ThrottleForceCloseResult.NotFound();
+            return new ThrottleForceClearResult.NotFound();
 
         // Idempotent replay: already closed, but still mop up stragglers immediately rather than
         // leaving them to the sweep's next grace-period pass.
-        if (throttle.State == NamespaceThrottleState.Closed)
+        if (throttle.State == NamespaceThrottleState.Clear)
         {
             await repository.ClearNamespaceThrottledUntil(ns, cancellationToken);
-            return new ThrottleForceCloseResult.AlreadyClosed(throttle);
+            return new ThrottleForceClearResult.AlreadyClear(throttle);
         }
 
         var now = timeProvider.GetUtcNow();
-        throttle.State = NamespaceThrottleState.Closed;
+        throttle.State = NamespaceThrottleState.Clear;
         throttle.Canaries = [];
         throttle.LastEvaluatedAt = now;
-        throttle.UpdatedAt = now; // the grace anchor — the row lingers Closed from here
+        throttle.UpdatedAt = now; // the grace anchor — the row lingers Clear from here
         await repository.UpsertNamespaceThrottle(throttle, cancellationToken);
         _releaseCohortSizes.Remove(ns);
 
         var cleared = await repository.ClearNamespaceThrottledUntil(ns, cancellationToken);
 
-        Metrics.ThrottleClosed.Add(1, ("namespace", ns));
-        logger.ThrottleForceClosed(ns, cleared);
+        Metrics.ThrottleCleared.Add(1, ("namespace", ns));
+        logger.ThrottleForceCleared(ns, cleared);
 
         await RefreshSnapshot(cancellationToken);
 
-        return new ThrottleForceCloseResult.Closed(throttle, cleared);
+        return new ThrottleForceClearResult.Cleared(throttle, cleared);
     }
 
     private bool IsTripCondition(NamespaceWorkflowCounts counts)
@@ -749,7 +749,7 @@ internal static partial class NamespaceThrottleServiceLogs
         LogLevel.Warning,
         "Throttle FORCE-OPENED for namespace {Ns} by operator override: parked {ParkedCount} workflow(s)"
     )]
-    internal static partial void ThrottleForceOpened(
+    internal static partial void ThrottleForceTripped(
         this ILogger<NamespaceThrottleService> logger,
         string ns,
         int parkedCount
@@ -759,7 +759,7 @@ internal static partial class NamespaceThrottleServiceLogs
         LogLevel.Warning,
         "Throttle FORCE-CLOSED for namespace {Ns} by operator override: cleared {ClearedCount} throttled_until stamp(s)"
     )]
-    internal static partial void ThrottleForceClosed(
+    internal static partial void ThrottleForceCleared(
         this ILogger<NamespaceThrottleService> logger,
         string ns,
         int clearedCount

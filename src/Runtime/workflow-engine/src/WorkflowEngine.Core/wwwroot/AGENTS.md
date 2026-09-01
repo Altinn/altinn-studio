@@ -35,7 +35,7 @@ wwwroot/
       filters.js                     — label filters, status chips, text filter, tabs
       url.js                         — syncUrl(), restoreUrl(), time range state
       query.js                       — query tab with pagination, time range, auto-refresh; chains/compact/full view modes
-      throttles.js                   — throttled-namespaces panel (breaker list, force-open/close overrides, 10s poll)
+      throttles.js                   — throttled-namespaces panel (breaker list, force-trip/clear overrides, 10s poll)
       modal.js                       — step detail modal (SSE-driven refresh, retry/skip actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)
@@ -76,8 +76,8 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/retry`        | POST   | Retry a failed workflow                              |
 | `/dashboard/nudge`        | POST   | Clear the pending backoff of a parked (requeued or waiting) workflow |
 | `/api/v1/throttles`       | GET    | Throttled-namespaces panel (10s poll; section hidden when empty) |
-| `/api/v1/{ns}/throttle/open`  | POST | Force-open a namespace circuit breaker (two-click confirm) |
-| `/api/v1/{ns}/throttle/close` | POST | Force-close a namespace circuit breaker (two-click confirm) |
+| `/api/v1/{ns}/throttle/trip`  | POST | Force-trip a namespace circuit breaker (two-click confirm) |
+| `/api/v1/{ns}/throttle/clear` | POST | Force-clear a namespace circuit breaker (two-click confirm) |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
 
 ## Patterns

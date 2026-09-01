@@ -161,7 +161,7 @@ internal static class EngineEndpoints
             .WithDescription(
                 """
                 Gets the namespace's failure-storm circuit breaker state: breaker state
-                (Open, HalfOpen, Closed), when it tripped, the current throttle window, canary count,
+                (Tripped, Recovering, Clear), when it tripped, the current throttle window, canary count,
                 and the population counts observed at the last sweep evaluation.
 
                 Purely observational: works whether or not throttling is enabled.
@@ -170,43 +170,43 @@ internal static class EngineEndpoints
             );
 
         throttleGroup
-            .MapPost("/open", EngineRequestHandlers.ForceOpenThrottle)
-            .WithName("ForceOpenNamespaceThrottle")
-            .WithSummary("Force-open namespace throttle")
+            .MapPost("/trip", EngineRequestHandlers.TripThrottle)
+            .WithName("TripNamespaceThrottle")
+            .WithSummary("Force-trip namespace throttle")
             .WithDescription(
                 """
                 Trips the namespace's failure-storm circuit breaker immediately, regardless of the
-                detection thresholds: state Open with the configured initial window, a fresh canary set
+                detection thresholds: state Tripped with the configured initial window, a fresh canary set
                 probing on the normal retry schedule, and the rest of the Requeued population parked.
                 Coordinates with the throttle sweep's advisory lock, so the override never interleaves
                 with a running sweep cycle.
 
                 This is a one-shot intervention, not standing policy: it does not prevent canary-driven
-                recovery — once a canary progresses, the breaker starts releasing as usual. Force-opening
-                an already-open breaker re-trips it (initial window, fresh canaries).
+                recovery — once a canary progresses, the breaker starts releasing as usual. Force-tripping
+                an already-tripped breaker re-trips it (initial window, fresh canaries).
 
                 202 Accepted with the resulting breaker state. 409 Conflict when throttling is disabled
                 (Throttling.Enabled = false): with the feature off the workflow fetch ignores
-                throttled_until entirely, so a force-open would be inert.
+                throttled_until entirely, so a force-trip would be inert.
                 """
             );
 
         throttleGroup
-            .MapPost("/close", EngineRequestHandlers.ForceCloseThrottle)
-            .WithName("ForceCloseNamespaceThrottle")
-            .WithSummary("Force-close namespace throttle")
+            .MapPost("/clear", EngineRequestHandlers.ClearThrottle)
+            .WithName("ClearNamespaceThrottle")
+            .WithSummary("Force-clear namespace throttle")
             .WithDescription(
                 """
-                Closes the namespace's failure-storm circuit breaker immediately: state Closed and every
+                Clears the namespace's failure-storm circuit breaker immediately: state Clear and every
                 throttled_until stamp in the namespace cleared, so the parked population re-enters the
-                normal retry schedule at once. The state row lingers through the normal closed grace
+                normal retry schedule at once. The state row lingers through the normal cleared grace
                 period so stragglers parked by stale replica snapshots are still cleaned up.
 
                 This is a one-shot intervention ("release now"), not standing policy ("never throttle"):
                 it does not prevent the next sweep from re-tripping if the trip condition still holds —
                 by design. To keep a namespace released, fix the underlying failure or disable throttling.
 
-                202 Accepted with the resulting breaker state, 200 OK when the breaker was already closed
+                202 Accepted with the resulting breaker state, 200 OK when the breaker was already clear
                 (idempotent replay), 404 Not Found when the namespace has no breaker state, and
                 409 Conflict when throttling is disabled.
                 """
@@ -752,52 +752,52 @@ internal static class EngineRequestHandlers
         return TypedResults.Ok(NamespaceThrottleResponse.FromThrottle(throttle));
     }
 
-    public static async Task<Results<Accepted<NamespaceThrottleResponse>, Conflict<ProblemDetails>>> ForceOpenThrottle(
+    public static async Task<Results<Accepted<NamespaceThrottleResponse>, Conflict<ProblemDetails>>> TripThrottle(
         [FromRoute] string @namespace,
         [FromServices] INamespaceThrottleOperator throttleOperator,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-open"));
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-trip"));
 
         var ns = NormalizeNamespace(@namespace);
-        var result = await throttleOperator.ForceOpen(ns, cancellationToken);
+        var result = await throttleOperator.ForceTrip(ns, cancellationToken);
 
         return result switch
         {
-            ThrottleForceOpenResult.Opened r => TypedResults.Accepted(
+            ThrottleForceTripResult.Tripped r => TypedResults.Accepted(
                 (string?)null,
                 NamespaceThrottleResponse.FromThrottle(r.Throttle)
             ),
-            ThrottleForceOpenResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
+            ThrottleForceTripResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
             _ => throw new UnreachableException(),
         };
     }
 
     public static async Task<
         Results<Accepted<NamespaceThrottleResponse>, Ok<NamespaceThrottleResponse>, NotFound, Conflict<ProblemDetails>>
-    > ForceCloseThrottle(
+    > ClearThrottle(
         [FromRoute] string @namespace,
         [FromServices] INamespaceThrottleOperator throttleOperator,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-close"));
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-clear"));
 
         var ns = NormalizeNamespace(@namespace);
-        var result = await throttleOperator.ForceClose(ns, cancellationToken);
+        var result = await throttleOperator.ForceClear(ns, cancellationToken);
 
         return result switch
         {
-            ThrottleForceCloseResult.Closed r => TypedResults.Accepted(
+            ThrottleForceClearResult.Cleared r => TypedResults.Accepted(
                 (string?)null,
                 NamespaceThrottleResponse.FromThrottle(r.Throttle)
             ),
-            ThrottleForceCloseResult.AlreadyClosed r => TypedResults.Ok(
+            ThrottleForceClearResult.AlreadyClear r => TypedResults.Ok(
                 NamespaceThrottleResponse.FromThrottle(r.Throttle)
             ),
-            ThrottleForceCloseResult.NotFound => TypedResults.NotFound(),
-            ThrottleForceCloseResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
+            ThrottleForceClearResult.NotFound => TypedResults.NotFound(),
+            ThrottleForceClearResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
             _ => throw new UnreachableException(),
         };
     }

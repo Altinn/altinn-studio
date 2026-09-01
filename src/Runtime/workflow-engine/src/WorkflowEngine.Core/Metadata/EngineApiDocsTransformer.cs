@@ -42,8 +42,8 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["GetCollection"] = "get-collection",
         ["ListNamespaceThrottles"] = "list-namespace-throttles",
         ["GetNamespaceThrottle"] = "get-namespace-throttle",
-        ["ForceOpenNamespaceThrottle"] = "force-open-throttle",
-        ["ForceCloseNamespaceThrottle"] = "force-close-throttle",
+        ["TripNamespaceThrottle"] = "trip-throttle",
+        ["ClearNamespaceThrottle"] = "clear-throttle",
     };
 
     private static readonly Dictionary<string, string> _listWorkflowParamDescriptions = new()

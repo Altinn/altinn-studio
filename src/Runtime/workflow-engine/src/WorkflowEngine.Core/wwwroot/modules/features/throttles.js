@@ -1,7 +1,7 @@
 /* Throttled namespaces — failure-storm circuit breakers (observability + force overrides).
- * Polls GET /api/v1/throttles and renders a panel listing every namespace breaker (open,
- * recovering, or lingering closed). The force-open / force-close buttons call the manual
- * override endpoints POST /api/v1/{ns}/throttle/open|close with a two-click confirm. The
+ * Polls GET /api/v1/throttles and renders a panel listing every namespace breaker (tripped,
+ * recovering, or lingering clear). The force-trip / force-clear buttons call the manual
+ * override endpoints POST /api/v1/{ns}/throttle/trip|clear with a two-click confirm. The
  * section is hidden entirely while no breaker state exists — the common case. */
 
 import { esc, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
@@ -9,7 +9,7 @@ import { esc, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
 /**
  * @typedef {Object} NamespaceThrottle
  * @property {string} namespace
- * @property {'Open'|'HalfOpen'|'Closed'} state
+ * @property {'Tripped'|'Recovering'|'Clear'} state
  * @property {string} trippedAt
  * @property {string} currentWindow
  * @property {number} canaryCount
@@ -22,7 +22,6 @@ import { esc, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
 const POLL_INTERVAL_MS = 10000;
 const CONFIRM_REVERT_MS = 3000;
 
-const stateLabel = { Open: 'Open', HalfOpen: 'Recovering', Closed: 'Closed' };
 
 /** Starts the poll loop. Called once from app.js init(). */
 export const initThrottles = () => {
@@ -60,20 +59,20 @@ const renderThrottles = (throttles) => {
 
     list.innerHTML = throttles
         .map((t) => {
-            const open = t.state === 'Open';
-            const closed = t.state === 'Closed';
+            const tripped = t.state === 'Tripped';
+            const clear = t.state === 'Clear';
             const actions = [
-                !open
-                    ? `<button class="throttle-action open" onclick="throttleAction('open', '${escJsArg(t.namespace)}', this)">Force open</button>`
+                !tripped
+                    ? `<button class="throttle-action trip" onclick="throttleAction('trip', '${escJsArg(t.namespace)}', this)">Force trip</button>`
                     : '',
-                !closed
-                    ? `<button class="throttle-action close" onclick="throttleAction('close', '${escJsArg(t.namespace)}', this)">Force close</button>`
+                !clear
+                    ? `<button class="throttle-action clear" onclick="throttleAction('clear', '${escJsArg(t.namespace)}', this)">Force clear</button>`
                     : '',
             ].join('');
 
             return `
         <div class="throttle-row">
-            <span class="throttle-state ${esc(t.state)}" title="Breaker state">${stateLabel[t.state] ?? esc(t.state)}</span>
+            <span class="throttle-state ${esc(t.state)}" title="Breaker state">${esc(t.state)}</span>
             <span class="throttle-ns" title="${esc(t.namespace)}">${esc(t.namespace)}</span>
             <span class="throttle-meta" title="When the breaker last tripped">tripped ${fmtAgo(t.trippedAt) || '—'}</span>
             <span class="throttle-meta" title="Current throttle window">window ${fmtDuration(t.currentWindow) || t.currentWindow}</span>
@@ -89,7 +88,7 @@ const renderThrottles = (throttles) => {
 /**
  * Two-click confirm, then POST the override. First click arms the button ("Confirm?"),
  * a second click within the revert window performs the action.
- * @param {'open'|'close'} action
+ * @param {'trip'|'clear'} action
  * @param {string} ns
  * @param {HTMLButtonElement} btn
  */

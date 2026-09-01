@@ -379,7 +379,7 @@
       },
       {
         "Name": "state",
-        "Kind": "enum<string>{Open=0,HalfOpen=1,Closed=2}",
+        "Kind": "enum<string>{Tripped=0,Recovering=1,Clear=2}",
         "Nullable": false
       },
       {

@@ -506,24 +506,24 @@ configuration and state-machine behavior under
 - `GET /api/v1/throttles` lists every namespace breaker (open, recovering, or lingering closed);
   `GET /api/v1/{namespace}/throttle` fetches one. Both work whether or not throttling is enabled.
 - The dashboard shows a **Throttled Namespaces** panel (Live tab, above Scheduled) whenever any
-  breaker state exists, with force-open/force-close actions behind a two-click confirm.
+  breaker state exists, with force-trip/force-clear actions behind a two-click confirm.
 - Metrics (all tagged with `namespace`): `engine.throttle.tripped` (trips and re-trips, including
-  force-opens), `engine.throttle.extended` (window extensions after unanimous canary failure),
+  force-trips), `engine.throttle.extended` (window extensions after unanimous canary failure),
   `engine.throttle.released` (workflows released in recovery cohorts),
-  `engine.throttle.closed` (closes, including force-closes),
+  `engine.throttle.cleared` (clears, including force-clears),
   `engine.throttle.handler_parked` (workflows parked cooperatively by the handler), and the gauge
-  `engine.throttle.breakers.open` (breakers currently open, untagged).
-- Trip/extend/release/close events are logged at Warning/Information by `NamespaceThrottleService`.
+  `engine.throttle.breakers.tripped` (breakers currently tripped, untagged).
+- Trip/extend/release/clear events are logged at Warning/Information by `NamespaceThrottleService`.
 
 **Manual overrides — one-shot interventions, not standing policy.**
 
-- `POST /api/v1/{namespace}/throttle/open` force-opens the breaker: an immediate trip regardless of
-  the detection thresholds — state `Open` with the initial window, fresh canaries, the rest of the
+- `POST /api/v1/{namespace}/throttle/trip` force-trips the breaker: an immediate trip regardless of
+  the detection thresholds — state `Tripped` with the initial window, fresh canaries, the rest of the
   `Requeued` population parked. It does **not** prevent canary-driven recovery.
-- `POST /api/v1/{namespace}/throttle/close` force-closes it: state `Closed` and every
+- `POST /api/v1/{namespace}/throttle/clear` force-clears it: state `Clear` and every
   `throttled_until` stamp in the namespace cleared immediately, releasing the parked population to
   the normal retry schedule. It means "release now", not "never throttle": the next sweep re-trips
-  if the trip condition still holds. The state row lingers through the normal closed grace period.
+  if the trip condition still holds. The state row lingers through the normal cleared grace period.
 - Both overrides run through the sweep's advisory lock (blocking), so they never interleave with a
   running sweep cycle. Both return `409 Conflict` when `Throttling.Enabled` is `false`: with the
   feature disabled the workflow fetch ignores `throttled_until` entirely, so an override would be
@@ -898,25 +898,25 @@ The same breaker state for a single namespace. `404 Not Found` when the namespac
 GET /api/v1/{namespace}/throttle
 ```
 
-### Force-Open Throttle
+### Force-Trip Throttle
 
-Trips the namespace's breaker immediately, regardless of the detection thresholds — a one-shot intervention that does not prevent canary-driven recovery (see [Failure-Storm Throttling](#failure-storm-throttling)). Force-opening an already-open breaker re-trips it with the initial window and fresh canaries.
+Trips the namespace's breaker immediately, regardless of the detection thresholds — a one-shot intervention that does not prevent canary-driven recovery (see [Failure-Storm Throttling](#failure-storm-throttling)). Force-tripping an already-tripped breaker re-trips it with the initial window and fresh canaries.
 
 ```http
-POST /api/v1/{namespace}/throttle/open
+POST /api/v1/{namespace}/throttle/trip
 ```
 
 **Response (202 Accepted):** the resulting breaker state (same shape as **Get Namespace Throttle**). `409 Conflict` when throttling is disabled — with `Throttling.Enabled = false` the workflow fetch ignores `throttled_until` entirely, so the override would be inert.
 
-### Force-Close Throttle
+### Force-Clear Throttle
 
-Closes the namespace's breaker immediately and clears every `throttled_until` stamp in the namespace — "release now", not "never throttle": the next sweep re-trips if the trip condition still holds. The state row lingers through the normal closed grace period.
+Clears the namespace's breaker immediately and clears every `throttled_until` stamp in the namespace — "release now", not "never throttle": the next sweep re-trips if the trip condition still holds. The state row lingers through the normal cleared grace period.
 
 ```http
-POST /api/v1/{namespace}/throttle/close
+POST /api/v1/{namespace}/throttle/clear
 ```
 
-**Response (202 Accepted):** the resulting breaker state. `200 OK` when the breaker was already closed (idempotent replay, stragglers still cleared), `404 Not Found` when the namespace has no breaker state, `409 Conflict` when throttling is disabled.
+**Response (202 Accepted):** the resulting breaker state. `200 OK` when the breaker was already clear (idempotent replay, stragglers still cleared), `404 Not Found` when the namespace has no breaker state, `409 Conflict` when throttling is disabled.
 
 ### List Collections
 
@@ -1036,7 +1036,7 @@ breakers (`IThrottleStateView`), which expires fail-open — it reads as empty o
 sweep intervals, so a replica whose sweep loop has died loses its power to park; on top of that
 snapshot the workflow handler cooperates by parking newly failing workflows in an open namespace
 immediately, without waiting for the next sweep. Operational tooling — the observability and
-force-open/force-close endpoints, the dashboard panel, and the nudge/resume interplay — is
+force-trip/force-clear endpoints, the dashboard panel, and the nudge/resume interplay — is
 described under [Failure-Storm Throttling](#failure-storm-throttling).
 
 | Setting                            | Default | Description                                             |
