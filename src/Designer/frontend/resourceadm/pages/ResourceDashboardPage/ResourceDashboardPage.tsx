@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
-import { PlusCircleIcon, TasklistIcon } from '@studio/icons';
+import { PadlockLockedIcon, PlusCircleIcon, TasklistIcon } from '@studio/icons';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
@@ -125,6 +125,14 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </StudioHeading>
         <div className={classes.topRightWrapper}>
+          <StudioButton
+            variant='tertiary'
+            onClick={() => navigate(`${getResourceDashboardURL(org, app)}/altinn2resourcepolicies`)}
+            data-size='md'
+            icon={<PadlockLockedIcon />}
+          >
+            <strong>Oversikt over Altinn 2-roller</strong>
+          </StudioButton>
           <StudioButton
             variant='tertiary'
             onClick={() => navigate(`${getResourceDashboardURL(org, app)}/accesslists`)}

@@ -901,6 +901,24 @@ public class ResourceAdminController : ControllerBase
     )
     {
         // check if resource exists
+        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+            env.ToLower(),
+            includeApps: true,
+            includeMigratedApps: true
+        );
+        ServiceResource? resource = allResources.Find(r => r.Identifier == id);
+        if (resource == null)
+        {
+            return new StatusCodeResult(404);
+        }
+        // check if resource owner is correct
+        else if (
+            !string.Equals(resource.HasCompetentAuthority?.Orgcode, org, StringComparison.CurrentCultureIgnoreCase)
+        )
+        {
+            return new StatusCodeResult(403);
+        }
+
         if (repository == $"{org}-resources")
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(policyData);
@@ -915,7 +933,7 @@ public class ResourceAdminController : ControllerBase
                 policyContent = stream.ToArray();
             }
 
-            ActionResult publishResult = await _resourceRegistry.PublishResourcePolicy(env, id, policyContent);
+            ActionResult publishResult = await _resourceRegistry.PublishResourcePolicy(id, env, policyContent);
             return publishResult;
         }
         else

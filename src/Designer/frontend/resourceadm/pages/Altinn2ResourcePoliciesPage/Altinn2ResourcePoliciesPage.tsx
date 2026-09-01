@@ -26,6 +26,9 @@ import {
 } from 'app-shared/hooks/queries';
 import { getResourceSubjects } from '../../utils/resourceUtils';
 import { usePublishResourcePolicyMutation } from '../../hooks/mutations/usePublishResourcePolicyMutation';
+import { getResourceDashboardURL } from '../../utils/urlUtils';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 const ALTINN_APP = 'AltinnApp';
 const MIGRATED_APP = 'MigratedApp';
@@ -68,11 +71,12 @@ const getTableData = (resource: ResourcePolicyData) => {
 };
 
 export const Altinn2ResourcePoliciesPage = () => {
-  const { org } = useUrlParams();
+  const { t } = useTranslation();
+  const { org, app } = useUrlParams();
   const [env, setEnv] = useState<'tt02' | 'prod'>('tt02');
   const [splittedData, setSplittedData] = useState<TableRowData[]>([]);
 
-  const { data: policyData, isLoading } = useGetAltinn2ResourcePoliciesQuery(org, env);
+  const { data: policyData, isLoading, isError } = useGetAltinn2ResourcePoliciesQuery(org, env);
 
   useEffect(() => {
     if (policyData) {
@@ -101,8 +105,11 @@ export const Altinn2ResourcePoliciesPage = () => {
 
   return (
     <div className={classes.wrapper}>
+      <span>
+        <Link to={getResourceDashboardURL(org, app)}>{t('resourceadm.listadmin_back')}</Link>
+      </span>
       <StudioHeading level={1} data-size='lg'>
-        Ressurser og apps med Altinn 2-roller
+        Ressurser og apper med Altinn 2-roller
       </StudioHeading>
       <StudioToggleGroup
         data-toggle-group='envSelect'
@@ -116,38 +123,47 @@ export const Altinn2ResourcePoliciesPage = () => {
         <StudioSpinner aria-label='Laster inn data' />
       ) : (
         <>
-          <StudioHeading level={2}>
-            {getResourceTypeCountHeading('Bare Altinn 2-roller', onlyA2Roles)}
-          </StudioHeading>
-          {onlyA2Roles.length === 0 ? (
-            <StudioAlert data-color='success'>
-              Det finnes ingen ressurser med bare Altinn 2-roller
+          {isError ? (
+            <StudioAlert data-color='danger'>
+              Kunne ikke laste ressurser og apper med Altinn 2 roller
             </StudioAlert>
           ) : (
-            <ResourcePolicyTable
-              data={onlyA2Roles}
-              isOnlyA2Roles={true}
-              env={env}
-              onPolicyUpdated={onPolicyUpdated}
-            />
-          )}
-          <StudioHeading level={2}>
-            {getResourceTypeCountHeading(
-              'Altinn 2-roller med ER-roller eller tilgangspakker',
-              a2AndOtherRoles,
-            )}
-          </StudioHeading>
-          {a2AndOtherRoles.length === 0 ? (
-            <StudioAlert data-color='success'>
-              Det finnes ingen ressurser med Altinn 2-roller og andre roller eller tilgangspakker
-            </StudioAlert>
-          ) : (
-            <ResourcePolicyTable
-              data={a2AndOtherRoles}
-              isOnlyA2Roles={false}
-              env={env}
-              onPolicyUpdated={onPolicyUpdated}
-            />
+            <>
+              <StudioHeading level={2}>
+                {getResourceTypeCountHeading('Bare Altinn 2-roller', onlyA2Roles)}
+              </StudioHeading>
+              {onlyA2Roles.length === 0 ? (
+                <StudioAlert data-color='success'>
+                  Det finnes ingen ressurser med bare Altinn 2-roller
+                </StudioAlert>
+              ) : (
+                <ResourcePolicyTable
+                  data={onlyA2Roles}
+                  isOnlyA2Roles={true}
+                  env={env}
+                  onPolicyUpdated={onPolicyUpdated}
+                />
+              )}
+              <StudioHeading level={2}>
+                {getResourceTypeCountHeading(
+                  'Altinn 2-roller med ER-roller eller tilgangspakker',
+                  a2AndOtherRoles,
+                )}
+              </StudioHeading>
+              {a2AndOtherRoles.length === 0 ? (
+                <StudioAlert data-color='success'>
+                  Det finnes ingen ressurser med Altinn 2-roller og andre roller eller
+                  tilgangspakker
+                </StudioAlert>
+              ) : (
+                <ResourcePolicyTable
+                  data={a2AndOtherRoles}
+                  isOnlyA2Roles={false}
+                  env={env}
+                  onPolicyUpdated={onPolicyUpdated}
+                />
+              )}
+            </>
           )}
         </>
       )}
