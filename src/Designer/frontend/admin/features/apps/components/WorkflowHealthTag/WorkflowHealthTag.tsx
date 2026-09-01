@@ -10,8 +10,9 @@ type HealthPresentation = {
 };
 
 /**
- * How each traffic-light state reads to an operator. `NoData` and `Unavailable` are separate states
- * with their own copy on purpose — neither may be mistaken for a healthy instance.
+ * How each traffic-light state reads to an operator. `NoData`, `Unknown` and `Unavailable` are
+ * separate states with their own copy on purpose: none of them may be mistaken for a healthy
+ * instance, and only `NoData` may claim the engine actually holds nothing.
  */
 export const WORKFLOW_HEALTH_PRESENTATION: Record<WorkflowHealth, HealthPresentation> = {
   [WorkflowHealth.Failed]: {
@@ -38,6 +39,11 @@ export const WORKFLOW_HEALTH_PRESENTATION: Record<WorkflowHealth, HealthPresenta
     color: 'neutral',
     labelKey: 'admin.workflows.health.no_data',
     descriptionKey: 'admin.workflows.health.no_data_description',
+  },
+  [WorkflowHealth.Unknown]: {
+    color: 'neutral',
+    labelKey: 'admin.workflows.health.unknown',
+    descriptionKey: 'admin.workflows.health.unknown_description',
   },
   [WorkflowHealth.Unavailable]: {
     color: 'neutral',
