@@ -1,5 +1,6 @@
 import { StudioHeading } from '@studio/components';
 import { InstanceDataView } from './components/InstanceDataView';
+import { InstanceWorkflows } from './components/InstanceWorkflows';
 import { Breadcrumbs } from '../../components/Breadcrumbs/Breadcrumbs';
 import classes from './InstanceDetails.module.css';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
@@ -24,6 +25,7 @@ export const InstanceDetails = () => {
       />
       <StudioHeading data-size='lg'>{instanceId}</StudioHeading>
       <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />
+      <InstanceWorkflows org={org} environment={environment} app={app} instanceId={instanceId} />
     </div>
   );
 };
