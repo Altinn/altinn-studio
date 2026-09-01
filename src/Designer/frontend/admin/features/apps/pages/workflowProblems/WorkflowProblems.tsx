@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -17,7 +18,10 @@ import type { WorkflowProblems as WorkflowProblemsData } from 'admin/features/ap
 import { useWorkflowProblemsQuery } from 'admin/features/apps/hooks/queries/useWorkflowProblemsQuery';
 import type { CollectionFailureFilter } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
-import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
+import {
+  extractInstanceGuid,
+  isEngineUnavailableError,
+} from 'admin/features/apps/utils/workflowHealth';
 import { StatusFilter } from 'admin/features/apps/pages/instances/components/StatusFilter';
 
 import classes from './WorkflowProblems.module.css';
@@ -174,9 +178,7 @@ const WorkflowProblemsTable = ({
           {collections.map((collection) => (
             <StudioTable.Row key={collection.key}>
               <StudioTable.Cell>
-                {/* The collection key is the bare instance GUID, which is also the instance-details
-                  route parameter, so the failing instance links straight through. */}
-                <Link to={`instances/${collection.key}`}>{collection.key}</Link>
+                <InstanceLink collectionKey={collection.key} />
               </StudioTable.Cell>
               <StudioTable.Cell>{collection.workflowCounts?.failedVisible ?? '-'}</StudioTable.Cell>
               <StudioTable.Cell>
@@ -204,4 +206,21 @@ const WorkflowProblemsTable = ({
       </StudioTable>
     </>
   );
+};
+
+/**
+ * The failing instance, linked through to its details page.
+ *
+ * A collection key is the bare instance GUID for everything the app runtime enqueues, but the
+ * engine's key is free-form and the same namespace can hold collections keyed by something else
+ * entirely. Only a key that is a usable instance id becomes a link; anything else is shown as it is
+ * rather than as a link that leads nowhere.
+ */
+const InstanceLink = ({ collectionKey }: { collectionKey: string }): ReactElement => {
+  const instanceGuid = extractInstanceGuid(collectionKey);
+
+  if (instanceGuid === undefined) {
+    return <span>{collectionKey}</span>;
+  }
+  return <Link to={`instances/${instanceGuid}`}>{collectionKey}</Link>;
 };

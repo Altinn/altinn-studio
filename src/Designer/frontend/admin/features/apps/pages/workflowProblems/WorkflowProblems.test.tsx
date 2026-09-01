@@ -103,6 +103,15 @@ describe('WorkflowProblems', () => {
     );
   });
 
+  it('shows a collection key that is not an instance id as plain text, not as a dead link', async () => {
+    const notAnInstanceKey = 'batch/nightly-cleanup';
+    respondWith(() => ({ status: 200, data: page(notAnInstanceKey, null) }));
+    renderWorkflowProblems();
+
+    expect(await screen.findByRole('cell', { name: notAnInstanceKey })).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('reports an empty discovery answer as nothing to fix', async () => {
     respondWith(() => ({ status: 204, data: '' }));
     renderWorkflowProblems();

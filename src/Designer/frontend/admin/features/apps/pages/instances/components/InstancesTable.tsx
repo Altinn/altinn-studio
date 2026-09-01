@@ -18,6 +18,7 @@ import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { Link } from 'react-router-dom';
 import { useInstancesWorkflowHealthQuery } from 'admin/features/apps/hooks/queries/useInstancesWorkflowHealthQuery';
+import type { WorkflowHealthLookup } from 'admin/features/apps/utils/workflowHealth';
 import { extractInstanceGuid, WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
 import { WorkflowHealthCell, WorkflowHealthHeaderCell } from './WorkflowHealthColumn';
 
@@ -88,7 +89,7 @@ export const InstancesTable = ({
           org={org}
           environment={environment}
           app={app}
-          instances={data}
+          instancePages={data}
           hasMoreResults={hasNextPage}
           fetchMoreResults={fetchNextPage}
         />
@@ -112,7 +113,8 @@ type InstancesTableWithDataProps = {
   org: string;
   environment: string;
   app: string;
-  instances: SimpleInstance[];
+  /** The loaded instance pages, kept apart so health is requested one page at a time. */
+  instancePages: SimpleInstance[][];
   hasMoreResults: boolean;
   fetchMoreResults: () => Promise<unknown>;
 };
@@ -120,28 +122,27 @@ type InstancesTableWithDataProps = {
 const COLUMN_COUNT = 5;
 
 /**
- * An unreachable engine takes the whole column, an unusable instance id has no key to join on, and
- * anything else is whatever the annotate response said (undefined while it is still in flight).
+ * What one row's health cell should show.
+ *
+ * An unusable instance id has no key to join on, and anything else is whatever the annotate request
+ * that row's own key was asked for in reported — including its own failure, so a request that fell
+ * over greys out its own rows only and leaves the answered rows their verdict.
  */
 function resolveRowHealth(
   collectionKey: string | undefined,
-  healthByKey: Record<string, WorkflowHealth>,
-  isEngineUnavailable: boolean,
-): WorkflowHealth | undefined {
-  if (isEngineUnavailable) {
-    return WorkflowHealth.Unavailable;
-  }
+  { healthByKey, pendingKeys }: WorkflowHealthLookup,
+): { health: WorkflowHealth | undefined; isPending: boolean } {
   if (collectionKey === undefined) {
-    return WorkflowHealth.NoData;
+    return { health: WorkflowHealth.NoData, isPending: false };
   }
-  return healthByKey[collectionKey];
+  return { health: healthByKey[collectionKey], isPending: pendingKeys.has(collectionKey) };
 }
 
 const InstancesTableWithData = ({
   org,
   environment,
   app,
-  instances,
+  instancePages,
   hasMoreResults,
   fetchMoreResults,
 }: InstancesTableWithDataProps) => {
@@ -152,22 +153,20 @@ const InstancesTableWithData = ({
 
   // The engine's collection key is the bare instance GUID, which is exactly what Storage's Studio
   // instance list already reports as the instance id.
-  const rows = instances.map((instance) => ({
-    instance,
-    collectionKey: extractInstanceGuid(instance.id),
-  }));
-  const {
-    healthByKey,
-    isUnavailable: isEngineUnavailable,
-    isPending: isHealthPending,
-  } = useInstancesWorkflowHealthQuery(
+  const rowPages = instancePages.map((page) =>
+    page.map((instance) => ({ instance, collectionKey: extractInstanceGuid(instance.id) })),
+  );
+  const rows = rowPages.flat();
+  const health = useInstancesWorkflowHealthQuery(
     org,
     environment,
     app,
-    rows.map((row) => row.collectionKey).filter((key): key is string => key !== undefined),
+    rowPages.map((page) =>
+      page.map((row) => row.collectionKey).filter((key): key is string => key !== undefined),
+    ),
   );
 
-  if (!instances.length) {
+  if (!rows.length) {
     return <StudioAlert data-color='info'>{t('admin.instances.no_results')}</StudioAlert>;
   }
 
@@ -200,10 +199,7 @@ const InstancesTableWithData = ({
               <InstanceStatus instance={instance} />
             </StudioTable.Cell>
             <StudioTable.Cell>
-              <WorkflowHealthCell
-                health={resolveRowHealth(collectionKey, healthByKey, isEngineUnavailable)}
-                isPending={isHealthPending}
-              />
+              <WorkflowHealthCell {...resolveRowHealth(collectionKey, health)} />
             </StudioTable.Cell>
           </StudioTable.Row>
         ))}
