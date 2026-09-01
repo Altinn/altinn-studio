@@ -122,7 +122,7 @@ func (s *NamespacedClient) RegistrationSecretStatus(
 }
 
 // CreateRegistrationSecret creates an Opaque Secret carrying the
-// registration token at key "token", labelled with ManagedBy / Component /
+// registration token at key "token", labeled with ManagedBy / Component /
 // Org. Returns the underlying error verbatim so callers can use apierrors.IsAlreadyExists.
 func (s *NamespacedClient) CreateRegistrationSecret(ctx context.Context, name, org, token string) error {
 	sec := &corev1.Secret{

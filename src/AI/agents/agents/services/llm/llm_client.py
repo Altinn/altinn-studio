@@ -844,11 +844,23 @@ async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttac
             "reason": "Failed to parse intent"
         }
 
-def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
+def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = None) -> list[str]:
     """Generate goal suggestions using LLM"""
     system_prompt, lf_prompt = get_prompt_with_langfuse("goal_suggestions")
 
-    user_prompt = f"Suggest clear goals similar to: {unclear_goal}"
+    # "Similar to" is what made the suggestions restate the rejected goal.
+    user_prompt = (
+        f"This goal was rejected: {rejected_goal}\n"
+        f"Reason: {rejection_reason}\n"
+        "Suggest goals the user could ask for instead. Do not restate the rejected goal."
+        if rejection_reason
+        else f"This goal was unclear: {rejected_goal}\nSuggest clearer goals the user could ask for instead."
+    )
+    # The chips sit next to a rejection written in the user's language.
+    user_prompt += (
+        "\nWrite them in the same language as the goal above."
+        "\nOne goal per line, no numbering."
+    )
 
     try:
         client = get_llm_client()
@@ -859,9 +871,6 @@ def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
         return suggestions[:3]  # Limit to 3 suggestions
 
     except Exception as e:
+        # The old fallbacks were English examples shown to Norwegian users.
         log.error(f"Failed to generate suggestions: {e}")
-        return [
-            "add a text field myField to layout main",
-            "add a numeric field totalAmount to layout form bound to model.amount",
-            "add a button submitBtn to layout main"
-        ]
+        return []

@@ -39,7 +39,7 @@ public class WorkflowEngineGeneratedFromTaskCleanupTests(ITestOutputHelper outpu
         // Instantiate → Task_1, with the autoCreated (untagged) form data element
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var instance = await instantiationResponse.Read<Instance>();
         Assert.Equal(HttpStatusCode.Created, instance.Response.StatusCode);

@@ -1,1 +1,0 @@
-export { DigdirLogoLink } from './DigdirLogoLink';

@@ -1397,7 +1397,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             """
         );
 
-        // `var` with an unrecognisable initializer stays unknown, so guessing would risk wrapping a Stream.
+        // `var` with an unrecognizable initializer stays unknown, so guessing would risk wrapping a Stream.
         Assert.Contains(_lastMigrationTodos, t => t.Contains("could not be rewritten automatically"));
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
     }

@@ -16,7 +16,7 @@ public class GenericDataProcessorTests
 
         public bool WriteCalled { get; set; } = false;
 
-        public override Task ProcessDataRead(Instance instance, Guid? dataId, DummyModel model, string? langauge)
+        public override Task ProcessDataRead(Instance instance, Guid? dataId, DummyModel model, string? language)
         {
             ReadCalled = true;
             return Task.CompletedTask;

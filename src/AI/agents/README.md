@@ -173,7 +173,7 @@ Runs the same agentic loop **read-only**: write tools are denied, so the model a
 
 Three layers, each covering what the others cannot.
 
-**Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment *filenames*, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
+**Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment _filenames_, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
 
 **Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change the agent makes to a repository lands on a session branch a human reviews before merge. That covers repository changes only: publishing a prompt with `scripts/sync_prompts.py --push` reaches the deployed service immediately, with no branch and no review (see [Prompts and Langfuse](#prompts-and-langfuse)).
 
@@ -183,7 +183,7 @@ The delimiters are composed in `shared/utils/spotlight.py` and applied in code (
 
 ## Prompts and Langfuse
 
-The files in `agents/prompts/` are a **fallback**, not the source of truth. When Langfuse is configured, `get_prompt_with_langfuse` serves the version labelled `production` and the local file is never read. The two drift, quietly: a prompt edited in the Langfuse UI is invisible in a code review, and a prompt edited in the repo has no effect until someone publishes it.
+The files in `agents/prompts/` are a **fallback**, not the source of truth. When Langfuse is configured, `get_prompt_with_langfuse` serves the version labeled `production` and the local file is never read. The two drift, quietly: a prompt edited in the Langfuse UI is invisible in a code review, and a prompt edited in the repo has no effect until someone publishes it.
 
 `scripts/sync_prompts.py` makes that visible and fixable.
 
@@ -194,7 +194,7 @@ python -m scripts.sync_prompts --push spec_extraction -m "why this changed"
 python -m scripts.sync_prompts --promote spec_extraction --version 1   # roll back
 ```
 
-`--push` publishes the local file as a new version labelled `production`, so **the deployed service picks it up immediately**. Roll back by promoting the previous version.
+`--push` publishes the local file as a new version labeled `production`, so **the deployed service picks it up immediately**. Roll back by promoting the previous version.
 
 Run `--diff` before editing any prompt, and after merging a PR that touches one. At the time of writing 11 of 17 prompts differ from their repo copies, so treat a diff as expected rather than alarming, and read it before pushing: the local file may be behind, not ahead.
 

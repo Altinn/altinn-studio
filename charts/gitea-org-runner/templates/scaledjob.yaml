@@ -115,7 +115,7 @@ spec:
               - name: DOCKER_CERT_PATH
                 value: "/certs/client"
               {{- end }}
-              # Runner registration + behaviour. Constructed from chart-level config
+              # Runner registration + behavior. Constructed from chart-level config
               # (giteaInstanceUrl, runnerLabels) and the per-org Secret produced by
               # runner-org-sync — no per-runner environmentVariables block required.
               - name: GITEA_INSTANCE_URL

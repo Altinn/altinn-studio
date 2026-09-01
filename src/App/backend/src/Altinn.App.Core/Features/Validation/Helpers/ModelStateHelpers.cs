@@ -112,7 +112,7 @@ public static class ModelStateHelpers
         var keyParts = modelKey?.Split('.', 2);
         var keyWithIndex = keyParts?.ElementAtOrDefault(0)?.Split('[', 2);
         var key = keyWithIndex?.ElementAtOrDefault(0);
-        var index = keyWithIndex?.ElementAtOrDefault(1); // with traling ']', eg: "3]"
+        var index = keyWithIndex?.ElementAtOrDefault(1); // with trailing ']', eg: "3]"
         var rest = keyParts?.ElementAtOrDefault(1);
 
         var properties = data?.GetProperties();

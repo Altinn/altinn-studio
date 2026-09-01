@@ -12,6 +12,7 @@ pub mod microsandbox;
 pub mod platform;
 
 pub use execution::{ExecutionService, ExecutionTarget, start_execution};
+pub use microsandbox::{GuestConnection, GuestDialer};
 
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -263,6 +264,21 @@ impl Service {
             .find(|provider| provider.id() == id)
             .map(Rc::as_ref)
             .ok_or_else(|| Error::Invalid(format!("assigned Sandbox Provider {id:?} is not configured")))
+    }
+}
+
+/// Connects a guest TCP dialer through the recorded Sandbox Provider.
+///
+/// # Errors
+///
+/// Returns an error when the Provider is unsupported by this client or the
+/// Sandbox is not running.
+pub async fn guest_tcp_dialer(home: &Path, assignment: &Assignment) -> Result<GuestDialer, Error> {
+    match assignment.provider().as_str() {
+        microsandbox::PROVIDER_ID => microsandbox::guest_tcp_dialer(home, assignment).await,
+        provider => Err(Error::Invalid(format!(
+            "guest TCP forwarding is not supported through Sandbox Provider {provider:?}"
+        ))),
     }
 }
 

@@ -799,7 +799,7 @@ class TestConcurrency:
         )
         assert peak <= 2, f"cap violated — peak in-flight was {peak}"
         # Sanity: the cap shouldn't trivially read 1, that would mean
-        # we accidentally serialised the whole batch.
+        # we accidentally serialized the whole batch.
         assert peak >= 2
 
     async def test_per_input_predicate_drives_batching(self, ctx):

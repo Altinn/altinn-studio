@@ -18,7 +18,7 @@ import { QueryKey } from '../../types/QueryKey';
 import { emptyTextResourceListMock } from '../../mocks/emptyTextResourceListMock';
 
 // Test data:
-const org = 'organisation';
+const org = 'organization';
 const app = 'application';
 const appRouteParams: AppRouteParams = { org, app };
 const key: TanstackQueryKey = [QueryKey.TextResources, org, app];

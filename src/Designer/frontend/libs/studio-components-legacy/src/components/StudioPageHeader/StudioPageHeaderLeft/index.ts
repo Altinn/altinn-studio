@@ -1,1 +1,0 @@
-export { StudioPageHeaderLeft } from './StudioPageHeaderLeft';

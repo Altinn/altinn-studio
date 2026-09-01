@@ -10,7 +10,7 @@ public enum AltinnServiceUpdateSchema
     /// <summary>
     /// Default value for unknown schema
     /// </summary>
-    Unkown, 
+    Unknown, 
 
     /// <summary>
     /// The resource limit exceeded schema

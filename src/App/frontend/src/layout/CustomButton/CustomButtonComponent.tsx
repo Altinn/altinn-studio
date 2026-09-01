@@ -33,7 +33,7 @@ type UpdatedDataModels = {
 };
 
 /**
- * This is the format we get from app-lib, it turns out mapping BackendValidationIssueGroups on a per-dataelement basis is unecessary,
+ * This is the format we get from app-lib, it turns out mapping BackendValidationIssueGroups on a per-dataelement basis is unnecessary,
  * and so this mapping is simply un-done after receiving it. To avoid breaking changes which would require handling multiple
  * formats in app-frontend, we decided to leave it as is for now, as it does not have any practical consequences. In a future
  * major/breaking release which would require a specific backend version, this could be changed to simply return a single BackendValidationIssueGroups object.

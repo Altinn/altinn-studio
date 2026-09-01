@@ -14,13 +14,13 @@ describe('Published code list reference utils', () => {
       ${'is a published code list ID with fixed, multiple-digit version'}                       | ${'lib**org**name**123'}           | ${'org'} | ${true}
       ${'is a published code list ID with latest version'}                                      | ${'lib**org**name**_latest'}       | ${'org'} | ${true}
       ${'follows the syntax for published code lists IDs, but version is invalid'}              | ${'lib**org**name**not-a-version'} | ${'org'} | ${false}
-      ${'follows the syntax for published code lists IDs, but refers to another organisation'}  | ${'lib**org**name**3'}             | ${'abc'} | ${false}
+      ${'follows the syntax for published code lists IDs, but refers to another organization'}  | ${'lib**org**name**3'}             | ${'abc'} | ${false}
       ${'has a syntax error'}                                                                   | ${'lib**org**name*3'}              | ${'org'} | ${false}
       ${'contains a published code list ID, but there is an additional character at the start'} | ${'xlib**org**name**3'}            | ${'org'} | ${false}
       ${'contains a published code list ID, but there is an additional character at the end'}   | ${'lib**org**name**3x'}            | ${'org'} | ${false}
       ${'has empty version'}                                                                    | ${'lib**org**name**'}              | ${'org'} | ${false}
       ${'has empty name'}                                                                       | ${'lib**org****3'}                 | ${'org'} | ${false}
-      ${'has empty organisation'}                                                               | ${'lib****name**3'}                | ${'org'} | ${false}
+      ${'has empty organization'}                                                               | ${'lib****name**3'}                | ${'org'} | ${false}
     `('Returns $expected when the ID $description', ({ expected, id, orgName }) => {
       expect(isPublishedCodeListReferenceString(id, orgName)).toBe(expected);
     });

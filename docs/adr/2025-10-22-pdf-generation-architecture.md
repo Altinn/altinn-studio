@@ -112,7 +112,7 @@ The platform hosts PDF generation services in over 100 tenant clusters simultane
   - Single set of CI/CD tooling
 - Bad, because resource consumption remains ~5x higher than Go (D1)
   - Baseline memory: ~11Mi (NativeAOT) vs 2Mi (Go) as an absolute lower bound/baseline,
-  - It is doubtful NativeAOT would work in a more complicated app, as there is still varying degrees of support and API comatibility for Native AOT, some risks here
+  - It is doubtful NativeAOT would work in a more complicated app, as there is still varying degrees of support and API compatibility for Native AOT, some risks here
   - Over 100 deployments: differences in memory usage would compound
   - Higher cost and slower deployments
   - Larger images
@@ -173,6 +173,7 @@ Entry point: `cmd/proxy/main.go`
 - Graceful shutdown: 5s readiness drain + 45s shutdown period + 3s hard shutdown
 
 Deployment configuration (`infra/kustomize/base/proxy.yaml`):
+
 - 3-12 replicas (HPA based on 50% CPU utilization)
 
 ### Worker Tier
@@ -193,6 +194,7 @@ Entry point: `cmd/worker/main.go`
 - Request timeout: 30 seconds per PDF generation with 5s buffer = 35s total
 
 Deployment configuration (`infra/kustomize/base/worker.yaml`):
+
 - 3-50 replicas (HPA based on 40% CPU utilization, aggressively scaling due to limited ability to do concurrent generation))
 - 500m CPU, 1Gi RAM requests - headless-shell will happily occupy ~1vcpu, but chose a midpoint here as we are not generating all the time
 - 512Mi memory-backed tmpfs for Chrome temporary files (userdata)
@@ -200,6 +202,7 @@ Deployment configuration (`infra/kustomize/base/worker.yaml`):
 ### Communication Protocol
 
 HTTP chosen for:
+
 - Simplicity in protocol and tooling requirements
 - Easier load balancing with standard Kubernetes services
 
@@ -214,11 +217,12 @@ Core implementation: `internal/generator/browser_session.go`
 - Custom CDP client: `internal/cdp/transport.go`
 
 PDF generation workflow:
+
 1. Set cookies (if provided)
 2. Navigate to URL
 3. Wait for element/timeout (if WaitFor specified)
 4. Call Page.printToPDF via CDP
-  4.1. Return response
+   4.1. Return response
 5. Cleanup: Batched CDP commands for efficiency
 
 ### Testing Strategy
@@ -226,6 +230,7 @@ PDF generation workflow:
 The solution emphasizes comprehensive testing to ensure stability and predictability of PDF output (D8):
 
 **End-to-end integration tests** (`test/integration/`):
+
 - Simple tests: Core PDF generation, WaitFor conditions, error handling, cookies
 - Cookie isolation tests: Verify cookies don't leak between requests (D9)
 - Smoke tests: Basic health and functionality verification
@@ -233,6 +238,7 @@ The solution emphasizes comprehensive testing to ensure stability and predictabi
 - Test logs captured to `test/logs/` for debugging
 
 **Snapshot testing**:
+
 - Deterministic PDF output verification using `_snapshots/` directories
 - Compares generated PDFs against known-good snapshots
 - Detects unintended changes from Chrome/headless-shell version updates
@@ -240,11 +246,13 @@ The solution emphasizes comprehensive testing to ensure stability and predictabi
 - Ensures stability of PDF format and rendering across updates
 
 **Load testing** (`test/load/`):
+
 - k6-based load tests for local and remote environments
 - Validates autoscaling behavior and performance characteristics
 - Tests backpressure mechanisms (429 responses) under load
 
 **Test infrastructure**:
+
 - Test harness (`test/harness/`) provides utilities for PDF validation and snapshot management
 - Jumpbox proxy for accessing test services in Kind cluster
 - Test server deployed in cluster for serving test HTML content

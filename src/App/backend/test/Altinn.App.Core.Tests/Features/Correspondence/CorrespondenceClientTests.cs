@@ -116,7 +116,7 @@ public class CorrespondenceClientTests
         result.Recipient.Should().Be("urn:altinn:organization:identifier-no:213872702");
         result.CorrespondenceId.Should().Be(Guid.Parse("94fa9dd9-734e-4712-9d49-4018aeb1a5dc"));
         result.ResourceId.Should().Be("test-resource-id");
-        result.Sender.Should().Be(OrganisationNumber.Parse("991825827"));
+        result.Sender.Should().Be(OrganizationNumber.Parse("991825827"));
         result.SendersReference.Should().Be("1234");
         result.IsConfirmationNeeded.Should().BeTrue();
     }
@@ -533,7 +533,7 @@ public class CorrespondenceClientTests
                 .Create()
                 .WithResourceId("resource-id")
                 .WithSendersReference("senders-ref")
-                .WithRecipient(OrganisationOrPersonIdentifier.Parse("213872702"))
+                .WithRecipient(OrganizationOrPersonIdentifier.Parse("213872702"))
                 .WithContent(
                     CorrespondenceContentBuilder
                         .Create()

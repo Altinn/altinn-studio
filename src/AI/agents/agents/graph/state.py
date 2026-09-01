@@ -37,7 +37,7 @@ class FormSpecField(BaseModel):
         """Lift legacy `List[str]` options to `List[{label, value}]`.
 
         Older spec-extraction prompts sometimes return plain strings; we
-        normalise them so downstream code only ever sees the structured
+        normalize them so downstream code only ever sees the structured
         form.  Slugifying the value here keeps stored data stable across
         label edits.
         """

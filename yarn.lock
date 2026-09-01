@@ -1967,13 +1967,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:0.10.0":
-  version: 0.10.0
-  resolution: "@digdir/designsystemet-css@npm:0.10.0"
-  checksum: 10/2c9e47ac667e546bfd60079b131f081802a0cb763bf85e5d1d49e07dbdf78d90640a7ead60daa700f3d67f6d7da6779bb799459bb75985adcb36ce1565cb84d1
-  languageName: node
-  linkType: hard
-
 "@digdir/designsystemet-css@npm:1.11.1":
   version: 1.11.1
   resolution: "@digdir/designsystemet-css@npm:1.11.1"
@@ -1989,21 +1982,6 @@ __metadata:
   dependencies:
     "@digdir/designsystemet-types": "npm:1.20.1"
   checksum: 10/a763795a1aea87618b3a2f839cebfaa38c1ae2180b82988ae703967ae48a2e7a1c1b30ae2c02f18ca5ba926f6331fb81eca457e97045f87c05b9835e854a6d23
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-react@npm:0.63.1":
-  version: 0.63.1
-  resolution: "@digdir/designsystemet-react@npm:0.63.1"
-  dependencies:
-    "@floating-ui/react": "npm:0.26.12"
-    "@navikt/aksel-icons": "npm:^5.12.2"
-    "@radix-ui/react-slot": "npm:^1.0.2"
-    "@tanstack/react-virtual": "npm:^3.2.0"
-  peerDependencies:
-    react: ">=18.3.1"
-    react-dom: ">=18.3.1"
-  checksum: 10/535114f51dac1328efd4b721edd73cad6a9c268f249b23aa1c6db011d6c68ff2c33a6b7a60616aa4ee0a08931f5b1ab5a1b4ba207fe03f0124fc27ebd74828e0
   languageName: node
   linkType: hard
 
@@ -2044,13 +2022,6 @@ __metadata:
     react: ">=18.3.1 || ^19.0.0"
     react-dom: ">=18.3.1 || ^19.0.0"
   checksum: 10/9572c75bab155068716a65a892b8201351253d4f97173984b2e06cd5f61eb000687a10bcac3122b1694b9b9b5d8db4f2b2dcd1e3f3b4eb531c84b0df05b1681f
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-theme@npm:0.15.3":
-  version: 0.15.3
-  resolution: "@digdir/designsystemet-theme@npm:0.15.3"
-  checksum: 10/0c9760ffbc42ed736ebcd1ee9069b2a8dd9312de08263d8beee74438933df736280c07fba2568d05f202ea88687b3309c40bf55be3d7d8e57f54cf84cc33af96
   languageName: node
   linkType: hard
 
@@ -2828,7 +2799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react-dom@npm:^2.0.0, @floating-ui/react-dom@npm:^2.1.1":
+"@floating-ui/react-dom@npm:^2.1.1":
   version: 2.1.6
   resolution: "@floating-ui/react-dom@npm:2.1.6"
   dependencies:
@@ -2837,20 +2808,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 10/fbfd3319b42edb9c156e4e872f500d2edb112bc9cfd1b45892bff16ccf21c2484ddc9c416f7631c2aaaadec1b2f98b205db8a3f89eb78ca870905fcfe3917c35
-  languageName: node
-  linkType: hard
-
-"@floating-ui/react@npm:0.26.12":
-  version: 0.26.12
-  resolution: "@floating-ui/react@npm:0.26.12"
-  dependencies:
-    "@floating-ui/react-dom": "npm:^2.0.0"
-    "@floating-ui/utils": "npm:^0.2.0"
-    tabbable: "npm:^6.0.0"
-  peerDependencies:
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: 10/da77f6b99ed0c8d5169f0ed287304615bef7c66b7a0011e4425e843016f6450a928bc27310a861fb14f8a1e58ef11fbdd92550583440f11af5d1a905968453a6
   languageName: node
   linkType: hard
 
@@ -2868,7 +2825,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/utils@npm:^0.2.0, @floating-ui/utils@npm:^0.2.11, @floating-ui/utils@npm:^0.2.7":
+"@floating-ui/utils@npm:^0.2.11, @floating-ui/utils@npm:^0.2.7":
   version: 0.2.11
   resolution: "@floating-ui/utils@npm:0.2.11"
   checksum: 10/72150138ba1c274d757a1da85233202fa9fdfd2272ec1fb0883eb0ffdf138863af81573049ed2c20b98adb4b7ae2236065541ce14037fe328955089831a678d5
@@ -3701,13 +3658,6 @@ __metadata:
   version: 8.16.1
   resolution: "@navikt/aksel-icons@npm:8.16.1"
   checksum: 10/7b90c92406d6ed6ba7c4116e7468c60af9eda2cab42984b7633d2da861b027fd199d9af4b32ab177d43e2ce25fd24a944ee10ff0386a8c4f9b9b68416bb27dc2
-  languageName: node
-  linkType: hard
-
-"@navikt/aksel-icons@npm:^5.12.2":
-  version: 5.18.3
-  resolution: "@navikt/aksel-icons@npm:5.18.3"
-  checksum: 10/de01c59ade08d8c4dc54db77131eff8f29f6a1d25e9dfb031bb6280dc853d51a686ae78b845ff2a7d3dc0291f568ec3714076325ccbd65ed829041e300bbd65b
   languageName: node
   linkType: hard
 
@@ -4693,7 +4643,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slot@npm:^1.0.2, @radix-ui/react-slot@npm:^1.2.4":
+"@radix-ui/react-slot@npm:^1.2.4":
   version: 1.2.4
   resolution: "@radix-ui/react-slot@npm:1.2.4"
   dependencies:
@@ -5537,40 +5487,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
-  version: 0.0.0-use.local
-  resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
-  dependencies:
-    "@chromatic-com/storybook": "npm:^5.0.1"
-    "@digdir/designsystemet-css": "npm:0.10.0"
-    "@digdir/designsystemet-react": "npm:0.63.1"
-    "@digdir/designsystemet-theme": "npm:0.15.3"
-    "@storybook/addon-docs": "npm:10.5.7"
-    "@storybook/addon-links": "npm:10.5.7"
-    "@storybook/builder-vite": "npm:10.5.7"
-    "@storybook/react-vite": "npm:10.5.7"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@types/jest": "npm:^30.0.0"
-    "@typescript/native": "npm:typescript@7.0.2"
-    ajv: "npm:8.20.0"
-    eslint: "npm:10.8.1"
-    eslint-plugin-storybook: "npm:10.5.7"
-    jest: "npm:^29.7.0"
-    jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:19.2.8"
-    react-dnd: "npm:16.0.1"
-    react-dnd-html5-backend: "npm:16.0.1"
-    react-dom: "npm:19.2.8"
-    storybook: "npm:10.5.7"
-    ts-jest: "npm:^29.1.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-    uuid: "npm:13.0.2"
-  languageName: unknown
-  linkType: soft
-
 "@studio/components@workspace:^, @studio/components@workspace:src/Designer/frontend/libs/studio-components":
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
@@ -5583,6 +5499,7 @@ __metadata:
     "@storybook/addon-links": "npm:10.5.7"
     "@storybook/builder-vite": "npm:10.5.7"
     "@storybook/react-vite": "npm:10.5.7"
+    "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     "@studio/ui-test": "workspace:^"
@@ -5610,7 +5527,7 @@ __metadata:
   resolution: "@studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library"
   dependencies:
     "@studio/components": "workspace:^"
-    "@studio/components-legacy": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
     "@types/jest": "npm:30.0.0"
@@ -5647,7 +5564,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
   dependencies:
-    "@studio/components-legacy": "workspace:^"
+    "@studio/components": "workspace:^"
+    "@studio/icons": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -5941,7 +5859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.13.18, @tanstack/react-virtual@npm:^3.2.0":
+"@tanstack/react-virtual@npm:^3.13.18":
   version: 3.13.23
   resolution: "@tanstack/react-virtual@npm:3.13.23"
   dependencies:
@@ -7670,6 +7588,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"
     react: "npm:19.2.8"
@@ -9575,6 +9494,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"

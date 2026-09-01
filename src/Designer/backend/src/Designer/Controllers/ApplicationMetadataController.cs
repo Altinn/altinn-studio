@@ -31,8 +31,8 @@ public class ApplicationMetadataController : ControllerBase
     /// <summary>
     /// Gets the application metadata, url GET "/designer/api/org/app/metadata"
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The application metadata</returns>
     [HttpGet]
     [UseSystemTextJson]
@@ -53,8 +53,8 @@ public class ApplicationMetadataController : ControllerBase
     /// <summary>
     /// Puts the application metadata, url PUT "/designer/api/org/app/metadata
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="applicationMetadata">The application metadata</param>
     /// <returns>The updated application metadata</returns>
     [HttpPut]
@@ -74,8 +74,8 @@ public class ApplicationMetadataController : ControllerBase
     /// <summary>
     /// Create an application metadata, url POST "/designer/api/org/app/metadata"
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The created application metadata</returns>
     [HttpPost]
     [UseSystemTextJson]
@@ -107,8 +107,8 @@ public class ApplicationMetadataController : ControllerBase
     /// Adds the metadata for attachment
     /// </summary>
     /// <param name="applicationMetadata">the application meta data to be updated</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns></returns>
     [HttpPost]
     [Route("attachment-component")]
@@ -133,8 +133,8 @@ public class ApplicationMetadataController : ControllerBase
     /// Updates the metadata when changing the properties for attachment component
     /// </summary>
     /// <param name="applicationMetadata">the application meta data to be updated</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns></returns>
     [HttpPut]
     [Route("attachment-component")]
@@ -158,8 +158,8 @@ public class ApplicationMetadataController : ControllerBase
     /// <summary>
     /// Deletes the metadata for attachment
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="id">the id of the component</param>
     /// <returns></returns>
     [HttpDelete]

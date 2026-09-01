@@ -1,5 +1,5 @@
 import type { ITextResource } from 'app-shared/types/global';
-import { CollapsableMenus } from '../types/global';
+import { CollapsibleMenus } from '../types/global';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import type i18next from 'i18next';
 
@@ -33,23 +33,22 @@ export function getTitleByComponentType(
   return text !== `ux_editor.component_title.${type}` ? text : type;
 }
 
-export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof i18next.t): string {
+export function getCollapsibleMenuTitleByType(menu: CollapsibleMenus, t: typeof i18next.t): string {
   switch (menu) {
-    case CollapsableMenus.Components: {
-      return t('ux_editor.collapsable_standard_components');
+    case CollapsibleMenus.Components: {
+      return t('ux_editor.collapsible_standard_components');
     }
-    case CollapsableMenus.Texts: {
-      return t('ux_editor.collapsable_text_components');
+    case CollapsibleMenus.Texts: {
+      return t('ux_editor.collapsible_text_components');
     }
-    case CollapsableMenus.AdvancedComponents: {
-      return t('ux_editor.collapsable_text_advanced_components');
+    case CollapsibleMenus.AdvancedComponents: {
+      return t('ux_editor.collapsible_text_advanced_components');
     }
     // TODO : Uncomment when we have widgets components
-    // case CollapsableMenus.Widgets: {
-    //   return t('ux_editor.collapsable_text_widgets');
+    // case CollapsibleMenus.Widgets: {
+    //   return t('ux_editor.collapsible_text_widgets');
     // }
-    // case CollapsableMenus.ThirdParty: {
-    //   return language['ux_editor.collapsable_text_thirdparty_components'];
+    // case CollapsibleMenus.ThirdParty: {
     // }
     default: {
       return '';

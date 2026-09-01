@@ -463,7 +463,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task AddItemToNonInitializedList_ReturnsUnprocessableEntity()
     {
         // This test fails to initialize the list, thus creating an error
-        // Added this test to ensure that a change in behaviour (when changing json patch library)
+        // Added this test to ensure that a change in behavior (when changing json patch library)
         // is detected
         var pointer = JsonPointer.Create("melding", "nested_list", 0, "newKey");
         var patch = new JsonPatch(PatchOperation.Add(pointer, JsonNode.Parse("\"newValue\"")));

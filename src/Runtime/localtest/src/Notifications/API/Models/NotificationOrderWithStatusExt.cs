@@ -13,7 +13,7 @@ namespace Altinn.Notifications.Models;
 public class NotificationOrderWithStatusExt : BaseNotificationOrderExt
 {
     /// <summary>
-    /// Gets or sets the processing status of the notication order
+    /// Gets or sets the processing status of the notification order
     /// </summary>
     [JsonPropertyName("processingStatus")]
     public StatusExt ProcessingStatus { get; set; } = new();

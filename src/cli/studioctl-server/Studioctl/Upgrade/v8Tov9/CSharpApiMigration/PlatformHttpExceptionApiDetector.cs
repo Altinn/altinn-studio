@@ -22,7 +22,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <b>Member access other than <c>StatusCode</c>.</b> <c>Response.Content</c> was an
 /// <c>HttpContent</c> and is now a <c>string</c>; <c>Response.Headers</c> was
 /// <c>HttpResponseHeaders</c> and is now a dictionary. These break at compile time, but the fix is a
-/// judgement call, so they are reported rather than rewritten.
+/// judgment call, so they are reported rather than rewritten.
 /// </item>
 /// <item>
 /// <b>The bare property used as a value</b> — passed, returned or assigned somewhere expecting an

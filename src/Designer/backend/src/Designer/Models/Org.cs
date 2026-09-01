@@ -10,7 +10,7 @@ namespace Altinn.ResourceRegistry.Core.Models;
 public class Org
 {
     /// <summary>
-    /// Name of organization. With lanugage support
+    /// Name of organization. With language support
     /// </summary>
     [JsonProperty("name")]
     public Dictionary<string, string> Name { get; set; }
@@ -31,7 +31,7 @@ public class Org
     public string Homepage { get; set; }
 
     /// <summary>
-    /// The environments available for the organzation
+    /// The environments available for the organization
     /// </summary>
     public List<string> Environments { get; set; }
 }

@@ -11,7 +11,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// configured on the eFormidling BPMN service task), and the old single-argument overload is removed -
 /// so an app implementing the old shape no longer satisfies the interface (CS0535). Adding the
 /// parameter is mechanical and gets the app compiling, so we apply it automatically and emit a warning
-/// asking the developer to decide whether the app should honour the new value.
+/// asking the developer to decide whether the app should honor the new value.
 /// The parameter is annotated <c>string?</c> only where a nullable annotation context is active
 /// (project <c>&lt;Nullable&gt;</c> or a preceding <c>#nullable</c> directive) - the v8 app template
 /// has no nullable context, where <c>string?</c> would raise CS8632 on every build.

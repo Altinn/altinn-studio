@@ -1,4 +1,4 @@
-ARG GITEA_VERSION=1.26.1
+ARG GITEA_VERSION=1.27.3
 
 # Extract the upstream locale files from the gitea binary, then merge them with the custom locale files
 FROM docker.io/gitea/gitea:${GITEA_VERSION}-rootless AS locale_builder
