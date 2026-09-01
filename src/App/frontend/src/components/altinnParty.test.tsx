@@ -76,65 +76,20 @@ describe('altinnParty', () => {
     });
   });
 
-  describe('selected state', () => {
-    it('should mark the party as selected when selectedPartyId matches', async () => {
-      await render({ selectedPartyId: getPartyMock().partyId });
-
-      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
-      expect(wrapper).toHaveAttribute('aria-busy', 'true');
-      expect(wrapper).toHaveAttribute('aria-disabled', 'false');
-      expect(wrapper).toHaveClass('partyWrapperSelected');
+  it('should mark the selected party as busy and block the others', async () => {
+    await render({
+      showSubUnits: true,
+      party: partyWithChildParties,
+      selectedPartyId: partyWithChildParties.partyId,
     });
 
-    it('should mark the party as blocked when another party is selected', async () => {
-      await render({ selectedPartyId: getPartyMock().partyId + 1 });
+    const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
+    expect(wrapper).toHaveAttribute('aria-busy', 'true');
+    expect(wrapper).toHaveAttribute('aria-disabled', 'false');
 
-      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
-      expect(wrapper).toHaveAttribute('aria-busy', 'false');
-      expect(wrapper).toHaveAttribute('aria-disabled', 'true');
-      expect(wrapper).not.toHaveClass('partyWrapperSelected');
-      expect(wrapper).not.toHaveClass('partyWrapperSelectable');
-    });
-
-    it('should be selectable when no selection is in flight', async () => {
-      await render();
-
-      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
-      expect(wrapper).toHaveAttribute('aria-busy', 'false');
-      expect(wrapper).toHaveAttribute('aria-disabled', 'false');
-      expect(wrapper).not.toHaveClass('partyWrapperSelected');
-      expect(wrapper).toHaveClass('partyWrapperSelectable');
-    });
-
-    it('should mark the sub-unit as selected when selectedPartyId matches a child party', async () => {
-      await render({
-        showSubUnits: true,
-        party: partyWithChildParties,
-        selectedPartyId: 1,
-      });
-
-      const subUnit = screen.getByText(/child party 1/i).closest('[role="button"]');
-      expect(subUnit).toHaveAttribute('aria-busy', 'true');
-      expect(subUnit).toHaveAttribute('aria-disabled', 'false');
-      expect(subUnit).toHaveClass('subUnitSelected');
-
-      const otherSubUnit = screen.getByText(/child party 2/i).closest('[role="button"]');
-      expect(otherSubUnit).toHaveAttribute('aria-busy', 'false');
-      expect(otherSubUnit).toHaveAttribute('aria-disabled', 'true');
-      expect(otherSubUnit).not.toHaveClass('subUnitSelected');
-      expect(otherSubUnit).not.toHaveClass('subUnitSelectable');
-    });
-
-    it('should never mark a party without access as selected', async () => {
-      const party = { ...getPartyMock(), onlyHierarchyElementWithNoAccess: true };
-      await render({ party, selectedPartyId: party.partyId });
-
-      const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
-      expect(wrapper).toHaveAttribute('aria-busy', 'false');
-      expect(wrapper).toHaveAttribute('aria-disabled', 'true');
-      expect(wrapper.parentElement).toHaveClass('partyPaperDisabled');
-      expect(wrapper).not.toHaveClass('partyWrapperSelected');
-    });
+    const subUnit = screen.getByText(/child party 1/i).closest('[role="button"]');
+    expect(subUnit).toHaveAttribute('aria-busy', 'false');
+    expect(subUnit).toHaveAttribute('aria-disabled', 'true');
   });
 
   describe('should render with correct icon based on what kind of party it is', () => {

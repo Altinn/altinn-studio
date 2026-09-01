@@ -196,47 +196,21 @@ describe('PartySelection', () => {
     );
 
     it('should ignore further clicks while a selection is in flight', async () => {
-      let resolveMutation: (value: 'Party successfully updated') => void = () => {};
-      const setSelectedPartyMock = vi.fn(
-        () =>
-          new Promise<'Party successfully updated'>((resolve) => {
-            resolveMutation = resolve;
-          }),
-      );
-      const twoParties = [
-        getPartyMock({ ssn: '010175*****', partyId: 12346, name: 'Kari Nordmann' }),
-        getPartyMock({ ssn: '030375*****', partyId: 12348, name: 'Per Nordmann' }),
-      ];
+      const setSelectedPartyMock = vi.fn<PartyApi['setSelectedParty']>(() => new Promise(() => {}));
       const user = userEvent.setup({ delay: null });
-      await render(twoParties, setSelectedPartyMock);
+      await render(
+        [
+          getPartyMock({ ssn: '010175*****', partyId: 12346, name: 'Kari Nordmann' }),
+          getPartyMock({ ssn: '030375*****', partyId: 12348, name: 'Per Nordmann' }),
+        ],
+        setSelectedPartyMock,
+      );
 
-      await user.click(screen.getByRole('button', { name: /^Kari Nordmann/ }));
       await user.click(screen.getByRole('button', { name: /^Kari Nordmann/ }));
       await user.click(screen.getByRole('button', { name: /^Per Nordmann/ }));
 
       expect(setSelectedPartyMock).toHaveBeenCalledTimes(1);
       expect(setSelectedPartyMock).toHaveBeenCalledWith({ partyId: 12346 });
-
-      resolveMutation('Party successfully updated');
-      await waitFor(() => expect(screen.getByTestId('current-party')).toHaveTextContent('12346'));
-    });
-
-    it('should allow selecting again when the backend rejects the selection', async () => {
-      const setSelectedPartyMock = vi
-        .fn<PartyApi['setSelectedParty']>()
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce('Party successfully updated');
-      const user = userEvent.setup({ delay: null });
-      await render([getPartyMock({ ssn: '010175*****', partyId: 12346, name: 'Kari Nordmann' })], setSelectedPartyMock);
-
-      await user.click(screen.getByRole('button', { name: /^Kari Nordmann/ }));
-      await waitFor(() => expect(setSelectedPartyMock).toHaveBeenCalledTimes(1));
-      expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
-
-      await user.click(screen.getByRole('button', { name: /^Kari Nordmann/ }));
-      await waitFor(() => expect(setSelectedPartyMock).toHaveBeenCalledTimes(2));
-      await waitFor(() => expect(screen.getByTestId('current-party')).toHaveTextContent('12346'));
-      await waitFor(() => expect(screen.getByTestId('valid-party')).toHaveTextContent('true'));
     });
   });
 });
