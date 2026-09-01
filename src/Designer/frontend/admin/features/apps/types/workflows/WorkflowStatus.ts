@@ -15,7 +15,9 @@ export type PersistentItemStatus =
   | 'Canceled'
   | 'DependencyFailed'
   | 'Abandoned'
-  | 'Waiting';
+  | 'Waiting'
+  /** Parked on a mailbox until its message arrives or the mailbox closes. Non-terminal. */
+  | 'Held';
 
 /**
  * Unsuccessfully terminal statuses. `Abandoned` is excluded: it is the engine's adjudication marker
