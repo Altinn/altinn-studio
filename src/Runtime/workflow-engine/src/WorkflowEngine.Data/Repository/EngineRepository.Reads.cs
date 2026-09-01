@@ -49,8 +49,8 @@ internal sealed partial class EngineRepository
 
                 failedWorkflows = failures switch
                 {
-                    CollectionFailureFilter.Visible => failedWorkflows.Where(w => w.IsHead != false),
-                    CollectionFailureFilter.Invisible => failedWorkflows.Where(w => w.IsHead == false),
+                    CollectionFailureFilter.Visible => failedWorkflows.Where(HeadVisibility.Visible),
+                    CollectionFailureFilter.Invisible => failedWorkflows.Where(HeadVisibility.Invisible),
                     _ => failedWorkflows,
                 };
 
@@ -58,13 +58,13 @@ internal sealed partial class EngineRepository
                 baseQuery = baseQuery.Where(c => failedKeys.Contains(c.Key));
             }
 
-            var totalCount = await baseQuery.CountAsync(cancellationToken);
-
             var pageQuery = baseQuery;
             if (cursor is not null)
                 pageQuery = pageQuery.Where(c => c.Key.CompareTo(cursor) > 0);
 
-            // Fetch one extra to determine if there's a next page
+            // Fetch one extra to determine if there's a next page. Ordering (and the cursor
+            // comparison above) run under the column's database collation — a stable enumeration
+            // order, but not necessarily ordinal; the cursor is opaque to callers.
             var entities = await pageQuery.OrderBy(c => c.Key).Take(pageSize + 1).ToListAsync(cancellationToken);
 
             string? nextCursor = null;
@@ -73,6 +73,15 @@ internal sealed partial class EngineRepository
                 entities.RemoveAt(entities.Count - 1);
                 nextCursor = entities[^1].Key;
             }
+
+            // The separate COUNT re-runs the filter (for discover mode, the whole semi-join), so
+            // skip it whenever the page already proves the total: an annotate page can never
+            // overflow by construction, and an untruncated first page is the entire result set.
+            int totalCount;
+            if (requestedKeys is not null || (cursor is null && nextCursor is null))
+                totalCount = entities.Count;
+            else
+                totalCount = await baseQuery.CountAsync(cancellationToken);
 
             var counts = await GetCollectionWorkflowCounts(
                 context,
@@ -151,6 +160,10 @@ internal sealed partial class EngineRepository
             {
                 g.Key,
                 Active = g.Count(w => activeStatuses.Contains(w.Status)),
+                // The visibility conditions restate the canonical HeadVisibility predicates inline
+                // (grouped-aggregate lambdas cannot compose an Expression): Visible is
+                // IsHead != false, Invisible is IsHead == false. Keep them in lockstep with that
+                // class; the rollup integration test pins a null directive to the visible bucket.
                 FailedVisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead != false),
                 FailedInvisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead == false),
                 Total = g.Count(),

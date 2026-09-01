@@ -12,7 +12,8 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowCollectionListResponse
 {
     /// <summary>
-    /// The collections for the current page, ordered by key (ascending).
+    /// The collections for the current page, in a stable, collation-defined key order (the order
+    /// pagination walks; not necessarily ordinal).
     /// </summary>
     [JsonPropertyName("data")]
     public required IReadOnlyList<WorkflowCollectionResponse> Data { get; init; }
@@ -30,8 +31,8 @@ public sealed record WorkflowCollectionListResponse
     public required int TotalCount { get; init; }
 
     /// <summary>
-    /// Opaque cursor to pass as <c>?cursor=</c> to retrieve the next page.
-    /// Null when there are no more results.
+    /// Opaque cursor to pass as <c>?cursor=</c> to retrieve the next page — do not parse or
+    /// construct it. Null when there are no more results.
     /// </summary>
     [JsonPropertyName("nextCursor")]
     public string? NextCursor { get; init; }
