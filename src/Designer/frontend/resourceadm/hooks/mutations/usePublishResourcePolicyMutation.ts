@@ -5,7 +5,7 @@ import { type Policy } from '@altinn/policy-editor';
 /**
  * Mutation to publish a resource policy
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param id the id of the resource
  */

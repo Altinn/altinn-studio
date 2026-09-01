@@ -74,23 +74,23 @@ export const Altinn2ResourcePoliciesPage = () => {
   const { t } = useTranslation();
   const { org, app } = useUrlParams();
   const [env, setEnv] = useState<'tt02' | 'prod'>('tt02');
-  const [splittedData, setSplittedData] = useState<TableRowData[]>([]);
+  const [splitData, setSplitData] = useState<TableRowData[]>([]);
 
   const { data: policyData, isLoading, isError } = useGetAltinn2ResourcePoliciesQuery(org, env);
 
   useEffect(() => {
     if (policyData) {
-      setSplittedData(policyData.map((resource) => getTableData(resource)));
+      setSplitData(policyData.map((resource) => getTableData(resource)));
     }
   }, [policyData]);
 
-  const a2AndOtherRoles = splittedData.filter((x) => x.otherRoles.length > 0);
-  const onlyA2Roles = splittedData.filter((x) => x.otherRoles.length === 0);
+  const a2AndOtherRoles = splitData.filter((x) => x.otherRoles.length > 0);
+  const onlyA2Roles = splitData.filter((x) => x.otherRoles.length === 0);
 
   const onPolicyUpdated = (updatedData: ResourcePolicyData) => {
     const newData = getTableData(updatedData);
-    setSplittedData((oldSplittedData) => {
-      return oldSplittedData.map((x) => (x.identifier === newData.identifier ? newData : x));
+    setSplitData((oldSplitData) => {
+      return oldSplitData.map((x) => (x.identifier === newData.identifier ? newData : x));
     });
   };
 
