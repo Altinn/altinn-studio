@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import classes from './PreviewButton.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { StudioLinkButton, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';

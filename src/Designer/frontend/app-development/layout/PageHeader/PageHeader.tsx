@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar, StudioPageHeader } from '@studio/components';
 import { useAppMetadataQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { SubHeader } from './SubHeader';

@@ -8,12 +8,12 @@ import {
   type VersionControlButtonsContextProps,
 } from '../../context';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 const mockGetRepoPull = jest.fn();
 

@@ -2,7 +2,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
 import { renderWithProviders } from '../../test/mocks';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -13,7 +13,7 @@ import { useParams } from 'react-router-dom';
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: jest.fn(() => ({
