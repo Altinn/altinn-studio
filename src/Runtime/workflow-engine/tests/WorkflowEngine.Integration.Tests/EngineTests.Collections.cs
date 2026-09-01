@@ -156,10 +156,14 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
-    public async Task ListCollections_UnknownFailuresValue_ReturnsBadRequest()
+    [Theory]
+    [InlineData("bogus")]
+    // The contract offers named values only: the enum's underlying numeric values are not an
+    // accepted spelling of the filter over the wire either.
+    [InlineData("1")]
+    public async Task ListCollections_UnknownFailuresValue_ReturnsBadRequest(string failures)
     {
-        using var response = await _client.ListCollectionsRaw("?failures=bogus");
+        using var response = await _client.ListCollectionsRaw($"?failures={failures}");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
