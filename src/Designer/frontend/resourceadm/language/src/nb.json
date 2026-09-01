@@ -131,6 +131,7 @@
   "resourceadm.altinn2policy_column_a2_roles": "Altinn 2-roller",
   "resourceadm.altinn2policy_column_identifier": "Ressurs-id",
   "resourceadm.altinn2policy_column_other_roles": "Andre roller",
+  "resourceadm.altinn2policy_dashboard_link": "Oversikt over Altinn 2-roller",
   "resourceadm.altinn2policy_edit": "Rediger",
   "resourceadm.altinn2policy_env_prod": "Prod",
   "resourceadm.altinn2policy_env_tt02": "TT02",

@@ -131,7 +131,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             data-size='md'
             icon={<PadlockLockedIcon />}
           >
-            <strong>Oversikt over Altinn 2-roller</strong>
+            <strong>{t('resourceadm.altinn2policy_dashboard_link')}</strong>
           </StudioButton>
           <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton

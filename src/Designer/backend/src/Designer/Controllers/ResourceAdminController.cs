@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,7 @@ using Altinn.Studio.PolicyAdmin.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
@@ -39,6 +41,12 @@ public class ResourceAdminController : ControllerBase
     private readonly CacheSettings _cacheSettings;
     private readonly IOrgService _orgService;
     private readonly IResourceRegistry _resourceRegistry;
+    private readonly ILogger<ResourceAdminController> _logger;
+
+    /// <summary>
+    /// Limits how many policies are fetched from the resource registry at the same time.
+    /// </summary>
+    private const int MaxConcurrentPolicyRequests = 10;
 
     public ResourceAdminController(
         IGiteaClient giteaClient,
@@ -48,7 +56,8 @@ public class ResourceAdminController : ControllerBase
         IOptions<CacheSettings> cacheSettings,
         IOrgService orgService,
         IResourceRegistry resourceRegistry,
-        IEnvironmentsService environmentsService
+        IEnvironmentsService environmentsService,
+        ILogger<ResourceAdminController> logger
     )
     {
         _giteaClient = giteaClient;
@@ -58,6 +67,7 @@ public class ResourceAdminController : ControllerBase
         _cacheSettings = cacheSettings.Value;
         _orgService = orgService;
         _resourceRegistry = resourceRegistry;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -279,104 +289,130 @@ public class ResourceAdminController : ControllerBase
         return StatusCode(204);
     }
 
+    /*
+    * The Altinn 2 roles below are deprecated and will be removed on 01.01.27. This list is kept in sync
+    * with deprecatedAltinn2Roles in frontend/packages/shared/src/utils/altinn2RoleUtils.ts.
+    */
+    private static readonly List<string> s_deprecatedAltinn2Subjects =
+    [
+        "urn:altinn:rolecode:a0238",
+        "urn:altinn:rolecode:a0236",
+        "urn:altinn:rolecode:kladm",
+        "urn:altinn:rolecode:a0293",
+        "urn:altinn:rolecode:hvask",
+        "urn:altinn:rolecode:a0294",
+        "urn:altinn:rolecode:utinn",
+        "urn:altinn:rolecode:gkbht",
+        "urn:altinn:rolecode:loper",
+        "urn:altinn:rolecode:boadm",
+        "urn:altinn:rolecode:apiadmnuf",
+        "urn:altinn:rolecode:pasig",
+        "urn:altinn:rolecode:ektj",
+        "urn:altinn:rolecode:siskd",
+        "urn:altinn:rolecode:sens01",
+        "urn:altinn:rolecode:revai",
+        "urn:altinn:rolecode:pavad",
+        "urn:altinn:rolecode:admai",
+        "urn:altinn:rolecode:uiluf",
+        "urn:altinn:rolecode:sens",
+        "urn:altinn:rolecode:bobes",
+        "urn:altinn:rolecode:a0288",
+        "urn:altinn:rolecode:attst",
+        "urn:altinn:rolecode:regna",
+        "urn:altinn:rolecode:a0278",
+        "urn:altinn:rolecode:priut",
+        "urn:altinn:rolecode:a0241",
+        "urn:altinn:rolecode:bobel",
+        "urn:altinn:rolecode:a0286",
+        "urn:altinn:rolecode:a0240",
+        "urn:altinn:rolecode:utomr",
+        "urn:altinn:rolecode:uihtl",
+        "urn:altinn:rolecode:komab",
+        "urn:altinn:rolecode:a0237",
+        "urn:altinn:rolecode:a0212",
+        "urn:altinn:rolecode:a0298",
+        "urn:altinn:rolecode:hadm",
+        "urn:altinn:rolecode:a0287",
+        "urn:altinn:rolecode:eckeyrole",
+        "urn:altinn:rolecode:apiadm",
+        "urn:altinn:rolecode:signe",
+        "urn:altinn:rolecode:a0239",
+        "urn:altinn:rolecode:a0282",
+    ];
+
+    /// <summary>
+    /// Lists the resources and apps owned by the organization whose policy still grants access to at
+    /// least one deprecated Altinn 2 role, together with the policy itself.
+    /// </summary>
     [HttpGet]
     [Route("designer/api/{org}/resources/altinn2resourcepolicies/{env}")]
-    public async Task<ActionResult<List<ResourceWithAltinn2Subject>>> GetMigratedResourcePolicy(string org, string env)
+    public async Task<ActionResult<List<ResourceWithAltinn2Subject>>> GetAltinn2ResourcePolicies(
+        string org,
+        string env,
+        CancellationToken cancellationToken = default
+    )
     {
-        var environmentResources = await _resourceRegistry.GetServiceResourceList(
+        List<ServiceResource> environmentResources = await _resourceRegistry.GetServiceResourceList(
             env,
             includeApps: true,
             includeMigratedApps: true
         );
 
-        List<string> altinn2Subjects =
-        [
-            "urn:altinn:rolecode:a0238",
-            "urn:altinn:rolecode:a0236",
-            "urn:altinn:rolecode:kladm",
-            "urn:altinn:rolecode:a0293",
-            "urn:altinn:rolecode:hvask",
-            "urn:altinn:rolecode:a0294",
-            "urn:altinn:rolecode:utinn",
-            "urn:altinn:rolecode:gkbht",
-            "urn:altinn:rolecode:loper",
-            "urn:altinn:rolecode:boadm",
-            "urn:altinn:rolecode:apiadmnuf",
-            "urn:altinn:rolecode:pasig",
-            "urn:altinn:rolecode:ektj",
-            "urn:altinn:rolecode:siskd",
-            "urn:altinn:rolecode:sens01",
-            "urn:altinn:rolecode:revai",
-            "urn:altinn:rolecode:pavad",
-            "urn:altinn:rolecode:admai",
-            "urn:altinn:rolecode:uiluf",
-            "urn:altinn:rolecode:sens",
-            "urn:altinn:rolecode:bobes",
-            "urn:altinn:rolecode:a0288",
-            "urn:altinn:rolecode:attst",
-            "urn:altinn:rolecode:regna",
-            "urn:altinn:rolecode:a0278",
-            "urn:altinn:rolecode:priut",
-            "urn:altinn:rolecode:a0241",
-            "urn:altinn:rolecode:bobel",
-            "urn:altinn:rolecode:a0286",
-            "urn:altinn:rolecode:a0240",
-            "urn:altinn:rolecode:utomr",
-            "urn:altinn:rolecode:uihtl",
-            "urn:altinn:rolecode:komab",
-            "urn:altinn:rolecode:a0237",
-            "urn:altinn:rolecode:a0212",
-            "urn:altinn:rolecode:a0298",
-            "urn:altinn:rolecode:hadm",
-            "urn:altinn:rolecode:a0287",
-            "urn:altinn:rolecode:eckeyrole",
-            "urn:altinn:rolecode:apiadm",
-            "urn:altinn:rolecode:signe",
-            "urn:altinn:rolecode:a0239",
-            "urn:altinn:rolecode:a0282",
-        ];
-        List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(altinn2Subjects, env);
+        List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(
+            s_deprecatedAltinn2Subjects,
+            env
+        );
 
-        List<ResourceWithAltinn2Subject> altinn2resourcepolicies = [];
+        HashSet<string> resourcesWithAltinn2Subjects = subjectResources
+            .SelectMany(subjectResource => subjectResource.Resources)
+            .Select(resource => resource.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        for (int i = 0; i < environmentResources.Count; i++)
-        {
-            if (environmentResources[i]?.HasCompetentAuthority?.Orgcode == org)
+        List<ServiceResource> resourcesToLoadPolicyFor = environmentResources
+            .Where(resource =>
+                resource?.Identifier is not null
+                && string.Equals(resource.HasCompetentAuthority?.Orgcode, org, StringComparison.OrdinalIgnoreCase)
+                && resourcesWithAltinn2Subjects.Contains(resource.Identifier)
+            )
+            .ToList();
+
+        ConcurrentBag<ResourceWithAltinn2Subject> altinn2ResourcePolicies = [];
+
+        await Parallel.ForEachAsync(
+            resourcesToLoadPolicyFor,
+            new ParallelOptions
             {
-                List<SubjectResources> filteredSubjectResources = subjectResources
-                    .Where(sr => sr.Resources.Any(r => r.Value == environmentResources[i].Identifier))
-                    .ToList();
-
-                if (filteredSubjectResources.Count > 0)
+                MaxDegreeOfParallelism = MaxConcurrentPolicyRequests,
+                CancellationToken = cancellationToken,
+            },
+            async (resource, _) =>
+            {
+                try
                 {
-                    try
-                    {
-                        XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(
-                            environmentResources[i].Identifier,
-                            env
-                        );
-                        ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(policy);
+                    XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resource.Identifier, env);
 
-                        altinn2resourcepolicies.Add(
-                            new ResourceWithAltinn2Subject()
-                            {
-                                Identifier = environmentResources[i].Identifier,
-                                ResourceType = environmentResources[i].ResourceType,
-                                Policy = resourcePolicy,
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(
-                            $"Error fetching policy for resource {environmentResources[i].Identifier} in env {env}: {ex.Message}"
-                        );
-                    }
+                    altinn2ResourcePolicies.Add(
+                        new ResourceWithAltinn2Subject()
+                        {
+                            Identifier = resource.Identifier,
+                            ResourceType = resource.ResourceType,
+                            Policy = PolicyConverter.ConvertPolicy(policy),
+                        }
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Could not fetch policy for resource {Identifier} in environment {Environment}",
+                        resource.Identifier,
+                        env
+                    );
                 }
             }
-        }
+        );
 
-        return altinn2resourcepolicies;
+        return altinn2ResourcePolicies.OrderBy(resource => resource.Identifier, StringComparer.Ordinal).ToList();
     }
 
     [HttpGet]
