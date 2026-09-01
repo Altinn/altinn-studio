@@ -92,7 +92,7 @@ describe('SelectAuthLevel', () => {
       />,
     );
 
-    const [selectElement] = screen.getAllByLabelText(mockLabel);
+    const selectElement = screen.getByRole('combobox', { name: mockLabel });
     await userEvent.selectOptions(
       selectElement,
       screen.getByRole('option', { name: textMock('policy_editor.auth_level_option_4') }),
@@ -110,7 +110,7 @@ describe('SelectAuthLevel', () => {
       />,
     );
 
-    const [selectElement] = screen.getAllByLabelText(mockLabel);
+    const selectElement = screen.getByRole('combobox', { name: mockLabel });
     await userEvent.selectOptions(
       selectElement,
       screen.getByRole('option', { name: textMock('policy_editor.auth_level_option_3') }),
