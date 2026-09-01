@@ -20,14 +20,21 @@ export interface IAltinnPartyProps {
   selectedPartyId?: number;
 }
 
-export type AltinnPartyState = 'selectable' | 'noAccess' | 'selected';
+export type AltinnPartyState = 'selectable' | 'noAccess' | 'selected' | 'blocked';
 
 function getPartyState(party: IParty, selectedPartyId: number | undefined): AltinnPartyState {
   if (party.onlyHierarchyElementWithNoAccess) {
     // Takes precedence — a party without access can never be the chosen one
     return 'noAccess';
   }
-  return party.partyId === selectedPartyId ? 'selected' : 'selectable';
+  if (party.partyId === selectedPartyId) {
+    return 'selected';
+  }
+  if (selectedPartyId !== undefined) {
+    // Another party's selection is in flight — this one cannot be selected right now
+    return 'blocked';
+  }
+  return 'selectable';
 }
 
 export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyId }: IAltinnPartyProps) {
@@ -103,43 +110,48 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyI
           </Flex>
         }
       >
-        {party.childParties.map((childParty: IParty, index: number) => (
-          <Flex
-            data-testid='AltinnParty-SubUnitWrapper'
-            key={index}
-            container
-            direction='column'
-            className={classes.subUnitWrapper}
-          >
+        {party.childParties.map((childParty: IParty, index: number) => {
+          const childPartyState = getPartyState(childParty, selectedPartyId);
+          return (
             <Flex
+              data-testid='AltinnParty-SubUnitWrapper'
               key={index}
-              role='button'
-              className={cn(classes.subUnit, {
-                [classes.subUnitSelected]: getPartyState(childParty, selectedPartyId) === 'selected',
-              })}
               container
               direction='column'
-              onClick={onClickParty.bind(null, childParty)}
-              onKeyPress={onKeyPress.bind(null, childParty)}
-              tabIndex={subUnitsExpanded ? 0 : undefined}
-              aria-busy={getPartyState(childParty, selectedPartyId) === 'selected'}
+              className={classes.subUnitWrapper}
             >
               <Flex
+                key={index}
+                role='button'
+                className={cn(classes.subUnit, {
+                  [classes.subUnitSelectable]: childPartyState === 'selectable',
+                  [classes.subUnitSelected]: childPartyState === 'selected',
+                })}
                 container
-                direction='row'
-                alignItems='center'
-                className={classes.subUnitTextWrapper}
+                direction='column'
+                onClick={onClickParty.bind(null, childParty)}
+                onKeyPress={onKeyPress.bind(null, childParty)}
+                tabIndex={subUnitsExpanded ? 0 : undefined}
+                aria-busy={childPartyState === 'selected'}
+                aria-disabled={childPartyState === 'noAccess' || childPartyState === 'blocked'}
               >
-                <Paragraph className={classes.partyName}>{childParty.name}</Paragraph>
-                <Paragraph className={classes.partyInfo}>
-                  &nbsp;
-                  <Lang id='party_selection.unit_org_number' />
-                  &nbsp;{childParty.orgNumber}
-                </Paragraph>
+                <Flex
+                  container
+                  direction='row'
+                  alignItems='center'
+                  className={classes.subUnitTextWrapper}
+                >
+                  <Paragraph className={classes.partyName}>{childParty.name}</Paragraph>
+                  <Paragraph className={classes.partyInfo}>
+                    &nbsp;
+                    <Lang id='party_selection.unit_org_number' />
+                    &nbsp;{childParty.orgNumber}
+                  </Paragraph>
+                </Flex>
               </Flex>
             </Flex>
-          </Flex>
-        ))}
+          );
+        })}
       </AltinnCollapsibleList>
     );
   }
@@ -154,6 +166,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyI
         direction='row'
         alignItems='center'
         className={cn(classes.partyWrapper, {
+          [classes.partyWrapperSelectable]: partyState === 'selectable',
           [classes.partyWrapperDisabled]: partyState === 'noAccess',
           [classes.partyWrapperSelected]: partyState === 'selected',
         })}
@@ -161,6 +174,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyI
         onKeyPress={partyState !== 'noAccess' ? onKeyPress.bind(null, party) : undefined}
         tabIndex={partyState !== 'noAccess' ? 0 : undefined}
         aria-busy={partyState === 'selected'}
+        aria-disabled={partyState === 'noAccess' || partyState === 'blocked'}
       >
         {isOrg ? (
           <Buildings3Icon

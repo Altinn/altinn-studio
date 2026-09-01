@@ -19,6 +19,7 @@ import {
   useSetHasSelectedParty,
   useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -51,28 +52,32 @@ export const PartySelection = () => {
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
   const [showSubUnits, setShowSubUnits] = React.useState(true);
   const [showDeleted, setShowDeleted] = React.useState(defaultShowDeleted);
-  const [selectedPartyId, setSelectedPartyId] = React.useState<number | undefined>(undefined);
   const navigate = useNavigate();
 
   const appName = useAppName();
   const appOwner = useAppOwner();
 
-  const onSelectParty = async (party: IParty) => {
-    if (selectedPartyId !== undefined) {
-      // A selection is already in flight — ignore clicks on any party until it completes
-      return;
-    }
-    setSelectedPartyId(party.partyId);
-    const result = await selectParty(party);
-    if (!result) {
-      // selectParty resolves to undefined when the backend did not accept the change
-      // (real errors unmount this page via DisplayError in the provider)
-      setSelectedPartyId(undefined);
-      return;
-    }
-    setUserHasSelectedParty(true);
-    navigate('/');
-  };
+  // The processing mutation guards against a second selection while one is in flight
+  // (clicks on any party are ignored until it settles), and its process key drives the
+  // pressed state on the clicked party.
+  const performProcess = useProcessingMutationWithKey<string>('select-party');
+  const processingPartyId = useCurrentProcessKey('select-party');
+  const selectedPartyId = processingPartyId !== null ? Number(processingPartyId) : undefined;
+
+  const onSelectParty = (party: IParty) =>
+    performProcess(String(party.partyId), async () => {
+      const result = await selectParty(party);
+      if (!result) {
+        // selectParty resolves to undefined when the backend did not accept the change
+        // (real errors unmount this page via DisplayError in the provider). Returning
+        // settles the mutation, clearing the pressed state and re-enabling selection.
+        return;
+      }
+      setUserHasSelectedParty(true);
+      // In the data router this resolves when the "/" route has finished loading,
+      // keeping the pressed state and the click guard active until the page swaps.
+      await navigate('/');
+    });
 
   const numberFilterString = filterString.replace(/\s+/g, '');
   const hasNumberFilter = numberFilterString.length > 0 && numberFilterString.match(/^\d+$/);
