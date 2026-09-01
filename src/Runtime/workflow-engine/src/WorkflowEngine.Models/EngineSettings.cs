@@ -119,6 +119,45 @@ public sealed record EngineSettings
     [JsonPropertyName("minStepDeferDelay")]
     public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
 
+    /// <summary>The largest timeout a mint may request.</summary>
+    /// <remarks>
+    /// A term in the callback-token lifetime bound: the token minted at a receiver's enqueue must outlive the
+    /// park, the sweep's coarseness, the wait budgets, retention and the retry ladder.
+    /// <c>CallbackTokenLifetimeInvariantTests</c> pins that arithmetic, so raising this fails loudly.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxTimeout")]
+    public TimeSpan MaxMailboxTimeout { get; set; } = TimeSpan.FromDays(21);
+
+    /// <summary>
+    /// Best-effort cap on simultaneously open mailboxes per collection; an exceeding mint is refused with
+    /// <c>429</c> rather than something being closed.
+    /// </summary>
+    /// <remarks>
+    /// Not exact: the count reads the mint statement's own snapshot, so concurrent mints can overshoot by at
+    /// most one each. A mailbox minted without a <c>collectionKey</c> is not capped.
+    /// </remarks>
+    [JsonPropertyName("maxOpenMailboxesPerCollection")]
+    public int MaxOpenMailboxesPerCollection { get; set; } = 100;
+
+    /// <summary>
+    /// The largest delivery payload in UTF-8 bytes; larger is refused with <c>413</c> and nothing is stored.
+    /// </summary>
+    /// <remarks>
+    /// Large content belongs in storage with the delivery carrying a reference: the payload is read back on
+    /// every attempt and kept until retention.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxPayloadSize")]
+    public int MaxMailboxPayloadSize { get; set; } = 256 * 1024;
+
+    /// <summary>The most positions a mailbox's logs may hold; a delivery past it is refused with <c>429</c>.</summary>
+    /// <remarks>
+    /// The only bound on one mailbox's cost — deliveries skip the ordinary admission check, so without it one
+    /// counterparty could fill a mailbox without limit. Applied to both logs: they are two views of one
+    /// exchange.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxLogLength")]
+    public int MaxMailboxLogLength { get; set; } = 100;
+
     /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
@@ -172,6 +211,19 @@ public sealed record EngineSettings
     public TimeSpan MaintenanceInterval { get; set; }
 
     /// <summary>
+    /// Interval of the mailbox closure sweep, deliberately coarser than <see cref="MaintenanceInterval"/>:
+    /// a deadline is a day-scale promise, and a quiet tick is one indexed scan.
+    /// </summary>
+    /// <remarks>
+    /// A term in the token-lifetime bound (a receiver parks until deadline plus at most one interval), pinned
+    /// by <c>CallbackTokenLifetimeInvariantTests</c>. Deliberately no initializer: the default lives in
+    /// <c>Defaults.EngineSettings</c> alone, and an initializer here would win over it and leave the tripwire
+    /// guarding a number nothing uses.
+    /// </remarks>
+    [JsonPropertyName("mailboxSweepInterval")]
+    public TimeSpan MailboxSweepInterval { get; set; }
+
+    /// <summary>
     /// Concurrency settings.
     /// </summary>
     [JsonPropertyName("concurrency")]
@@ -188,6 +240,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("updateBuffer")]
     public UpdateBufferSettings UpdateBuffer { get; set; } = new();
+
+    /// <summary>
+    /// Buffer settings for the three mailbox hot paths.
+    /// </summary>
+    [JsonPropertyName("mailboxBuffers")]
+    public MailboxBufferSettings MailboxBuffers { get; set; } = new();
 
     /// <summary>
     /// Data retention settings.
@@ -242,6 +300,52 @@ public sealed record UpdateBufferSettings
     /// </summary>
     [JsonPropertyName("maxQueueSize")]
     public int MaxQueueSize { get; set; }
+}
+
+/// <summary>
+/// Settings for one channel-based batch buffer: the requests one flush may carry, the requests that may wait
+/// for a flush, and the flushes that may run at once.
+/// </summary>
+public sealed record BatchBufferSettings
+{
+    /// <summary>
+    /// Maximum number of requests per batch flush.
+    /// </summary>
+    [JsonPropertyName("maxBatchSize")]
+    public int MaxBatchSize { get; set; }
+
+    /// <summary>
+    /// Maximum number of requests waiting for a flush. The channel is bounded and <em>waits</em> when full, so a
+    /// caller arriving at a full queue is delayed rather than refused.
+    /// </summary>
+    [JsonPropertyName("maxQueueSize")]
+    public int MaxQueueSize { get; set; }
+
+    /// <summary>
+    /// Number of concurrent flushes, and with that the database connections the buffer can hold at once — one
+    /// per in-flight flush.
+    /// </summary>
+    [JsonPropertyName("flushConcurrency")]
+    public int FlushConcurrency { get; set; }
+}
+
+/// <summary>
+/// Settings for the mailbox hot-path buffers, one per operation: minting, closing, and delivering are separate
+/// batch statements against separate rows, so they queue and flush independently.
+/// </summary>
+public sealed record MailboxBufferSettings
+{
+    /// <summary>Buffer for minting mailboxes.</summary>
+    [JsonPropertyName("mint")]
+    public BatchBufferSettings Mint { get; set; } = new();
+
+    /// <summary>Buffer for closing mailboxes.</summary>
+    [JsonPropertyName("close")]
+    public BatchBufferSettings Close { get; set; } = new();
+
+    /// <summary>Buffer for delivering messages into mailboxes.</summary>
+    [JsonPropertyName("delivery")]
+    public BatchBufferSettings Delivery { get; set; } = new();
 }
 
 /// <summary>
