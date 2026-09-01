@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using Altinn.Studio.Gateway.Api.Clients.WorkflowEngine;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Contracts.Workflows;
@@ -17,19 +16,28 @@ namespace Altinn.Studio.Gateway.Api.Application;
 /// single wire vocabulary. The engine namespace is always computed as {serviceOwner}/{app} —
 /// callers can never address another namespace.
 /// </summary>
-internal static partial class HandleWorkflows
+internal static class HandleWorkflows
 {
     /// <summary>Logger category for the audit lines emitted on the two mutating verbs.</summary>
     internal const string AuditLoggerCategory = "Altinn.Studio.Gateway.Api.WorkflowAudit";
 
     private const string DiagnosticsLoggerCategory = "Altinn.Studio.Gateway.Api.Application.HandleWorkflows";
 
-    /// <summary>
-    /// App names in Studio start with a letter and contain only lowercase letters, digits,
-    /// and hyphens (same character set the HelmRelease naming relies on).
-    /// </summary>
-    [GeneratedRegex("^[a-z][a-z0-9-]{0,62}$")]
-    private static partial Regex AppNameRegex();
+    // Per-route query whitelists. Unrecognized parameters are rejected (400) rather than
+    // silently dropped: Designer is deployed centrally while gateways roll out per cluster,
+    // so version skew must fail loudly instead of returning 200 with unfiltered data.
+    private static readonly string[] _collectionListQueryKeys = ["key", "failures", "cursor", "pageSize"];
+    private static readonly string[] _workflowListQueryKeys =
+    [
+        "collectionKey",
+        "status",
+        "label",
+        "isHead",
+        "cursor",
+        "pageSize",
+    ];
+    private static readonly string[] _resumeQueryKeys = ["cascade"];
+    private static readonly string[] _noQueryKeys = [];
 
     internal static Task<IResult> ListCollections(
         string app,
@@ -37,6 +45,7 @@ internal static partial class HandleWorkflows
         [FromQuery] string? failures,
         [FromQuery] string? cursor,
         [FromQuery] int? pageSize,
+        HttpContext httpContext,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
         ILoggerFactory loggerFactory,
@@ -51,8 +60,10 @@ internal static partial class HandleWorkflows
 
         return ForwardToEngine(
             HttpMethod.Get,
+            httpContext,
             app,
             "/collections",
+            _collectionListQueryKeys,
             query,
             gatewayContext,
             engineClient,
@@ -65,6 +76,7 @@ internal static partial class HandleWorkflows
     internal static Task<IResult> GetCollection(
         string app,
         string key,
+        HttpContext httpContext,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
         ILoggerFactory loggerFactory,
@@ -73,8 +85,10 @@ internal static partial class HandleWorkflows
     {
         return ForwardToEngine(
             HttpMethod.Get,
+            httpContext,
             app,
             $"/collections/{Uri.EscapeDataString(key)}",
+            _noQueryKeys,
             query: null,
             gatewayContext,
             engineClient,
@@ -92,6 +106,7 @@ internal static partial class HandleWorkflows
         [FromQuery] bool? isHead,
         [FromQuery] string? cursor,
         [FromQuery] int? pageSize,
+        HttpContext httpContext,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
         ILoggerFactory loggerFactory,
@@ -108,8 +123,10 @@ internal static partial class HandleWorkflows
 
         return ForwardToEngine(
             HttpMethod.Get,
+            httpContext,
             app,
             "/workflows",
+            _workflowListQueryKeys,
             query,
             gatewayContext,
             engineClient,
@@ -122,6 +139,7 @@ internal static partial class HandleWorkflows
     internal static Task<IResult> GetWorkflow(
         string app,
         Guid workflowId,
+        HttpContext httpContext,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
         ILoggerFactory loggerFactory,
@@ -130,8 +148,10 @@ internal static partial class HandleWorkflows
     {
         return ForwardToEngine(
             HttpMethod.Get,
+            httpContext,
             app,
             $"/workflows/{workflowId}",
+            _noQueryKeys,
             query: null,
             gatewayContext,
             engineClient,
@@ -156,8 +176,10 @@ internal static partial class HandleWorkflows
 
         return ForwardToEngine(
             HttpMethod.Post,
+            httpContext,
             app,
             $"/workflows/{workflowId}/resume",
+            _resumeQueryKeys,
             query,
             gatewayContext,
             engineClient,
@@ -179,8 +201,10 @@ internal static partial class HandleWorkflows
     {
         return ForwardToEngine(
             HttpMethod.Post,
+            httpContext,
             app,
             $"/workflows/{workflowId}/abandon",
+            _noQueryKeys,
             query: null,
             gatewayContext,
             engineClient,
@@ -195,8 +219,10 @@ internal static partial class HandleWorkflows
 
     private static async Task<IResult> ForwardToEngine(
         HttpMethod method,
+        HttpContext httpContext,
         string app,
         string upstreamSuffix,
+        string[] allowedQueryKeys,
         QueryBuilder? query,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
@@ -205,7 +231,7 @@ internal static partial class HandleWorkflows
         CancellationToken cancellationToken
     )
     {
-        if (!AppNameRegex().IsMatch(app))
+        if (!AppName.IsValid(app))
         {
             return Problem(
                 GatewayProblem.InvalidAppNameType,
@@ -215,16 +241,19 @@ internal static partial class HandleWorkflows
             );
         }
 
-        var serviceOwner = gatewayContext.CurrentValue.ServiceOwner.Trim();
-        if (serviceOwner.Length == 0)
+        if (FindUnknownQueryKeys(httpContext.Request.Query, allowedQueryKeys) is { } unknownKeys)
         {
+            var supported = allowedQueryKeys.Length == 0 ? "none" : string.Join(", ", allowedQueryKeys);
             return Problem(
-                GatewayProblem.MissingServiceOwnerType,
-                "Service owner not configured",
-                StatusCodes.Status500InternalServerError,
-                "The gateway has no service owner configured, so the workflow engine namespace cannot be determined."
+                GatewayProblem.UnknownQueryParameterType,
+                "Unknown query parameter",
+                StatusCodes.Status400BadRequest,
+                $"Unrecognized query parameter(s): {string.Join(", ", unknownKeys)}. Supported parameter(s): {supported}."
             );
         }
+
+        // Guaranteed non-empty by options validation at startup.
+        var serviceOwner = gatewayContext.CurrentValue.ServiceOwner.Trim();
 
         // The engine namespace is {org}/{app}. It contains a '/', so it must travel as a single
         // escaped path segment (%2F) — unescaped it would address a different engine route.
@@ -243,7 +272,7 @@ internal static partial class HandleWorkflows
 
             loggerFactory
                 .CreateLogger(DiagnosticsLoggerCategory)
-                .LogWarning(ex, "Workflow engine unreachable for {Method} {UpstreamPath}", method, upstreamSuffix);
+                .LogWarning(ex, "Workflow engine unreachable for {Method} {UpstreamPath}", method, upstreamPath);
 
             if (audit is not null)
                 LogAudit(loggerFactory, audit, engineNamespace, outcome: "engine unavailable");
@@ -270,6 +299,18 @@ internal static partial class HandleWorkflows
 #pragma warning disable CA1308 // Engine namespaces are canonically lowercase, not uppercase
     private static string BuildNamespace(string serviceOwner, string app) => $"{serviceOwner.ToLowerInvariant()}/{app}";
 #pragma warning restore CA1308
+
+    private static List<string>? FindUnknownQueryKeys(IQueryCollection requestQuery, string[] allowedQueryKeys)
+    {
+        List<string>? unknownKeys = null;
+        foreach (var key in requestQuery.Keys)
+        {
+            if (!allowedQueryKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                (unknownKeys ??= []).Add(key);
+        }
+
+        return unknownKeys;
+    }
 
     private static void LogAudit(
         ILoggerFactory loggerFactory,
@@ -324,11 +365,11 @@ internal static partial class HandleWorkflows
             query.Add(name, value.Value ? "true" : "false");
     }
 
+    /// <summary>
+    /// Gateway-produced problem envelope. Serialized via <c>Results.Problem</c> so the wire
+    /// shape is standard camelCase problem+json — the <c>type</c> key carries the URN
+    /// consumers discriminate on (see <see cref="GatewayProblem"/>).
+    /// </summary>
     private static IResult Problem(string type, string title, int status, string detail) =>
-        Results.Json(
-            new GatewayProblem(type, title, status, detail),
-            AppJsonSerializerContext.Default.GatewayProblem,
-            contentType: "application/problem+json",
-            statusCode: status
-        );
+        Results.Problem(type: type, title: title, statusCode: status, detail: detail);
 }
