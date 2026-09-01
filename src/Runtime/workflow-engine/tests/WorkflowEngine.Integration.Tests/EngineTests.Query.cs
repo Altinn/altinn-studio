@@ -39,6 +39,50 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task ListWorkflows_IsHeadFilter_UsesVisibilitySemantics()
+    {
+        // Arrange — one workflow per isHead directive value: unset (the ordinary default),
+        // explicit true, and explicit false (invisible).
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("wf-null", [_testHelpers.CreateWebhookStep("/hook")]),
+            _testHelpers.CreateWorkflow("wf-true", [_testHelpers.CreateWebhookStep("/hook")], isHead: true),
+            _testHelpers.CreateWorkflow("wf-false", [_testHelpers.CreateWebhookStep("/hook")], isHead: false),
+        ]);
+        var response = await _client.Enqueue(request);
+        var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        await _client.WaitForWorkflowStatus(byRef.Values, PersistentItemStatus.Completed);
+
+        // Act
+        var visible = await _client.ListWorkflowsPaginated(isHead: true);
+        var invisible = await _client.ListWorkflowsPaginated(isHead: false);
+        var unfiltered = await _client.ListWorkflowsPaginated();
+
+        // Assert — isHead=true is visibility, not directive equality: it must include the
+        // null-directive workflow (the default for nearly every ordinary workflow), while
+        // isHead=false matches exactly the invisible one.
+        Assert.Equal(2, visible.TotalCount);
+        Assert.Contains(visible.Data, w => w.DatabaseId == byRef["wf-null"]);
+        Assert.Contains(visible.Data, w => w.DatabaseId == byRef["wf-true"]);
+
+        var invisibleWorkflow = Assert.Single(invisible.Data);
+        Assert.Equal(byRef["wf-false"], invisibleWorkflow.DatabaseId);
+
+        Assert.Equal(3, unfiltered.TotalCount);
+
+        // The response field stays the raw directive: a visible row can still read isHead = null.
+        Assert.Null(visible.Data.Single(w => w.DatabaseId == byRef["wf-null"]).IsHead);
+        Assert.Equal(true, visible.Data.Single(w => w.DatabaseId == byRef["wf-true"]).IsHead);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_InvalidIsHeadValue_ReturnsBadRequest()
+    {
+        using var response = await _client.ListWorkflowsRaw("?isHead=bogus");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetWorkflow_AfterCompletion_ReturnsFullDetails()
     {
         // Arrange
