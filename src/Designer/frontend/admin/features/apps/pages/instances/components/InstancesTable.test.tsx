@@ -23,18 +23,18 @@ const sideEffectGuid = '8b1d4f2c-9e77-4a55-b0aa-1c2d3e4f5061';
 const activeGuid = 'c4d5e6f7-1122-4334-8556-778899aabbcc';
 const healthyGuid = 'd5e6f708-2233-4445-9667-88990011ddee';
 const unmatchedGuid = 'e6f70819-3344-4556-a778-99001122eeff';
+const secondPageGuid = 'f708192a-4455-4667-b889-00112233aabb';
 
 const allGuids = [failedGuid, sideEffectGuid, activeGuid, healthyGuid, unmatchedGuid];
 
-const instancesResponse = {
-  instances: allGuids.map((id) => ({
-    id,
-    org,
-    app,
-    isRead: true,
-    createdAt: '2026-08-01T10:00:00Z',
-  })),
-};
+const instances = (ids: string[]) =>
+  ids.map((id) => ({ id, org, app, isRead: true, createdAt: '2026-08-01T10:00:00Z' }));
+
+const instancesResponse = { instances: instances(allGuids) };
+
+const continuationToken = 'next-page';
+const firstInstancesPage = { instances: instances(allGuids), continuationToken };
+const secondInstancesPage = { instances: instances([secondPageGuid]) };
 
 const collection = (
   key: string,
@@ -70,19 +70,39 @@ const engineUnavailableError = () => {
   return error;
 };
 
+const keysFrom = (url: string) => [
+  ...new URLSearchParams(url.slice(url.indexOf('?'))).getAll('key'),
+];
+
+type ResponseLike = { status: number; data: unknown };
+type RouteHandler = (url: string) => ResponseLike | Promise<ResponseLike>;
+
 type RouteHandlers = {
-  health?: () => Promise<{ status: number; data: unknown }>;
+  instances?: RouteHandler;
+  health?: RouteHandler;
 };
 
-const mockRequests = ({ health }: RouteHandlers = {}) => {
+/** Serves the two paged instance pages by continuation token, so both are loadable. */
+const pagedInstances: RouteHandler = (url) =>
+  url.includes(`continuationToken=${continuationToken}`)
+    ? { status: 200, data: secondInstancesPage }
+    : { status: 200, data: firstInstancesPage };
+
+const mockRequests = ({ instances: instancesHandler, health }: RouteHandlers = {}) => {
   jest.mocked(axios.get).mockImplementation(async (url: string) => {
     if (url.includes('/workflows/')) {
-      const result = health ? await health() : { status: 200, data: healthResponse };
+      const result = health ? await health(url) : { status: 200, data: healthResponse };
       return result as AxiosResponse;
     }
-    return { status: 200, data: instancesResponse } as AxiosResponse;
+    const result = instancesHandler
+      ? await instancesHandler(url)
+      : { status: 200, data: instancesResponse };
+    return result as AxiosResponse;
   });
 };
+
+const fetchMoreButton = () =>
+  screen.getByRole('button', { name: textMock('admin.instances.fetch_more') });
 
 const healthCellOf = async (instanceId: string): Promise<HTMLElement> => {
   await screen.findByRole('link', { name: instanceId });
@@ -143,6 +163,8 @@ describe('InstancesTable workflow health column', () => {
       'admin.workflows.health.active_description',
       'admin.workflows.health.healthy_description',
       'admin.workflows.health.no_data_description',
+      'admin.workflows.health.unknown_description',
+      'admin.workflows.health.unavailable_description',
     ].forEach((key) => expect(screen.getByText(textMock(key))).toBeInTheDocument());
   });
 
@@ -176,25 +198,68 @@ describe('InstancesTable workflow health column', () => {
     expect(screen.queryByText(textMock('general.page_error_title'))).not.toBeInTheDocument();
   });
 
-  it('degrades to no data when the health request fails for any other reason', async () => {
+  it('degrades to unknown, not to no data, when the health request fails for another reason', async () => {
     mockRequests({ health: () => Promise.reject(new Error('boom')) });
     renderInstancesTable();
 
     await waitFor(async () =>
       expect(await healthCellOf(failedGuid)).toHaveTextContent(
-        textMock('admin.workflows.health.no_data'),
+        textMock('admin.workflows.health.unknown'),
       ),
+    );
+    // No data claims the engine holds nothing about the instance, which a failed request cannot say.
+    expect(await healthCellOf(failedGuid)).not.toHaveTextContent(
+      textMock('admin.workflows.health.no_data'),
     );
     expect(screen.getAllByRole('link')).toHaveLength(allGuids.length);
   });
 
-  it('shows a placeholder rather than claiming no data while health is still loading', async () => {
-    mockRequests({ health: () => new Promise(() => {}) });
+  it('places the loading placeholder only on the rows whose own page is still loading', async () => {
+    const user = userEvent.setup();
+    mockRequests({
+      instances: pagedInstances,
+      // The first page's annotate request answers; the second page's never does.
+      health: (url) =>
+        keysFrom(url).includes(healthyGuid)
+          ? { status: 200, data: healthResponse }
+          : new Promise<ResponseLike>(() => {}),
+    });
     renderInstancesTable();
 
-    const cell = await healthCellOf(failedGuid);
-    expect(cell).not.toHaveTextContent(textMock('admin.workflows.health.no_data'));
-    expect(within(cell).getByLabelText(textMock('general.loading'))).toBeInTheDocument();
+    await expectHealth(healthyGuid, 'admin.workflows.health.healthy');
+    await user.click(fetchMoreButton());
+    await screen.findByRole('link', { name: secondPageGuid });
+
+    const answeredCell = await healthCellOf(healthyGuid);
+    expect(answeredCell).toHaveTextContent(textMock('admin.workflows.health.healthy'));
+    expect(
+      within(answeredCell).queryByLabelText(textMock('general.loading')),
+    ).not.toBeInTheDocument();
+
+    const loadingCell = await healthCellOf(secondPageGuid);
+    expect(within(loadingCell).getByLabelText(textMock('general.loading'))).toBeInTheDocument();
+    expect(loadingCell).not.toHaveTextContent(textMock('admin.workflows.health.no_data'));
+    expect(loadingCell).not.toHaveTextContent(textMock('admin.workflows.health.unknown'));
+  });
+
+  it('keeps the verdicts of the pages that answered when one page cannot reach the engine', async () => {
+    const user = userEvent.setup();
+    mockRequests({
+      instances: pagedInstances,
+      health: (url) =>
+        keysFrom(url).includes(healthyGuid)
+          ? { status: 200, data: healthResponse }
+          : Promise.reject(engineUnavailableError()),
+    });
+    renderInstancesTable();
+
+    await expectHealth(healthyGuid, 'admin.workflows.health.healthy');
+    await user.click(fetchMoreButton());
+
+    await expectHealth(secondPageGuid, 'admin.workflows.health.unavailable');
+    // One page's transient failure must not grey out the rows that already have a verdict.
+    await expectHealth(healthyGuid, 'admin.workflows.health.healthy');
+    await expectHealth(failedGuid, 'admin.workflows.health.failed');
   });
 
   it('reports no data for an empty annotate answer', async () => {

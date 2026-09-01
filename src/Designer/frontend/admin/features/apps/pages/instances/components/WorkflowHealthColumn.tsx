@@ -9,12 +9,19 @@ import {
 
 import classes from './WorkflowHealthColumn.module.css';
 
+/**
+ * Every state the column can render, worst first. The three states that are not verdicts about the
+ * instance come last, and are in the legend because a tag's own description is only reachable with
+ * a mouse.
+ */
 const LEGEND_ORDER: WorkflowHealth[] = [
   WorkflowHealth.Failed,
   WorkflowHealth.SideEffectsFailed,
   WorkflowHealth.Active,
   WorkflowHealth.Healthy,
   WorkflowHealth.NoData,
+  WorkflowHealth.Unknown,
+  WorkflowHealth.Unavailable,
 ];
 
 export const WorkflowHealthHeaderCell = (): ReactElement => {
@@ -43,8 +50,9 @@ export const WorkflowHealthHeaderCell = (): ReactElement => {
 };
 
 export type WorkflowHealthCellProps = {
-  /** Undefined until the annotate request for this instance's page has answered. */
+  /** Undefined until the annotate request this instance's key was asked for in has answered. */
   health: WorkflowHealth | undefined;
+  /** True while that request is in flight. Only this row's own request counts. */
   isPending: boolean;
 };
 
@@ -54,13 +62,11 @@ export const WorkflowHealthCell = ({
 }: WorkflowHealthCellProps): ReactElement => {
   const { t } = useTranslation();
 
-  if (health === undefined) {
-    return isPending ? (
-      <StudioSkeleton aria-label={t('general.loading')} className={classes.skeleton} />
-    ) : (
-      <WorkflowHealthTag health={WorkflowHealth.NoData} />
-    );
+  if (isPending) {
+    return <StudioSkeleton aria-label={t('general.loading')} className={classes.skeleton} />;
   }
 
-  return <WorkflowHealthTag health={health} />;
+  // A key with neither a verdict nor a request in flight is not a fact about the instance, so it
+  // reads as unknown rather than as "the engine holds nothing".
+  return <WorkflowHealthTag health={health ?? WorkflowHealth.Unknown} />;
 };
