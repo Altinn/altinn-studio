@@ -9,8 +9,8 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 /// </summary>
 internal static class FakeMaskinportenTokenGenerator
 {
-    private const string Issuer = "http://fake-oidc.default.svc.cluster.local";
-    private const string PrivateKeyPath = "TestData/fake-oidc-private-key.json";
+    internal const string Issuer = "http://fake-oidc.default.svc.cluster.local";
+    internal const string PrivateKeyPath = "TestData/fake-oidc-private-key.json";
 
     private static readonly Lazy<SigningCredentials> _signingCredentials = new(LoadSigningCredentials);
 
@@ -24,17 +24,28 @@ internal static class FakeMaskinportenTokenGenerator
     /// <summary>
     /// Generates a valid Maskinporten-style JWT token with the specified scope.
     /// </summary>
-    public static string GenerateToken(string scope, TimeSpan? expiry = null)
+    public static string GenerateToken(
+        string scope,
+        TimeSpan? expiry = null,
+        IReadOnlyDictionary<string, object>? additionalClaims = null
+    )
     {
         var now = DateTime.UtcNow;
         var handler = new JsonWebTokenHandler();
+        var claims = new Dictionary<string, object> { ["scope"] = scope, ["jti"] = Guid.NewGuid().ToString() };
+        if (additionalClaims is not null)
+        {
+            foreach (var claim in additionalClaims)
+                claims[claim.Key] = claim.Value;
+        }
+
         var descriptor = new SecurityTokenDescriptor
         {
             Issuer = Issuer,
             IssuedAt = now,
             Expires = now.Add(expiry ?? TimeSpan.FromMinutes(5)),
             SigningCredentials = _signingCredentials.Value,
-            Claims = new Dictionary<string, object> { ["scope"] = scope, ["jti"] = Guid.NewGuid().ToString() },
+            Claims = claims,
         };
 
         return handler.CreateToken(descriptor);
