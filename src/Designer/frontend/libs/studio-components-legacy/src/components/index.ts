@@ -1,4 +1,3 @@
-export * from './StudioCheckbox';
 export * from './StudioCodeFragment';
 export * from './StudioCombobox';
 export * from './StudioDecimalInput';
