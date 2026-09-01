@@ -5529,6 +5529,7 @@ __metadata:
     "@storybook/addon-links": "npm:10.5.7"
     "@storybook/builder-vite": "npm:10.5.7"
     "@storybook/react-vite": "npm:10.5.7"
+    "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     "@studio/ui-test": "workspace:^"
@@ -7583,6 +7584,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"
     react: "npm:19.2.8"
@@ -9488,6 +9490,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"
