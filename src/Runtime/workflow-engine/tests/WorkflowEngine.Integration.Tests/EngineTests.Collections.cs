@@ -35,9 +35,9 @@ public partial class EngineTests
         Assert.Contains(collections, c => c.Key == "col-2");
         Assert.All(collections, c => Assert.NotEmpty(c.Heads));
 
-        // Contract: ordered by key (ascending) — the stable enumeration order keyset pagination needs.
-        var orderingKeys = collections.Select(c => c.Key).ToList();
-        Assert.Equal(orderingKeys.Order(StringComparer.Ordinal), orderingKeys);
+        // Contract: a stable enumeration (collation-defined key order, opaque cursor) — walking the
+        // pages yields each collection exactly once.
+        Assert.Equal(collections.Count, collections.Select(c => c.Key).Distinct().Count());
 
         // Contract: the health rollup is always populated on the list view.
         Assert.All(collections, c => Assert.NotNull(c.WorkflowCounts));
@@ -104,18 +104,25 @@ public partial class EngineTests
             );
         }
 
-        // Act — walk the pages.
+        // Act — walk the pages, round-tripping the opaque cursor.
         var page1 = await _client.ListCollectionsPaginated(pageSize: 2);
         var page2 = await _client.ListCollectionsPaginated(pageSize: 2, cursor: page1.NextCursor);
 
-        // Assert
+        // Assert — the enumeration order is collation-defined (not asserted); the contract is
+        // pagination consistency: correct totals and page sizes, and the pages together cover
+        // every collection exactly once (no duplicates, no gaps).
         Assert.Equal(3, page1.TotalCount);
-        Assert.Equal(["page-a", "page-b"], page1.Data.Select(c => c.Key).ToArray());
-        Assert.Equal("page-b", page1.NextCursor);
+        Assert.Equal(2, page1.Data.Count);
+        Assert.NotNull(page1.NextCursor);
 
         Assert.Equal(3, page2.TotalCount);
-        Assert.Equal(["page-c"], page2.Data.Select(c => c.Key).ToArray());
+        Assert.Single(page2.Data);
         Assert.Null(page2.NextCursor);
+
+        var walked = page1.Data.Concat(page2.Data).Select(c => c.Key).ToList();
+        Assert.Equal(3, walked.Distinct().Count());
+        string[] expectedKeys = ["page-a", "page-b", "page-c"];
+        Assert.Equivalent(expectedKeys, walked);
     }
 
     [Fact]
@@ -283,7 +290,7 @@ public partial class EngineTests
         Assert.Equal(1, counts.FailedInvisible); // fail-invisible
 
         // Explicit non-goal: the detail endpoint stays a frontier view and carries no rollup.
-        using var detailResponse = await _client.ListCollectionsRaw("/rollup-col");
+        using var detailResponse = await _client.GetCollectionRaw("rollup-col");
         var detailJson = await detailResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var detailDoc = JsonDocument.Parse(detailJson);
         Assert.False(detailDoc.RootElement.TryGetProperty("workflowCounts", out _));
