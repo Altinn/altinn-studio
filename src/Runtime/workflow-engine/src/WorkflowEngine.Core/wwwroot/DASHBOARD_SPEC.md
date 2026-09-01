@@ -24,7 +24,7 @@ On-demand paginated search against the database. Not SSE-driven — user clicks 
 
 **Controls:**
 
-- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled, Dep. failed, Abandoned
+- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled, Dep. failed, Abandoned. The checked set is sent explicitly as the `status` param (all checked sends the full set); zero checked omits the param, which the backend defaults to Completed/Failed/Requeued.
 - Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
 - Head-visibility checkboxes: "Head" / "Non-head" (both checked by default = no filter; exactly one checked sends `isHead=true|false`). "Head" means visible to the collection head frontier (`isHead` directive `true` or unset), "Non-head" means enqueued with `isHead=false`.

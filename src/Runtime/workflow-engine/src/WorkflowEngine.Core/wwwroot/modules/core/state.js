@@ -132,6 +132,25 @@
  * }} DashboardState
  */
 
+/**
+ * The query tab's status-checkbox ids, in display order — one per PersistentItemStatus the query
+ * facet exposes. Shared by query.js (fetch param assembly) and url.js (URL restore) so the lists
+ * cannot drift; checkbox element ids are `${id}-check`.
+ * @type {readonly string[]}
+ */
+export const queryStatusIds = [
+    'enqueued',
+    'processing',
+    'requeued',
+    'waiting',
+    'held',
+    'completed',
+    'failed',
+    'canceled',
+    'dependencyfailed',
+    'abandoned',
+];
+
 /* ── DOM references ──────────────────────────────────────── */
 
 export const dom = {

@@ -146,8 +146,9 @@ internal static class EngineEndpoints
                 """
                 Lists workflow collections in the namespace as a health view: every entry carries a
                 workflowCounts rollup covering all of the collection's workflows, including the
-                invisible (isHead = false) ones the head frontier hides. Ordered by key, cursor-paginated
-                (pass the nextCursor from a response back as the cursor parameter).
+                invisible (isHead = false) ones the head frontier hides. Cursor-paginated over a stable,
+                collation-defined key order; treat the cursor as opaque and pass the nextCursor from a
+                response back as the cursor parameter.
 
                 Three mutually exclusive modes:
                 - list: no key/failures parameters — enumerate the namespace's collections page by page.
@@ -745,7 +746,11 @@ internal static class EngineRequestHandlers
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
 
         var pagination = settings.Value.Pagination;
-        var keyCount = keys?.Length ?? 0;
+
+        // Deduplicate up front so repeated ?key= values neither trip the cap nor inflate the
+        // echoed page size; the repository receives the deduplicated set.
+        string[]? distinctKeys = keys is { Length: > 0 } ? keys.Distinct(StringComparer.Ordinal).ToArray() : null;
+        var keyCount = distinctKeys?.Length ?? 0;
         var annotate = keyCount > 0;
 
         // The three modes are orthogonal by design: annotate answers "how are these specific
@@ -766,7 +771,7 @@ internal static class EngineRequestHandlers
         // failures pass as healthy, which is the exact failure class this endpoint exists to fix.
         if (keyCount > pagination.MaxPageSize)
             return TypedResults.Problem(
-                detail: $"Too many keys: {keyCount} supplied, maximum is {pagination.MaxPageSize}. Split the request instead — keys are never silently truncated.",
+                detail: $"Too many keys: {keyCount} distinct keys supplied, maximum is {pagination.MaxPageSize}. Split the request instead — keys are never silently truncated.",
                 statusCode: StatusCodes.Status400BadRequest
             );
 
@@ -797,7 +802,7 @@ internal static class EngineRequestHandlers
             ns,
             effectivePageSize,
             cursor: cursor,
-            keys: keys,
+            keys: distinctKeys,
             failures: failureFilter,
             cancellationToken: cancellationToken
         );

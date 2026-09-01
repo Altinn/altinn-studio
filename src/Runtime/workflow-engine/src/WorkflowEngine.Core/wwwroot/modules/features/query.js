@@ -1,6 +1,6 @@
 /* Query tab — on-demand DB fetch with pagination */
 
-import { dom, state } from '../core/state.js';
+import { dom, state, queryStatusIds } from '../core/state.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
 import { buildGroupEl, onChainGroupsChanged } from '../shared/chain-groups.js';
 import {
@@ -330,25 +330,15 @@ window.applyCustomTimeRange = () => {
     if (state.queryLoaded) loadQuery();
 };
 
-// Query status checkboxes
-const queryStatusIds = [
-    'enqueued',
-    'processing',
-    'requeued',
-    'waiting',
-    'held',
-    'completed',
-    'failed',
-    'canceled',
-    'dependencyfailed',
-    'abandoned',
-];
+// Query status checkboxes (ids shared with url.js via core/state.js). The checked set is always
+// sent explicitly — collapsing all-checked to an omitted status param would hand the backend its
+// default subset (Completed/Failed/Requeued) instead of every status. Zero checked keeps the
+// existing "no filter" idiom (backend defaults).
 window.toggleQueryStatus = () => {
     const checked = queryStatusIds.filter(
         (s) => /** @type {HTMLInputElement} */ (document.getElementById(`${s}-check`))?.checked,
     );
-    state.sectionStatus.query =
-        checked.length === queryStatusIds.length || checked.length === 0 ? '' : checked.join(',');
+    state.sectionStatus.query = checked.join(',');
     syncUrl();
     if (state.queryLoaded) loadQuery();
 };

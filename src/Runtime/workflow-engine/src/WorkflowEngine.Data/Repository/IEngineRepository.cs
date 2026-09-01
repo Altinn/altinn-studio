@@ -280,7 +280,8 @@ internal interface IEngineRepository
     /// <summary>
     /// Queries workflow collections in a namespace with cursor-based pagination, each carrying its
     /// per-collection workflow status rollup (<see cref="WorkflowCollectionResponse.WorkflowCounts"/>).
-    /// Results are ordered by collection key (ascending); pass the
+    /// Results follow a stable, collation-defined key order (the database column collation, not
+    /// necessarily ordinal); the cursor is opaque — pass the
     /// <see cref="CollectionQueryResult.NextCursor"/> from a previous page as <paramref name="cursor"/>.
     /// </summary>
     /// <param name="ns">The namespace to query.</param>

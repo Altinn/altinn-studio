@@ -1202,6 +1202,42 @@ public class EngineEndpointTests
     }
 
     [Fact]
+    public async Task ListCollections_DuplicateKeys_DeduplicatedBeforeCapAndEcho()
+    {
+        // Arrange — 150 raw ?key= params but only 60 distinct keys: the cap check and the echoed
+        // page size must both see the deduplicated count, and the repository the deduplicated set.
+        IReadOnlyCollection<string>? capturedKeys = null;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetCollections(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyCollection<string>?>(),
+                    It.IsAny<CollectionFailureFilter?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, int, string?, IReadOnlyCollection<string>?, CollectionFailureFilter?, CancellationToken>(
+                (_, _, _, keys, _, _) => capturedKeys = keys
+            )
+            .ReturnsAsync(new CollectionQueryResult([], null, 0, []));
+
+        var keys = Enumerable.Range(0, 150).Select(i => $"k-{i % 60}").ToArray();
+
+        // Act
+        var result = await InvokeListCollections(repositoryMock.Object, keys: keys);
+
+        // Assert — no spurious 400 from the raw count, and the echo reflects distinct keys.
+        var ok = Assert.IsType<Ok<WorkflowCollectionListResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(60, ok.Value.PageSize);
+        Assert.NotNull(capturedKeys);
+        Assert.Equal(60, capturedKeys.Count);
+    }
+
+    [Fact]
     public async Task ListCollections_FailuresValue_ParsedCaseInsensitively()
     {
         // Arrange

@@ -406,9 +406,18 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Issues a raw GET to the collections list endpoint with the supplied query string
     /// (e.g. <c>"?failures=bogus"</c>). Used to exercise binding/validation directly.
+    /// The first parameter is the query string, not a namespace — use <paramref name="ns"/>
+    /// (named) to target another namespace, and <see cref="GetCollectionRaw"/> for the detail
+    /// endpoint.
     /// </summary>
-    public Task<HttpResponseMessage> ListCollectionsRaw(string queryString = "", string? ns = null) =>
+    public Task<HttpResponseMessage> ListCollectionsRaw(string? queryString = null, string? ns = null) =>
         _client.GetAsync($"{GetCollectionsBasePath(ns)}{queryString}", CancellationToken.None);
+
+    /// <summary>
+    /// Issues a raw GET to the collection detail endpoint for <paramref name="key"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> GetCollectionRaw(string key, string? ns = null) =>
+        _client.GetAsync($"{GetCollectionsBasePath(ns)}/{Uri.EscapeDataString(key)}", CancellationToken.None);
 
     /// <summary>
     /// Gets a single workflow collection by key, including head statuses. Returns <see langword="null"/> on 404.

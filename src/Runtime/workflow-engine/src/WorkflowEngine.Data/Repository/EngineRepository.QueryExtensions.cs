@@ -236,13 +236,14 @@ internal static class EngineRepositoryQueryExtensions
         /// i.e. a directive of <c>true</c> or unset), <see langword="false"/> matches exactly the
         /// invisible ones (<c>is_head = false</c>). Exact matching would be a footgun: <c>null</c>
         /// is the default directive, so it would silently exclude nearly every ordinary workflow.
+        /// The predicates are the shared <see cref="HeadVisibility"/> pair.
         /// </summary>
         private IQueryable<WorkflowEntity> MaybeFilterByHeadVisibility(bool? isHead)
         {
             if (isHead == true)
-                entityQuery = entityQuery.Where(wf => wf.IsHead != false);
+                entityQuery = entityQuery.Where(HeadVisibility.Visible);
             else if (isHead == false)
-                entityQuery = entityQuery.Where(wf => wf.IsHead == false);
+                entityQuery = entityQuery.Where(HeadVisibility.Invisible);
 
             return entityQuery;
         }
