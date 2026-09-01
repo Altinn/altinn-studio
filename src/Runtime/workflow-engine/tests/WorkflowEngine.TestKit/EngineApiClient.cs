@@ -225,6 +225,21 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Requests abandonment of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> AbandonWorkflowRaw(Guid workflowId, string? ns = null) =>
+        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/abandon", content: null);
+
+    /// <summary>
+    /// Abandons a workflow and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<AbandonWorkflowResponse> AbandonWorkflow(Guid workflowId, string? ns = null)
+    {
+        using var response = await AbandonWorkflowRaw(workflowId, ns);
+        return await AssertSuccessAndDeserialize<AbandonWorkflowResponse>(response);
+    }
+
+    /// <summary>
     /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false, string? ns = null) =>
@@ -253,7 +268,8 @@ public sealed class EngineApiClient : IDisposable
         Guid? cursor = null,
         int? pageSize = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
-        string? ns = null
+        string? ns = null,
+        bool? isHead = null
     )
     {
         var qs = new List<string>();
@@ -266,6 +282,8 @@ public sealed class EngineApiClient : IDisposable
             foreach (var status in statuses)
                 qs.Add($"status={status}");
         }
+        if (isHead.HasValue)
+            qs.Add($"isHead={(isHead.Value ? "true" : "false")}");
 
         var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
         using var response = await _client.GetAsync(path);
@@ -324,20 +342,73 @@ public sealed class EngineApiClient : IDisposable
         );
 
     /// <summary>
-    /// Lists all workflow collections in the namespace. Returns an empty list on 204 No Content.
+    /// Lists workflow collections with cursor-based pagination. Returns the full paginated response
+    /// or an empty one on 204 No Content. <paramref name="keys"/> selects annotate mode,
+    /// <paramref name="failures"/> discover mode (see the endpoint description for the mode matrix).
+    /// </summary>
+    public async Task<WorkflowCollectionListResponse> ListCollectionsPaginated(
+        string? ns = null,
+        string? cursor = null,
+        int? pageSize = null,
+        IReadOnlyList<string>? keys = null,
+        string? failures = null
+    )
+    {
+        var qs = new List<string>();
+        if (cursor is not null)
+            qs.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        if (pageSize.HasValue)
+            qs.Add($"pageSize={pageSize.Value}");
+        if (keys is not null)
+        {
+            foreach (var key in keys)
+                qs.Add($"key={Uri.EscapeDataString(key)}");
+        }
+        if (failures is not null)
+            qs.Add($"failures={Uri.EscapeDataString(failures)}");
+
+        var basePath = GetCollectionsBasePath(ns);
+        var path = qs.Count > 0 ? $"{basePath}?{string.Join("&", qs)}" : basePath;
+        using var response = await _client.GetAsync(path);
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return new WorkflowCollectionListResponse
+            {
+                Data = [],
+                PageSize = pageSize ?? 25,
+                TotalCount = 0,
+            };
+
+        return await AssertSuccessAndDeserialize<WorkflowCollectionListResponse>(response);
+    }
+
+    /// <summary>
+    /// Lists all workflow collections in the namespace by iterating through every page.
+    /// Convenience wrapper around <see cref="ListCollectionsPaginated"/>.
     /// </summary>
     public async Task<IReadOnlyList<WorkflowCollectionResponse>> ListCollections(string? ns = null)
     {
-        using var response = await _client.GetAsync(GetCollectionsBasePath(ns));
+        var all = new List<WorkflowCollectionResponse>();
+        string? cursor = null;
 
-        if (response.StatusCode == HttpStatusCode.NoContent)
-            return [];
+        while (true)
+        {
+            var result = await ListCollectionsPaginated(ns, cursor: cursor);
+            all.AddRange(result.Data);
 
-        return await AssertSuccessAndDeserialize<List<WorkflowCollectionResponse>>(response);
+            if (result.NextCursor is null)
+                return all;
+
+            cursor = result.NextCursor;
+        }
     }
 
-    public Task<HttpResponseMessage> ListCollectionsRaw(string? ns = null) =>
-        _client.GetAsync(GetCollectionsBasePath(ns), CancellationToken.None);
+    /// <summary>
+    /// Issues a raw GET to the collections list endpoint with the supplied query string
+    /// (e.g. <c>"?failures=bogus"</c>). Used to exercise binding/validation directly.
+    /// </summary>
+    public Task<HttpResponseMessage> ListCollectionsRaw(string queryString = "", string? ns = null) =>
+        _client.GetAsync($"{GetCollectionsBasePath(ns)}{queryString}", CancellationToken.None);
 
     /// <summary>
     /// Gets a single workflow collection by key, including head statuses. Returns <see langword="null"/> on 404.

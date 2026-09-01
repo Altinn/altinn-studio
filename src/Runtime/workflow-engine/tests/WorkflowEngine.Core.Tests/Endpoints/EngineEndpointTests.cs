@@ -379,6 +379,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -387,6 +388,7 @@ public class EngineEndpointTests
         // Act
         var result = await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
+            null,
             null,
             null,
             null,
@@ -425,6 +427,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -433,6 +436,7 @@ public class EngineEndpointTests
         // Act
         var result = await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
+            null,
             null,
             null,
             null,
@@ -466,6 +470,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -480,13 +485,15 @@ public class EngineEndpointTests
                 Dictionary<string, string>?,
                 string?,
                 string?,
+                bool?,
                 CancellationToken
-            >((_, _, _, _, _, _, _, _, ns, _, _) => capturedNamespace = ns)
+            >((_, _, _, _, _, _, _, _, ns, _, _, _) => capturedNamespace = ns)
             .ReturnsAsync(new CursorPaginatedResult([], null, 0));
 
         // Act
         await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
+            null,
             null,
             null,
             null,
@@ -520,6 +527,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -534,13 +542,15 @@ public class EngineEndpointTests
                 Dictionary<string, string>?,
                 string?,
                 string?,
+                bool?,
                 CancellationToken
-            >((_, statuses, _, _, _, _, _, _, _, _, _) => capturedStatuses = statuses)
+            >((_, statuses, _, _, _, _, _, _, _, _, _, _) => capturedStatuses = statuses)
             .ReturnsAsync(new CursorPaginatedResult([], null, 0));
 
         // Act
         await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
+            null,
             null,
             null,
             null,
@@ -578,6 +588,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -592,9 +603,10 @@ public class EngineEndpointTests
                 Dictionary<string, string>?,
                 string?,
                 string?,
+                bool?,
                 CancellationToken
             >(
-                (pageSize, statuses, cursor, _, _, _, _, _, _, _, _) =>
+                (pageSize, statuses, cursor, _, _, _, _, _, _, _, _, _) =>
                 {
                     capturedPageSize = pageSize;
                     capturedStatuses = statuses;
@@ -610,6 +622,7 @@ public class EngineEndpointTests
             null,
             // Mixed case asserts the handler parses status values case-insensitively.
             ["enqueued", "Failed"],
+            null,
             testCursor,
             999,
             repositoryMock.Object,
@@ -1110,5 +1123,159 @@ public class EngineEndpointTests
         var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
         Assert.NotNull(conflict.Value);
         Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
+    }
+
+    // === ListCollections Handler Tests ===
+
+    private static Task<
+        Results<Ok<WorkflowCollectionListResponse>, NoContent, ProblemHttpResult>
+    > InvokeListCollections(
+        IEngineRepository repository,
+        string[]? keys = null,
+        string? failures = null,
+        string? cursor = null,
+        int? pageSize = null
+    ) =>
+        EngineRequestHandlers.ListCollections(
+            DefaultNamespace,
+            keys,
+            failures,
+            cursor,
+            pageSize,
+            repository,
+            _defaultSettings,
+            TestContext.Current.CancellationToken
+        );
+
+    private static void AssertBadRequest(
+        Results<Ok<WorkflowCollectionListResponse>, NoContent, ProblemHttpResult> result
+    )
+    {
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
+    }
+
+    [Fact]
+    public async Task ListCollections_KeyCombinedWithCursor_ReturnsBadRequest()
+    {
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
+
+        var result = await InvokeListCollections(repositoryMock.Object, keys: ["a"], cursor: "b");
+
+        AssertBadRequest(result);
+    }
+
+    [Fact]
+    public async Task ListCollections_KeyCombinedWithFailures_ReturnsBadRequest()
+    {
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
+
+        var result = await InvokeListCollections(repositoryMock.Object, keys: ["a"], failures: "any");
+
+        AssertBadRequest(result);
+    }
+
+    [Fact]
+    public async Task ListCollections_MoreKeysThanMaxPageSize_ReturnsBadRequest_NeverTruncates()
+    {
+        // Strict mock: the repository must never be reached — rejecting instead of truncating is
+        // the contract (dropped keys would read as healthy).
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
+        var keys = Enumerable
+            .Range(0, _defaultSettings.Value.Pagination.MaxPageSize + 1)
+            .Select(i => $"k-{i}")
+            .ToArray();
+
+        var result = await InvokeListCollections(repositoryMock.Object, keys: keys);
+
+        AssertBadRequest(result);
+    }
+
+    [Fact]
+    public async Task ListCollections_UnknownFailuresValue_ReturnsBadRequest()
+    {
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
+
+        var result = await InvokeListCollections(repositoryMock.Object, failures: "bogus");
+
+        AssertBadRequest(result);
+    }
+
+    [Fact]
+    public async Task ListCollections_FailuresValue_ParsedCaseInsensitively()
+    {
+        // Arrange
+        CollectionFailureFilter? capturedFilter = null;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetCollections(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyCollection<string>?>(),
+                    It.IsAny<CollectionFailureFilter?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, int, string?, IReadOnlyCollection<string>?, CollectionFailureFilter?, CancellationToken>(
+                (_, _, _, _, failures, _) => capturedFilter = failures
+            )
+            .ReturnsAsync(new CollectionQueryResult([], null, 0));
+
+        // Act
+        await InvokeListCollections(repositoryMock.Object, failures: "INVISIBLE");
+
+        // Assert
+        Assert.Equal(CollectionFailureFilter.Invisible, capturedFilter);
+    }
+
+    [Fact]
+    public async Task ListCollections_EmptyListMode_ReturnsNoContent()
+    {
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetCollections(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyCollection<string>?>(),
+                    It.IsAny<CollectionFailureFilter?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new CollectionQueryResult([], null, 0));
+
+        var result = await InvokeListCollections(repositoryMock.Object);
+
+        Assert.IsType<NoContent>(result.Result);
+    }
+
+    [Fact]
+    public async Task ListCollections_EmptyAnnotateMode_ReturnsOkWithUnmatchedKeys()
+    {
+        // Annotate mode must answer 200 even when nothing matched: unmatchedKeys is the payload.
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetCollections(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyCollection<string>?>(),
+                    It.IsAny<CollectionFailureFilter?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new CollectionQueryResult([], null, 0, ["ghost"]));
+
+        var result = await InvokeListCollections(repositoryMock.Object, keys: ["ghost"]);
+
+        var ok = Assert.IsType<Ok<WorkflowCollectionListResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Empty(ok.Value.Data);
+        Assert.NotNull(ok.Value.UnmatchedKeys);
+        Assert.Equal(["ghost"], ok.Value.UnmatchedKeys.ToArray());
     }
 }

@@ -11,8 +11,12 @@ namespace WorkflowEngine.Data.Repository;
 internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(
+    public async Task<CollectionQueryResult> GetCollections(
         string ns,
+        int pageSize,
+        string? cursor = null,
+        IReadOnlyCollection<string>? keys = null,
+        CollectionFailureFilter? failures = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -24,12 +28,60 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var normalizedNs = WorkflowNamespace.Normalize(ns);
 
-            var entities = await context
-                .WorkflowCollections.Where(c => c.Namespace == normalizedNs)
-                .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                .ToListAsync(cancellationToken);
+            var baseQuery = context.WorkflowCollections.Where(c => c.Namespace == normalizedNs);
 
-            return entities
+            var requestedKeys = keys is { Count: > 0 } ? keys.Distinct(StringComparer.Ordinal).ToArray() : null;
+            if (requestedKeys is not null)
+            {
+                baseQuery = baseQuery.Where(c => requestedKeys.Contains(c.Key));
+            }
+            else if (failures is not null)
+            {
+                // Discovery is driven workflows → collections: an index scan on (namespace, status)
+                // finds the failed workflows, their distinct collection keys form a small set, and
+                // only those collection rows are fetched. The inverted shape (scan collections with
+                // an EXISTS per row) is pathological exactly when failures are rare, which is the
+                // normal state.
+                var failedStatuses = PersistentItemStatusMap.Failed;
+                var failedWorkflows = context.Workflows.Where(w =>
+                    w.Namespace == normalizedNs && w.CollectionKey != null && failedStatuses.Contains(w.Status)
+                );
+
+                failedWorkflows = failures switch
+                {
+                    CollectionFailureFilter.Visible => failedWorkflows.Where(w => w.IsHead != false),
+                    CollectionFailureFilter.Invisible => failedWorkflows.Where(w => w.IsHead == false),
+                    _ => failedWorkflows,
+                };
+
+                var failedKeys = failedWorkflows.Select(w => w.CollectionKey).Distinct();
+                baseQuery = baseQuery.Where(c => failedKeys.Contains(c.Key));
+            }
+
+            var totalCount = await baseQuery.CountAsync(cancellationToken);
+
+            var pageQuery = baseQuery;
+            if (cursor is not null)
+                pageQuery = pageQuery.Where(c => c.Key.CompareTo(cursor) > 0);
+
+            // Fetch one extra to determine if there's a next page
+            var entities = await pageQuery.OrderBy(c => c.Key).Take(pageSize + 1).ToListAsync(cancellationToken);
+
+            string? nextCursor = null;
+            if (entities.Count > pageSize)
+            {
+                entities.RemoveAt(entities.Count - 1);
+                nextCursor = entities[^1].Key;
+            }
+
+            var counts = await GetCollectionWorkflowCounts(
+                context,
+                normalizedNs,
+                entities.Select(e => e.Key).ToArray(),
+                cancellationToken
+            );
+
+            var collections = entities
                 .Select(e => new WorkflowCollectionResponse
                 {
                     Key = e.Key,
@@ -37,8 +89,18 @@ internal sealed partial class EngineRepository
                     Heads = e.Heads,
                     CreatedAt = e.CreatedAt,
                     UpdatedAt = e.UpdatedAt,
+                    WorkflowCounts = counts.GetValueOrDefault(e.Key, _emptyCounts),
                 })
                 .ToList();
+
+            IReadOnlyList<string>? unmatchedKeys = null;
+            if (requestedKeys is not null)
+            {
+                var matched = collections.Select(c => c.Key).ToHashSet(StringComparer.Ordinal);
+                unmatchedKeys = requestedKeys.Where(k => !matched.Contains(k)).ToList();
+            }
+
+            return new CollectionQueryResult(collections, nextCursor, totalCount, unmatchedKeys);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -50,6 +112,68 @@ internal sealed partial class EngineRepository
             logger.FailedToFetchWorkflows(ex.Message, ex);
             throw;
         }
+    }
+
+    private static readonly CollectionWorkflowCounts _emptyCounts = new()
+    {
+        Active = 0,
+        FailedVisible = 0,
+        FailedInvisible = 0,
+        Total = 0,
+    };
+
+    /// <summary>
+    /// Computes the per-collection workflow status rollup for a page of collection keys in a single
+    /// grouped query (translated to <c>COUNT(*) FILTER (WHERE …)</c>). The failed buckets split on
+    /// head visibility (<c>is_head IS DISTINCT FROM false</c> vs <c>is_head = false</c>) and exclude
+    /// <see cref="PersistentItemStatus.Abandoned"/> — a written-off failure is not an open one —
+    /// while the total counts every workflow in the collection.
+    /// </summary>
+    private static async Task<Dictionary<string, CollectionWorkflowCounts>> GetCollectionWorkflowCounts(
+        Context.EngineDbContext context,
+        string normalizedNs,
+        string[] collectionKeys,
+        CancellationToken cancellationToken
+    )
+    {
+        if (collectionKeys.Length == 0)
+            return [];
+
+        var activeStatuses = PersistentItemStatusMap.Incomplete;
+        var failedStatuses = PersistentItemStatusMap.Failed;
+
+        var counts = await context
+            .Workflows.Where(w =>
+                w.Namespace == normalizedNs && w.CollectionKey != null && collectionKeys.Contains(w.CollectionKey)
+            )
+            .GroupBy(w => w.CollectionKey)
+            .Select(g => new
+            {
+                g.Key,
+                Active = g.Count(w => activeStatuses.Contains(w.Status)),
+                FailedVisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead != false),
+                FailedInvisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead == false),
+                Total = g.Count(),
+            })
+            .ToListAsync(cancellationToken);
+
+        // The group key is non-null by construction: the query filters CollectionKey != null.
+        var result = new Dictionary<string, CollectionWorkflowCounts>(counts.Count, StringComparer.Ordinal);
+        foreach (var c in counts)
+        {
+            if (c.Key is not { } key)
+                continue;
+
+            result[key] = new CollectionWorkflowCounts
+            {
+                Active = c.Active,
+                FailedVisible = c.FailedVisible,
+                FailedInvisible = c.FailedInvisible,
+                Total = c.Total,
+            };
+        }
+
+        return result;
     }
 
     /// <inheritdoc/>
@@ -343,6 +467,7 @@ internal sealed partial class EngineRepository
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
         string? collectionKey = null,
+        bool? isHead = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -361,7 +486,8 @@ internal sealed partial class EngineRepository
                 retriedOnly,
                 collectionKeyFilter: collectionKey,
                 namespaceFilter: namespaceFilter,
-                labelFilter: labelFilters
+                labelFilter: labelFilters,
+                isHeadFilter: isHead
             );
 
             int? totalCount = includeTotalCount ? await baseQuery.CountAsync(cancellationToken) : null;
