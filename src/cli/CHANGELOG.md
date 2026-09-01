@@ -19,6 +19,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade v9` now removes an explicit `Microsoft.Extensions.Logging.Debug` package reference, which fails to build on .NET 10 because the debug logger it provides is already built into the framework.
 - `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
 
 ## [0.1.0-preview.22] - 2026-08-18
