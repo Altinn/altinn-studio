@@ -88,7 +88,10 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFi
             WorkflowId = Guid.NewGuid(),
             State = Services
                 .GetRequiredService<WorkflowStateSigner>()
-                .Sign(JsonSerializer.Serialize(new WorkflowCallbackState { Instance = instance, FormData = [] })),
+                .Sign(
+                    JsonSerializer.Serialize(new WorkflowCallbackState { Instance = instance, FormData = [] }),
+                    SigningDomain.CallbackState
+                ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 

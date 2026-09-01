@@ -870,6 +870,7 @@ internal class ProcessEngine : IProcessEngine
         string collectionKey,
         string state,
         string? action = null,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     )
     {
@@ -884,6 +885,7 @@ internal class ProcessEngine : IProcessEngine
             collectionKey,
             state,
             actor,
+            idempotencyKey,
             ct: ct
         );
     }

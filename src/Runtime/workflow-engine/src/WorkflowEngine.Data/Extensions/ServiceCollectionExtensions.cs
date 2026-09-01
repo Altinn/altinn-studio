@@ -98,6 +98,7 @@ internal static class ServiceCollectionExtensions
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
             services.AddHostedService<DbMaintenanceService>();
+            services.AddHostedService<MailboxDeadlineService>();
 
             return services;
         }

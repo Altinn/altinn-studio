@@ -38,17 +38,26 @@ internal static class EngineRepositoryQueryExtensions
         /// makes a parked workflow runnable regardless of its timer, mirroring the fetch gate's
         /// cancellation bypass.
         /// </summary>
+        /// <remarks>
+        /// Mirrors the fetch gate's own conditions — <see cref="PersistentItemStatusMap.Fetchable"/>, the timer
+        /// gate, and the dependency gate. Getting any of them wrong turns the harness's "wait until nothing can
+        /// start" into a wait that never ends.
+        /// </remarks>
         public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
-            dbContext
-                .Workflows.Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
-                .Where(wf =>
-                    wf.Status == PersistentItemStatus.Processing
-                    || wf.CancellationRequestedAt != null
-                    || (
-                        (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
-                        && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+            dbContext.Workflows.Where(wf =>
+                wf.Status == PersistentItemStatus.Processing
+                || (
+                    PersistentItemStatusMap.Fetchable.Contains(wf.Status)
+                    && (
+                        wf.CancellationRequestedAt != null
+                        || (
+                            (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
+                            && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+                        )
                     )
-                );
+                    && !wf.Dependencies.Any(dep => !PersistentItemStatusMap.Finished.Contains(dep.Status))
+                )
+            );
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,

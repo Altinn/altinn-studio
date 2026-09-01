@@ -1,4 +1,4 @@
-import type { CodeListItem } from './types/CodeListItem';
+import type { MultiLanguageCodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
@@ -9,27 +9,27 @@ export function addNewCodeListItem(codeList: CodeList): CodeList {
   return addCodeListItem(codeList, newEmptyItem);
 }
 
-function createEmptyItem(): CodeListItem {
+function createEmptyItem(): MultiLanguageCodeListItem {
   return {
     value: '',
     label: {},
   };
 }
 
-function addCodeListItem(codeList: CodeList, item: CodeListItem): CodeList {
+function addCodeListItem(codeList: CodeList, item: MultiLanguageCodeListItem): CodeList {
   return [...codeList, item];
 }
 
 export function removeCodeListItem(codeList: CodeList, index: number): CodeList {
-  return ArrayUtils.removeItemByIndex<CodeListItem>(codeList, index);
+  return ArrayUtils.removeItemByIndex<MultiLanguageCodeListItem>(codeList, index);
 }
 
 export function changeCodeListItem(
   codeList: CodeList,
   index: number,
-  newItem: CodeListItem,
+  newItem: MultiLanguageCodeListItem,
 ): CodeList {
-  return ArrayUtils.replaceByIndex<CodeListItem>(codeList, index, newItem);
+  return ArrayUtils.replaceByIndex<MultiLanguageCodeListItem>(codeList, index, newItem);
 }
 
 export function isCodeListEmpty(codeList: CodeList): boolean {
@@ -46,7 +46,7 @@ export type UpdateCodeTextArgs = {
 export function updateCodeText(codeList: CodeList, updateArgs: UpdateCodeTextArgs): CodeList {
   const { property, codeItemIndex, newValue } = updateArgs;
   const newCodeList: CodeList = [...codeList];
-  const oldItem: CodeListItem = newCodeList[codeItemIndex];
+  const oldItem: MultiLanguageCodeListItem = newCodeList[codeItemIndex];
   const oldProperty = oldItem[property] || {};
   const newProperty = updateMultiLanguageText(oldProperty, updateArgs.language, newValue);
   newCodeList[codeItemIndex] = { ...oldItem, [property]: newProperty };
@@ -72,7 +72,7 @@ export function extractLanguageCodes(codeList: CodeList): string[] {
   return ArrayUtils.removeDuplicates(allCodes);
 }
 
-function extractLanguageCodesFromItem(item: CodeListItem): string[] {
+function extractLanguageCodesFromItem(item: MultiLanguageCodeListItem): string[] {
   const labelCodes = extractLanguageCodesFromTextInstance(item.label || {});
   const descriptionCodes = extractLanguageCodesFromTextInstance(item.description || {});
   const helpTextCodes = extractLanguageCodesFromTextInstance(item.helpText || {});
@@ -88,7 +88,10 @@ export function addLanguage(codeList: CodeList, languageCode: string): CodeList 
   return codeList.map((item) => addLanguageToItem(item, languageCode));
 }
 
-function addLanguageToItem(item: CodeListItem, languageCode: string): CodeListItem {
+function addLanguageToItem(
+  item: MultiLanguageCodeListItem,
+  languageCode: string,
+): MultiLanguageCodeListItem {
   return {
     ...item,
     label: addLanguageToTextInstance(item.label || {}, languageCode),
@@ -106,14 +109,17 @@ export function removeLanguage(codeList: CodeList, languageCode: string): CodeLi
   return codeList.map((item) => removeLanguageFromItem(item, languageCode));
 }
 
-function removeLanguageFromItem(item: CodeListItem, languageCode: string): CodeListItem {
+function removeLanguageFromItem(
+  item: MultiLanguageCodeListItem,
+  languageCode: string,
+): MultiLanguageCodeListItem {
   const newItem = ObjectUtils.shallowMutableCopy(item);
   if ('label' in item) newItem.label = removeLanguageFromTextInstance(item.label!, languageCode);
   if ('description' in item)
     newItem.description = removeLanguageFromTextInstance(item.description!, languageCode);
   if ('helpText' in item)
     newItem.helpText = removeLanguageFromTextInstance(item.helpText!, languageCode);
-  return newItem as CodeListItem;
+  return newItem as MultiLanguageCodeListItem;
 }
 
 function removeLanguageFromTextInstance(

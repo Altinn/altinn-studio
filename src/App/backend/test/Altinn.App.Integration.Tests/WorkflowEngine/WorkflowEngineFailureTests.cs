@@ -184,7 +184,8 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         JsonElement failureRoot = failureDocument.RootElement;
         Assert.Equal("stepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
         Assert.Equal(
-            "ExecuteServiceTask",
+            // The failing task is a simple IServiceTask, whose whole pipeline is the conclusion at item 0.
+            "ExecuteServiceTask: 0",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
         );
         // The raw failure detail (the service task's exception text) is never serialized to

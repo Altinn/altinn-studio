@@ -14,6 +14,7 @@
     "@digdir/designsystemet-css": "1.13.3",
     "@digdir/designsystemet-react": "1.13.3",
     "@digdir/designsystemet-theme": "1.11.0",
+    "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
     "react-dnd": "16.0.1",

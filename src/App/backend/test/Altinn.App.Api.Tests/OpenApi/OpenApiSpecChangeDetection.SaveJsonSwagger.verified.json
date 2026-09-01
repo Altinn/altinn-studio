@@ -8040,6 +8040,53 @@
         },
         "additionalProperties": false
       },
+      "AppCallbackMailbox": {
+        "required": [
+          "id",
+          "seq"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/AppCallbackMailboxDelivery"
+          },
+          "disposedReason": {
+            "$ref": "#/components/schemas/MailboxDisposedReason"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppCallbackMailboxDelivery": {
+        "required": [
+          "acceptedAt",
+          "idempotencyKey",
+          "payload"
+        ],
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "payload": {
+            "type": "string",
+            "nullable": true
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "AppCallbackPayload": {
         "required": [
           "actor",
@@ -8068,6 +8115,9 @@
           "workflowId": {
             "type": "string",
             "format": "uuid"
+          },
+          "mailbox": {
+            "$ref": "#/components/schemas/AppCallbackMailbox"
           },
           "stepId": {
             "type": "string",
@@ -10193,6 +10243,13 @@
         },
         "additionalProperties": false,
         "description": "Contains the result of a person search request."
+      },
+      "MailboxDisposedReason": {
+        "enum": [
+          "Request",
+          "Deadline"
+        ],
+        "type": "string"
       },
       "MessageBoxConfig": {
         "type": "object",
