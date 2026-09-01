@@ -5558,6 +5558,7 @@ __metadata:
   dependencies:
     "@studio/components": "workspace:^"
     "@studio/components-legacy": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
     "@types/jest": "npm:30.0.0"

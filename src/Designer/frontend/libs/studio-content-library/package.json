@@ -5,7 +5,8 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@studio/components": "workspace:^",
-    "@studio/components-legacy": "workspace:^"
+    "@studio/components-legacy": "workspace:^",
+    "@studio/pure-functions": "workspace:^"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
