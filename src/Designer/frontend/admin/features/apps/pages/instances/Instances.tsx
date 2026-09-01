@@ -1,11 +1,9 @@
 import classes from './Instances.module.css';
 import { InstancesTable } from './components/InstancesTable';
-import { StudioCard, StudioHeading } from '@studio/components';
 import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
 import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
-import { useTranslation } from 'react-i18next';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 const YES_NO_ALL_OPTIONS = [
@@ -33,7 +31,6 @@ function getCurrentDateOnlyStringMinusDays(days: number | undefined) {
 }
 
 export const Instances = () => {
-  const { t } = useTranslation();
   const {
     owner: org,
     environment,
@@ -53,10 +50,7 @@ export const Instances = () => {
   );
 
   return (
-    <StudioCard>
-      <StudioHeading className={classes.heading} data-size='sm'>
-        {t('admin.instances.title')}
-      </StudioHeading>
+    <>
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
         <ProcessTaskFilter
@@ -102,6 +96,6 @@ export const Instances = () => {
         isSoftDeleted={isSoftDeleted}
         createdBefore={getCurrentDateOnlyStringMinusDays(createdBeforeDays)}
       />
-    </StudioCard>
+    </>
   );
 };

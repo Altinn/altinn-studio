@@ -2,7 +2,7 @@ import { StudioHeading } from '@studio/components';
 import { AppMetrics } from './components/AppMetrics';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import classes from './AppDetails.module.css';
-import { Instances } from '../instances/Instances';
+import { InstancesSection } from './components/InstancesSection';
 import { AppInfo } from './components/AppInfo';
 import { Breadcrumbs } from 'admin/features/apps/components/Breadcrumbs/Breadcrumbs';
 import { DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
@@ -32,7 +32,7 @@ export const AppsDetails = () => {
         <AppMetrics range={range ?? defaultRange} setRange={setRange} />
       </div>
       <div>
-        <Instances />
+        <InstancesSection org={org} environment={environment} app={app} />
       </div>
     </div>
   );
