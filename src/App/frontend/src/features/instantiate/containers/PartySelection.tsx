@@ -58,8 +58,6 @@ export const PartySelection = () => {
   const appOwner = useAppOwner();
 
   // The processing mutation guards against a second selection while one is in flight
-  // (clicks on any party are ignored until it settles), and its process key drives the
-  // pressed state on the clicked party.
   const performProcess = useProcessingMutationWithKey<string>('select-party');
   const processingPartyId = useCurrentProcessKey('select-party');
   const selectedPartyId = processingPartyId !== null ? Number(processingPartyId) : undefined;
@@ -68,14 +66,10 @@ export const PartySelection = () => {
     performProcess(String(party.partyId), async () => {
       const result = await selectParty(party);
       if (!result) {
-        // selectParty resolves to undefined when the backend did not accept the change
-        // (real errors unmount this page via DisplayError in the provider). Returning
-        // settles the mutation, clearing the pressed state and re-enabling selection.
         return;
       }
       setUserHasSelectedParty(true);
-      // In the data router this resolves when the "/" route has finished loading,
-      // keeping the pressed state and the click guard active until the page swaps.
+      // await navigation, including running loaders, keeping the pressed state and the click guard active until the page swaps.
       await navigate('/');
     });
 

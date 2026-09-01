@@ -20,18 +20,17 @@ export interface IAltinnPartyProps {
   selectedPartyId?: number;
 }
 
+/** State of a party element. 'selectable' means it can be selected, 'noAccess' means the user has no access, 'selected' means it is currently selected, and 'blocked' means another party is selected. */
 export type AltinnPartyState = 'selectable' | 'noAccess' | 'selected' | 'blocked';
 
 function getPartyState(party: IParty, selectedPartyId: number | undefined): AltinnPartyState {
   if (party.onlyHierarchyElementWithNoAccess) {
-    // Takes precedence — a party without access can never be the chosen one
     return 'noAccess';
   }
   if (party.partyId === selectedPartyId) {
     return 'selected';
   }
   if (selectedPartyId !== undefined) {
-    // Another party's selection is in flight — this one cannot be selected right now
     return 'blocked';
   }
   return 'selectable';

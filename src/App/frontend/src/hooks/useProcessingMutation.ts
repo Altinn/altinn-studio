@@ -12,9 +12,7 @@ const PROCESSING_MUTATION_KEY = ['processing'] as const;
  * - 'subform': Adding subform entries
  * - 'custom-action': Custom button actions
  * - 'navigate-page': All page navigation (NavigationBar, NavigationButtons, Page, PageGroup)
- * - 'select-party': Selecting the party to represent (PartySelection). Spans the whole gesture:
- *   the selection request plus the awaited navigation to "/", whose loader may create an instance
- *   directly (never via the 'instantiation' key, which is only used by click handlers on later pages).
+ * - 'select-party': Selecting the party, including the automatic creation of an instance if needed.
  */
 export type MutationKey =
   'instantiation' | 'exit-subform' | 'add-subform' | 'custom-action' | 'navigate-page' | 'select-party';
