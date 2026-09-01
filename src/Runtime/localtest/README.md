@@ -2,10 +2,13 @@
 
 Localtest emulates the Altinn 3 platform services needed to run apps locally.
 
-- [Prerequisites](#prerequisites)
-- [Changing test data](#changing-test-data)
-- [k6 testing](#k6-testing)
-- [Known issues](#known-issues)
+- [Local testing of apps](#local-testing-of-apps)
+  - [Prerequisites](#prerequisites)
+  - [Changing test data](#changing-test-data)
+    - [Add a missing role for a test user](#add-a-missing-role-for-a-test-user)
+  - [k6 testing](#k6-testing)
+  - [Known issues](#known-issues)
+    - [Localtest reports that the app is not running even though it is](#localtest-reports-that-the-app-is-not-running-even-though-it-is)
 
 ### Prerequisites
 
