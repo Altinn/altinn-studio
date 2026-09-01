@@ -1574,7 +1574,8 @@ POST /api/v1/{namespace}/throttle/clear
 
 ### List Collections
 
-The per-collection **health** view: a cursor-paginated list (ordered by key) where every entry
+The per-collection **health** view: a cursor-paginated list (stable, collation-defined key order;
+the cursor is opaque) where every entry
 carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for
 head statuses) plus a `workflowCounts` rollup across **all** of the collection's workflows,
 including the invisible (`isHead = false`) ones the head frontier hides. See
