@@ -349,10 +349,13 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
+        // Resolved before the gateway call so a registry outage is never reported as an
+        // unreachable runtime gateway.
+        Uri baseUrl = await ResolveAppClusterUriAsync(org, environment, cancellationToken);
+
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl =
-            $"{baseUrl}/runtime/gateway/api/v1/workflows/apps/{Uri.EscapeDataString(app)}"
+            $"{TrimTrailingSlash(baseUrl)}/runtime/gateway/api/v1/workflows/apps/{Uri.EscapeDataString(app)}"
             + $"{pathSuffix}{query?.ToQueryString().ToUriComponent()}";
 
         using var request = new HttpRequestMessage(method, requestUrl);
@@ -361,6 +364,47 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         // status code included — so the gateway/engine wire contract passes through untouched.
         return await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
     }
+
+    /// <summary>
+    /// Resolves the app cluster address for an environment, translating registry failures into
+    /// <see cref="EnvironmentsRegistryUnavailableException"/>. The unknown-environment
+    /// <see cref="KeyNotFoundException"/> and caller cancellation keep their own identity.
+    /// </summary>
+    private async Task<Uri> ResolveAppClusterUriAsync(
+        string org,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            return await _environmentsService.GetAppClusterUri(org, environment.Name);
+        }
+        catch (KeyNotFoundException)
+        {
+            // The environment is unknown — a client error, classified on its own by callers.
+            throw;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The caller went away; not a registry failure.
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw new EnvironmentsRegistryUnavailableException(
+                $"Could not resolve the app cluster address for '{org}' in environment '{environment.Name}'.",
+                exception
+            );
+        }
+    }
+
+    /// <summary>
+    /// The configured app cluster pattern is authority-only in hosted environments, so
+    /// <see cref="Uri"/> canonicalizes it with a trailing slash, while the local pattern carries a
+    /// path and has none. Trimming keeps the joined path single-slashed either way.
+    /// </summary>
+    private static string TrimTrailingSlash(Uri baseUrl) => baseUrl.AbsoluteUri.TrimEnd('/');
 
     private static void AddAll(QueryBuilder query, string name, IReadOnlyList<string>? values)
     {
