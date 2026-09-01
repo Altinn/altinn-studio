@@ -778,16 +778,18 @@ internal static class EngineRequestHandlers
         CollectionFailureFilter? failureFilter = null;
         if (failures is not null)
         {
-            if (
-                !Enum.TryParse(failures, ignoreCase: true, out CollectionFailureFilter parsed)
-                || !Enum.IsDefined(parsed)
-            )
+            // Match the named values explicitly: Enum.TryParse also accepts the underlying numeric
+            // strings ("0"/"1"/"2"), which this endpoint's contract does not offer.
+            var names = Enum.GetNames<CollectionFailureFilter>();
+            var match = Array.Find(names, name => name.Equals(failures, StringComparison.OrdinalIgnoreCase));
+
+            if (match is null)
                 return TypedResults.Problem(
-                    detail: $"'{failures}' is not a valid failures filter. Valid values (case-insensitive): {string.Join(", ", Enum.GetNames<CollectionFailureFilter>())}.",
+                    detail: $"'{failures}' is not a valid failures filter. Valid values (case-insensitive): {string.Join(", ", names)}.",
                     statusCode: StatusCodes.Status400BadRequest
                 );
 
-            failureFilter = parsed;
+            failureFilter = Enum.Parse<CollectionFailureFilter>(match);
         }
 
         // Annotate mode is a single page by construction: the page must fit every requested key

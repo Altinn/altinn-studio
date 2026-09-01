@@ -1191,12 +1191,21 @@ public class EngineEndpointTests
         AssertBadRequest(result);
     }
 
-    [Fact]
-    public async Task ListCollections_UnknownFailuresValue_ReturnsBadRequest()
+    [Theory]
+    [InlineData("bogus")]
+    [InlineData("")]
+    // Numeric strings are the enum's underlying values, not part of the contract: the endpoint
+    // documents named values only, so "0"/"1"/"2" must be rejected like any other unknown value.
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("2")]
+    [InlineData("3")]
+    [InlineData("-1")]
+    public async Task ListCollections_UnknownFailuresValue_ReturnsBadRequest(string failures)
     {
         var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
 
-        var result = await InvokeListCollections(repositoryMock.Object, failures: "bogus");
+        var result = await InvokeListCollections(repositoryMock.Object, failures: failures);
 
         AssertBadRequest(result);
     }
@@ -1237,8 +1246,15 @@ public class EngineEndpointTests
         Assert.Equal(60, capturedKeys.Count);
     }
 
-    [Fact]
-    public async Task ListCollections_FailuresValue_ParsedCaseInsensitively()
+    [Theory]
+    [InlineData("any", CollectionFailureFilter.Any)]
+    [InlineData("Visible", CollectionFailureFilter.Visible)]
+    [InlineData("INVISIBLE", CollectionFailureFilter.Invisible)]
+    [InlineData("InViSiBlE", CollectionFailureFilter.Invisible)]
+    public async Task ListCollections_FailuresValue_ParsedCaseInsensitively(
+        string failures,
+        CollectionFailureFilter expected
+    )
     {
         // Arrange
         CollectionFailureFilter? capturedFilter = null;
@@ -1260,10 +1276,10 @@ public class EngineEndpointTests
             .ReturnsAsync(new CollectionQueryResult([], null, 0));
 
         // Act
-        await InvokeListCollections(repositoryMock.Object, failures: "INVISIBLE");
+        await InvokeListCollections(repositoryMock.Object, failures: failures);
 
         // Assert
-        Assert.Equal(CollectionFailureFilter.Invisible, capturedFilter);
+        Assert.Equal(expected, capturedFilter);
     }
 
     [Fact]
