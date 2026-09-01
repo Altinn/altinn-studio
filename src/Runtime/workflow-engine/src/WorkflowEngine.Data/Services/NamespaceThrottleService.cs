@@ -42,9 +42,9 @@ internal sealed class NamespaceThrottleService(
 ) : BackgroundService
 {
     /// <summary>
-    /// How long a <see cref="NamespaceThrottleState.Closed"/> row lingers before deletion,
+    /// How long a <see cref="NamespaceThrottleState.Clear"/> row lingers before deletion,
     /// as a multiple of <see cref="ThrottlingSettings.SweepInterval"/>. A handler snapshot can be
-    /// stale by one sweep interval, so a workflow may still be parked into a just-closed
+    /// stale by one sweep interval, so a workflow may still be parked into a just-cleared
     /// namespace; during the grace window the sweep clears such stragglers. One interval would
     /// be the theoretical minimum — five buys margin for a slow replica or a sweep cycle that
     /// overruns, and exceeds <see cref="ThrottleStateView.StaleSnapshotSweepMultiplier"/> so even
@@ -53,7 +53,7 @@ internal sealed class NamespaceThrottleService(
     /// configuration for the same reason as the growth factors: it composes with
     /// <see cref="ThrottlingSettings.SweepInterval"/> multiplicatively.
     /// </summary>
-    internal const int ClosedGraceSweepMultiplier = 5;
+    internal const int ClearGraceSweepMultiplier = 5;
 
     /// <summary>
     /// Rows per park batch: candidates are loaded and stamped in chunks so a 100k-workflow storm
@@ -170,14 +170,14 @@ internal sealed class NamespaceThrottleService(
 
             switch (throttle.State)
             {
-                case NamespaceThrottleState.Open:
-                    await EvaluateOpen(throttle, namespaceCounts, now, ct);
+                case NamespaceThrottleState.Tripped:
+                    await EvaluateTripped(throttle, namespaceCounts, now, ct);
                     break;
-                case NamespaceThrottleState.HalfOpen:
-                    await EvaluateHalfOpen(throttle, namespaceCounts, now, ct);
+                case NamespaceThrottleState.Recovering:
+                    await EvaluateRecovering(throttle, namespaceCounts, now, ct);
                     break;
-                case NamespaceThrottleState.Closed:
-                    await EvaluateClosed(throttle, namespaceCounts, now, ct);
+                case NamespaceThrottleState.Clear:
+                    await EvaluateClear(throttle, namespaceCounts, now, ct);
                     break;
             }
         }
@@ -195,9 +195,9 @@ internal sealed class NamespaceThrottleService(
     }
 
     /// <summary>
-    /// Trips the breaker for a namespace: state <see cref="NamespaceThrottleState.Open"/> with the
+    /// Trips the breaker for a namespace: state <see cref="NamespaceThrottleState.Tripped"/> with the
     /// given window, fresh canaries on the normal retry schedule, everything else parked.
-    /// Used for first trips (initial window), re-trips from <see cref="NamespaceThrottleState.Closed"/>
+    /// Used for first trips (initial window), re-trips from <see cref="NamespaceThrottleState.Clear"/>
     /// (initial window — the grace period judged the incident over), and re-trips from failed
     /// recovery (the grown window persists).
     /// </summary>
@@ -209,7 +209,7 @@ internal sealed class NamespaceThrottleService(
         var throttle = new NamespaceThrottle
         {
             Namespace = counts.Namespace,
-            State = NamespaceThrottleState.Open,
+            State = NamespaceThrottleState.Tripped,
             TrippedAt = now,
             CurrentWindow = window,
             Canaries = canaries,
@@ -228,15 +228,15 @@ internal sealed class NamespaceThrottleService(
     }
 
     /// <summary>
-    /// An open breaker probes its canaries: any progressed canary opens recovery (quorum of one —
+    /// A tripped breaker probes its canaries: any progressed canary opens recovery (quorum of one —
     /// premature release self-corrects by re-tripping, while requiring unanimity would let one
     /// idiosyncratically-broken workflow block recovery forever); unanimous failure extends the
     /// window and rotates the canaries; otherwise — including a canary observed mid-attempt,
     /// which proves nothing about the target — the breaker keeps waiting. In all cases the
     /// sweep re-parks stragglers and re-stamps rows whose window is about to elapse — natural
-    /// elapse is the eligibility mechanism, but an open breaker keeps re-parking.
+    /// elapse is the eligibility mechanism, but a tripped breaker keeps re-parking.
     /// </summary>
-    private async Task EvaluateOpen(
+    private async Task EvaluateTripped(
         NamespaceThrottle throttle,
         NamespaceWorkflowCounts counts,
         DateTimeOffset now,
@@ -279,13 +279,13 @@ internal sealed class NamespaceThrottleService(
 
         if (anyProgressed)
         {
-            throttle.State = NamespaceThrottleState.HalfOpen;
+            throttle.State = NamespaceThrottleState.Recovering;
             _releaseCohortSizes[throttle.Namespace] = settings.CanaryCount;
             logger.ThrottleRecoveryStarted(throttle.Namespace, throttle.CurrentWindow);
 
             // Recovery starts this sweep — the canaries already proved capacity, so the first
             // cohort should not wait out another interval.
-            await EvaluateHalfOpen(throttle, counts, now, ct);
+            await EvaluateRecovering(throttle, counts, now, ct);
             return;
         }
 
@@ -326,7 +326,7 @@ internal sealed class NamespaceThrottleService(
     /// Otherwise it releases the next cohort oldest-first with a jittered smear, doubling the
     /// cohort each sweep, and closes once the parked population is exhausted.
     /// </summary>
-    private async Task EvaluateHalfOpen(
+    private async Task EvaluateRecovering(
         NamespaceThrottle throttle,
         NamespaceWorkflowCounts counts,
         DateTimeOffset now,
@@ -338,9 +338,9 @@ internal sealed class NamespaceThrottleService(
 
         if (IsTripCondition(unparked))
         {
-            // Failed recovery: back to Open. The window memory persists — this is what makes
+            // Failed recovery: back to Tripped. The window memory persists — this is what makes
             // repeated failed recoveries progressively more patient.
-            throttle.State = NamespaceThrottleState.Open;
+            throttle.State = NamespaceThrottleState.Tripped;
             throttle.TrippedAt = now;
             throttle.Canaries = await repository.SelectThrottleCanaries(
                 throttle.Namespace,
@@ -387,14 +387,14 @@ internal sealed class NamespaceThrottleService(
         if (released < cohortSize)
         {
             // Parked population exhausted and the trip condition is quiet: the incident is over.
-            // The row lingers Closed for a grace period so stragglers parked by stale handler
+            // The row lingers Clear for a grace period so stragglers parked by stale handler
             // snapshots still get cleared — deleting it here would orphan them.
-            throttle.State = NamespaceThrottleState.Closed;
+            throttle.State = NamespaceThrottleState.Clear;
             throttle.Canaries = [];
             _releaseCohortSizes.Remove(throttle.Namespace);
 
-            Metrics.ThrottleClosed.Add(1, ("namespace", throttle.Namespace));
-            logger.ThrottleClosed(throttle.Namespace);
+            Metrics.ThrottleCleared.Add(1, ("namespace", throttle.Namespace));
+            logger.ThrottleCleared(throttle.Namespace);
         }
 
         Stamp(throttle, counts, now);
@@ -402,12 +402,12 @@ internal sealed class NamespaceThrottleService(
     }
 
     /// <summary>
-    /// A closed breaker either re-trips like a fresh detection (raw counts, initial window), or
+    /// A cleared breaker either re-trips like a fresh detection (raw counts, initial window), or
     /// serves out its grace period: each sweep clears straggler <c>throttled_until</c> stamps in
     /// the namespace, and once the grace elapses the row is deleted. The grace anchor is the
-    /// <c>updated_at</c> written at close time, so closed rows are deliberately never re-stamped.
+    /// <c>updated_at</c> written when it cleared, so cleared rows are deliberately never re-stamped.
     /// </summary>
-    private async Task EvaluateClosed(
+    private async Task EvaluateClear(
         NamespaceThrottle throttle,
         NamespaceWorkflowCounts counts,
         DateTimeOffset now,
@@ -424,9 +424,9 @@ internal sealed class NamespaceThrottleService(
         if (cleared > 0)
             logger.ThrottleStragglersCleared(throttle.Namespace, cleared);
 
-        var closedAt = throttle.UpdatedAt ?? throttle.TrippedAt;
-        var grace = ClosedGraceSweepMultiplier * options.Value.Throttling.SweepInterval;
-        if (now - closedAt >= grace)
+        var clearedAt = throttle.UpdatedAt ?? throttle.TrippedAt;
+        var grace = ClearGraceSweepMultiplier * options.Value.Throttling.SweepInterval;
+        if (now - clearedAt >= grace)
         {
             await repository.DeleteNamespaceThrottle(throttle.Namespace, ct);
             logger.ThrottleRowDeleted(throttle.Namespace);
@@ -526,12 +526,12 @@ internal sealed class NamespaceThrottleService(
 
     private void PublishSnapshot(IReadOnlyList<NamespaceThrottle> throttles)
     {
-        var openBreakers = throttles
-            .Where(t => t.State == NamespaceThrottleState.Open)
+        var trippedBreakers = throttles
+            .Where(t => t.State == NamespaceThrottleState.Tripped)
             .ToDictionary(t => t.Namespace, t => t.CurrentWindow, StringComparer.Ordinal);
 
-        stateView.Publish(openBreakers);
-        Metrics.SetOpenThrottleBreakersCount(openBreakers.Count);
+        stateView.Publish(trippedBreakers);
+        Metrics.SetTrippedThrottleBreakersCount(trippedBreakers.Count);
     }
 }
 
@@ -629,11 +629,11 @@ internal static partial class NamespaceThrottleServiceLogs
         LogLevel.Information,
         "Throttle CLOSED for namespace {Ns}: parked population exhausted and the trip condition is quiet"
     )]
-    internal static partial void ThrottleClosed(this ILogger<NamespaceThrottleService> logger, string ns);
+    internal static partial void ThrottleCleared(this ILogger<NamespaceThrottleService> logger, string ns);
 
     [LoggerMessage(
         LogLevel.Information,
-        "Throttle cleared {ClearedCount} straggler throttled_until stamp(s) in closed namespace {Ns}"
+        "Throttle cleared {ClearedCount} straggler throttled_until stamp(s) in cleared namespace {Ns}"
     )]
     internal static partial void ThrottleStragglersCleared(
         this ILogger<NamespaceThrottleService> logger,

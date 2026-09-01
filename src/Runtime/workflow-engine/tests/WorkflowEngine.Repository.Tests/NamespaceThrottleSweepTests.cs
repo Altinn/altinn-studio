@@ -132,7 +132,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert — state row
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(now, throttle.TrippedAt, TimeSpan.FromSeconds(1));
         Assert.Equal(_initialWindow, throttle.CurrentWindow);
         Assert.Equal(6, throttle.LastRequeuedCount);
@@ -154,7 +154,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         }
 
         // The publication surface reports the open breaker with its window.
-        var breaker = Assert.Single(view.OpenBreakers);
+        var breaker = Assert.Single(view.TrippedBreakers);
         Assert.Equal(Ns, breaker.Key);
         Assert.Equal(_initialWindow, breaker.Value);
     }
@@ -251,7 +251,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert — same state, same window, same canaries.
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(_initialWindow, throttle.CurrentWindow);
         Assert.Equal(
             tripped.Canaries.Select(c => c.WorkflowId).Order(),
@@ -290,7 +290,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.Open,
+                State = NamespaceThrottleState.Tripped,
                 TrippedAt = now.AddMinutes(-5),
                 CurrentWindow = _initialWindow,
                 Canaries = [new ThrottleCanary(canaryId, 1)],
@@ -306,7 +306,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert — still Open with the same window and the same canary; the horde stays parked.
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(_initialWindow, throttle.CurrentWindow);
         Assert.Equal(canaryId, Assert.Single(throttle.Canaries).WorkflowId);
         AssertStillParked(await GetThrottledUntil(), parked, now);
@@ -338,7 +338,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert — window doubled, canaries rotated: fresh ones promoted (and unparked), old ones parked.
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(_initialWindow * 2, throttle.CurrentWindow);
 
         var newCanaryIds = throttle.Canaries.Select(c => c.WorkflowId).ToList();
@@ -374,7 +374,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.Open,
+                State = NamespaceThrottleState.Tripped,
                 TrippedAt = now.AddMinutes(-30),
                 CurrentWindow = _maxWindow,
                 Canaries = [new ThrottleCanary(canaryId, 1)],
@@ -390,7 +390,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(_maxWindow, throttle.CurrentWindow);
     }
 
@@ -423,7 +423,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert — recovery started and the first cohort (canary-count sized) released same-sweep.
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.HalfOpen, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Recovering, throttle.State);
         Assert.Equal(_initialWindow, throttle.CurrentWindow);
 
         var stamps = await GetThrottledUntil();
@@ -467,7 +467,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.HalfOpen,
+                State = NamespaceThrottleState.Recovering,
                 TrippedAt = now.AddMinutes(-10),
                 CurrentWindow = TimeSpan.FromMinutes(20),
                 UpdatedAt = now.AddSeconds(-30),
@@ -498,8 +498,8 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
 
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Closed, throttle.State);
-        Assert.Empty(view.OpenBreakers);
+        Assert.Equal(NamespaceThrottleState.Clear, throttle.State);
+        Assert.Empty(view.TrippedBreakers);
     }
 
     [Fact]
@@ -521,7 +521,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.HalfOpen,
+                State = NamespaceThrottleState.Recovering,
                 TrippedAt = now.AddMinutes(-20),
                 CurrentWindow = grownWindow,
                 UpdatedAt = now.AddSeconds(-30),
@@ -535,7 +535,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert — Open again with fresh canaries, window NOT reset to the initial 10 minutes.
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(grownWindow, throttle.CurrentWindow);
         Assert.Equal(now, throttle.TrippedAt, TimeSpan.FromSeconds(1));
         Assert.Equal(2, throttle.Canaries.Count);
@@ -590,7 +590,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.Open,
+                State = NamespaceThrottleState.Tripped,
                 TrippedAt = now.AddMinutes(-2),
                 CurrentWindow = _initialWindow,
                 Canaries = [new ThrottleCanary(canaryId, 1)],
@@ -634,7 +634,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.Closed,
+                State = NamespaceThrottleState.Clear,
                 TrippedAt = closedAt.AddMinutes(-30),
                 CurrentWindow = _initialWindow,
                 UpdatedAt = closedAt,
@@ -642,7 +642,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             TestContext.Current.CancellationToken
         );
 
-        var grace = NamespaceThrottleService.ClosedGraceSweepMultiplier * _sweepInterval;
+        var grace = NamespaceThrottleService.ClearGraceSweepMultiplier * _sweepInterval;
 
         // Act + Assert — within grace: stragglers cleared, row kept.
         await service.RunSweepCycle(closedAt.AddSeconds(30), TestContext.Current.CancellationToken);
@@ -673,7 +673,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             new NamespaceThrottle
             {
                 Namespace = Ns,
-                State = NamespaceThrottleState.Closed,
+                State = NamespaceThrottleState.Clear,
                 TrippedAt = now.AddHours(-2),
                 CurrentWindow = _maxWindow,
                 UpdatedAt = now.AddMinutes(-1),
@@ -687,7 +687,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         // Assert
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
-        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(NamespaceThrottleState.Tripped, throttle.State);
         Assert.Equal(_initialWindow, throttle.CurrentWindow);
         Assert.Equal(2, throttle.Canaries.Count);
     }
@@ -761,7 +761,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     /// the invariant state the handler leaves behind: step Requeued with the given requeue count,
     /// optional per-step retry strategy, and controllable timestamps.
     /// </summary>
-    private async Task<Guid> InsertRequeuedWorkflow(
+    private static async Task<Guid> InsertRequeuedWorkflow(
         EngineDbContext context,
         IEngineRepository repo,
         DateTimeOffset? backoffUntil = null,

@@ -53,15 +53,15 @@ public sealed class ThrottleStateViewTests
         );
 
     [Fact]
-    public void OpenBreakers_NothingPublished_ReadsEmpty()
+    public void TrippedBreakers_NothingPublished_ReadsEmpty()
     {
         var view = CreateView(new FakeTimeProvider());
 
-        Assert.Empty(view.OpenBreakers);
+        Assert.Empty(view.TrippedBreakers);
     }
 
     [Fact]
-    public void OpenBreakers_FreshSnapshot_IsServed()
+    public void TrippedBreakers_FreshSnapshot_IsServed()
     {
         var timeProvider = new FakeTimeProvider();
         var view = CreateView(timeProvider);
@@ -69,12 +69,12 @@ public sealed class ThrottleStateViewTests
         view.Publish(_oneOpenBreaker);
         timeProvider.Advance(_sweepInterval);
 
-        var breaker = Assert.Single(view.OpenBreakers);
+        var breaker = Assert.Single(view.TrippedBreakers);
         Assert.Equal("stormy-namespace", breaker.Key);
     }
 
     [Fact]
-    public void OpenBreakers_AtTheStalenessBound_IsStillServed()
+    public void TrippedBreakers_AtTheStalenessBound_IsStillServed()
     {
         var timeProvider = new FakeTimeProvider();
         var view = CreateView(timeProvider);
@@ -82,11 +82,11 @@ public sealed class ThrottleStateViewTests
         view.Publish(_oneOpenBreaker);
         timeProvider.Advance(ThrottleStateView.StaleSnapshotSweepMultiplier * _sweepInterval);
 
-        Assert.Single(view.OpenBreakers);
+        Assert.Single(view.TrippedBreakers);
     }
 
     [Fact]
-    public void OpenBreakers_PastTheStalenessBound_ReadsEmpty()
+    public void TrippedBreakers_PastTheStalenessBound_ReadsEmpty()
     {
         var timeProvider = new FakeTimeProvider();
         var view = CreateView(timeProvider);
@@ -96,7 +96,7 @@ public sealed class ThrottleStateViewTests
             (ThrottleStateView.StaleSnapshotSweepMultiplier * _sweepInterval) + TimeSpan.FromSeconds(1)
         );
 
-        Assert.Empty(view.OpenBreakers);
+        Assert.Empty(view.TrippedBreakers);
     }
 
     [Fact]
@@ -107,10 +107,10 @@ public sealed class ThrottleStateViewTests
 
         view.Publish(_oneOpenBreaker);
         timeProvider.Advance((ThrottleStateView.StaleSnapshotSweepMultiplier + 1) * _sweepInterval);
-        Assert.Empty(view.OpenBreakers);
+        Assert.Empty(view.TrippedBreakers);
 
         view.Publish(_oneOpenBreaker);
 
-        Assert.Single(view.OpenBreakers);
+        Assert.Single(view.TrippedBreakers);
     }
 }

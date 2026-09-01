@@ -362,22 +362,22 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of namespace circuit breakers closed after successful recovery, tagged with <c>namespace</c>.
+    /// Counter of namespace circuit breakers cleared after successful recovery, tagged with <c>namespace</c>.
     /// </summary>
-    public static readonly Counter<long> ThrottleClosed = Meter.CreateCounter<long>(
-        "engine.throttle.closed",
-        description: "Number of namespace circuit breakers closed after successful recovery"
+    public static readonly Counter<long> ThrottleCleared = Meter.CreateCounter<long>(
+        "engine.throttle.cleared",
+        description: "Number of namespace circuit breakers cleared after successful recovery"
     );
 
-    private static long _openThrottleBreakersCount;
+    private static long _trippedThrottleBreakersCount;
 
     /// <summary>
-    /// Gauge of namespace circuit breakers currently in the Open state.
+    /// Gauge of namespace circuit breakers currently in the Tripped state.
     /// </summary>
-    public static readonly ObservableGauge<long> OpenThrottleBreakers = Meter.CreateObservableGauge(
-        "engine.throttle.breakers.open",
-        static () => _openThrottleBreakersCount,
-        description: "Number of namespace circuit breakers currently open"
+    public static readonly ObservableGauge<long> TrippedThrottleBreakers = Meter.CreateObservableGauge(
+        "engine.throttle.breakers.tripped",
+        static () => _trippedThrottleBreakersCount,
+        description: "Number of namespace circuit breakers currently tripped"
     );
 
     private static long _maintenanceConsecutiveFailures;
@@ -548,9 +548,9 @@ public static class Metrics
     public static void SetMaintenanceConsecutiveFailures(int count) => _maintenanceConsecutiveFailures = count;
 
     /// <summary>
-    /// Sets the value reported by <see cref="OpenThrottleBreakers"/>.
+    /// Sets the value reported by <see cref="TrippedThrottleBreakers"/>.
     /// </summary>
-    public static void SetOpenThrottleBreakersCount(long count) => _openThrottleBreakersCount = count;
+    public static void SetTrippedThrottleBreakersCount(long count) => _trippedThrottleBreakersCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="HealthStatus"/>.
