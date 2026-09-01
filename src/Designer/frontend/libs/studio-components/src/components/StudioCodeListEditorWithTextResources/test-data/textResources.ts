@@ -1,4 +1,4 @@
-import type { TextResource } from '../../../types/TextResource';
+import type { TextResource } from '@studio/pure-functions';
 
 const label1Id = 'label1';
 const description1Id = 'description1';

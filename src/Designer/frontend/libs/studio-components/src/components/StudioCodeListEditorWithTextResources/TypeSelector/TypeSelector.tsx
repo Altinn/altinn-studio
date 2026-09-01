@@ -2,7 +2,7 @@ import { CodeListItemType } from '../types/CodeListItemType';
 import type { ReactElement } from 'react';
 import React, { useCallback } from 'react';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
-import { StudioNativeSelect } from '../../StudioNativeSelect';
+import { StudioSelect } from '../../StudioSelect';
 import classes from './TypeSelector.module.css';
 
 export type TypeSelectorProps = {
@@ -21,7 +21,7 @@ export function TypeSelector({ onChangeCodeType, codeType }: TypeSelectorProps):
   );
 
   return (
-    <StudioNativeSelect
+    <StudioSelect
       className={classes.typeSelector}
       description={texts.typeSelectorDescription}
       label={texts.typeSelectorLabel}
@@ -29,10 +29,10 @@ export function TypeSelector({ onChangeCodeType, codeType }: TypeSelectorProps):
       value={codeType}
     >
       {Object.values(CodeListItemType).map((type) => (
-        <option key={type} value={type}>
+        <StudioSelect.Option key={type} value={type}>
           {texts.typeSelectorOptions[type]}
-        </option>
+        </StudioSelect.Option>
       ))}
-    </StudioNativeSelect>
+    </StudioSelect>
   );
 }

@@ -1,7 +1,6 @@
 export * from './StudioButton';
 export * from './StudioCheckbox';
 export * from './StudioCodeFragment';
-export * from './StudioCodeListEditor';
 export * from './StudioCombobox';
 export * from './StudioDecimalInput';
 export * from './StudioFieldset';

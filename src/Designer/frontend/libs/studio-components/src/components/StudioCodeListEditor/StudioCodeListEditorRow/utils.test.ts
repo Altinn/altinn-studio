@@ -1,9 +1,9 @@
-import type { CodeListItem } from '../types/CodeListItem';
+import type { MultiLanguageCodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 
 // Test data:
-const testItem: CodeListItem = {
+const testItem: MultiLanguageCodeListItem = {
   value: 'test',
   label: {
     nb: 'Ledetekst',
@@ -18,7 +18,7 @@ const testItem: CodeListItem = {
     en: 'Help text',
   },
 };
-const createTestItem = (): CodeListItem => ObjectUtils.deepCopy(testItem);
+const createTestItem = (): MultiLanguageCodeListItem => ObjectUtils.deepCopy(testItem);
 
 describe('StudioCodeListEditorRow utils', () => {
   describe('changeValue', () => {
@@ -46,7 +46,7 @@ describe('StudioCodeListEditorRow utils', () => {
 
     it('Adds a new label object when none exists', () => {
       const value = 'test';
-      const item: CodeListItem = { value };
+      const item: MultiLanguageCodeListItem = { value };
       const newLabel = 'Ny ledetekst';
       const updatedItem = changeLabel(item, 'nb', newLabel);
       expect(updatedItem).toEqual({ value, label: { nb: newLabel } });
@@ -76,7 +76,7 @@ describe('StudioCodeListEditorRow utils', () => {
 
     it('Adds a new description object when none exists', () => {
       const value = 'test';
-      const item: CodeListItem = { value };
+      const item: MultiLanguageCodeListItem = { value };
       const newDescription = 'Ny beskrivelse';
       const updatedItem = changeDescription(item, 'nb', newDescription);
       expect(updatedItem).toEqual({ value, description: { nb: newDescription } });
@@ -110,7 +110,7 @@ describe('StudioCodeListEditorRow utils', () => {
 
     it('Adds a new help text object when none exists', () => {
       const value = 'test';
-      const item: CodeListItem = { value };
+      const item: MultiLanguageCodeListItem = { value };
       const newHelpText = 'Ny hjelpetekst';
       const updatedItem = changeHelpText(item, 'nb', newHelpText);
       expect(updatedItem).toEqual({ value, helpText: { nb: newHelpText } });

@@ -15,7 +15,7 @@ import type { UpdateCodeTextArgs } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
 import { codeList } from './test-data/codeList';
 import { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
-import type { CodeListItem } from './types/CodeListItem';
+import type { MultiLanguageCodeListItem } from './types/CodeListItem';
 import type { MultiLanguageText } from '../../types/MultiLanguageText';
 
 // Test data:
@@ -45,7 +45,7 @@ const testCodeList: CodeList = [
 ];
 const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
 
-const textProperties: Array<keyof CodeListItem> = ['label', 'description', 'helpText'];
+const textProperties: Array<keyof MultiLanguageCodeListItem> = ['label', 'description', 'helpText'];
 
 describe('StudioCodelistEditor utils', () => {
   describe('addNewCodeListItem', () => {
@@ -76,7 +76,7 @@ describe('StudioCodelistEditor utils', () => {
   });
 
   describe('changeCodeListItem', () => {
-    const updatedItem: CodeListItem = {
+    const updatedItem: MultiLanguageCodeListItem = {
       label: {
         en: 'Updated label',
         nb: 'Oppdatert ledetekst',
@@ -127,7 +127,7 @@ describe('StudioCodelistEditor utils', () => {
     );
 
     it('Adds the property if it does not exist', () => {
-      const codeListItemWithoutDescription: CodeListItem = {
+      const codeListItemWithoutDescription: MultiLanguageCodeListItem = {
         value: 'test',
         label: { en: 'Label', nb: 'Ledetekst' },
       };

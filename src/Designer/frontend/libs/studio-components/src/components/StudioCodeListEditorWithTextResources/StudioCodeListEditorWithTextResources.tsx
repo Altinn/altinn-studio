@@ -23,8 +23,8 @@ import { PlusIcon } from '@studio/icons';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
-import { ErrorMessage } from '@digdir/designsystemet-react';
-import type { TextResource } from '../../types/TextResource';
+import { StudioValidationMessage } from '../StudioValidationMessage';
+import type { TextResource } from '@studio/pure-functions';
 import { usePropState } from '@studio/hooks';
 import { StudioParagraph } from '../StudioParagraph';
 import type { CodeListItemType } from './types/CodeListItemType';
@@ -33,7 +33,7 @@ import type { TypeSelectorProps } from './TypeSelector';
 import { TypeSelector } from './TypeSelector';
 import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
 import type { ReducerState, ReducerAction } from './StudioCodeListEditorReducer';
-import classes from './StudioCodeListEditor.module.css';
+import classes from './StudioCodeListEditorWithTextResources.module.css';
 
 export type CreateTextResourceInternalArgs = {
   textResource: TextResource;
@@ -41,7 +41,7 @@ export type CreateTextResourceInternalArgs = {
   property: CodeListItemTextProperty;
 };
 
-export type StudioCodeListEditorProps = {
+export type StudioCodeListEditorWithTextResourcesProps = {
   codeList: CodeListWithTextResources;
   onCreateTextResource: (textResource: TextResource) => void;
   onInvalid?: () => void;
@@ -51,7 +51,10 @@ export type StudioCodeListEditorProps = {
   texts: CodeListEditorTexts;
 };
 
-export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorProps): ReactElement {
+export function StudioCodeListEditorWithTextResources({
+  texts,
+  ...rest
+}: StudioCodeListEditorWithTextResourcesProps): ReactElement {
   return (
     <StudioCodeListEditorContext.Provider value={{ texts }}>
       <StatefulCodeListEditor {...rest} />
@@ -59,7 +62,7 @@ export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorPro
   );
 }
 
-type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorWithTextResourcesProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: givenCodeList,
@@ -168,22 +171,26 @@ function ControlledCodeListEditor({
   }, [codeList, codeType, onChange, onUpdateCodeList]);
 
   return (
-    <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable
-        codeList={codeList}
-        codeType={codeType}
-        dispatch={dispatch}
-        errorMap={errorMap}
-        onChange={onChange}
-        onChangeCodeType={setCodeType}
-        onCreateTextResource={onCreateTextResource}
-        onUpdateCodeList={onUpdateCodeList}
-        onUpdateTextResource={onUpdateTextResource}
-        textResources={textResources}
-      />
-      <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
+    <>
+      <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
+        <CodeListTable
+          codeList={codeList}
+          codeType={codeType}
+          dispatch={dispatch}
+          errorMap={errorMap}
+          onChange={onChange}
+          onChangeCodeType={setCodeType}
+          onCreateTextResource={onCreateTextResource}
+          onUpdateCodeList={onUpdateCodeList}
+          onUpdateTextResource={onUpdateTextResource}
+          textResources={textResources}
+        />
+        <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
+      </StudioFieldset>
+      {/* Rendered outside the fieldset because a ValidationMessage within it marks every input
+          inside as invalid, not just the rows that actually have errors. */}
       <Errors errorMap={errorMap} />
-    </StudioFieldset>
+    </>
   );
 }
 
@@ -210,7 +217,7 @@ function EmptyCodeListTable(props: EmptyCodeListTableProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
   return (
     <>
-      <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>
+      <StudioParagraph data-size='sm'>{texts.emptyCodeList}</StudioParagraph>
       <TypeSelector {...props} />
     </>
   );
@@ -308,7 +315,7 @@ function Errors({ errorMap }: ErrorsProps): React.ReactNode {
     texts: { generalError },
   } = useStudioCodeListEditorContext();
   if (areThereCodeListErrors(errorMap)) {
-    return <ErrorMessage>{generalError}</ErrorMessage>;
+    return <StudioValidationMessage>{generalError}</StudioValidationMessage>;
   } else {
     return null;
   }

@@ -2,16 +2,16 @@ import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
-import type { FocusEvent, HTMLInputAutoCompleteAttribute, Dispatch } from 'react';
+import type { FocusEvent, HTMLInputAutoCompleteAttribute, Dispatch, ReactElement } from 'react';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
-import type { TextResource } from '../../../types/TextResource';
+import type { TextResource } from '@studio/pure-functions';
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
 import { ReducerActionType } from '../StudioCodeListEditorReducer';
 import type { ReducerAction } from '../StudioCodeListEditorReducer';
-import type { CreateTextResourceInternalArgs } from '../StudioCodeListEditor';
+import type { CreateTextResourceInternalArgs } from '../StudioCodeListEditorWithTextResources';
 import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
@@ -38,7 +38,7 @@ export function StudioCodeListEditorRow({
   onUpdateCodeListItem,
   onUpdateTextResource,
   textResources,
-}: StudioCodeListEditorRowProps) {
+}: StudioCodeListEditorRowProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
 
   const handleValueChange = useCallback(
@@ -152,7 +152,11 @@ type TypedInputCellProps<T extends CodeListItemValue> = {
   error?: string;
 };
 
-function TypedInputCell({ value, error, ...rest }: TypedInputCellProps<CodeListItemValue>) {
+function TypedInputCell({
+  value,
+  error,
+  ...rest
+}: TypedInputCellProps<CodeListItemValue>): ReactElement {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
@@ -175,7 +179,7 @@ function TypedInputCell({ value, error, ...rest }: TypedInputCellProps<CodeListI
 }
 
 const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number | null>>(
-  ({ label, onChange, onUpdateValue, ...rest }, ref) => {
+  ({ label, onChange, onUpdateValue, value, ...rest }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number | null): void => {
         onChange(numberValue);
@@ -193,11 +197,13 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
     return (
       <StudioInputTable.Cell.Numberfield
         className={classes.textfieldCell}
-        aria-label={label}
-        onChange={handleNumberChange}
+        label={label}
         onBlurNumber={handleNumberBlur}
+        onChangeNumber={handleNumberChange}
         ref={ref}
         {...rest}
+        // StudioDecimalInput accepts null at runtime, but its value prop does not allow it
+        value={value ?? undefined}
       />
     );
   },
@@ -219,7 +225,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
       <StudioInputTable.Cell.Checkbox
         value={String(value)}
         checked={value}
-        aria-label={label}
+        label={label}
         onChange={handleBooleanChange}
         ref={ref}
         {...rest}
@@ -249,7 +255,7 @@ const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string | 
     return (
       <StudioInputTable.Cell.Textfield
         className={classes.textfieldCell}
-        aria-label={label}
+        label={label}
         onChange={handleTextChange}
         onBlur={handleTextBlur}
         ref={ref}
@@ -284,12 +290,12 @@ function TextResourceSelectorCell({
   property,
   required,
   textResources,
-}: TextResourceIdCellProps) {
+}: TextResourceIdCellProps): ReactElement {
   const {
     texts: { textResourceTexts },
   } = useStudioCodeListEditorContext();
 
-  const handleUpdateTextResource = (newTextResource: TextResource) => {
+  const handleUpdateTextResource = (newTextResource: TextResource): void => {
     onUpdateTextResource(newTextResource);
   };
 
@@ -337,7 +343,7 @@ type DeleteButtonCellProps = {
   onClick: () => void;
 };
 
-function DeleteButtonCell({ onClick, number }: DeleteButtonCellProps) {
+function DeleteButtonCell({ onClick, number }: DeleteButtonCellProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
   return (
     <StudioInputTable.Cell.Button

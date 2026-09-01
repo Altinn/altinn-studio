@@ -1,4 +1,4 @@
-import type { TextResource } from '../../types/TextResource';
+import type { TextResource } from '@studio/pure-functions';
 import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import { updateCodeList } from './utils';

@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { StudioCodeListEditor } from './StudioCodeListEditor';
+import { StudioCodeListEditorWithTextResources } from './StudioCodeListEditorWithTextResources';
 import { textResources } from './test-data/textResources';
 import { texts } from './test-data/texts';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
 
 const meta = {
-  title: 'Components/StudioCodeListEditor',
-  component: StudioCodeListEditor,
-} satisfies Meta<typeof StudioCodeListEditor>;
+  title: 'Components/StudioCodeListEditorWithTextResources',
+  component: StudioCodeListEditorWithTextResources,
+} satisfies Meta<typeof StudioCodeListEditorWithTextResources>;
 export default meta;
 
-type Story = StoryObj<typeof StudioCodeListEditor>;
+type Story = StoryObj<typeof StudioCodeListEditorWithTextResources>;
 
 export const WithTextResources: Story = {
   args: {

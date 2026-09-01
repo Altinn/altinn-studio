@@ -1,7 +1,7 @@
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
-import { StudioCodeListEditor } from './StudioCodeListEditor';
+import type { StudioCodeListEditorWithTextResourcesProps } from './StudioCodeListEditorWithTextResources';
+import { StudioCodeListEditorWithTextResources } from './StudioCodeListEditorWithTextResources';
 import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
@@ -17,7 +17,7 @@ import {
   label4Resource,
   textResources,
 } from './test-data/textResources';
-import type { TextResource } from '../../types/TextResource';
+import type { TextResource } from '@studio/pure-functions';
 import { codeListWithNumbers } from './test-data/codeListWithNumbers';
 import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
@@ -30,7 +30,7 @@ const onCreateTextResource = jest.fn();
 const onInvalid = jest.fn();
 const onUpdateCodeList = jest.fn();
 const onUpdateTextResource = jest.fn();
-const defaultProps: StudioCodeListEditorProps = {
+const defaultProps: StudioCodeListEditorWithTextResourcesProps = {
   codeList: codeListWithStrings,
   texts,
   onCreateTextResource,
@@ -63,7 +63,7 @@ const codeListWithDuplicatedValues: CodeListWithTextResources = [
 
 const numberOfHeadingRows = 1;
 
-describe('StudioCodeListEditor', () => {
+describe('StudioCodeListEditorWithTextResources', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders a group element with the given title', () => {
@@ -106,10 +106,8 @@ describe('StudioCodeListEditor', () => {
     renderCodeListEditor();
     const firstLabelCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
     await switchToSearchMode(user, firstLabelCoords);
-    await user.click(getTextResourcePicker(firstLabelCoords));
-    const { noTextResourceOptionLabel } = texts.textResourceTexts(...firstLabelCoords);
-    const noTextResourceOption = screen.queryByRole('option', { name: noTextResourceOptionLabel });
-    expect(noTextResourceOption).not.toBeInTheDocument();
+    await openTextResourcePicker(user, firstLabelCoords);
+    expect(hasUnsetTextResourceOption()).toBe(false);
   });
 
   it.each([CodeListItemTextProperty.Description, CodeListItemTextProperty.HelpText])(
@@ -119,10 +117,8 @@ describe('StudioCodeListEditor', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, property];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      const { noTextResourceOptionLabel } = texts.textResourceTexts(...propertyCoords);
-      const noTextResourceOption = screen.getByRole('option', { name: noTextResourceOptionLabel });
-      expect(noTextResourceOption).toBeInTheDocument();
+      await openTextResourcePicker(user, propertyCoords);
+      expect(hasUnsetTextResourceOption()).toBe(true);
     },
   );
 
@@ -196,8 +192,8 @@ describe('StudioCodeListEditor', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      await user.click(getTextResourceOption(label4Resource));
+      await openTextResourcePicker(user, propertyCoords);
+      await user.click(await getTextResourceOption(label4Resource));
       await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
@@ -212,8 +208,8 @@ describe('StudioCodeListEditor', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Description];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      await user.click(getTextResourceOption(description4Resource));
+      await openTextResourcePicker(user, propertyCoords);
+      await user.click(await getTextResourceOption(description4Resource));
       await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
@@ -228,8 +224,8 @@ describe('StudioCodeListEditor', () => {
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.HelpText];
       await switchToSearchMode(user, propertyCoords);
-      await user.click(getTextResourcePicker(propertyCoords));
-      await user.click(getTextResourceOption(helpText4Resource));
+      await openTextResourcePicker(user, propertyCoords);
+      await user.click(await getTextResourceOption(helpText4Resource));
       await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
@@ -306,7 +302,7 @@ describe('StudioCodeListEditor', () => {
     const numberOfCodeListItems = codeListWithStrings.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRows);
-    rerender(<StudioCodeListEditor {...defaultProps} codeList={newCodeList} />);
+    rerender(<StudioCodeListEditorWithTextResources {...defaultProps} codeList={newCodeList} />);
     const newNumberOfCodeListItems = newCodeList.length;
     const newExpectedNumberOfRows = newNumberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(newExpectedNumberOfRows);
@@ -614,8 +610,10 @@ describe('StudioCodeListEditor', () => {
   });
 });
 
-function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}): RenderResult {
-  return render(<StudioCodeListEditor {...defaultProps} {...props} />);
+function renderCodeListEditor(
+  props: Partial<StudioCodeListEditorWithTextResourcesProps> = {},
+): RenderResult {
+  return render(<StudioCodeListEditorWithTextResources {...defaultProps} {...props} />);
 }
 
 async function switchToSearchMode(
@@ -629,9 +627,26 @@ async function switchToSearchMode(
 
 type TextPropertyCoords = [number, CodeListItemTextProperty];
 
+function hasUnsetTextResourceOption(): boolean {
+  const options = screen.getAllByRole('option');
+  return options.some((option) => option.getAttribute('value') === '');
+}
+
+async function openTextResourcePicker(
+  user: UserEvent,
+  textPropertyCoords: TextPropertyCoords,
+): Promise<void> {
+  const picker = getTextResourcePicker(textPropertyCoords);
+  await user.click(picker);
+  await user.clear(picker);
+}
+
 function getTextResourcePicker(textPropertyCoords: TextPropertyCoords): HTMLElement {
   const name = texts.textResourceTexts(...textPropertyCoords).textResourcePickerLabel;
-  return screen.getByRole('combobox', { name });
+  // Todo: Match the name exactly when https://github.com/digdir/designsystemet/issues/4626 is fixed
+  return screen.getByRole('combobox', {
+    name: (accessibleName) => accessibleName.startsWith(name),
+  });
 }
 
 function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTMLElement {
@@ -639,9 +654,9 @@ function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTML
   return screen.getByRole('textbox', { name });
 }
 
-function getTextResourceOption(textResource: TextResource): HTMLElement {
+async function getTextResourceOption(textResource: TextResource): Promise<HTMLElement> {
   const name = retrieveTextResourceOptionName(textResource);
-  return screen.getByRole('option', { name });
+  return screen.findByRole('option', { name });
 }
 
 function retrieveTextResourceOptionName(textResource: TextResource): string {
