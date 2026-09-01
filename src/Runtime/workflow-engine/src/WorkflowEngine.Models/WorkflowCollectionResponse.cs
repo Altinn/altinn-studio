@@ -66,9 +66,12 @@ public sealed record WorkflowCollectionResponse
 public sealed record CollectionWorkflowCounts
 {
     /// <summary>
-    /// Gets the number of workflows still in flight: <see cref="PersistentItemStatus.Enqueued"/>,
-    /// <see cref="PersistentItemStatus.Processing"/>, <see cref="PersistentItemStatus.Requeued"/>,
-    /// or <see cref="PersistentItemStatus.Waiting"/>.
+    /// Gets the number of workflows in a non-terminal status — still in flight, whether running or
+    /// parked: <see cref="PersistentItemStatus.Enqueued"/>, <see cref="PersistentItemStatus.Processing"/>,
+    /// <see cref="PersistentItemStatus.Requeued"/>, <see cref="PersistentItemStatus.Waiting"/>, or
+    /// <see cref="PersistentItemStatus.Held"/>. A <see cref="PersistentItemStatus.Held"/> mailbox
+    /// receiver counts here: it is parked awaiting its delivery, but consumes admission budget and
+    /// still gates its dependents.
     /// </summary>
     [JsonPropertyName("active")]
     public required int Active { get; init; }

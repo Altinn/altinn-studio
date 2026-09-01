@@ -348,7 +348,8 @@ every entry carries a `workflowCounts` rollup across
 "workflowCounts": { "active": 3, "failedVisible": 0, "failedInvisible": 1, "total": 12 }
 ```
 
-- `active` = `Enqueued | Processing | Requeued | Waiting`
+- `active` = the engine's non-terminal (`Incomplete`) status set: `Enqueued | Processing | Requeued | Waiting | Held`.
+  A `Held` mailbox receiver is active — parked, but consuming admission budget and gating its dependents
 - `failedVisible` = `Failed | Canceled | DependencyFailed` and visible (`is_head IS DISTINCT FROM false`)
 - `failedInvisible` = same statuses and invisible (`is_head = false`)
 - `total` = every workflow in the collection. There is deliberately no named "settled" bucket —

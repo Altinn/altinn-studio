@@ -232,6 +232,7 @@ public partial class EngineTests
         //   fail-invisible → Failed, IsHead=false            (failedInvisible)
         //   fail-abandon   → Failed then abandoned           (excluded from failed buckets, in total)
         //   scheduled      → Enqueued with future StartAt    (active)
+        //   held-receiver  → Held on an open mailbox         (active — parked is not settled)
         fixture.WireMock.Reset();
         foreach (var path in new[] { "/fail-visible", "/fail-invisible", "/fail-abandon" })
         {
@@ -245,6 +246,11 @@ public partial class EngineTests
             .WireMock.Given(Request.Create().UsingAnyMethod())
             .AtPriority(int.MaxValue)
             .RespondWith(Response.Create().WithStatusCode(200));
+
+        // A receiver on an open mailbox is born Held, which the rollup must read as active: the
+        // status is non-terminal (PersistentItemStatusMap.Incomplete), so it consumes admission
+        // budget and gates its dependents even though nothing is executing it.
+        var mailbox = await _client.MintMailbox("rollup-mailbox", TimeSpan.FromHours(1));
 
         var request = _testHelpers.CreateEnqueueRequest([
             _testHelpers.CreateWorkflow("ok", [_testHelpers.CreateWebhookStep("/hook")]),
@@ -265,6 +271,10 @@ public partial class EngineTests
                 [_testHelpers.CreateWebhookStep("/hook")],
                 startAt: DateTimeOffset.UtcNow.AddHours(1)
             ),
+            _testHelpers.CreateWorkflow("held-receiver", [_testHelpers.CreateWebhookStep("/hook")]) with
+            {
+                Mailbox = new MailboxReference { Id = mailbox.Id },
+            },
         ]);
         var response = await _client.Enqueue(request, collectionKey: "rollup-col");
         var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
@@ -275,6 +285,7 @@ public partial class EngineTests
         await _client.WaitForWorkflowStatus(byRef["fail-invisible"], PersistentItemStatus.Failed);
         await _client.WaitForWorkflowStatus(byRef["fail-abandon"], PersistentItemStatus.Failed);
         await _client.AbandonWorkflow(byRef["fail-abandon"]);
+        await _client.WaitForWorkflowStatus(byRef["held-receiver"], PersistentItemStatus.Held);
 
         // Act
         var result = await _client.ListCollectionsPaginated();
@@ -284,8 +295,8 @@ public partial class EngineTests
         Assert.Equal("rollup-col", collection.Key);
         var counts = collection.WorkflowCounts;
         Assert.NotNull(counts);
-        Assert.Equal(6, counts.Total);
-        Assert.Equal(1, counts.Active); // scheduled
+        Assert.Equal(7, counts.Total);
+        Assert.Equal(2, counts.Active); // scheduled + held-receiver
         Assert.Equal(2, counts.FailedVisible); // fail-visible + dep-failed; fail-abandon written off
         Assert.Equal(1, counts.FailedInvisible); // fail-invisible
 
