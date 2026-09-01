@@ -48,7 +48,7 @@ internal sealed class IssuerSchemeCacheInitializer(
         for (var i = 0; i < metadataAddresses.Length; i++)
         {
             var metadataAddress = metadataAddresses[i];
-            var schemeName = $"Maskinporten_{i}";
+            var schemeName = $"{MaskinportenAuthenticationExtensions.SchemeNamePrefix}{i}";
 
             var response = await httpClient.GetStringAsync(new Uri(metadataAddress), cancellationToken);
             using var doc = JsonDocument.Parse(response);

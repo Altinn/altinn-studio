@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -29,8 +30,6 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 internal sealed class GatewayApiFactory : WebApplicationFactory<Program>
 {
     public const string ConfiguredServiceOwner = "TTD";
-
-    private static readonly string[] _maskinportenSchemes = ["Maskinporten_0", "Maskinporten_1"];
 
     public FakeWorkflowEngineHandler EngineHandler { get; } = new();
 
@@ -68,26 +67,11 @@ internal sealed class GatewayApiFactory : WebApplicationFactory<Program>
             }
 
             // Validate tokens against the fake-oidc signing key via a static configuration so
-            // JwtBearer never fetches metadata. Both Maskinporten schemes get the same static
-            // configuration; the authorization policy accepts a success from either.
-            var signingKey = new JsonWebKey(File.ReadAllText(FakeMaskinportenTokenGenerator.PrivateKeyPath));
-            foreach (var scheme in _maskinportenSchemes)
-            {
-                services.PostConfigure<JwtBearerOptions>(
-                    scheme,
-                    options =>
-                    {
-                        var configuration = new OpenIdConnectConfiguration
-                        {
-                            Issuer = FakeMaskinportenTokenGenerator.Issuer,
-                        };
-                        configuration.SigningKeys.Add(signingKey);
-                        options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(
-                            configuration
-                        );
-                    }
-                );
-            }
+            // JwtBearer never fetches metadata. Applies to every Maskinporten scheme by name
+            // convention, so the scheme count stays derived from the configured
+            // MetadataAddresses instead of being duplicated here. The authorization policy
+            // accepts a success from any scheme.
+            services.AddSingleton<IPostConfigureOptions<JwtBearerOptions>, StaticFakeOidcConfiguration>();
 
             // Swap the upstream engine transport for the in-memory fake.
             services.Configure<HttpClientFactoryOptions>(
@@ -104,6 +88,26 @@ internal sealed class GatewayApiFactory : WebApplicationFactory<Program>
         {
             EngineHandler.Dispose();
             Logs.Dispose();
+        }
+    }
+
+    private sealed class StaticFakeOidcConfiguration : IPostConfigureOptions<JwtBearerOptions>
+    {
+        private static readonly JsonWebKey _signingKey = new(
+            File.ReadAllText(FakeMaskinportenTokenGenerator.PrivateKeyPath)
+        );
+
+        public void PostConfigure(string? name, JwtBearerOptions options)
+        {
+            if (
+                name is null
+                || !name.StartsWith(MaskinportenAuthenticationExtensions.SchemeNamePrefix, StringComparison.Ordinal)
+            )
+                return;
+
+            var configuration = new OpenIdConnectConfiguration { Issuer = FakeMaskinportenTokenGenerator.Issuer };
+            configuration.SigningKeys.Add(_signingKey);
+            options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(configuration);
         }
     }
 

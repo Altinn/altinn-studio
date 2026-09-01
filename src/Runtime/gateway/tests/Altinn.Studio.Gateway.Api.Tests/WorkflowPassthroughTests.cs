@@ -65,7 +65,7 @@ public sealed class WorkflowPassthroughTests
             FakeWorkflowEngineHandler.JsonResponse("""{"data":[{"key":"k1"}]}""");
 
         var response = await client.GetAsync(
-            new Uri($"{GatewayPrefix}/collections?key=a%20b&key=c%26d&evil=1", UriKind.Relative),
+            new Uri($"{GatewayPrefix}/collections?key=a%20b&key=c%26d", UriKind.Relative),
             ct
         );
 
@@ -284,7 +284,9 @@ public sealed class WorkflowPassthroughTests
             StringComparison.Ordinal
         );
         var body = await response.Content.ReadAsStringAsync(ct);
-        Assert.Contains(GatewayProblem.WorkflowEngineUnavailableType, body, StringComparison.Ordinal);
+        // Phase 3 (Designer) discriminates on the camelCase "type" key carrying the URN —
+        // pin the literal wire shape, not just the URN substring.
+        Assert.Contains($"\"type\":\"{GatewayProblem.WorkflowEngineUnavailableType}\"", body, StringComparison.Ordinal);
         Assert.DoesNotContain("secret internal detail", body, StringComparison.Ordinal);
     }
 
@@ -327,7 +329,30 @@ public sealed class WorkflowPassthroughTests
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains(
-            GatewayProblem.InvalidAppNameType,
+            $"\"type\":\"{GatewayProblem.InvalidAppNameType}\"",
+            await response.Content.ReadAsStringAsync(ct),
+            StringComparison.Ordinal
+        );
+        Assert.Empty(_factory.EngineHandler.Requests);
+    }
+
+    [Theory]
+    // Unknown query parameters are rejected loudly instead of silently dropped, so version
+    // skew between centrally deployed Designer and per-cluster gateways cannot yield
+    // 200 with unfiltered data.
+    [InlineData("/collections?key=a&evil=1")]
+    [InlineData("/workflows?isHead=true&keys=a")] // near-miss of the real "key"/"collectionKey" names
+    [InlineData("/workflows/00000000-0000-0000-0000-000000000001?verbose=true")] // route allows no params
+    public async Task UnknownQueryParameters_ReturnBadRequest_WithoutContactingEngine(string pathAndQuery)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+
+        var response = await client.GetAsync(new Uri(GatewayPrefix + pathAndQuery, UriKind.Relative), ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains(
+            $"\"type\":\"{GatewayProblem.UnknownQueryParameterType}\"",
             await response.Content.ReadAsStringAsync(ct),
             StringComparison.Ordinal
         );

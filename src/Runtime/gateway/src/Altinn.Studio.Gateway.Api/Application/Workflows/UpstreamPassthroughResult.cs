@@ -18,6 +18,12 @@ internal sealed class UpstreamPassthroughResult(HttpResponseMessage _upstreamRes
         if (!string.IsNullOrEmpty(contentType))
             httpContext.Response.ContentType = contentType;
 
+        // Forward the declared length (when the upstream declared one) so fixed-length bodies
+        // are not needlessly chunked.
+        var contentLength = response.Content.Headers.ContentLength;
+        if (contentLength is not null)
+            httpContext.Response.ContentLength = contentLength;
+
         await response.Content.CopyToAsync(httpContext.Response.Body, httpContext.RequestAborted);
     }
 }
