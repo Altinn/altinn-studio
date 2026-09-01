@@ -1,6 +1,6 @@
 /* URL sync — persist tab + filters to query params */
 
-import { dom, state } from '../core/state.js';
+import { dom, state, queryStatusIds } from '../core/state.js';
 import { getTheme, setTheme, updateThemeToggle } from './theme.js';
 
 /** Late-bound references set from app.js to break circular dependency */
@@ -171,17 +171,7 @@ export const restoreUrl = () => {
             const el = /** @type {HTMLInputElement | null} */ (document.getElementById(id));
             if (el) el.checked = true;
         }
-        for (const s of [
-            'enqueued',
-            'processing',
-            'requeued',
-            'waiting',
-            'completed',
-            'failed',
-            'canceled',
-            'dependencyfailed',
-            'abandoned',
-        ]) {
+        for (const s of queryStatusIds) {
             const el = /** @type {HTMLInputElement | null} */ (
                 document.getElementById(`${s}-check`)
             );
@@ -225,17 +215,7 @@ export const restoreUrl = () => {
                         .map((s) => s.trim())
                         .filter(Boolean),
                 );
-                for (const s of [
-                    'enqueued',
-                    'processing',
-                    'requeued',
-                    'waiting',
-                    'completed',
-                    'failed',
-                    'canceled',
-                    'dependencyfailed',
-                    'abandoned',
-                ]) {
+                for (const s of queryStatusIds) {
                     const el = /** @type {HTMLInputElement | null} */ (
                         document.getElementById(`${s}-check`)
                     );

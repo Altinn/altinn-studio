@@ -340,7 +340,8 @@ will ever report it.
 ## Query Endpoints
 
 **`GET /api/v1/{namespace}/collections`** — the *health* view.
-Cursor-paginated list (ordered by key) where every entry carries a `workflowCounts` rollup across
+Cursor-paginated list — a stable, collation-defined key order; treat the cursor as opaque — where
+every entry carries a `workflowCounts` rollup across
 **all** of the collection's workflows, visible and invisible alike:
 
 ```json
