@@ -7,7 +7,7 @@ import type { ConsentTemplate } from 'app-shared/types/ResourceAdm';
 /**
  * Query to get all consent templates
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param enabled if the query should be run or not
  *
  * @returns UseQueryResult with a list of consent templates

@@ -30,10 +30,10 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        var warning = Assert.Single(result.Warnings);
-        Assert.Contains("'Task_Wait'", warning, StringComparison.Ordinal);
-        Assert.Contains("'Task_Send'", warning, StringComparison.Ordinal);
-        Assert.True(result.ManualActionRequired);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("'Task_Wait'", todo, StringComparison.Ordinal);
+        Assert.Contains("'Task_Send'", todo, StringComparison.Ordinal);
+        Assert.Empty(result.Warnings);
     }
 
     [Fact]
@@ -49,8 +49,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Single(result.Warnings);
-        Assert.True(result.ManualActionRequired);
+        Assert.Single(result.Todos);
     }
 
     [Fact]
@@ -63,7 +62,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
         );
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -83,7 +82,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Single(result.Warnings);
+        Assert.Single(result.Todos);
     }
 
     [Fact]
@@ -101,7 +100,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
         );
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -110,7 +109,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
         var result = Analyze(bpmn: null);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -127,9 +126,9 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        var warning = Assert.Single(eFormidling.Warnings);
-        Assert.Contains("must be removed", warning, StringComparison.Ordinal);
-        Assert.Contains("indefinitely", warning, StringComparison.Ordinal);
+        var todo = Assert.Single(eFormidling.Todos);
+        Assert.Contains("must be removed", todo, StringComparison.Ordinal);
+        Assert.Contains("indefinitely", todo, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -147,9 +146,9 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
 
         var result = new FeedbackAfterServiceTaskAdvisor(app.Root).Analyze();
 
-        var warning = Assert.Single(result.Warnings);
-        Assert.Contains("may be a redundant", warning, StringComparison.Ordinal);
-        Assert.DoesNotContain("must be removed", warning, StringComparison.Ordinal);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("may be a redundant", todo, StringComparison.Ordinal);
+        Assert.DoesNotContain("must be removed", todo, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -166,6 +165,6 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Equal(2, result.Warnings.Count);
+        Assert.Equal(2, result.Todos.Count);
     }
 }

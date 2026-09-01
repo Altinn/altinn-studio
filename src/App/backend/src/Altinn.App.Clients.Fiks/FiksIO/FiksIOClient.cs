@@ -209,7 +209,7 @@ internal sealed class FiksIOClient : IFiksIOClient
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to initialise Fiks IO client: {ErrorMessage}", e.Message);
+            _logger.LogError(e, "Failed to initialize Fiks IO client: {ErrorMessage}", e.Message);
         }
     }
 

@@ -41,8 +41,8 @@ public class FeatureFlagDisabledTests
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory
-            .WithWebHostBuilder(builder =>
+        return CreateTestClient(
+            builder =>
             {
                 builder.UseConfiguration(configuration);
                 builder.ConfigureAppConfiguration(
@@ -53,8 +53,9 @@ public class FeatureFlagDisabledTests
                     }
                 );
                 builder.ConfigureTestServices(ConfigureTestServices);
-            })
-            .CreateDefaultClient(new CookieContainerHandler());
+            },
+            new CookieContainerHandler()
+        );
     }
 
     [Fact]

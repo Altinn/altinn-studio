@@ -95,7 +95,7 @@ internal sealed class CorrespondenceApiMigration
 
     public MigrationResult Migrate()
     {
-        var warnings = new List<string>();
+        var rewrites = new List<string>();
         var unresolved = new List<string>();
         // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
         var files = _scanner.Files.ToArray();
@@ -116,31 +116,32 @@ internal sealed class CorrespondenceApiMigration
             }
 
             _scanner.Update(file, (CompilationUnitSyntax)updated);
-            warnings.AddRange(rewriter.Changes);
+            rewrites.AddRange(rewriter.Changes);
         }
 
-        if (warnings.Count > 0)
+        var messages = new List<UpgradeMessage>();
+        if (rewrites.Count > 0)
         {
-            warnings.Insert(
-                0,
+            messages.Warn(
                 "Migrated removed Correspondence APIs. Each rewrite is listed below - review them, especially any "
                     + "line noting a discarded argument, since the argument expression is no longer evaluated:"
             );
+            messages.WarnRange(rewrites);
         }
 
+        // Auto-migration: the rewrites leave the app compiling. Unclassifiable WithData sites do need a
+        // human, so they leave a to-do behind - the app will not build until they are resolved.
         if (unresolved.Count > 0)
         {
-            warnings.Add(
+            messages.Todo(
                 "These `WithData` call sites could not be rewritten automatically - the removed "
                     + "ReadOnlyMemory<byte> overload and the surviving Stream overload share a name and an arity, "
                     + "so rewriting blindly could break working code:"
             );
-            warnings.AddRange(unresolved);
+            messages.WarnRange(unresolved);
         }
 
-        // Auto-migration: the rewrites leave the app compiling. Unclassifiable WithData sites do need a
-        // human, so they set the manual-action flag - the app will not build until they are resolved.
-        return new MigrationResult(ManualActionRequired: unresolved.Count > 0, warnings);
+        return new MigrationResult(messages);
     }
 
     private static CompilationUnitSyntax AddUsingIfMissing(CompilationUnitSyntax unit, string namespaceName)

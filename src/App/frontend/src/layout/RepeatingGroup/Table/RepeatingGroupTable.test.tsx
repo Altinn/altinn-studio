@@ -393,6 +393,19 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
+  describe('help text', () => {
+    it('should render the title and a help text button in the table caption when a help text is set', async () => {
+      const groupWithHelpText = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        textResourceBindings: { title: 'Group title', help: 'Group help text' },
+      });
+      await render(getLayout(groupWithHelpText, components));
+
+      expect(screen.getByText('Group title')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+    });
+  });
+
   const render = (
     layout = getLayout(group, components),
     formData: object = {

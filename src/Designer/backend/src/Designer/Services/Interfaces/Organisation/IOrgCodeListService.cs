@@ -12,7 +12,7 @@ public interface IOrgCodeListService
     /// <summary>
     /// Get all code list ids from the org repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of code list ids</returns>
@@ -21,7 +21,7 @@ public interface IOrgCodeListService
     /// <summary>
     /// Gets all code lists from the org repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The code lists</returns>
@@ -35,7 +35,7 @@ public interface IOrgCodeListService
     /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the new code list</param>
     /// <param name="codeList">The code list contents</param>
@@ -52,7 +52,7 @@ public interface IOrgCodeListService
     /// Updates an existing code list with new contents.
     /// If the file already exists, it will be overwritten.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the new code list</param>
     /// <param name="codeList">The code list contents</param>
@@ -69,7 +69,7 @@ public interface IOrgCodeListService
     /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="payload">The code list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -83,7 +83,7 @@ public interface IOrgCodeListService
     /// <summary>
     /// Deletes a code list from the org repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -97,7 +97,7 @@ public interface IOrgCodeListService
     /// <summary>
     /// Checks if a code list exists in the org repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -111,7 +111,7 @@ public interface IOrgCodeListService
     /// <summary>
     /// Updates the name of a code list from the org repository by changing the filename.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="newCodeListId">The new name of the code list</param>
@@ -120,7 +120,7 @@ public interface IOrgCodeListService
     /// <summary>
     /// Publishes a code list to shared content storage.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="request">The publish code list request</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The current version string of the published code list.</returns>

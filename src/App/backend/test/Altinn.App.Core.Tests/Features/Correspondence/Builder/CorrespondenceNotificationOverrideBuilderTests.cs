@@ -11,7 +11,7 @@ public class CorrespondenceNotificationOverrideBuilderTests
     public void Build_WithOnlyOrganizationNumber_ShouldReturnValidRecipient()
     {
         // Arrange
-        var organizationNumber = TestHelpers.GetOrganisationNumber(1);
+        var organizationNumber = TestHelpers.GetOrganizationNumber(1);
 
         var builder = CorrespondenceNotificationOverrideBuilder.Create().WithOrganizationNumber(organizationNumber);
 
@@ -109,15 +109,15 @@ public class CorrespondenceNotificationOverrideBuilderTests
     }
 
     [Fact]
-    public void Build_WithOrganisationOrPersonIdentifier_Organisation_ShouldSetOnlyOrganizationNumber()
+    public void Build_WithOrganizationOrPersonIdentifier_Organization_ShouldSetOnlyOrganizationNumber()
     {
         // Arrange
-        var organizationNumber = TestHelpers.GetOrganisationNumber(1);
-        var organisationIdentifier = OrganisationOrPersonIdentifier.Create(organizationNumber);
+        var organizationNumber = TestHelpers.GetOrganizationNumber(1);
+        var organizationIdentifier = OrganizationOrPersonIdentifier.Create(organizationNumber);
 
         var builder = CorrespondenceNotificationOverrideBuilder
             .Create()
-            .WithOrganisationOrPersonIdentifier(organisationIdentifier);
+            .WithOrganizationOrPersonIdentifier(organizationIdentifier);
 
         // Act
         var recipient = builder.Build();
@@ -131,15 +131,15 @@ public class CorrespondenceNotificationOverrideBuilderTests
     }
 
     [Fact]
-    public void Build_WithOrganisationOrPersonIdentifier_Person_ShouldSetOnlyNationalIdentityNumber()
+    public void Build_WithOrganizationOrPersonIdentifier_Person_ShouldSetOnlyNationalIdentityNumber()
     {
         // Arrange
         var nationalIdentityNumber = TestHelpers.GetNationalIdentityNumber(1);
-        var personIdentifier = OrganisationOrPersonIdentifier.Create(nationalIdentityNumber);
+        var personIdentifier = OrganizationOrPersonIdentifier.Create(nationalIdentityNumber);
 
         var builder = CorrespondenceNotificationOverrideBuilder
             .Create()
-            .WithOrganisationOrPersonIdentifier(personIdentifier);
+            .WithOrganizationOrPersonIdentifier(personIdentifier);
 
         // Act
         var recipient = builder.Build();
@@ -153,14 +153,14 @@ public class CorrespondenceNotificationOverrideBuilderTests
     }
 
     [Fact]
-    public void Build_WithOrganisationOrPersonIdentifier_Null_ShouldNotSetIdentifiers()
+    public void Build_WithOrganizationOrPersonIdentifier_Null_ShouldNotSetIdentifiers()
     {
         // Arrange
         var emailAddress = "null@example.com";
 
         var builder = CorrespondenceNotificationOverrideBuilder
             .Create()
-            .WithOrganisationOrPersonIdentifier(null)
+            .WithOrganizationOrPersonIdentifier(null)
             .WithEmailAddress(emailAddress);
 
         // Act
@@ -178,8 +178,8 @@ public class CorrespondenceNotificationOverrideBuilderTests
     public void Builder_UpdatesAndOverwritesValuesCorrectly()
     {
         // Arrange
-        var initialOrgNumber = TestHelpers.GetOrganisationNumber(1);
-        var updatedOrgNumber = TestHelpers.GetOrganisationNumber(2);
+        var initialOrgNumber = TestHelpers.GetOrganizationNumber(1);
+        var updatedOrgNumber = TestHelpers.GetOrganizationNumber(2);
         var nationalIdentityNumber = TestHelpers.GetNationalIdentityNumber(1);
         var emailAddress = "updated@example.com";
 
@@ -206,7 +206,7 @@ public class CorrespondenceNotificationOverrideBuilderTests
     public void Build_WithContactInfoTakesPrecedenceOverOrganizationNumber()
     {
         // Arrange
-        var organizationNumber = TestHelpers.GetOrganisationNumber(1);
+        var organizationNumber = TestHelpers.GetOrganizationNumber(1);
         var emailAddress = "precedence@example.com";
 
         var builder = CorrespondenceNotificationOverrideBuilder
@@ -252,7 +252,7 @@ public class CorrespondenceNotificationOverrideBuilderTests
     public void Build_WithContactInfoTakesPrecedenceOverBothIdentifiers()
     {
         // Arrange
-        var organizationNumber = TestHelpers.GetOrganisationNumber(1);
+        var organizationNumber = TestHelpers.GetOrganizationNumber(1);
         var nationalIdentityNumber = TestHelpers.GetNationalIdentityNumber(1);
         var emailAddress = "precedence@example.com";
         var mobileNumber = "87654321";
@@ -279,7 +279,7 @@ public class CorrespondenceNotificationOverrideBuilderTests
     public void Build_WithNationalIdentityNumberTakesPrecedenceOverOrganizationNumber()
     {
         // Arrange
-        var organizationNumber = TestHelpers.GetOrganisationNumber(1);
+        var organizationNumber = TestHelpers.GetOrganizationNumber(1);
         var nationalIdentityNumber = TestHelpers.GetNationalIdentityNumber(1);
 
         var builder = CorrespondenceNotificationOverrideBuilder
@@ -393,7 +393,7 @@ public class CorrespondenceNotificationOverrideBuilderTests
     public void Builder_MethodChaining_ShouldReturnSameBuilderInstance()
     {
         // Arrange
-        var organizationNumber = TestHelpers.GetOrganisationNumber(1);
+        var organizationNumber = TestHelpers.GetOrganizationNumber(1);
 
         // Act
         var builder = CorrespondenceNotificationOverrideBuilder.Create();

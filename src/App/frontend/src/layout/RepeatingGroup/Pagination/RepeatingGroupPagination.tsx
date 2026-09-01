@@ -23,7 +23,7 @@ interface RepeatingGroupPaginationProps {
 }
 /**
  * Simple wrapper to prevent running any hooks unless pagination is actually going to be used
- * Specifically, usePagesWithErrors and useRowStructure would be doing unecessary work
+ * Specifically, usePagesWithErrors and useRowStructure would be doing unnecessary work
  */
 export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
   const { visibleRows } = useRepeatingGroupRowState();
@@ -78,8 +78,8 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
       )}
     >
       <PaginationComponent
-        nextTextKey={textResourceBindings?.pagination_next_button ?? 'general.next'}
-        backTextKey={textResourceBindings?.pagination_back_button ?? 'general.back'}
+        nextTextKey={textResourceBindings?.paginationNextButton ?? 'general.next'}
+        backTextKey={textResourceBindings?.paginationBackButton ?? 'general.back'}
         data-pagination-id={indexedId}
         className={classes.pagination}
         currentPage={currentPage + 1}

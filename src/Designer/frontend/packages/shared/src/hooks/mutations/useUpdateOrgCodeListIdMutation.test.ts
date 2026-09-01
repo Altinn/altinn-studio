@@ -7,7 +7,7 @@ import type { CodeListWithTextResources } from 'app-shared/types/CodeListWithTex
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 
 // Test data:
-const org = 'organisation';
+const org = 'organization';
 const codeListId: string = 'codeListId';
 const newCodeListId: string = 'newCodeListId';
 const codeListMock: CodeListWithTextResources = [{ value: 'value', label: 'label' }];

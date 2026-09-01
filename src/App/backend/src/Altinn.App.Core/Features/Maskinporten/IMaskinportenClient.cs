@@ -4,7 +4,7 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Features.Maskinporten;
 
 /// <summary>
-/// Contains logic for handling authorisation requests with Maskinporten.
+/// Contains logic for handling authorization requests with Maskinporten.
 /// </summary>
 public interface IMaskinportenClient
 {

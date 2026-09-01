@@ -31,7 +31,7 @@ export const complexToSimpleExpression = (expression: Expression): SimplifiedExp
   if (isRelationFunc(expression)) return complexRelationFuncToSimpleExpression(expression);
   if (isSimpleLogicalTupleFunc(expression)) return logicalTupleFuncToSimpleFormat(expression);
   throw new Error(
-    'Expression is not convertable. This should have been picked up by the validator.',
+    'Expression is not convertible. This should have been picked up by the validator.',
   );
 };
 
@@ -52,7 +52,7 @@ const complexRelationFuncToSimpleSubexpression = ([
 ]: RelationFunc): SimpleSubexpression => {
   if (!isSimpleValueFunc(firstValue) || !isSimpleValueFunc(secondValue))
     throw new Error(
-      'Relation function is not convertable. This should have been picked up by the validator.',
+      'Relation function is not convertible. This should have been picked up by the validator.',
     );
 
   return {
@@ -71,7 +71,7 @@ const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubexpressionV
 const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSubexpressionValue => {
   if (typeof key !== 'string')
     throw new Error(
-      'Data lookup function is not convertable. This should have been picked up by the validator.',
+      'Data lookup function is not convertible. This should have been picked up by the validator.',
     );
 
   switch (source) {
@@ -89,7 +89,7 @@ const keyLookupFuncToSimpleFormat = ([type, key]: KeyLookupFunc): SimpleSubexpre
     case KeyLookupFuncName.InstanceContext:
       if (typeof key !== 'string')
         throw new Error(
-          'Key lookup function is not convertable. This should have been picked up by the validator.',
+          'Key lookup function is not convertible. This should have been picked up by the validator.',
         );
       return { type: SimpleSubexpressionValueType.InstanceContext, key };
   }

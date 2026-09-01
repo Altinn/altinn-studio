@@ -81,44 +81,54 @@
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "add_button_full": {
+        "addButtonFull": {
           "title": "Add button (full) (for repeating groups)",
-          "description": "The text for the \"Add\" button (overrides \"add_button\", and sets the full text for the button)",
+          "description": "The text for the \"Add\" button (overrides \"addButton\", and sets the full text for the button)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "add_button": {
+        "addButton": {
           "title": "Add button (suffix) (for repeating groups)",
           "description": "The text for the \"Add\" button (used as a suffix after the default button text)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "save_button": {
+        "saveButton": {
           "title": "Save button (for repeating groups)",
           "description": "The text for the \"Save\" button when the repeating group item is in edit mode",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "save_and_next_button": {
+        "saveAndNextButton": {
           "title": "Save and next button (for repeating groups)",
           "description": "The text for the \"Save and next\" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "edit_button_close": {
+        "editButtonClose": {
           "title": "Edit button (close) (for repeating groups)",
           "description": "The text for the \"Edit\" button when the repeating group item is in edit mode (i.e. the user can close the edit mode)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "edit_button_open": {
+        "editButtonOpen": {
           "title": "Edit button (open) (for repeating groups)",
           "description": "The text for the \"Edit\" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "pagination_next_button": {
+        "paginationNextButton": {
           "title": "Next button in pagination",
           "description": "The text for the \"Next\" button in pagination",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "pagination_back_button": {
+        "paginationBackButton": {
           "title": "Back button in pagination",
           "description": "The text for the \"Back\" button in pagination",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "multipageBackButton": {
+          "title": "Back button in multipage navigation",
+          "description": "The text for the \"Back\" button in multipage navigation",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "multipageNextButton": {
+          "title": "Next button in multipage navigation",
+          "description": "The text for the \"Next\" button in multipage navigation",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }

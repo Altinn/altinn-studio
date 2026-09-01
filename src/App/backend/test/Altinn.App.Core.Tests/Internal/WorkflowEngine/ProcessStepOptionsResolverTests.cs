@@ -134,7 +134,7 @@ public class ProcessStepOptionsResolverTests
     [Fact]
     public void Resolve_ServiceTask_ImplementationBothFields_HonorsBothIndependently()
     {
-        // An implementer may set BOTH fields; each resolves on its own (no all-or-nothing behaviour).
+        // An implementer may set BOTH fields; each resolves on its own (no all-or-nothing behavior).
         var serviceTask = ServiceTask(
             "signing",
             new ProcessStepOptions

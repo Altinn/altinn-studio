@@ -11,7 +11,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// configured on the eFormidling BPMN service task), and the old single-argument overload is removed -
 /// so an app implementing the old shape no longer satisfies the interface (CS0535). Adding the
 /// parameter is mechanical and gets the app compiling, so we apply it automatically and emit a warning
-/// asking the developer to decide whether the app should honour the new value.
+/// asking the developer to decide whether the app should honor the new value.
 /// The parameter is annotated <c>string?</c> only where a nullable annotation context is active
 /// (project <c>&lt;Nullable&gt;</c> or a preceding <c>#nullable</c> directive) - the v8 app template
 /// has no nullable context, where <c>string?</c> would raise CS8632 on every build.
@@ -82,7 +82,7 @@ internal sealed class EFormidlingReceiversSignatureMigration
 
     public MigrationResult Migrate()
     {
-        var warnings = new List<string>();
+        var messages = new List<UpgradeMessage>();
 
         // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
         foreach (var file in _scanner.Files.ToArray())
@@ -106,7 +106,7 @@ internal sealed class EFormidlingReceiversSignatureMigration
 
             foreach (var line in lines)
             {
-                warnings.Add(
+                messages.Warn(
                     $"{file.RelativePath}:{line}: added '{NewParameterName}' parameter to {MethodName}. "
                         + "Review whether the implementation should use it (the receiver org number configured on the "
                         + "eFormidling service task) instead of ignoring it."
@@ -116,7 +116,7 @@ internal sealed class EFormidlingReceiversSignatureMigration
 
         // This is an auto-migration: the app compiles again, so it does not require manual action even
         // though we ask the developer to review usage of the new parameter.
-        return new MigrationResult(ManualActionRequired: false, warnings);
+        return new MigrationResult(messages);
     }
 
     private static IEnumerable<MethodDeclarationSyntax> FindMethodsToMigrate(CompilationUnitSyntax root)

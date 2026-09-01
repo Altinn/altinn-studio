@@ -262,7 +262,7 @@ function templatePartyTypesString({
   /*
       This method we always return the strings in an order of:
       1. private person
-      2. organisation
+      2. organization
       3. sub unit
       4. bankruptcy state
     */

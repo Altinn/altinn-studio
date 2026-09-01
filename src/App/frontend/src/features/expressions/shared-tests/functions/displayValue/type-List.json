@@ -22,7 +22,7 @@
               "age": "Skjema.Age",
               "city": "Skjema.City"
             },
-            "bindingToShowInSummary": "Skjema.Name"
+            "summaryBinding": "name"
           }
         ]
       }

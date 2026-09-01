@@ -7,7 +7,7 @@ import type { ComponentType, CustomComponentType } from 'app-shared/types/Compon
 import { isSupportedComponentType } from '../../../../../data/formItemConfig';
 import { addItemOfType, getItem } from '../../../../../utils/formLayoutUtils';
 import { ItemType } from '../../../../../components/Properties/ItemType';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const useBaseAddComponentHandler = (layout: IInternalLayout) => {

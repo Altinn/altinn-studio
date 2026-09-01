@@ -70,11 +70,11 @@ function getEditButtonText(
   textResourceBindings: GroupExpressions['textResourceBindings'] | undefined,
 ) {
   const buttonTextKey = isEditing
-    ? textResourceBindings?.edit_button_close
-      ? textResourceBindings?.edit_button_close
+    ? textResourceBindings?.editButtonClose
+      ? textResourceBindings?.editButtonClose
       : 'general.save_and_close'
-    : textResourceBindings?.edit_button_open
-      ? textResourceBindings?.edit_button_open
+    : textResourceBindings?.editButtonOpen
+      ? textResourceBindings?.editButtonOpen
       : 'general.edit_alt';
   return langTools.langAsString(buttonTextKey);
 }
@@ -123,7 +123,7 @@ export function RepeatingGroupTableRow({
     : getEditButtonText(isEditingRow, langTools, trbForRow);
 
   const deleteButtonText = langAsString('general.delete');
-  const togleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
+  const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
     <Table.Row
@@ -333,7 +333,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : togleDeletebuttonText}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
                 </DeleteElement>
               </>
             )}

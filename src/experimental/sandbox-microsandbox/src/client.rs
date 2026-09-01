@@ -6,6 +6,14 @@ use tokio::sync::OnceCell;
 
 use crate::{backend::RuntimeBundle, error};
 
+// Published runtime bundle digests for Microsandbox 0.6.9-digdir.3. Update these
+// together with the pinned Microsandbox revisions in the workspace manifest.
+const LINUX_X86_64_RUNTIME_SHA256: &str = "92d228f36124ad6ff3f6a9392c5c738444d96f490e12dfddf625582c43fb6c8a";
+const LINUX_AARCH64_RUNTIME_SHA256: &str = "6f0f95b88d3ca3e4eb20c5b7c4e1b3afb1180bc2e7469fc5cdc305e204f0ba08";
+const MACOS_AARCH64_RUNTIME_SHA256: &str = "f00e7502be920da08d26b6320c3b2a948dd3137f404c85a2e4d5aea09aab2eeb";
+const WINDOWS_X86_64_RUNTIME_SHA256: &str = "8f66798f2f5a07a7b03aba55388ca287c9c327d3e0fabbbc18d9b6167aea2789";
+const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "a1bd058f98d89a6a3dc42a32bf0c970ff6fbefd6858568e67c549516cb6a17ce";
+
 /// Keeps Microsandbox's thread-safe ownership model at the SDK boundary.
 #[derive(Clone)]
 pub(crate) struct Client {
@@ -120,25 +128,25 @@ impl Client {
     pub(crate) async fn ensure_installed(&self) -> Result<(), Error> {
         self.installation
             .get_or_try_init(|| async {
-                match &self.runtime_bundle {
-                    Some(bundle) => {
-                        microsandbox::setup::Setup::builder()
-                            .base_dir(&self.microsandbox_home)
-                            .bundle_path(&bundle.path)
-                            .expected_bundle_sha256(&bundle.sha256)
-                            .allow_ci_local_bundle(false)
-                            .build()
-                            .install()
-                            .await
-                    }
-                    None => {
-                        microsandbox::setup::Setup::builder()
-                            .base_dir(&self.microsandbox_home)
-                            .allow_ci_local_bundle(false)
-                            .build()
-                            .install()
-                            .await
-                    }
+                if let Some(bundle) = &self.runtime_bundle {
+                    microsandbox::setup::Setup::builder()
+                        .base_dir(&self.microsandbox_home)
+                        .bundle_path(&bundle.path)
+                        .expected_bundle_sha256(&bundle.sha256)
+                        .allow_ci_local_bundle(false)
+                        .build()
+                        .install()
+                        .await
+                } else {
+                    let sha256 = released_runtime_sha256()
+                        .ok_or_else(|| Error::UnsupportedPlatform(sandbox::Platform::native("linux")))?;
+                    microsandbox::setup::Setup::builder()
+                        .base_dir(&self.microsandbox_home)
+                        .expected_bundle_sha256(sha256)
+                        .allow_ci_local_bundle(false)
+                        .build()
+                        .install()
+                        .await
                 }
                 .map_err(error::microsandbox)
             })
@@ -177,12 +185,42 @@ impl Client {
     }
 }
 
+fn released_runtime_sha256() -> Option<&'static str> {
+    runtime_sha256(std::env::consts::OS, std::env::consts::ARCH)
+}
+
+pub(crate) fn runtime_sha256(os: &str, architecture: &str) -> Option<&'static str> {
+    match (os, architecture) {
+        ("linux", "x86_64") => Some(LINUX_X86_64_RUNTIME_SHA256),
+        ("linux", "aarch64") => Some(LINUX_AARCH64_RUNTIME_SHA256),
+        ("macos", "aarch64") => Some(MACOS_AARCH64_RUNTIME_SHA256),
+        ("windows", "x86_64") => Some(WINDOWS_X86_64_RUNTIME_SHA256),
+        ("windows", "aarch64") => Some(WINDOWS_AARCH64_RUNTIME_SHA256),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
     use sandbox::{ByteQuantity, CpuQuantity, RootFilesystem, SandboxResources};
 
     use crate::client::Client;
+
+    #[test]
+    fn every_supported_host_runtime_download_is_digest_pinned() {
+        for (os, architecture) in [
+            ("linux", "x86_64"),
+            ("linux", "aarch64"),
+            ("macos", "aarch64"),
+            ("windows", "x86_64"),
+            ("windows", "aarch64"),
+        ] {
+            let digest = super::runtime_sha256(os, architecture).expect("supported host digest");
+            assert_eq!(digest.len(), 64);
+            assert!(digest.bytes().all(|byte| byte.is_ascii_hexdigit()));
+        }
+    }
 
     #[tokio::test(flavor = "local")]
     async fn sandbox_builders_use_explicit_resources_without_ambient_defaults() {

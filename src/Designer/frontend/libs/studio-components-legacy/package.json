@@ -10,7 +10,9 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@digdir/designsystemet-css": "0.10.0",
     "@digdir/designsystemet-react": "0.63.1",
+    "@digdir/designsystemet-theme": "0.15.3",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
     "ajv": "8.20.0",
@@ -22,8 +24,6 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.1",
-    "@digdir/design-system-tokens": "0.13.0",
-    "@digdir/designsystemet-css": "0.10.0",
     "@storybook/addon-docs": "10.5.7",
     "@storybook/addon-links": "10.5.7",
     "@storybook/builder-vite": "10.5.7",

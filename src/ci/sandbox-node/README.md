@@ -4,7 +4,7 @@
 `/dev/kvm` character device as the Kubernetes extended resource `devices.altinn.studio/kvm`. It lets
 independent Sandbox coordinators share a large node without running as privileged containers.
 
-## Behaviour
+## Behavior
 
 - Identifies Azure local NVMe data disks by their documented controller model.
 - Idempotently assembles them as RAID0, formats the array as reflink-enabled XFS and mounts it at

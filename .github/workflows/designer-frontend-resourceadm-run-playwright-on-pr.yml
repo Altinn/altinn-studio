@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/resourceadm/**'
+      - 'src/Designer/frontend/packages/policy-editor/**'
       - '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'

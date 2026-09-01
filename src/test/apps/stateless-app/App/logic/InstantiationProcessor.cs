@@ -20,7 +20,7 @@ namespace Altinn.App.logic
         /// </remarks>
         /// <param name="instance">Instance information</param>
         /// <param name="data">The data object created</param>
-        /// <param name="prefill">External prefill available under instansiation if supplied</param>
+        /// <param name="prefill">External prefill available under instantiation if supplied</param>
         public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
             

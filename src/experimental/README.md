@@ -1,262 +1,142 @@
 # Agent platform
 
-As an alternative to buying someone else's cloud agents, we should try to build our own.
-Important considerations:
+This area explores an open agent platform built on a reusable Sandbox SDK. The platform is designed to run locally
+or under later cloud orchestration without coupling Agent automation to one isolation backend, network implementation,
+harness or model.
 
-- Open source and open standards, according to architecture principles
-- Minimal coupling to external infrastructure and dependencies
-- Minimal coupling to specific harnesses and models
-- Flexibility in deployment (run locally and in the cloud, e.g. Kubernetes)
-- Support for multiple different virtualization/containerization mechanisms
-- Support for major operating systems: Windows, macOS and Linux
-- Agents should not have access to secrets
-- Ability to enforce
-  - network access across Ethernet, TCP, UDP, HTTP/WS and HTTPS/WSS
-  - context-aware authorization of operations originating inside Agents and Sandboxes, including network and
-    credential use
-- Ability to automate roles and workflows (virtual employees)
-- Extensibility and reusability across teams, contexts, harnesses, workflows, tools and integrations
-- Agents can be long-running
-- Agents can be prompted from a variety of external sources, such as GitHub and Slack
-- Each sandbox should be able to host multiple agent sessions
-- We should be able to put smart delegation/coordination/automation on the control-plane level
-- Clients for desktop and web should be able to list online sandboxes, create sessions and ask control planes to
-  create new sandboxes
-- Agents should be able to use standard development tools, including Docker or Podman, `strace` and `perf` inside a
-  Linux Sandbox
+The main goals are:
+
+- long-running Agents with multiple durable Sessions;
+- strong isolation with mediated network access and no real secrets inside Sandboxes;
+- backend-neutral Sandbox lifecycle, execution, storage, file-transfer and terminal APIs;
+- harness-neutral Agent and Session concepts with harness-specific behavior kept in adapters;
+- host APIs that work on Linux, macOS and Windows while initially materializing Linux Sandboxes; and
+- a Sandbox layer reusable by CI runners and other isolated workloads that do not depend on Agent concepts.
 
 ## Development
 
-See the [`Makefile`](Makefile) for available development commands.
+Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
+installs `agentctl` and `agentd` for the current user.
 
-## High-level Architecture
+The Agent database and local protocol are intentionally clean-slate while this code is experimental. Breaking schema
+changes require stopping `agentd` and removing the configured Agent home rather than migrating old state.
 
-- Client-server-operator model
-  - Servers as local control planes
-  - Operator as global/cloud orchestrator and scheduler
-  - Clients that can connect and support good DX remotely and locally
-- Backend-neutral Sandbox abstraction with capability discovery
-  - Support different isolation mechanisms, each with its own benefits and drawbacks
-  - Allow higher layers to discover supported Sandbox Features and Network Endpoints
-- Custom network and MITM stack for authorization enforcement and credential mediation
-- Correctly layered and decoupled
-  - Sandboxes are useful independently from AI, including for Gitea and GitHub CI runners
-  - The custom network does not depend on virtualization backends or kernel API details
-
-### Concepts
-
-The host and Sandbox each have a separate service and CLI pair:
+## Architecture
 
 ```text
 Host
-├── agentd       Agent Control Plane and API server
-└── agentctl     Agent Control Plane CLI
-
-Sandbox
-└── Agent Runtime
-    ├── sessiond       Session, harness and plugin runtime
-    └── sessionctl     Local Agent Runtime CLI (agent.spawn, session.spawn)
+├── agentctl             local CLI, transient execution and Session attachment
+└── agentd               control plane, reconciliation, policy and SecretStore
+    └── Agent            declarative durable resource
+        └── Sandbox      isolated execution environment
+            ├── Session  durable tmux-backed harness process
+            └── Session  durable tmux-backed harness process
 ```
 
-`agentctl` may also be installed inside a Sandbox as an authorized client of the host `agentd`; it remains separate
-from `sessionctl`, which only operates the local Agent Runtime. Agent Home is the logical root for host control-plane
-state. `AGENT_HOME` overrides it explicitly, while its default follows operating-system conventions under the
-eventual product name rather than being tied to the `agentd` executable name.
+The implementation has two deliberately separate layers.
 
-The Sandbox layer is independent of Agent automation. A Node is a host machine or VM, a Sandbox is an isolated
-execution environment on that Node, and an Execution is a running command inside the Sandbox.
+### Sandbox layer
 
-```text
-Node
-└── Sandbox
-    └── Executions
-```
+`sandbox` is the generic Rust SDK. A Node hosts Sandboxes, and Sandboxes host Executions. Providers pair a Sandbox
+Backend with an Image Backend and advertise platform capabilities before selection. Network Backends are selected
+independently and consume a negotiated packet, intercepted-flow or versioned-control endpoint.
 
-The Agent layer builds on the Sandbox layer. The Agent Control Plane manages Agents, each Agent owns a Sandbox, and
-the sandbox-resident Agent Runtime owns the long-lived Sessions that contain harness state and computation.
+`sandbox-microsandbox` implements the Sandbox, Image and Network contracts for Microsandbox. Network enforcement and
+secret substitution happen on the trusted mediation path; the Sandbox Backend must not leave an unobserved egress
+path. `sandbox-authorization` defines the context-aware authorization vocabulary without depending on the Agent
+control plane or an enforcement implementation.
 
-```text
-Agent Control Plane (on the host)
-└── Agent (Session API, on the host)
-    └── Sandbox (vsock transport)
-        └── Agent Runtime (in the sandbox)
-            └── Sessions
-```
+The Sandbox crates do not depend on Agent automation.
 
-CI uses the Sandbox layer directly and does not depend on Agent concepts. A future Runner Coordinator creates an
-ephemeral Sandbox and starts the runner as an Execution.
+### Agent layer
 
-```text
-Runner Coordinator
-└── Sandbox
-    └── Runner Execution
-```
+`agentd` owns the durable desired state and all lifecycle effects. `agentctl` starts the adjacent daemon on demand and
+communicates through the versioned local control API. Its resource-oriented commands follow `verb resource [name]`;
+Session scope is explicit through `--agent` or inferred from the closest unique persisted Agent source directory.
+Transient `exec` commands similarly converge the Agent first, then target its exact materialized Sandbox without
+creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
 
-A future Operator schedules Sandboxes across Nodes. It sits above the generic Sandbox layer and does not change the
-ownership model inside a Sandbox.
+An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
+materialization, setup, network mediation and release. A Session controller can only open the already-materialized
+Sandbox and owns the in-Sandbox tmux and harness effects for that Session. Both use the same keyed reconciliation
+scheduler, which serializes work per resource identity while allowing unrelated resources to progress concurrently.
 
-**Scenarios**:
+Desired state is persisted before reconciliation. Wakeups provide low-latency progress, while startup and periodic
+scans ensure dropped notifications or daemon restarts do not lose work. Provider assignment is sticky for an Agent
+incarnation, and a reused Agent name never inherits resources from a deleted incarnation.
 
-Github trigger:
-- Altinn Studio dev, e.g. @martinothamar:
-  1. > @altinn-studio-agent get an agent to work on this issue, the session should use Fable 5 with high reasoning
-    - Control plane detects which user is prompting
-    - @martinothamar is registered in the global control plane, and has logged in with Claude session (OAuth flow in the platform)
-    - Control plane spins up a special orchestrator agent in a sandbox (using @martinothamar access/membership), which is tasked to consutrct
-      - `spawn.agent` call
-      - `spawn.session` call (specs from prompt, Fable 5 with High)
-      - prompt for the agent based on input
-    - Control plane provisions agent according to requests, including session and `initialPrompt`
-    - Agent subsequently calls back to the issue (according to instructions?)
+Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
+immutably to one of its Agent's declared harness installations. Detaching leaves a Session running. An inactive,
+unattached Session becomes Idle and is relaunched on the next ensure or attach, resuming the harness conversation when
+its native state still exists. Repeated unexpected harness exits use bounded backoff.
 
+Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
+runtime must establish the common interface before one is introduced.
 
-### Tech stack and features
+## Images, home and harnesses
 
-- Languages:
-  - Rust for the local control plane, CLI, sandbox SDK, sandbox integrations and the initial
-    sandbox-resident agent runtime
-  - Go for later operator/Kubernetes scheduling and orchestration
-  - JavaScript plugin support may be added later through isolated subprocesses; it is not part of the
-    first iteration
-- Sandbox backends: Microsandbox, QEMU, more later
-- Network: independently composable Network Backends connected through negotiated packet, intercepted-flow or
-  versioned control-protocol endpoints
-- SDKs to manage sandboxes and agents
-- OCI images built from user-supplied Dockerfiles or resolved from registry references
-- Provider-neutral prepared-image operations for transporting pristine, pre-materialized derivatives of OCI
-  images; formats remain opaque, Provider-owned and usable only with compatible Sandbox Providers
+Agent images own installed tools and optional workspace initialization. Repository checkouts are persistent runtime
+data beneath `/home/agent/code`; they are not declared, updated or deleted by the Agent controller. Sessions may clone
+repositories they can access, and image init may make a simple best-effort checkout for convenience.
+`spec.sandbox.mounts` can instead attach caller-owned host directories or temporary memory filesystems when the selected
+Sandbox Provider supports them; these attachments are immutable for the Agent incarnation.
 
-#### Initial deliverable
+`spec.home` is a continuously applied overlay onto `/home/agent`. It converges files supplied by the builder but does
+not delete guest files that disappear from the source. Builders may use it to own harness configuration explicitly,
+with the consequence that those files are reapplied on every Agent pass.
 
-- A reusable, backend-neutral Sandbox SDK for agent automation, CI runners and other isolated workloads
-- A Linux Microsandbox implementation with Dockerfile and OCI image sources
-- Long-lived Sandboxes with execution, file transfer, storage, mutable resources and interactive terminals
-- An independently composable Network Backend with live authorization and credential mediation
-- Strict separation between generic Sandbox infrastructure and Agent automation
-- A local Agent Control Plane with declarative Agents and imperative Sessions
-- Multiple Codex or Claude Code Sessions per Agent through a harness-neutral Session API
-- Host-managed subscription and GitHub authentication without placing credentials in Sandboxes
-- Portable APIs for Linux, macOS and Windows hosts, initially materializing Linux Sandboxes
-- Familiar Kubernetes-style resource quantities, manifests and CLI semantics where applicable
-- An Agent able to modify and test this platform from its own isolated repository clone
-- Production-quality API foundations verified through automated tests and a manual native-platform test matrix
+`spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
+`spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
+at its global instruction location: `~/.claude/CLAUDE.md` for Claude Code and `~/.codex/AGENTS.md` for Codex.
+Repository-local instruction files continue to be discovered by the harness itself.
 
-##### Agent layer implementation plan (temporary)
+Harness Adapters own authentication, version verification, managed configuration, hooks, native conversation IDs and
+launch arguments. The current adapters support Claude Code and Codex CLI. Harness-owned mutable state is seeded by the
+image or the user and is not used as a trusted bootstrap marker.
 
-This working plan will be removed when the initial Agent deliverable is complete.
+## Secrets and network policy
 
-- Complete one end-to-end Agent lifecycle
-  - Replace the memory-only `agentd` composition with persistent Agent state and the real Sandbox, Network,
-    authorization and secret-store implementations
-  - Reconcile applied Agents into retained Sandboxes, adopt them after `agentd` restarts and report useful status
-  - Keep the Agent manifest declarative while keeping Sessions imperative
-  - Prefer to keep management and control plane logic in `agentd` as opposed to `sessiond`, consider whether `sessiond` is needed (what needs in-sandbox automation?).
-    The idea is that agent sessions may use and mutate the in-sandbox environment as much as they want. There is also some "host exposure" depending on devices exposed
-    through libkrun and our infrastructure.
-  - All logic that is harness-specific should exist in and be contained by harness-specific adapters. It should be simple to add support for another harness
-- Implement persistent, harness-neutral Sessions in the Agent Runtime
-  - Use this public data model; the control plane assigns the UUID, and `CreateSession.workingDirectory` defaults to
-    `$HOME/code` while the resulting `Session.workingDirectory` is always the resolved absolute Sandbox path:
+A secret is any protected host-owned value. Credentials are the subset used for authentication. Generic storage and
+mediation therefore use the `SecretStore` concept, while harness login remains an authentication concern.
 
-    ```text
-    HarnessInstallationId {
-      Claude,
-      Codex
-    }
+Manifest secret bindings name a guest environment variable and the hosts where its value may be substituted. The
+matching real value is loaded from the manifest directory's `.env` file and retained only in the owner-protected host
+database. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
+the current real value only for an authorized request to an allowed host; rotation does not require copying new
+material into the Sandbox. A custom placeholder is optional for clients that validate token shape.
 
-    CreateSession {
-      agentId: AgentId
-      initialPrompt: String
-      modelId: String
-      reasoningEffort: String
-      accessMode: String
-      harnessInstallation: HarnessInstallationId
-      workingDirectory?: SandboxPath,
-      plugins: SessionPlugin[]
-    }
+Policy is evaluated for live Sandbox-originated operations and fails closed when the destination, authorization,
+secret resolution or trusted mediation path is unavailable. Host-destined traffic is restricted to the registered
+Platform API endpoint. This authorization is separate from authorization of users calling the host Agent API.
+When an Agent image includes Podman, the platform makes the guest's mediated CA bundle available to containers and
+build steps through standard trust paths. Docker and dockerd are not covered by this convenience wiring.
 
-    Session {
-      id: SessionId (UUID)
-      agentId: AgentId
-      initialPrompt: String
-      modelId: String
-      reasoningEffort: String
-      accessMode: String
-      harnessInstallation: HarnessInstallationId
-      workingDirectory: SandboxPath
-      state: Starting | Running { activity: SessionActivity } | Stopped | Failed
-      createdAt: Timestamp
-      updatedAt: Timestamp
-      archivedAt?: Timestamp
-      deletedAt?: Timestamp
-    }
+SQLite `secure_delete` and owner-only filesystem permissions provide local hygiene. They are not a cryptographic
+erasure guarantee across WAL history, filesystem snapshots or backups.
 
-    SessionPlugin [
-      sessionId: SessionId
-      pluginId: String
-      state: JSONB
-    ]
+## Current scope and direction
 
-    SessionActivity = Unknown | Idle | Working | WaitingForInput (associated data?) | WaitingForApproval
+The current milestone provides persistent Agents and Sessions, real Microsandbox lifecycle, mediated harness and GitHub
+authentication, image-owned workspace initialization, idle/resume behavior, local packaging and release-pinned runtime
+downloads.
 
-    SessionContent {
-      rootThreadId: ThreadId
-      threads: Thread[]
-    }
+Important current limitations are:
 
-    Thread {
-      id: ThreadId
-      parentThreadId?: ThreadId
-      kind: Primary | Subagent
-      turns: Turn[]
-    }
+- Codex uses a separate ChatGPT subscription login owned and refreshed by `agentd`;
+- Sessions share one Sandbox user and tmux server and therefore one trust boundary;
+- attachment is still a client-side Provider operation rather than a daemon-owned terminal capability;
+- Session content, prompt steering, archive/delete and plugin APIs are not implemented; and
+- global scheduling and Kubernetes orchestration are future work.
 
-    Turn {
-      id: TurnId
-      state: InProgress | Completed | Interrupted | Failed | Unknown
-      items: ThreadItem[]
-      startedAt?: Timestamp
-      completedAt?: Timestamp
-    }
-    ```
+The next planned slices are:
 
-  - Keep harness-native conversation identifiers and Session Driver identifiers as opaque Adapter and Driver state,
-    separate from the stable Session ID
-  - Store Session metadata in SQLite through `rusqlite`, using a dedicated database thread so synchronous database
-    work does not block the Tokio local runtime
-  - Treat `initialPrompt` as display metadata only; read messages, responses, tool calls and other Session contents
-    directly from harness-native JSONL, SQLite or equivalent storage through the selected Harness Adapter
-  - Hydrate `SessionContent` on demand instead of persisting it; derive stable, Session-scoped Thread and Turn IDs from
-    harness-native identifiers or deterministic storage locations
-  - Represent harness-native subagents as child Threads in `SessionContent`; they remain within their owning
-    Session's harness and lifecycle and are not independently managed platform Sessions
-  - Submit prompts to the Session Driver without durable delivery or automatic retry; expose successfully written
-    prompts as in-memory pending submissions until the Harness Adapter observes them or they expire after ten seconds
-  - Replace the persisted Run API with `getSessionContent`, `submitPrompt`, `steerSession` and `interruptSession`;
-    Turns are read-only harness-derived content rather than platform-managed resources
-  - Allow archive, unarchive and soft delete only while a Session is `Stopped`; represent them with `archivedAt` and
-    `deletedAt`, hide them from normal listings, and garbage-collect deleted Session metadata after 30 days
-- Keep platform delegation separate from harness-native subagents
-  - Create a real Session or Agent through `agentd` when a Session delegates work through the platform, and record the
-    source Session as creation provenance without giving harness-native child Threads independent platform lifecycle
-- Complete the host-side Agent API and CLI
-  - Expose Agent lifecycle, Session and event operations through the versioned Agent Control API
-  - Add concise Kubernetes-style `agentctl` commands and status/progress output for those operations
-  - Preserve a single per-user `agentd` and host control-plane home on Linux, macOS and Windows
-- Add mediated authentication and egress
-  - Store provider accounts and credentials only in the host control-plane home
-  - Support one-time host login and proactive token maintenance for Codex and Claude Code subscriptions
-  - Mediate GitHub authentication and authorized network requests through the Network Backend and
-    `sandbox-authorization`, without copying credentials into the Sandbox
-  - Fail closed when authorization, secret resolution or the trusted network path is unavailable
-- Prove the deliverable with a self-development Agent
-  - Build an Agent image containing the required harnesses and development tools, with its own repository clone
-  - Demonstrate concurrent Codex and Claude Code Sessions through the common Session API
-  - Demonstrate that the Agent can modify and test this workspace, survive restarts and retain its Sessions
-  - Automate backend-neutral and Linux/Microsandbox coverage, then complete the documented native-host manual matrix
+1. expose harness-native Session content and prompt/steer/interrupt operations;
+2. add Session lifecycle operations such as archive and soft deletion;
+3. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
+4. add global orchestration only after the local control-plane contracts are proven.
 
 ## References
 
-- agentdp, nvt-agent: prototypes of agent platforms
-- Microsandbox, smolvm: implementations of microVMs and sandboxes, including networking
-- herdr: agent multiplexing and parsing of harness state, such as running Claude Code or Codex CLI sessions
+- agentdp and nvt-agent: earlier agent-platform prototypes
+- Microsandbox and smolvm: microVM and Sandbox implementations
+- Herdr: harness multiplexing and native session-state exploration

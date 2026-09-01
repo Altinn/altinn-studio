@@ -8,7 +8,7 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
-using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Features.Notifications.Cancellation;
 using Altinn.App.Core.Features.Notifications.Email;
@@ -225,7 +225,7 @@ public static class ServiceCollectionExtensions
         AddNotificationServices(services);
         AddProcessServices(services);
         services.AddWorkflowEngineIntegration();
-        AddFileAnalyserServices(services);
+        AddFileAnalyzerServices(services);
         AddFileValidatorServices(services);
 
         if (!env.IsDevelopment())
@@ -395,10 +395,10 @@ public static class ServiceCollectionExtensions
         services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");
     }
 
-    private static void AddFileAnalyserServices(IServiceCollection services)
+    private static void AddFileAnalyzerServices(IServiceCollection services)
     {
         services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
-        services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        services.TryAddTransient<IFileAnalyzerFactory, FileAnalyzerFactory>();
     }
 
     private static void AddFileValidatorServices(IServiceCollection services)

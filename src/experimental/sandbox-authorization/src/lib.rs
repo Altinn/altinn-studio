@@ -45,6 +45,8 @@ pub mod vocabulary {
 
     /// Built-in trusted Context attribute names.
     pub mod context {
+        /// Stable Sandbox name supplied by its trusted Network Backend.
+        pub const SANDBOX_NAME: &str = "sandbox.name";
         /// DNS record type.
         pub const DNS_RECORD_TYPE: &str = "dns.recordType";
         /// DNS resolver socket address.
@@ -63,6 +65,9 @@ pub mod vocabulary {
         pub const HTTP_VERSION: &str = "http.version";
         /// Network destination socket address.
         pub const NETWORK_DESTINATION_ADDRESS: &str = "network.destinationAddress";
+        /// Whether the destination is the host, reported by the trusted Network
+        /// Backend when it rewrites a gateway-bound flow to host loopback.
+        pub const NETWORK_DESTINATION_IS_HOST: &str = "network.destinationIsHost";
         /// Network hostname supplied by a trusted parser.
         pub const NETWORK_HOSTNAME: &str = "network.hostname";
         /// Network source socket address.

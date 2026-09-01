@@ -121,7 +121,7 @@ func ListFromContext(environments []string, serviceowner string) ([]kubernetes.K
 	return runtimes, nil
 }
 
-// parseAndFilter parses and states wether the passed in name matches based on the filter arguments (envs and serviceowner)
+// parseAndFilter parses and states whether the passed in name matches based on the filter arguments (envs and serviceowner)
 // arguments to a cluster/context name in the form of '<serviceowner>-<env>-aks' (e.g. ttd-tt02-aks).
 func parseAndFilter(name string, environments []string, serviceowner string) (string, string, bool) {
 	contextServiceOwner, withoutServiceOwner, found := strings.Cut(name, "-")

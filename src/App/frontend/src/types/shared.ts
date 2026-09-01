@@ -156,7 +156,7 @@ export interface IParty {
  */
 export enum PartyType {
   Person = 1,
-  Organisation = 2,
+  Organization = 2,
 
   /**
    * Commenting these out so nobody uses them by accident. The enum linked above has

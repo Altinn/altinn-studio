@@ -29,7 +29,7 @@ The frontend consists of several React packages in the following directories:
 - `./libs` - Contains independent libraries that are used in the project.
   - `studio-components` - React component facade wrapping `digdir/designsystemet-react` to isolate the application from external design system changes. Also includes custom components.
   - `studio-components-legacy` - Legacy React components that should eventually be transferred to the directory above.
-  - `studio-content-library` - A content library that is used by organisations in the `./dashboard` package, and by individual apps in the `./app-development` package.
+  - `studio-content-library` - A content library that is used by organizations in the `./dashboard` package, and by individual apps in the `./app-development` package.
   - `studio-feedback-form` - A feedback form library used for getting user feedback.
   - `studio-hooks` - A collection of React hooks.
   - `studio-icons` - A collection of SVG icons exported as React elements.

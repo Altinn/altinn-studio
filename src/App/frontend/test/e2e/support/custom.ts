@@ -582,7 +582,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   cy.getCurrentViewportSize().as('directSnapshotViewportSize');
   cy.viewport(width, minHeight);
 
-  // cy.screenshot's blackout property does not ensure that text is monospace which causes unecessary visual changes, so using our own percy css instead
+  // cy.screenshot's blackout property does not ensure that text is monospace which causes unnecessary visual changes, so using our own percy css instead
   cy.readFile('test/percy.css').then((percyCSS) => {
     cy.document().then((doc) => {
       const style = doc.createElement('style');

@@ -8,7 +8,7 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 /// <summary>
 /// Covers the semantic detection paths (see <see cref="CSharpSemanticQueries"/>): each case is either
 /// a false positive the syntax heuristics cannot avoid, or a false negative they cannot catch, with
-/// the contrasting syntax-only behaviour asserted alongside where it demonstrates the difference.
+/// the contrasting syntax-only behavior asserted alongside where it demonstrates the difference.
 /// </summary>
 public sealed class SemanticDetectionTests : IDisposable
 {
@@ -99,7 +99,7 @@ public sealed class SemanticDetectionTests : IDisposable
         Assert.Contains(syntax.Warnings, static w => w.Contains("Tasks.cs:6: ServiceTaskErrorHandling"));
         Assert.DoesNotContain(syntax.Warnings, static w => w.Contains(": Failed"));
         Assert.Contains(semantic.Warnings, static w => w.Contains("Tasks.cs:6: Failed"));
-        Assert.True(semantic.ManualActionRequired);
+        Assert.NotEmpty(semantic.Todos);
     }
 
     [Fact]
@@ -123,8 +123,8 @@ public sealed class SemanticDetectionTests : IDisposable
         var syntax = new ServiceTaskResultApiDetector(SyntaxScanner()).Detect();
         var semantic = new ServiceTaskResultApiDetector(SemanticScanner()).Detect();
 
-        Assert.True(syntax.ManualActionRequired);
-        Assert.False(semantic.ManualActionRequired);
+        Assert.NotEmpty(syntax.Todos);
+        Assert.Empty(semantic.Todos);
         Assert.Empty(semantic.Warnings);
     }
 
@@ -208,12 +208,12 @@ public sealed class SemanticDetectionTests : IDisposable
         // Syntax cannot type `holder.Payload` (its declaration lives in the SDK, not the app) and
         // reports it for the developer to finish.
         var syntax = new CorrespondenceApiMigration(SyntaxScanner()).Migrate();
-        Assert.True(syntax.ManualActionRequired);
+        Assert.NotEmpty(syntax.Todos);
         Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
 
         // Overload resolution proves it a byte array, so the rewrite completes.
         var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
-        Assert.False(semantic.ManualActionRequired);
+        Assert.Empty(semantic.Todos);
         Assert.Contains("WithData(new MemoryStream(holder.Payload))", File.ReadAllText(path));
     }
 
@@ -240,7 +240,7 @@ public sealed class SemanticDetectionTests : IDisposable
 
         // `new MemoryStream(readOnlyMemory)` would not compile, so this must stay a report - and the
         // report must say the type IS known and give advice that compiles.
-        Assert.True(semantic.ManualActionRequired);
+        Assert.NotEmpty(semantic.Todos);
         Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
         Assert.Contains(semantic.Warnings, static w => w.Contains("cannot be wrapped in a MemoryStream directly"));
         Assert.DoesNotContain(semantic.Warnings, static w => w.Contains("could not be determined"));
@@ -267,7 +267,7 @@ public sealed class SemanticDetectionTests : IDisposable
 
         var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
 
-        Assert.False(semantic.ManualActionRequired);
+        Assert.Empty(semantic.Todos);
         Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
     }
 
@@ -309,7 +309,7 @@ public sealed class SemanticDetectionTests : IDisposable
         Assert.NotSame(scanner, pristine);
         var onPristine = new ServiceTaskResultApiDetector(pristine).Detect();
         Assert.Contains(onPristine.Warnings, static w => w.Contains("MyTask.cs:5: FailedAbortProcessNext"));
-        Assert.True(onPristine.ManualActionRequired);
+        Assert.NotEmpty(onPristine.Todos);
 
         // The frozen view is read-only: writing through it would revert the rewriters' output.
         var file = pristine.Files[0];

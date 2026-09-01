@@ -6,7 +6,7 @@ import * as header from '../../../buildrequestheaders.js';
  * Api call to platform events/subscriptions to create a subscription for an event
  * @param {*} altinnStudioRuntimeToken altinn token for authentication
  * @param {*} subject ssn or org number
- * @param {*} subjectType person or organisation
+ * @param {*} subjectType person or organization
  * @returns JSON object with response headers, body and timings
  */
 export function postSubscriptions(altinnStudioRuntimeToken, subject, subjectType, orgName, appName) {

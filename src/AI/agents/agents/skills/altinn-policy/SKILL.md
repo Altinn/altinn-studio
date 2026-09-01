@@ -240,7 +240,7 @@ When a rule affects multiple roles and you need to modify permissions for only s
 If a rule gives read and write access to both DAGL (Daglig leder) and REGNA (Regnskapsmedarbeider), and you need to add delete access only for DAGL, you should:
 
 1. Remove DAGL (Daglig leder) from the original rule
-2. Create a new rule that gives orgininal acesses + delete access to DAGL (Daglig leder)
+2. Create a new rule that gives original accesses + delete access to DAGL (Daglig leder)
 
 **Important:** Do not remove a role from the original rule, only remove the role that you want to modify.
 

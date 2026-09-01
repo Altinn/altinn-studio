@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { StudioTextfieldProps } from './StudioTextfield';
 import { StudioTextfield } from './StudioTextfield';
-import { StudioTextarea } from '../StudioTextarea';
 import userEvent from '@testing-library/user-event';
 import type { ForwardedRef } from 'react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
@@ -35,7 +34,7 @@ describe('StudioTextfield', () => {
     const { rerender } = renderTextfield({ value });
     expect(screen.getByRole('textbox')).toHaveValue(value);
     const newValue = 'new value';
-    rerender(<StudioTextarea value={newValue} />);
+    rerender(<StudioTextfield value={newValue} />);
     expect(screen.getByRole('textbox')).toHaveValue(newValue);
   });
 

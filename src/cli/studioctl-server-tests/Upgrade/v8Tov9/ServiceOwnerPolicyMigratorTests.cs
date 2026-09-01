@@ -25,6 +25,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     private async Task<IReadOnlyList<string>> Migrate(string policy, string? metadata = Metadata) =>
         (await MigrateResult(policy, metadata)).Warnings;
 
+    private async Task<IReadOnlyList<string>> MigrateTodos(string policy, string? metadata = Metadata) =>
+        (await MigrateResult(policy, metadata)).Todos;
+
     private string PolicyAfter() => _app.Read("config/authorization/policy.xml");
 
     [Fact]
@@ -65,7 +68,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -73,7 +76,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     public async Task DefaultStudioTemplatePolicy_NeedsNoMigration()
     {
         // A freshly-scaffolded app ships with the default Studio template, whose org rule already
-        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognise
+        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognize
         // that and leave the file completely untouched. The fixture is a verbatim copy of
         // src/App/template/v8/src/App/config/authorization/policy.xml.
         var policy = await File.ReadAllTextAsync(
@@ -84,7 +87,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy, metadata: null);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -181,7 +184,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -337,7 +340,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -362,9 +365,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var todos = await MigrateTodos(policy);
 
-        Assert.Contains(warnings, w => w.Contains("'reject'", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -387,9 +390,10 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
-        Assert.Empty(warnings);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -444,9 +448,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         _app.Write("config/applicationmetadata.json", Metadata);
         var bytesBefore = _app.ReadBytes("config/authorization/policy.xml");
 
-        var warnings = (await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Warnings;
+        var todos = (await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Todos;
 
-        Assert.Contains(warnings, w => w.Contains("not valid UTF-8", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("not valid UTF-8", StringComparison.Ordinal));
         Assert.Equal(bytesBefore, _app.ReadBytes("config/authorization/policy.xml"));
     }
 
@@ -468,10 +472,11 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 + "  -->"
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
-        Assert.Contains(warnings, w => w.Contains("inside a comment", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
+        Assert.Contains(result.Warnings, w => w.Contains("inside a comment", StringComparison.Ordinal));
+        Assert.Contains(result.Todos, t => t.Contains("Grant is still missing", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -498,13 +503,12 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
 
         var result = await MigrateResult(policy);
 
-        Assert.True(result.ManualActionRequired);
         Assert.Contains(
-            result.Warnings,
-            w =>
-                w.Contains("Deny rule", StringComparison.Ordinal)
-                && w.Contains("inconclusive", StringComparison.Ordinal)
-                && w.Contains("[read, write, complete]", StringComparison.Ordinal)
+            result.Todos,
+            t =>
+                t.Contains("Deny rule", StringComparison.Ordinal)
+                && t.Contains("inconclusive", StringComparison.Ordinal)
+                && t.Contains("[read, write, complete]", StringComparison.Ordinal)
         );
         Assert.DoesNotContain(result.Warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.Equal(policy, PolicyAfter());
@@ -574,9 +578,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var todos = await MigrateTodos(policy);
 
-        Assert.Contains(warnings, w => w.Contains("'confirm'", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("'confirm'", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -605,9 +609,10 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
-        Assert.Empty(warnings);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -632,9 +637,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var todos = await MigrateTodos(policy);
 
-        Assert.Contains(warnings, w => w.Contains("'confirm'", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("'reject'", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("'confirm'", StringComparison.Ordinal));
+        Assert.DoesNotContain(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
     }
 }

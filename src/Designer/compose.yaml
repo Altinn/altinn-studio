@@ -80,6 +80,10 @@ services:
       - OTEL_ENDPOINT=localhost:4317
       - OTEL_SERVICE_NAME=studio-loadbalancer
       - OTEL_TRACE=off
+    networks:
+      default:
+        aliases:
+          - studio.localhost
     volumes:
       - ./../load-balancer/local/www:/www:ro
       - ./../load-balancer/local/error-pages:/etc/nginx/error-pages:ro
@@ -276,7 +280,7 @@ services:
 
   studio_db:
     container_name: studio-db
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -309,7 +313,7 @@ services:
       - PGDATABASE=designerdb
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: docker.io/dpage/pgadmin4
     ports:
       - "81:80"
     environment:
@@ -322,7 +326,7 @@ services:
       - 'host.docker.internal:host-gateway'
 
   redis:
-    image: redis:alpine
+    image: docker.io/library/redis:alpine
     container_name: redis
     restart: always
     command: redis-server --save 60 1 --loglevel warning
@@ -333,7 +337,7 @@ services:
 
   redis-commander:
     container_name: redis-commander
-    image: rediscommander/redis-commander:latest
+    image: docker.io/rediscommander/redis-commander:latest
     restart: always
     environment:
         - REDIS_HOSTS=redis

@@ -457,7 +457,7 @@ internal sealed class ProcessNextRequestFactory
             {
                 AuthenticationLevel = systemUser.AuthenticationLevel,
                 SystemUserId = systemUser.SystemUserId[0],
-                SystemUserOwnerOrgNo = systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),
+                SystemUserOwnerOrgNo = systemUser.SystemUserOrgNr.Get(OrganizationNumberFormat.Local),
                 SystemUserName = null,
                 Language = resolvedLanguage,
             },

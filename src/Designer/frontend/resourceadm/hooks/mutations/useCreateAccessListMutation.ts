@@ -6,7 +6,7 @@ import type { AccessList } from 'app-shared/types/ResourceAdm';
 /**
  * Mutation to create a new access list.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param env the list environment
  */
 export const useCreateAccessListMutation = (org: string, env: string) => {

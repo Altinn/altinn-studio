@@ -81,8 +81,8 @@ internal sealed class ClassificationsHttpClient : IClassificationsClient
             using var fallbackResponse = await _httpClient.GetAsync($"{url}{fallbackQuery}");
             if (fallbackResponse.IsSuccessStatusCode)
             {
-                var fallbackResponseJosn = await fallbackResponse.Content.ReadAsStringAsync();
-                var fallbackClassificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(fallbackResponseJosn);
+                var fallbackResponseJson = await fallbackResponse.Content.ReadAsStringAsync();
+                var fallbackClassificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(fallbackResponseJson);
                 return fallbackClassificationCodes ?? new ClassificationCodes();
             }
         }

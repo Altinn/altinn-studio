@@ -353,7 +353,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.InstanceResponse), 201)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> PostSimplified([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.InstansiationInstance instansiationInstance, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> PostSimplified([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.InstantiationInstance instantiationInstance, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/substatus")]
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
@@ -366,15 +366,15 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Consumes("application/json", new string[0])]
     [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/lookup/organisation")]
-    public class LookupOrganisationController : Microsoft.AspNetCore.Mvc.ControllerBase
+    public class LookupOrganizationController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public LookupOrganisationController(Altinn.App.Core.Internal.Registers.IOrganizationClient organisationClient, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.LookupOrganisationController> logger) { }
+        public LookupOrganizationController(Altinn.App.Core.Internal.Registers.IOrganizationClient organizationClient, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.LookupOrganizationController> logger) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.LookupOrganisationResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.LookupOrganizationResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.Route("{orgNr}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.LookupOrganisationResponse>> LookUpOrganisation([Microsoft.AspNetCore.Mvc.FromRoute] string orgNr) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.LookupOrganizationResponse>> LookUpOrganization([Microsoft.AspNetCore.Mvc.FromRoute] string orgNr) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -1041,7 +1041,8 @@ namespace Altinn.App.Api.Models
     {
         public InstanceOwnerResponse() { }
         public string ExternalIdentifier { get; init; }
-        public required string OrganisationNumber { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
+        public required string OrganizationNumber { get; init; }
         public required Altinn.App.Api.Models.PartyResponse Party { get; init; }
         public required string PartyId { get; init; }
         public required string PersonNumber { get; init; }
@@ -1069,9 +1070,9 @@ namespace Altinn.App.Api.Models
         public required System.DateTime? VisibleAfter { get; init; }
         public override string ToString() { }
     }
-    public class InstansiationInstance
+    public class InstantiationInstance
     {
-        public InstansiationInstance() { }
+        public InstantiationInstance() { }
         public System.DateTime? DueBefore { get; set; }
         public Altinn.Platform.Storage.Interface.Models.InstanceOwner InstanceOwner { get; set; }
         public Altinn.App.Core.Models.Notifications.Future.InstantiationNotification Notification { get; set; }
@@ -1080,12 +1081,13 @@ namespace Altinn.App.Api.Models
         public System.DateTime? VisibleAfter { get; set; }
         public override string ToString() { }
     }
-    public class LookupOrganisationResponse
+    public class LookupOrganizationResponse
     {
-        public LookupOrganisationResponse() { }
-        public Altinn.App.Api.Models.OrganisationDetails? OrganisationDetails { get; init; }
+        public LookupOrganizationResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("organisationDetails")]
+        public Altinn.App.Api.Models.OrganizationDetails? OrganizationDetails { get; init; }
         public bool Success { get; init; }
-        public static Altinn.App.Api.Models.LookupOrganisationResponse CreateFromOrganisation(Altinn.Platform.Register.Models.Organization? organisation) { }
+        public static Altinn.App.Api.Models.LookupOrganizationResponse CreateFromOrganization(Altinn.Platform.Register.Models.Organization? organization) { }
     }
     public class LookupPersonRequest
     {
@@ -1107,12 +1109,12 @@ namespace Altinn.App.Api.Models
         Sent = 1,
         Failed = 2,
     }
-    public class OrganisationDetails
+    public class OrganizationDetails
     {
-        public OrganisationDetails() { }
+        public OrganizationDetails() { }
         public required string Name { get; init; }
         public required string OrgNr { get; init; }
-        public static Altinn.App.Api.Models.OrganisationDetails MapFromOrganisation(Altinn.Platform.Register.Models.Organization organisation) { }
+        public static Altinn.App.Api.Models.OrganizationDetails MapFromOrganization(Altinn.Platform.Register.Models.Organization organization) { }
     }
     public sealed class PartyResponse
     {

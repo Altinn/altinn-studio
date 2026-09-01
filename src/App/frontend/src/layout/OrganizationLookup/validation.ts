@@ -2,7 +2,7 @@ import { Ajv, type JSONSchemaType } from 'ajv';
 import adderrors from 'ajv-errors';
 
 import type {
-  Organisation,
+  Organization,
   OrganizationLookupResponse,
 } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 
@@ -21,7 +21,7 @@ ajv.addKeyword({
   },
 });
 
-const orgNrSchema: JSONSchemaType<Pick<Organisation, 'orgNr'>> = {
+const orgNrSchema: JSONSchemaType<Pick<Organization, 'orgNr'>> = {
   type: 'object',
   properties: {
     orgNr: {

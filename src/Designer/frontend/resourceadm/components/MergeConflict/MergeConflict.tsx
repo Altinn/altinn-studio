@@ -7,7 +7,7 @@ import { useResetRepositoryMutation } from '../../hooks/mutations';
 
 type MergeConflictProps = {
   /**
-   * The name of the organisation
+   * The name of the organization
    */
   org: string;
   /**
@@ -20,7 +20,7 @@ type MergeConflictProps = {
  * @component
  *    Displays the a message telling the user that there is a merge conflict
  *
- * @property {string}[org] - The name of the organisation
+ * @property {string}[org] - The name of the organization
  * @property {string}[repo] - The name of the repo
  *
  * @returns {React.JSX.Element} - The rendered component

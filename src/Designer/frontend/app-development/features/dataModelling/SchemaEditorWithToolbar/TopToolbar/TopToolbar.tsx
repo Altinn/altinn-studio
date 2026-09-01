@@ -53,7 +53,7 @@ export function TopToolbar({
       {canUseUploadXSDFeature && (
         <XSDUpload
           selectedOption={selectedOption}
-          uploadButtonText={t('app_data_modelling.upload_xsd')}
+          uploadButtonText={t('app_data_modeling.upload_xsd')}
         />
       )}
       <SchemaSelect
