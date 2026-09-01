@@ -475,6 +475,119 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
 
     // --- Helpers ---
 
+    [Fact]
+    public async Task Retention_FirstSweep_IsDeferredPastStartup()
+    {
+        // The last-run marker used to start at DateTimeOffset.MinValue, so every start of the service
+        // was immediately due for a full retention drain. On a database with a real backlog that put
+        // a multi-second bulk delete on top of the first requests the fresh instance served, and a
+        // rollout had every replica doing it at once.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var expiredWorkflowId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            expiredWorkflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: DateTimeOffset.UtcNow.AddDays(-31),
+            ct: ct
+        );
+
+        // Positive control: the stale sweep shares the loop iteration retention would have run in,
+        // so reclaiming this workflow proves the loop ran rather than never having started.
+        var staleWorkflowId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            staleWorkflowId,
+            status: PersistentItemStatus.Processing,
+            updatedAt: DateTimeOffset.UtcNow.AddMinutes(-5),
+            ct: ct
+        );
+        await MakeHeartbeatStale(dataSource, staleWorkflowId, ct);
+
+        // A long interval places the deferred first sweep far outside the test window whatever the
+        // jitter picks.
+        using var limiter = new ConcurrencyLimiter(10, 10, 5);
+        using var service = new DbMaintenanceService(
+            NullLogger<DbMaintenanceService>.Instance,
+            TimeProvider.System,
+            dataSource,
+            CreateEngineSettings(retentionPeriod: TimeSpan.FromDays(30), interval: TimeSpan.FromDays(30)),
+            limiter
+        );
+
+        await service.StartAsync(ct);
+        try
+        {
+            await WaitUntilReclaimed(staleWorkflowId, ct);
+        }
+        finally
+        {
+            await service.StopAsync(ct);
+        }
+
+        await using var ctx = fixture.CreateDbContext();
+        var remaining = await ctx.Workflows.Select(w => w.Id).ToListAsync(ct);
+        Assert.Contains(expiredWorkflowId, remaining);
+    }
+
+    private static async Task MakeHeartbeatStale(NpgsqlDataSource dataSource, Guid id, CancellationToken ct)
+    {
+        await using var cmd = dataSource.CreateCommand(
+            "UPDATE engine.workflows SET heartbeat_at = @heartbeat WHERE id = @id"
+        );
+        cmd.Parameters.AddWithValue("id", id);
+        cmd.Parameters.AddWithValue("heartbeat", DateTimeOffset.UtcNow.AddMinutes(-5));
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private async Task WaitUntilReclaimed(Guid id, CancellationToken ct)
+    {
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            await using var ctx = fixture.CreateDbContext();
+            var status = await ctx.Workflows.Where(w => w.Id == id).Select(w => w.Status).SingleAsync(ct);
+            if (status == PersistentItemStatus.Enqueued)
+            {
+                return;
+            }
+
+            await Task.Delay(50, ct);
+        }
+
+        Assert.Fail("Maintenance loop did not reclaim the stale workflow, so the test proves nothing.");
+    }
+
+    private static IOptions<EngineSettings> CreateEngineSettings(
+        TimeSpan retentionPeriod,
+        TimeSpan interval,
+        int batchSize = 1000
+    ) =>
+        Options.Create(
+            new EngineSettings
+            {
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                MaxStepCommandTimeout = TimeSpan.FromHours(2),
+                DefaultStepRetryStrategy = null!,
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
+                DatabaseRetryStrategy = null!,
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                Retention = new RetentionSettings
+                {
+                    RetentionPeriod = retentionPeriod,
+                    BatchSize = batchSize,
+                    Interval = interval,
+                },
+            }
+        );
+
     private static async Task RunRetention(
         NpgsqlDataSource dataSource,
         TimeSpan retentionPeriod,

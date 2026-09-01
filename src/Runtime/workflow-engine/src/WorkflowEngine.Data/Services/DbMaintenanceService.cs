@@ -30,7 +30,15 @@ internal sealed class DbMaintenanceService(
         maxDelay: TimeSpan.FromMinutes(2)
     );
 
-    private DateTimeOffset _lastRetentionRun = DateTimeOffset.MinValue;
+    /// <summary>
+    /// When retention last swept, or <c>null</c> until the first maintenance iteration anchors it.
+    /// Anchoring at a random point inside the retention interval - rather than at
+    /// <see cref="DateTimeOffset.MinValue"/>, which is immediately due - keeps a start from
+    /// scheduling a full drain on top of the requests the fresh instance is about to serve, and
+    /// de-synchronizes the replicas of a rollout that all start at once. A sweep still happens
+    /// within one interval of startup.
+    /// </summary>
+    private DateTimeOffset? _lastRetentionRun;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -47,6 +55,8 @@ internal sealed class DbMaintenanceService(
             {
                 var now = timeProvider.GetUtcNow();
                 var settings = options.Value;
+
+                _lastRetentionRun ??= now - RandomStartupOffset(settings.Retention.Interval);
 
                 if (now - _lastRetentionRun >= settings.Retention.Interval)
                 {
@@ -86,6 +96,16 @@ internal sealed class DbMaintenanceService(
 
         logger.ShuttingDown();
     }
+
+    /// <summary>
+    /// A uniformly random offset in <c>[0, interval)</c>, used to place the first retention sweep
+    /// somewhere inside the interval instead of at startup. Jitter only needs to spread load, so a
+    /// non-cryptographic source is the right tool here.
+    /// </summary>
+#pragma warning disable CA5394 // Do not use insecure randomness
+    private static TimeSpan RandomStartupOffset(TimeSpan interval) =>
+        interval <= TimeSpan.Zero ? TimeSpan.Zero : Random.Shared.NextDouble() * interval;
+#pragma warning restore CA5394
 
     internal async Task PurgeExpiredWorkflows(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
     {
