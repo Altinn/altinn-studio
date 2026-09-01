@@ -104,6 +104,54 @@ public class AltinnAppGitRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveText_SchemaNotSet_ShouldAddSchema()
+    {
+        string org = "ttd";
+        string repository = "hvem-er-hvem";
+        string developer = "testUser";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+        Altinn.Studio.Designer.Models.TextResource textResource = new()
+        {
+            Language = "nb",
+            Resources = [new() { Id = "someId", Value = "someValue" }],
+        };
+
+        await altinnAppGitRepository.SaveText("nb", textResource);
+        Altinn.Studio.Designer.Models.TextResource savedTextResource = await altinnAppGitRepository.GetText("nb");
+
+        Assert.Equal(Altinn.Studio.Designer.Models.TextResource.SchemaUrl, savedTextResource.Schema);
+    }
+
+    [Fact]
+    public async Task SaveText_SchemaAlreadySet_ShouldKeepExistingSchema()
+    {
+        string org = "ttd";
+        string repository = "hvem-er-hvem";
+        string developer = "testUser";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        string existingSchema = "https://example.com/some-other-schema.json";
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+        Altinn.Studio.Designer.Models.TextResource textResource = new()
+        {
+            Schema = existingSchema,
+            Language = "nb",
+            Resources = [new() { Id = "someId", Value = "someValue" }],
+        };
+
+        await altinnAppGitRepository.SaveText("nb", textResource);
+        Altinn.Studio.Designer.Models.TextResource savedTextResource = await altinnAppGitRepository.GetText("nb");
+
+        Assert.Equal(existingSchema, savedTextResource.Schema);
+    }
+
+    [Fact]
     public void GetLanguages_NotOnlyResourceFilesInTextsFolder_ShouldReturnCorrectLanguagesSorted()
     {
         string org = "ttd";
