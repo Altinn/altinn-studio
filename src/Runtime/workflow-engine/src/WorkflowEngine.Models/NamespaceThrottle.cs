@@ -3,7 +3,7 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// Persisted breaker state for one throttled namespace (per-namespace failure-storm circuit
 /// breaker). The throttle sweep is the sole writer of this state; workflow handlers only ever
-/// read a snapshot of the open breakers.
+/// read a snapshot of the tripped breakers.
 /// </summary>
 public sealed record NamespaceThrottle
 {

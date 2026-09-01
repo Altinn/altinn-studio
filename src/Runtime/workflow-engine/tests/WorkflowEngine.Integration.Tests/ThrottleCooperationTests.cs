@@ -16,7 +16,7 @@ namespace WorkflowEngine.Integration.Tests;
 /// Fixture for the handler's cooperative throttle parking: throttling is <em>enabled</em> so the
 /// process selects the fetch-query variant with the <c>throttled_until</c> predicate at startup,
 /// and the sweep interval is set to one hour so the sweep's own snapshot refresh never overwrites
-/// the open breaker a test publishes directly on the <see cref="ThrottleStateView"/> singleton.
+/// the tripped breaker a test publishes directly on the <see cref="ThrottleStateView"/> singleton.
 /// </summary>
 public sealed class ThrottlingEngineAppFixture : EngineAppFixture<Program>
 {
@@ -47,7 +47,7 @@ public sealed class ThrottlingEngineCollection : ICollectionFixture<ThrottlingEn
 
 /// <summary>
 /// End-to-end test of the workflow handler's cooperation with the failure-storm circuit breaker:
-/// a retryable failure in a namespace whose breaker is open in the handler's snapshot must stamp
+/// a retryable failure in a namespace whose breaker is tripped in the handler's snapshot must stamp
 /// <c>throttled_until</c> through the real write-back path, and the gated fetch must then skip the
 /// workflow. The sweep's own state machine is covered in <c>WorkflowEngine.Repository.Tests</c>;
 /// here the sweep is idle and the snapshot is published directly.

@@ -480,7 +480,7 @@ internal sealed class WorkflowHandler(
 
     /// <summary>
     /// Cooperative parking for the failure-storm circuit breaker (see the failure-throttling ADR):
-    /// when a step fails a retryable attempt and the workflow's namespace has an open breaker in
+    /// when a step fails a retryable attempt and the workflow's namespace has a tripped breaker in
     /// the <see cref="IThrottleStateView"/> snapshot, the workflow is parked immediately behind
     /// <c>ThrottledUntil = now + window</c>, jittered ±<see cref="ThrottlingSettings.JitterFraction"/>
     /// and clamped per stamp to the step's retry deadline — the exact rule the sweep's parking
@@ -498,7 +498,7 @@ internal sealed class WorkflowHandler(
     /// </remarks>
     internal void ParkIfNamespaceThrottled(Workflow workflow, RetryStrategy retryStrategy, DateTimeOffset retryAnchor)
     {
-        if (!throttleStateView.OpenBreakers.TryGetValue(workflow.Namespace, out var window))
+        if (!throttleStateView.TrippedBreakers.TryGetValue(workflow.Namespace, out var window))
             return;
 
         var now = timeProvider.GetUtcNow();
@@ -708,7 +708,7 @@ internal static partial class WorkflowHandlerLogs
 
     [LoggerMessage(
         LogLevel.Debug,
-        "Parking workflow {Workflow} until {ThrottledUntil} — its namespace has an open throttle breaker"
+        "Parking workflow {Workflow} until {ThrottledUntil} — its namespace has a tripped throttle breaker"
     )]
     internal static partial void ParkingThrottledWorkflow(
         this ILogger<WorkflowHandler> logger,

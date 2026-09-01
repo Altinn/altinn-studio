@@ -153,7 +153,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
             AssertWithinJitterBounds(stamp.Value, now, _initialWindow);
         }
 
-        // The publication surface reports the open breaker with its window.
+        // The publication surface reports the tripped breaker with its window.
         var breaker = Assert.Single(view.TrippedBreakers);
         Assert.Equal(Ns, breaker.Key);
         Assert.Equal(_initialWindow, breaker.Value);
@@ -438,7 +438,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     // ---------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task Sweep_HalfOpen_ReleasesOldestFirstInDoublingCohortsThenCloses()
+    public async Task Sweep_Recovering_ReleasesOldestFirstInDoublingCohortsThenClears()
     {
         // Arrange — a recovering namespace with 7 parked workflows of staggered age. The floor is
         // set high because released workflows stay Requeued in this fixture (nothing executes
@@ -503,7 +503,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     }
 
     [Fact]
-    public async Task Sweep_ReTripDuringRecovery_ReturnsToOpenKeepingGrownWindow()
+    public async Task Sweep_ReTripDuringRecovery_ReturnsToTrippedKeepingGrownWindow()
     {
         // Arrange — a recovering namespace whose unparked requeued population trips the condition
         // again: released workflows kept failing. The grown window must persist.
@@ -561,7 +561,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     // ---------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task Sweep_OpenBreaker_RestampsRowsAboutToElapse()
+    public async Task Sweep_TrippedBreaker_RestampsRowsAboutToElapse()
     {
         // Arrange — an Open breaker with one parked row whose window elapses within the next
         // sweep interval: natural elapse is the eligibility mechanism, but an Open breaker
@@ -614,7 +614,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     // ---------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task Sweep_ClosedBreaker_ClearsStragglersAndDeletesRowAfterGrace()
+    public async Task Sweep_ClearedBreaker_ClearsStragglersAndDeletesRowAfterGrace()
     {
         // Arrange — a closed breaker and one straggler parked by a hypothetical stale snapshot.
         await using var context = fixture.CreateDbContext();
@@ -656,7 +656,7 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     }
 
     [Fact]
-    public async Task Sweep_ClosedBreakerWithTripCondition_ReTripsWithInitialWindow()
+    public async Task Sweep_ClearedBreakerWithTripCondition_ReTripsWithInitialWindow()
     {
         // Arrange — a closed breaker whose namespace starts failing again: detection treats it
         // like a fresh incident (initial window), unlike a failed recovery (grown window kept).

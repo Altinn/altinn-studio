@@ -395,7 +395,7 @@ internal interface IEngineRepository
     /// <summary>
     /// Clears every non-null <c>throttled_until</c> in the namespace. Runs during a closed
     /// breaker's grace period to release stragglers parked by replicas holding a stale
-    /// open-breaker snapshot. Returns the number of rows cleared.
+    /// tripped-breaker snapshot. Returns the number of rows cleared.
     /// </summary>
     Task<int> ClearNamespaceThrottledUntil(string ns, CancellationToken cancellationToken);
 }

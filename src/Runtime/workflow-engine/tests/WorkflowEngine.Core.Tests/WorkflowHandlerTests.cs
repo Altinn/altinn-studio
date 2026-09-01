@@ -63,14 +63,14 @@ public class WorkflowHandlerTests
         );
 
     /// <summary>
-    /// Fake open-breaker snapshot for the handler's cooperative throttle parking.
+    /// Fake tripped-breaker snapshot for the handler's cooperative throttle parking.
     /// Empty by default — the healthy-path shape every other test runs against.
     /// </summary>
-    private sealed class FakeThrottleStateView(IReadOnlyDictionary<string, TimeSpan>? openBreakers = null)
+    private sealed class FakeThrottleStateView(IReadOnlyDictionary<string, TimeSpan>? trippedBreakers = null)
         : IThrottleStateView
     {
-        public IReadOnlyDictionary<string, TimeSpan> OpenBreakers { get; } =
-            openBreakers ?? new Dictionary<string, TimeSpan>(StringComparer.Ordinal);
+        public IReadOnlyDictionary<string, TimeSpan> TrippedBreakers { get; } =
+            trippedBreakers ?? new Dictionary<string, TimeSpan>(StringComparer.Ordinal);
     }
 
     private static FakeThrottleStateView OpenBreakerFor(string ns, TimeSpan window) =>
@@ -953,7 +953,7 @@ public class WorkflowHandlerTests
     public async Task Handle_RetryableFailure_OpenNamespaceBreaker_ParksWithJitteredWindow_BackoffUntouched()
     {
         // Cooperative throttle parking (see the failure-throttling ADR): a retryable failure in a
-        // namespace with an open breaker parks the workflow immediately — alongside, never instead
+        // namespace with a tripped breaker parks the workflow immediately — alongside, never instead
         // of, the normal Requeued transition and backoff scheduling.
         var window = TimeSpan.FromMinutes(10);
         var executor = MockExecutor(ExecutionResult.RetryableError("callback down"));
