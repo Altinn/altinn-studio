@@ -128,6 +128,7 @@
   "admin.workflows.status.dependency_failed": "Avhengighet feilet",
   "admin.workflows.status.enqueued": "I kø",
   "admin.workflows.status.failed": "Feilet",
+  "admin.workflows.status.held": "Venter på melding",
   "admin.workflows.status.processing": "Kjører",
   "admin.workflows.status.requeued": "Lagt i kø på nytt",
   "admin.workflows.status.waiting": "Venter",
