@@ -22,8 +22,8 @@ public interface IResourceRegistry
     /// <summary>
     /// Pushing resource policy to the ResourceRegistry
     /// </summary>
-    /// <param name="identifier">The environment the resource policy should be published to</param>
-    /// <param name="env">The environment the resource policy should be published to</param>
+    /// <param name="identifier">The identifier of the resource policy that should be published</param>
+    /// <param name="env">The environment the resource policy that should be published</param>
     /// <param name="policyContent">The policy file content</param>
     /// <returns></returns>
     Task<ActionResult> PublishResourcePolicy(string identifier, string env, byte[] policyContent = null);
