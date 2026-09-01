@@ -4,8 +4,10 @@ import { QueryClient } from '@tanstack/react-query';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import { ApiClients } from 'src/core/api-client/ApiClients';
+import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
 import { instanceApi } from 'src/core/api-client/instance.api';
+import { partyApi } from 'src/core/api-client/party.api';
+import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
@@ -25,7 +27,7 @@ function createLoaderArgs(): LoaderFunctionArgs {
   });
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
-  context.set(apiClientsContext, { instanceApi } as ApiClients);
+  context.set(apiClientsContext, { backendValidationApi, instanceApi, partyApi, textResourcesApi });
   return createLoaderFunctionArgs({ context });
 }
 

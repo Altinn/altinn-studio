@@ -159,8 +159,10 @@ describe('On Entry', () => {
     cy.get(appFrontend.selectInstance.tableBody).should('contain.text', 'Sophie Salt');
     cy.get(appFrontend.selectInstance.newInstance).should('be.visible').and('be.enabled');
     cy.get(appFrontend.selectInstance.newInstance).click();
-    cy.wait('@createdInstance').its('response.statusCode').should('eq', 201);
-    cy.url().should('not.contain', singleActiveInstance[0].id);
+    cy.wait('@createdInstance').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      cy.url().should('contain', response?.body.id);
+    });
   });
 
   it('Should show the correct title', () => {
