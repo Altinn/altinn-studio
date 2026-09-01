@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -10,6 +11,7 @@ using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
@@ -195,6 +197,198 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         var request = new TriggerReconcileRequest(isUndeploy);
         var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, requestUrl, request, cancellationToken);
         response.EnsureSuccessStatusCode();
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> GetWorkflowCollectionsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        IReadOnlyList<string>? keys,
+        string? failures,
+        string? cursor,
+        int? pageSize,
+        CancellationToken cancellationToken
+    )
+    {
+        var query = new QueryBuilder();
+        AddAll(query, "key", keys);
+        AddIfPresent(query, "failures", failures);
+        AddIfPresent(query, "cursor", cursor);
+        AddIfPresent(query, "pageSize", pageSize);
+
+        return SendWorkflowRequestAsync(
+            HttpMethod.Get,
+            org,
+            app,
+            environment,
+            "/collections",
+            query,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> GetWorkflowCollectionAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string key,
+        CancellationToken cancellationToken
+    )
+    {
+        return SendWorkflowRequestAsync(
+            HttpMethod.Get,
+            org,
+            app,
+            environment,
+            $"/collections/{Uri.EscapeDataString(key)}",
+            query: null,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> GetWorkflowsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string? collectionKey,
+        IReadOnlyList<string>? statuses,
+        IReadOnlyList<string>? labels,
+        bool? isHead,
+        string? cursor,
+        int? pageSize,
+        CancellationToken cancellationToken
+    )
+    {
+        var query = new QueryBuilder();
+        AddIfPresent(query, "collectionKey", collectionKey);
+        AddAll(query, "status", statuses);
+        AddAll(query, "label", labels);
+        if (isHead is not null)
+        {
+            query.Add("isHead", isHead.Value ? "true" : "false");
+        }
+        AddIfPresent(query, "cursor", cursor);
+        AddIfPresent(query, "pageSize", pageSize);
+
+        return SendWorkflowRequestAsync(HttpMethod.Get, org, app, environment, "/workflows", query, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> GetWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    )
+    {
+        return SendWorkflowRequestAsync(
+            HttpMethod.Get,
+            org,
+            app,
+            environment,
+            $"/workflows/{workflowId}",
+            query: null,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> ResumeWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        bool cascade,
+        CancellationToken cancellationToken
+    )
+    {
+        var query = new QueryBuilder { { "cascade", cascade ? "true" : "false" } };
+
+        return SendWorkflowRequestAsync(
+            HttpMethod.Post,
+            org,
+            app,
+            environment,
+            $"/workflows/{workflowId}/resume",
+            query,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> AbandonWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    )
+    {
+        return SendWorkflowRequestAsync(
+            HttpMethod.Post,
+            org,
+            app,
+            environment,
+            $"/workflows/{workflowId}/abandon",
+            query: null,
+            cancellationToken
+        );
+    }
+
+    private async Task<HttpResponseMessage> SendWorkflowRequestAsync(
+        HttpMethod method,
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string pathSuffix,
+        QueryBuilder? query,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/workflows/apps/{Uri.EscapeDataString(app)}"
+            + $"{pathSuffix}{query?.ToQueryString().ToUriComponent()}";
+
+        using var request = new HttpRequestMessage(method, requestUrl);
+
+        // The response is buffered before the client is disposed, and returned unmodified —
+        // status code included — so the gateway/engine wire contract passes through untouched.
+        return await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
+    }
+
+    private static void AddAll(QueryBuilder query, string name, IReadOnlyList<string>? values)
+    {
+        if (values is null)
+        {
+            return;
+        }
+
+        foreach (string value in values)
+        {
+            query.Add(name, value);
+        }
+    }
+
+    private static void AddIfPresent(QueryBuilder query, string name, string? value)
+    {
+        if (value is not null)
+        {
+            query.Add(name, value);
+        }
+    }
+
+    private static void AddIfPresent(QueryBuilder query, string name, int? value)
+    {
+        if (value is not null)
+        {
+            query.Add(name, value.Value.ToString(CultureInfo.InvariantCulture));
+        }
     }
 
     private record TriggerReconcileRequest(bool IsUndeploy);
