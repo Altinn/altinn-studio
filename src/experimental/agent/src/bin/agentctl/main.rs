@@ -16,6 +16,7 @@ use agent::{
 use clap::{Parser, Subcommand};
 
 mod format;
+mod forward;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
@@ -118,6 +119,18 @@ enum Command {
         /// Command and arguments to execute after `--`.
         #[arg(last = true, required = true, num_args = 1..)]
         command: Vec<String>,
+    },
+    /// Forward local ports to a running Agent sandbox until interrupted.
+    PortForward {
+        /// Agent name, as an alternative to a leading Agent argument.
+        #[arg(long)]
+        agent: Option<String>,
+        /// Optional leading Agent resource or name, followed by port mappings
+        /// written as GUEST, LOCAL:GUEST, or ADDRESS:LOCAL:GUEST. An empty
+        /// local port (`:GUEST`) selects an ephemeral local port. The Agent is
+        /// inferred from the current directory when no leading Agent is given.
+        #[arg(required = true, num_args = 1..)]
+        arguments: Vec<String>,
     },
     /// Open the interactive terminal UI.
     Tui,
@@ -237,6 +250,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             command,
         } => return exec_command(home, client, resource, agent, &command, stdin, tty).await,
+        Command::PortForward { agent, arguments } => {
+            return port_forward(home, client, agent, &arguments).await;
+        }
         Command::Tui => return tui::run(home, client).await,
         Command::Wait {
             condition,
@@ -351,6 +367,78 @@ async fn exec_command(
         stream_execution(execution).await?
     };
     Ok(exit_code(status.code))
+}
+
+/// Splits a leading Agent reference from the port mappings.
+///
+/// A first argument containing ':' or made only of digits is a port mapping;
+/// anything else names the Agent. Agent names cannot contain ':' and port
+/// mappings cannot contain letters, so the shapes never overlap.
+fn split_forward_arguments(arguments: &[String]) -> (Option<String>, &[String]) {
+    match arguments.split_first() {
+        Some((first, rest)) if !first.contains(':') && !first.bytes().all(|byte| byte.is_ascii_digit()) => {
+            (Some(first.clone()), rest)
+        }
+        _ => (None, arguments),
+    }
+}
+
+async fn port_forward(
+    home: &ControlPlaneHome,
+    client: &Client,
+    agent: Option<String>,
+    arguments: &[String],
+) -> CommandResult<ExitCode> {
+    let (resource, ports) = split_forward_arguments(arguments);
+    if agent.is_some() && resource.is_some() {
+        return Err(Error::Invalid("the Agent was supplied both as an argument and with --agent".into()).into());
+    }
+    if ports.is_empty() {
+        return Err(Error::Invalid("at least one port mapping is required".into()).into());
+    }
+    let specs = ports
+        .iter()
+        .map(|port| forward::ForwardSpec::parse(port))
+        .collect::<Result<Vec<_>, String>>()
+        .map_err(CommandError::Message)?;
+    let agent = resolve_execution_agent(client, resource, agent).await?;
+    eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
+    let target = client.ensure_execution(&agent).await?;
+    let mut forwards = Vec::new();
+    for spec in specs {
+        let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
+        println!(
+            "Forwarding from {} -> {} (agent {agent:?})",
+            forward.local_address(),
+            forward.spec().guest_port
+        );
+        forwards.push(forward);
+    }
+    let mut reported = vec![None; forwards.len()];
+    let mut poll = tokio::time::interval(Duration::from_secs(1));
+    loop {
+        tokio::select! {
+            result = tokio::signal::ctrl_c() => {
+                result.map_err(Error::from)?;
+                return Ok(ExitCode::SUCCESS);
+            }
+            _ = poll.tick() => {
+                for (forward, reported) in forwards.iter().zip(reported.iter_mut()) {
+                    let status = forward.status();
+                    if status != *reported {
+                        if let Some(message) = &status {
+                            eprintln!("{} -> {}: {message}", forward.local_address(), forward.spec().guest_port);
+                        }
+                        *reported = status;
+                    }
+                }
+                if forwards.iter().all(forward::PortForward::finished) {
+                    eprintln!("every port forward has stopped");
+                    return Ok(ExitCode::FAILURE);
+                }
+            }
+        }
+    }
 }
 
 async fn resolve_execution_agent(
@@ -746,6 +834,35 @@ mod tests {
         };
         assert!(resource.is_none());
         assert_eq!(command, ["pwd"]);
+    }
+
+    #[test]
+    fn port_forward_accepts_kubectl_shapes_and_inference() {
+        let explicit = Arguments::try_parse_from(["agentctl", "port-forward", "agent/worker", "9090:80", ":5432"])
+            .expect("explicit port-forward arguments");
+        let Command::PortForward { agent, arguments } = explicit.command else {
+            panic!("expected port-forward command");
+        };
+        assert!(agent.is_none());
+        assert_eq!(
+            split_forward_arguments(&arguments),
+            (Some("agent/worker".into()), &arguments[1..])
+        );
+
+        let inferred =
+            Arguments::try_parse_from(["agentctl", "port-forward", "8080"]).expect("inferred port-forward arguments");
+        let Command::PortForward { arguments, .. } = inferred.command else {
+            panic!("expected port-forward command");
+        };
+        assert_eq!(split_forward_arguments(&arguments), (None, arguments.as_slice()));
+
+        let flagged = Arguments::try_parse_from(["agentctl", "port-forward", "--agent", "worker", "0.0.0.0:80:80"])
+            .expect("flagged port-forward arguments");
+        let Command::PortForward { agent, arguments } = flagged.command else {
+            panic!("expected port-forward command");
+        };
+        assert_eq!(agent.as_deref(), Some("worker"));
+        assert_eq!(split_forward_arguments(&arguments), (None, arguments.as_slice()));
     }
 
     #[test]
