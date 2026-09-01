@@ -11,20 +11,12 @@
   gap: 0.75rem;
 }
 
-/* Only a selectable row advertises that it can be clicked. Blocked rows
-   (another party's selection is in flight) carry no class of their own:
-   without the selectable class they simply have no hover affordance. */
 .partyWrapperSelectable:hover {
   background-color: var(--colors-primary-blueLight);
   cursor: pointer;
 }
 
 .partyWrapperSelected {
-  /* Pressed-button look while the selection request is in flight: one step
-     darker than :hover. Applied to the clickable row rather than the paper,
-     so an expanded sub-unit list does not look selected along with it.
-     The progress cursor marks temporary busy — distinct from the permanent
-     not-allowed on no-access parties. */
   background-color: var(--colors-primary-blueLighterActive);
   cursor: progress;
 }
@@ -76,15 +68,12 @@
   padding: 0 1.25rem;
 }
 
-/* See .partyWrapperSelectable: only selectable rows get the hover affordance */
 .subUnitSelectable:hover {
   background: var(--colors-primary-blueLight);
   cursor: pointer;
 }
 
 .subUnitSelected {
-  /* Pressed-button look while the selection request is in flight: one step
-     darker than :hover (which is active at the moment of clicking). */
   background: var(--colors-primary-blueLighterActive);
   cursor: progress;
 }
