@@ -56,8 +56,8 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
 
     /// <inheritdoc />
     /// <remarks>
-    /// The stage name is wire identity for in-flight workflows — a workflow enqueued against this
-    /// pipeline keeps calling back by this literal, so it must not drift.
+    /// The pipeline's shape is fixed at enqueue time — a workflow enqueued against it dispatches by item
+    /// index, so stages must not be inserted, reordered or removed while workflows are in flight.
     /// <para>
     /// The wait budget sits on the conclusion, not the task, because only the poll waits and
     /// task-level options reach every stage. It outlasts the shipment's own two-hour lifetime plus the
@@ -67,7 +67,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// </remarks>
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("SendShipment", SendShipment)
+            .Stage(SendShipment)
             .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
 
     /// <summary>

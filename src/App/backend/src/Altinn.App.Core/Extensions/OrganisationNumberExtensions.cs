@@ -3,23 +3,23 @@ using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Extensions;
 
-internal static class OrganisationNumberExtensions
+internal static class OrganizationNumberExtensions
 {
     /// <summary>
-    /// Returns a string representation of the <see cref="OrganisationNumber"/>, prefixed with the <see cref="AltinnUrns.OrganisationNumber"/> URN value
+    /// Returns a string representation of the <see cref="OrganizationNumber"/>, prefixed with the <see cref="AltinnUrns.OrganizationNumber"/> URN value
     /// </summary>
-    public static string ToUrnFormattedString(this OrganisationNumber organisationNumber)
+    public static string ToUrnFormattedString(this OrganizationNumber organizationNumber)
     {
-        return $"{AltinnUrns.OrganisationNumber}:{organisationNumber.Get(OrganisationNumberFormat.Local)}";
+        return $"{AltinnUrns.OrganizationNumber}:{organizationNumber.Get(OrganizationNumberFormat.Local)}";
     }
 
     /// <summary>
-    /// Returns a string representation of the <see cref="OrganisationNumber"/>, prefixed with the <see cref="AltinnUrns.OrganisationNumber"/> URN value, if the value is not null.
+    /// Returns a string representation of the <see cref="OrganizationNumber"/>, prefixed with the <see cref="AltinnUrns.OrganizationNumber"/> URN value, if the value is not null.
     /// </summary>
-    public static string? ToUrnFormattedString(this OrganisationNumber? organisationNumber)
+    public static string? ToUrnFormattedString(this OrganizationNumber? organizationNumber)
     {
-        return organisationNumber is null
+        return organizationNumber is null
             ? null
-            : $"{AltinnUrns.OrganisationNumber}:{organisationNumber.Value.Get(OrganisationNumberFormat.Local)}";
+            : $"{AltinnUrns.OrganizationNumber}:{organizationNumber.Value.Get(OrganizationNumberFormat.Local)}";
     }
 }

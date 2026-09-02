@@ -1,5 +1,5 @@
 .root {
-  background: var(--fds-semantic-surface-neutral-subtle);
+  background: var(--ds-color-neutral-surface-tinted);
   flex: var(--properties-width-fraction);
 }
 

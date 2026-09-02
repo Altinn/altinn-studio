@@ -12,7 +12,6 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
-import 'app-shared/design-tokens';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,

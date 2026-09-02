@@ -1,4 +1,4 @@
-import { DataModelling } from './DataModelling';
+import { DataModeling } from './DataModeling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -45,13 +45,13 @@ const render = (
   return rtlRender(
     <TestAppRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <DataModelling />
+        <DataModeling />
       </ServicesContextProvider>
     </TestAppRouter>,
   );
 };
 
-describe('DataModelling', () => {
+describe('DataModeling', () => {
   afterEach(jest.clearAllMocks);
 
   it('fetches models on mount', () => {
@@ -66,16 +66,16 @@ describe('DataModelling', () => {
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
     render({}, queryClient);
     const dialogHeader = screen.getByRole('heading', {
-      name: textMock('app_data_modelling.landing_dialog_header'),
+      name: textMock('app_data_modeling.landing_dialog_header'),
     });
     expect(dialogHeader).toBeInTheDocument();
   });
 
   it('does not show start dialog when the models have not been loaded yet', () => {
     render();
-    expect(screen.getByLabelText(textMock('data_modelling.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('data_modeling.loading'))).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
+      screen.queryByRole('heading', { name: textMock('app_data_modeling.landing_dialog_header') }),
     ).not.toBeInTheDocument();
   });
 
@@ -85,10 +85,10 @@ describe('DataModelling', () => {
       .mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
     render({ getDataModelsJson });
     await waitForElementToBeRemoved(() =>
-      screen.queryByLabelText(textMock('data_modelling.loading')),
+      screen.queryByLabelText(textMock('data_modeling.loading')),
     );
     expect(
-      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
+      screen.queryByRole('heading', { name: textMock('app_data_modeling.landing_dialog_header') }),
     ).not.toBeInTheDocument();
   });
 
@@ -152,14 +152,14 @@ describe('DataModelling', () => {
   });
 
   it.each(['getDataModelsJson', 'getDataModelsXsd'])(
-    'shows an error message if an error occured on the %s query',
+    'shows an error message if an error occurred on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
       render({
         [queryName]: () => Promise.reject({ message: errorMessage }),
       });
       await waitForElementToBeRemoved(() =>
-        screen.queryByLabelText(textMock('data_modelling.loading')),
+        screen.queryByLabelText(textMock('data_modeling.loading')),
       );
       expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
       expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
@@ -169,7 +169,7 @@ describe('DataModelling', () => {
 
   it('Shows a spinner when loading', () => {
     render();
-    expect(screen.getByLabelText(textMock('data_modelling.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('data_modeling.loading'))).toBeInTheDocument();
   });
 
   it.each([QueryKey.DataModelsJson, QueryKey.DataModelsXsd])(
@@ -178,7 +178,7 @@ describe('DataModelling', () => {
       const queryClient = createQueryClientMock();
       queryClient.setQueryData([queryKey, org, app], []);
       render({}, queryClient);
-      expect(screen.getByLabelText(textMock('data_modelling.loading'))).toBeInTheDocument();
+      expect(screen.getByLabelText(textMock('data_modeling.loading'))).toBeInTheDocument();
     },
   );
 
@@ -187,7 +187,7 @@ describe('DataModelling', () => {
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadata1Mock]);
     render({}, queryClient);
     await waitForElementToBeRemoved(() =>
-      screen.queryByLabelText(textMock('data_modelling.loading')),
+      screen.queryByLabelText(textMock('data_modeling.loading')),
     );
 
     expect(queriesMock.addXsdFromRepo).toHaveBeenCalledTimes(1);

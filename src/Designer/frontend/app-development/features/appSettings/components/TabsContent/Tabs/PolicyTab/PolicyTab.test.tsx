@@ -101,7 +101,7 @@ describe('PolicyTab', () => {
   });
 
   it.each(['getAppPolicy', 'getPolicyActions', 'getPolicySubjects'])(
-    'shows an error message if an error occured on the %s query',
+    'shows an error message if an error occurred on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
       await resolveAndWaitForSpinnerToDisappear({

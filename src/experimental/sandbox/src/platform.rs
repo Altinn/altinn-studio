@@ -39,6 +39,21 @@ impl Platform {
         }
     }
 
+    /// Creates a Platform for the host CPU architecture and the requested
+    /// guest operating system.
+    ///
+    /// Architecture names use their OCI spelling so the result can be used
+    /// directly for image and Sandbox selection.
+    #[must_use]
+    pub fn native(os: impl Into<String>) -> Self {
+        let architecture = match std::env::consts::ARCH {
+            "x86_64" => "amd64",
+            "aarch64" => "arm64",
+            architecture => architecture,
+        };
+        Self::new(os, architecture)
+    }
+
     /// Returns whether this concrete Platform satisfies a requested Platform.
     ///
     /// Omitted variant and operating-system constraints act as wildcards. A
@@ -85,5 +100,21 @@ impl std::fmt::Display for Platform {
             write!(formatter, "/{variant}")?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Platform;
+
+    #[test]
+    fn native_uses_oci_architecture_names() {
+        let expected = match std::env::consts::ARCH {
+            "x86_64" => "amd64",
+            "aarch64" => "arm64",
+            architecture => architecture,
+        };
+
+        assert_eq!(Platform::native("linux"), Platform::new("linux", expected));
     }
 }

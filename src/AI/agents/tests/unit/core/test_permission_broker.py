@@ -16,9 +16,13 @@ from agents.services.events.permissions import PermissionBroker
 class _RecordingSink:
     def __init__(self):
         self.events = []
+        self.cancelled = set()
 
     def send(self, event):
         self.events.append(event)
+
+    def is_cancelled(self, session_id):
+        return session_id in self.cancelled
 
 
 @pytest.fixture
@@ -53,6 +57,45 @@ async def test_decline_resolves_false(sink):
     request_id = sink.events[0].data["request_id"]
     assert broker.resolve("sess-1", request_id, granted=False) is True
     assert await task is False
+
+
+async def test_resolve_broadcasts_resolution_so_other_tabs_dismiss_the_prompt(sink):
+    broker = PermissionBroker()
+
+    task = asyncio.create_task(broker.request("sess-1", "edit_file: Side1.json"))
+    await asyncio.sleep(0)
+
+    request_id = sink.events[0].data["request_id"]
+    broker.resolve("sess-1", request_id, granted=True)
+    await task
+
+    resolution = sink.events[-1]
+    assert resolution.type == "permission_request"
+    assert resolution.data == {"request_id": request_id, "resolved": True, "granted": True}
+
+
+async def test_cancel_pending_declines_a_waiting_request(sink):
+    """Cancelling the session must wake a run blocked on the prompt —
+    otherwise it survives until the prompt timeout, and the next run's
+    write attempt silently joins the stale single-flight prompt."""
+    broker = PermissionBroker()
+
+    task = asyncio.create_task(broker.request("sess-1", "edit_file: Side1.json"))
+    await asyncio.sleep(0)
+
+    broker.cancel_pending("sess-1")
+
+    assert await task is False
+
+
+async def test_request_for_cancelled_session_declines_without_prompting(sink):
+    broker = PermissionBroker()
+    sink.cancelled.add("sess-1")
+
+    result = await broker.request("sess-1", "edit_file: Side1.json")
+
+    assert result is False
+    assert sink.events == []
 
 
 async def test_stale_or_unknown_request_id_is_rejected(sink):

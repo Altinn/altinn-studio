@@ -43,9 +43,11 @@ public interface IFiksArkivConfigResolver
     );
 
     /// <summary>
-    /// Gets the correlation ID for the shipment.
+    /// Gets the instance reference for the shipment — the instance URL by default, and what lets
+    /// someone reading the archived record find the instance it came from. It travels to the archive
+    /// inside the arkivmelding via <see cref="GetRecipientParty"/>.
     /// </summary>
-    string GetCorrelationId(Instance instance);
+    string GetInstanceReference(Instance instance);
 
     /// <summary>
     /// Gets the recipient party (korrespondansepart).

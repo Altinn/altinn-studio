@@ -2,13 +2,15 @@ import { useMemo } from 'react';
 import { TextRow } from './TextRow';
 import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { filterFunction, getLangName } from './utils';
+import { filterRows, getLangName } from './utils';
 import { useTranslation } from 'react-i18next';
 import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
+import { usePaginatedRows } from './hooks/usePaginatedRows';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioTable } from '@studio/components';
+import { StudioPagination, StudioTable } from '@studio/components';
 import { StringUtils } from '@studio/pure-functions';
+import { textRowsPerPage } from './constants';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -35,32 +37,37 @@ export const TextList = ({
       .filter((textId: string) => textId.toLowerCase() !== oldTextId.toLowerCase())
       .some((textId: string) => StringUtils.areCaseInsensitiveEqual(textId, newTextId));
 
+  const matchingRows = filterRows(resourceRows, searchQuery);
+  const { currentPage, pageCount, rowsOnPage, goToPage } = usePaginatedRows(
+    matchingRows,
+    textRowsPerPage,
+    searchQuery,
+  );
+
   return (
-    <StudioTable>
-      <StudioTable.Head>
-        <StudioTable.Row>
-          <StudioTable.HeaderCell />
-          {selectedLanguages.map((language) => (
-            <StudioTable.HeaderCell
-              id={getTableHeaderCellId(language)}
-              key={getTableHeaderCellId(language)}
-            >
-              {getLangName({ code: language })}
+    <>
+      <StudioTable>
+        <StudioTable.Head>
+          <StudioTable.Row>
+            <StudioTable.HeaderCell />
+            {selectedLanguages.map((language) => (
+              <StudioTable.HeaderCell
+                id={getTableHeaderCellId(language)}
+                key={getTableHeaderCellId(language)}
+              >
+                {getLangName({ code: language })}
+              </StudioTable.HeaderCell>
+            ))}
+            <StudioTable.HeaderCell>
+              {t('text_editor.table_header_text_key')}
             </StudioTable.HeaderCell>
-          ))}
-          <StudioTable.HeaderCell>{t('text_editor.table_header_text_key')}</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>{t('text_editor.table_header_variables')}</StudioTable.HeaderCell>
-        </StudioTable.Row>
-      </StudioTable.Head>
-      <StudioTable.Body>
-        {resourceRows
-          .filter((row) =>
-            filterFunction({
-              entry: { id: row.textKey, translations: row.translations },
-              searchString: searchQuery,
-            }),
-          )
-          .map((row) => {
+            <StudioTable.HeaderCell>
+              {t('text_editor.table_header_variables')}
+            </StudioTable.HeaderCell>
+          </StudioTable.Row>
+        </StudioTable.Head>
+        <StudioTable.Body>
+          {rowsOnPage.map((row) => {
             const keyIsAppName = row.textKey === APP_NAME;
             const keyIsLayoutName = !layoutNamesPending && layoutNames.includes(row.textKey);
             return (
@@ -77,7 +84,18 @@ export const TextList = ({
               />
             );
           })}
-      </StudioTable.Body>
-    </StudioTable>
+        </StudioTable.Body>
+      </StudioTable>
+      {pageCount > 1 && (
+        <StudioPagination
+          currentPage={currentPage}
+          totalPages={pageCount}
+          onChange={goToPage}
+          previousButtonAriaLabel={t('general.previous')}
+          nextButtonAriaLabel={t('general.next')}
+          numberButtonAriaLabel={(number: number) => `${t('general.page')} ${number}`}
+        />
+      )}
+    </>
   );
 };

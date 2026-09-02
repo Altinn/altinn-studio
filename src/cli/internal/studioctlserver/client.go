@@ -43,12 +43,16 @@ const (
 	studioctlServerRequestTimeout        = 2 * time.Second
 	studioctlServerStartTimeout          = 10 * time.Second
 	studioctlServerRegisterTimeoutMargin = 2 * time.Second
-	studioctlServerUpgradeTimeout        = 30 * time.Second
-	studioctlServerShutdownWait          = 3 * time.Second
-	studioctlServerPollInterval          = 100 * time.Millisecond
-	hostBridgeEndpointPath               = "/internal/host-bridge"
-	studioctlServerLogTailLines          = 40
-	studioctlServerLogSuffix             = ".log"
+	// The v8->v9 upgrade restores and compiles the app against its current packages for exact
+	// detection (plus up to five more restores raising dependency floors), so on a cold NuGet cache
+	// the request runs for minutes, not seconds. Output is buffered server-side and only returned
+	// when the whole upgrade finishes.
+	studioctlServerUpgradeTimeout = 10 * time.Minute
+	studioctlServerShutdownWait   = 3 * time.Second
+	studioctlServerPollInterval   = 100 * time.Millisecond
+	hostBridgeEndpointPath        = "/internal/host-bridge"
+	studioctlServerLogTailLines   = 40
+	studioctlServerLogSuffix      = ".log"
 )
 
 type startConfig struct {
@@ -185,6 +189,20 @@ type AppUpgradeResult struct {
 	Error    string           `json:"error"`
 	Steps    []AppUpgradeStep `json:"steps"`
 	ExitCode int              `json:"exitCode"`
+}
+
+// The upgrade exit codes studioctl-server reports, mirroring the Exit* constants in V8Tov9Upgrade.cs.
+const (
+	AppUpgradeExitSuccess            = 0 // Everything applied cleanly.
+	AppUpgradeExitError              = 1 // The upgrade failed.
+	AppUpgradeExitUnsupportedVersion = 2 // The app is not on a version this upgrade can start from.
+	AppUpgradeExitManualRequired     = 3 // Applied, but something is left for the user to finish by hand.
+)
+
+// Failed indicates whether the upgrade hit a hard error. Any non-zero code that is not the manual-action signal counts as failure.
+// Mirrors V8Tov9Upgrade.IsError.
+func (r AppUpgradeResult) Failed() bool {
+	return r.ExitCode != AppUpgradeExitSuccess && r.ExitCode != AppUpgradeExitManualRequired
 }
 
 // NewClient constructs a studioctl-server control-plane client.

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useMediaQuery } from '@studio/components-legacy';
-import { StudioPopover } from '@studio/components';
+import { useMediaQuery } from '@studio/hooks';
+import { StudioBadge, StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
-import { Notification } from '../Notification';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
@@ -80,7 +79,14 @@ export const FetchChangesPopover = (): React.ReactElement => {
         title={t('sync_header.fetch_changes')}
       >
         {shouldDisplayText && t('sync_header.fetch_changes')}
-        {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
+        {displayNotification && (
+          <StudioBadge
+            data-color='danger'
+            data-size='md'
+            role='status'
+            data-count={repoStatus?.behindBy}
+          />
+        )}
       </StudioPopover.Trigger>
       {popoverOpen && (
         <StudioPopover

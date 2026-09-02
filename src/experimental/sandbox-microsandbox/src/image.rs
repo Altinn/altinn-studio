@@ -378,7 +378,7 @@ impl MicrosandboxImageBackend {
         let step = progress.start_step(PULL_IMAGE).await;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let options = microsandbox_image::PullOptions {
-            pull_policy: microsandbox_image::PullPolicy::IfMissing,
+            pull_policy: reference_pull_policy(&parsed),
             force: false,
             materialization: match request.root_filesystem_mode {
                 RootFilesystemMode::Layered => microsandbox_image::RootfsMaterialization::Layered,
@@ -518,6 +518,16 @@ fn require_direct_prepared_root(
             operation,
             mode: request.root_filesystem_mode,
         })
+    }
+}
+
+fn reference_pull_policy(reference: &microsandbox_image::Reference) -> microsandbox_image::PullPolicy {
+    if reference.digest().is_some() {
+        microsandbox_image::PullPolicy::IfMissing
+    } else {
+        // A tag is mutable. Refresh its manifest when creating a Sandbox while
+        // retaining content-addressed layers and rootfs artifacts in the cache.
+        microsandbox_image::PullPolicy::Always
     }
 }
 
@@ -801,6 +811,25 @@ fn archive_path(path: &Path) -> Result<String, Error> {
 #[allow(clippy::expect_used)]
 mod tests {
     use std::{fs, path::Path};
+
+    #[test]
+    fn mutable_references_refresh_registry_metadata_while_digest_pins_reuse_the_cache() {
+        let tagged = "ghcr.io/altinn/agent:latest"
+            .parse()
+            .expect("tagged reference should parse");
+        let pinned = format!("ghcr.io/altinn/agent@sha256:{}", "0".repeat(64))
+            .parse()
+            .expect("digest-pinned reference should parse");
+
+        assert_eq!(
+            super::reference_pull_policy(&tagged),
+            microsandbox_image::PullPolicy::Always
+        );
+        assert_eq!(
+            super::reference_pull_policy(&pinned),
+            microsandbox_image::PullPolicy::IfMissing
+        );
+    }
 
     #[tokio::test(flavor = "local")]
     async fn context_archive_applies_dockerignore_and_keeps_build_inputs() {

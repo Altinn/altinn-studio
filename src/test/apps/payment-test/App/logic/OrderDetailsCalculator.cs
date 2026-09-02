@@ -112,7 +112,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         return new PaymentReceiver
         {
             Name = "Patentstyret",
-            OrganisationNumber = "971 526 157",
+            OrganizationNumber = "971 526 157",
             BankAccountNumber = "123456789",
             Email = "test.mail@patentstyret.no",
             PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" },

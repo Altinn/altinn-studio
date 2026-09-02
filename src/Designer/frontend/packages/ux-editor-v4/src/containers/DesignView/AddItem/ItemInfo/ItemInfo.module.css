@@ -12,7 +12,7 @@
 
 .componentsInfoWrapper {
   flex: 1;
-  background-color: var(--fds-semantic-surface-info-subtle);
+  background-color: var(--ds-color-info-surface-tinted);
   padding: 20px;
 }
 

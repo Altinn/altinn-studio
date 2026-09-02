@@ -62,10 +62,10 @@ internal sealed class SigningCallToActionService(
             );
         }
 
-        OrganisationOrPersonIdentifier recipient = OrganisationOrPersonIdentifier.Parse(signingParty);
+        OrganizationOrPersonIdentifier recipient = OrganizationOrPersonIdentifier.Parse(signingParty);
         string instanceUrl = _urlHelper.GetInstanceUrl(appIdentifier, instanceIdentifier);
         UserProfile? recipientProfile = null;
-        if (recipient is OrganisationOrPersonIdentifier.Person person)
+        if (recipient is OrganizationOrPersonIdentifier.Person person)
         {
             try
             {

@@ -17,7 +17,7 @@ public static class DataRestrictionValidation
     /// Check if a data post/put request complies with restrictions agreed upon for the DataController
     /// </summary>
     /// <param name="request">the original http request</param>
-    /// <param name="dataType">datatype the files is beeing uploaded to</param>
+    /// <param name="dataType">datatype the file is being uploaded to</param>
     /// <returns>true with errorResponse = empty list if all is ok, false with errorResponse including errors if not</returns>
     public static (bool Success, List<ValidationIssue> Errors) CompliesWithDataRestrictions(
         HttpRequest request,

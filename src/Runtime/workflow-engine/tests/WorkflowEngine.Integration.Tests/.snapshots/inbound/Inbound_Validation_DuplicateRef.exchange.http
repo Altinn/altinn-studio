@@ -34,7 +34,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     },
     {
       "ref": "wf-dup",
@@ -61,7 +62,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     }
   ]
 }

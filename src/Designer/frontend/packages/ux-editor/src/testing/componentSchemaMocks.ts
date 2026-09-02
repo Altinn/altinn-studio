@@ -13,7 +13,6 @@ import DatepickerSchema from './schemas/json/component/Datepicker.schema.v1.json
 import Divider from './schemas/json/component/Divider.schema.v1.json';
 import DropdownSchema from './schemas/json/component/Dropdown.schema.v1.json';
 import FileUploadSchema from './schemas/json/component/FileUpload.schema.v1.json';
-import FileUploadWithTagSchema from './schemas/json/component/FileUploadWithTag.schema.v1.json';
 import GridSchema from './schemas/json/component/Grid.schema.v1.json';
 import GroupSchema from './schemas/json/component/Group.schema.v1.json';
 import HeadingSchema from './schemas/json/component/Heading.schema.v1.json';
@@ -49,7 +48,10 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 // ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
 export const componentSchemaMocks: Record<
-  Exclude<ComponentType, ComponentType.OrganisationLookup | ComponentType.Header>,
+  Exclude<
+    ComponentType,
+    ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
+  >,
   JsonSchema
 > &
   Partial<Record<ComponentType.OrganisationLookup | ComponentType.Header, JsonSchema>> = {
@@ -67,7 +69,6 @@ export const componentSchemaMocks: Record<
   [ComponentType.Datepicker]: DatepickerSchema,
   [ComponentType.Dropdown]: DropdownSchema,
   [ComponentType.FileUpload]: FileUploadSchema,
-  [ComponentType.FileUploadWithTag]: FileUploadWithTagSchema,
   [ComponentType.Grid]: GridSchema,
   [ComponentType.Group]: GroupSchema,
   [ComponentType.Heading]: HeadingSchema,

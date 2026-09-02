@@ -22,14 +22,14 @@ namespace LocalTest.Services.Register.Interface
         Task<List<Party?>> GetPartyList(List<int> partyIds);
 
         /// <summary>
-        /// Method that looks up a party id based on social security number or organisation number.
+        /// Method that looks up a party id based on social security number or organization number.
         /// </summary>
         /// <param name="lookupValue">SSN or org number</param>
         /// <returns></returns>
         Task<int> LookupPartyIdBySSNOrOrgNo(string lookupValue);
 
         /// <summary>
-        /// Method that fetches a party based on social security number or organisation number.
+        /// Method that fetches a party based on social security number or organization number.
         /// </summary>
         /// <param name="lookupValue">SSN or org number</param>
         /// <returns></returns>

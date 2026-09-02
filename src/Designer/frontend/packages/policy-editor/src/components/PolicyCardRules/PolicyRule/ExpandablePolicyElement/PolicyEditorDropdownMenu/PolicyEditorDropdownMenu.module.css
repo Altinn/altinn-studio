@@ -1,11 +1,11 @@
 .errorButton:hover {
-  border: 1px solid var(--fds-semantic-border-danger-hover);
+  border: 1px solid var(--ds-color-danger-border-strong);
 }
 
 .icon {
-  font-size: var(--fds-sizing-5);
+  font-size: var(--ds-size-5);
 }
 
 .deleteButton {
-  color: var(--fds-semantic-text-danger-default);
+  color: var(--ds-color-danger-text-default);
 }

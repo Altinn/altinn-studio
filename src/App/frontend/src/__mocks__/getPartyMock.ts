@@ -19,7 +19,7 @@ export const getServiceOwnerPartyMock = (overrides?: Partial<IParty>): IParty =>
   partyId: ServiceOwnerPartyId,
   name: 'Brønnøysundregistrene',
   ssn: null,
-  partyTypeName: PartyType.Organisation,
+  partyTypeName: PartyType.Organization,
   orgNumber: '974760673',
   unitType: 'BEDR',
   isDeleted: false,
@@ -31,7 +31,7 @@ export const getServiceOwnerPartyMock = (overrides?: Partial<IParty>): IParty =>
 export type PartyWithSubunit = { org: IParty & { childParties: IParty[] }; person: IParty };
 export const getPartyWithSubunitMock = (): PartyWithSubunit => ({
   org: {
-    partyTypeName: PartyType.Organisation,
+    partyTypeName: PartyType.Organization,
     name: 'Root Org',
     partyId: 1,
     orgNumber: '123456789',
@@ -55,7 +55,7 @@ export const getPartyWithSubunitMock = (): PartyWithSubunit => ({
     onlyHierarchyElementWithNoAccess: false,
     childParties: [
       {
-        partyTypeName: PartyType.Organisation,
+        partyTypeName: PartyType.Organization,
         unitType: 'BEDR',
         name: 'Subunit Org',
         partyId: 2,

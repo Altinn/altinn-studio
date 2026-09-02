@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { useIsMobile } from '@app/form-component';
 import { Dropdown, RovingFocusItem, RovingFocusRoot } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, ChevronDownIcon, GlobeIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -12,7 +13,6 @@ import {
   useSetCurrentLanguage,
 } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 
 export const LanguageSelector = () => {
   const isMobile = useIsMobile();

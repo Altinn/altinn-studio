@@ -1028,6 +1028,12 @@ body {
     border: 1px solid var(--cyan);
     background: rgba(var(--cyan-rgb), 0.08);
 }
+.status-pill.Held {
+    color: var(--cyan);
+    border: 1px dashed var(--cyan);
+    background: rgba(var(--cyan-rgb), 0.04);
+    opacity: 0.75;
+}
 .status-pill.Failed {
     color: var(--red);
     border: 1px solid var(--red);
@@ -2437,6 +2443,11 @@ pre.diff-remove {
     border-color: var(--cyan);
     background: rgba(var(--cyan-rgb), 0.4);
 }
+.compact-dot.Held {
+    border-color: var(--cyan);
+    background: transparent;
+    opacity: 0.6;
+}
 .compact-dot.Failed {
     border-color: var(--red);
     background: var(--red);
@@ -2667,6 +2678,144 @@ pre.diff-remove {
 }
 .chain-group .chain-list {
     padding-bottom: 0;
+}
+
+/* ── Mailbox blocks (under a collection group) ─────────────── */
+.mbx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 2px 0 8px;
+}
+.mbx-block {
+    border: 1px solid var(--border);
+    border-left: 2px solid rgba(var(--gray-rgb), 0.5);
+    border-radius: 6px;
+    background: var(--bg3);
+    padding: 6px 10px;
+}
+.mbx-block.mbx-open {
+    border-left-color: var(--cyan);
+}
+.mbx-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 20px;
+}
+.mbx-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cyan);
+    white-space: nowrap;
+}
+.mbx-key {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 44ch;
+}
+.mbx-status {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 1px 7px;
+    border-radius: 9px;
+    white-space: nowrap;
+}
+.mbx-status.open {
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    background: rgba(var(--cyan-rgb), 0.08);
+}
+.mbx-status.disposed {
+    color: var(--gray);
+    border: 1px solid var(--gray);
+    background: rgba(var(--gray-rgb), 0.08);
+}
+.mbx-counts,
+.mbx-deadline,
+.mbx-deadline-at,
+.mbx-empty {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.mbx-deadline-at {
+    font-size: 10px;
+    opacity: 0.55;
+}
+.mbx-deadline.mbx-overdue {
+    color: var(--red);
+    font-weight: 700;
+}
+.mbx-unpaired {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--amber);
+    border: 1px solid rgba(var(--amber-rgb), 0.5);
+    background: rgba(var(--amber-rgb), 0.08);
+    border-radius: 9px;
+    padding: 1px 7px;
+    white-space: nowrap;
+}
+.mbx-empty {
+    opacity: 0.6;
+}
+.mbx-positions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+}
+.mbx-pos {
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+/* Parked borrows the Held pill's dashed cyan and released-by-closure the gray of the terminal
+ * statuses, so the two sides of the rendezvous read as one vocabulary with the workflow rows. */
+.mbx-pos.delivered {
+    color: var(--amber);
+    border-color: var(--amber);
+    background: rgba(var(--amber-rgb), 0.08);
+}
+.mbx-pos.paired {
+    color: var(--green);
+    border-color: var(--green);
+    background: rgba(var(--green-rgb), 0.08);
+}
+.mbx-pos.waiting {
+    color: var(--cyan);
+    border: 1px dashed var(--cyan);
+    background: rgba(var(--cyan-rgb), 0.06);
+}
+.mbx-pos.closed {
+    color: var(--gray);
+    border: 1px dashed var(--gray);
+    background: rgba(var(--gray-rgb), 0.08);
+}
+.mbx-pos.mbx-linked {
+    cursor: pointer;
+}
+.mbx-pos.mbx-linked:hover {
+    color: var(--text-bright);
+    box-shadow: 0 0 0 1px rgba(var(--cyan-rgb), 0.5);
+}
+.mbx-parked {
+    margin-left: 4px;
+    font-weight: 400;
+    opacity: 0.85;
 }
 .view-toggle button.active {
     opacity: 1;

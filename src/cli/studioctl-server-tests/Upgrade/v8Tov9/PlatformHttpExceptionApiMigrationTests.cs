@@ -87,7 +87,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("Client.cs") && w.Contains("could not"));
         // Left untouched rather than rewritten into something that will not compile.
         Assert.Contains("new PlatformHttpException(response, content)", _app.Read("logic/Client.cs"));
@@ -276,7 +276,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(Locations(result));
     }
 
@@ -304,7 +304,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("Builder.cs") && w.Contains("could not"));
     }
 
@@ -325,7 +325,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("Bare.cs"));
     }
 
@@ -358,7 +358,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("GetProperty(\"Response\")"));
         Assert.Contains(Locations(result), w => w.Contains("cast to HttpResponseMessage"));
     }
@@ -380,7 +380,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("Response.Content"));
         Assert.Contains(Locations(result), w => w.Contains("Response.Headers"));
     }
@@ -401,7 +401,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.EndsWith("Response", StringComparison.Ordinal));
     }
 
@@ -425,7 +425,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(Locations(result));
     }
 
@@ -454,7 +454,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(Locations(result));
     }
 
@@ -474,7 +474,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
 
         var result = new PlatformHttpExceptionApiDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(Locations(result));
     }
 }

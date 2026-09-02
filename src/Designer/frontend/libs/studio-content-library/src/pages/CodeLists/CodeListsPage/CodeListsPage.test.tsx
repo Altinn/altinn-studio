@@ -5,7 +5,7 @@ import type { CodeListsPageProps } from './CodeListsPage';
 import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { codeLists, coloursFile } from './test-data/codeLists';
+import { codeLists, colorsFile } from './test-data/codeLists';
 import { screen, within } from '@studio/ui-test';
 import { FileNameUtils } from '@studio/pure-functions';
 import type { CodeListFile } from '../../../types/CodeListFile';
@@ -78,7 +78,7 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
 
-    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
+    const nameField = getNameField(FileNameUtils.removeExtension(colorsFile.name));
     const newName = 'a';
     await user.clear(nameField);
     await user.type(nameField, newName);
@@ -116,7 +116,7 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
 
-    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
+    const nameField = getNameField(FileNameUtils.removeExtension(colorsFile.name));
     const newName = 'a';
     await user.clear(nameField);
     await user.type(nameField, newName);
@@ -131,7 +131,7 @@ describe('CodeListsPage', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
     renderCodeListPage({ onSave: failingOnSave });
 
-    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
+    const nameField = getNameField(FileNameUtils.removeExtension(colorsFile.name));
     const newName = 'a';
     await user.clear(nameField);
     await user.type(nameField, newName);

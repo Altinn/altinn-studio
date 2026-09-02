@@ -37,28 +37,35 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'add_button_full',
-      title: 'Add button (full) (for repeating groups)',
-      description: 'The text for the "Add" button (overrides "add_button", and sets the full text for the button)',
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'add_button',
+      name: 'addButtonFull',
+      title: 'Add button (full) (for repeating groups)',
+      description: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'addButton',
       title: 'Add button (suffix) (for repeating groups)',
       description: 'The text for the "Add" button (used as a suffix after the default button text)',
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'save_button',
+      name: 'saveButton',
       title: 'Save button (for repeating groups)',
       description: 'The text for the "Save" button when the repeating group item is in edit mode',
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'save_and_next_button',
+      name: 'saveAndNextButton',
       title: 'Save and next button (for repeating groups)',
       description:
         'The text for the "Save and next" button when the repeating group item is in edit mode ' +
@@ -67,7 +74,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'edit_button_close',
+      name: 'editButtonClose',
       title: 'Edit button (close) (for repeating groups)',
       description:
         'The text for the "Edit" button when the repeating group item is in ' +
@@ -76,7 +83,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'edit_button_open',
+      name: 'editButtonOpen',
       title: 'Edit button (open) (for repeating groups)',
       description:
         'The text for the "Edit" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)',
@@ -84,28 +91,28 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'pagination_next_button',
+      name: 'paginationNextButton',
       title: 'Next button in pagination',
       description: 'The text for the "Next" button in pagination',
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'pagination_back_button',
+      name: 'paginationBackButton',
       title: 'Back button in pagination',
       description: 'The text for the "Back" button in pagination',
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'multipage_back_button',
+      name: 'multipageBackButton',
       title: 'Back button in multipage navigation',
       description: 'The text for the "Back" button in multipage navigation',
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'multipage_next_button',
+      name: 'multipageNextButton',
       title: 'Next button in multipage navigation',
       description: 'The text for the "Next" button in multipage navigation',
     }),
@@ -307,7 +314,7 @@ export const Config = new CG.component({
                 .setTitle('Show in expanded edit')
                 .setDescription(
                   'If set to true, the component will be shown in the expanded edit view. This is also the default ' +
-                    'behaviour, but can be turned off for components that are only to be edited in the table view.',
+                    'behavior, but can be turned off for components that are only to be edited in the table view.',
                 ),
             ),
           )

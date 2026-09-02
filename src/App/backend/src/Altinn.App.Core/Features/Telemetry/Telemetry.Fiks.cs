@@ -77,13 +77,6 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartFiksMessageHandlerActivity(Instance instance, Type messageHandlerType)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.MessageHandler.{messageHandlerType}");
-        activity?.SetInstanceId(instance);
-        return activity;
-    }
-
     internal void RecordFiksMessageSent(FiksResult result) =>
         _counters[MetricNameMessageSent]
             .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));

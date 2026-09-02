@@ -27,7 +27,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     /// elements, so searching all warnings for two substrings at once can never match.
     /// </summary>
     private static IEnumerable<string> Summaries(MigrationResult result) =>
-        result.Warnings.Where(static w => !w.Contains(".cs:", StringComparison.Ordinal));
+        result
+            .Messages.Select(static message => message.Text)
+            .Where(static t => !t.Contains(".cs:", StringComparison.Ordinal));
 
     // --- RemovedTaskEventInterfaceDetector -------------------------------------------------------
 
@@ -54,7 +56,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("MyTaskEnd.cs") && w.Contains("MyTaskEnd : IProcessTaskEnd"));
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IProcessTaskEnd"));
     }
@@ -73,7 +75,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Wrapper.cs") && w.Contains("IProcessTaskEnd"));
     }
 
@@ -92,7 +94,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -117,7 +119,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("ServiceTaskErrorHandling"));
         Assert.Contains(result.Warnings, w => w.Contains("FailedContinueProcessNext"));
     }
@@ -139,7 +141,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("MyServiceTask.cs:3") && w.Contains("ServiceTaskResult.Failed")
@@ -184,7 +186,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("MyEventHandler.cs") && w.Contains("MyEventHandler : IEventHandler")
@@ -215,7 +217,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -234,7 +236,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -255,7 +257,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("LegacyProvider : IEFormidlingLegacyConfigurationProvider"));
         Assert.Contains(result.Warnings, w => w.Contains("EnableEFormidling"));
     }
@@ -287,7 +289,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("LegacySender.cs") && w.Contains("SendEFormidlingShipment"));
         Assert.DoesNotContain(result.Warnings, w => w.Contains("MigratedSender.cs"));
     }
@@ -309,7 +311,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
     }
 
@@ -330,7 +332,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
     }
 
@@ -351,7 +353,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedInternalProcessTypeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
     }
 
@@ -375,7 +377,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             projectNullableAnnotationsEnabled: true
         ).Migrate();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.NotEmpty(result.Warnings);
         var migrated = File.ReadAllText(path);
         Assert.Contains("GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)", migrated);
@@ -580,7 +582,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("SendLetter.cs:5") && w.Contains("CorrespondenceAuthorisation")
@@ -589,7 +591,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             result.Warnings,
             w => w.Contains("SendLetter.cs:8") && w.Contains("new GetCorrespondenceStatusPayload(.., lambda)")
         );
-        Assert.Contains(result.Warnings, w => w.Contains("CorrespondenceAuthenticationMethod"));
+        Assert.Contains(Summaries(result), s => s.Contains("CorrespondenceAuthenticationMethod"));
     }
 
     [Fact]
@@ -614,7 +616,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -642,7 +644,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:7") && w.Contains("WithSender"));
         Assert.Contains(
             result.Warnings,
@@ -680,7 +682,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Letter.cs:6") && w.Contains("CorrespondenceRequest.Sender"));
         Assert.Contains(
             result.Warnings,
@@ -718,7 +720,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -756,7 +758,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Override.cs:6") && w.Contains("WithRecipientToOverride"));
         Assert.Contains(
             result.Warnings,
@@ -808,7 +810,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -828,7 +830,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Attach.cs:3") && w.Contains("CorrespondenceDataLocationType")
@@ -854,7 +856,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("SendLetter.cs:6") && w.Contains("CorrespondenceAuthorisation")
@@ -877,7 +879,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Steps.cs:3") && w.Contains("ICorrespondenceRequestBuilderSender")
@@ -899,19 +901,21 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
     // --- CorrespondenceApiMigration --------------------------------------------------------------
 
     private IReadOnlyList<string> _lastMigrationWarnings = [];
+    private IReadOnlyList<string> _lastMigrationTodos = [];
 
     private string MigrateCorrespondence(string relativePath, string source)
     {
         var path = _app.Write(relativePath, source);
         var result = new CorrespondenceApiMigration(Scanner()).Migrate();
         _lastMigrationWarnings = result.Warnings;
+        _lastMigrationTodos = result.Todos;
 
         var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
 
@@ -1052,7 +1056,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains("WithData(payload)", File.ReadAllText(pathB));
         Assert.DoesNotContain("new MemoryStream(payload)", File.ReadAllText(pathB));
         Assert.Contains("new MemoryStream(payload)", File.ReadAllText(Path.Combine(_app.Root, "App", "logic", "A.cs")));
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -1077,8 +1081,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.Contains("WithData(vedlegg.Innhold)", File.ReadAllText(path));
         Assert.DoesNotContain("new MemoryStream(", File.ReadAllText(path));
-        Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("could not be classified"));
+        Assert.Contains(result.Todos, t => t.Contains("could not be rewritten automatically"));
     }
 
     [Fact]
@@ -1119,7 +1122,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // The detector is the fallback for exactly these.
         var detected = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
-        Assert.True(detected.ManualActionRequired);
+        Assert.NotEmpty(detected.Todos);
         Assert.Contains(Locations(detected), w => w.Contains("WithSender"));
         Assert.Contains(Locations(detected), w => w.Contains("WithRequestedSendTime"));
     }
@@ -1340,16 +1343,18 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // Provably bytes - wrapped.
         Assert.Contains("WithData(new MemoryStream(raw))", migrated);
-        Assert.Contains("WithData(new MemoryStream(vedlegg.Innhold))", migrated);
         Assert.Contains("WithData(new MemoryStream(Encoding.UTF8.GetBytes(_text)))", migrated);
         Assert.Contains("WithData(new MemoryStream(\"literal\"u8.ToArray()))", migrated);
+
+        // Provably ReadOnlyMemory<byte> (declared in the app) - reported, never wrapped: the
+        // MemoryStream constructor takes an array, so the wrap would not compile.
+        Assert.Contains("WithData(vedlegg.Innhold);", migrated);
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("cannot be wrapped in a MemoryStream directly"));
 
         // Provably a stream - untouched. Wrapping either of these would not compile.
         Assert.Contains("WithData(new MemoryStream(_bytes));", migrated);
         Assert.DoesNotContain("new MemoryStream(new MemoryStream", migrated);
         Assert.Contains("WithData(open);", migrated);
-
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
     }
 
     [Fact]
@@ -1372,7 +1377,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         // `var` writes out no type, but its initializer settles it - the common shape for a payload
         // fetched from a client, and the one real-world case that would otherwise need a hand edit.
         Assert.Contains("WithData(new MemoryStream(bytes))", migrated);
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        Assert.Empty(_lastMigrationTodos);
     }
 
     [Fact]
@@ -1392,8 +1397,8 @@ public sealed class CSharpApiMigrationTests : IDisposable
             """
         );
 
-        // `var` with an unrecognisable initializer stays unknown, so guessing would risk wrapping a Stream.
-        Assert.Contains(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        // `var` with an unrecognizable initializer stays unknown, so guessing would risk wrapping a Stream.
+        Assert.Contains(_lastMigrationTodos, t => t.Contains("could not be rewritten automatically"));
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
     }
 
@@ -1433,9 +1438,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("Purring.cs:6") && w.Contains("Tokenkilde"));
-        Assert.Contains(result.Warnings, w => w.Contains("held in a variable"));
+        Assert.Contains(Summaries(result), s => s.Contains("held in a variable"));
     }
 
     [Fact]
@@ -1464,7 +1469,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Varsel.cs:8") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
@@ -1523,7 +1528,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("TokenLookup.cs") && w.Contains("IMaskinportenTokenProvider"));
         Assert.Contains(
             result.Warnings,
@@ -1552,7 +1557,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Certs.cs") && w.Contains("Certs : IX509CertificateProvider"));
         Assert.Contains(
             result.Warnings,
@@ -1593,7 +1598,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler2")
@@ -1622,7 +1627,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(Locations(result));
     }
 
@@ -1633,7 +1638,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -1669,8 +1674,8 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Client.cs") && w.Contains("using Altinn.ApiClients.Maskinporten.Interfaces")
@@ -1692,7 +1697,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("AddMaskinportenHttpClient"));
     }
@@ -1719,7 +1724,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -1743,7 +1748,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Client.cs") && w.Contains("IMaskinportenService"));
     }
 
@@ -1755,7 +1760,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Pkcs12ClientDefinition"));
     }
 
@@ -1776,7 +1781,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
     }
 
@@ -1799,7 +1804,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -1829,8 +1834,8 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("behind an MSBuild condition"));
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("behind an MSBuild condition"));
     }
 
     /// <summary>
@@ -1857,7 +1862,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
     }
 
@@ -1881,8 +1886,8 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("behind an MSBuild condition"));
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("behind an MSBuild condition"));
     }
 
     [Fact]
@@ -1893,8 +1898,8 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
-        Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
     }
 
     // --- MaskinportenClientOverrideDetector ------------------------------------------------------
@@ -1914,7 +1919,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient"));
         Assert.Contains(Summaries(result), s => s.Contains("process transitions fail once deployed"));
     }
@@ -1935,7 +1940,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
     }
 
@@ -1950,7 +1955,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -1970,7 +1975,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 

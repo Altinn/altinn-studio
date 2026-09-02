@@ -26,8 +26,8 @@ public class TaskNavigationController(ITaskNavigationService taskNavigationServi
     /// <summary>
     /// Get task navigation
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of task navigation groups.</returns>
     [HttpGet]
@@ -63,8 +63,8 @@ public class TaskNavigationController(ITaskNavigationService taskNavigationServi
     /// <summary>
     /// Update task navigation
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="taskNavigationGroupDtoList">The list of task navigation groups.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]

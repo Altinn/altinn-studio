@@ -58,7 +58,6 @@ function addLikertItemToLayout(layouts: ILayouts) {
           },
           options: comp.options,
           optionsId: comp.optionsId,
-          mapping: comp.mapping,
           required: comp.required,
           secure: comp.secure,
           queryParameters: comp.queryParameters,

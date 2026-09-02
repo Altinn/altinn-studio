@@ -9,9 +9,9 @@ namespace Altinn.App.Core.Interface;
 public interface IApplication
 {
     /// <summary>
-    /// Gets the application metdata
+    /// Gets the application metadata
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     Task<Application?> GetApplication(string org, string app);
 }

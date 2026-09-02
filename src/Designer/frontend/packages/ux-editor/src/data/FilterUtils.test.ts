@@ -24,9 +24,6 @@ describe('FilterUtils', () => {
         component: formItemConfigs[ComponentType.FileUpload],
       },
       {
-        component: formItemConfigs[ComponentType.FileUploadWithTag],
-      },
-      {
         component: formItemConfigs[ComponentType.InstantiationButton],
       },
       {

@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="[8.8.3]">
+    <PackageReference Include="Altinn.App.Api" Version="[9.0.0-preview.4]">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="[8.8.3]" />
+    <PackageReference Include="Altinn.App.Core" Version="[9.0.0-preview.4]" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
