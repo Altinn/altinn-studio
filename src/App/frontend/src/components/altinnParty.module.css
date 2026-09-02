@@ -21,6 +21,10 @@
   cursor: progress;
 }
 
+.partyBlocked {
+  cursor: not-allowed;
+}
+
 .partyWrapperDisabled:hover {
   cursor: not-allowed;
 }

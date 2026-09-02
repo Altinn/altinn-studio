@@ -131,6 +131,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId
           [classes.partySelectable]: !party.onlyHierarchyElementWithNoAccess && selectionState === 'selectable',
           [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess,
           [classes.partySubmitting]: selectionState === 'submitting',
+          [classes.partyBlocked]: selectionState === 'blocked',
         })}
         onClick={!party.onlyHierarchyElementWithNoAccess ? (event) => onClickParty(party, event) : undefined}
         onKeyPress={!party.onlyHierarchyElementWithNoAccess ? (event) => onKeyPressParty(party, event) : undefined}
@@ -188,6 +189,7 @@ function SubUnit({ party, pendingPartyId, tabbable, onClick, onKeyPress }: ISubU
         className={cn(classes.subUnit, {
           [classes.partySelectable]: selectionState === 'selectable',
           [classes.partySubmitting]: selectionState === 'submitting',
+          [classes.partyBlocked]: selectionState === 'blocked',
         })}
         container
         direction='column'
