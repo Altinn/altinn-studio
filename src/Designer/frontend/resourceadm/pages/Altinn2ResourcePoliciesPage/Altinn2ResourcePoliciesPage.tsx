@@ -297,11 +297,8 @@ export const LocalPolicyEditor = ({
   const { data: accessPackages, isPending: isLoadingAccessPackages } =
     useResourceAccessPackagesQuery(org, app);
 
-  const { mutate: updatePolicyMutation } = usePublishResourcePolicyMutation(
-    org,
-    app,
-    tableData.identifier,
-  );
+  const { mutate: updatePolicyMutation, isError: isUpdatePolicyError } =
+    usePublishResourcePolicyMutation(org, app, tableData.identifier);
 
   const publishNewPolicy = () => {
     updatePolicyMutation(
@@ -355,6 +352,11 @@ export const LocalPolicyEditor = ({
         <StudioButton variant='tertiary' onClick={onClose}>
           {t('resourceadm.altinn2policy_cancel')}
         </StudioButton>
+        {isUpdatePolicyError && (
+          <StudioAlert data-color='danger'>
+            {t('resourceadm.altinn2policy_publish_error')}
+          </StudioAlert>
+        )}
       </StudioDialog.Block>
     </>
   );

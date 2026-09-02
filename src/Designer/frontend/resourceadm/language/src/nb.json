@@ -143,6 +143,7 @@
   "resourceadm.altinn2policy_policy_spinner": "Laster inn tilgangsregler",
   "resourceadm.altinn2policy_publish": "Publiser endringer",
   "resourceadm.altinn2policy_spinner": "Laster inn data",
+  "resourceadm.altinn2policy_publish_error": "Kunne ikke publisere endringer",
   "resourceadm.close_modal": "Lukk",
   "resourceadm.dashboard_change_organization_lists": "Endre tilgangslister",
   "resourceadm.dashboard_create_modal_create_button": "Opprett ressurs",

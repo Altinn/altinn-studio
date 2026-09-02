@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PadlockLockedIcon, PlusCircleIcon, TasklistIcon } from '@studio/icons';
@@ -18,6 +18,7 @@ import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useI
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink/ButtonRouterLink';
 
 /**
  * @component
@@ -131,19 +132,25 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         <div className={classes.topRightWrapper}>
           {isEnableAltinn2RolesPolicyEditor && (
             <>
-              <Link to={`${getResourceDashboardURL(org, app)}/altinn2resourcepolicies`}>
-                <StudioButton variant='tertiary' data-size='md' icon={<PadlockLockedIcon />}>
-                  <strong>{t('resourceadm.altinn2policy_dashboard_link')}</strong>
-                </StudioButton>
-              </Link>
+              <ButtonRouterLink
+                to={`${getResourceDashboardURL(org, app)}/altinn2resourcepolicies`}
+                icon={<PadlockLockedIcon />}
+                variant='tertiary'
+                data-size='md'
+              >
+                <strong>{t('resourceadm.altinn2policy_dashboard_link')}</strong>
+              </ButtonRouterLink>
               <div className={classes.verticalDivider} data-color='neutral' />
             </>
           )}
-          <Link to={`${getResourceDashboardURL(org, app)}/accesslists`}>
-            <StudioButton variant='tertiary' data-size='md' icon={<TasklistIcon />}>
-              <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-            </StudioButton>
-          </Link>
+          <ButtonRouterLink
+            to={`${getResourceDashboardURL(org, app)}/accesslists`}
+            icon={<TasklistIcon />}
+            variant='tertiary'
+            data-size='md'
+          >
+            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+          </ButtonRouterLink>
           <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
