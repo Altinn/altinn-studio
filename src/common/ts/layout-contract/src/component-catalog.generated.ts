@@ -850,15 +850,6 @@ const ISelectionComponent = {
       },
       required: false,
     },
-    mapping: {
-      type: 'object',
-      properties: IMapping['properties'],
-      additionalProperties: IMapping['additionalProperties'],
-      title: IMapping['title'],
-      description: IMapping['description'],
-      deprecated: true,
-      required: false,
-    },
     queryParameters: {
       type: 'object',
       properties: IQueryParameters['properties'],
@@ -935,7 +926,6 @@ const ISelectionComponentFull = {
   type: 'object',
   properties: {
     optionsId: ISelectionComponent['properties']['optionsId'],
-    mapping: ISelectionComponent['properties']['mapping'],
     queryParameters: ISelectionComponent['properties']['queryParameters'],
     options: ISelectionComponent['properties']['options'],
     secure: ISelectionComponent['properties']['secure'],
@@ -2785,7 +2775,7 @@ const IGroupColumnFormatting = {
       type: 'boolean',
       title: { en: 'Show in expanded edit', nb: 'Vis i utvidet redigering' },
       description: {
-        en: 'If set to true, the component will be shown in the expanded edit view. This is also the default behaviour, but can be turned off for components that are only to be edited in the table view.',
+        en: 'If set to true, the component will be shown in the expanded edit view. This is also the default behavior, but can be turned off for components that are only to be edited in the table view.',
         nb: 'Viser komponenten i den utvidede redigeringsvisningen.',
       },
       default: true,
@@ -5441,7 +5431,6 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -6047,7 +6036,6 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -6154,7 +6142,6 @@ const generatedContract = {
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -6426,6 +6413,16 @@ const generatedContract = {
               description: {
                 en: 'The description text shown underneath the title',
                 nb: 'Beskrivelsen som vises under ledeteksten.',
+              },
+              required: false,
+            },
+            help: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text shown in a tooltip when clicking the help button',
+                nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
               required: false,
             },
@@ -7160,7 +7157,6 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -7200,6 +7196,16 @@ const generatedContract = {
               description: {
                 en: 'The description text for the Likert table.',
                 nb: 'Beskrivelsen av Likert-tabellen.',
+              },
+              required: false,
+            },
+            help: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text shown in a tooltip when clicking the help button',
+                nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
               required: false,
             },
@@ -7505,15 +7511,6 @@ const generatedContract = {
           default: false,
           required: false,
         },
-        mapping: {
-          type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
-          deprecated: true,
-          required: false,
-        },
         queryParameters: {
           type: 'object',
           properties: IQueryParameters['properties'],
@@ -7532,16 +7529,6 @@ const generatedContract = {
             en: 'Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.',
             nb: 'Angi en av nøklene i dataModelBindings-objektet som skal vises i oppsummeringen av listen.',
           },
-          required: false,
-        },
-        bindingToShowInSummary: {
-          type: 'string',
-          title: { en: 'Binding to show in summary', nb: 'Binding som vises i oppsummeringen' },
-          description: {
-            en: 'The value of this binding will be shown in the summary component for the list. It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.',
-            nb: 'Verdien som vises i oppsummeringen av listen. Forventer en sti i datamodellen.',
-          },
-          deprecated: true,
           required: false,
         },
         tableHeadersMobile: {
@@ -7696,7 +7683,6 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -8043,7 +8029,6 @@ const generatedContract = {
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -8232,7 +8217,7 @@ const generatedContract = {
                 nb: 'Databinding for organisasjonsnavn',
               },
               description: {
-                en: 'Describes the location in the data model where the component should store the name of the organisation.',
+                en: 'Describes the location in the data model where the component should store the name of the organization.',
                 nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet.',
               },
               required: false,
@@ -8460,6 +8445,16 @@ const generatedContract = {
               },
               required: false,
             },
+            help: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text shown in a tooltip when clicking the help button',
+                nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
+              },
+              required: false,
+            },
           },
           additionalProperties: false,
           title: { en: 'Text resources', nb: 'Tekstressurser' },
@@ -8525,6 +8520,16 @@ const generatedContract = {
               description: {
                 en: 'Description, optionally shown below the title',
                 nb: 'Valgfri beskrivelse som vises under ledeteksten.',
+              },
+              required: false,
+            },
+            help: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text shown in a tooltip when clicking the help button',
+                nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
               required: false,
             },
@@ -8815,7 +8820,6 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
-        mapping: ISelectionComponent['properties']['mapping'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
         secure: ISelectionComponent['properties']['secure'],
@@ -8981,6 +8985,16 @@ const generatedContract = {
               description: {
                 en: 'The description text shown underneath the title',
                 nb: 'Beskrivelsen som vises under ledeteksten.',
+              },
+              required: false,
+            },
+            help: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text shown in a tooltip when clicking the help button',
+                nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
               required: false,
             },
@@ -9926,6 +9940,16 @@ const generatedContract = {
               description: {
                 en: 'The description text shown underneath the title',
                 nb: 'Beskrivelsen som vises under ledeteksten.',
+              },
+              required: false,
+            },
+            help: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text shown in a tooltip when clicking the help button',
+                nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
               required: false,
             },

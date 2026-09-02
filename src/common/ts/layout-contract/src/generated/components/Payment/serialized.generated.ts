@@ -10,9 +10,10 @@ export type CompPaymentSerialized = {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
   dataModelBindings?: undefined;
 } & ComponentBase &
   SummarizableComponentProps;
 
-// Source hash: ef78d61fcb64b470fd958459b8f43c5470a023a0f242dee522c7eb443021cd05
+// Source hash: 6238867c27935e3bf5197d0b1666bd668e0fe7a588ccda336d54a1e3f811e2b8

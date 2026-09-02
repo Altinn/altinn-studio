@@ -17,6 +17,7 @@ export interface CompRepeatingGroupExternal extends ComponentBase, SummarizableC
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
     addButtonFull?: ExprValToActualOrExpr<ExprVal.String>;
     addButton?: ExprValToActualOrExpr<ExprVal.String>;
     saveButton?: ExprValToActualOrExpr<ExprVal.String>;
@@ -107,4 +108,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RepeatingGroupSummaryOverridesWithRef;
 };
 
-// Source hash: b98b101cbf08f7d920cbb870d7ed13f9c6c837533948ed44136bd8ef6513e5a0
+// Source hash: 98bdfd5ae7e2c9beb74938129b7ad2f90b38386425ad24053d2a4750c25b4a82

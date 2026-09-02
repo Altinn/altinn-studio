@@ -518,7 +518,6 @@ export interface IRawOption {
 
 export interface ISelectionComponent {
   optionsId?: string;
-  mapping?: IMapping;
   queryParameters?: IQueryParameters;
   options?: IRawOption[];
   secure?: boolean;
@@ -641,4 +640,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 6be5864bb564d56d4006194de4c6dbebb50529bad60c8ff293f714edaec7702a
+// Source hash: aa97438caa1a24d90e781cab15a32b10483a7767b1343fb9025a55f3988ae0ed
