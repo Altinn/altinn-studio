@@ -32,16 +32,8 @@ const (
 	workflowEngineHealthRetries     = 60
 	workflowEngineHealthStartPeriod = 2 * time.Second
 
-	// The aspnet base image ships no curl or wget, so the readiness probe speaks HTTP over bash's
-	// /dev/tcp. It targets the engine's real readiness endpoint: the versionless /health/ready is a
-	// 301 redirect to the aggregate endpoint, so it would report ready before the engine could
-	// serve. Kestrel binds only after UseWorkflowEngine() has migrated and warmed up, so a 200 here
-	// means an enqueue will be accepted.
-	//
-	// Without this check the container counts as ready the moment the process is launched (see
-	// containerHealthReady in devenv), and `env up` returned roughly 0.8s before the engine would
-	// accept a request. An app instantiating inside that window failed with HTTP 500
-	// "Instance initialization failed" and left an orphaned instance behind.
+	// The aspnet base image ships no curl or wget, so the probe speaks HTTP over bash's /dev/tcp;
+	// the versionless /health/ready is a redirect and would pass before the engine could serve.
 	workflowEngineHealthProbe = `bash -c "exec 3<>/dev/tcp/127.0.0.1/` + workflowEngineHTTPPort +
 		` && printf 'GET /api/v1/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3` +
 		` && head -n 1 <&3 | grep -q ' 200 '"`

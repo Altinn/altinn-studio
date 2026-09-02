@@ -478,10 +478,8 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_FirstSweep_IsDeferredPastStartup()
     {
-        // The last-run marker used to start at DateTimeOffset.MinValue, so every start of the service
-        // was immediately due for a full retention drain. On a database with a real backlog that put
-        // a multi-second bulk delete on top of the first requests the fresh instance served, and a
-        // rollout had every replica doing it at once.
+        // A start must not be immediately due for a retention drain: on a real backlog that is a
+        // multi-second bulk delete landing on the first requests the fresh instance serves.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 

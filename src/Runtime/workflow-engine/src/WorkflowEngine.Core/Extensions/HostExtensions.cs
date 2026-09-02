@@ -63,6 +63,12 @@ internal static class HostExtensions
         /// bindings and the JIT work they trigger are paid for here instead of by the first request.
         /// Called before Kestrel binds, so nothing can route to the engine until it is warm.
         /// <para>
+        /// On a freshly started engine the first enqueue cost ~195ms against ~6ms warm and the first
+        /// workflow ~375ms to settle against ~48ms; warming the read paths brings those to ~160ms and
+        /// ~270ms. The remainder sits in the HTTP pipeline and the enqueue write path, which a
+        /// read-only warm-up cannot reach.
+        /// </para>
+        /// <para>
         /// Every call is read-only: <see cref="IEngineRepository.FetchAndLockWorkflows"/> is asked
         /// for zero rows, and the rest look up a namespace no workflow can be enqueued into. A
         /// warm-up failure is logged and swallowed - a cold engine still works, so this must never

@@ -10,6 +10,9 @@ using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
+// CA5394: retention jitter only spreads load, so a non-cryptographic source is the right tool.
+#pragma warning disable CA5394
+
 namespace WorkflowEngine.Data.Services;
 
 internal sealed class DbMaintenanceService(
@@ -99,13 +102,10 @@ internal sealed class DbMaintenanceService(
 
     /// <summary>
     /// A uniformly random offset in <c>[0, interval)</c>, used to place the first retention sweep
-    /// somewhere inside the interval instead of at startup. Jitter only needs to spread load, so a
-    /// non-cryptographic source is the right tool here.
+    /// somewhere inside the interval instead of at startup.
     /// </summary>
-#pragma warning disable CA5394 // Do not use insecure randomness
     private static TimeSpan RandomStartupOffset(TimeSpan interval) =>
         interval <= TimeSpan.Zero ? TimeSpan.Zero : Random.Shared.NextDouble() * interval;
-#pragma warning restore CA5394
 
     internal async Task PurgeExpiredWorkflows(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
     {

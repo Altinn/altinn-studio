@@ -242,12 +242,7 @@ namespace LocalTest
 
             app.UseMiddleware<ProxyMiddleware>();
 
-            // Registered after the proxy so that /health on a proxied component host reaches that
-            // component. Answering it here made a stopped component look healthy - a request to
-            // workflow-engine.local.altinn.cloud/health returned 200 while every other path on the
-            // same host returned 502 - which silently defeats any readiness gate waiting on it.
-            // Localtest's own hosts have no proxy route matching /health, so they still fall
-            // through to this.
+            // After the proxy: /health on a proxied component host must reach that component, not us.
             app.UseHealthChecks("/health");
             app.UseWebSockets();
 

@@ -41,11 +41,6 @@ public static class WorkflowEngineAppExtensions
             await app.ResetDatabaseConnectionsInDev();
             await app.ApplyDatabaseMigrations();
 
-            // Runs before Kestrel binds, so the engine is never reachable while still cold. On a
-            // freshly started engine the first enqueue cost ~195ms against ~6ms warm and the first
-            // workflow took ~375ms to settle against ~48ms; warming the read paths here brings those
-            // to ~160ms and ~270ms. The rest of the cold cost sits in the HTTP pipeline and the
-            // enqueue write path, which a read-only warm-up cannot reach - see the method docs.
             await app.WarmUpEngine();
 
             return app;
