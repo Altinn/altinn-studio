@@ -18,10 +18,17 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    // A transition is only observed at a rung of this ladder, so the cap bounds how long the wait
-    // adds to a settled transition. Do not raise it without measuring.
-    private const int InitialWorkflowPollingDelayMs = 25;
-    private const int MaxWorkflowPollingDelayMs = 100;
+    // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
+    // wait adds to a settled transition and how many collection reads a slow one costs. Poll tightly
+    // for as long as a synchronous completion is still plausible - the same window as the parked
+    // release grace below - then slope off to the 2s cap, which bounds what a genuinely slow
+    // transition costs. Doubling from 100ms was the old shape, and its rungs (100/300/700/1500)
+    // overshot a ~115ms transition by ~190ms; a permanently tight ladder is the opposite mistake,
+    // turning a slow transition into a thousand reads. Change none of these without measuring both.
+    private const int InitialWorkflowPollingDelayMs = 50;
+    private const int WorkflowPollingTightWindowMs = 2_000;
+    private const int WorkflowPollingBackoffPercent = 50;
+    private const int MaxWorkflowPollingDelayMs = 2_000;
     private const int AcceptanceProbeAttempts = 3;
 
     // Not the polling delay above: this grace lets the engine's write buffer make the collection
@@ -590,7 +597,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             }
 
             await Task.Delay(currentDelayMs, ct);
-            currentDelayMs = Math.Min(currentDelayMs * 2, MaxWorkflowPollingDelayMs);
+            currentDelayMs =
+                stopwatch.ElapsedMilliseconds < WorkflowPollingTightWindowMs
+                    ? InitialWorkflowPollingDelayMs
+                    : Math.Min(
+                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
+                        MaxWorkflowPollingDelayMs
+                    );
         }
 
         ct.ThrowIfCancellationRequested();
