@@ -132,6 +132,7 @@ export function Dropdown({
     const newValue = option?.value ?? '';
 
     if (alertOnChange && shouldAlertOnChange(newValue) && inputRef.current) {
+      // Remove this workaround when https://github.com/digdir/designsystemet/pull/5260 is released.
       // Suggestion updates its internal match before proposing a controlled value. When the proposal
       // is suspended, restore the accepted value synchronously so a subsequent blur does not propose
       // the rejected match a second time and reopen the confirmation popover.
