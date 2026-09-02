@@ -58,12 +58,11 @@ export const PartySelection = () => {
   const appOwner = useAppOwner();
 
   // The processing mutation guards against a second selection while one is in flight
-  const performProcess = useProcessingMutationWithKey<string>('select-party');
-  const processingPartyId = useCurrentProcessKey('select-party');
-  const selectedPartyId = processingPartyId !== null ? Number(processingPartyId) : undefined;
+  const performProcess = useProcessingMutationWithKey<number>('select-party');
+  const pendingPartyId = useCurrentProcessKey<number>('select-party') ?? undefined;
 
   const onSelectParty = (party: IParty) =>
-    performProcess(String(party.partyId), async () => {
+    performProcess(party.partyId, async () => {
       const result = await selectParty(party);
       if (!result) {
         return;
@@ -95,7 +94,7 @@ export const PartySelection = () => {
             party={party}
             onSelectParty={onSelectParty}
             showSubUnits={showSubUnits}
-            selectedPartyId={selectedPartyId}
+            pendingPartyId={pendingPartyId}
           />
         ))}
         {hasMoreParties ? (

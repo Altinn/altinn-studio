@@ -80,7 +80,7 @@ describe('altinnParty', () => {
     await render({
       showSubUnits: true,
       party: partyWithChildParties,
-      selectedPartyId: partyWithChildParties.partyId,
+      pendingPartyId: partyWithChildParties.partyId,
     });
 
     const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');

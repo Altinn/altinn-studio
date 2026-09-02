@@ -18,13 +18,18 @@ export type MutationKey =
   'instantiation' | 'exit-subform' | 'add-subform' | 'custom-action' | 'navigate-page' | 'select-party';
 
 /**
+ * Identifies which specific action within a mutation key is running.
+ */
+type ProcessKey = string | number;
+
+/**
  * Process keys for 'navigate-page' mutations.
  * Can be a specific action or a dynamic page ID string.
  */
 export type NavigatePageProcessKey = 'next' | 'previous' | 'backToSummary' | 'backToPage' | string;
 
 type PerformProcessFn = (callback: () => Promise<unknown>) => Promise<void>;
-type PerformProcessWithKeyFn<T extends string> = (processKey: T, callback: () => Promise<unknown>) => Promise<void>;
+type PerformProcessWithKeyFn<T extends ProcessKey> = (processKey: T, callback: () => Promise<unknown>) => Promise<void>;
 
 function getFullMutationKey(mutationKey: MutationKey) {
   return [...PROCESSING_MUTATION_KEY, mutationKey] as const;
@@ -36,7 +41,7 @@ function getFullMutationKey(mutationKey: MutationKey) {
  *
  * @param mutationKey - Groups related mutations together for `useIsThisProcessing` checks.
  */
-export function useProcessingMutationWithKey<TProcessKey extends string>(
+export function useProcessingMutationWithKey<TProcessKey extends ProcessKey>(
   mutationKey: MutationKey,
 ): PerformProcessWithKeyFn<TProcessKey> {
   const queryClient = useQueryClient();
@@ -68,7 +73,7 @@ export function useProcessingMutationWithKey<TProcessKey extends string>(
  * @param mutationKey - Groups related mutations together for `useIsThisProcessing` checks.
  */
 export function useProcessingMutation(mutationKey: MutationKey): PerformProcessFn {
-  const performProcess = useProcessingMutationWithKey(mutationKey);
+  const performProcess = useProcessingMutationWithKey<string>(mutationKey);
   return useCallback((callback: () => Promise<unknown>) => performProcess('', callback), [performProcess]);
 }
 
@@ -101,7 +106,7 @@ export function useIsAnyProcessing(): boolean {
  * Returns the process key of the currently running mutation with the given mutation key.
  * Useful for showing a spinner on the specific button that triggered the action.
  */
-export function useCurrentProcessKey<TProcessKey extends string = string>(
+export function useCurrentProcessKey<TProcessKey extends ProcessKey = string>(
   mutationKey: MutationKey,
 ): TProcessKey | null {
   const variables = useMutationState({

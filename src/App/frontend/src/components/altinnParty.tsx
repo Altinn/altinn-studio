@@ -17,31 +17,27 @@ export interface IAltinnPartyProps {
   party: IParty;
   onSelectParty: (party: IParty) => Promise<void> | void;
   showSubUnits: boolean;
-  selectedPartyId?: number;
+  /** The party selected by user and is currently in flight*/
+  pendingPartyId?: number;
 }
 
-/** State of a party element. 'selectable' means it can be selected, 'noAccess' means the user has no access, 'selected' means it is currently selected, and 'blocked' means another party is selected. */
-export type AltinnPartyState = 'selectable' | 'noAccess' | 'selected' | 'blocked';
+/** Selection state of a party. 'selectable' means it can be selected, 'submitting' means its selection is in flight, and 'blocked' means another party's selection is in flight. */
+type SelectionState = 'selectable' | 'submitting' | 'blocked';
 
-function getPartyState(party: IParty, selectedPartyId: number | undefined): AltinnPartyState {
-  if (party.onlyHierarchyElementWithNoAccess) {
-    return 'noAccess';
-  }
-  if (party.partyId === selectedPartyId) {
-    return 'selected';
-  }
-  if (selectedPartyId !== undefined) {
-    return 'blocked';
+function getSelectionState(party: IParty, pendingPartyId: number | undefined): SelectionState {
+  if (pendingPartyId !== undefined) {
+    return pendingPartyId === party.partyId ? 'submitting' : 'blocked';
   }
   return 'selectable';
 }
 
-export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyId }: IAltinnPartyProps) {
+export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId }: IAltinnPartyProps) {
   const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const isOrg = party.partyTypeName === PartyType.Organization;
-  const partyState = getPartyState(party, selectedPartyId);
+  const noAccess = party.onlyHierarchyElementWithNoAccess;
+  const selectionState = getSelectionState(party, pendingPartyId);
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();
@@ -113,7 +109,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyI
           <SubUnit
             key={childParty.partyId}
             party={childParty}
-            selectedPartyId={selectedPartyId}
+            pendingPartyId={pendingPartyId}
             tabbable={subUnitsExpanded}
             onClick={(event) => onClickParty(childParty, event)}
             onKeyPress={(event) => onKeyPressParty(childParty, event)}
@@ -124,24 +120,24 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyI
   }
 
   return (
-    <div className={partyState === 'noAccess' ? classes.partyPaperDisabled : classes.partyPaper}>
+    <div className={noAccess ? classes.partyPaperDisabled : classes.partyPaper}>
       <Flex
         id={`party-${party.partyId}`}
-        role='button'
+        role={party.onlyHierarchyElementWithNoAccess ? undefined : 'button'}
         data-testid='AltinnParty-PartyWrapper'
         container
         direction='row'
         alignItems='center'
         className={cn(classes.partyWrapper, {
-          [classes.partyWrapperSelectable]: partyState === 'selectable',
-          [classes.partyWrapperDisabled]: partyState === 'noAccess',
-          [classes.partyWrapperSelected]: partyState === 'selected',
+          [classes.partySelectable]: !noAccess && selectionState === 'selectable',
+          [classes.partyWrapperDisabled]: noAccess,
+          [classes.partySubmitting]: selectionState === 'submitting',
         })}
-        onClick={partyState !== 'noAccess' ? (event) => onClickParty(party, event) : undefined}
-        onKeyPress={partyState !== 'noAccess' ? (event) => onKeyPressParty(party, event) : undefined}
-        tabIndex={partyState !== 'noAccess' ? 0 : undefined}
-        aria-busy={partyState === 'selected'}
-        aria-disabled={partyState === 'noAccess' || partyState === 'blocked'}
+        onClick={!party.onlyHierarchyElementWithNoAccess ? (event) => onClickParty(party, event) : undefined}
+        onKeyPress={!party.onlyHierarchyElementWithNoAccess ? (event) => onKeyPressParty(party, event) : undefined}
+        tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
+        aria-busy={selectionState === 'submitting'}
+        aria-disabled={selectionState === 'blocked'}
       >
         {isOrg ? (
           <Buildings3Icon
@@ -172,14 +168,14 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, selectedPartyI
 
 interface ISubUnitProps {
   party: IParty;
-  selectedPartyId: number | undefined;
+  pendingPartyId: number | undefined;
   tabbable: boolean;
   onClick: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   onKeyPress: (event: React.KeyboardEvent) => void;
 }
 
-function SubUnit({ party, selectedPartyId, tabbable, onClick, onKeyPress }: ISubUnitProps) {
-  const partyState = getPartyState(party, selectedPartyId);
+function SubUnit({ party, pendingPartyId, tabbable, onClick, onKeyPress }: ISubUnitProps) {
+  const selectionState = getSelectionState(party, pendingPartyId);
 
   return (
     <Flex
@@ -191,16 +187,16 @@ function SubUnit({ party, selectedPartyId, tabbable, onClick, onKeyPress }: ISub
       <Flex
         role='button'
         className={cn(classes.subUnit, {
-          [classes.subUnitSelectable]: partyState === 'selectable',
-          [classes.subUnitSelected]: partyState === 'selected',
+          [classes.partySelectable]: selectionState === 'selectable',
+          [classes.partySubmitting]: selectionState === 'submitting',
         })}
         container
         direction='column'
         onClick={onClick}
         onKeyPress={onKeyPress}
         tabIndex={tabbable ? 0 : undefined}
-        aria-busy={partyState === 'selected'}
-        aria-disabled={partyState === 'noAccess' || partyState === 'blocked'}
+        aria-busy={selectionState === 'submitting'}
+        aria-disabled={selectionState === 'blocked'}
       >
         <Flex
           container
