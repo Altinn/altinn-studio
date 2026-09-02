@@ -13,7 +13,7 @@ internal sealed class RefDataModelPathRule : IValidationRule
                 + "property path declared in the model schema for the binding's "
                 + "effective dataType. The dataType is either explicit (object form) "
                 + "or inherited from the layout-set/task. Array-index segments (e.g. "
-                + "Group[0].Field) are normalised away, matching how the runtime "
+                + "Group[0].Field) are normalized away, matching how the runtime "
                 + "resolves a repeating-group element against the array's items schema.",
             Severity.Error
         );

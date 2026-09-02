@@ -32,7 +32,7 @@ internal sealed class RepGroupChildIndexRule : IValidationRule
                 {
                     // Only the proven-broken shape: an explicit index directly on the group's
                     // array. A deeper index (items.sub[0].x) or an index on an unrelated array
-                    // is not judged here — the runtime behaviour there is unverified.
+                    // is not judged here — the runtime behavior there is unverified.
                     if (!binding.Path.StartsWith(indexedGroupPrefix, StringComparison.Ordinal))
                         continue;
                     // Transposition is per data model: a binding addressing a different

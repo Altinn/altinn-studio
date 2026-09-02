@@ -11,8 +11,8 @@ internal sealed class ProcessTaskTypeRule : IValidationRule
             "A task's <altinn:taskType> drives which engine handlers run (data, signing, "
                 + "payment, confirmation, feedback, pdf, eFormidling, fiksArkiv, subformPdf). "
                 + "A value outside that set only works if the app registers a custom IProcessTask "
-                + "for it, which can't be seen statically — so an unrecognised type (typically a "
-                + "typo like \"signign\") is reported as a warning, not an error.",
+                + "for it, which can't be seen statically — so an unrecognized type (typically a "
+                + "misspelling) is reported as a warning, not an error.",
             Severity.Warning
         );
 

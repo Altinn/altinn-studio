@@ -74,7 +74,7 @@ extend-exclude = [
     # nothing a user ever sees, so the whole class is out of scope.
     # (Deliberate trade-off: typos in test names can propagate by copy-paste.
     # Non-shipping, accepted.)
-    "**/test/**", "**/tests/**", "**/testing/**", "**/*-tests/**",
+    "**/test/**", "**/tests/**", "**/testing/**", "**/*-tests/**", "**/*.Tests/**",
     "**/[Tt]est[Dd]ata/**", "**/test-data/**", "**/__mocks__/**",
     "*.test.*", "*.spec.*", "*_test.go", "*.stories.tsx", "*.pretest",
     "**/*SourceGenerator*/**",
