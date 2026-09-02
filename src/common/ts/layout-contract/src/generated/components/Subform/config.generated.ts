@@ -14,6 +14,7 @@ export interface CompSubformExternal
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
     addButton?: ExprValToActualOrExpr<ExprVal.String>;
     tableEditButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
@@ -67,4 +68,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: SubformSummaryOverridesWithRef;
 };
 
-// Source hash: c7b6c50f9fb3b31b148171a6b6c5f84420abd08fa66fa19fff6117c58cb2ff37
+// Source hash: 5ee838c79d74d0e725bade835ff3557806738cc0a2527c0d47efa3e0fff4fe54

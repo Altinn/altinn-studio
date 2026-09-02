@@ -2,7 +2,6 @@ import {
   ComponentBase,
   FormComponentProps,
   IDataModelReference,
-  IMapping,
   IQueryParameters,
   ISummaryOverridesCommon,
   LabeledComponentProps,
@@ -25,10 +24,8 @@ export interface CompListExternal
   pagination?: IPagination;
   dataListId: string;
   secure?: boolean;
-  mapping?: IMapping;
   queryParameters?: IQueryParameters;
   summaryBinding?: string;
-  bindingToShowInSummary?: string;
   tableHeadersMobile?: string[];
 }
 
@@ -75,4 +72,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: b7e4206087cb5e785e822aa96fd310033177ab1185fb2712ad116e4d67b1f1fc
+// Source hash: a7ec97269c691a72f8a81e4adc7e7f692a1f0de0f3b845283c9925d418ff7e4e

@@ -10,6 +10,7 @@ export type CompGroupSerialized = {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
   groupingIndicator?: 'indented' | 'panel';
   children: string[];
@@ -18,4 +19,4 @@ export type CompGroupSerialized = {
 } & ComponentBase &
   SummarizableComponentProps;
 
-// Source hash: 9e0de182dfb892457baa12155c068beccb4dbc817d1e67a7b218329c6ac4c747
+// Source hash: ff5548379cc4846ef25b20492c01a67fcaf4563d83be8aa8045fdb7427d63018

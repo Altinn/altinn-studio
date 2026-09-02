@@ -11,6 +11,7 @@ export interface CompPaymentExternal extends ComponentBase, SummarizableComponen
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
   dataModelBindings?: undefined;
 }
@@ -47,4 +48,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PaymentSummaryOverridesWithRef;
 };
 
-// Source hash: faa350502468d14d8795307568d8ba09a3b70500bb7f0eb264adfd3ad100d981
+// Source hash: a8c4bd63a8141e58c30747a1f42748c6eb999d20bde16e55cdb22d72bf22c234

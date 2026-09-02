@@ -1,7 +1,6 @@
 import {
   ComponentBase,
   FormComponentProps,
-  IMapping,
   IQueryParameters,
   IRawDataModelBinding,
   LabeledComponentProps,
@@ -34,14 +33,12 @@ export type CompListSerialized = {
   pagination?: IPagination;
   dataListId: string;
   secure?: boolean;
-  mapping?: IMapping;
   queryParameters?: IQueryParameters;
   summaryBinding?: string;
-  bindingToShowInSummary?: string;
   tableHeadersMobile?: string[];
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 832841e5f23537aa9f81575578caa55af13dedbc2cbad0b48acd7412446bb8fc
+// Source hash: 89d629404947b28df6ea0ba03b90c806b34396308b79a195220a2eb9bd358879

@@ -2525,7 +2525,6 @@
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -3128,7 +3127,6 @@
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -3317,7 +3315,6 @@
             "forceShowInSummary": true,
             "labelSettings": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -3457,6 +3454,11 @@
                       "title": "Description",
                       "description": "The description text shown underneath the title",
                       "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
+                    "help": {
+                      "title": "Help text",
+                      "description": "Help text shown in a tooltip when clicking the help button",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
                 },
@@ -3466,7 +3468,8 @@
                     "summaryTitle": true,
                     "summaryAccessibleTitle": true,
                     "title": true,
-                    "description": true
+                    "description": true,
+                    "help": true
                   },
                   "additionalProperties": false
                 }
@@ -4190,6 +4193,11 @@
                       "description": "The description text for the Likert table.",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
+                    "help": {
+                      "title": "Help text",
+                      "description": "Help text shown in a tooltip when clicking the help button",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
                     "leftColumnHeader": {
                       "title": "Left column header",
                       "description": "The header text for the left column in the Likert table",
@@ -4219,6 +4227,7 @@
                     "summaryAccessibleTitle": true,
                     "title": true,
                     "description": true,
+                    "help": true,
                     "leftColumnHeader": true,
                     "questions": true,
                     "questionDescriptions": true,
@@ -4257,7 +4266,6 @@
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -4463,23 +4471,12 @@
               "default": false,
               "type": "boolean"
             },
-            "mapping": {
-              "description": "**Deprecated**: Will be removed in the next major version. Use `queryParameters` with expressions instead.",
-              "deprecated": true,
-              "$ref": "#/definitions/IMapping"
-            },
             "queryParameters": {
               "$ref": "#/definitions/IQueryParameters"
             },
             "summaryBinding": {
               "title": "Data model binding to show in summary",
               "description": "Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.",
-              "type": "string"
-            },
-            "bindingToShowInSummary": {
-              "title": "Binding to show in summary",
-              "description": "**Deprecated**: This property will be removed in the next major version, use `summaryBinding` instead.\nThe value of this binding will be shown in the summary component for the list. It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.",
-              "deprecated": true,
               "type": "string"
             },
             "tableHeadersMobile": {
@@ -4520,10 +4517,8 @@
             "pagination": true,
             "dataListId": true,
             "secure": true,
-            "mapping": true,
             "queryParameters": true,
             "summaryBinding": true,
-            "bindingToShowInSummary": true,
             "tableHeadersMobile": true
           },
           "required": [
@@ -4742,7 +4737,6 @@
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -5086,7 +5080,6 @@
             "grid": true,
             "pageBreak": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -5400,6 +5393,11 @@
                   "title": "Description",
                   "description": "Description, optionally shown below the title",
                   "$ref": "expression.schema.v1.json#/definitions/string"
+                },
+                "help": {
+                  "title": "Help text",
+                  "description": "Help text shown in a tooltip when clicking the help button",
+                  "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
               "additionalProperties": false
@@ -5467,6 +5465,11 @@
                       "title": "Description",
                       "description": "Description, optionally shown below the title",
                       "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
+                    "help": {
+                      "title": "Help text",
+                      "description": "Help text shown in a tooltip when clicking the help button",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
                 },
@@ -5476,7 +5479,8 @@
                     "summaryTitle": true,
                     "summaryAccessibleTitle": true,
                     "title": true,
-                    "description": true
+                    "description": true,
+                    "help": true
                   },
                   "additionalProperties": false
                 }
@@ -5821,7 +5825,6 @@
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
-            "mapping": true,
             "queryParameters": true,
             "options": true,
             "secure": true,
@@ -5885,6 +5888,11 @@
                       "description": "The description text shown underneath the title",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
+                    "help": {
+                      "title": "Help text",
+                      "description": "Help text shown in a tooltip when clicking the help button",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
                     "addButtonFull": {
                       "title": "Add button (full) (for repeating groups)",
                       "description": "The text for the \"Add\" button (overrides \"addButton\", and sets the full text for the button)",
@@ -5944,6 +5952,7 @@
                     "summaryAccessibleTitle": true,
                     "title": true,
                     "description": true,
+                    "help": true,
                     "addButtonFull": true,
                     "addButton": true,
                     "saveButton": true,
@@ -6568,6 +6577,11 @@
                       "description": "The description text shown underneath the title",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
+                    "help": {
+                      "title": "Help text",
+                      "description": "Help text shown in a tooltip when clicking the help button",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
                     "addButton": {
                       "title": "Add button (suffix)",
                       "description": "The text for the \"Add\" button (used as a suffix after the default button text)",
@@ -6590,6 +6604,7 @@
                     "summaryAccessibleTitle": true,
                     "title": true,
                     "description": true,
+                    "help": true,
                     "addButton": true,
                     "tableEditButton": true
                   },
@@ -8910,7 +8925,7 @@
             },
             "showInExpandedEdit": {
               "title": "Show in expanded edit",
-              "description": "If set to true, the component will be shown in the expanded edit view. This is also the default behaviour, but can be turned off for components that are only to be edited in the table view.",
+              "description": "If set to true, the component will be shown in the expanded edit view. This is also the default behavior, but can be turned off for components that are only to be edited in the table view.",
               "default": true,
               "type": "boolean"
             }
@@ -9574,11 +9589,6 @@
           "title": "Dynamic options (fetched from server)",
           "description": "ID of the option list to fetch from the server",
           "type": "string"
-        },
-        "mapping": {
-          "description": "**Deprecated**: Will be removed in the next major version. Use `queryParameters` with expressions instead.",
-          "deprecated": true,
-          "$ref": "#/definitions/IMapping"
         },
         "queryParameters": {
           "title": "Query parameters",

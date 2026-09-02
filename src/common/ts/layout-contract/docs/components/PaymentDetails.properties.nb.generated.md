@@ -6,4 +6,5 @@ Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id
 | `textResourceBindings`             | `object`                       | Nei     |               | Kobler tekstene i komponenten til tekstressurser eller uttrykk.                                                      |
 | `textResourceBindings.title`       | `string \| expression<string>` | Nei     |               | Ledeteksten til avsnittet.                                                                                           |
 | `textResourceBindings.description` | `string \| expression<string>` | Nei     |               | Valgfri beskrivelse som vises under ledeteksten.                                                                     |
+| `textResourceBindings.help`        | `string \| expression<string>` | Nei     |               | Hjelpetekst som vises når brukeren klikker på hjelpeknappen.                                                         |
 | `mapping`                          | `object`                       | Nei     |               | En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen. |
