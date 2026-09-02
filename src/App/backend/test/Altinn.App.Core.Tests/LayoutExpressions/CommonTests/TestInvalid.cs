@@ -27,7 +27,7 @@ public class TestInvalid
     }
 
     [Theory]
-    [FileNamesInFolderData(["LayoutExpressions", "CommonTests", "shared-tests", "invalid"])]
+    [CommonExpressionTestFiles("invalid")]
     public async Task Simple_Theory(string testName, string folder)
     {
         var testCase = await LoadData(testName, folder);
@@ -82,6 +82,9 @@ public class TestInvalid
         };
     }
 }
+
+public class CommonExpressionTestFilesAttribute(string folder)
+    : FileNamesInFolderDataAttribute(TestAttributeHelper.CommonExpressionTestsPath("evaluation", folder)) { }
 
 public class InvalidTestCase
 {

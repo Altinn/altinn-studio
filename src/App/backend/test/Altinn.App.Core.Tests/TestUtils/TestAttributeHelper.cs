@@ -23,4 +23,12 @@ public static class TestAttributeHelper
 
         return callerDirectoryPath;
     }
+
+    public static string CommonExpressionTestsPath(params string[] pathParts)
+    {
+        var testProjectPath = AltinnAppTestsBasePath();
+        return Path.GetFullPath(
+            Path.Join(testProjectPath, "..", "..", "..", "..", "common", "expression-tests", Path.Join(pathParts))
+        );
+    }
 }

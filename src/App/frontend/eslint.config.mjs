@@ -28,7 +28,6 @@ export default defineConfig([
     '**/coverage',
     '**/dist',
     '**/*.snap',
-    'src/features/expressions/shared-tests/**/*.json',
     'schemas/**/*.json',
     '.yarn/*',
     'test/e2e/k6-browser/**/*',

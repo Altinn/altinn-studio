@@ -1,5 +1,0 @@
-{
-  "name": "Should be true when the string starts with the specified string",
-  "expression": ["startsWith", "Hello", "Hel"],
-  "expects": true
-}

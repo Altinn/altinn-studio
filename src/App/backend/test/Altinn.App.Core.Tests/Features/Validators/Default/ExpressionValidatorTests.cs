@@ -69,7 +69,7 @@ public class ExpressionValidatorTests
     }
 
     [Theory]
-    [FileNamesInFolderData(["Features", "Validators", "expression-validation-tests", "shared"])]
+    [CommonExpressionValidationTestFiles]
     public async Task RunExpressionValidationTestsForShared(string fileName, string folder)
     {
         await RunExpressionValidationTest(fileName, folder);
@@ -140,6 +140,9 @@ public class ExpressionValidatorTests
         result.Should().BeEquivalentTo(expected);
     }
 }
+
+public class CommonExpressionValidationTestFilesAttribute()
+    : FileNamesInFolderDataAttribute(TestAttributeHelper.CommonExpressionTestsPath("validation"), "disabledBackend") { }
 
 public record ExpressionValidationTestModel
 {

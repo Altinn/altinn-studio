@@ -18,6 +18,18 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestFunctions
 {
+    private static readonly string[] _unsupportedFunctionFolders =
+    [
+        "_experimentalSelectAndMap",
+        "authContext",
+        "displayValue",
+        "externalApi",
+        "linkToComponent",
+        "linkToPage",
+        "optionLabel",
+        "value",
+    ];
+
     private readonly ITestOutputHelper _output;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -263,6 +275,7 @@ public class TestFunctions
         try
         {
             testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
+            testCase.ExpectsFailure = testCase.ExpectsFailureBackend ?? testCase.ExpectsFailure;
         }
         catch (Exception e)
         {
@@ -517,14 +530,12 @@ public class TestFunctions
     {
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
-            .GetDirectories(
-                Path.Join(PathUtils.GetCoreTestsPath(), "LayoutExpressions", "CommonTests", "shared-tests", "functions")
-            )
+            .GetDirectories(TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions"))
             .Where(d => Directory.GetFiles(d).Length > 0)
             .Select(d => Path.GetFileName(d))
             .OrderBy(s => s)
             .ToArray();
-        var testMethods = this.GetType()
+        var testedOrUnsupportedFolders = this.GetType()
             .GetMethods()
             .Select(m =>
                 m.CustomAttributes.FirstOrDefault(ca =>
@@ -536,17 +547,21 @@ public class TestFunctions
             )
             .OrderBy(s => s)
             .OfType<string>()
+            .Concat(_unsupportedFunctionFolders)
             .OrderBy(d => d)
             .ToArray();
-        testMethods.Should().Equal(jsonTestFolders, "Shared test folders should have a corresponding test method");
+        testedOrUnsupportedFolders
+            .Should()
+            .Equal(jsonTestFolders, "shared test folders must either have a backend test method or be unsupported");
     }
 }
 
 public class SharedTestAttribute(string folder)
     : FileNamesInFolderDataAttribute(
-        Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions", folder)
+        TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions", folder),
+        "disabledBackend"
     ) { }
 
 // Can be used when you only want to run the tests listed in the testCases array in the json file
 public class SharedTestCasesAttribute(string folder)
-    : TestCasesAttribute(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions", folder)) { }
+    : TestCasesAttribute(TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions", folder)) { }

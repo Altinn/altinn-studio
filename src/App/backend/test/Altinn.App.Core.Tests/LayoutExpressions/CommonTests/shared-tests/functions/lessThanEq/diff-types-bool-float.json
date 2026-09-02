@@ -1,5 +1,0 @@
-{
-  "name": "Should fail with [boolean, float]",
-  "expression": ["lessThanEq", true, 123.456],
-  "expectsFailure": "Expected number, got value true"
-}

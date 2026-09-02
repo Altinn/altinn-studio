@@ -1,5 +1,0 @@
-{
-  "name": "Booleans are compared case-insensitively",
-  "expression": ["equals", "FalSE", false],
-  "expects": true
-}
