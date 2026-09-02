@@ -9,9 +9,19 @@ from __future__ import annotations
 
 import os
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
+
+from shared.utils.langfuse_public_api import root_span_filter
+
+MAX_OBSERVATION_PAGES = 10
+OBSERVATION_PAGE_SIZE = 50
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 class LangfuseApi:
@@ -55,6 +65,11 @@ class LangfuseApi:
         response.raise_for_status()
         return response.json()
 
+    def _patch(self, path: str, body: dict) -> dict:
+        response = self._client.patch(path, json=body)
+        response.raise_for_status()
+        return response.json()
+
     # -- datasets ---------------------------------------------------------
 
     def dataset_items(self, dataset_name: str) -> list[dict]:
@@ -86,19 +101,6 @@ class LangfuseApi:
         if metadata is not None:
             body["metadata"] = metadata
         return self._post("/api/public/dataset-items", body)
-
-    def create_dataset_run_item(
-        self, run_name: str, dataset_item_id: str, trace_id: str, run_description: str = ""
-    ) -> dict:
-        return self._post(
-            "/api/public/dataset-run-items",
-            {
-                "runName": run_name,
-                "datasetItemId": dataset_item_id,
-                "traceId": trace_id,
-                "runDescription": run_description,
-            },
-        )
 
     # -- scores -----------------------------------------------------------
 
@@ -132,30 +134,31 @@ class LangfuseApi:
             body["configId"] = config_id
         self._post("/api/public/scores", body)
 
-    # -- traces -----------------------------------------------------------
+    # -- observations -----------------------------------------------------
 
     def find_trace_for_session(
         self, session_id: str, trace_name: str, from_timestamp: str
     ) -> str | None:
-        """Find the workflow trace whose metadata carries `session_id`.
-
-        The workflow root span doesn't set a Langfuse session, so we page
-        recent traces by name and match on metadata client-side.
-        """
-        page = 1
-        while page <= 10:
-            data = self._get(
-                "/api/public/traces",
-                name=trace_name,
-                fromTimestamp=from_timestamp,
-                orderBy="timestamp.desc",
-                page=page,
-                limit=50,
-            )
-            for trace in data.get("data") or []:
-                if (trace.get("metadata") or {}).get("session_id") == session_id:
-                    return trace.get("id")
-            if page >= (data.get("meta") or {}).get("totalPages", 1):
+        """Find the trace whose root span metadata carries `session_id`."""
+        cursor: str | None = None
+        for _ in range(MAX_OBSERVATION_PAGES):
+            params: dict[str, Any] = {
+                "name": trace_name,
+                "fields": "core,basic,metadata",
+                "fromStartTime": from_timestamp,
+                "toStartTime": _now_iso(),
+                "limit": OBSERVATION_PAGE_SIZE,
+                # Child observations would otherwise consume the page budget.
+                "filter": root_span_filter(),
+            }
+            if cursor:
+                params["cursor"] = cursor
+            data = self._get("/api/public/v2/observations", **params)
+            rows = data.get("data") or []
+            for row in rows:
+                if (row.get("metadata") or {}).get("session_id") == session_id:
+                    return row.get("traceId")
+            cursor = (data.get("meta") or {}).get("cursor")
+            if not cursor or not rows:
                 break
-            page += 1
         return None

@@ -1,4 +1,5 @@
 import { AssistantMessage, type AssistantMessageProps } from './AssistantMessage';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { MessageAuthor } from '../../../../types/MessageAuthor';
@@ -6,6 +7,7 @@ import {
   messageFeedbackTexts,
   mockTexts,
   criticalFileAlertTexts,
+  securityNoticeAlertTexts,
 } from '../../../../mocks/mockTexts';
 
 const assistantMessageContent = 'Assistant response';
@@ -75,6 +77,51 @@ describe('AssistantMessage', () => {
     expect(
       screen.getByRole('button', { name: messageFeedbackTexts.thumbsDown }),
     ).toBeInTheDocument();
+  });
+
+  it('renders the security notice alert when the message is flagged', () => {
+    renderAssistantMessage({
+      message: createAssistantMessage({ attachmentInstructionFlagged: true }),
+    });
+
+    expect(
+      screen.getByRole('heading', { name: securityNoticeAlertTexts.heading }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(securityNoticeAlertTexts.description)).toBeInTheDocument();
+  });
+
+  it('does not render the security notice alert on an ordinary message', () => {
+    renderAssistantMessage();
+
+    expect(
+      screen.queryByRole('heading', { name: securityNoticeAlertTexts.heading }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('marks the stored vote', () => {
+    renderAssistantMessage({
+      message: createAssistantMessage({ traceId: 'trace-123', feedbackThumbsUp: true }),
+      onClearMessageFeedback: jest.fn(),
+    });
+
+    expect(screen.getByRole('button', { name: messageFeedbackTexts.thumbsUp })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('clears the vote with the traceId when the chosen thumb is pressed again', async () => {
+    const user = userEvent.setup();
+    const onClearMessageFeedback = jest.fn();
+    renderAssistantMessage({
+      message: createAssistantMessage({ traceId: 'trace-123', feedbackThumbsUp: false }),
+      onClearMessageFeedback,
+    });
+
+    await user.click(screen.getByRole('button', { name: messageFeedbackTexts.thumbsDown }));
+
+    expect(onClearMessageFeedback).toHaveBeenCalledWith('trace-123');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('does not render feedback buttons when traceId is missing', () => {

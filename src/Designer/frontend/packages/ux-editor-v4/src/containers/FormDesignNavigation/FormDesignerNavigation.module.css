@@ -5,27 +5,27 @@
 
 .container {
   margin: auto;
-  padding: var(--fds-spacing-6);
+  padding: var(--ds-size-6);
   position: relative;
 }
 
 .panel {
   background-color: white;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--ds-border-radius-md);
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
-  padding: var(--fds-spacing-5);
+  padding: var(--ds-size-5);
   position: relative;
-  margin: var(--fds-spacing-5);
+  margin: var(--ds-size-5);
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-10);
+  gap: var(--ds-size-10);
 }
 
 .footer {
   border-top: 2px solid #efefef;
-  margin-top: var(--fds-spacing-10);
-  padding-top: var(--fds-spacing-8);
+  margin-top: var(--ds-size-10);
+  padding-top: var(--ds-size-8);
 }

@@ -10,6 +10,9 @@ using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
+// CA5394: retention jitter only spreads load, so a non-cryptographic source is the right tool.
+#pragma warning disable CA5394
+
 namespace WorkflowEngine.Data.Services;
 
 internal sealed class DbMaintenanceService(
@@ -30,7 +33,16 @@ internal sealed class DbMaintenanceService(
         maxDelay: TimeSpan.FromMinutes(2)
     );
 
-    private DateTimeOffset _lastRetentionRun = DateTimeOffset.MinValue;
+    /// <summary>
+    /// When retention last swept, or <c>null</c> until the first maintenance iteration anchors it.
+    /// Anchoring at a random point inside the retention interval - rather than at
+    /// <see cref="DateTimeOffset.MinValue"/>, which is immediately due - keeps a start from
+    /// scheduling a full drain on top of the requests the fresh instance is about to serve, and
+    /// de-synchronizes the replicas of a rollout that all start at once. The check is only evaluated
+    /// once per maintenance iteration, so the first sweep lands within one retention interval plus
+    /// one <see cref="EngineSettings.MaintenanceInterval"/> of startup.
+    /// </summary>
+    private DateTimeOffset? _lastRetentionRun;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -48,10 +60,13 @@ internal sealed class DbMaintenanceService(
                 var now = timeProvider.GetUtcNow();
                 var settings = options.Value;
 
+                _lastRetentionRun ??= now - RandomStartupOffset(settings.Retention.Interval);
+
                 if (now - _lastRetentionRun >= settings.Retention.Interval)
                 {
                     _lastRetentionRun = now;
                     await PurgeExpiredWorkflows(now, settings.Retention, stoppingToken);
+                    await PurgeExpiredMailboxes(now, settings.Retention, stoppingToken);
                 }
 
                 await FailPoisonedWorkflows(now, settings, stoppingToken);
@@ -86,6 +101,13 @@ internal sealed class DbMaintenanceService(
         logger.ShuttingDown();
     }
 
+    /// <summary>
+    /// A uniformly random offset in <c>[0, interval)</c>, used to place the first retention sweep
+    /// somewhere inside the interval instead of at startup.
+    /// </summary>
+    private static TimeSpan RandomStartupOffset(TimeSpan interval) =>
+        interval <= TimeSpan.Zero ? TimeSpan.Zero : Random.Shared.NextDouble() * interval;
+
     internal async Task PurgeExpiredWorkflows(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
     {
         using var activity = Metrics.Source.StartActivity("DbMaintenanceService.PurgeExpiredWorkflows");
@@ -93,7 +115,7 @@ internal sealed class DbMaintenanceService(
         var cutoff = now - settings.RetentionPeriod;
         var totalDeletedWorkflows = 0;
 
-        // Delete terminal workflows in batches until all eligible rows are drained.
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
         int deleted;
         do
         {
@@ -102,7 +124,7 @@ internal sealed class DbMaintenanceService(
                 deleted = await PurgeExpiredWorkflowBatch(now, cutoff, settings.BatchSize, ct);
                 totalDeletedWorkflows += deleted;
             }
-        } while (deleted >= settings.BatchSize);
+        } while (deleted > 0 && deleted >= settings.BatchSize);
 
         if (totalDeletedWorkflows > 0)
             logger.RetentionDeletedWorkflows(totalDeletedWorkflows);
@@ -314,6 +336,80 @@ internal sealed class DbMaintenanceService(
     private sealed record WorkflowPurgeCandidate(Guid Id, string? CollectionKey, string Namespace);
 
     private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
+
+    /// <summary>
+    /// Purges closed mailboxes past the retention cutoff, with their deliveries and registrations. Children
+    /// first — the schema's <c>ON DELETE RESTRICT</c> enforces the order. Receive workflows purge
+    /// independently under the workflow sweep, which is why <c>workflow_id</c> carries no foreign key.
+    /// </summary>
+    internal async Task PurgeExpiredMailboxes(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.PurgeExpiredMailboxes");
+
+        var cutoff = now - settings.RetentionPeriod;
+        var totalPurged = 0;
+
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
+        int purged;
+        do
+        {
+            using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+            {
+                purged = await PurgeExpiredMailboxBatch(cutoff, settings.BatchSize, ct);
+                totalPurged += purged;
+            }
+        } while (purged > 0 && purged >= settings.BatchSize);
+
+        if (totalPurged > 0)
+            logger.RetentionDeletedMailboxes(totalPurged);
+    }
+
+    private async Task<int> PurgeExpiredMailboxBatch(DateTimeOffset cutoff, int batchSize, CancellationToken ct)
+    {
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+
+        // SKIP LOCKED leaves a mailbox another pod holds alone — and the claim holds the row, so nothing can
+        // begin against a mailbox on its way out.
+        List<Guid> candidates = [];
+        await using (var selectCmd = new NpgsqlCommand(Sql.SelectExpiredMailboxCandidatesCommand, conn, tx))
+        {
+            selectCmd.Parameters.AddWithValue("cutoff", cutoff);
+            selectCmd.Parameters.AddWithValue("batchSize", batchSize);
+
+            await using var reader = await selectCmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+#pragma warning disable CA1849, S6966 // The row is already buffered
+                candidates.Add(reader.GetFieldValue<Guid>(0));
+#pragma warning restore CA1849, S6966
+            }
+        }
+
+        if (candidates.Count == 0)
+        {
+            await tx.CommitAsync(ct);
+            return 0;
+        }
+
+        var mailboxIds = candidates.ToArray();
+
+        await using (var childrenCmd = new NpgsqlCommand(Sql.DeleteExpiredMailboxChildrenCommand, conn, tx))
+        {
+            childrenCmd.Parameters.AddWithValue("mailboxIds", mailboxIds);
+            await childrenCmd.ExecuteNonQueryAsync(ct);
+        }
+
+        int deleted;
+        await using (var mailboxCmd = new NpgsqlCommand(Sql.DeleteExpiredMailboxesCommand, conn, tx))
+        {
+            mailboxCmd.Parameters.AddWithValue("mailboxIds", mailboxIds);
+            deleted = await mailboxCmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await tx.CommitAsync(ct);
+        return deleted;
+    }
 
     /// <summary>
     /// Finalizes poisoned workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
@@ -531,6 +627,32 @@ internal sealed class DbMaintenanceService(
             RETURNING id, collection_key, namespace
             """;
 
+        internal const string SelectExpiredMailboxCandidatesCommand = $"""
+            SELECT m.id
+            FROM engine.mailboxes m
+            WHERE m.status = '{MailboxStatusMap.Disposed}'
+              AND m.disposed_at < @cutoff
+            ORDER BY m.disposed_at
+            LIMIT @batchSize
+            FOR UPDATE SKIP LOCKED
+            """;
+
+        // One statement for both child tables: there is no order between them, and two statements would
+        // invite one.
+        internal const string DeleteExpiredMailboxChildrenCommand = """
+            WITH purged_deliveries AS (
+                DELETE FROM engine.mailbox_deliveries
+                WHERE mailbox_id = ANY(@mailboxIds)
+            )
+            DELETE FROM engine.mailbox_receivers
+            WHERE mailbox_id = ANY(@mailboxIds)
+            """;
+
+        internal const string DeleteExpiredMailboxesCommand = """
+            DELETE FROM engine.mailboxes
+            WHERE id = ANY(@mailboxIds)
+            """;
+
         internal const string DeleteOrphanedIdempotencyKeys = """
             DELETE FROM engine.idempotency_keys
             WHERE created_at < @cutoff
@@ -618,6 +740,12 @@ internal static partial class DbMaintenanceServiceLogs
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} orphaned idempotency key(s)")]
     internal static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "Retention: deleted {Count} closed mailbox(es) with their deliveries and receiver registrations"
+    )]
+    internal static partial void RetentionDeletedMailboxes(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
     internal static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);

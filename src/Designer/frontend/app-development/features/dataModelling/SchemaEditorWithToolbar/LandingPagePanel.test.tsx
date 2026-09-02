@@ -35,27 +35,27 @@ describe('LandingPagePanel', (): void => {
 
 function getLandingPageHeader(): HTMLHeadingElement {
   return screen.getByRole('heading', {
-    name: textMock('app_data_modelling.landing_dialog_header'),
+    name: textMock('app_data_modeling.landing_dialog_header'),
   });
 }
 
 function getLandingPageBody(): HTMLParagraphElement {
-  return screen.getByText(textMock('app_data_modelling.landing_dialog_paragraph'));
+  return screen.getByText(textMock('app_data_modeling.landing_dialog_paragraph'));
 }
 
 function getCreateNewDataModelButton(): HTMLButtonElement {
-  return screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_create') });
+  return screen.getByRole('button', { name: textMock('app_data_modeling.landing_dialog_create') });
 }
 
 function queryUploadXSDButton(): HTMLButtonElement | null {
   return screen.queryByRole('button', {
-    name: textMock('app_data_modelling.landing_dialog_upload'),
+    name: textMock('app_data_modeling.landing_dialog_upload'),
   });
 }
 
 function getUploadXSButton(): HTMLButtonElement {
   return screen.getByRole('button', {
-    name: textMock('app_data_modelling.landing_dialog_upload'),
+    name: textMock('app_data_modeling.landing_dialog_upload'),
   });
 }
 

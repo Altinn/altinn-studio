@@ -35,7 +35,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetOrg(this ClaimsPrincipal user) => user.GetFirstOfType(AltinnCoreClaimTypes.Org);
 
     /// <summary>
-    /// Returns the organisation number of an org user or null if claim does not exist.
+    /// Returns the organization number of an org user or null if claim does not exist.
     /// </summary>
     public static int? GetOrgNumber(this ClaimsPrincipal? user) =>
         user.GetFirstOfTypeAsInt(AltinnCoreClaimTypes.OrgNumber);

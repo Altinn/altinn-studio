@@ -17,7 +17,7 @@ namespace Altinn.Platform.Register.Core
         /// <summary>
         /// Initializes a new instance of the <see cref="TooManyFailedLookupsException"/> class.
         /// </summary>
-        /// <param name="message">The message that descibes the error.</param>
+        /// <param name="message">The message that describes the error.</param>
         public TooManyFailedLookupsException(string message)
             : base(message)
         {

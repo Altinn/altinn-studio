@@ -3,5 +3,4 @@ export enum ViewSize {
   Sm = 'sm',
   Md = 'md',
   Lg = 'lg',
-  Xl = 'xl',
 }

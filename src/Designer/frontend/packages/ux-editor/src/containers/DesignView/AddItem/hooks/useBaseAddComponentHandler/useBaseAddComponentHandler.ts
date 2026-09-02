@@ -4,9 +4,10 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../../../hooks';
 import { useAddItemToLayoutMutation } from '../../../../../hooks/mutations/useAddItemToLayoutMutation';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { isSupportedComponentType } from '../../../../../data/formItemConfig';
 import { addItemOfType, getItem } from '../../../../../utils/formLayoutUtils';
 import { ItemType } from '../../../../../components/Properties/ItemType';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const useBaseAddComponentHandler = (layout: IInternalLayout) => {
@@ -25,6 +26,8 @@ export const useBaseAddComponentHandler = (layout: IInternalLayout) => {
     newId: string,
     onDone: () => void,
   ) => {
+    if (!isSupportedComponentType(type)) return;
+
     const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
     addItemToLayout(

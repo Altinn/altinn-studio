@@ -15,6 +15,10 @@ def _put_feedback(payload, headers=None, path=FEEDBACK_PATH):
     return TestClient(app).put(path, json=payload, headers=headers)
 
 
+def _delete_feedback(headers=None, path=FEEDBACK_PATH):
+    return TestClient(app).delete(path, headers=headers)
+
+
 class TestFeedbackEndpoint:
     def test_thumbs_up_writes_score_and_returns_204(self):
         with (
@@ -28,9 +32,19 @@ class TestFeedbackEndpoint:
             name="user_feedback",
             passed=True,
             trace_id=VALID_TRACE_ID,
-            comment=None,
+            comment="",
             score_id=f"{VALID_TRACE_ID}:user_feedback",
         )
+
+    def test_revote_without_comment_clears_the_previous_one(self):
+        with (
+            patch("api.routes.traces.get_trace_developer", return_value=DEVELOPER),
+            patch("api.routes.traces.score_validation") as mock_score,
+        ):
+            response = _put_feedback({"thumbs_up": False}, headers=DEVELOPER_HEADER)
+
+        assert response.status_code == 204
+        assert mock_score.call_args.kwargs["comment"] == ""
 
     def test_thumbs_down_with_comment_is_forwarded(self):
         with (
@@ -90,3 +104,35 @@ class TestFeedbackEndpoint:
 
         assert response.status_code == 422
         mock_score.assert_not_called()
+
+
+class TestClearFeedbackEndpoint:
+    def test_deletes_the_score_and_returns_204(self):
+        with (
+            patch("api.routes.traces.get_trace_developer", return_value=DEVELOPER),
+            patch("api.routes.traces.delete_score") as mock_delete,
+        ):
+            response = _delete_feedback(headers=DEVELOPER_HEADER)
+
+        assert response.status_code == 204
+        mock_delete.assert_called_once_with(f"{VALID_TRACE_ID}:user_feedback")
+
+    def test_missing_developer_header_returns_400(self):
+        with patch("api.routes.traces.delete_score") as mock_delete:
+            response = _delete_feedback()
+
+        assert response.status_code == 400
+        mock_delete.assert_not_called()
+
+    def test_owner_mismatch_returns_403(self):
+        with (
+            patch(
+                "api.routes.traces.get_trace_developer",
+                return_value=OTHER_DEVELOPER,
+            ),
+            patch("api.routes.traces.delete_score") as mock_delete,
+        ):
+            response = _delete_feedback(headers=DEVELOPER_HEADER)
+
+        assert response.status_code == 403
+        mock_delete.assert_not_called()

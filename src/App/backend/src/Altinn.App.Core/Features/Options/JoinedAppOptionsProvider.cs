@@ -73,7 +73,7 @@ public class JoinedAppOptionsProvider : IAppOptionsProvider
     {
         return appOptions
             .SelectMany(o =>
-                o.AppOption.Options ?? throw new KeyNotFoundException($"{o.Id} is not registrered as an app option")
+                o.AppOption.Options ?? throw new KeyNotFoundException($"{o.Id} is not registered as an app option")
             )
             .ToList();
     }

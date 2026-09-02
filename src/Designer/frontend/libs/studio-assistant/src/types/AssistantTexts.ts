@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 export type AssistantTexts = {
   heading: string;
   preview: string;
@@ -18,6 +16,7 @@ export type AssistantTexts = {
   assistantFirstMessage: string;
   feedback: MessageFeedbackTexts;
   criticalFileAlert: CriticalFileAlertTexts;
+  securityNoticeAlert: SecurityNoticeAlertTexts;
   permissionPrompt: PermissionPromptTexts;
   sourcesLabel: string;
 };
@@ -33,6 +32,11 @@ export type CriticalFileAlertTexts = {
   description: string;
 };
 
+export type SecurityNoticeAlertTexts = {
+  heading: string;
+  description: string;
+};
+
 export type MessageFeedbackTexts = {
   thumbsUp: string;
   thumbsDown: string;
@@ -40,18 +44,16 @@ export type MessageFeedbackTexts = {
   detailsLabel: string;
   detailsOptionalTag: string;
   submit: string;
+  clear: string;
   cancel: string;
 };
 
 export type AboutAssistantDialogTexts = {
   heading: string;
   intro: string;
-  howToHeading: string;
-  description: ReactNode;
-  branchInfo: ReactNode;
-  branchDocsLink: string;
+  assistantDocsInfo: string;
+  assistantDocsLink: string;
   disclaimer: string;
-  privacyHeading: string;
   privacyDataHandling: string;
 };
 

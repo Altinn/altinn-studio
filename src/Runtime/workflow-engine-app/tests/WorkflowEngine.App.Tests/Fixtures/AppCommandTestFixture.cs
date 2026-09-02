@@ -119,7 +119,8 @@ internal sealed record AppCommandTestFixture(
         Step step,
         AppCommandData commandData,
         AppWorkflowContext? workflowContext = null,
-        string? stateIn = null
+        string? stateIn = null,
+        MailboxReceipt? mailboxReceipt = null
     ) =>
         new()
         {
@@ -129,6 +130,7 @@ internal sealed record AppCommandTestFixture(
             TypedCommandData = commandData,
             TypedWorkflowContext = workflowContext ?? DefaultContext,
             StateIn = stateIn,
+            MailboxReceipt = mailboxReceipt,
         };
 
     public static Workflow CreateWorkflow(Step step) =>

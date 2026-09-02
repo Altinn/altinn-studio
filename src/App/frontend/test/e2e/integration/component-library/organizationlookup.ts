@@ -4,8 +4,8 @@ const appFrontend = new AppFrontend();
 
 const organizationLookupIntercept = '**/api/v1/lookup/organisation/*';
 
-describe('Organisation lookup', () => {
-  it('Renders the organisation lookup component correctly', () => {
+describe('Organization lookup', () => {
+  it('Renders the organization lookup component correctly', () => {
     cy.intercept('GET', organizationLookupIntercept, {
       statusCode: 200,
       body: {
@@ -17,7 +17,7 @@ describe('Organisation lookup', () => {
       },
     }).as('successfullyFetchedOrganisation');
 
-    // Contrary to person looku, organisation lookup does not require authentication level >2
+    // Contrary to person looku, organization lookup does not require authentication level >2
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '1' });
     cy.gotoNavPage('OrganisationLookupPage');
 
@@ -37,7 +37,7 @@ describe('Organisation lookup', () => {
       cy.findByText(/Skog og Fjell Consulting/i).should('exist');
     });
 
-    // Remove organisation
+    // Remove organization
     cy.findByRole('button', { name: /Fjern/i }).click();
     cy.findByRole('button', { name: /Fjern/i }).should('not.exist');
 
@@ -50,7 +50,7 @@ describe('Organisation lookup', () => {
       },
     }).as('failedFetchOrganisation');
 
-    // Fetch organisation that does not exist
+    // Fetch organization that does not exist
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisation');
@@ -61,7 +61,7 @@ describe('Organisation lookup', () => {
       statusCode: 500,
     }).as('failedFetchOrganisationServerError');
 
-    // Fetch organisation with server error
+    // Fetch organization with server error
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisationServerError');
     cy.findByText(/Ukjent feil. Vennligst prøv igjen senere/i).should('exist');

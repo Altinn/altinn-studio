@@ -48,6 +48,7 @@ logs/
 *.nupkg
 
 ## Compiled binaries (Go builds, cross-compiles)
+/target/
 *.exe
 *.dll
 *.so
@@ -115,6 +116,9 @@ src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo-*/**
 src/Designer/backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo_*/**
 src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 
+## k6 load-test output (per-run JSON summaries written by .k6/ scripts)
+**/.k6/results/
+
 ## Fleet stats (src/tools/altinn-fleet-stats)
 /src/tools/altinn-fleet-stats/backend/runtime_config.json
 /src/tools/altinn-fleet-stats/data/
@@ -123,6 +127,7 @@ src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 /src/tools/altinn-fleet-stats/apps-tt02/
 /src/tools/altinn-fleet-stats/altinn-apps-cloned-*/
 **/fleet-*.sqlite*
+scripts/spellcheck/.cache/
 
 # Altinn app frontend bundle copied into Designer wwwroot for local v9 preview dev (built artifact)
 src/Designer/backend/src/Designer/wwwroot/altinn-app-frontend/

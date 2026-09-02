@@ -425,9 +425,9 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
 
         // `Uri.EscapeDataString` never emits `|`, so the field boundaries stay unambiguous for arbitrary input.
         // `#` cannot occur in the salt, so an extended key can never collide with a scopes-only one either.
-        var consumerOrg = Escape(request.ConsumerOrg?.Get(OrganisationNumberFormat.Local));
+        var consumerOrg = Escape(request.ConsumerOrg?.Get(OrganizationNumberFormat.Local));
         var resource = Escape(request.Resource);
-        var systemUserOrg = Escape(request.SystemUser?.Organisation.Get(OrganisationNumberFormat.International));
+        var systemUserOrg = Escape(request.SystemUser?.Organization.Get(OrganizationNumberFormat.International));
         var systemUserRef = Escape(request.SystemUser?.ExternalRef);
 
         return $"{salt}#{consumerOrg}|{resource}|{systemUserOrg}|{systemUserRef}|{request.FormattedScopes}";
@@ -599,8 +599,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// Renders a JWT with its signature masked, as <see cref="JwtToken"/> does. The grant assertion is a replayable
     /// credential for its lifetime, so the signature must not reach the logs.
     /// </summary>
-    private static string Mask(string jwt) =>
-        JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparseable>";
+    private static string Mask(string jwt) => JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparsable>";
 
     private TimeSpan GetTokenExpiryWithMargin(JwtToken token) =>
         token.ExpiresAt - _timeProvider.GetUtcNow() - TokenExpirationMargin;

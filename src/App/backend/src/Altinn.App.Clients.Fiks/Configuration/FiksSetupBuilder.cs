@@ -1,4 +1,3 @@
-using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
@@ -6,8 +5,6 @@ using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using Polly.DependencyInjection;
 
 namespace Altinn.App.Clients.Fiks.Configuration;
 
@@ -64,14 +61,14 @@ internal abstract class FiksSetupBuilder(IServiceCollection services)
     }
 
     /// <summary>
-    /// Registers a custom message response handler for Fiks Arkiv messages.
+    /// Registers a message handler for the messages the archive sends back.
     /// </summary>
-    /// <typeparam name="THandler">The implementation of the message response handler.</typeparam>
+    /// <typeparam name="THandler">The implementation of the message handler.</typeparam>
     /// <returns>The builder instance.</returns>
-    protected FiksSetupBuilder UseMessageResponseHandler<THandler>()
-        where THandler : IFiksArkivResponseHandler
+    protected FiksSetupBuilder UseMessageHandler<THandler>()
+        where THandler : IFiksArkivMessageHandler
     {
-        services.AddTransient(typeof(IFiksArkivResponseHandler), typeof(THandler));
+        services.AddTransient(typeof(IFiksArkivMessageHandler), typeof(THandler));
         return this;
     }
 
@@ -84,15 +81,6 @@ internal abstract class FiksSetupBuilder(IServiceCollection services)
         where TGenerator : IFiksArkivPayloadGenerator
     {
         services.AddTransient(typeof(IFiksArkivPayloadGenerator), typeof(TGenerator));
-        return this;
-    }
-
-    /// <inheritdoc cref="IFiksSetupBuilder{T}.WithResiliencePipeline"/>
-    protected FiksSetupBuilder ConfigureResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    )
-    {
-        services.AddResiliencePipeline(FiksIOConstants.UserDefinedResiliencePipelineId, configure);
         return this;
     }
 
@@ -120,11 +108,6 @@ internal sealed class FiksIOSetupBuilder(IServiceCollection services) : FiksSetu
     /// <inheritdoc />
     public IFiksIOSetupBuilder WithMaskinportenConfig(string configSectionPath) =>
         (IFiksIOSetupBuilder)ConfigureMaskinporten(configSectionPath);
-
-    /// <inheritdoc />
-    public IFiksIOSetupBuilder WithResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    ) => (IFiksIOSetupBuilder)ConfigureResiliencePipeline(configure);
 }
 
 /// <summary>
@@ -151,11 +134,6 @@ internal sealed class FiksArkivSetupBuilder(IServiceCollection services)
         (IFiksArkivSetupBuilder)ConfigureMaskinporten(configSectionPath);
 
     /// <inheritdoc />
-    public IFiksArkivSetupBuilder WithResiliencePipeline(
-        Action<ResiliencePipelineBuilder<FiksIOMessageResponse>, AddResiliencePipelineContext<string>> configure
-    ) => (IFiksArkivSetupBuilder)ConfigureResiliencePipeline(configure);
-
-    /// <inheritdoc />
     public IFiksArkivSetupBuilder WithFiksArkivConfig(Action<FiksArkivSettings> configureOptions) =>
         (IFiksArkivSetupBuilder)ConfigureFiksArkiv(configureOptions);
 
@@ -164,9 +142,9 @@ internal sealed class FiksArkivSetupBuilder(IServiceCollection services)
         (IFiksArkivSetupBuilder)ConfigureFiksArkiv(configSectionPath);
 
     /// <inheritdoc />
-    public IFiksArkivSetupBuilder WithResponseHandler<TMessageHandler>()
-        where TMessageHandler : IFiksArkivResponseHandler =>
-        (IFiksArkivSetupBuilder)UseMessageResponseHandler<TMessageHandler>();
+    public IFiksArkivSetupBuilder WithMessageHandler<TMessageHandler>()
+        where TMessageHandler : IFiksArkivMessageHandler =>
+        (IFiksArkivSetupBuilder)UseMessageHandler<TMessageHandler>();
 
     /// <inheritdoc />
     public IFiksArkivSetupBuilder WithPayloadGenerator<TMessageHandler>()

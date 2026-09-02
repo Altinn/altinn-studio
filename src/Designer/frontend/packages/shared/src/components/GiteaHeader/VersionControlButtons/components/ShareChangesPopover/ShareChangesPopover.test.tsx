@@ -13,10 +13,10 @@ import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionC
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { repository } from 'app-shared/mocks/mocks';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 const mockGetRepoStatus = jest.fn();
 
@@ -108,8 +108,7 @@ describe('shareChanges', () => {
         },
       },
     });
-    const notificationIcon = screen.getByLabelText('sync_header.notification_label');
-
+    const notificationIcon = screen.getByRole('status');
     expect(notificationIcon).toBeInTheDocument();
   });
 

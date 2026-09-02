@@ -176,7 +176,7 @@ def score_validation(
             kwargs["config_id"] = config_id
         if observation_id:
             kwargs["observation_id"] = observation_id
-        if comment:
+        if comment is not None:
             kwargs["comment"] = comment
         if score_id:
             kwargs["score_id"] = score_id
@@ -241,6 +241,20 @@ class _NoopSpan:
 
     def __exit__(self, *args):
         pass
+
+
+def delete_score(score_id: str) -> None:
+    """Remove a score by id. Used to clear user feedback on a trace."""
+    client = get_langfuse_client()
+    if not config.LANGFUSE_ENABLED:
+        return
+    if not client or not score_id:
+        return
+    try:
+        client.api.legacy.score_v1.delete(score_id)
+        log.debug("Langfuse score %s deleted", score_id)
+    except Exception as e:
+        log.warning("Failed to delete Langfuse score '%s': %s", score_id, e)
 
 
 def get_trace_developer(trace_id: str) -> str | None:

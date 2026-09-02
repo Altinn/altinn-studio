@@ -3,7 +3,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -70,7 +69,7 @@ public class ProcessNextRequestFactoryTests
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
         var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory)],
+            [new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create())],
             appImplFactory
         );
 
@@ -549,9 +548,9 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage ("Dispatch") plus the
-    /// concluding Finally. The task-wide options carry the 30 min timeout and the poll's 48 h
-    /// wait budget; the stage overrides the timeout for itself.
+    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally. The task-wide
+    /// options carry the 30 min timeout and the poll's 48 h wait budget; the stage overrides the timeout for
+    /// itself.
     /// </summary>
     private sealed class SigningTask : IPipelineServiceTask
     {
@@ -563,7 +562,6 @@ public class ProcessNextRequestFactoryTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    "Dispatch",
                     _ => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
                 )
@@ -600,17 +598,14 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert — one ExecuteServiceTask engine step per stage, in composition order, each
-        // payload carrying its stage's name and a distinct OperationId for the engine's records;
-        // then the concluding step (the pipeline's Finally) with no stage name — the exact shape
-        // a simple IServiceTask produces on its own.
+        // Assert
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         Assert.Equal(2, serviceTaskSteps.Count);
 
-        Assert.Equal("Dispatch", serviceTaskSteps[0].Payload.StageName);
-        Assert.Equal($"{ExecuteServiceTask.Key}: Dispatch", serviceTaskSteps[0].OperationId);
-        Assert.Null(serviceTaskSteps[1].Payload.StageName);
-        Assert.Equal(ExecuteServiceTask.Key, serviceTaskSteps[1].OperationId);
+        Assert.Equal(0, serviceTaskSteps[0].Payload.ItemIndex);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", serviceTaskSteps[0].OperationId);
+        Assert.Equal(1, serviceTaskSteps[1].Payload.ItemIndex);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", serviceTaskSteps[1].OperationId);
         Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
 
         // Both stay critical: in Main, after the commit boundary and the side-effects enqueue.
@@ -635,13 +630,289 @@ public class ProcessNextRequestFactoryTests
         // from the task (deliberate: shared options are the default, and a budget is inert on a
         // stage that never defers).
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        var dispatch = serviceTaskSteps.Single(s => s.Payload.StageName == "Dispatch").Step;
-        var conclusion = serviceTaskSteps.Single(s => s.Payload.StageName is null).Step;
+        var dispatch = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 0).Step;
+        var conclusion = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 1).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
         Assert.Equal(TimeSpan.FromMinutes(30), conclusion.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), conclusion.Command.WaitBudget);
+    }
+
+    private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskOpeningStageResult> SendStage(
+        ServiceTaskContext context,
+        ServiceTaskMailbox mailbox
+    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
+        ServiceTaskContext context,
+        ServiceTaskReply reply
+    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> OnSegmentClosed(
+        ServiceTaskContext context,
+        MailboxClosedReason reason
+    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+
+    /// <summary>
+    /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
+    /// shown to resolve the <c>Finally</c>'s options.
+    /// </summary>
+    private sealed class ArchivingTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .ConcludeOnReplies(
+                    archive,
+                    OnMessage,
+                    OnClosed,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+                );
+    }
+
+    /// <summary>
+    /// A declaring pipeline with a stage on <em>each</em> side of the one that sends, so "immediately before
+    /// the declaring stage" is distinguishable from both "first" and "last" — the
+    /// <c>send → unrelated stage → reply terminal</c> shape the design supports.
+    /// </summary>
+    private sealed class SurroundedSendArchivingTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(PlainStage)
+                .Stage(
+                    SendStage,
+                    _mailboxThreeDays,
+                    out MailboxHandle archive,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
+                )
+                .Stage(PlainStage)
+                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+    }
+
+    /// <summary>
+    /// Two exchanges, the first answered <em>mid-pipeline</em>: Main therefore carries only the pipeline's
+    /// first segment and hands over to that exchange's receiver, with the journal's send and the terminal
+    /// belonging to the continuation the archive's conclusion starts. The two handlers declare distinct
+    /// timeouts so the receive step can be shown to resolve the handler that answers <em>it</em>.
+    /// </summary>
+    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .HandleReplies(
+                    archive,
+                    OnSegmentMessage,
+                    OnSegmentClosed,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) }
+                )
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
+                .ConcludeOnReplies(
+                    journal,
+                    OnMessage,
+                    OnClosed,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+                );
+    }
+
+    private static MintMailboxPayload ExtractMintPayload(WorkflowEnqueueEnvelope bundle)
+    {
+        StepRequest step = bundle
+            .Request.Workflows[0]
+            .Steps.Single(s => s.OperationId.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
+        var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
+        Assert.Equal(MintMailbox.Key, appData.CommandKey);
+        return CommandPayloadSerializer.Deserialize<MintMailboxPayload>(appData.Payload)!;
+    }
+
+    [Fact]
+    public async Task Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        (string OperationId, ExecuteServiceTaskPayload Payload, StepRequest Step) sendStep = Assert.Single(
+            serviceTaskSteps
+        );
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
+        // The send's own item and nothing else: the conclusion — item 1 here — answers the exchange, so it
+        // runs on the receive workflows rather than in Main.
+        Assert.Equal(0, sendStep.Payload.ItemIndex);
+
+        // Main's last step is the segment's last stage: completing it is what enqueues the first receiver,
+        // from inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
+    }
+
+    /// <summary>
+    /// The mint is its own step and hugs the stage that sends: never at the transition's start (the deadline
+    /// clock would start before the stages that precede the send) and never after it.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_EmitsTheMintStepImmediatelyBeforeTheDeclaringStage()
+    {
+        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
+        int mint = operationIds.IndexOf($"{MintMailbox.Key}: 1");
+        Assert.NotEqual(-1, mint);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", operationIds[mint - 1]);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[mint + 1]);
+        Assert.Single(operationIds, id => id.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
+        // The declaring stage ends Main whether or not the exchange's handler follows it: the unrelated stage
+        // composed after the send rides the continuation that stage's completion enqueues.
+        Assert.DoesNotContain($"{ExecuteServiceTask.Key}: 2", operationIds);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[^1]);
+
+        MintMailboxPayload payload = ExtractMintPayload(bundle);
+        Assert.Equal("archiving", payload.ServiceTaskType);
+        Assert.Equal(1, payload.StageIndex);
+    }
+
+    /// <summary>
+    /// One HTTP call, so the mint takes the engine's own defaults — not the declaring stage's options, which
+    /// belong to the work that sends.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_LeavesTheMintStepOnTheEngineDefaults()
+    {
+        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        StepRequest mintStep = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: 1");
+        Assert.Null(mintStep.Command.MaxExecutionTime);
+        Assert.Null(mintStep.Command.WaitBudget);
+        Assert.Null(mintStep.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task Create_PipelineWithoutMailbox_EmitsNoMintStep()
+    {
+        var factory = CreateFactory(serviceTasks: new SigningTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        Assert.DoesNotContain(MintMailbox.Key, ExtractCommandKeys(bundle));
+    }
+
+    /// <summary>
+    /// The assembled send stage's whole serialized payload, pinned exactly: the service task and the item it
+    /// runs, and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
+    /// — is worked out by that step when it runs, from the pipeline it resolves then. Pinned on the whole
+    /// string so that a field added to the payload fails here too, not only a field removed.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_SendStagePayload_IsTheItemIndexAndNothingElse()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        var sendStep = Assert.Single(ExtractServiceTaskSteps(bundle));
+        string payloadJson = JsonSerializer.Deserialize<AppCommandData>(sendStep.Step.Command.Data!.Value)!.Payload!;
+        Assert.Equal(
+            "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0}",
+            payloadJson
+        );
+    }
+
+    /// <summary>
+    /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to
+    /// split at a reply handler, a composed <c>HandleReplies</c> made Main's planning throw, so this shape
+    /// could not reach the engine at all. Main carries only the pipeline's <em>first</em> segment — the
+    /// archive's send, whose completion starts that exchange's receive leg — with the journal's send and the
+    /// terminal belonging to the workflows further down the chain.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipelineAnsweredMidPipeline_EndsMainAtTheFirstSend()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchiveThenJournalTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // One stage step, the archive's send: no send for the journal (that stage rides the continuation) and
+        // no concluding step (the conclusion is a later item, and it rides the continuation too).
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        (string OperationId, ExecuteServiceTaskPayload Payload, StepRequest Step) sendStep = Assert.Single(
+            serviceTaskSteps
+        );
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
+        Assert.Equal(0, sendStep.Payload.ItemIndex);
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
+        // Only the archive's mailbox is minted in Main: the journal's clock starts in the continuation.
+        Assert.Single(keys, key => key == MintMailbox.Key);
+        Assert.Equal(0, ExtractMintPayload(bundle).StageIndex);
+    }
+
+    [Fact]
+    public async Task Create_PipelineWithoutMailbox_RunsTheWholePipelineInMain()
+    {
+        var factory = CreateFactory(serviceTasks: new SigningTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        // The signing pipeline's conclusion is its item 1, and Main runs it as an ordinary step.
+        Assert.Contains(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
+    }
+
+    /// <summary>
+    /// Main runs the stages up to and including the first mailbox-opening one and stops there: the plain stage
+    /// composed after the send is a later segment's step, and the handler that answers the exchange — this
+    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone. Nothing hands over to that
+    /// exchange from Main: the stage between the two is what will, from the continuation it rides.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_EndsMainAtTheOpeningStage()
+    {
+        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        Assert.Equal([0, 1], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
 
     [Fact]
@@ -1015,7 +1286,7 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert - regression guard: the common path is identical to the pre-split behaviour
+        // Assert - regression guard: the common path is identical to the pre-split behavior
         var workflow = Assert.Single(bundle.Request.Workflows);
         Assert.Null(workflow.Ref);
         Assert.Null(workflow.IsHead);

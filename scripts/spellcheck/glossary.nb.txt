@@ -1,0 +1,305 @@
+# Bokmål glossary: Norwegian words the nb spell check accepts although the
+# dictionary and Norsk Ordbank reject them. Language-neutral tokens (names,
+# identifiers, formats) live in glossary.shared.txt instead. One word per
+# line; '#' starts a comment; matching is case-insensitive.
+#
+# The dictionary is full-form (inflections are separate entries), so an
+# accepted term's other forms need their own lines — add them as the check
+# reports them. Keep entries alphabetized within each section (Norwegian
+# collation: æ, ø, å sort last).
+#
+# Glossary or suppression? One rule: a CORRECT word the checker doesn't
+# know belongs here; a WRONG spelling that cannot change belongs in
+# suppressions.txt, scoped. A misspelling "fixed" by a glossary entry stays
+# wrong in the product, so prefer fixing the text. Reviewing this file in a
+# PR IS the native-speaker check: every line claims the word is correct
+# bokmål used deliberately — remove a line to re-flag it everywhere. An
+# entry that no longer rescues any flagged word is reported as stale by the
+# check itself.
+
+
+# Domain compounds and derivations in UI text: standard Norwegian
+# compounding that the frozen dictionary lacks.
+administratorbrukernavn
+administratorbrukernavnet
+administratorkontoer
+appbiblioteket
+appens
+applikasjonsfeil
+applikasjonsmetrikker
+applikasjonsnavnet
+appversjon
+arbeidslagsnavn
+arbeidstidsdata
+autentiseringer
+autentiseringsapplikasjonen
+autentiseringstjeneren
+autorisasjonsforespørselen
+autorisasjonsnavn
+avmerkingsboks
+avmerkingsbokser
+avpubliser
+avpublisere
+avpubliserer
+avpubliseres
+avpublisering
+avpublisert
+behandlingsreferanse
+bekreftelseskoden
+beskjæringsområde
+betalingsdetaljer
+betalingskvittering
+betalingsoppgave
+betalingssteg
+bildefil
+bildeopplaster
+brukerdataene
+brukerkontoer
+brukerpålogging
+brukersynkronisering
+claimet
+datamodellbinding
+datamodellfelt
+datamodellfeltet
+datamodellknytning
+deaktiver
+delegerbar
+delegeringstekst
+driftsmeldinger
+egenregistrering
+endringslogg
+endringsoppsummering
+endringstransaksjon
+endringstransaksjonen
+endringsvalg
+engangssamtykke
+enhetsregisterroller
+filbane
+filbanen
+filendelse
+filendringene
+filopplastingskomponent
+filopplastingskomponenter
+filskanning
+filsti
+filstørrelsen
+filvedlegg
+flytkontroll
+forhåndsregistrerer
+forhåndsvalgt
+forhåndsvis
+forhåndsvise
+funksjonsflagg
+gjenopprettingsprosessen
+handlingsknapp
+handlingstype
+headerne
+infoside
+innboks
+innboksen
+innholdstype
+innloggingsløsningen
+innloggingsmetode
+innloggingsmetoden
+instansier
+instansiering
+instansieringer
+kartlag
+kodelistefil
+kodenes
+kommaseparert
+kompleksitetskrav
+komponentid
+konfigurasjonsfeil
+kontogjenoppretting
+kvitteringsside
+lagringsnavn
+låsstatus
+medieposisjon
+medlemsprofil
+metadataene
+migreringsverktøyene
+minimumshøyde
+målgren
+navigasjonsfelt
+navigasjonsknapper
+navigasjonslinje
+navigasjonsmeny
+navigasjonsmenyen
+navigasjonsoppgaver
+navigeringsregler
+nedtrekksliste
+nedtrekkslisten
+nedtrekksmeny
+nesteknapp
+nettstedsadministrator
+nettverksfeil
+oppdateringssjekker
+oppryddingsregel
+oppryddingsregelen
+oppryddingsregler
+oppstartskontroll
+oppsummeringsfelt
+oppsummeringskomponenten
+oppsummeringssiden
+organisasjonsadministrasjon
+organisasjonsbibliotek
+organisasjonsbiblioteket
+organisasjonsinnstillinger
+organisasjonskoden
+organisasjonsnavn
+organisasjonsnavnet
+organisasjonsprofilen
+organisasjonsprosjekt
+pagineringsvalg
+portnummer
+postdomenet
+prosessteg
+publiseringsdato
+publiseringshistorikk
+publiseringsrettigheter
+publiseringsstatus
+påloggede
+påloggingsnavn
+påloggingsopplysninger
+påloggingstokenet
+redigerbare
+redigeringsknapp
+redigeringsvalg
+redigeringsverktøy
+registreringssidene
+reindekseringskøen
+reinitialiser
+reinstallere
+renderingsregel
+renderingsregler
+resynkroniser
+rotbane
+rutenettoppsett
+samarbeidskodelagre
+sammendragsvisningsceller
+samtykkemal
+samtykkemetadata
+seksjonstittel
+sidenavigasjonen
+signatarliste
+signeringsoppgave
+signeringsstatus
+signeringssteg
+sikkerhetsnøkkel
+sikkerhetsnøkkelen
+sikkerhetsnøkler
+skjemabyggeren
+skjemaeditor
+skjemagenerert
+skjemaoppsett
+skjemautfyllingen
+sorteringsproblemene
+sosialnettverkskontoer
+spørreparameter
+spørringsparameter
+syntaksfeil
+tekstsøk
+temaets
+tilbakemeldingsoppgave
+tilgangsliste
+tilgangslisten
+tilgangslistene
+tilgangslister
+tilgangspakke
+tilgangspakken
+tilgangspakker
+tilgangspolicy
+tilgangsregler
+tilgangsressurs
+tilgangsstyring
+tilgangstoken
+tillatelseslisten
+tilleggsadresse
+tilleggskontroller
+tittelraden
+tjenerdomene
+tjenerport
+tredjepartsapplikasjon
+tredjepartsbiblioteker
+tvangsslett
+uarkiverte
+ukategoriserte
+ulagrede
+underenhet
+underenheter
+underkomponenter
+undernøkler
+underskjema
+underskjemaer
+underskjemaet
+underskjemakobling
+underuttrykk
+underuttrykket
+utformingsfanen
+utfyllingsoppgaver
+utfyllingssteget
+utviklingsteamet
+validér
+validering
+valideringsfeil
+valideringsfeilene
+valideringsmelding
+valideringsmeldinger
+valideringsregel
+valideringstyper
+vedleggstype
+vedlikeholderen
+versjonsfeil
+vertsadresse
+vertsnavn
+virksomhetsbruker
+visningsmodus
+visningsnavn
+visningstype
+visningsverdi
+
+# Loanword inflections used deliberately in the UI. Solid inflection is
+# correct for lowercase loanwords (repoet, releasen). INITIALISMS inflect
+# with a hyphen (API-er, URL-en, ID-ene) — the corpus norm — and never need
+# an entry here: the acronym half is an all-caps token the check skips.
+# A solid APIer/URLer is a writing error and must stay a finding.
+dashboardet
+monitorering
+popups
+releasen
+repoet
+repositoriene
+repositorier
+repositoriet
+repositoriets
+repositorium
+requesten
+subdomener
+webserveren
+
+# Halves of legitimately hyphenated compounds — the tokenizer splits
+# them at the hyphen, so the halves need their own entries.
+aktiverings             # aktiverings-e-post
+autoriserings           # Autoriserings-URL
+bekreftelses            # bekreftelses-e-post
+påloggings              # påloggings- og registreringssidene
+tofaktor                # tofaktor-autentisering
+trinnsautentisering     # 2-trinnsautentisering
+
+# Unusual but deliberate: calques and translator style in shipped UI text
+# (largely the Gitea translation), reviewed and accepted by a native
+# speaker. Each entry keeps a note on where it lives.
+autoriseringsforespørselen  # Gitea translation; a sibling key says 'autorisasjonsforespørselen'
+avstandsjustert             # Gitea's rendering of 'monospace' (avstandsjustert skrift)
+beskrivelsesløse            # ad-hoc -løse derivation in the Gitea UI (emneløse, ikonløse, beskrivelsesløse)
+bolsk                       # calque of 'boolean' used as a data-type label in the expression editor
+delstreng                   # calque of 'substring' in a Gitea validation message
+fravelg                     # calque of 'deselect' in the Gitea UI
+føderert                    # 'føderert avatar-oppslag' (federated) in the Gitea UI
+gjennomsynsforespørsel      # Gitea's rendering of 'review request'
+gjentagende                 # variant of 'gjentakende' in the Designer news feed
+godkjenningsoverskrift      # Gitea's rendering of 'authorization header'
+lesmeg                      # calque of 'README' in the Gitea UI
+produksjonssette            # verbified 'sette i produksjon' in Designer
+tvangsdyttet                # Gitea's rendering of 'force-pushed'

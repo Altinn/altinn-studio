@@ -33,7 +33,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("provisioned Maskinporten client reads"));
         Assert.Contains(
             result.Warnings,
@@ -59,7 +59,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("appsettings.Production.json") && w.Contains("CertificatePkcs12Path")
@@ -87,7 +87,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("keys the platform also provisions"));
         Assert.Contains(
             result.Warnings,
@@ -139,7 +139,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("appsettings.json") && w.Contains("ClientId"));
     }
 
@@ -165,7 +165,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("appsettings.Development.json"));
         Assert.Contains(result.Warnings, w => w.Contains("development only"));
     }
@@ -190,7 +190,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -206,7 +206,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -224,7 +224,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -246,11 +246,11 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
     }
 
     /// <summary>
-    /// An unparseable appsettings file is skipped rather than reported: a JSON complaint from a
+    /// An unparsable appsettings file is skipped rather than reported: a JSON complaint from a
     /// Maskinporten check would be a confusing way to learn the file is malformed.
     /// </summary>
     [Fact]
@@ -260,7 +260,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -278,7 +278,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -306,7 +306,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         // The deployed file blocks; the development one is reported under its own summary but only as a
         // local concern, and must not be what drives the exit code.
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("provisioned Maskinporten client reads"));
         Assert.Contains(result.Warnings, w => w.Contains("keys the platform also provisions"));
         Assert.Contains(

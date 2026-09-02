@@ -4,7 +4,7 @@ using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Helpers;
 
-public class RemoveBomExtentionsTests
+public class RemoveBomExtensionsTests
 {
     [Fact]
     public void TestRemoveBom()

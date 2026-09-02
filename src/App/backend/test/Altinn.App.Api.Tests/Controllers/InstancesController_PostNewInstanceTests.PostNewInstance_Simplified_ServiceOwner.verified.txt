@@ -143,10 +143,10 @@
           network.protocol.version: 1.1
         },
         {
-          organisation.name: tdd
+          organization.name: tdd
         },
         {
-          organisation.number: 405003309
+          organization.number: 405003309
         },
         {
           server.address: localhost
@@ -200,10 +200,10 @@
           network.protocol.version: 1.1
         },
         {
-          organisation.name: tdd
+          organization.name: tdd
         },
         {
-          organisation.number: 405003309
+          organization.number: 405003309
         },
         {
           server.address: localhost

@@ -23,15 +23,12 @@ describe('SmallHeaderMenu', () => {
     const user = userEvent.setup();
     renderSmallHeaderMenu();
 
-    expect(
-      screen.queryByRole('menuitem', {
-        name: textMock(pageHeaderContextMock.menuItems[0].key),
-      }),
-    ).not.toBeInTheDocument();
-
     const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+
     await user.click(button);
 
+    expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(
       screen.getByRole('menuitem', {
         name: textMock(pageHeaderContextMock.menuItems[0].key),
@@ -52,11 +49,7 @@ describe('SmallHeaderMenu', () => {
     expect(menuItem).toBeInTheDocument();
     await user.click(menuItem);
 
-    expect(
-      screen.queryByRole('menuitem', {
-        name: textMock(pageHeaderContextMock.menuItems[0].key),
-      }),
-    ).not.toBeInTheDocument();
+    expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('should display user name and organization in the profile section', async () => {

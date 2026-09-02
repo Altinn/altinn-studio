@@ -51,7 +51,7 @@ export const SubformDataModel = ({
           ))
         ) : (
           <StudioSelect.Option value=''>
-            {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
+            {t('ux_editor.component_properties.subform.data_model_empty_message')}
           </StudioSelect.Option>
         )}
       </StudioSelect>

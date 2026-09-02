@@ -33,7 +33,7 @@ public class OptionsController : ControllerBase
     /// </summary>
     /// <param name="optionsService">The options service.</param>
     /// <param name="optionListReferenceService">The option list reference service.</param>
-    /// <param name="giteaContentLibraryService">The gitea content library service for organisation level.</param>
+    /// <param name="giteaContentLibraryService">The gitea content library service for organization level.</param>
     public OptionsController(
         IOptionsService optionsService,
         IOptionListReferenceService optionListReferenceService,
@@ -48,8 +48,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Fetches the IDs of the options lists belonging to the app.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <returns>Array of options list's IDs. Empty array if none are found</returns>
     [HttpGet]
     [Produces("application/json")]
@@ -66,8 +66,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Fetches the contents of all the options lists belonging to the app.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of <see cref="OptionListData" /> objects with all option lists belonging to the app with data
     /// set if option list is valid, or hasError set if option list is invalid.</returns>
@@ -101,8 +101,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Fetches a specific option list.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="optionsListId">Name of the option list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
@@ -140,8 +140,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Gets all usages of all optionListIds in the layouts as <see cref="OptionListReference"/>.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Produces("application/json")]
@@ -166,8 +166,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Creates or overwrites an options list.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="optionsListId">Name of the options list.</param>
     /// <param name="payload">Contents of the options list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -202,8 +202,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Updates the name of an options list by changing file name in repo.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="optionsListId">Name of the options list.</param>
     /// <param name="newOptionsListId">New name of options list file.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -238,8 +238,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Create new options list.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="file">File being uploaded.</param>
     /// <param name="cancellationToken"><see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]
@@ -276,8 +276,8 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Deletes an option list.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organization.</param>
     /// <param name="optionsListId">Name of the option list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpDelete]

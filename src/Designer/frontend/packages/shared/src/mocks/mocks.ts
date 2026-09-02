@@ -130,7 +130,7 @@ export const orgList: OrgList = {
 export const commit: Commit = {
   message: '',
   author: { name: '', email: '', when: new Date(null) },
-  comitter: { name: '', email: '', when: new Date(null) },
+  committer: { name: '', email: '', when: new Date(null) },
   sha: '',
   messageShort: '',
   encoding: '',

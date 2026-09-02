@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 
+import { useIsMobileOrTablet } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -10,7 +11,6 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
 import { getGridCellHiddenExpr, useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
@@ -123,6 +123,11 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
             className={cn({ [classes.fullWidthCaption]: !isEmpty && !isNested })}
             title={<Lang id={textResourceBindings.title} />}
             description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+            helpText={
+              textResourceBindings.help
+                ? { text: <Lang id={textResourceBindings.help} />, accessibleTitle: textResourceBindings.title }
+                : undefined
+            }
             labelSettings={labelSettings}
             required={required}
           />

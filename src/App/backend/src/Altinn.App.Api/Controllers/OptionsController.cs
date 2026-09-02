@@ -105,8 +105,8 @@ public partial class OptionsController : ControllerBase
     /// Exposes options related to the app and logged in user.
     /// </summary>
     /// <remarks>The tags field is only populated when requesting library code lists.</remarks>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
     /// <param name="instanceGuid">Unique id to identify the instance.</param>
     /// <param name="optionsIdOrLibraryRef">

@@ -125,8 +125,8 @@ describe('DropdownComponent', () => {
     const { fetchOptions } = await render({
       component: {
         optionsId: 'countries',
-        mapping: {
-          myInput: 'queryArg',
+        queryParameters: {
+          queryArg: ['dataModel', 'myInput'],
         },
       },
       waitUntilLoaded: false,
@@ -142,7 +142,7 @@ describe('DropdownComponent', () => {
     await userEvent.click(await screen.findByRole('combobox'));
     await screen.findByRole('option', { name: /denmark/i });
 
-    // The component always finishes loading the first time, but if we have mapping that affects the options
+    // The component always finishes loading the first time, but if we have query parameters that affect the options
     // the component renders a spinner for a while when fetching the options again.
     await userEvent.type(screen.getByTestId('my-input'), 'test');
 

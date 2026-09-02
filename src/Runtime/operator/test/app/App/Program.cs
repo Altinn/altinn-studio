@@ -10,7 +10,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 
-const string secretPath = "/mnt/app-secrets/maskinporten-settings.json";
 const string secretDir = "/mnt/app-secrets";
 
 var builder = WebApplication.CreateBuilder(args);

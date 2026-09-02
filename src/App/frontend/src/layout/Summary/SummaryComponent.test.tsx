@@ -16,7 +16,7 @@ describe('SummaryComponent', () => {
     FormLayout: {
       data: {
         layout: [
-          ...['Input', 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'].map(
+          ...['Input', 'Group', 'FileUpload', 'Checkboxes'].map(
             (t) =>
               ({
                 id: t,
@@ -40,10 +40,6 @@ describe('SummaryComponent', () => {
   test('should render file upload', async () => {
     await render({ componentRef: 'FileUpload' });
     expect(screen.getByTestId('attachment-summary-component')).toBeInTheDocument();
-  });
-  test('should render file upload with tag', async () => {
-    await render({ componentRef: 'FileUploadWithTag' });
-    expect(screen.getByTestId('attachment-with-tag-summary')).toBeInTheDocument();
   });
   test('should render checkboxes', async () => {
     await render({ componentRef: 'Checkboxes' });

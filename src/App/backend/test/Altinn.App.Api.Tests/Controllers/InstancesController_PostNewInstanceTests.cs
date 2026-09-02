@@ -74,7 +74,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         OutputHelper.WriteLine(createResponseContent);
         Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
 
-        // This asserts on the current behaviour. Next version might use the `StartEvent` when posting a multipart instance creation
+        // This asserts on the current behavior. Next version might use the `StartEvent` when posting a multipart instance creation
         Assert.Contains(
             "Data element of type task2DataType can only be modified in Task_2 (current task Task_1)",
             createResponseContent
@@ -91,7 +91,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         OverrideServicesForThisTest = services =>
         {
-            services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
+            services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
 
@@ -140,7 +140,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         OverrideServicesForThisTest = services =>
         {
-            services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
+            services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
 
@@ -973,6 +973,22 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxMintResult> MintMailbox(
+            string ns,
+            MailboxCreateRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 
     private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
@@ -1079,14 +1095,30 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxMintResult> MintMailbox(
+            string ns,
+            MailboxCreateRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 }
 
-public class FilenameAnalyserStub : IFileAnalyser
+public class FilenameAnalyzerStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)

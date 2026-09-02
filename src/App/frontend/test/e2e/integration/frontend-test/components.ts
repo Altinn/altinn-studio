@@ -178,7 +178,7 @@ describe('UI Components', () => {
         shouldExist: appFrontend.changeOfName.uploadedTable,
       },
       {
-        type: 'FileUploadWithTag' as const,
+        type: 'FileUpload' as const,
         uploader: appFrontend.changeOfName.uploadWithTag.uploadZone,
         shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
       },
@@ -207,7 +207,7 @@ describe('UI Components', () => {
 
   it('minNumberOfAttachments should validate like required', () => {
     cy.interceptLayout('Task_2', (component) => {
-      if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
+      if (component.type === 'FileUpload') {
         component.minNumberOfAttachments = 1;
       }
     });
@@ -315,7 +315,6 @@ describe('UI Components', () => {
         'Datepicker',
         'Dropdown',
         'FileUpload',
-        'FileUploadWithTag',
         'Input',
         'RadioButtons',
         'TextArea',

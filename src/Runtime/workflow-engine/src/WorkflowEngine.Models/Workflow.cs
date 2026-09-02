@@ -123,6 +123,13 @@ public sealed record Workflow : PersistentItem
     /// </summary>
     public bool? IsHead { get; init; }
 
+    /// <summary>
+    /// The mailbox this workflow receives from, or <c>null</c> on every ordinary workflow. The position is
+    /// deliberately not here: it lives on the receivers registry, costing the hot enqueue <c>COPY</c> one
+    /// nullable column rather than two.
+    /// </summary>
+    public Guid? MailboxId { get; init; }
+
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <summary>

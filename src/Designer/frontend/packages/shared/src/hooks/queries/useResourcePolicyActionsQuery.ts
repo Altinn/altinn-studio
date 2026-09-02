@@ -8,7 +8,7 @@ import type { AxiosError } from 'axios';
 /**
  * Query to get the list of actions for a policy.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  *
  * @returns UseQueryResult with a list of actions of PolicyAction

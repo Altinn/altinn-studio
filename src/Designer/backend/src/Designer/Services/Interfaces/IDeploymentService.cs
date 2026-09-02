@@ -30,7 +30,7 @@ public interface IDeploymentService
     /// <summary>
     /// Gets deployments
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="query">DocumentQueryModel</param>
     /// <returns>SearchResults of type DeploymentEntity</returns>
@@ -87,7 +87,7 @@ public interface IDeploymentService
     /// <summary>
     /// Sends a deployment notification message to Slack.
     /// </summary>
-    /// <param name="org">The organisation identifier.</param>
+    /// <param name="org">The organization identifier.</param>
     /// <param name="environment">The target environment name.</param>
     /// <param name="app">The application name.</param>
     /// <param name="eventType">The type of deployment event that occurred.</param>

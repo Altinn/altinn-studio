@@ -3,12 +3,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/experimental/Cargo.lock'
-      - 'src/experimental/Cargo.toml'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
       - 'src/experimental/sandbox/**'
       - 'src/experimental/sandbox-authorization/**'
       - 'src/experimental/sandbox-microsandbox/**'
-      - 'src/github-runner/**'
+      - 'src/ci/github-runner/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
 
@@ -17,10 +17,6 @@ on:
 permissions:
   id-token: write
   contents: read
-
-concurrency:
-  group: deploy-github-runners
-  cancel-in-progress: false
 
 jobs:
   construct-environments-array:
@@ -49,9 +45,23 @@ jobs:
       runner_repository: ${{ steps.vars.outputs.runner-repository }}
     defaults:
       run:
-        working-directory: src/github-runner
+        working-directory: src/ci/github-runner
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The containerd image store lets the default builder export registry
+      # cache (--cache-to type=registry), matching the runtime deploys.
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
 
       - name: Set vars
         id: vars
@@ -84,20 +94,41 @@ jobs:
       - name: Resolve Go version
         id: go-version
         run: |
-          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../tools/releaser/go.mod)"
+          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../../tools/releaser/go.mod)"
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Rust version
+        id: rust-version
+        run: |
+          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          test -n "${RUST_VERSION}"
+          echo "version=${RUST_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Cypress version
+        id: cypress-version
+        run: |
+          CYPRESS_VERSION="$(jq -er '.devDependencies.cypress' "${GITHUB_WORKSPACE}/src/App/frontend/package.json")"
+          echo "version=${CYPRESS_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build and publish runner image
         id: runner-image
         env:
           IMAGE: ${{ steps.vars.outputs.runner-image }}
           LATEST: ${{ steps.vars.outputs.runner-latest }}
+          RUNNER_REPOSITORY: ${{ steps.vars.outputs.runner-repository }}
           GO_VERSION: ${{ steps.go-version.outputs.version }}
+          RUST_VERSION: ${{ steps.rust-version.outputs.version }}
+          CYPRESS_VERSION: ${{ steps.cypress-version.outputs.version }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --build-arg "GO_VERSION=${GO_VERSION}" \
+            --build-arg "RUST_VERSION=${RUST_VERSION}" \
+            --build-arg "CYPRESS_VERSION=${CYPRESS_VERSION}" \
+            --cache-from "type=registry,ref=${RUNNER_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${RUNNER_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file Dockerfile \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
@@ -115,14 +146,18 @@ jobs:
 
       - name: Build and publish coordinator image
         id: coordinator-image
-        working-directory: ${{ github.workspace }}/src
+        working-directory: ${{ github.workspace }}
         env:
           IMAGE: ${{ steps.vars.outputs.coordinator-image }}
           LATEST: ${{ steps.vars.outputs.coordinator-latest }}
+          COORDINATOR_REPOSITORY: ${{ steps.vars.outputs.coordinator-repository }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
           docker buildx build \
-            --file github-runner/Dockerfile.coordinator \
+            --provenance=false --sbom=false \
+            --cache-from "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
+            --file src/ci/github-runner/Dockerfile.coordinator \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
             --push \
@@ -151,9 +186,11 @@ jobs:
       digest: ${{ steps.prepared-image.outputs.digest }}
     defaults:
       run:
-        working-directory: src/github-runner
+        working-directory: src/ci/github-runner
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: az login
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
@@ -204,6 +241,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-prepared-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --build-arg "COORDINATOR_IMAGE=${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}" \
             --file Dockerfile.prepared-image \
             --metadata-file "${METADATA_FILE}" \
@@ -234,6 +272,8 @@ jobs:
       CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: az login
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
@@ -249,7 +289,7 @@ jobs:
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: Pin runner images by digest
-        working-directory: src/github-runner/infra/kustomize/base
+        working-directory: src/ci/github-runner/infra/kustomize/base
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
           COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
@@ -287,7 +327,7 @@ jobs:
           test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
 
       - name: push artifact
-        working-directory: src/github-runner/infra/kustomize
+        working-directory: src/ci/github-runner/infra/kustomize
         env:
           CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
         run: |

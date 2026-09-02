@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Flex, FullWidthWrapper } from '@app/form-component';
+import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
@@ -11,7 +11,6 @@ import {
 } from 'src/features/instantiate/InstantiationValidation';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';

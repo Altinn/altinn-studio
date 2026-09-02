@@ -1,0 +1,106 @@
+# Spell check for Altinn Studio — code, identifiers, comments and docs, in
+# US English. ENGINE configuration only.
+#
+# This file decides what typos scans and how words parse. It deliberately
+# contains NO named exceptions: no extend-identifiers, no extend-words, no
+# per-project excludes, no extend-ignore-re. typos' own exception mechanisms
+# are repo-wide and uncounted, so they over-suppress and rot silently.
+# Instead, every accepted misspelling lives in
+# scripts/spellcheck/suppressions.txt, scoped to the paths and identifiers
+# where it is load-bearing and enforced by the runner — a suppressed token
+# outside its scope is still reported, and a suppression that matches nothing
+# is itself a finding. Norwegian copy inside string literals, tokens inside
+# base64/JWT data runs, and word tails after a bracket expression
+# (`*.[Pp]ublish.xml`) are classified by the runner (classifyFindings in
+# scripts/spellcheck/lib.mjs), where the logic is unit-tested and its work
+# counted on every run.
+#
+# Because policy lives in the runner, `typos` invoked directly reports
+# suppressed contract tokens too — use `yarn spell:quick` (changed files) or
+# `yarn spell:check` (everything) instead. For the same reason
+# `typos --write-changes` must never be used: it would "fix" wire contracts.
+#
+# The excludes below are ENGINE decisions, three kinds only: generated or
+# vendored output nobody can fix by hand, pure fixture/wire data ("spellcheck
+# prose and code, never data"), and whole files written in another language
+# where per-token suppression is meaningless.
+#
+# Run:  yarn spell:check     Fix:  yarn spell:fix     Fast: yarn spell:quick
+
+[files]
+# typos skips hidden paths by default, which would exempt everything under
+# .github — including every workflow comment. Check them; only the git
+# database itself is opted out.
+ignore-hidden = false
+
+extend-exclude = [
+    ".git/**",
+
+    # Agent tooling: skills are deliberately written in Norwegian, and
+    # .claude/worktrees may hold entire nested checkouts of this repository.
+    ".claude/**",
+
+    # Build output, generated and vendored code. Kept even when currently
+    # silent: a typo a generator emits cannot be fixed by hand, so it must
+    # never block CI. bin is qualified because Rust crates keep real source
+    # in src/bin/. The presentation HTML embeds minified reveal.js.
+    "**/bin/[Dd]ebug/**", "**/bin/[Rr]elease/**", "**/obj/**", "**/dist/**",
+    "**/node_modules/**", "**/.yarn/**",
+    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
+    "src/Runtime/workflow-engine/docs/presentation/**",
+
+    # The spell-check harness itself: fixtures with deliberately planted
+    # errors (the self-test copies them elsewhere and checks them with THIS
+    # config), the Norwegian glossaries, and the suppression and
+    # key-declaration registries — which necessarily quote the misspellings
+    # and contract spellings they govern.
+    "scripts/spellcheck/selftest/**", "scripts/spellcheck/glossary.*.txt",
+    "scripts/spellcheck/suppressions.txt", "scripts/spellcheck/keys.txt",
+
+    # The registered language files (see scripts/spellcheck/registry.mjs).
+    # Their values are Norwegian or British and are checked by the runner;
+    # excluding them here is asserted by the coverage check.
+    "src/common/ts/language/src/texts/*.ts",
+    "src/Designer/frontend/language/src/*.json",
+    "src/Designer/frontend/resourceadm/language/src/*.json",
+    "src/Designer/frontend/packages/shared/src/constants.js",
+    "src/Designer/frontend/app-development/features/overview/components/News/NewsContent/news.*.json",
+    "src/App/template/*/src/App/config/applicationmetadata.json",
+    "src/App/template/*/src/App/config/texts/resource.*.json",
+    "src/gitea/files/locale/**",
+
+    # Test-only surface ships nowhere: test projects, colocated test files,
+    # test data, mocks, e2e suites and Storybook stories. A typo there costs
+    # nothing a user ever sees, so the whole class is out of scope.
+    # (Deliberate trade-off: typos in test names can propagate by copy-paste.
+    # Non-shipping, accepted.)
+    "**/test/**", "**/tests/**", "**/testing/**", "**/*-tests/**",
+    "**/[Tt]est[Dd]ata/**", "**/test-data/**", "**/__mocks__/**",
+    "*.test.*", "*.spec.*", "*_test.go", "*.stories.tsx", "*.pretest",
+    "**/*SourceGenerator*/**",
+
+    # Data embedded in source: an Altinn 2 code list.
+    "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
+
+    # Whole files in another language: Norwegian in markup text nodes and JSX
+    # that the runner's string classifier cannot see (it reads string
+    # literals, not markup text), and a Norwegian-only internal dashboard.
+    # Candidates for the extraction pipeline later.
+    "src/tools/altinn-fleet-stats/**",
+    "src/Designer/backend/src/Designer/Views/Home/StartPage.cshtml",
+    "src/gitea/files/custom/templates/**",
+]
+
+# Data formats hold fixtures, schemas, code lists and wire payloads, not
+# prose. Deliberately NOT listed here, and therefore checked: .cshtml/.html
+# (server-rendered pages users read), .yaml/.yml (workflow and config
+# comments are prose), .txt and .tmpl.
+[type.data]
+extend-glob = [
+    "*.json", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
+    "*.svg", "*.css", "*.env", "*.snap", "*.lock",
+]
+check-file = false
+
+[default]
+locale = "en-us"

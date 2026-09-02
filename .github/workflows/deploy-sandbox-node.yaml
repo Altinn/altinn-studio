@@ -1,0 +1,191 @@
+name: Deploy Sandbox Node
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ci/sandbox-node/**'
+      - '.github/workflows/deploy-sandbox-node.yaml'
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'prod'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  construct-environments-array:
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-studio-environments: prod
+
+  push-artifact:
+    name: Push Sandbox node as OCI artifact
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
+    defaults:
+      run:
+        working-directory: src/ci/sandbox-node
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The containerd image store lets the default builder export registry
+      # cache (--cache-to type=registry), matching the runtime deploys.
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          {
+            echo "short-sha=${SHA}"
+            echo "image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node"
+            echo "image-tag=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node:${SHA}"
+            echo "init-image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node-init"
+            echo "init-image-tag=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node-init:${SHA}"
+            echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/sandbox-node-repo:${SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Azure login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: ACR login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: Install Flux CLI
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: Build and push image
+        id: image
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.image-tag }}
+          IMAGE_REPOSITORY: ${{ steps.vars.outputs.image-repository }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/sandbox-node-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
+            --file Dockerfile \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE_TAG}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push storage-init image
+        id: init-image
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.init-image-tag }}
+          IMAGE_REPOSITORY: ${{ steps.vars.outputs.init-image-repository }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/sandbox-node-init-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
+            --file Dockerfile.init \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE_TAG}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected init image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Pin image digest in configuration
+        working-directory: src/ci/sandbox-node/infra/kustomize/base
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+          IMAGE_REPOSITORY: ${{ steps.vars.outputs.image-repository }}
+          INIT_IMAGE_DIGEST: ${{ steps.init-image.outputs.digest }}
+          INIT_IMAGE_REPOSITORY: ${{ steps.vars.outputs.init-image-repository }}
+          IMAGE_TAG: ${{ steps.vars.outputs.short-sha }}
+        run: |
+          IMAGE="${IMAGE_REPOSITORY}@${IMAGE_DIGEST}"
+          INIT_IMAGE="${INIT_IMAGE_REPOSITORY}@${INIT_IMAGE_DIGEST}"
+          export IMAGE INIT_IMAGE
+          yq -i '.metadata.annotations["altinn.studio/image"] = strenv(IMAGE)' daemonset.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG)' daemonset.yaml
+          yq -i '.metadata.annotations["altinn.studio/init-image"] = strenv(INIT_IMAGE)' daemonset.yaml
+          yq -i '.metadata.annotations["altinn.studio/init-image-tag"] = strenv(IMAGE_TAG)' daemonset.yaml
+
+          RENDERED="$(kubectl kustomize .)"
+          RENDERED_IMAGE="$(yq -er '.spec.template.spec.containers[] | select(.name == "plugin") | .image' <<< "${RENDERED}")"
+          RENDERED_INIT_IMAGE="$(yq -er '.spec.template.spec.initContainers[] | select(.name == "prepare-storage") | .image' <<< "${RENDERED}")"
+          test "${RENDERED_IMAGE}" = "${IMAGE}"
+          test "${RENDERED_INIT_IMAGE}" = "${INIT_IMAGE}"
+
+      - name: Push configuration artifact
+        working-directory: src/ci/sandbox-node/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag:
+    name: Tag artifact
+    needs: [push-artifact, construct-environments-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
+    steps:
+      - name: Azure login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: ACR login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: Install Flux CLI
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: Tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
+            --tag ${{ matrix.environment }}

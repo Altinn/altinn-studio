@@ -29,8 +29,8 @@ public class PolicyController : ControllerBase
     /// <summary>
     /// Gets the application policy, url Get "/designer/api/org/app/
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The updated application metadata</returns>
     [HttpGet]
     [Route("")]
@@ -51,8 +51,8 @@ public class PolicyController : ControllerBase
     /// <summary>
     /// Gets the resource policy, url GET "/designer/api/org/app/{resourceid}.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="resourceid">The resource Id for the connected policy</param>
     /// <returns>The updated application metadata</returns>
     [HttpGet]
@@ -76,8 +76,8 @@ public class PolicyController : ControllerBase
     /// <summary>
     /// Puts the application policy, url PUT "/designer/api/org/app/apppolicy
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="applicationPolicy">The application metadata</param>
     /// <returns>The updated application metadata</returns>
     [HttpPut]
@@ -99,8 +99,8 @@ public class PolicyController : ControllerBase
     /// <summary>
     /// Puts the resource policy, url PUT "/designer/api/org/app/apppolicy
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="applicationPolicy">The application metadata</param>
     /// <param name="resourceid">The resource Id for the connected policy</param>
     /// <returns>The updated application metadata</returns>

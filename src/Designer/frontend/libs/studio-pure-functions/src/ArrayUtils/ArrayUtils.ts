@@ -215,7 +215,7 @@ export class ArrayUtils {
   static removeEmptyStrings = (array: string[]): string[] =>
     ArrayUtils.removeItemByValue(array, '');
 
-  /** Returns array with one occurence of every type from the input array **/
+  /** Returns array with one occurrence of every type from the input array **/
   static extractUniqueTypes = (array: unknown[]): string[] => {
     const typesInArray: string[] = array.map((element) => typeof element);
     return ArrayUtils.removeDuplicates(typesInArray);

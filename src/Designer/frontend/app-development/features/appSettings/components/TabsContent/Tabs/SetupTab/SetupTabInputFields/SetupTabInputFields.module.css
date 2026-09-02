@@ -1,6 +1,6 @@
 .card {
-  margin-bottom: var(--fds-spacing-4);
-  border: 1px solid var(--fds-semantic-border-neutral-subtle);
+  margin-bottom: var(--ds-size-4);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
   max-width: 800px;
 }
 
