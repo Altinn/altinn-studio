@@ -8,8 +8,8 @@ export class SigningTaskConfig extends BasePage {
 
   public async clickDataTypesToSignCombobox(): Promise<void> {
     await this.page
-      .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_set_data_types_to_sign'),
+      .getByLabel(this.textMock('process_editor.configuration_panel_set_data_types_to_sign'), {
+        exact: true,
       })
       .click();
   }
