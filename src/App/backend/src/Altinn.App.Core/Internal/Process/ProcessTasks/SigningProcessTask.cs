@@ -155,6 +155,7 @@ internal sealed class SigningProcessTask : IProcessTask
     )
     {
         string? signaturesDataType = signatureConfiguration.SignatureDataType;
+        string? signingStateDataType = signatureConfiguration.SigningStateDataType;
         string? signeeStatesDataTypeId = signatureConfiguration.SigneeStatesDataTypeId;
         string? signeeProviderId = signatureConfiguration.SigneeProviderId;
 
@@ -165,10 +166,18 @@ internal sealed class SigningProcessTask : IProcessTask
             );
         }
 
-        // The signatures data type should be app owned, so that the end user can't manipulate the data. Tell the developer during development if this is not the case.
+        if (signingStateDataType is null)
+        {
+            throw new ApplicationConfigException(
+                $"The {nameof(signatureConfiguration.SigningStateDataType)} property must be set in the signature configuration."
+            );
+        }
+
+        // The signatures and signing state data types should be app owned, so that the end user can't manipulate the data. Tell the developer during development if this is not the case.
         if (_hostEnvironment.IsDevelopment())
         {
             AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, signaturesDataType);
+            AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, signingStateDataType);
         }
 
         if (signeeProviderId is null != signeeStatesDataTypeId is null)

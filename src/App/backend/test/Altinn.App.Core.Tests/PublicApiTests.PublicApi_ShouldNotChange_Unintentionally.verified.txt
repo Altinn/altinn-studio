@@ -3660,6 +3660,8 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         public string? SigneeStatesDataTypeId { get; set; }
         [System.Xml.Serialization.XmlElement("signingPdfDataType", Namespace="http://altinn.no/process")]
         public string? SigningPdfDataType { get; set; }
+        [System.Xml.Serialization.XmlElement("signingStateDataType", Namespace="http://altinn.no/process")]
+        public string? SigningStateDataType { get; set; }
         [System.Xml.Serialization.XmlArray(ElementName="uniqueFromSignaturesInDataTypes", IsNullable=true, Namespace="http://altinn.no/process")]
         [System.Xml.Serialization.XmlArrayItem(ElementName="dataType", Namespace="http://altinn.no/process")]
         public System.Collections.Generic.List<string> UniqueFromSignaturesInDataTypes { get; set; }

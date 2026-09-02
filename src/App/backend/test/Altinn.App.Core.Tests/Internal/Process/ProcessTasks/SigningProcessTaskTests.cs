@@ -54,6 +54,12 @@ public class SigningProcessTaskTests
                             TaskId = "Task_1",
                             AllowedContributors = ["app:owned"],
                         },
+                        new DataType()
+                        {
+                            Id = "SigningStateDataType",
+                            TaskId = "Task_1",
+                            AllowedContributors = ["app:owned"],
+                        },
                     ],
                 }
             );
@@ -94,6 +100,48 @@ public class SigningProcessTaskTests
 
         _signeeContextsManagerMock.VerifyAll();
         _signingServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Start_MissingSigningStateDataType_ThrowsApplicationConfigException()
+    {
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension
+        {
+            SignatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" },
+        };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+
+        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            _signingProcessTask.Start(CreateProcessTaskContext(dataMutator.Object))
+        );
+
+        Assert.Contains(nameof(AltinnSignatureConfiguration.SigningStateDataType), exception.Message);
+    }
+
+    [Fact]
+    public async Task Start_SigningStateDataTypeUnknown_ThrowsApplicationConfigException()
+    {
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension
+        {
+            SignatureConfiguration = new AltinnSignatureConfiguration
+            {
+                SignatureDataType = "SignatureDataType",
+                SigningStateDataType = "NotInMetadata",
+            },
+        };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+
+        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            _signingProcessTask.Start(CreateProcessTaskContext(dataMutator.Object))
+        );
+
+        Assert.Contains("NotInMetadata", exception.Message);
     }
 
     [Fact]
@@ -304,6 +352,7 @@ public class SigningProcessTaskTests
         return new AltinnSignatureConfiguration
         {
             SignatureDataType = "SignatureDataType",
+            SigningStateDataType = "SigningStateDataType",
             SigneeStatesDataTypeId = "SigneeStatesDataTypeId",
             SigneeProviderId = "SigneeProviderId",
         };

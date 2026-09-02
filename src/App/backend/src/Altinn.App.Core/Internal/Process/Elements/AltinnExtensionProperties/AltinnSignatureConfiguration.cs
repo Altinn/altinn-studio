@@ -51,6 +51,12 @@ public class AltinnSignatureConfiguration
     public string? SigneeStatesDataTypeId { get; set; }
 
     /// <summary>
+    /// The app-owned data type that holds the open signing round's mailbox record.
+    /// </summary>
+    [XmlElement("signingStateDataType", Namespace = "http://altinn.no/process")]
+    public string? SigningStateDataType { get; set; }
+
+    /// <summary>
     /// Optionally set which dataTypeId that should be used for the signing task pdf. If not set, a pdf will not be generated.
     /// </summary>
     [XmlElement("signingPdfDataType", Namespace = "http://altinn.no/process")]

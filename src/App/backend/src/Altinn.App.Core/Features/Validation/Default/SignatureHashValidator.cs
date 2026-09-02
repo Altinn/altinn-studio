@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
@@ -122,7 +122,7 @@ internal sealed class SignatureHashValidator(
             cancellationToken: cancellationToken
         );
 
-        string sha256Hash = await GenerateSha256Hash(dataStream);
+        string sha256Hash = await SignatureHashHelper.GenerateSha256Hash(dataStream, cancellationToken);
 
         if (sha256Hash != dataElementSignature.Sha256Hash)
         {
@@ -168,24 +168,5 @@ internal sealed class SignatureHashValidator(
         }
 
         return !string.IsNullOrEmpty(dataType.ActionRequiredToRead);
-    }
-
-    private static async Task<string> GenerateSha256Hash(Stream stream)
-    {
-        using var sha256 = SHA256.Create();
-        byte[] digest = await sha256.ComputeHashAsync(stream);
-        return FormatShaDigest(digest);
-    }
-
-    /// <summary>
-    /// Formats a SHA digest with common best practice:<br/>
-    /// Lowercase hexadecimal representation without delimiters
-    /// </summary>
-    /// <param name="digest">The hash code (digest) to format</param>
-    /// <returns>String representation of the digest</returns>
-    /// <remarks>This mirrors how the altinn-storage formats the Sha digest when creating the signature document, and it must stay in sync.</remarks>
-    private static string FormatShaDigest(byte[] digest)
-    {
-        return Convert.ToHexString(digest).ToLowerInvariant();
     }
 }
