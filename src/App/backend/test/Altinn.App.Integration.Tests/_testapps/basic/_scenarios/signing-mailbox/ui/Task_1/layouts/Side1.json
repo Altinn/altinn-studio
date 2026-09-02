@@ -1,0 +1,50 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "heading-task1",
+        "type": "Heading",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "Fill in the form"
+        }
+      },
+      {
+        "id": "input-property1",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "model",
+            "field": "property1"
+          }
+        },
+        "textResourceBindings": {
+          "title": "Property 1"
+        },
+        "required": true
+      },
+      {
+        "id": "input-property2",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "model",
+            "field": "property2"
+          }
+        },
+        "textResourceBindings": {
+          "title": "Property 2"
+        },
+        "required": true
+      },
+      {
+        "id": "submit-task1",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}

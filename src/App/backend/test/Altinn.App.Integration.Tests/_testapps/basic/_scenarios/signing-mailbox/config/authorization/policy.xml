@@ -94,7 +94,7 @@
     </xacml:Target>
   </xacml:Rule>
   <xacml:Rule RuleId="urn:altinn:resource:app_[ORG]_[APP]:policyid:1:ruleid:3" Effect="Permit">
-    <xacml:Description>Permit a second test user (1001, who holds no role for the instance owner) to sign on the signing task, so the round can require two distinct signees.</xacml:Description>
+    <xacml:Description>Permit a second test user (1001, who holds no role for the instance owner) to read and sign on the signing task, so the round can require two distinct signees.</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>
@@ -124,6 +124,12 @@
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">sign</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>

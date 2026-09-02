@@ -61,7 +61,8 @@ public sealed class FixtureConfigurationService
         var scenario = config.AppScenario ?? "default";
         if (scenario != "default")
         {
-            SyncScenarioConfig(env.ContentRootPath);
+            SyncScenarioOverrides(env.ContentRootPath, "config");
+            SyncScenarioOverrides(env.ContentRootPath, "ui");
 
             var scenarioOverridePath = Path.Join(env.ContentRootPath, "scenario-overrides", "services");
             if (Directory.Exists(scenarioOverridePath))
@@ -104,15 +105,16 @@ public sealed class FixtureConfigurationService
         }
     }
 
-    private static void SyncScenarioConfig(string contentRootPath)
+    private static void SyncScenarioOverrides(string contentRootPath, string folder)
     {
-        var scenarioConfigPath = Path.Join(contentRootPath, "scenario-overrides", "config");
+        var scenarioConfigPath = Path.Join(contentRootPath, "scenario-overrides", folder);
         if (!Directory.Exists(scenarioConfigPath))
         {
-            SnapshotLogger.LogInitWarning($"No scenario config directory found at {scenarioConfigPath}");
+            if (folder == "config")
+                SnapshotLogger.LogInitWarning($"No scenario config directory found at {scenarioConfigPath}");
             return;
         }
-        var targetConfigPath = Path.Join(contentRootPath, "config");
+        var targetConfigPath = Path.Join(contentRootPath, folder);
 
         foreach (var file in Directory.GetFiles(scenarioConfigPath, "*", SearchOption.AllDirectories))
         {
