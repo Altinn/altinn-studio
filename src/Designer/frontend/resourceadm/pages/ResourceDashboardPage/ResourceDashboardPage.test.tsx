@@ -11,6 +11,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -326,9 +327,11 @@ const renderResourceDashboardPage = (
 ) => {
   return render(
     <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <ResourceDashboardPage />
-      </ServicesContextProvider>
+      <FeatureFlagsContextProvider value={{ flags: [] }}>
+        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+          <ResourceDashboardPage />
+        </ServicesContextProvider>
+      </FeatureFlagsContextProvider>
     </MemoryRouter>,
   );
 };
