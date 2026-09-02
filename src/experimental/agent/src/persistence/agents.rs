@@ -56,7 +56,10 @@ pub(super) fn list(connection: &Connection) -> Result<Vec<AgentRecord>, Error> {
 pub(super) fn put(connection: &mut Connection, record: &AgentRecord, expected_generation: u64) -> Result<(), Error> {
     let id = record.id;
     let name = &record.agent.metadata.name;
-    let source = serde_json::to_string(&record.source_directory)?;
+    let source = serde_json::to_string(&crate::Provenance {
+        source_directory: record.source_directory.clone(),
+        manifest_path: record.manifest_path.clone(),
+    })?;
     let desired = encode_desired(&record.agent)?;
     let transaction = connection.transaction().map_err(database_error)?;
     let changed = if expected_generation == 0 {
@@ -71,7 +74,7 @@ pub(super) fn put(connection: &mut Connection, record: &AgentRecord, expected_ge
                     source,
                     desired,
                     deletion_timestamp(&record.agent),
-                    serde_json::to_string(&record.agent.status)?
+                    encode_status(&record.agent.status)?
                 ],
             )
             .map_err(database_error)?
@@ -111,7 +114,7 @@ pub(super) fn update_status(
     let changed = transaction
         .execute(
             "UPDATE agents SET status_json = ?1 WHERE id = ?2 AND active_name IS NOT NULL",
-            params![serde_json::to_string(&status)?, id.to_string()],
+            params![encode_status(status)?, id.to_string()],
         )
         .map_err(database_error)?;
     if changed != 1 {
@@ -166,6 +169,22 @@ fn encode_desired(agent: &Agent) -> Result<String, Error> {
     serde_json::to_string(&desired).map_err(Error::from)
 }
 
+/// Serializes status for storage, scrubbing API-projected provenance.
+fn encode_status(status: &Status) -> Result<String, Error> {
+    let mut status = status.clone();
+    status.provenance = None;
+    serde_json::to_string(&status).map_err(Error::from)
+}
+
+/// Source-column payload: current writes store [`crate::Provenance`]; rows
+/// written before the manifest path was recorded hold a bare directory string.
+#[derive(serde::Deserialize)]
+#[serde(untagged)]
+enum StoredSource {
+    Provenance(crate::Provenance),
+    Directory(std::path::PathBuf),
+}
+
 fn deletion_timestamp(agent: &Agent) -> Option<i64> {
     agent
         .metadata
@@ -181,7 +200,10 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
     let deletion = row.get::<_, Option<i64>>(4)?;
     let status = row.get::<_, String>(5)?;
     let id = id.parse::<AgentId>().map_err(conversion_error)?;
-    let source_directory = serde_json::from_str(&source).map_err(conversion_error)?;
+    let (source_directory, manifest_path) = match serde_json::from_str(&source).map_err(conversion_error)? {
+        StoredSource::Provenance(provenance) => (provenance.source_directory, provenance.manifest_path),
+        StoredSource::Directory(directory) => (directory, None),
+    };
     let mut agent = serde_json::from_str::<Agent>(&desired).map_err(conversion_error)?;
     if agent.metadata.name != active_name {
         return Err(rusqlite::Error::InvalidQuery);
@@ -194,6 +216,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
     Ok(AgentRecord {
         id,
         source_directory,
+        manifest_path,
         agent,
     })
 }

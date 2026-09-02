@@ -61,16 +61,16 @@ impl Reconciler {
                     return Err(error);
                 }
             };
-            let status = Status {
-                observed_generation: record.agent.metadata.generation,
-                sandbox: Some(crate::sandbox::Assignment::Selected { provider }),
-                conditions: vec![condition(
+            let status = Status::observed(
+                record.agent.metadata.generation,
+                Some(crate::sandbox::Assignment::Selected { provider }),
+                vec![condition(
                     READY,
                     ConditionStatus::False,
                     "ProviderSelected",
                     "Sandbox provisioning has not completed",
                 )],
-            };
+            );
             self.update_status(&record, status.clone()).await?;
             record.agent.status = status;
         }
@@ -79,14 +79,14 @@ impl Reconciler {
             Ok(ensured) => ensured,
             Err(error) => {
                 let message = error.to_string();
-                let status = Status {
-                    observed_generation: record.agent.metadata.generation,
-                    sandbox: record.agent.status.sandbox.clone(),
-                    conditions: vec![
+                let status = Status::observed(
+                    record.agent.metadata.generation,
+                    record.agent.status.sandbox.clone(),
+                    vec![
                         condition(READY, ConditionStatus::False, "SandboxReconcileFailed", &message),
                         condition(SANDBOX_READY, ConditionStatus::False, "ReconcileFailed", &message),
                     ],
-                };
+                );
                 self.update_status(&record, status).await?;
                 return Err(error);
             }
@@ -101,17 +101,17 @@ impl Reconciler {
             .provider()
             .clone();
 
-        let status = Status {
-            observed_generation: record.agent.metadata.generation,
-            sandbox: Some(crate::sandbox::Assignment::Materialized {
+        let status = Status::observed(
+            record.agent.metadata.generation,
+            Some(crate::sandbox::Assignment::Materialized {
                 provider,
                 id: ensured.id,
             }),
-            conditions: vec![
+            vec![
                 condition(SANDBOX_READY, ConditionStatus::True, "SandboxRunning", ""),
                 condition(READY, ConditionStatus::True, "SandboxReady", ""),
             ],
-        };
+        );
         self.update_status(&record, status).await?;
         if ensured.runtime_restarted {
             self.notify_sessions(record.id);
@@ -130,11 +130,11 @@ impl Reconciler {
     async fn record_failure(&self, record: &AgentRecord, reason: &str, error: &Error) -> Result<(), Error> {
         self.update_status(
             record,
-            Status {
-                observed_generation: record.agent.metadata.generation,
-                sandbox: record.agent.status.sandbox.clone(),
-                conditions: vec![condition(READY, ConditionStatus::False, reason, &error.to_string())],
-            },
+            Status::observed(
+                record.agent.metadata.generation,
+                record.agent.status.sandbox.clone(),
+                vec![condition(READY, ConditionStatus::False, reason, &error.to_string())],
+            ),
         )
         .await
     }

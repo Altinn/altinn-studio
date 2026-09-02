@@ -17,22 +17,23 @@ use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
 fn ready_record(name: &str, id: AgentId) -> AgentRecord {
     let mut resource = support::agent(name);
     resource.metadata.generation = 1;
-    resource.status = Status {
-        observed_generation: 1,
-        sandbox: Some(SandboxAssignment::Materialized {
+    resource.status = Status::observed(
+        1,
+        Some(SandboxAssignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
         }),
-        conditions: vec![Condition {
+        vec![Condition {
             kind: "Ready".into(),
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
         }],
-    };
+    );
     AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
+        manifest_path: None,
         agent: resource,
     }
 }

@@ -2,7 +2,7 @@
 
 mod support;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
@@ -25,6 +25,7 @@ fn record_with_id(name: &str, generation: u64, id: AgentId) -> AgentRecord {
     AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
+        manifest_path: None,
         agent,
     }
 }
@@ -35,20 +36,53 @@ fn record(name: &str, generation: u64) -> AgentRecord {
 
 fn ready_record(name: &str, id: AgentId) -> AgentRecord {
     let mut ready = record_with_id(name, 1, id);
-    ready.agent.status = Status {
-        observed_generation: 1,
-        sandbox: Some(Assignment::Materialized {
+    ready.agent.status = Status::observed(
+        1,
+        Some(Assignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
         }),
-        conditions: vec![Condition {
+        vec![Condition {
             kind: "Ready".into(),
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
         }],
-    };
+    );
     ready
+}
+
+#[test]
+fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let mut record = ready_record("worker", test_agent_id());
+        record.manifest_path = Some(PathBuf::from("/source/worker.yml"));
+        record.agent.status.provenance = Some(agent::Provenance {
+            source_directory: PathBuf::from("/leaked"),
+            manifest_path: None,
+        });
+        store.put(record.clone(), 0).await.expect("Agent stored");
+
+        let stored = store.get(record.id).await.expect("Agent loaded");
+        assert_eq!(stored.agent.status.provenance, None);
+        assert_eq!(stored.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
+        assert_eq!(stored.source_directory, record.source_directory);
+
+        let mut status = stored.agent.status.clone();
+        status.provenance = Some(agent::Provenance {
+            source_directory: PathBuf::from("/leaked"),
+            manifest_path: None,
+        });
+        store
+            .update_status(record.id, stored.agent.metadata.generation, status)
+            .await
+            .expect("status updated");
+        let reloaded = store.get(record.id).await.expect("Agent reloaded");
+        assert_eq!(reloaded.agent.status.provenance, None);
+        assert_eq!(reloaded.agent.status.conditions, stored.agent.status.conditions);
+    });
 }
 
 #[test]
