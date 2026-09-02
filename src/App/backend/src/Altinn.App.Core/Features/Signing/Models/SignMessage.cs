@@ -14,9 +14,6 @@ internal sealed record SignMessage
     [JsonPropertyName("version")]
     public required int Version { get; init; }
 
-    [JsonPropertyName("requestId")]
-    public required string RequestId { get; init; }
-
     [JsonPropertyName("signee")]
     public required SigneeInfo Signee { get; init; }
 

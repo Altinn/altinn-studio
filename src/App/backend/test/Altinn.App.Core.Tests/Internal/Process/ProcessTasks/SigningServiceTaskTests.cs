@@ -319,33 +319,10 @@ public class SigningServiceTaskTests
         ServiceTaskOpeningStageResult result = await OpenSigningRound(dataMutator.Object);
 
         Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
-        dataMutator.VerifyAll();
+        dataMutator.Verify();
         dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
         SigningRoundState? state = JsonSerializer.Deserialize<SigningRoundState>(_writtenSigningState.Span);
         Assert.Equal(new SigningRoundState("Task_1", _mailboxId, _deadline), state);
-    }
-
-    [Fact]
-    public async Task OpenSigningRound_ReplacesAnExistingSigningStateElement()
-    {
-        DataElement existing = new()
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "SigningStateDataType",
-            ContentType = "application/json",
-        };
-        Instance instance = CreateInstance(existing);
-        var dataMutator = CreateDataMutator(instance);
-        SetupSigningStateWrite(dataMutator);
-        dataMutator.Setup(x => x.RemoveDataElement(It.Is<DataElementIdentifier>(id => id.Id == existing.Id)));
-        _processReaderMock
-            .Setup(x => x.GetAltinnTaskExtension("Task_1"))
-            .Returns(new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() });
-
-        ServiceTaskOpeningStageResult result = await OpenSigningRound(dataMutator.Object);
-
-        Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
-        dataMutator.VerifyAll();
     }
 
     [Fact]
@@ -388,12 +365,14 @@ public class SigningServiceTaskTests
 
     private ReadOnlyMemory<byte> SetupSigningStateWrite(Mock<IInstanceDataMutator> dataMutator)
     {
-        dataMutator.Setup(x =>
-            x.OverrideAuthenticationMethod(
-                It.Is<DataType>(d => d.Id == "SigningStateDataType"),
-                It.IsAny<StorageAuthenticationMethod>()
+        dataMutator
+            .Setup(x =>
+                x.OverrideAuthenticationMethod(
+                    It.Is<DataType>(d => d.Id == "SigningStateDataType"),
+                    It.IsAny<StorageAuthenticationMethod>()
+                )
             )
-        );
+            .Verifiable(Times.Once);
         dataMutator
             .Setup(x =>
                 x.AddBinaryDataElement(
@@ -419,7 +398,8 @@ public class SigningServiceTaskTests
                     ReadOnlyMemory<byte>.Empty,
                     "Task_1"
                 )
-            );
+            )
+            .Verifiable(Times.Once);
         return _writtenSigningState;
     }
 
@@ -451,7 +431,7 @@ public class SigningServiceTaskTests
     private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
         new() { InstanceDataMutator = dataMutator };
 
-    private static Instance CreateInstance(params DataElement[] dataElements)
+    private static Instance CreateInstance()
     {
         return new Instance()
         {
@@ -461,7 +441,7 @@ public class SigningServiceTaskTests
             {
                 CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "Task_1" },
             },
-            Data = [.. dataElements],
+            Data = [],
         };
     }
 

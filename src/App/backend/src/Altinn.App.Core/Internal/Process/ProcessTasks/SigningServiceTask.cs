@@ -14,7 +14,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using StorageSignee = Altinn.Platform.Storage.Interface.Models.Signee;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -157,10 +156,7 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
         await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, ct);
     }
 
-    /// <summary>
-    /// Publishes the mailbox as the signing-state element. Replacing any existing element of that type first is
-    /// what keeps a retried or deferred attempt, handed the same mailbox, from duplicating it.
-    /// </summary>
+    /// <summary>Publishes the mailbox as the signing-state element.</summary>
     private async Task<ServiceTaskOpeningStageResult> OpenSigningRound(
         ServiceTaskContext context,
         ServiceTaskMailbox mailbox
@@ -187,11 +183,6 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
             [signingStateDataType],
             StorageAuthenticationMethod.ServiceOwner()
         );
-
-        foreach (DataElement existing in dataMutator.GetDataElementsForType(signingStateDataType).ToList())
-        {
-            dataMutator.RemoveDataElement(existing);
-        }
 
         dataMutator.AddBinaryDataElement(
             signingStateDataType,
@@ -225,8 +216,9 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
 
     /// <summary>
     /// Turns one sign message into a signature document. Every step is idempotent for a redelivered or retried
-    /// message: the signed time is the message's accepted time, documents by the same signee are replaced, and the
-    /// receipt is keyed on the message id.
+    /// message: the document id is the step id, the signed time is the message's accepted time, and the receipt is
+    /// keyed on the message id. A re-sign by the same signee within the round never reaches this handler: the
+    /// mailbox key is derived from the signee, so the engine deduplicates it.
     /// </summary>
     private async Task<ServiceTaskExchangeResult> HandleSignMessage(ServiceTaskContext context, ServiceTaskReply reply)
     {
@@ -287,27 +279,15 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        DataElement[] signatureElements = dataMutator.GetDataElementsForType(signatureDataType).ToArray();
-        SignDocument[] existingDocuments = await Task.WhenAll(
-            signatureElements.Select(async element =>
-                SignDocumentManager.Deserialize(await dataMutator.GetBinaryData(element))
-            )
-        );
-
-        List<SignDocument> signDocuments = [];
-        for (int i = 0; i < signatureElements.Length; i++)
-        {
-            if (SigneesAreEqual(existingDocuments[i].SigneeInfo, signDocument.SigneeInfo))
-            {
-                dataMutator.RemoveDataElement(signatureElements[i]);
-            }
-            else
-            {
-                signDocuments.Add(existingDocuments[i]);
-            }
-        }
-
-        signDocuments.Add(signDocument);
+        List<SignDocument> signDocuments =
+        [
+            .. await Task.WhenAll(
+                dataMutator
+                    .GetDataElementsForType(signatureDataType)
+                    .Select(async element => SignDocumentManager.Deserialize(await dataMutator.GetBinaryData(element)))
+            ),
+            signDocument,
+        ];
 
         dataMutator.AddBinaryDataElement(
             signatureDataType,
@@ -343,7 +323,7 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
         }
 
         // The element added above is not visible through the accessor until the save, so the completion rule is
-        // evaluated over the documents this execution knows: the ones kept, plus the one just built.
+        // evaluated over the documents this execution knows: the existing ones, plus the one just built.
         List<SigneeContext> signeeContexts = await _signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
             taskId,
             await _signeeContextsManager.GetSigneeContexts(dataMutator, signatureConfiguration, ct),
@@ -412,13 +392,6 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
             Signed = true,
         };
     }
-
-    /// <summary>Storage's replace rule: a document is the same signee's when all four identity fields match.</summary>
-    private static bool SigneesAreEqual(StorageSignee a, StorageSignee b) =>
-        a.UserId == b.UserId
-        && a.SystemUserId == b.SystemUserId
-        && a.PersonNumber == b.PersonNumber
-        && a.OrganisationNumber == b.OrganisationNumber;
 
     private async Task InitialiseRuntimeDelegatedSigning(
         IInstanceDataMutator cachedDataMutator,

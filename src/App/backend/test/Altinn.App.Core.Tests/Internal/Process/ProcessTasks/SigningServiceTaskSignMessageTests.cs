@@ -19,7 +19,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
-using StorageSignee = Altinn.Platform.Storage.Interface.Models.Signee;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
 
@@ -315,39 +314,6 @@ public class SigningServiceTaskSignMessageTests
         Assert.Single(_addedSignatures);
     }
 
-    [Fact]
-    public async Task HandleSignMessage_SameSigneeAgain_ReplacesTheEarlierDocument()
-    {
-        DataElement sameSignee = AddExistingSignature(
-            ExistingDocument(new StorageSignee { UserId = "1337", PersonNumber = "12345678901" })
-        );
-        // Same person, but on behalf of an organization: a different signee on Storage's four-field rule.
-        AddExistingSignature(
-            ExistingDocument(
-                new StorageSignee
-                {
-                    UserId = "1337",
-                    PersonNumber = "12345678901",
-                    OrganisationNumber = "910000000",
-                }
-            )
-        );
-
-        ServiceTaskExchangeResult result = await Handle(Reply(Message()));
-
-        Assert.IsType<ServiceTaskSuccessResult>(result);
-        _dataMutator.Verify(
-            x => x.RemoveDataElement(It.Is<DataElementIdentifier>(id => id.Id == sameSignee.Id)),
-            Times.Once
-        );
-        _dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Once);
-        Assert.Single(_addedSignatures);
-        List<SignDocument> evaluated = Assert.Single(_synchronizedDocuments);
-        Assert.Equal(2, evaluated.Count);
-        Assert.Contains(evaluated, d => d.SigneeInfo.OrganisationNumber == "910000000");
-        Assert.DoesNotContain(evaluated, d => d.Id == "existing-same-signee");
-    }
-
     [Theory]
     [InlineData("not json")]
     [InlineData("{}")]
@@ -485,7 +451,6 @@ public class SigningServiceTaskSignMessageTests
         new()
         {
             Version = SignMessage.CurrentVersion,
-            RequestId = IdempotencyKey,
             Signee = new SignMessage.SigneeInfo { UserId = "1337", PersonNumber = "12345678901" },
             Language = "nb",
             DataElementIds = [_modelElement.Id],
@@ -498,24 +463,6 @@ public class SigningServiceTaskSignMessageTests
             IdempotencyKey = idempotencyKey,
             AcceptedAt = _acceptedAt,
             Position = 0,
-        };
-
-    private SignDocument ExistingDocument(StorageSignee signee) =>
-        new()
-        {
-            Id = signee.OrganisationNumber is null ? "existing-same-signee" : "existing-on-behalf-of",
-            InstanceGuid = _instanceGuid.ToString(),
-            SignedTime = _acceptedAt.UtcDateTime.AddDays(-1),
-            SigneeInfo = signee,
-            DataElementSignatures =
-            [
-                new SignDocument.DataElementSignature
-                {
-                    DataElementId = _modelElement.Id,
-                    Sha256Hash = "stale",
-                    Signed = true,
-                },
-            ],
         };
 
     private DataElement AddExistingSignature(SignDocument document)

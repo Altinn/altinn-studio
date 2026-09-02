@@ -62,7 +62,7 @@
       ],
       "taskId": "Task_Sign",
       "maxCount": 0,
-      "minCount": 1,
+      "minCount": 2,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],

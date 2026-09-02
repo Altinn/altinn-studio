@@ -38,6 +38,22 @@ internal static class SignatureRequestHelper
         }
     }
 
+    /// <summary>
+    /// The mailbox idempotency key of a signee: one per signee within a round, so the workflow engine deduplicates
+    /// a re-sign by the same signee.
+    /// </summary>
+    internal static string GetSigneeIdempotencyKey(Signee signee)
+    {
+        string subject = signee switch
+        {
+            { UserId: { Length: > 0 } userId } => $"user:{userId}",
+            { SystemUserId: { } systemUserId } => $"system:{systemUserId}",
+            _ => throw new InvalidOperationException("The signee has neither a user id nor a system user id."),
+        };
+
+        return string.IsNullOrEmpty(signee.OrganizationNumber) ? subject : $"{subject}:org:{signee.OrganizationNumber}";
+    }
+
     internal static List<DataType> GetDataTypesToSign(
         ApplicationMetadata appMetadata,
         AltinnSignatureConfiguration signatureConfiguration

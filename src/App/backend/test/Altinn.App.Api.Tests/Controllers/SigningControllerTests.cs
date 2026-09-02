@@ -6,6 +6,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers.Serialization;
@@ -31,6 +32,7 @@ using Moq;
 using Xunit.Abstractions;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
 using SigneeContextState = Altinn.App.Core.Features.Signing.Models.SigneeContextState;
+using SignSignee = Altinn.App.Core.Internal.Sign.Signee;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
@@ -1741,8 +1743,7 @@ public class SigningControllerTests
         Assert.Equal("signing", forwarded.Reply.ServiceTaskType);
         SignMessage message = DeserializeSignMessage(forwarded.Reply.Payload);
         Assert.Equal(SignMessage.CurrentVersion, message.Version);
-        Assert.False(string.IsNullOrEmpty(message.RequestId));
-        Assert.Equal(message.RequestId, forwarded.Reply.IdempotencyKey);
+        Assert.Equal("user:1337", forwarded.Reply.IdempotencyKey);
         Assert.Equal("1337", message.Signee.UserId);
         Assert.Equal("12345678901", message.Signee.PersonNumber);
         Assert.Null(message.Signee.SystemUserId);
@@ -1773,6 +1774,7 @@ public class SigningControllerTests
 
         Assert.IsType<AcceptedResult>(actionResult);
         Assert.NotNull(forwarded.Reply);
+        Assert.Equal("user:1337:org:123456789", forwarded.Reply.IdempotencyKey);
         SignMessage message = DeserializeSignMessage(forwarded.Reply.Payload);
         Assert.Equal("1337", message.Signee.UserId);
         Assert.Equal("123456789", message.Signee.OrganizationNumber);
@@ -1792,6 +1794,7 @@ public class SigningControllerTests
 
         Assert.IsType<AcceptedResult>(actionResult);
         Assert.NotNull(forwarded.Reply);
+        Assert.Equal($"system:{TestAuthentication.DefaultSystemUserId}", forwarded.Reply.IdempotencyKey);
         SignMessage message = DeserializeSignMessage(forwarded.Reply.Payload);
         Assert.Null(message.Signee.UserId);
         Assert.Equal(Guid.Parse(TestAuthentication.DefaultSystemUserId), message.Signee.SystemUserId);
@@ -1855,6 +1858,42 @@ public class SigningControllerTests
         var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
 
         AssertProblem(actionResult, expectedStatus, expectedTitle);
+    }
+
+    [Theory]
+    [InlineData("1337", null, null, "user:1337")]
+    [InlineData("1337", null, "123456789", "user:1337:org:123456789")]
+    [InlineData(null, TestAuthentication.DefaultSystemUserId, null, "system:" + TestAuthentication.DefaultSystemUserId)]
+    [InlineData(
+        null,
+        TestAuthentication.DefaultSystemUserId,
+        "123456789",
+        "system:" + TestAuthentication.DefaultSystemUserId + ":org:123456789"
+    )]
+    public void GetSigneeIdempotencyKey_IsDerivedFromTheSigneeIdentity(
+        string? userId,
+        string? systemUserId,
+        string? organizationNumber,
+        string expected
+    )
+    {
+        var signee = new SignSignee
+        {
+            UserId = userId,
+            SystemUserId = systemUserId is null ? null : Guid.Parse(systemUserId),
+            PersonNumber = "12345678901",
+            OrganizationNumber = organizationNumber,
+        };
+
+        Assert.Equal(expected, SignatureRequestHelper.GetSigneeIdempotencyKey(signee));
+    }
+
+    [Fact]
+    public void GetSigneeIdempotencyKey_WithoutUserOrSystemUser_Throws()
+    {
+        var signee = new SignSignee { PersonNumber = "12345678901", OrganizationNumber = "123456789" };
+
+        Assert.Throws<InvalidOperationException>(() => SignatureRequestHelper.GetSigneeIdempotencyKey(signee));
     }
 
     private static readonly Guid _mailboxId = Guid.Parse("6f9b2b1e-3f6a-4d0c-9a7e-2c1d5e8f0a11");

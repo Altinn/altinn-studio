@@ -18,9 +18,11 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 /// <summary>
 /// The built-in signing task as a mailbox-backed pipeline, end to end: the transition into the task opens
-/// the round and publishes its mailbox in the signing-state element, the signing endpoint forwards one sign
-/// message into that mailbox, and the reply handler turns it into an app-written sign document whose hashes
-/// the test recomputes from the stored bytes, concluding the round and auto-advancing the process.
+/// the round and publishes its mailbox in the signing-state element, the signing endpoint forwards sign
+/// messages into that mailbox keyed on the signee, and the reply handler turns each into an app-written sign
+/// document whose hashes the test recomputes from the stored bytes. The round requires two signatures: a
+/// re-sign by the first signee is accepted and deduplicated by the engine, and the second signee's message
+/// concludes the round and auto-advances the process.
 /// </summary>
 /// <remarks>
 /// Deliberately assertion-based rather than snapshot-based, for the reason
@@ -39,12 +41,16 @@ public class WorkflowEngineSigningMailboxTests(ITestOutputHelper output, AppFixt
     private const string SigningStateDataType = "signing-state";
     private const int SignerUserId = 1337;
     private const string SignerPartyId = "501337";
+    private const int SecondSignerUserId = 1001;
     private const string MainOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
     // Keep in sync with StudioctlEnvironment.WaitForEngineReady - the engine's host-exposed address.
     private static readonly Uri _engineBaseAddress = new("http://workflow-engine.local.altinn.cloud:8000");
     private static readonly TimeSpan _roundTimeout = TimeSpan.FromSeconds(90);
+
+    // Long enough for a message the engine did accept to have been handled and saved.
+    private static readonly TimeSpan _dedupeSettleTime = TimeSpan.FromSeconds(3);
 
     // SignedTime is the engine's AcceptedAt, stamped on the engine container's clock, not the host's.
     private static readonly TimeSpan _clockSkewAllowance = TimeSpan.FromSeconds(30);
@@ -63,13 +69,14 @@ public class WorkflowEngineSigningMailboxTests(ITestOutputHelper output, AppFixt
     ];
 
     [Fact]
-    public async Task SigningRound_OneSigner_SignsThroughTheMailboxAndAutoAdvances()
+    public async Task SigningRound_TwoSigners_DeduplicatesAReSignAndAutoAdvancesOnTheSecondSignature()
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.Basic, scenario: "signing-mailbox");
         var fixture = fixtureScope.Fixture;
         DateTimeOffset testStart = DateTimeOffset.UtcNow;
 
         string token = await fixture.Auth.GetUserToken(userId: SignerUserId);
+        string secondToken = await fixture.Auth.GetUserToken(userId: SecondSignerUserId);
 
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
@@ -132,18 +139,58 @@ public class WorkflowEngineSigningMailboxTests(ITestOutputHelper output, AppFixt
             await AssertStatus(HttpStatusCode.Accepted, signResponse);
         }
 
-        // ---- The handler wrote the sign document, concluded the round, and the process auto-advanced ----
-        Instance signed = await WaitForSignatureAndProcessEnd(fixture, token, instance);
+        // ---- The handler wrote the first document; the round needs two signatures, so it stays open ----
+        Instance onceSigned = await WaitForInstance(
+            fixture,
+            token,
+            instance,
+            i => SignatureCount(i) == 1,
+            "one signature"
+        );
+        Assert.Equal(SigningTaskId, onceSigned.Process.CurrentTask?.ElementId);
+
+        // ---- The same signee signs again: accepted, because the mailbox key is the signee's and the engine
+        //      answers a repeated key as already delivered - so no second document appears ----
+        using (var reSignResponse = await Sign(fixture, token, onceSigned))
+        {
+            await AssertStatus(HttpStatusCode.Accepted, reSignResponse);
+        }
+
+        await Task.Delay(_dedupeSettleTime);
+        Instance afterReSign = await GetInstance(fixture, token, instance);
+        Assert.Equal(1, SignatureCount(afterReSign));
+        Assert.Equal(SigningTaskId, afterReSign.Process.CurrentTask?.ElementId);
+        Assert.Null(afterReSign.Process.Ended);
+
+        // ---- The second signee signs: the round concludes and the process auto-advances ----
+        using (var secondSignResponse = await Sign(fixture, secondToken, afterReSign))
+        {
+            await AssertStatus(HttpStatusCode.Accepted, secondSignResponse);
+        }
+
+        Instance signed = await WaitForInstance(
+            fixture,
+            token,
+            instance,
+            i => SignatureCount(i) == 2 && i.Process?.Ended is not null,
+            "two signatures and an ended process"
+        );
         Assert.Equal(EndEventId, signed.Process.EndEvent);
         Assert.Null(signed.Process.CurrentTask);
 
-        DataElement signatureElement = Assert.Single(signed.Data, d => d.DataType == SignatureDataType);
-        Assert.Equal("application/json", signatureElement.ContentType);
-        Assert.Equal($"{SignatureDataType}.json", signatureElement.Filename);
+        List<SignDocument> signDocuments = [];
+        foreach (DataElement signatureElement in signed.Data.Where(d => d.DataType == SignatureDataType))
+        {
+            Assert.Equal("application/json", signatureElement.ContentType);
+            Assert.Equal($"{SignatureDataType}.json", signatureElement.Filename);
+            signDocuments.Add(await DownloadJson<SignDocument>(fixture, token, signed, signatureElement));
+        }
 
-        SignDocument signDocument = await DownloadJson<SignDocument>(fixture, token, signed, signatureElement);
+        SignDocument signDocument = Assert.Single(
+            signDocuments,
+            d => d.SigneeInfo.UserId == SignerUserId.ToString(CultureInfo.InvariantCulture)
+        );
         Assert.Equal(collectionKey, signDocument.InstanceGuid);
-        Assert.Equal(SignerUserId.ToString(CultureInfo.InvariantCulture), signDocument.SigneeInfo.UserId);
         Assert.False(
             string.IsNullOrEmpty(signDocument.SigneeInfo.PersonNumber),
             "The signee's person number was not resolved from the signer's profile."
@@ -173,22 +220,52 @@ public class WorkflowEngineSigningMailboxTests(ITestOutputHelper output, AppFixt
             Assert.Equal(Convert.ToHexStringLower(SHA256.HashData(storedBytes)), signature.Sha256Hash);
         }
 
+        // ---- The second signee's document is theirs, over the same bytes ----
+        SignDocument secondSignDocument = Assert.Single(
+            signDocuments,
+            d => d.SigneeInfo.UserId == SecondSignerUserId.ToString(CultureInfo.InvariantCulture)
+        );
+        Assert.Equal(collectionKey, secondSignDocument.InstanceGuid);
+        Assert.Null(secondSignDocument.SigneeInfo.OrganisationNumber);
+        Assert.Equal(
+            signDocument
+                .DataElementSignatures.OrderBy(s => s.DataElementId)
+                .Select(s => (s.DataElementId, s.Sha256Hash)),
+            secondSignDocument
+                .DataElementSignatures.OrderBy(s => s.DataElementId)
+                .Select(s => (s.DataElementId, s.Sha256Hash))
+        );
+
         // ---- The process has ended, so there is no signing task to sign on any more ----
         using (var lateSignResponse = await Sign(fixture, token, signed))
         {
             await AssertStatus(HttpStatusCode.BadRequest, lateSignResponse);
         }
 
-        // ---- Nothing left parked: one receiver, completed, and every workflow in the collection settled ----
+        // ---- Nothing left parked: one receiver per handled message - the first, and its successor after
+        //      message 0; a handled duplicate would have left one after message 1 - each completed, and every
+        //      workflow in the collection settled ----
         List<EngineWorkflow> workflows = await WaitForSettledCollection(engineClient, ns, collectionKey);
-        EngineWorkflow receiver = Assert.Single(
-            workflows,
-            w => w.OperationId.StartsWith(MailboxReceiveOperationIdPrefix, StringComparison.Ordinal)
+        List<EngineWorkflow> receivers = workflows
+            .Where(w => w.OperationId.StartsWith(MailboxReceiveOperationIdPrefix, StringComparison.Ordinal))
+            .ToList();
+        Assert.True(
+            receivers.Count == 2,
+            $"Expected one receiver per handled message (two), but saw: [{Describe(workflows)}]"
         );
-        Assert.Equal(receiverOperationId, receiver.OperationId);
-        Assert.Equal("Completed", receiver.OverallStatus);
-        // The step names the handler it runs - this pipeline's conclusion, item 1.
-        Assert.Equal("ExecuteServiceTask: 1", Assert.Single(receiver.Steps).OperationId);
+        Assert.Equal(
+            [receiverOperationId, $"{MailboxReceiveOperationIdPrefix} {SigningTaskId} · after message 0"],
+            receivers.Select(receiver => receiver.OperationId).Order(StringComparer.Ordinal).ToList()
+        );
+        Assert.All(
+            receivers,
+            receiver =>
+            {
+                Assert.Equal("Completed", receiver.OverallStatus);
+                // The step names the handler it runs - this pipeline's conclusion, item 1.
+                Assert.Equal("ExecuteServiceTask: 1", Assert.Single(receiver.Steps).OperationId);
+            }
+        );
     }
 
     private static async Task<AppFixture.ApiResponse> Sign(AppFixture fixture, string token, Instance instance)
@@ -276,10 +353,12 @@ public class WorkflowEngineSigningMailboxTests(ITestOutputHelper output, AppFixt
         return await response.Content.ReadAsByteArrayAsync();
     }
 
-    private static async Task<Instance> WaitForSignatureAndProcessEnd(
+    private static async Task<Instance> WaitForInstance(
         AppFixture fixture,
         string token,
-        AppFixture.ReadApiResponse<Instance> instance
+        AppFixture.ReadApiResponse<Instance> instance,
+        Func<Instance, bool> condition,
+        string expectation
     )
     {
         DateTimeOffset deadline = DateTimeOffset.UtcNow + _roundTimeout;
@@ -287,24 +366,27 @@ public class WorkflowEngineSigningMailboxTests(ITestOutputHelper output, AppFixt
         while (DateTimeOffset.UtcNow < deadline)
         {
             Instance refreshed = await GetInstance(fixture, token, instance);
-            bool hasSignature = refreshed.Data.Any(d => d.DataType == SignatureDataType);
-            if (hasSignature && refreshed.Process?.Ended is not null)
+            if (condition(refreshed))
                 return refreshed;
 
-            lastSeen =
-                $"task={refreshed.Process?.CurrentTask?.ElementId ?? "(none)"}, "
-                + $"ended={refreshed.Process?.Ended?.ToString("O", CultureInfo.InvariantCulture) ?? "(no)"}, "
-                + $"signature={hasSignature}";
+            lastSeen = Describe(refreshed);
             await Task.Delay(TimeSpan.FromMilliseconds(500));
         }
 
         Assert.Fail(
-            $"The signing round did not conclude: no signature element and ended process within "
-                + $"{_roundTimeout.TotalSeconds:0}s. Last seen: {lastSeen}\n"
+            $"The instance did not reach '{expectation}' within {_roundTimeout.TotalSeconds:0}s. "
+                + $"Last seen: {lastSeen}\n"
                 + $"----- APP LOGS -----\n{await fixture.GetAppLogs()}"
         );
         throw new UnreachableException();
     }
+
+    private static int SignatureCount(Instance instance) => instance.Data.Count(d => d.DataType == SignatureDataType);
+
+    private static string Describe(Instance instance) =>
+        $"task={instance.Process?.CurrentTask?.ElementId ?? "(none)"}, "
+        + $"ended={instance.Process?.Ended?.ToString("O", CultureInfo.InvariantCulture) ?? "(no)"}, "
+        + $"signatures={SignatureCount(instance)}";
 
     private static async Task<List<EngineWorkflow>> WaitForSettledCollection(
         HttpClient engineClient,

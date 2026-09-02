@@ -439,11 +439,10 @@ public class SigningController : ControllerBase
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
         List<DataType> dataTypesToSign = SignatureRequestHelper.GetDataTypesToSign(appMetadata, signingConfiguration);
         var signee = await SignatureRequestHelper.GetSignee(currentAuth, onBehalfOf);
-        string requestId = Guid.NewGuid().ToString("N");
+        string idempotencyKey = SignatureRequestHelper.GetSigneeIdempotencyKey(signee);
         var message = new SignMessage
         {
             Version = SignMessage.CurrentVersion,
-            RequestId = requestId,
             Signee = new SignMessage.SigneeInfo
             {
                 UserId = signee.UserId,
@@ -467,7 +466,7 @@ public class SigningController : ControllerBase
                 signingRound.MailboxId,
                 AltinnTaskTypes.Signing,
                 JsonSerializer.Serialize(message),
-                requestId,
+                idempotencyKey,
                 ct
             );
         }
