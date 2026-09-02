@@ -130,6 +130,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let record = AgentRecord {
         id: agent_id,
         source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
         agent: resource,
     };
 
@@ -257,6 +258,7 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
     let record = AgentRecord {
         id: agent_id,
         source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
         agent: resource,
     };
     let backend = Rc::new(memory::Provider::new());
@@ -387,6 +389,7 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
     let record = AgentRecord {
         id: agent_id,
         source_directory: PathBuf::from(directory.path()),
+        manifest_path: None,
         agent: resource,
     };
     let backend = Rc::new(memory::Provider::new());

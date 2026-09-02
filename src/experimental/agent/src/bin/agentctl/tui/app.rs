@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, path::PathBuf};
 
 use agent::{
     Agent, ConditionStatus, Harness,
@@ -21,9 +21,10 @@ pub(crate) struct App {
     pub(crate) detail: Option<Detail>,
     pub(crate) modal: Option<Modal>,
     pub(crate) forwards: Vec<ForwardEntry>,
-    pub(crate) forwards_view: bool,
+    pub(crate) view: View,
     pub(crate) forward_selected: usize,
     pub(crate) creating: usize,
+    pub(crate) discovering: bool,
 }
 
 /// Display state of one process-owned port forward.
@@ -41,6 +42,13 @@ impl ForwardEntry {
         let local = self.local.strip_prefix("127.0.0.1:").unwrap_or(&self.local);
         format!("{local}:{}", self.guest_port)
     }
+}
+
+/// Which main screen the TUI is showing.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum View {
+    Tree,
+    Forwards,
 }
 
 pub(crate) struct Group {
@@ -72,7 +80,92 @@ pub(crate) enum Modal {
         harness: usize,
         error: Option<String>,
     },
+    CreateAgent(CreateForm),
     PortForward(ForwardForm),
+}
+
+/// One manifest source offered by the create-agent picker.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ManifestCandidate {
+    /// Full path of the manifest file.
+    pub(crate) path: PathBuf,
+    /// Decoded `metadata.name`, or why the manifest cannot be used.
+    pub(crate) name: Result<String, String>,
+}
+
+/// Create-agent form state: a manifest picker plus a placeholder-backed name.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct CreateForm {
+    pub(crate) candidates: Vec<ManifestCandidate>,
+    pub(crate) selected: usize,
+    pub(crate) name: String,
+    pub(crate) error: Option<String>,
+}
+
+impl CreateForm {
+    /// Returns the selected manifest's name, shown grayed while nothing is typed.
+    pub(crate) fn placeholder(&self) -> Option<&str> {
+        self.candidates.get(self.selected)?.name.as_deref().ok()
+    }
+
+    /// Applies one key press; a submitted or cancelled form returns its Action.
+    fn key(&mut self, key: KeyEvent, agents: &[Agent]) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter => match self.submission(agents) {
+                Ok(action) => return Some(action),
+                Err(invalid) => self.error = Some(invalid),
+            },
+            KeyCode::Tab | KeyCode::Right | KeyCode::Down => self.select(1),
+            KeyCode::BackTab | KeyCode::Left | KeyCode::Up => self.select(-1),
+            KeyCode::Backspace => {
+                self.name.pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                    && ::sandbox::SandboxName::accepts(character)
+                    && self.name.len() < ::sandbox::MAX_SANDBOX_NAME_BYTES =>
+            {
+                self.name.push(character);
+                self.error = None;
+            }
+            _ => {}
+        }
+        None
+    }
+
+    fn select(&mut self, delta: isize) {
+        if self.candidates.is_empty() {
+            return;
+        }
+        let length = isize::try_from(self.candidates.len()).unwrap_or(1);
+        let current = isize::try_from(self.selected).unwrap_or_default();
+        self.selected = usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default();
+        self.error = None;
+    }
+
+    fn submission(&self, agents: &[Agent]) -> Result<Action, String> {
+        let candidate = self
+            .candidates
+            .get(self.selected)
+            .ok_or_else(|| "no manifest available; apply one with agentctl apply -f".to_owned())?;
+        let manifest_name = candidate.name.as_ref().map_err(Clone::clone)?;
+        let name = if self.name.is_empty() {
+            manifest_name.clone()
+        } else {
+            self.name.clone()
+        };
+        ::sandbox::SandboxName::new(name.clone()).map_err(|invalid| format!("name: {invalid}"))?;
+        if agents.iter().any(|agent| agent.metadata.name == name) {
+            return Err(format!("agent {name:?} already exists"));
+        }
+        Ok(Action::CreateAgent {
+            manifest: candidate.path.clone(),
+            name,
+            form: self.clone(),
+        })
+    }
 }
 
 /// k9s-style port-forward form state.
@@ -195,6 +288,12 @@ pub(crate) enum Action {
         session: SessionName,
         harness: Harness,
     },
+    OpenCreate,
+    CreateAgent {
+        manifest: PathBuf,
+        name: String,
+        form: CreateForm,
+    },
     Exec {
         agent: String,
     },
@@ -243,9 +342,10 @@ impl App {
             detail: None,
             modal: None,
             forwards: Vec::new(),
-            forwards_view: false,
+            view: View::Tree,
             forward_selected: 0,
             creating: 0,
+            discovering: false,
         }
     }
 
@@ -321,7 +421,7 @@ impl App {
         }
         // The error screen renders over the forwards view, so its keys must
         // win over forwards_key while an error is shown.
-        if self.forwards_view && self.error.is_none() {
+        if self.view == View::Forwards && self.error.is_none() {
             return self.forwards_key(key);
         }
         self.main_key(key)
@@ -334,7 +434,8 @@ impl App {
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
             KeyCode::Char('r') => return Action::Refresh,
             KeyCode::Char('z') => self.toggle_all(),
-            KeyCode::Char('F') => self.forwards_view = true,
+            KeyCode::Char('F') => self.view = View::Forwards,
+            KeyCode::Char('c') => return Action::OpenCreate,
             _ => {
                 return match self.selected_row() {
                     Some(Row::Agent(group)) => self.agent_key(key, group),
@@ -348,7 +449,7 @@ impl App {
 
     fn forwards_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
-            KeyCode::Esc | KeyCode::Char('q' | 'F') => self.forwards_view = false,
+            KeyCode::Esc | KeyCode::Char('q' | 'F') => self.view = View::Tree,
             KeyCode::Down | KeyCode::Char('j') => self.move_forward_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_forward_selection(-1),
             KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
@@ -542,6 +643,13 @@ impl App {
                 });
                 Action::None
             }
+            Some(Modal::CreateAgent(mut form)) => {
+                if let Some(action) = form.key(key, &self.agents) {
+                    return action;
+                }
+                self.modal = Some(Modal::CreateAgent(form));
+                Action::None
+            }
             Some(Modal::PortForward(mut form)) => {
                 if let Some(action) = form.key(key) {
                     return action;
@@ -550,6 +658,36 @@ impl App {
                 Action::None
             }
             None => Action::None,
+        }
+    }
+
+    /// Opens the create-agent modal, preselecting the highlighted Agent's manifest.
+    pub(crate) fn open_create(&mut self, candidates: Vec<ManifestCandidate>) {
+        let manifest = match self.selected_row() {
+            Some(Row::Agent(group) | Row::Session { group, .. }) => self
+                .group_agent(group)
+                .and_then(|agent| agent.status.provenance.as_ref())
+                .map(agent::Provenance::manifest_or_default),
+            None => None,
+        };
+        let selected = manifest
+            .and_then(|manifest| candidates.iter().position(|candidate| candidate.path == manifest))
+            .unwrap_or_default();
+        self.modal = Some(Modal::CreateAgent(CreateForm {
+            candidates,
+            selected,
+            name: String::new(),
+            error: None,
+        }));
+    }
+
+    pub(crate) fn select_agent(&mut self, name: &str) {
+        let position = self.rows.iter().position(|row| {
+            matches!(row, Row::Agent(group)
+                if self.group_agent(*group).is_some_and(|agent| agent.metadata.name == name))
+        });
+        if let Some(position) = position {
+            self.selected = position;
         }
     }
 
@@ -694,13 +832,14 @@ impl App {
             return match modal {
                 Modal::ConfirmDelete { .. } => vec![("y", "confirm"), ("n", "cancel")],
                 Modal::NewSession { .. } => vec![("enter", "create"), ("tab", "harness"), ("esc", "cancel")],
+                Modal::CreateAgent { .. } => vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")],
                 Modal::PortForward { .. } => vec![("enter", "forward"), ("tab", "field"), ("esc", "cancel")],
             };
         }
         if self.detail.is_some() {
             return vec![("j/k", "scroll"), ("q", "back")];
         }
-        if self.forwards_view {
+        if self.view == View::Forwards {
             return vec![("e", "edit"), ("ctrl-d", "delete"), ("q", "back")];
         }
         match self.selected_row() {
@@ -709,6 +848,7 @@ impl App {
                 ("s", "describe"),
                 ("y", "yaml"),
                 ("n", "new session"),
+                ("c", "new agent"),
                 ("e", "exec"),
                 ("f", "forward"),
                 ("d", "delete"),
@@ -719,8 +859,9 @@ impl App {
                 ("s", "describe"),
                 ("y", "yaml"),
                 ("n", "new session"),
+                ("c", "new agent"),
             ],
-            None => Vec::new(),
+            None => vec![("c", "new agent")],
         }
     }
 }
@@ -1023,6 +1164,152 @@ mod tests {
         );
     }
 
+    fn candidates(entries: &[(&str, &str)]) -> Vec<ManifestCandidate> {
+        entries
+            .iter()
+            .map(|(directory, name)| ManifestCandidate {
+                path: PathBuf::from(directory).join("agent.yaml"),
+                name: Ok((*name).to_owned()),
+            })
+            .collect()
+    }
+
+    fn create_form(app: &App) -> &CreateForm {
+        let Some(Modal::CreateAgent(form)) = &app.modal else {
+            panic!("expected the CreateAgent modal");
+        };
+        form
+    }
+
+    #[test]
+    fn create_key_requests_manifest_discovery_even_without_agents() {
+        let mut app = App::new();
+        app.apply_snapshot(Vec::new(), Vec::new());
+        assert_eq!(app.hints(), vec![("c", "new agent")]);
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+        let mut app = populated();
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+        app.selected = 1;
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+    }
+
+    #[test]
+    fn open_create_preselects_the_highlighted_agents_manifest() {
+        let mut app = populated();
+        for agent in &mut app.agents {
+            if agent.metadata.name == "worker" {
+                agent.status.provenance = Some(agent::Provenance {
+                    source_directory: PathBuf::from("/sources/worker"),
+                    manifest_path: None,
+                });
+            }
+        }
+        app.selected = 3;
+        app.open_create(candidates(&[
+            ("/sources/builder", "builder"),
+            ("/sources/worker", "worker"),
+        ]));
+        let form = create_form(&app);
+        assert_eq!(form.selected, 1);
+        assert_eq!(form.placeholder(), Some("worker"));
+        assert_eq!(
+            app.hints(),
+            vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")]
+        );
+    }
+
+    #[test]
+    fn create_form_submits_the_placeholder_name_when_nothing_is_typed() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/sources/fresh", "fresh")]));
+        let Action::CreateAgent { manifest, name, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(manifest, PathBuf::from("/sources/fresh/agent.yaml"));
+        assert_eq!(name, "fresh");
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn create_form_placeholder_follows_selection_and_typed_names_win() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/a", "alpha"), ("/b", "beta")]));
+        assert_eq!(create_form(&app).placeholder(), Some("alpha"));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(create_form(&app).placeholder(), Some("beta"));
+        app.on_key(key(KeyCode::Char('m')));
+        app.on_key(key(KeyCode::Char('E')));
+        app.on_key(key(KeyCode::Char('y')));
+        assert_eq!(create_form(&app).name, "my");
+        let Action::CreateAgent { manifest, name, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(manifest, PathBuf::from("/b/agent.yaml"));
+        assert_eq!(name, "my");
+    }
+
+    #[test]
+    fn create_form_reports_duplicates_and_invalid_names_on_submit() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/sources/worker", "worker")]));
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert_eq!(
+            create_form(&app).error.as_deref(),
+            Some("agent \"worker\" already exists")
+        );
+        app.on_key(key(KeyCode::Char('-')));
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        let error = create_form(&app).error.as_deref().expect("invalid name error");
+        assert!(error.starts_with("name:"));
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Char('w')));
+        app.on_key(key(KeyCode::Char('2')));
+        let Action::CreateAgent { name, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(name, "w2");
+    }
+
+    #[test]
+    fn create_form_blocks_unreadable_manifests_and_empty_pickers() {
+        let mut app = populated();
+        app.open_create(vec![ManifestCandidate {
+            path: PathBuf::from("/gone/agent.yaml"),
+            name: Err("manifest cannot be decoded".into()),
+        }]);
+        assert_eq!(create_form(&app).placeholder(), None);
+        app.on_key(key(KeyCode::Enter));
+        assert_eq!(create_form(&app).error.as_deref(), Some("manifest cannot be decoded"));
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.modal.is_none());
+        app.open_create(Vec::new());
+        app.on_key(key(KeyCode::Enter));
+        assert!(create_form(&app).error.is_some());
+    }
+
+    #[test]
+    fn create_form_selection_wraps_and_clears_errors() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/a", "builder"), ("/b", "beta")]));
+        app.on_key(key(KeyCode::Enter));
+        assert!(create_form(&app).error.is_some());
+        app.on_key(key(KeyCode::Left));
+        let form = create_form(&app);
+        assert_eq!(form.selected, 1);
+        assert_eq!(form.error, None);
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(create_form(&app).selected, 0);
+    }
+
+    #[test]
+    fn select_agent_moves_the_selection_to_that_row() {
+        let mut app = populated();
+        app.select_agent("worker");
+        assert_eq!(app.selected, 2);
+        app.select_agent("missing");
+        assert_eq!(app.selected, 2);
+    }
+
     #[test]
     fn tones_reflect_agent_conditions_and_session_states() {
         let mut terminating = ready_agent("done");
@@ -1113,7 +1400,7 @@ mod tests {
             status: None,
         }]);
         app.on_key(key(KeyCode::Char('F')));
-        assert!(app.forwards_view);
+        assert_eq!(app.view, View::Forwards);
         assert_eq!(
             app.on_key(KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL)),
             Action::DeleteForward { id: 7 }
@@ -1128,7 +1415,7 @@ mod tests {
         app.on_key(key(KeyCode::Esc));
         assert!(app.modal.is_none());
         app.on_key(key(KeyCode::Char('q')));
-        assert!(!app.forwards_view);
+        assert_eq!(app.view, View::Tree);
     }
 
     #[test]
@@ -1138,10 +1425,10 @@ mod tests {
         app.error = Some("control plane unreachable".into());
         assert_eq!(app.on_key(key(KeyCode::Char('r'))), Action::Refresh);
         assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit);
-        assert!(app.forwards_view);
+        assert_eq!(app.view, View::Forwards);
         app.error = None;
         app.on_key(key(KeyCode::Char('q')));
-        assert!(!app.forwards_view);
+        assert_eq!(app.view, View::Tree);
     }
 
     #[test]
