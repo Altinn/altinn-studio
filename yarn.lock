@@ -132,8 +132,8 @@ __metadata:
   dependencies:
     "@app/language": "workspace:0.1.0"
     "@chromatic-com/storybook": "npm:5.3.0"
-    "@digdir/designsystemet-css": "npm:1.20.1"
-    "@digdir/designsystemet-react": "npm:1.20.1"
+    "@digdir/designsystemet-css": "npm:1.21.0"
+    "@digdir/designsystemet-react": "npm:1.21.0"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:10.0.1"
     "@navikt/aksel-icons": "npm:8.16.1"
@@ -185,7 +185,7 @@ __metadata:
     vite-tsconfig-paths: "npm:6.1.1"
     vitest: "npm:4.1.10"
   peerDependencies:
-    "@digdir/designsystemet-react": 1.20.1
+    "@digdir/designsystemet-react": 1.21.0
     "@navikt/aksel-icons": 8.16.1
     react: 19.2.8
     react-dom: 19.2.8
@@ -1976,12 +1976,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:1.20.1":
-  version: 1.20.1
-  resolution: "@digdir/designsystemet-css@npm:1.20.1"
+"@digdir/designsystemet-css@npm:1.21.0":
+  version: 1.21.0
+  resolution: "@digdir/designsystemet-css@npm:1.21.0"
   dependencies:
-    "@digdir/designsystemet-types": "npm:1.20.1"
-  checksum: 10/a763795a1aea87618b3a2f839cebfaa38c1ae2180b82988ae703967ae48a2e7a1c1b30ae2c02f18ca5ba926f6331fb81eca457e97045f87c05b9835e854a6d23
+    "@digdir/designsystemet-types": "npm:1.21.0"
+  checksum: 10/1d434d1d83464050861f4dd69eddaffbb3f674424f5ea94c31e9ab518bdf39413d1b0d8f9b174ccb0d0222bb1232810ad1e871f0ce217c1b4df34ba6b6938169
   languageName: node
   linkType: hard
 
@@ -2004,22 +2004,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-react@npm:1.20.1":
-  version: 1.20.1
-  resolution: "@digdir/designsystemet-react@npm:1.20.1"
+"@digdir/designsystemet-react@npm:1.21.0":
+  version: 1.21.0
+  resolution: "@digdir/designsystemet-react@npm:1.21.0"
   dependencies:
-    "@digdir/designsystemet-types": "npm:1.20.1"
-    "@digdir/designsystemet-web": "npm:1.20.1"
+    "@digdir/designsystemet-types": "npm:1.21.0"
+    "@digdir/designsystemet-web": "npm:1.21.0"
     "@floating-ui/dom": "npm:^1.8.0"
     "@floating-ui/react": "npm:0.26.23"
     "@navikt/aksel-icons": "npm:^8.16.1"
     "@radix-ui/react-slot": "npm:^1.3.3"
-    "@tanstack/react-virtual": "npm:^3.14.9"
+    "@tanstack/react-virtual": "npm:^3.14.10"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.3.1 || ^19.0.0"
     react-dom: ">=18.3.1 || ^19.0.0"
-  checksum: 10/9572c75bab155068716a65a892b8201351253d4f97173984b2e06cd5f61eb000687a10bcac3122b1694b9b9b5d8db4f2b2dcd1e3f3b4eb531c84b0df05b1681f
+  checksum: 10/694acee0097b14256c9322d3329e874f470c6016ed409f96d764a0205167ee0e67e78791f2efd9a998cd97143a06c2c8bfb57d47f4a3cf5e94649110f9a7e994
   languageName: node
   linkType: hard
 
@@ -2039,10 +2039,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-types@npm:1.20.1":
-  version: 1.20.1
-  resolution: "@digdir/designsystemet-types@npm:1.20.1"
-  checksum: 10/05b05ce3855a95d15f12500667f75417a2bb1d0b4e28b3c77b63fc76b121fda8651ce82393e286a826b7e75bdcecf69730094fea6d8b3d03ea5601695f583b8c
+"@digdir/designsystemet-types@npm:1.21.0":
+  version: 1.21.0
+  resolution: "@digdir/designsystemet-types@npm:1.21.0"
+  checksum: 10/6a7aa18921ec106b7411c5b77177bbc70d68cede130aa95168280da85869d319f6176987fb950e5a4fa4172571765f8a3598209465366a6962be22cb96ec9aa5
   languageName: node
   linkType: hard
 
@@ -2066,16 +2066,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-web@npm:1.20.1":
-  version: 1.20.1
-  resolution: "@digdir/designsystemet-web@npm:1.20.1"
+"@digdir/designsystemet-web@npm:1.21.0":
+  version: 1.21.0
+  resolution: "@digdir/designsystemet-web@npm:1.21.0"
   dependencies:
     "@floating-ui/dom": "npm:^1.8.0"
     "@u-elements/u-combobox": "npm:^2.1.3"
     "@u-elements/u-datalist": "npm:^2.0.3"
     "@u-elements/u-details": "npm:^1.0.0"
     "@u-elements/u-tabs": "npm:^1.0.4"
-  checksum: 10/5655606ce185a2a6a643ad4d40c1830ab68ab20b1e22ec735f1c6b2e206eda1281219f7ea357931efc3f0b5416bc23190d01578da87b800f19da699904842c5a
+  checksum: 10/28cb0feba1d24b8710b86c62b04ffa6bed7d9e537c5e65bde0330d31d887f48825a68ff2bd9ba6aaafacd5de89c2aaa8a04d6a2fde93d0a559127ba9c717e8ca
   languageName: node
   linkType: hard
 
@@ -5889,7 +5889,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.14.9":
+"@tanstack/react-virtual@npm:^3.14.10":
   version: 3.14.10
   resolution: "@tanstack/react-virtual@npm:3.14.10"
   dependencies:
@@ -7485,8 +7485,8 @@ __metadata:
     "@babel/runtime": "npm:7.29.7"
     "@babel/runtime-corejs3": "npm:7.29.7"
     "@date-fns/tz": "npm:1.5.0"
-    "@digdir/designsystemet-css": "npm:1.20.1"
-    "@digdir/designsystemet-react": "npm:1.20.1"
+    "@digdir/designsystemet-css": "npm:1.21.0"
+    "@digdir/designsystemet-react": "npm:1.21.0"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:^10.0.1"
     "@lhci/cli": "npm:^0.15.1"
