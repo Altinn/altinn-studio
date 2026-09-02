@@ -395,12 +395,12 @@ export const Config = new CG.component({
               'showInExpandedEdit',
               new CG.bool()
                 .optional({ default: true })
-                  .setTitle('Show in expanded edit', 'Vis i utvidet redigering')
-                  .setDescription(
-                    'If set to true, the component will be shown in the expanded edit view. This is also the default ' +
-                      'behavior, but can be turned off for components that are only to be edited in the table view.',
-                    'Viser komponenten i den utvidede redigeringsvisningen.',
-                  ),
+                .setTitle('Show in expanded edit', 'Vis i utvidet redigering')
+                .setDescription(
+                  'If set to true, the component will be shown in the expanded edit view. This is also the default ' +
+                    'behavior, but can be turned off for components that are only to be edited in the table view.',
+                  'Viser komponenten i den utvidede redigeringsvisningen.',
+                ),
             ),
           )
             .extends(CG.common('ITableColumnProperties'))
