@@ -45,6 +45,15 @@ public sealed record Workflow : PersistentItem
     public DateTimeOffset? BackoffUntil { get; set; }
 
     /// <summary>
+    /// Scheduling gate written by the failure-storm throttling circuit breaker: while set to a
+    /// future time, the fetch query skips this workflow (only when throttling is enabled).
+    /// A gate parallel to <see cref="BackoffUntil"/>, never a replacement — <see cref="BackoffUntil"/>
+    /// stays purely the retry/schedule clock, so throttle effects remain identifiable and undoable.
+    /// <c>null</c> when the workflow is not throttled.
+    /// </summary>
+    public DateTimeOffset? ThrottledUntil { get; set; }
+
+    /// <summary>
     /// Last time the owning worker proved liveness for this workflow.
     /// A workflow whose heartbeat falls outside <see cref="EngineSettings.StaleWorkflowThreshold"/>
     /// is considered stale and may be reclaimed by another worker.

@@ -54,6 +54,35 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task FetchAndLock_ThrottlingEnabled_UsesIndexScans()
+    {
+        // The throttle-gated fetch variant (throttled_until predicate) must keep being served by
+        // the partial fetch-gate index, which carries throttled_until as an INCLUDE column.
+        var ct = TestContext.Current.CancellationToken;
+        var interceptor = new SqlCapturingInterceptor();
+        var settings = Microsoft.Extensions.Options.Options.Create(
+            fixture.Settings with
+            {
+                Throttling = new ThrottlingSettings { Enabled = true },
+            }
+        );
+        var repo = fixture.CreateRepositoryWithInterceptor(interceptor, settings, _timeProvider);
+
+        await repo.FetchAndLockWorkflows(count: 5, ct);
+
+        var fetchQuery = interceptor.Queries.FirstOrDefault(q =>
+            q.Sql.Contains("throttled_until", StringComparison.Ordinal)
+        );
+        Assert.NotNull(fetchQuery);
+
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        var plan = await QueryPlanHelper.ExplainAsync(dataSource, fetchQuery, ct);
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
     public async Task GetActiveWorkflows_UsesIndexScans()
     {
         var ct = TestContext.Current.CancellationToken;
