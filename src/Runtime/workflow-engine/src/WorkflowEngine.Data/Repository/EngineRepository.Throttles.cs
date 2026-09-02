@@ -22,6 +22,41 @@ namespace WorkflowEngine.Data.Repository;
 /// </summary>
 internal sealed partial class EngineRepository
 {
+    // Every statement in this file interpolates its status literals from PersistentItemStatusMap
+    // constants, which tests pin to the map properties, so none of them can drift from the status
+    // sets — the same contract as DbMaintenanceService.Sql. The two fragments below are the pieces
+    // more than one statement shares; the rest sit with the method that runs them.
+
+    private const string RequeuedLiteral = PersistentItemStatusMap.RequeuedSqlLiteral;
+
+    /// <summary>
+    /// The current step (first non-terminal by processing order) of each candidate workflow,
+    /// as a reusable lateral fragment. A <c>Requeued</c> workflow always has one — it is the
+    /// step that failed.
+    /// </summary>
+    private const string CurrentStepLateral = $"""
+        SELECT st.requeue_count, st.retry_strategy_json, st.last_deferred_at, st.created_at, st.processing_order
+                FROM engine.steps st
+                WHERE st.job_id = w.id
+                  AND st.status NOT IN ({PersistentItemStatusMap.FinishedSqlList})
+                ORDER BY st.processing_order
+                LIMIT 1
+        """;
+
+    /// <summary>
+    /// One GROUP BY over the <c>ix_workflows_namespace_status_incomplete</c> partial index:
+    /// per-namespace Requeued and active counts, resolved from the index alone.
+    /// Hoisted for <c>QueryPlanTests</c>.
+    /// </summary>
+    internal const string NamespaceWorkflowCountsSql = $"""
+        SELECT namespace,
+               (COUNT(*) FILTER (WHERE status = {RequeuedLiteral}))::int AS requeued,
+               COUNT(*)::int AS active
+        FROM engine.workflows
+        WHERE status IN ({PersistentItemStatusMap.IncompleteSqlList})
+        GROUP BY namespace
+        """;
+
     /// <inheritdoc/>
     public async Task<IReadOnlyList<NamespaceWorkflowCounts>> GetNamespaceWorkflowCounts(
         CancellationToken cancellationToken
@@ -30,7 +65,7 @@ internal sealed partial class EngineRepository
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetNamespaceWorkflowCounts");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.NamespaceWorkflowCounts);
+        await using var cmd = dataSource.CreateCommand(NamespaceWorkflowCountsSql);
 
         var counts = new List<NamespaceWorkflowCounts>();
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
@@ -44,6 +79,19 @@ internal sealed partial class EngineRepository
         return counts;
     }
 
+    /// <summary>
+    /// Same counts for one namespace, excluding rows parked behind a future
+    /// <c>throttled_until</c> — the recovery re-trip signal.
+    /// </summary>
+    internal const string UnparkedNamespaceWorkflowCountsSql = $"""
+        SELECT (COUNT(*) FILTER (WHERE status = {RequeuedLiteral}))::int AS requeued,
+               COUNT(*)::int AS active
+        FROM engine.workflows
+        WHERE namespace = @ns
+          AND status IN ({PersistentItemStatusMap.IncompleteSqlList})
+          AND (throttled_until IS NULL OR throttled_until <= @now)
+        """;
+
     /// <inheritdoc/>
     public async Task<NamespaceWorkflowCounts> GetUnparkedNamespaceWorkflowCounts(
         string ns,
@@ -54,7 +102,7 @@ internal sealed partial class EngineRepository
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetUnparkedNamespaceWorkflowCounts");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.UnparkedNamespaceWorkflowCounts);
+        await using var cmd = dataSource.CreateCommand(UnparkedNamespaceWorkflowCountsSql);
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
 
@@ -77,13 +125,31 @@ internal sealed partial class EngineRepository
         return [.. entities.Select(e => e.ToDomainModel())];
     }
 
+    internal const string UpsertNamespaceThrottleSql = """
+        INSERT INTO engine.namespace_throttles
+            (namespace, state, tripped_at, current_window, canaries,
+             last_evaluated_at, last_requeued_count, last_active_count, updated_at)
+        VALUES
+            (@ns, @state, @trippedAt, @currentWindow, @canaries,
+             @lastEvaluatedAt, @lastRequeuedCount, @lastActiveCount, @updatedAt)
+        ON CONFLICT (namespace) DO UPDATE SET
+            state               = EXCLUDED.state,
+            tripped_at          = EXCLUDED.tripped_at,
+            current_window      = EXCLUDED.current_window,
+            canaries            = EXCLUDED.canaries,
+            last_evaluated_at   = EXCLUDED.last_evaluated_at,
+            last_requeued_count = EXCLUDED.last_requeued_count,
+            last_active_count   = EXCLUDED.last_active_count,
+            updated_at          = EXCLUDED.updated_at
+        """;
+
     /// <inheritdoc/>
     public async Task UpsertNamespaceThrottle(NamespaceThrottle throttle, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.UpsertNamespaceThrottle");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.UpsertNamespaceThrottle);
+        await using var cmd = dataSource.CreateCommand(UpsertNamespaceThrottleSql);
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", throttle.Namespace));
         cmd.Parameters.Add(new NpgsqlParameter<int>("state", (int)throttle.State));
         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("trippedAt", throttle.TrippedAt));
@@ -126,6 +192,35 @@ internal sealed partial class EngineRepository
         await context.NamespaceThrottles.Where(t => t.Namespace == ns).ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Selects the canaries (earliest <c>backoff_until</c> NULLS FIRST — the head of the fetch
+    /// order) and atomically unparks them: a rotation may promote a parked row, and canaries
+    /// probe on the normal retry schedule. <c>FOR UPDATE OF w SKIP LOCKED</c> skips rows a
+    /// worker holds mid-write, mirroring the fetch gate's locking discipline.
+    /// </summary>
+    internal const string SelectThrottleCanariesSql = $"""
+        WITH picked AS (
+            SELECT w.id, COALESCE(s.requeue_count, 0) AS requeue_count
+            FROM engine.workflows w
+            LEFT JOIN LATERAL (
+                {CurrentStepLateral}
+            ) s ON TRUE
+            WHERE w.namespace = @ns
+              AND w.status = {RequeuedLiteral}
+              AND NOT (w.id = ANY(@excluded))
+            ORDER BY w.backoff_until NULLS FIRST, w.id
+            LIMIT @count
+            FOR UPDATE OF w SKIP LOCKED
+        ),
+        unparked AS (
+            UPDATE engine.workflows w
+            SET throttled_until = NULL
+            FROM picked p
+            WHERE w.id = p.id
+        )
+        SELECT id, requeue_count FROM picked
+        """;
+
     /// <inheritdoc/>
     public async Task<IReadOnlyList<ThrottleCanary>> SelectThrottleCanaries(
         string ns,
@@ -137,7 +232,7 @@ internal sealed partial class EngineRepository
         using var activity = Metrics.Source.StartActivity("EngineRepository.SelectThrottleCanaries");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.SelectThrottleCanaries);
+        await using var cmd = dataSource.CreateCommand(SelectThrottleCanariesSql);
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
         cmd.Parameters.Add(new NpgsqlParameter<int>("count", count));
         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("excluded", [.. excludeWorkflowIds]));
@@ -154,6 +249,15 @@ internal sealed partial class EngineRepository
         return canaries;
     }
 
+    internal const string CanaryObservationsSql = $"""
+        SELECT w.id, w.status, COALESCE(s.requeue_count, 0)
+        FROM engine.workflows w
+        LEFT JOIN LATERAL (
+            {CurrentStepLateral}
+        ) s ON TRUE
+        WHERE w.id = ANY(@ids)
+        """;
+
     /// <inheritdoc/>
     public async Task<IReadOnlyList<ThrottleCanaryObservation>> GetThrottleCanaryObservations(
         IReadOnlyList<Guid> workflowIds,
@@ -166,7 +270,7 @@ internal sealed partial class EngineRepository
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetThrottleCanaryObservations");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.CanaryObservations);
+        await using var cmd = dataSource.CreateCommand(CanaryObservationsSql);
         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", [.. workflowIds]));
 
         var observations = new List<ThrottleCanaryObservation>(workflowIds.Count);
@@ -187,6 +291,34 @@ internal sealed partial class EngineRepository
         return observations;
     }
 
+    /// <summary>
+    /// One keyset page of park candidates with the deadline-clamp inputs: the current step's
+    /// retry strategy and anchor fields, and the previous step's completion time. Rows whose
+    /// stamp would land below the restamp cutoff are not revisited within a pass because
+    /// pagination is by id, not by the throttle predicate.
+    /// Hoisted for <c>QueryPlanTests</c>.
+    /// </summary>
+    internal const string ParkCandidatesSql = $"""
+        SELECT w.id, s.retry_strategy_json, s.last_deferred_at, s.created_at, prev.updated_at
+        FROM engine.workflows w
+        JOIN LATERAL (
+            {CurrentStepLateral}
+        ) s ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT p.updated_at
+            FROM engine.steps p
+            WHERE p.job_id = w.id AND p.processing_order = s.processing_order - 1
+            LIMIT 1
+        ) prev ON TRUE
+        WHERE w.namespace = @ns
+          AND w.status = {RequeuedLiteral}
+          AND NOT (w.id = ANY(@excluded))
+          AND (w.throttled_until IS NULL OR w.throttled_until <= @cutoff)
+          AND w.id > @afterId
+        ORDER BY w.id
+        LIMIT @limit
+        """;
+
     /// <inheritdoc/>
     public async Task<IReadOnlyList<ThrottleParkCandidate>> GetThrottleParkCandidates(
         string ns,
@@ -200,7 +332,7 @@ internal sealed partial class EngineRepository
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetThrottleParkCandidates");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.ParkCandidates);
+        await using var cmd = dataSource.CreateCommand(ParkCandidatesSql);
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("excluded", [.. excludeWorkflowIds]));
         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("cutoff", restampCutoff));
@@ -239,6 +371,22 @@ internal sealed partial class EngineRepository
         return candidates;
     }
 
+    /// <summary>
+    /// Unnest bulk stamp, guarded per row like the lease-CAS writes: only rows still
+    /// <c>Requeued</c> at write time are stamped. Deliberately does not touch
+    /// <c>updated_at</c> — throttle effects live only in <c>throttled_until</c>.
+    /// </summary>
+    internal const string StampThrottledUntilSql = $"""
+        UPDATE engine.workflows w
+        SET throttled_until = v.throttled_until
+        FROM (
+            SELECT * FROM unnest(@ids, @deadlines) AS t(id, throttled_until)
+            ORDER BY t.id
+        ) AS v
+        WHERE w.id = v.id
+          AND w.status = {RequeuedLiteral}
+        """;
+
     /// <inheritdoc/>
     public async Task<int> StampThrottledUntil(
         IReadOnlyList<(Guid WorkflowId, DateTimeOffset ThrottledUntil)> stamps,
@@ -259,7 +407,7 @@ internal sealed partial class EngineRepository
             deadlines[i] = stamps[i].ThrottledUntil;
         }
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.StampThrottledUntil);
+        await using var cmd = dataSource.CreateCommand(StampThrottledUntilSql);
         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
         cmd.Parameters.Add(
             new NpgsqlParameter("deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = deadlines }
@@ -267,6 +415,28 @@ internal sealed partial class EngineRepository
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Oldest-first (fair, and nearest-deadline-first) release with a jittered smear stamp:
+    /// <c>now + random() * smear</c> spreads the cohort across the poll window instead of
+    /// waking it in one fetch cycle. NULL-clearing here would do exactly that.
+    /// </summary>
+    internal const string ReleaseThrottledCohortSql = $"""
+        WITH cohort AS (
+            SELECT id
+            FROM engine.workflows
+            WHERE namespace = @ns
+              AND status = {RequeuedLiteral}
+              AND throttled_until > @now
+            ORDER BY created_at, id
+            LIMIT @cohortSize
+            FOR UPDATE SKIP LOCKED
+        )
+        UPDATE engine.workflows w
+        SET throttled_until = @now + (random() * @smear)
+        FROM cohort c
+        WHERE w.id = c.id
+        """;
 
     /// <inheritdoc/>
     public async Task<int> ReleaseThrottledCohort(
@@ -280,7 +450,7 @@ internal sealed partial class EngineRepository
         using var activity = Metrics.Source.StartActivity("EngineRepository.ReleaseThrottledCohort");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.ReleaseThrottledCohort);
+        await using var cmd = dataSource.CreateCommand(ReleaseThrottledCohortSql);
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
         cmd.Parameters.Add(new NpgsqlParameter<int>("cohortSize", cohortSize));
         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
@@ -289,194 +459,22 @@ internal sealed partial class EngineRepository
         return await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    internal const string ClearNamespaceThrottledUntilSql = """
+        UPDATE engine.workflows
+        SET throttled_until = NULL
+        WHERE namespace = @ns
+          AND throttled_until IS NOT NULL
+        """;
+
     /// <inheritdoc/>
     public async Task<int> ClearNamespaceThrottledUntil(string ns, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.ClearNamespaceThrottledUntil");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var cmd = dataSource.CreateCommand(ThrottleSql.ClearNamespaceThrottledUntil);
+        await using var cmd = dataSource.CreateCommand(ClearNamespaceThrottledUntilSql);
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// SQL for the throttle sweep. Status literals are interpolated from
-    /// <see cref="PersistentItemStatusMap"/> constants (test-pinned to the map properties) so
-    /// these statements cannot drift from the status sets — the same contract as
-    /// <c>DbMaintenanceService.Sql</c>.
-    /// </summary>
-    private static class ThrottleSql
-    {
-        private const string RequeuedLiteral = PersistentItemStatusMap.RequeuedSqlLiteral;
-
-        /// <summary>
-        /// One GROUP BY over the <c>ix_workflows_namespace_status_incomplete</c> partial index:
-        /// per-namespace Requeued and active counts, resolved from the index alone.
-        /// </summary>
-        internal const string NamespaceWorkflowCounts = $"""
-            SELECT namespace,
-                   (COUNT(*) FILTER (WHERE status = {RequeuedLiteral}))::int AS requeued,
-                   COUNT(*)::int AS active
-            FROM engine.workflows
-            WHERE status IN ({PersistentItemStatusMap.IncompleteSqlList})
-            GROUP BY namespace
-            """;
-
-        /// <summary>
-        /// Same counts for one namespace, excluding rows parked behind a future
-        /// <c>throttled_until</c> — the recovery re-trip signal.
-        /// </summary>
-        internal const string UnparkedNamespaceWorkflowCounts = $"""
-            SELECT (COUNT(*) FILTER (WHERE status = {RequeuedLiteral}))::int AS requeued,
-                   COUNT(*)::int AS active
-            FROM engine.workflows
-            WHERE namespace = @ns
-              AND status IN ({PersistentItemStatusMap.IncompleteSqlList})
-              AND (throttled_until IS NULL OR throttled_until <= @now)
-            """;
-
-        internal const string UpsertNamespaceThrottle = """
-            INSERT INTO engine.namespace_throttles
-                (namespace, state, tripped_at, current_window, canaries,
-                 last_evaluated_at, last_requeued_count, last_active_count, updated_at)
-            VALUES
-                (@ns, @state, @trippedAt, @currentWindow, @canaries,
-                 @lastEvaluatedAt, @lastRequeuedCount, @lastActiveCount, @updatedAt)
-            ON CONFLICT (namespace) DO UPDATE SET
-                state               = EXCLUDED.state,
-                tripped_at          = EXCLUDED.tripped_at,
-                current_window      = EXCLUDED.current_window,
-                canaries            = EXCLUDED.canaries,
-                last_evaluated_at   = EXCLUDED.last_evaluated_at,
-                last_requeued_count = EXCLUDED.last_requeued_count,
-                last_active_count   = EXCLUDED.last_active_count,
-                updated_at          = EXCLUDED.updated_at
-            """;
-
-        /// <summary>
-        /// The current step (first non-terminal by processing order) of each candidate workflow,
-        /// as a reusable lateral fragment. A <c>Requeued</c> workflow always has one — it is the
-        /// step that failed.
-        /// </summary>
-        private const string CurrentStepLateral = $"""
-            SELECT st.requeue_count, st.retry_strategy_json, st.last_deferred_at, st.created_at, st.processing_order
-                    FROM engine.steps st
-                    WHERE st.job_id = w.id
-                      AND st.status NOT IN ({PersistentItemStatusMap.FinishedSqlList})
-                    ORDER BY st.processing_order
-                    LIMIT 1
-            """;
-
-        /// <summary>
-        /// Selects the canaries (earliest <c>backoff_until</c> NULLS FIRST — the head of the fetch
-        /// order) and atomically unparks them: a rotation may promote a parked row, and canaries
-        /// probe on the normal retry schedule. <c>FOR UPDATE OF w SKIP LOCKED</c> skips rows a
-        /// worker holds mid-write, mirroring the fetch gate's locking discipline.
-        /// </summary>
-        internal const string SelectThrottleCanaries = $"""
-            WITH picked AS (
-                SELECT w.id, COALESCE(s.requeue_count, 0) AS requeue_count
-                FROM engine.workflows w
-                LEFT JOIN LATERAL (
-                    {CurrentStepLateral}
-                ) s ON TRUE
-                WHERE w.namespace = @ns
-                  AND w.status = {RequeuedLiteral}
-                  AND NOT (w.id = ANY(@excluded))
-                ORDER BY w.backoff_until NULLS FIRST, w.id
-                LIMIT @count
-                FOR UPDATE OF w SKIP LOCKED
-            ),
-            unparked AS (
-                UPDATE engine.workflows w
-                SET throttled_until = NULL
-                FROM picked p
-                WHERE w.id = p.id
-            )
-            SELECT id, requeue_count FROM picked
-            """;
-
-        internal const string CanaryObservations = $"""
-            SELECT w.id, w.status, COALESCE(s.requeue_count, 0)
-            FROM engine.workflows w
-            LEFT JOIN LATERAL (
-                {CurrentStepLateral}
-            ) s ON TRUE
-            WHERE w.id = ANY(@ids)
-            """;
-
-        /// <summary>
-        /// One keyset page of park candidates with the deadline-clamp inputs: the current step's
-        /// retry strategy and anchor fields, and the previous step's completion time. Rows whose
-        /// stamp would land below the restamp cutoff are not revisited within a pass because
-        /// pagination is by id, not by the throttle predicate.
-        /// </summary>
-        internal const string ParkCandidates = $"""
-            SELECT w.id, s.retry_strategy_json, s.last_deferred_at, s.created_at, prev.updated_at
-            FROM engine.workflows w
-            JOIN LATERAL (
-                {CurrentStepLateral}
-            ) s ON TRUE
-            LEFT JOIN LATERAL (
-                SELECT p.updated_at
-                FROM engine.steps p
-                WHERE p.job_id = w.id AND p.processing_order = s.processing_order - 1
-                LIMIT 1
-            ) prev ON TRUE
-            WHERE w.namespace = @ns
-              AND w.status = {RequeuedLiteral}
-              AND NOT (w.id = ANY(@excluded))
-              AND (w.throttled_until IS NULL OR w.throttled_until <= @cutoff)
-              AND w.id > @afterId
-            ORDER BY w.id
-            LIMIT @limit
-            """;
-
-        /// <summary>
-        /// Unnest bulk stamp, guarded per row like the lease-CAS writes: only rows still
-        /// <c>Requeued</c> at write time are stamped. Deliberately does not touch
-        /// <c>updated_at</c> — throttle effects live only in <c>throttled_until</c>.
-        /// </summary>
-        internal const string StampThrottledUntil = $"""
-            UPDATE engine.workflows w
-            SET throttled_until = v.throttled_until
-            FROM (
-                SELECT * FROM unnest(@ids, @deadlines) AS t(id, throttled_until)
-                ORDER BY t.id
-            ) AS v
-            WHERE w.id = v.id
-              AND w.status = {RequeuedLiteral}
-            """;
-
-        /// <summary>
-        /// Oldest-first (fair, and nearest-deadline-first) release with a jittered smear stamp:
-        /// <c>now + random() * smear</c> spreads the cohort across the poll window instead of
-        /// waking it in one fetch cycle. NULL-clearing here would do exactly that.
-        /// </summary>
-        internal const string ReleaseThrottledCohort = $"""
-            WITH cohort AS (
-                SELECT id
-                FROM engine.workflows
-                WHERE namespace = @ns
-                  AND status = {RequeuedLiteral}
-                  AND throttled_until > @now
-                ORDER BY created_at, id
-                LIMIT @cohortSize
-                FOR UPDATE SKIP LOCKED
-            )
-            UPDATE engine.workflows w
-            SET throttled_until = @now + (random() * @smear)
-            FROM cohort c
-            WHERE w.id = c.id
-            """;
-
-        internal const string ClearNamespaceThrottledUntil = """
-            UPDATE engine.workflows
-            SET throttled_until = NULL
-            WHERE namespace = @ns
-              AND throttled_until IS NOT NULL
-            """;
     }
 }

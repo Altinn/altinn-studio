@@ -550,6 +550,59 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    // The two throttle plans below assert the index and deliberately do not snapshot: this query's
+    // plan is not stable across environments — it has been seen to alternate between a bitmap scan
+    // and an index-only scan of the same index on one machine minutes apart, which is the same
+    // instability GetScheduledWorkflows' snapshot suffers from. The assertions state the invariant
+    // the index exists for; the full plan text states only which shape the planner chose today.
+
+    [Fact]
+    public async Task NamespaceWorkflowCounts_IsServedByTheNamespaceStatusIndex()
+    {
+        // The sweep's trip detection runs this every cycle over every incomplete workflow in the
+        // fleet, and ix_workflows_namespace_status_incomplete exists for it alone — its doc claims
+        // the counts resolve from the index without touching the heap. Nothing verified that
+        // claim, which is exactly how a partial filter drifts out of step with its query.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.NamespaceWorkflowCountsSql,
+            null,
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_status_incomplete");
+    }
+
+    [Fact]
+    public async Task ParkCandidates_IsServedByTheNamespaceStatusIndex()
+    {
+        // One keyset page of the park pass: filtered by (namespace, status), ordered by id. A park
+        // pass walks the whole Requeued population of a namespace one page at a time, so a plan
+        // that scans the table here scans it once per page.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.ParkCandidatesSql,
+            [
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<Guid[]>("excluded", []),
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now),
+                new NpgsqlParameter<Guid>("afterId", Guid.Empty),
+                new NpgsqlParameter<int>("limit", 500),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_status_incomplete");
+    }
+
     // --- Seed data ---
 
     /// <summary>
