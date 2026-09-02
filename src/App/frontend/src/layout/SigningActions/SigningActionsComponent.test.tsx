@@ -5,7 +5,7 @@ import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
 const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
-import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
+import { useIsAuthorized, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useProfile } from 'src/features/profile/ProfileProvider';
@@ -79,6 +79,10 @@ describe('SigningActionsComponent', () => {
       taskId,
     });
     vi.mocked(useIsAuthorized).mockReturnValue(() => true);
+    vi.mocked(useProcessQuery).mockReturnValue({
+      data: undefined,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useProcessQuery>);
 
     vi.mocked(useLanguage).mockReturnValue({
       langAsString: (inputString: string) => inputString,
@@ -313,6 +317,28 @@ describe('SigningActionsComponent', () => {
       expect(screen.getByTestId('submit-panel')).toBeInTheDocument();
     },
   );
+
+  it('should not render SubmitPanel while the signing round is open on a service task', () => {
+    vi.mocked(useProcessQuery).mockReturnValue({
+      data: { currentTask: { elementType: 'ServiceTask' } },
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useProcessQuery>);
+    mockedUseisAuthorized.mockReturnValue(() => true);
+    mockedGetCurrentUserStatus.mockReturnValue('signed');
+    mockedUseSignaturesValidation.mockReturnValue({
+      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+      hasMissingSignatures: false,
+    });
+
+    render(
+      <SigningActionsComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef()}
+      />,
+    );
+
+    expect(screen.queryByTestId('submit-panel')).not.toBeInTheDocument();
+  });
 });
 
 const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => renderRtl(ui, options);

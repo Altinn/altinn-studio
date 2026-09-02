@@ -4,7 +4,7 @@ import { useParams } from 'react-router';
 import { FatalError, FullWidthWrapper, Panel, Spinner } from '@app/form-component';
 
 import { ElementFocusProvider } from 'src/core/contexts/ElementFocusProvider';
-import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
+import { useIsAuthorized, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useProfile } from 'src/features/profile/ProfileProvider';
@@ -17,6 +17,7 @@ import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitPanel } from 'src/layout/SigningActions/PanelSubmit';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { getCurrentUserStatus } from 'src/layout/SigningActions/utils';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function SigningActionsComponent(props: PropsFromGenericComponent<'SigningActions'>) {
@@ -41,6 +42,7 @@ function SigningActionsPanels({ baseComponentId }: PropsFromGenericComponent<'Si
   const isAuthorized = useIsAuthorized();
   const canSign = isAuthorized('sign');
   const canWrite = useIsAuthorized()('write');
+  const currentTaskElementType = useProcessQuery().data?.currentTask?.elementType;
 
   const userSigneeParties = useUserSigneeParties();
   const currentUserStatus = getCurrentUserStatus(currentUserPartyId, userSigneeParties, canSign);
@@ -113,6 +115,10 @@ function SigningActionsPanels({ baseComponentId }: PropsFromGenericComponent<'Si
         hasSigned={currentUserStatus === 'signed'}
       />
     );
+  }
+
+  if (currentTaskElementType === ELEMENT_TYPE.SERVICE_TASK) {
+    return null;
   }
 
   return <SubmitPanel baseComponentId={baseComponentId} />;

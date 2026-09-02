@@ -12,6 +12,10 @@ export async function httpGet<T>(url: string, options?: AxiosRequestConfig): Pro
   return response.data;
 }
 
+export async function httpPost<T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) {
+  return axios.post<T, AxiosResponse<T>, D>(url, data, config);
+}
+
 export async function httpPut<T, D = unknown>(url: string, data: D, config?: AxiosRequestConfig) {
   return axios.put<T, AxiosResponse<T>, D>(url, data, config);
 }
