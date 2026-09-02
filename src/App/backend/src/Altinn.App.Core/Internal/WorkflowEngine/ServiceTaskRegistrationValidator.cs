@@ -70,7 +70,8 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         try
         {
             // Runs Define — a throwing or null-returning implementation lands here, as do the
-            // builder's own eager rejections (duplicate/empty stage names, invalid options).
+            // builder's own eager rejections (invalid options, a foreign or duplicate-answered
+            // mailbox handle, a mailbox left unanswered when a terminal ends the composition).
             _ = task.ResolvePipeline();
         }
         catch (Exception ex)

@@ -51,6 +51,30 @@ public static class Diagnostics
             "Incomplete registration discarded",
             "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
         );
+
+        // Close to the runtime backstop in ServiceTaskPipelineBuilder.ClaimMailbox (which names the opening
+        // stage's item index, which the analyzer cannot know), so an author who meets one of them after the
+        // other reads one rule rather than two. '{0}' is the identifier of the local the handle was declared
+        // into.
+        public static readonly DiagnosticDescriptor MailboxHandleAnsweredTwice = Error(
+            "ALTINNAPP0702",
+            Category.Contracts,
+            "Mailbox handle answered twice",
+            "The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered "
+                + "exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a "
+                + "second handler for the same exchange would be dead code."
+        );
+
+        // Likewise close to the wording of ServiceTaskPipelineBuilder.RequireEveryMailboxAnswered, which is
+        // what fails app startup for every shape this rule cannot prove.
+        public static readonly DiagnosticDescriptor MailboxNeverAnswered = Error(
+            "ALTINNAPP0703",
+            Category.Contracts,
+            "Mailbox opened but never answered",
+            "The mailbox opened into '{0}' is never answered: its handle is never passed anywhere, so the "
+                + "messages that come back would have no handler. Answer it before the pipeline ends — with "
+                + "HandleReplies to carry on afterwards, or with ConcludeOnReplies to end there."
+        );
     }
 
     public static class Authorization

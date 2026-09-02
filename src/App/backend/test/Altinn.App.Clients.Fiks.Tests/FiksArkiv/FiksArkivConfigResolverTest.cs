@@ -388,7 +388,7 @@ public class FiksArkivConfigResolverTest
     }
 
     [Fact]
-    public async Task GetCorrelationId_ReturnsInstanceUrl()
+    public async Task GetInstanceReference_ReturnsInstanceUrl()
     {
         // Arrange
         var appMetadata = new ApplicationMetadata("ttd/test-app");
@@ -405,7 +405,7 @@ public class FiksArkivConfigResolverTest
         fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
         // Act
-        var result = fixture.FiksArkivConfigResolver.GetCorrelationId(instance);
+        var result = fixture.FiksArkivConfigResolver.GetInstanceReference(instance);
 
         // Assert
         Assert.Equal(

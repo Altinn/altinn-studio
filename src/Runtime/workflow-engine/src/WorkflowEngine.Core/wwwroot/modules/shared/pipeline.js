@@ -1,7 +1,7 @@
 /* Pipeline rendering — step circles, connectors, phase labels */
 
 import { parseTransition, stepPhase, stepSubLabel } from '../core/state.js';
-import { esc, escHtml } from '../core/helpers.js';
+import { esc, escAttr, escHtml, escJsArg } from '../core/helpers.js';
 
 /**
  * @param {import('../core/state.js').StepStatus} status
@@ -70,25 +70,25 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     html +=
         `<div class="step-circle ${step.status}"` +
         ` style="cursor:pointer${isStatic ? ';animation:none;box-shadow:none' : ''}"` +
-        ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')">` +
+        ` onclick="openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(step.idempotencyKey)}','${escJsArg(step.commandDetail)}')">` +
         `${stepIcon(step.status)}</div>`;
 
     if (step.stateChanged) {
         html +=
             `<div class="step-state-badge"` +
             ` title="State mutated"` +
-            ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','state')">` +
+            ` onclick="openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(step.idempotencyKey)}','${escJsArg(step.commandDetail)}','state')">` +
             `</div>`;
     }
 
     const sub = stepSubLabel(step);
     html += `<div class="step-label-wrap">`;
-    html += `<div class="step-label" title="${esc(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
+    html += `<div class="step-label" title="${escAttr(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
     if (sub) html += `<div class="step-sublabel">${esc(sub)}</div>`;
     html += `</div>`;
 
     html += `<div class="step-meta">`;
-    html += `<span class="step-type ${esc(step.commandType)}">${esc(step.commandType)}</span>`;
+    html += `<span class="step-type ${escAttr(step.commandType)}">${esc(step.commandType)}</span>`;
     if (step.retryCount > 0) {
         html += `<div class="step-retry">&#8635;${step.retryCount}</div>`;
     }
@@ -100,11 +100,11 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
                 ? 'check now (skip wait timer)'
                 : 'Retry now (skip backoff timer)';
         const label = step.status === 'Waiting' ? 'check now' : 'retry now';
-        html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="${action}">${label}</button>`;
+        html += `<span class="step-backoff" data-backoff="${escAttr(backoff)}"></span>`;
+        html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${action}">${label}</button>`;
     }
     if (step.status === 'Failed') {
-        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
+        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
     }
     html += buildStepTimingHTML(step, isStatic);
     html += `</div></div>`;
