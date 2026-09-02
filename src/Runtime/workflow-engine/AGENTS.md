@@ -61,7 +61,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - `GET /api/v1/{namespace}/mailboxes/{mailboxId:guid}` — status, deadline, both log counters, and the unpaired-delivery count
 - `DELETE /api/v1/{namespace}/mailboxes/{mailboxId:guid}` — close for deliveries and release every parked receiver, in one transaction; terminal and idempotent (202 effected, 200 replay with the original disposal)
 - `POST /api/v1/{namespace}/mailboxes/{mailboxId:guid}/deliveries` — deliver one message (202 appended, idempotent 200 on a replayed key, 409 always means _too late_). Full status tables for all four endpoints are in the [technical guide's API reference](docs/technical-guide.md#api-reference)
-- Health endpoints: `/health`, `/health/ready`, `/health/live`
+- Health endpoints: `/api/v1/health` (all checks), `/api/v1/health/ready` (checks tagged `ready`), `/api/v1/health/live`. The versionless `/health`, `/health/ready` and `/health/live` are **301 redirects to `/api/v1/health`** for convenience — never point a probe at them, because a 3xx counts as a pass and the redirect never evaluates the readiness check
 - `GET /dashboard/mailboxes` — mailboxes grouped under named collections, each log laid out position by position; a bounded fetch rather than a field on the live SSE stream. Payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`
 - Dashboard SSE/REST endpoints under `/dashboard/*` (see Dashboard docs)
 

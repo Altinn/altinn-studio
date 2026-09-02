@@ -18,9 +18,22 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    private const int InitialWorkflowPollingDelayMs = 100;
+    // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
+    // wait adds to a settled transition and how many collection reads a slow one costs. Poll tightly
+    // for as long as a synchronous completion is still plausible - the same window as the parked
+    // release grace below - then slope off to the 2s cap, which bounds what a genuinely slow
+    // transition costs. Doubling from 100ms was the old shape, and its rungs (100/300/700/1500)
+    // overshot a ~115ms transition by ~190ms; a permanently tight ladder is the opposite mistake,
+    // turning a slow transition into a thousand reads. Change none of these without measuring both.
+    private const int InitialWorkflowPollingDelayMs = 50;
+    private const int WorkflowPollingTightWindowMs = 2_000;
+    private const int WorkflowPollingBackoffPercent = 50;
     private const int MaxWorkflowPollingDelayMs = 2_000;
     private const int AcceptanceProbeAttempts = 3;
+
+    // Not the polling delay above: this grace lets the engine's write buffer make the collection
+    // visible before an unknown enqueue is concluded "not accepted".
+    private const int AcceptanceProbeDelayMs = 100;
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
@@ -463,7 +476,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
             if (attempt < AcceptanceProbeAttempts - 1)
             {
-                await Task.Delay(InitialWorkflowPollingDelayMs, ct);
+                await Task.Delay(AcceptanceProbeDelayMs, ct);
             }
         }
 
@@ -584,7 +597,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             }
 
             await Task.Delay(currentDelayMs, ct);
-            currentDelayMs = Math.Min(currentDelayMs * 2, MaxWorkflowPollingDelayMs);
+            currentDelayMs =
+                stopwatch.ElapsedMilliseconds < WorkflowPollingTightWindowMs
+                    ? InitialWorkflowPollingDelayMs
+                    : Math.Min(
+                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
+                        MaxWorkflowPollingDelayMs
+                    );
         }
 
         ct.ThrowIfCancellationRequested();
