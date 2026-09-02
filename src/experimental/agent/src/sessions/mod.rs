@@ -1,5 +1,6 @@
 //! Durable, runtime-driven Sessions owned by the Agent daemon.
 
+mod attachment;
 mod controller;
 mod reconciler;
 mod service;
@@ -12,6 +13,7 @@ use uuid::Uuid;
 use crate::{AgentId, Error, Harness, sandbox};
 
 pub use crate::controller::Reconcile;
+pub use attachment::AttachmentService;
 pub use controller::{AgentNotifier, Controller, ErrorHandler, Wakeup};
 pub use reconciler::Reconciler;
 pub use service::Service;
@@ -213,8 +215,7 @@ pub struct Session {
 pub struct AttachTarget {
     /// Persistent Session metadata and driver assignment.
     pub session: Session,
-    // TODO: Replace this provider assignment with a daemon-owned attachment capability.
-    /// Provider-qualified materialized Sandbox assignment.
+    /// Provider-qualified materialized Sandbox assignment used only by daemon services.
     pub sandbox: sandbox::Assignment,
 }
 
@@ -288,18 +289,3 @@ pub trait SessionStore {
 }
 
 pub(crate) type SharedStore = std::rc::Rc<dyn SessionStore>;
-
-/// Attaches a local terminal to the Session's tmux runtime.
-///
-/// This single entry point is the seam for a later runtime replacement; only
-/// this module and `tmux` know how a Session is carried inside the Sandbox.
-///
-/// # Errors
-///
-/// Returns an error when the Session is not ready or the recorded Sandbox
-/// Provider cannot carry the attachment.
-pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(), Error> {
-    // TODO: Move attachment behind a runtime-neutral capability after a second
-    // Session runtime establishes the interface tmux currently supplies.
-    tmux::attach(home, target).await
-}

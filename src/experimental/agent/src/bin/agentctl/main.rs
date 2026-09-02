@@ -7,7 +7,7 @@ use std::{
 
 use agent::{
     Agent, ConditionStatus, Error,
-    control_api::Client,
+    control_api::{AttachedExecution, Client, PortForwardEvent},
     control_plane::ApplyRequest,
     local::{
         contexts::{CONTEXT_ENVIRONMENT_VARIABLE, Contexts, Endpoint},
@@ -21,10 +21,10 @@ use clap::{Parser, Subcommand};
 mod config;
 mod format;
 mod forward;
+mod terminal;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
-use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
@@ -220,7 +220,7 @@ fn run() -> CommandResult<ExitCode> {
     };
 
     let selected = contexts.select(context.as_deref(), environment_context.as_deref())?;
-    reject_unsupported_tcp(&command, selected.endpoint())?;
+    reject_insecure_tcp(&command, selected.endpoint())?;
     let runtime = LocalRuntime::new().map_err(Error::from)?;
     match selected.endpoint() {
         Endpoint::Local => {
@@ -249,7 +249,7 @@ fn environment_context() -> Result<Option<String>, Error> {
         .map_err(|_| Error::Configuration(format!("{CONTEXT_ENVIRONMENT_VARIABLE} is not valid UTF-8")))
 }
 
-fn reject_unsupported_tcp(command: &Command, endpoint: &Endpoint) -> CommandResult<()> {
+fn reject_insecure_tcp(command: &Command, endpoint: &Endpoint) -> CommandResult<()> {
     if !matches!(endpoint, Endpoint::Tcp(_)) {
         return Ok(());
     }
@@ -257,11 +257,11 @@ fn reject_unsupported_tcp(command: &Command, endpoint: &Endpoint) -> CommandResu
         Command::Claude { .. } | Command::Codex { .. } => {
             "authentication login is not permitted through an unauthenticated TCP context"
         }
-        Command::Attach { .. } => "attach is not supported through a TCP context yet",
-        Command::Exec { .. } => "exec is not supported through a TCP context yet",
-        Command::PortForward { .. } => "port-forward is not supported through a TCP context yet",
-        Command::Tui => "TUI is not supported through a TCP context yet",
         Command::Config { .. }
+        | Command::Attach { .. }
+        | Command::Exec { .. }
+        | Command::PortForward { .. }
+        | Command::Tui
         | Command::Apply { .. }
         | Command::Get { .. }
         | Command::Describe { .. }
@@ -321,18 +321,18 @@ async fn execute(command: Command, home: Option<&ControlPlaneHome>, client: &Cli
             name,
             agent,
             harness,
-        } => attach(require_local_home(home)?, client, &resource, name, agent, harness).await?,
+        } => attach(client, &resource, name, agent, harness).await?,
         Command::Exec {
             stdin,
             tty,
             resource,
             agent,
             command,
-        } => return exec_command(require_local_home(home)?, client, resource, agent, &command, stdin, tty).await,
+        } => return exec_command(client, resource, agent, &command, stdin, tty).await,
         Command::PortForward { agent, arguments } => {
-            return port_forward(require_local_home(home)?, client, agent, &arguments).await;
+            return port_forward(client, agent, &arguments).await;
         }
-        Command::Tui => return tui::run(require_local_home(home)?, client).await,
+        Command::Tui => return tui::run(client).await,
         Command::Wait {
             condition,
             timeout,
@@ -387,7 +387,6 @@ async fn get_resources(
 }
 
 async fn attach(
-    home: &ControlPlaneHome,
     client: &Client,
     resource: &str,
     name: Option<String>,
@@ -404,13 +403,21 @@ async fn attach(
         "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
         session = session.as_str()
     );
-    let target = client.ensure_session(&agent, session, harness).await?;
-    agent::sessions::attach(home.path(), &target).await?;
+    client.ensure_session(&agent, session.clone(), harness).await?;
+    let initial_size = terminal::current_size()?;
+    let attached = client.attach_session(&agent, session, initial_size).await?;
+    match terminal::run(attached).await? {
+        TerminalAttachOutcome::Exited(status) if status.success() => {}
+        TerminalAttachOutcome::Detached => {}
+        TerminalAttachOutcome::Exited(status) => {
+            return Err(Error::Session(format!("tmux attachment exited with code {}", status.code)).into());
+        }
+        _ => return Err(Error::Session("terminal attachment returned an unsupported outcome".into()).into()),
+    }
     Ok(())
 }
 
 async fn exec_command(
-    home: &ControlPlaneHome,
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
@@ -434,19 +441,15 @@ async fn exec_command(
     let target = client.ensure_execution(&agent).await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
-        match agent::sandbox::attach_terminal(
-            home.path(),
-            &target.sandbox,
-            ::sandbox::terminal::AttachTerminalRequest::new(spec),
-        )
-        .await?
-        {
+        let initial_size = terminal::current_size()?;
+        let attached = client.start_terminal_execution(&agent, spec, initial_size).await?;
+        match terminal::run(attached).await? {
             TerminalAttachOutcome::Exited(status) => status,
             TerminalAttachOutcome::Detached => return Ok(ExitCode::SUCCESS),
             _ => return Err(Error::Session("terminal execution returned an unsupported outcome".into()).into()),
         }
     } else {
-        let execution = agent::sandbox::start_execution(home.path(), &target, spec).await?;
+        let execution = client.start_execution(&agent, spec).await?;
         stream_execution(execution).await?
     };
     Ok(exit_code(status.code))
@@ -466,12 +469,7 @@ fn split_forward_arguments(arguments: &[String]) -> (Option<String>, &[String]) 
     }
 }
 
-async fn port_forward(
-    home: &ControlPlaneHome,
-    client: &Client,
-    agent: Option<String>,
-    arguments: &[String],
-) -> CommandResult<ExitCode> {
+async fn port_forward(client: &Client, agent: Option<String>, arguments: &[String]) -> CommandResult<ExitCode> {
     let (resource, ports) = split_forward_arguments(arguments);
     if agent.is_some() && resource.is_some() {
         return Err(Error::Invalid("the Agent was supplied both as an argument and with --agent".into()).into());
@@ -486,40 +484,51 @@ async fn port_forward(
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(&agent).await?;
-    let mut forwards = Vec::new();
-    for spec in specs {
-        let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
+    let specs = specs
+        .into_iter()
+        .map(forward::ForwardSpec::into_runtime)
+        .collect::<Result<Vec<_>, Error>>()?;
+    let mut forwards = client.start_port_forwards(&agent, specs).await?;
+    for binding in &forwards.bindings {
         println!(
             "Forwarding from {} -> {} (agent {agent:?})",
-            forward.local_address(),
-            forward.spec().guest_port
+            binding.local_address, binding.guest_port
         );
-        forwards.push(forward);
     }
-    let mut reported = vec![None; forwards.len()];
-    let mut poll = tokio::time::interval(Duration::from_secs(1));
+    let mut stopped = vec![false; forwards.bindings.len()];
     loop {
         tokio::select! {
             result = tokio::signal::ctrl_c() => {
                 result.map_err(Error::from)?;
                 return Ok(ExitCode::SUCCESS);
             }
-            _ = poll.tick() => {
-                for (forward, reported) in forwards.iter().zip(reported.iter_mut()) {
-                    let status = forward.status();
-                    if status != *reported {
-                        if let Some(message) = &status {
-                            eprintln!("{} -> {}: {message}", forward.local_address(), forward.spec().guest_port);
-                        }
-                        *reported = status;
+            event = forwards.events.next() => match event? {
+                Some(PortForwardEvent::Status { index, message }) => {
+                    let binding = forwards.bindings.get(index as usize)
+                        .ok_or_else(|| Error::Invalid("port-forward event has an invalid index".into()))?;
+                    if let Some(message) = message {
+                        eprintln!("{} -> {}: {message}", binding.local_address, binding.guest_port);
                     }
                 }
-                if forwards.iter().all(forward::PortForward::finished) {
+                Some(PortForwardEvent::Stopped { index, message }) => {
+                    let binding = forwards.bindings.get(index as usize)
+                        .ok_or_else(|| Error::Invalid("port-forward event has an invalid index".into()))?;
+                    if let Some(message) = message {
+                        eprintln!("{} -> {}: {message}", binding.local_address, binding.guest_port);
+                    }
+                    let entry = stopped.get_mut(index as usize)
+                        .ok_or_else(|| Error::Invalid("port-forward event has an invalid index".into()))?;
+                    *entry = true;
+                }
+                None => {
                     eprintln!("every port forward has stopped");
                     return Ok(ExitCode::FAILURE);
                 }
             }
+        }
+        if stopped.iter().all(|stopped| *stopped) {
+            eprintln!("every port forward has stopped");
+            return Ok(ExitCode::FAILURE);
         }
     }
 }
@@ -545,14 +554,12 @@ async fn resolve_execution_agent(
     require_name(name, "Agent").map_err(CommandError::from)
 }
 
-async fn stream_execution(
-    mut execution: ::sandbox::execution::StartedExecution,
-) -> Result<::sandbox::execution::ExitStatus, Error> {
+async fn stream_execution(mut execution: AttachedExecution) -> Result<::sandbox::execution::ExitStatus, Error> {
     let id = execution.id.clone();
     let mut stdout = tokio::io::stdout();
     let mut stderr = tokio::io::stderr();
-    while let Some(event) = execution.events.next().await {
-        match event? {
+    while let Some(event) = execution.events.next().await? {
+        match event {
             ExecutionEvent::Started { .. } => {}
             ExecutionEvent::Stdout(bytes) => stdout.write_all(&bytes).await?,
             ExecutionEvent::Stderr(bytes) => stderr.write_all(&bytes).await?,
@@ -1092,22 +1099,23 @@ mod tests {
     }
 
     #[test]
-    fn tcp_rejects_provider_local_and_credential_commands_before_execution() {
+    fn insecure_tcp_rejects_credentials_but_supports_runtime_commands() {
         let endpoint = Endpoint::Tcp("tcp://host.docker.internal:7463".parse().expect("valid TCP endpoint"));
+        for arguments in [vec!["agentctl", "claude", "login"], vec!["agentctl", "codex", "login"]] {
+            let parsed = Arguments::try_parse_from(arguments).expect("command should parse");
+            assert!(reject_insecure_tcp(&parsed.command, &endpoint).is_err());
+        }
+
         for arguments in [
-            vec!["agentctl", "claude", "login"],
-            vec!["agentctl", "codex", "login"],
             vec!["agentctl", "attach", "session/s1", "--agent", "worker"],
             vec!["agentctl", "exec", "worker", "--", "true"],
             vec!["agentctl", "port-forward", "worker", "8080"],
             vec!["agentctl", "tui"],
+            vec!["agentctl", "get", "agents"],
         ] {
             let parsed = Arguments::try_parse_from(arguments).expect("command should parse");
-            assert!(reject_unsupported_tcp(&parsed.command, &endpoint).is_err());
+            assert!(reject_insecure_tcp(&parsed.command, &endpoint).is_ok());
         }
-
-        let supported = Arguments::try_parse_from(["agentctl", "get", "agents"]).expect("get arguments");
-        assert!(reject_unsupported_tcp(&supported.command, &endpoint).is_ok());
     }
 
     #[test]

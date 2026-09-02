@@ -1,23 +1,18 @@
-//! Client-owned port forwards into Agent sandboxes.
-//!
-//! Forwards follow the k9s model: they live in this process, accept
-//! connections on a local listener, and dial the guest through the Sandbox
-//! agent relay. They end when the process exits or the forward is stopped.
+//! User-facing port-forward argument parsing.
 
-use std::{cell::RefCell, net::IpAddr, path::PathBuf, rc::Rc};
+use std::{cell::RefCell, net::IpAddr, rc::Rc};
 
 use agent::{
     Error,
-    sandbox::{Assignment, GuestDialer},
+    control_api::{Client, PortForwardEvent},
 };
-use tokio::net::TcpListener;
 
-/// One requested local-to-guest port mapping.
+/// One requested host-to-guest port mapping.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ForwardSpec {
-    /// Local interface address accepting connections.
+    /// Host interface address accepting connections.
     pub(crate) address: IpAddr,
-    /// Local port to bind; zero selects an ephemeral port.
+    /// Host port to bind; zero selects an ephemeral port.
     pub(crate) local_port: u16,
     /// Guest port that receives forwarded connections.
     pub(crate) guest_port: u16,
@@ -26,7 +21,7 @@ pub(crate) struct ForwardSpec {
 impl ForwardSpec {
     /// Parses `GUEST`, `LOCAL:GUEST`, or `ADDRESS:LOCAL:GUEST`.
     ///
-    /// An empty local port (`:GUEST`) selects an ephemeral local port.
+    /// An empty local port (`:GUEST`) selects an ephemeral port.
     pub(crate) fn parse(text: &str) -> Result<Self, String> {
         let parts = text.split(':').collect::<Vec<_>>();
         let (address, local, guest) = match parts.as_slice() {
@@ -52,127 +47,88 @@ impl ForwardSpec {
             guest_port,
         })
     }
+
+    pub(crate) fn into_runtime(self) -> Result<agent::sandbox::PortForwardSpec, agent::Error> {
+        agent::sandbox::PortForwardSpec::new(self.address, self.local_port, self.guest_port)
+    }
 }
 
-fn parse_port(text: &str) -> Result<u16, String> {
-    text.parse::<u16>().map_err(|_| format!("{text:?} is not a port"))
-}
-
-/// One running forward with its local listener task.
+/// UI-owned handle keeping one daemon port forward alive.
 pub(crate) struct PortForward {
     spec: ForwardSpec,
-    local: std::net::SocketAddr,
+    local_address: std::net::SocketAddr,
     task: tokio::task::JoinHandle<()>,
     status: Rc<RefCell<Option<String>>>,
 }
 
 impl PortForward {
-    /// Binds the local listener and serves connections until stopped.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the local address cannot be bound.
-    pub(crate) async fn start(home: PathBuf, assignment: Assignment, spec: ForwardSpec) -> Result<Self, Error> {
-        let listener = TcpListener::bind((spec.address, spec.local_port))
-            .await
-            .map_err(Error::from)?;
-        let local = listener.local_addr().map_err(Error::from)?;
+    /// Starts one daemon-owned forward through the selected Connector.
+    pub(crate) async fn start(client: &Client, agent: &str, spec: ForwardSpec) -> Result<Self, Error> {
+        let runtime_spec = spec.clone().into_runtime()?;
+        let mut session = client.start_port_forwards(agent, vec![runtime_spec]).await?;
+        let binding = session
+            .bindings
+            .pop()
+            .ok_or_else(|| Error::Invalid("port-forward response omitted its binding".into()))?;
+        if !session.bindings.is_empty() {
+            return Err(Error::Invalid("port-forward response returned extra bindings".into()));
+        }
         let status = Rc::new(RefCell::new(None));
-        let task = tokio::task::spawn_local(accept_loop(
-            home,
-            assignment,
-            spec.guest_port,
-            listener,
-            Rc::clone(&status),
-        ));
+        let task_status = status.clone();
+        let task = tokio::task::spawn_local(async move {
+            loop {
+                match session.events.next().await {
+                    Ok(Some(PortForwardEvent::Status { index: 0, message })) => {
+                        *task_status.borrow_mut() = message;
+                    }
+                    Ok(Some(PortForwardEvent::Stopped { index: 0, message })) => {
+                        *task_status.borrow_mut() = Some(message.unwrap_or_else(|| "listener stopped".into()));
+                        return;
+                    }
+                    Ok(Some(_)) => {
+                        *task_status.borrow_mut() = Some("port-forward event has an invalid index".into());
+                        return;
+                    }
+                    Ok(None) => {
+                        *task_status.borrow_mut() = Some("port-forward stream ended".into());
+                        return;
+                    }
+                    Err(error) => {
+                        *task_status.borrow_mut() = Some(error.to_string());
+                        return;
+                    }
+                }
+            }
+        });
         Ok(Self {
             spec,
-            local,
+            local_address: binding.local_address,
             task,
             status,
         })
     }
 
-    /// Returns the requested mapping.
     pub(crate) const fn spec(&self) -> &ForwardSpec {
         &self.spec
     }
 
-    /// Returns the bound local address, with any ephemeral port resolved.
     pub(crate) const fn local_address(&self) -> std::net::SocketAddr {
-        self.local
+        self.local_address
     }
 
-    /// Returns the most recent connection failure, when one occurred.
     pub(crate) fn status(&self) -> Option<String> {
         self.status.borrow().clone()
-    }
-
-    /// Reports whether the listener task has ended and stopped serving.
-    pub(crate) fn finished(&self) -> bool {
-        self.task.is_finished()
-    }
-
-    /// Stops the listener and drops in-flight relays.
-    pub(crate) fn stop(&self) {
-        self.task.abort();
     }
 }
 
 impl Drop for PortForward {
     fn drop(&mut self) {
-        self.stop();
+        self.task.abort();
     }
 }
 
-async fn accept_loop(
-    home: PathBuf,
-    assignment: Assignment,
-    guest_port: u16,
-    listener: TcpListener,
-    status: Rc<RefCell<Option<String>>>,
-) {
-    // The dialer multiplexes streams over one agent connection; it is replaced
-    // when a connect fails, which re-reaches a Sandbox whose runtime restarted.
-    let mut dialer: Option<Rc<GuestDialer>> = None;
-    // Relays live in the accept task's JoinSet, so aborting the accept task
-    // drops the set and aborts every in-flight connection with it.
-    let mut relays = tokio::task::JoinSet::new();
-    loop {
-        while relays.try_join_next().is_some() {}
-        let stream = match listener.accept().await {
-            Ok((stream, _)) => stream,
-            Err(error) => {
-                *status.borrow_mut() = Some(format!("accept failed: {error}"));
-                return;
-            }
-        };
-        if dialer.is_none() {
-            match agent::sandbox::guest_tcp_dialer(&home, &assignment).await {
-                Ok(connected) => dialer = Some(Rc::new(connected)),
-                Err(error) => {
-                    *status.borrow_mut() = Some(error.to_string());
-                    continue;
-                }
-            }
-        }
-        let Some(connected) = &dialer else { continue };
-        match connected.connect("127.0.0.1", guest_port).await {
-            Ok(guest) => {
-                *status.borrow_mut() = None;
-                let status = Rc::clone(&status);
-                relays.spawn_local(async move {
-                    if let Err(error) = guest.relay(stream).await {
-                        *status.borrow_mut() = Some(error.to_string());
-                    }
-                });
-            }
-            Err(error) => {
-                *status.borrow_mut() = Some(error.to_string());
-                dialer = None;
-            }
-        }
-    }
+fn parse_port(text: &str) -> Result<u16, String> {
+    text.parse::<u16>().map_err(|_| format!("{text:?} is not a port"))
 }
 
 #[cfg(test)]

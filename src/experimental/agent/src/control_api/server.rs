@@ -1,5 +1,7 @@
 use std::{rc::Rc, time::Duration};
 
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
+use futures_util::StreamExt as _;
 use sandbox::LocalFuture;
 use serde::Serialize;
 use serde_json::Value;
@@ -9,11 +11,15 @@ use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
     CODE_AGENT_NOT_FOUND, CODE_CALLER_NOT_PERMITTED, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS,
-    CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, JSON_RPC_VERSION, LoginParams,
-    MESSAGE_CALLER_NOT_PERMITTED, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET,
-    METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
-    METHOD_SESSION_LIST, NameParams, PROTOCOL_VERSION, ReadMessage, Request, Response, SessionListParams,
-    SessionParams, error_response, read_message,
+    CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, ExecutionServerMessage,
+    ExecutionStartParams, ExecutionStreamResult, JSON_RPC_VERSION, LoginParams, MESSAGE_CALLER_NOT_PERMITTED,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_START, METHOD_GET,
+    METHOD_HEALTH, METHOD_LIST, METHOD_PORT_FORWARD_START, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ATTACH,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_TERMINAL_EXECUTION_START, MessageReader,
+    NameParams, PROTOCOL_VERSION, PortForwardBinding, PortForwardServerMessage, PortForwardStartParams,
+    PortForwardStartResult, ReadMessage, Request, Response, SessionAttachParams, SessionListParams, SessionParams,
+    TerminalClientMessage, TerminalExecutionStartParams, TerminalServerMessage, TerminalStreamResult, error_response,
+    read_message, write_stream_message,
 };
 
 const REMOTE_REQUEST_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
@@ -58,7 +64,7 @@ impl AgentApi for control_plane::ControlPlane {
     }
 }
 
-/// Host-side authentication operations exposed through the local control API.
+/// Host-side authentication operations exposed through the Agent Control API.
 pub trait AuthenticationApi {
     /// Stores a host-acquired credential for one harness.
     fn login<'a>(
@@ -81,15 +87,15 @@ impl AuthenticationApi for harness::AuthenticationManager {
     }
 }
 
-/// Host-tracked session operations exposed through the local control API.
+/// Host-tracked Session operations exposed through the Agent Control API.
 pub trait SessionApi {
-    /// Creates or resolves one named session attach target.
+    /// Creates or resolves one named Session.
     fn ensure<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
-    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>>;
 
     /// Gets one named Session scoped to an Agent.
     fn get<'a>(
@@ -102,14 +108,40 @@ pub trait SessionApi {
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
 }
 
+/// Daemon-owned interactive Session attachment operations.
+pub trait AttachmentApi {
+    /// Starts a terminal stream attached to one ready Session.
+    fn attach<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>>;
+}
+
+impl AttachmentApi for sessions::AttachmentService {
+    fn attach<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        Box::pin(async move { Self::attach(self, agent, name, initial_size).await })
+    }
+}
+
 impl SessionApi for sessions::Service {
     fn ensure<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
-    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness).await })
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>> {
+        Box::pin(async move {
+            Self::ensure(self, agent, name, harness)
+                .await
+                .map(|target| target.session)
+        })
     }
 
     fn get<'a>(
@@ -125,15 +157,67 @@ impl SessionApi for sessions::Service {
     }
 }
 
-/// Transient Agent Execution target resolution exposed through the local control API.
+/// Transient Agent Execution operations exposed through the Agent Control API.
 pub trait ExecutionApi {
     /// Converges an Agent and returns its exact ready Sandbox assignment.
     fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
+
+    /// Starts one non-interactive Execution and returns its event stream.
+    fn start<'a>(
+        &'a self,
+        name: &'a str,
+        spec: sandbox::execution::ExecutionSpec,
+    ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>>;
+
+    /// Starts one interactive terminal Execution and returns its stream.
+    fn start_terminal<'a>(
+        &'a self,
+        name: &'a str,
+        spec: sandbox::execution::ExecutionSpec,
+        initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>>;
 }
 
-impl ExecutionApi for crate::sandbox::ExecutionService {
+impl ExecutionApi for crate::sandbox::RuntimeService {
     fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
         Box::pin(async move { Self::ensure(self, name).await })
+    }
+
+    fn start<'a>(
+        &'a self,
+        name: &'a str,
+        spec: sandbox::execution::ExecutionSpec,
+    ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
+        Box::pin(async move { Self::start(self, name, spec).await })
+    }
+
+    fn start_terminal<'a>(
+        &'a self,
+        name: &'a str,
+        spec: sandbox::execution::ExecutionSpec,
+        initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        Box::pin(async move { Self::start_terminal(self, name, spec, initial_size).await })
+    }
+}
+
+/// Daemon-owned host-to-Sandbox port-forward operations.
+pub trait PortForwardApi {
+    /// Binds host listeners and starts relaying them into one Agent Sandbox.
+    fn start<'a>(
+        &'a self,
+        agent: &'a str,
+        specs: Vec<crate::sandbox::PortForwardSpec>,
+    ) -> LocalFuture<'a, Result<Vec<Rc<dyn crate::sandbox::RunningPortForward>>, Error>>;
+}
+
+impl PortForwardApi for crate::sandbox::PortForwardService {
+    fn start<'a>(
+        &'a self,
+        agent: &'a str,
+        specs: Vec<crate::sandbox::PortForwardSpec>,
+    ) -> LocalFuture<'a, Result<Vec<Rc<dyn crate::sandbox::RunningPortForward>>, Error>> {
+        Box::pin(async move { Self::start(self, agent, specs).await })
     }
 }
 
@@ -162,7 +246,9 @@ impl Caller {
 pub struct Server {
     agents: Rc<dyn AgentApi>,
     authentication: Rc<dyn AuthenticationApi>,
+    attachments: Rc<dyn AttachmentApi>,
     executions: Rc<dyn ExecutionApi>,
+    port_forwards: Rc<dyn PortForwardApi>,
     sessions: Rc<dyn SessionApi>,
     on_error: ErrorHandler,
 }
@@ -173,14 +259,18 @@ impl Server {
     pub fn new(
         agents: Rc<dyn AgentApi>,
         authentication: Rc<dyn AuthenticationApi>,
+        attachments: Rc<dyn AttachmentApi>,
         executions: Rc<dyn ExecutionApi>,
+        port_forwards: Rc<dyn PortForwardApi>,
         sessions: Rc<dyn SessionApi>,
         on_error: ErrorHandler,
     ) -> Self {
         Self {
             agents,
             authentication,
+            attachments,
             executions,
+            port_forwards,
             sessions,
             on_error,
         }
@@ -239,6 +329,9 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
+            if request.jsonrpc == JSON_RPC_VERSION && is_streaming_method(&request.method) {
+                return self.serve_stream_request(stream, request).await;
+            }
             let response = self.handle(request, caller).await;
             write_response(stream.get_mut(), &response).await?;
         }
@@ -246,6 +339,26 @@ impl Server {
 
     pub(crate) fn report(&self, error: &Error) {
         (self.on_error)(error);
+    }
+
+    async fn serve_stream_request<S>(&self, stream: BufReader<S>, request: Request) -> Result<(), Error>
+    where
+        S: AsyncRead + AsyncWrite + Unpin,
+    {
+        let Request { method, params, id, .. } = request;
+        match method.as_str() {
+            METHOD_SESSION_ATTACH => {
+                begin_terminal_stream(stream, id, self.start_session_attachment(params).await).await
+            }
+            METHOD_TERMINAL_EXECUTION_START => {
+                begin_terminal_stream(stream, id, self.start_terminal_execution(params).await).await
+            }
+            METHOD_EXECUTION_START => begin_execution_stream(stream, id, self.start_execution(params).await).await,
+            METHOD_PORT_FORWARD_START => {
+                begin_port_forward_stream(stream, id, self.start_port_forwards(params).await).await
+            }
+            _ => Err(Error::Invalid("unknown streaming Control API method".into())),
+        }
     }
 
     async fn handle(&self, request: Request, caller: Caller) -> Response {
@@ -346,6 +459,303 @@ impl Server {
             return error_response(id, CODE_INVALID_PARAMS, "invalid Session list parameters");
         };
         result_response(id, self.sessions.list(params.agent.as_deref()).await)
+    }
+
+    async fn start_session_attachment(
+        &self,
+        value: Value,
+    ) -> Result<sandbox::terminal::StartedTerminalExecution, Error> {
+        let params = serde_json::from_value::<SessionAttachParams>(value)
+            .map_err(|_| Error::Invalid("agent, session name, rows, and columns are required".into()))?;
+        let size = sandbox::terminal::TerminalSize::new(params.rows, params.columns)
+            .map_err(|error| Error::Invalid(error.to_string()))?;
+        self.attachments.attach(&params.agent, &params.name, size).await
+    }
+
+    async fn start_execution(&self, value: Value) -> Result<sandbox::execution::StartedExecution, Error> {
+        let params = serde_json::from_value::<ExecutionStartParams>(value)
+            .map_err(|_| Error::Invalid("agent and execution spec are required".into()))?;
+        self.executions.start(&params.agent, params.spec).await
+    }
+
+    async fn start_terminal_execution(
+        &self,
+        value: Value,
+    ) -> Result<sandbox::terminal::StartedTerminalExecution, Error> {
+        let params = serde_json::from_value::<TerminalExecutionStartParams>(value)
+            .map_err(|_| Error::Invalid("agent, execution spec, rows, and columns are required".into()))?;
+        let size = sandbox::terminal::TerminalSize::new(params.rows, params.columns)
+            .map_err(|error| Error::Invalid(error.to_string()))?;
+        self.executions.start_terminal(&params.agent, params.spec, size).await
+    }
+
+    async fn start_port_forwards(
+        &self,
+        value: Value,
+    ) -> Result<Vec<Rc<dyn crate::sandbox::RunningPortForward>>, Error> {
+        let params = serde_json::from_value::<PortForwardStartParams>(value)
+            .map_err(|_| Error::Invalid("agent and port-forward specs are required".into()))?;
+        self.port_forwards.start(&params.agent, params.specs).await
+    }
+}
+
+fn is_streaming_method(method: &str) -> bool {
+    matches!(
+        method,
+        METHOD_SESSION_ATTACH | METHOD_TERMINAL_EXECUTION_START | METHOD_EXECUTION_START | METHOD_PORT_FORWARD_START
+    )
+}
+
+async fn begin_terminal_stream<S>(
+    mut stream: BufReader<S>,
+    id: u64,
+    terminal: Result<sandbox::terminal::StartedTerminalExecution, Error>,
+) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let terminal = match terminal {
+        Ok(terminal) => terminal,
+        Err(error) => {
+            write_response(
+                stream.get_mut(),
+                &result_response::<TerminalStreamResult>(id, Err(error)),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+    write_response(
+        stream.get_mut(),
+        &result_response(
+            id,
+            Ok(TerminalStreamResult {
+                execution_id: terminal.id.clone(),
+            }),
+        ),
+    )
+    .await?;
+    serve_terminal(stream, terminal).await
+}
+
+async fn begin_execution_stream<S>(
+    mut stream: BufReader<S>,
+    id: u64,
+    execution: Result<sandbox::execution::StartedExecution, Error>,
+) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let execution = match execution {
+        Ok(execution) => execution,
+        Err(error) => {
+            write_response(
+                stream.get_mut(),
+                &result_response::<ExecutionStreamResult>(id, Err(error)),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+    write_response(
+        stream.get_mut(),
+        &result_response(
+            id,
+            Ok(ExecutionStreamResult {
+                execution_id: execution.id.clone(),
+            }),
+        ),
+    )
+    .await?;
+    serve_execution(stream, execution).await
+}
+
+async fn begin_port_forward_stream<S>(
+    mut stream: BufReader<S>,
+    id: u64,
+    forwards: Result<Vec<Rc<dyn crate::sandbox::RunningPortForward>>, Error>,
+) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let forwards = match forwards {
+        Ok(forwards) => forwards,
+        Err(error) => {
+            write_response(
+                stream.get_mut(),
+                &result_response::<PortForwardStartResult>(id, Err(error)),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+    let bindings = forwards
+        .iter()
+        .map(|forward| PortForwardBinding {
+            local_address: forward.local_address(),
+            guest_port: forward.spec().guest_port(),
+        })
+        .collect();
+    write_response(
+        stream.get_mut(),
+        &result_response(id, Ok(PortForwardStartResult { bindings })),
+    )
+    .await?;
+    serve_port_forwards(stream, forwards).await
+}
+
+async fn serve_port_forwards<S>(
+    stream: BufReader<S>,
+    forwards: Vec<Rc<dyn crate::sandbox::RunningPortForward>>,
+) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let (reader, mut writer) = tokio::io::split(stream);
+    let mut reader = MessageReader::new(BufReader::new(reader));
+    let mut reported = forwards.iter().map(|forward| forward.status()).collect::<Vec<_>>();
+    let mut stopped = vec![false; forwards.len()];
+    let mut poll = tokio::time::interval(Duration::from_secs(1));
+    poll.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+    loop {
+        tokio::select! {
+            message = reader.next() => match message? {
+                ReadMessage::EndOfStream => return Ok(()),
+                ReadMessage::TooLarge | ReadMessage::Complete(_) => {
+                    return Err(Error::Invalid("port-forward stream does not accept client messages".into()));
+                }
+            },
+            _ = poll.tick() => {
+                for (index, forward) in forwards.iter().enumerate() {
+                    let wire_index = u32::try_from(index)
+                        .map_err(|_| Error::Invalid("too many port forwards".into()))?;
+                    let status = forward.status();
+                    if status != reported[index] {
+                        write_stream_message(
+                            &mut writer,
+                            &PortForwardServerMessage::Status { index: wire_index, message: status.clone() },
+                        ).await?;
+                        reported[index] = status;
+                    }
+                    if forward.finished() && !stopped[index] {
+                        write_stream_message(
+                            &mut writer,
+                            &PortForwardServerMessage::Stopped { index: wire_index, message: forward.status() },
+                        ).await?;
+                        stopped[index] = true;
+                    }
+                }
+                if stopped.iter().all(|stopped| *stopped) {
+                    return Ok(());
+                }
+            }
+        }
+    }
+}
+
+async fn serve_execution<S>(stream: BufReader<S>, execution: sandbox::execution::StartedExecution) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let (reader, mut writer) = tokio::io::split(stream);
+    let mut reader = MessageReader::new(BufReader::new(reader));
+    let mut events = execution.events;
+    loop {
+        tokio::select! {
+            message = reader.next() => match message? {
+                ReadMessage::EndOfStream => return Ok(()),
+                ReadMessage::TooLarge | ReadMessage::Complete(_) => {
+                    return Err(Error::Invalid("non-interactive Execution stream does not accept client messages".into()));
+                }
+            },
+            event = events.next() => match event {
+                Some(Ok(sandbox::execution::ExecutionEvent::Started { .. })) => {}
+                Some(Ok(sandbox::execution::ExecutionEvent::Stdout(data))) => {
+                    write_stream_message(&mut writer, &ExecutionServerMessage::Stdout { data: BASE64.encode(data) }).await?;
+                }
+                Some(Ok(sandbox::execution::ExecutionEvent::Stderr(data))) => {
+                    write_stream_message(&mut writer, &ExecutionServerMessage::Stderr { data: BASE64.encode(data) }).await?;
+                }
+                Some(Ok(sandbox::execution::ExecutionEvent::Exited(status))) => {
+                    write_stream_message(&mut writer, &ExecutionServerMessage::Exited { code: status.code }).await?;
+                    return Ok(());
+                }
+                Some(Ok(sandbox::execution::ExecutionEvent::Failed { message })) => {
+                    write_stream_message(&mut writer, &ExecutionServerMessage::Failed { message }).await?;
+                    return Ok(());
+                }
+                Some(Err(error)) => return Err(error.into()),
+                None => {
+                    write_stream_message(
+                        &mut writer,
+                        &ExecutionServerMessage::Failed { message: "Execution stream ended without an outcome".into() },
+                    ).await?;
+                    return Ok(());
+                }
+                Some(Ok(_)) => return Err(Error::Session("Execution stream returned an unsupported event".into())),
+            }
+        }
+    }
+}
+
+async fn serve_terminal<S>(
+    stream: BufReader<S>,
+    terminal: sandbox::terminal::StartedTerminalExecution,
+) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let (reader, mut writer) = tokio::io::split(stream);
+    let mut reader = MessageReader::new(BufReader::new(reader));
+    let control = terminal.control;
+    let mut events = terminal.events;
+    loop {
+        tokio::select! {
+            message = reader.next() => match message? {
+                ReadMessage::EndOfStream => return Ok(()),
+                ReadMessage::TooLarge => return Err(Error::Invalid("terminal input message exceeds 4 MiB".into())),
+                ReadMessage::Complete(message) => {
+                    let message = serde_json::from_slice::<TerminalClientMessage>(&message)?;
+                    match message {
+                        TerminalClientMessage::Input { data } => {
+                            let data = BASE64.decode(data).map_err(|error| {
+                                Error::Invalid(format!("terminal input is not valid base64: {error}"))
+                            })?;
+                            control.write_input(data.into()).await?;
+                        }
+                        TerminalClientMessage::CloseInput => control.close_input().await?,
+                        TerminalClientMessage::Resize { rows, columns } => {
+                            let size = sandbox::terminal::TerminalSize::new(rows, columns)
+                                .map_err(|error| Error::Invalid(error.to_string()))?;
+                            control.resize(size).await?;
+                        }
+                    }
+                }
+            },
+            event = events.next() => match event {
+                Some(Ok(sandbox::terminal::TerminalEvent::Started { .. })) => {}
+                Some(Ok(sandbox::terminal::TerminalEvent::Output(data))) => {
+                    write_stream_message(&mut writer, &TerminalServerMessage::Output { data: BASE64.encode(data) }).await?;
+                }
+                Some(Ok(sandbox::terminal::TerminalEvent::Exited(status))) => {
+                    write_stream_message(&mut writer, &TerminalServerMessage::Exited { code: status.code }).await?;
+                    return Ok(());
+                }
+                Some(Ok(sandbox::terminal::TerminalEvent::Failed { message })) => {
+                    write_stream_message(&mut writer, &TerminalServerMessage::Failed { message }).await?;
+                    return Ok(());
+                }
+                Some(Err(error)) => return Err(error.into()),
+                None => {
+                    write_stream_message(
+                        &mut writer,
+                        &TerminalServerMessage::Failed { message: "terminal stream ended without an outcome".into() },
+                    ).await?;
+                    return Ok(());
+                }
+                Some(Ok(_)) => return Err(Error::Session("terminal stream returned an unsupported event".into())),
+            }
+        }
     }
 }
 

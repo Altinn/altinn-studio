@@ -8,11 +8,15 @@ use serde::{Deserialize, Serialize};
 use crate::{Error, control_plane::AgentRecord};
 
 mod execution;
+mod forward;
 pub mod microsandbox;
 pub mod platform;
+mod runtime;
 
-pub use execution::{ExecutionService, ExecutionTarget, start_execution};
+pub use execution::{ExecutionService, ExecutionTarget};
+pub use forward::{PortForward, PortForwardService, PortForwardSpec, RunningPortForward};
 pub use microsandbox::{GuestConnection, GuestDialer};
+pub use runtime::RuntimeService;
 
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -278,24 +282,6 @@ pub async fn guest_tcp_dialer(home: &Path, assignment: &Assignment) -> Result<Gu
         microsandbox::PROVIDER_ID => microsandbox::guest_tcp_dialer(home, assignment).await,
         provider => Err(Error::Invalid(format!(
             "guest TCP forwarding is not supported through Sandbox Provider {provider:?}"
-        ))),
-    }
-}
-
-/// Attaches a terminal through the recorded Sandbox Provider.
-///
-/// # Errors
-///
-/// Returns an error when the Provider is unsupported by this client or attachment fails.
-pub async fn attach_terminal(
-    home: &Path,
-    assignment: &Assignment,
-    request: ::sandbox::terminal::AttachTerminalRequest,
-) -> Result<::sandbox::terminal::TerminalAttachOutcome, Error> {
-    match assignment.provider().as_str() {
-        microsandbox::PROVIDER_ID => microsandbox::attach_terminal(home, assignment, request).await,
-        provider => Err(Error::Invalid(format!(
-            "terminal attachment is not supported through Sandbox Provider {provider:?}"
         ))),
     }
 }

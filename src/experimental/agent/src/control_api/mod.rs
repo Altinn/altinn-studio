@@ -7,7 +7,12 @@ mod server;
 mod socket;
 mod tcp;
 
-pub use client::{Client, Connection, Connector};
+pub use client::{
+    AttachedExecution, AttachedTerminal, Client, Connection, Connector, ExecutionEvents, PortForwardBinding,
+    PortForwardEvent, PortForwardEvents, PortForwardSession, TerminalEvents, TerminalInput,
+};
 pub use endpoint::TcpEndpoint;
 pub use protocol::{PROTOCOL_VERSION, ResponseError};
-pub use server::{AgentApi, AuthenticationApi, Caller, ErrorHandler, ExecutionApi, Server, SessionApi};
+pub use server::{
+    AgentApi, AttachmentApi, AuthenticationApi, Caller, ErrorHandler, ExecutionApi, PortForwardApi, Server, SessionApi,
+};

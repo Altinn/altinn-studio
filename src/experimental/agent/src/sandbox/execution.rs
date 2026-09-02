@@ -1,8 +1,7 @@
 //! Transient command execution against an Agent-owned Sandbox.
 
-use std::{path::Path, rc::Rc};
+use std::rc::Rc;
 
-use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
 use crate::{ConditionStatus, Error, control_plane};
@@ -78,27 +77,5 @@ impl ExecutionService {
             sandbox,
             operating_system: record.agent.spec.sandbox.platform.os,
         })
-    }
-}
-
-/// Starts a non-interactive Execution through the recorded Sandbox Provider.
-///
-/// The returned stream belongs to the exact Sandbox lifecycle ID in `target`;
-/// this function does not create, start, or otherwise reconcile a Sandbox.
-///
-/// # Errors
-///
-/// Returns an error when the Provider is unsupported by this client or the
-/// exact Sandbox cannot start the Execution.
-pub async fn start_execution(
-    home: &Path,
-    target: &ExecutionTarget,
-    spec: execution::ExecutionSpec,
-) -> Result<execution::StartedExecution, Error> {
-    match target.sandbox.provider().as_str() {
-        super::microsandbox::PROVIDER_ID => super::microsandbox::start_execution(home, &target.sandbox, spec).await,
-        provider => Err(Error::Invalid(format!(
-            "command execution is not supported through Sandbox Provider {provider:?}"
-        ))),
     }
 }

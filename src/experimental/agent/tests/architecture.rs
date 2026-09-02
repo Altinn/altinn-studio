@@ -93,6 +93,32 @@ fn microsandbox_internals_are_contained_by_the_microsandbox_adapter() {
 }
 
 #[test]
+fn agentctl_never_opens_sandbox_runtime_operations_directly() {
+    let client = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("bin")
+        .join("agentctl");
+    let mut files = Vec::new();
+    rust_files(&client, &mut files);
+
+    for path in files {
+        let contents = std::fs::read_to_string(&path).expect("agentctl source should be readable");
+        for direct_runtime_access in [
+            "MicrosandboxProvider::open",
+            "sandbox::attach_terminal",
+            "sandbox::guest_tcp_dialer",
+            "sandbox::start_execution",
+        ] {
+            assert!(
+                !contents.contains(direct_runtime_access),
+                "direct Sandbox runtime access {direct_runtime_access:?} leaked into {}",
+                path.display()
+            );
+        }
+    }
+}
+
+#[test]
 fn sandbox_operating_system_details_are_contained_by_platform_and_harness_adapters() {
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut files = Vec::new();

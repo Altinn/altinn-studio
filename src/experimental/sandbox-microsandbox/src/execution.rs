@@ -30,10 +30,17 @@ impl MicrosandboxProvider {
         let guard = ExecutionGuard {
             controls: Rc::clone(&self.executions),
             key,
+            completed: false,
         };
-        let events = stream::unfold((handle, guard), |(mut handle, guard)| async move {
+        let events = stream::unfold((handle, guard), |(mut handle, mut guard)| async move {
             handle.recv().await.map(|event| {
                 let event = map_event(event);
+                if matches!(
+                    &event,
+                    Ok(execution::ExecutionEvent::Exited(_) | execution::ExecutionEvent::Failed { .. })
+                ) {
+                    guard.complete();
+                }
                 (event, (handle, guard))
             })
         });
@@ -66,10 +73,17 @@ impl MicrosandboxProvider {
         let guard = ExecutionGuard {
             controls: Rc::clone(&self.executions),
             key,
+            completed: false,
         };
-        let events = stream::unfold((handle, guard), |(mut handle, guard)| async move {
+        let events = stream::unfold((handle, guard), |(mut handle, mut guard)| async move {
             handle.recv().await.map(|event| {
                 let event = map_terminal_event(event);
+                if matches!(
+                    &event,
+                    Ok(terminal::TerminalEvent::Exited(_) | terminal::TerminalEvent::Failed { .. })
+                ) {
+                    guard.complete();
+                }
                 (event, (handle, guard))
             })
         });
@@ -285,10 +299,28 @@ impl terminal::TerminalControl for MicrosandboxTerminalControl {
 struct ExecutionGuard {
     controls: ExecutionControls,
     key: ExecutionKey,
+    completed: bool,
+}
+
+impl ExecutionGuard {
+    fn complete(&mut self) {
+        self.controls.borrow_mut().remove(&self.key);
+        self.completed = true;
+    }
 }
 
 impl Drop for ExecutionGuard {
     fn drop(&mut self) {
-        self.controls.borrow_mut().remove(&self.key);
+        let control = self.controls.borrow_mut().remove(&self.key);
+        if self.completed {
+            return;
+        }
+        if let Some(control) = control
+            && let Ok(handle) = tokio::runtime::Handle::try_current()
+        {
+            handle.spawn(async move {
+                let _ignored = control.kill().await;
+            });
+        }
     }
 }

@@ -47,7 +47,7 @@ tar = "0.4.46"
 tempfile = "3.27.0"
 thiserror = "2.0.20"
 time = { version = "0.3.55", features = ["formatting", "parsing", "serde"] }
-tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
+tokio = { version = "1.53.1", features = ["fs", "io-std", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
 tokio-util = { version = "0.7.19", features = ["io"] }
 tracing = "0.1.44"
 uuid = { version = "1.24.1", features = ["serde", "v4"] }

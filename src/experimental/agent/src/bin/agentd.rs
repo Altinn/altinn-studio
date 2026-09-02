@@ -110,7 +110,7 @@ async fn run_control_plane(
         session_wakeup.clone(),
         Rc::new(|error| eprintln!("agentd Session notification scan: {error}")),
     ));
-    let reconciler = Rc::new(Reconciler::new(store.clone(), sandboxes).with_session_notifier(session_notifier));
+    let reconciler = Rc::new(Reconciler::new(store.clone(), sandboxes.clone()).with_session_notifier(session_notifier));
     let (controller, wakeup) = Controller::new(
         store.clone(),
         reconciler,
@@ -121,48 +121,89 @@ async fn run_control_plane(
         }),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
-    let executions = Rc::new(agent::sandbox::ExecutionService::new(store.clone(), wakeup.clone()));
+    let (executions, port_forwards) = runtime_services(&home, store.clone(), wakeup.clone(), sandboxes.clone());
     let sessions = Rc::new(agent::sessions::Service::new(
-        session_store,
-        store,
+        session_store.clone(),
+        store.clone(),
         wakeup,
         session_wakeup,
     ));
+    let attachments = Rc::new(agent::sessions::AttachmentService::new(session_store, store, sandboxes));
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),
+        attachments,
         executions,
+        port_forwards,
         sessions,
         Rc::new(|error| eprintln!("agentd Control API connection: {error}")),
     ));
-    let mut controller_task = tokio::task::spawn_local(controller.run());
-    let mut session_controller_task = tokio::task::spawn_local(session_controller.run());
-    let mut platform_api_task = tokio::task::spawn_local(platform_api_server.serve(platform_api_listener));
-    let socket_path = home.socket_path();
-    let tcp_api = serve_insecure_tcp(server.clone(), tcp_listener);
-    tokio::pin!(tcp_api);
+    supervise(
+        server,
+        home.socket_path(),
+        tcp_listener,
+        controller,
+        session_controller,
+        platform_api_server,
+        platform_api_listener,
+    )
+    .await
+}
+
+async fn supervise(
+    server: Rc<Server>,
+    socket_path: PathBuf,
+    tcp_listener: Option<tokio::net::TcpListener>,
+    controller: agent::control_plane::Controller,
+    session_controller: agent::sessions::Controller,
+    platform_api_server: Rc<agent::platform_api::Server>,
+    platform_api_listener: tokio::net::TcpListener,
+) -> Result<(), Error> {
+    let mut agent_task = tokio::task::spawn_local(controller.run());
+    let mut session_task = tokio::task::spawn_local(session_controller.run());
+    let mut platform_task = tokio::task::spawn_local(platform_api_server.serve(platform_api_listener));
+    let tcp = serve_insecure_tcp(server.clone(), tcp_listener);
+    tokio::pin!(tcp);
     let result = tokio::select! {
         result = server.serve_path(&socket_path) => result,
-        result = &mut tcp_api => result,
+        result = &mut tcp => result,
         result = tokio::signal::ctrl_c() => result.map_err(Error::from),
-        result = &mut controller_task => match result {
+        result = &mut agent_task => match result {
             Ok(()) => Err(Error::Daemon("reconciliation controller stopped".into())),
             Err(error) => Err(Error::Daemon(format!("reconciliation controller task failed: {error}"))),
         },
-        result = &mut session_controller_task => match result {
+        result = &mut session_task => match result {
             Ok(()) => Err(Error::Daemon("Session reconciliation controller stopped".into())),
             Err(error) => Err(Error::Daemon(format!("Session reconciliation controller task failed: {error}"))),
         },
-        result = &mut platform_api_task => match result {
+        result = &mut platform_task => match result {
             Ok(Ok(())) => Err(Error::Daemon("Platform API stopped".into())),
             Ok(Err(error)) => Err(Error::Daemon(format!("Platform API failed: {error}"))),
             Err(error) => Err(Error::Daemon(format!("Platform API task failed: {error}"))),
         },
     };
-    controller_task.abort();
-    session_controller_task.abort();
-    platform_api_task.abort();
+    agent_task.abort();
+    session_task.abort();
+    platform_task.abort();
     result
+}
+
+fn runtime_services(
+    home: &ControlPlaneHome,
+    store: Rc<persistence::Database>,
+    wakeup: agent::control_plane::Wakeup,
+    sandboxes: Rc<agent::sandbox::Service>,
+) -> (
+    Rc<agent::sandbox::RuntimeService>,
+    Rc<agent::sandbox::PortForwardService>,
+) {
+    let targets = Rc::new(agent::sandbox::ExecutionService::new(store.clone(), wakeup));
+    let runtime = Rc::new(agent::sandbox::RuntimeService::new(targets.clone(), store, sandboxes));
+    let forwards = Rc::new(agent::sandbox::PortForwardService::new(
+        home.path().to_path_buf(),
+        targets,
+    ));
+    (runtime, forwards)
 }
 
 async fn bind_insecure_tcp(port: Option<u16>) -> Result<Option<tokio::net::TcpListener>, Error> {

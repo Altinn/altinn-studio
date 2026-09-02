@@ -25,8 +25,8 @@ changes require stopping `agentd` and removing the configured Agent home rather 
 
 ```text
 Host
-├── agentctl             local CLI, transient execution and Session attachment
-└── agentd               control plane, reconciliation, policy and SecretStore
+├── agentctl             CLI, terminal input/output and interactive UI
+└── agentd               control plane, runtime operations, policy and SecretStore
     └── Agent            declarative durable resource
         └── Sandbox      isolated execution environment
             ├── Session  durable tmux-backed harness process
@@ -54,9 +54,9 @@ The Sandbox crates do not depend on Agent automation.
 Control API. Its built-in `local` context uses the protected platform-local socket and starts the adjacent daemon on
 demand. Named TCP contexts connect to an already-running daemon and never start or fall back to a local process. The
 resource-oriented commands follow `verb resource [name]`; Session scope is explicit through `--agent` or inferred from
-the closest unique persisted Agent source directory. Transient `exec` commands similarly converge the Agent first,
-then target its exact materialized Sandbox without creating durable Session state or taking Sandbox lifecycle ownership
-away from `agentd`.
+the closest unique persisted Agent source directory. `agentd` owns all Sandbox access, including transient executions,
+terminal attachments and host listeners for port forwarding. `agentctl` carries their transport-neutral streams and
+owns only local terminal input/output and UI state.
 
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized
@@ -88,9 +88,12 @@ deliberately unauthenticated and unencrypted. Docker Desktop may make it reachab
 can reach the port can control the daemon and potentially cause it to access host paths. It is disabled by default and
 must not be exposed on a wildcard address. Authentication will be provided by a separate TLS endpoint later.
 
-TCP contexts currently support resource and read-only Session operations. Harness login, `exec`, `attach`,
-`port-forward` and the TUI remain local because they require credentials or client-side Microsandbox access. Host paths
-sent by `apply` or current-directory inference must exist at the same absolute path on the daemon host.
+Resource commands, `exec`, `attach`, `port-forward` and the TUI use the same Control API over every Connector. Streaming
+operations upgrade their request connection and end when the operation completes or `agentctl` disconnects. Harness
+login remains disabled for insecure TCP because it would expose a bearer credential. A future SSH Connector can proxy
+the remote Unix socket without changing the Control API or command implementations. Port-forward addresses are bound
+on the `agentd` host. Host paths sent by `apply` or current-directory inference must exist at the same absolute path on
+the daemon host.
 
 ## Images, home and harnesses
 
@@ -144,8 +147,7 @@ Important current limitations are:
 
 - Codex uses a separate ChatGPT subscription login owned and refreshed by `agentd`;
 - Sessions share one Sandbox user and tmux server and therefore one trust boundary;
-- attachment is still a client-side Provider operation rather than a daemon-owned terminal capability;
-- the optional development TCP listener has no authentication or encryption and supports only unary operations;
+- the optional development TCP listener has no authentication or encryption and must remain inside a trusted development boundary;
 - Session content, prompt steering, archive/delete and plugin APIs are not implemented; and
 - global scheduling and Kubernetes orchestration are future work.
 
