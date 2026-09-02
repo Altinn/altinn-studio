@@ -9,7 +9,8 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 
 UNKNOWN = "unknown"
-RR_APP_PREFIX = "app"
+LANGFUSE_ENVIRONMENT_PREFIX = "langfuse-"
+INTERNAL_OWNER_CODE = "internal"
 
 
 class DailyTokenUsageRow(TypedDict):
@@ -20,7 +21,7 @@ class DailyTokenUsageRow(TypedDict):
     serviceownerorgnr: str | None
     serviceownercode: str
     messagesender: str | None
-    serviceresourceid: str
+    serviceresourceid: str | None
     serviceresourcetitle: str
     recipienttype: str | None
     costcenter: str | None
@@ -39,6 +40,7 @@ class DailyTokenUsageRow(TypedDict):
 class Trace(TypedDict):
     id: str
     user_id: str
+    environment: str
     metadata: dict[str, Any]
 
 
@@ -69,11 +71,9 @@ def aggregate_token_usage(
             )
             continue
 
-        service_owner_code = trace["user_id"]
-        if not service_owner_code:
-            raise ValueError(f"Missing service owner code for {trace['id']}")
-
+        service_owner_code = _get_service_owner_code(trace)
         app_name = _get_app_name(trace)
+        service_resource_id = _get_service_resource_id(service_owner_code, app_name)
         observation_date = _to_date_string(observation["start_time"])
         bucket_key = f"{service_owner_code}-{app_name}-{observation_date}"
 
@@ -83,6 +83,7 @@ def aggregate_token_usage(
                 "date": observation_date,
                 "service_owner_code": service_owner_code,
                 "app_name": app_name,
+                "service_resource_id": service_resource_id,
                 "input_tokens": 0,
                 "output_tokens": 0,
                 "total_tokens": 0,
@@ -114,7 +115,30 @@ def aggregate_token_usage(
     ]
 
 
+def _is_langfuse_internal(trace: Trace) -> bool:
+    return not trace["user_id"] and trace["environment"].startswith(
+        LANGFUSE_ENVIRONMENT_PREFIX
+    )
+
+
+def _get_service_owner_code(trace: Trace) -> str:
+    service_owner_code = trace["user_id"]
+    if service_owner_code:
+        return service_owner_code
+    if _is_langfuse_internal(trace):
+        return INTERNAL_OWNER_CODE
+    log.warning(
+        "Missing service owner code for trace %s — bucketing under '%s'",
+        trace["id"],
+        UNKNOWN,
+    )
+    return UNKNOWN
+
+
 def _get_app_name(trace: Trace) -> str:
+    if _is_langfuse_internal(trace):
+        return trace["environment"]
+
     metadata = trace["metadata"] or {}
     app_name = metadata.get("app_name")
     if not app_name:
@@ -125,6 +149,13 @@ def _get_app_name(trace: Trace) -> str:
         )
         return UNKNOWN
     return app_name
+
+
+def _get_service_resource_id(service_owner_code: str, app_name: str) -> str | None:
+    if service_owner_code == INTERNAL_OWNER_CODE:
+        return None
+    rr_app_prefix = "app"
+    return f"{rr_app_prefix}_{service_owner_code}_{app_name}"
 
 
 def _to_date_string(start_time: str) -> str:
@@ -149,7 +180,7 @@ def _to_usage_row(
         "serviceownerorgnr": None,
         "serviceownercode": bucket["service_owner_code"],
         "messagesender": None,
-        "serviceresourceid": f"{RR_APP_PREFIX}_{bucket['service_owner_code']}_{bucket['app_name']}",
+        "serviceresourceid": bucket["service_resource_id"],
         "serviceresourcetitle": bucket["app_name"],
         "recipienttype": None,
         "costcenter": None,

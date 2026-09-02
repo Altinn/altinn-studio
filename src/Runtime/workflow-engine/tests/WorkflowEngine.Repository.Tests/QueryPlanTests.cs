@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
@@ -12,6 +14,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 {
     private static readonly DateTimeOffset _now = new(2026, 3, 19, 12, 0, 0, TimeSpan.Zero);
     private readonly FakeTimeProvider _timeProvider = new(_now);
+
+    /// <summary>The log position <see cref="SeedParkedReceivers"/> parks a receiver at.</summary>
+    private const long ParkedSeq = 2;
 
     public async ValueTask InitializeAsync()
     {
@@ -240,7 +245,367 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    [Fact]
+    public async Task SelectOverdueMailboxCandidates_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectOverdueMailboxCandidatesSql,
+            [new NpgsqlParameter<DateTimeOffset>("now", _now), new NpgsqlParameter<int>("batch_size", 100)],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_deadline_open");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task SelectExpiredMailboxCandidates_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            DbMaintenanceService.Sql.SelectExpiredMailboxCandidatesCommand,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddDays(-60)),
+                new NpgsqlParameter<int>("batchSize", 1000),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_disposed_at");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task SelectMailboxesForCollections_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectMailboxesForCollectionsSql,
+            [
+                new NpgsqlParameter<string[]>("collection_keys", ["seed-collection-3", "seed-collection-7"]),
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<int>("per_collection", 11),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_deliveries");
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_receivers");
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task MintMailboxes_ProbesBothMailboxIndexesForEveryCandidateInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(dataSource, EngineRepository.MintMailboxesSql, MintArrays(1), ct);
+
+        AssertMintProbesItsIndexes(plan);
+        await VerifyJson(plan.GetRawText()).UseTextForParameters("width-1");
+
+        // PostgreSQL plans a custom plan from the array's length, so neither width is evidence about the other
+        var flushPlan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.MintMailboxesSql,
+            MintArrays(100),
+            ct
+        );
+
+        AssertMintProbesItsIndexes(flushPlan);
+        await VerifyJson(flushPlan.GetRawText()).UseTextForParameters("width-100");
+    }
+
+    /// <summary>
+    /// A column out of either <c>Index Cond</c> would have a mint read the whole namespace's keys, or every open
+    /// mailbox in it, rather than one probe per candidate key and per distinct collection key.
+    /// </summary>
+    private static void AssertMintProbesItsIndexes(JsonElement plan)
+    {
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+
+        QueryPlanHelper.AssertHasScanType(plan, "mailboxes", "Index Only Scan");
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_namespace_idempotency_key");
+        QueryPlanHelper.AssertIndexCondContains(
+            plan,
+            "ix_mailboxes_namespace_idempotency_key",
+            "t.ns",
+            "t.idempotency_key"
+        );
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        QueryPlanHelper.AssertIndexCondContains(
+            plan,
+            "ix_mailboxes_namespace_collection_key",
+            "k.ns",
+            "k.collection_key"
+        );
+    }
+
+    /// <summary>
+    /// <paramref name="width"/> fresh candidate keys, spread over the seed's collections so the count has real
+    /// rows to probe for.
+    /// </summary>
+    private static NpgsqlParameter[] MintArrays(int width)
+    {
+        var candidates = Enumerable.Range(0, width).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}")).ToArray();
+
+        return
+        [
+            new NpgsqlParameter<Guid[]>("ids", candidates),
+            new NpgsqlParameter<string[]>("namespaces", [.. candidates.Select(_ => "test-ns")]),
+            new NpgsqlParameter<string[]>("keys", [.. Enumerable.Range(0, width).Select(i => $"plan-probe-{i}")]),
+            new NpgsqlParameter<string?[]>(
+                "collection_keys",
+                [.. Enumerable.Range(0, width).Select(i => $"seed-collection-{i % 50}")]
+            ),
+            new NpgsqlParameter<TimeSpan[]>("timeouts", [.. candidates.Select(_ => TimeSpan.FromHours(1))]),
+            new NpgsqlParameter<DateTimeOffset[]>("deadlines", [.. candidates.Select(_ => _now.AddHours(1))]),
+            new NpgsqlParameter<DateTimeOffset[]>("nows", [.. candidates.Select(_ => _now)]),
+            new NpgsqlParameter<int>("cap", 100),
+        ];
+    }
+
+    [Fact]
+    public async Task LockMailboxesForMutation_ProbesThePrimaryKeyForEveryMailboxInAFullBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        // PostgreSQL plans a custom plan from the array's length, so a hundred ids is a different plan than two
+        var ids = Enumerable.Range(1, 100).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}")).ToArray();
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.LockMailboxesForMutationSql,
+            [
+                new NpgsqlParameter<Guid[]>("ids", ids),
+                new NpgsqlParameter<string[]>("namespaces", [.. ids.Select(_ => "test-ns")]),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "pk_mailboxes");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailboxes", "t.id");
+
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task SelectExistingMailboxDeliveries_ProbesTheMessageKeyForEveryPairInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectExistingMailboxDeliveriesSql,
+            DeliveryLookupArrays(1),
+            ct
+        );
+
+        AssertDeliveryLookupProbesItsIndex(plan);
+        await VerifyJson(plan.GetRawText()).UseTextForParameters("width-1");
+
+        // PostgreSQL plans a custom plan from the array's length, so neither width is evidence about the other
+        var flushPlan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectExistingMailboxDeliveriesSql,
+            DeliveryLookupArrays(100),
+            ct
+        );
+
+        AssertDeliveryLookupProbesItsIndex(flushPlan);
+        await VerifyJson(flushPlan.GetRawText()).UseTextForParameters("width-100");
+    }
+
+    /// <summary>
+    /// Which columns sit in the <c>Index Cond</c> is the assertion that matters, not the node type: an index scan
+    /// that keeps the index but loses the message key reads every message of every mailbox in the flush.
+    /// </summary>
+    private static void AssertDeliveryLookupProbesItsIndex(JsonElement plan)
+    {
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_deliveries");
+        QueryPlanHelper.AssertUsesIndexScan(
+            plan,
+            "mailbox_deliveries",
+            "ix_mailbox_deliveries_mailbox_id_idempotency_key"
+        );
+        QueryPlanHelper.AssertIndexCondContains(
+            plan,
+            "ix_mailbox_deliveries_mailbox_id_idempotency_key",
+            "t.mailbox_id",
+            "t.idempotency_key"
+        );
+    }
+
+    /// <summary>
+    /// <paramref name="width"/> pairs, one mailbox each — the wider probe of the two shapes a flush can have.
+    /// </summary>
+    private static NpgsqlParameter[] DeliveryLookupArrays(int width) =>
+        [
+            new NpgsqlParameter<Guid[]>(
+                "mailbox_ids",
+                [.. Enumerable.Range(1, width).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}"))]
+            ),
+            new NpgsqlParameter<string[]>("keys", [.. Enumerable.Range(1, width).Select(i => $"plan-probe-msg-{i}")]),
+        ];
+
+    [Fact]
+    public async Task CloseLockedMailboxes_ProbesThePrimaryKeyForEveryMailboxInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.CloseLockedMailboxesSql,
+            [
+                new NpgsqlParameter<Guid[]>(
+                    "ids",
+                    [new Guid("0197a4f0-0000-7000-8000-000000000001"), new Guid("0197a4f0-0000-7000-8000-000000000002")]
+                ),
+                new NpgsqlParameter<string[]>("reasons", ["request", "deadline"]),
+                new NpgsqlParameter<DateTimeOffset[]>("nows", [_now, _now]),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "pk_mailboxes");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailboxes", "t.id");
+
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task ReleaseMailboxReceivers_ProbesTheReceiverKeyForEveryPositionInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        await SeedParkedReceivers(dataSource, ct);
+
+        // Both shapes the statement carries: a wake naming one position, a closure release taking a whole range
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.ReleaseMailboxReceiversSql,
+            [
+                new NpgsqlParameter<Guid[]>(
+                    "mailbox_ids",
+                    [new Guid("0197a4f0-0000-7000-8000-000000000001"), new Guid("0197a4f0-0000-7000-8000-000000000002")]
+                ),
+                new NpgsqlParameter<long[]>("seq_los", [ParkedSeq, 0]),
+                new NpgsqlParameter<long[]>("seq_his", [ParkedSeq, long.MaxValue]),
+                new NpgsqlParameter<DateTimeOffset[]>("nows", [_now, _now]),
+                new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued),
+                new NpgsqlParameter<int>("held", (int)PersistentItemStatus.Held),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailbox_receivers", "pk_mailbox_receivers");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "workflows", "pk_workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_receivers");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailbox_receivers", "t.mailbox_id", "t.seq_lo", "t.seq_hi");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailbox_receivers", "released.mailbox_id", "released.seq");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_workflows", "workflow_id");
+
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task CountOverdueOpenMailboxes_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.CountOverdueOpenMailboxesSql,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddMinutes(-5)),
+                new NpgsqlParameter<int>("limit", 10_000),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_deadline_open");
+        await VerifyJson(plan.GetRawText());
+    }
+
     // --- Seed data ---
+
+    /// <summary>
+    /// Tops the seed up with parked receivers on open mailboxes. <see cref="SeedData"/> leaves nothing to
+    /// release, and with <c>status = held</c> estimated empty the planner drives the release from the workflows
+    /// index and checks the batch arrays as a join filter — the one shape a wake never runs.
+    /// </summary>
+    private static async Task SeedParkedReceivers(NpgsqlDataSource dataSource, CancellationToken ct)
+    {
+        const int parkedCount = 500;
+
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.workflows
+                    (id, operation_id, idempotency_key, namespace, status, created_at, updated_at, reclaim_count)
+                SELECT gen_random_uuid(), 'test-op', 'held-' || g, 'test-ns', @held, @baseTime, @baseTime, 0
+                FROM generate_series(0, @parked - 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("held", (int)PersistentItemStatus.Held);
+            cmd.Parameters.AddWithValue("parked", parkedCount);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        // ParkedSeq onwards is free: the seed's receivers occupy positions 0 and 1 of every mailbox.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+                SELECT m.id, @parkedSeq, w.id, @baseTime, NULL, NULL
+                FROM (
+                    SELECT id, row_number() OVER (ORDER BY id) AS rn
+                    FROM engine.workflows WHERE status = @held
+                ) w
+                JOIN (
+                    SELECT id, row_number() OVER (ORDER BY id) AS rn
+                    FROM engine.mailboxes WHERE status = 'open' LIMIT @parked
+                ) m ON m.rn = w.rn
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("held", (int)PersistentItemStatus.Held);
+            cmd.Parameters.AddWithValue("parked", parkedCount);
+            cmd.Parameters.AddWithValue("parkedSeq", ParkedSeq);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await using var analyzeCmd = dataSource.CreateCommand("ANALYZE engine.workflows, engine.mailbox_receivers");
+        await analyzeCmd.ExecuteNonQueryAsync(ct);
+    }
 
     /// <summary>
     /// Seeds representative data across all statuses at sufficient volume that the planner's
@@ -378,9 +743,81 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
+        // Seeded past the size where the planner stops caring, in the sweep's own regime (far more qualifying
+        // rows than one LIMIT takes):
+        //   g % 4 == 0 → open     (of those, g % 8 == 0 → deadline already passed)
+        //   g odd      → disposed, disposed_at well past the retention cutoff
+        //   g % 4 == 2 → disposed, disposed_at recent
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailboxes
+                    (id, namespace, idempotency_key, collection_key, timeout, deadline,
+                     next_idx, next_seq, status, disposed_reason, created_at, disposed_at)
+                SELECT
+                    gen_random_uuid(),
+                    'test-ns',
+                    'seed-mailbox-' || g,
+                    'seed-collection-' || (g % 50),
+                    INTERVAL '1 hour',
+                    CASE WHEN g % 8 = 0
+                         THEN @baseTime - (INTERVAL '1 minute' * ((g % 4000) + 1))
+                         ELSE @baseTime + (INTERVAL '1 hour' * ((g % 24) + 1))
+                    END,
+                    0,
+                    0,
+                    CASE WHEN g % 4 = 0 THEN 'open' ELSE 'disposed' END,
+                    CASE WHEN g % 4 = 0 THEN NULL ELSE 'request' END,
+                    @baseTime - (INTERVAL '1 minute' * g),
+                    CASE
+                        WHEN g % 4 = 0 THEN NULL
+                        WHEN g % 2 = 1 THEN @baseTime - INTERVAL '90 days' - (INTERVAL '1 minute' * g)
+                        ELSE @baseTime - (INTERVAL '1 hour' * (g % 24))
+                    END
+                FROM generate_series(0, @mailboxes - 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("mailboxes", 40000);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        // Child tables populated in the design's own proportion: empty or tiny tables tip the planner into
+        // plans production never runs.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                SELECT m.id, g, 'seed-msg-' || m.id || '-' || g, '{}', @baseTime
+                FROM engine.mailboxes m, generate_series(0, 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+                SELECT m.id, g, gen_random_uuid(), @baseTime, @baseTime, @baseTime
+                FROM engine.mailboxes m, generate_series(0, 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
         // Refresh planner statistics
         await using var analyzeCmd = dataSource.CreateCommand(
-            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
+            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys, "
+                + "engine.mailboxes, engine.mailbox_deliveries, engine.mailbox_receivers"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
     }

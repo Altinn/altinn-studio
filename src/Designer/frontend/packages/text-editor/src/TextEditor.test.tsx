@@ -1,6 +1,6 @@
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
@@ -9,6 +9,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { searchDebounceTimeInMs } from './constants';
 
 const user = userEvent.setup();
 let mockScrollIntoView = jest.fn();
@@ -44,11 +45,15 @@ describe('TextEditor', () => {
       upsertTextResource: jest.fn(),
     };
     queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
-    return rtlRender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <TextEditor {...defaultProps} {...props} />
-      </ServicesContextProvider>,
-    );
+    const allProps: TextEditorProps = { ...defaultProps, ...props };
+    return {
+      allProps,
+      ...rtlRender(
+        <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+          <TextEditor {...allProps} />
+        </ServicesContextProvider>,
+      ),
+    };
   };
   beforeEach(() => {
     // Need to mock the scrollIntoView function
@@ -154,8 +159,10 @@ describe('TextEditor', () => {
     const textEntries = screen.getAllByRole('textbox');
     expect(textEntries[0]).toHaveValue(textValue1);
 
-    const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
-    await user.click(sortAlphabeticallyButton);
+    const sortAlphabeticallyChip = screen.getByRole('checkbox', {
+      name: textMock('text_editor.sort_alphabetically'),
+    });
+    await user.click(sortAlphabeticallyChip);
 
     const sortedTranslations = screen.getAllByRole('textbox');
     expect(sortedTranslations[0]).toHaveValue(textValue2);
@@ -268,6 +275,78 @@ describe('TextEditor', () => {
         name: textMock('schema_editor.delete'),
       });
       expect(resultAfter).toHaveLength(2);
+    });
+  });
+
+  describe('search', () => {
+    beforeEach(() => jest.useFakeTimers());
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    const getSearchInput = (): HTMLElement =>
+      screen.getByRole('searchbox', { name: textMock('text_editor.search_for_text') });
+
+    const setupSearch = () => {
+      const setSearchQuery = jest.fn();
+      const searchUser = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      renderTextEditor({ setSearchQuery });
+      return { setSearchQuery, searchUser };
+    };
+
+    it('applies the search query once the debounce time has passed', async () => {
+      const { setSearchQuery, searchUser } = setupSearch();
+
+      await searchUser.type(getSearchInput(), 'abc');
+      expect(setSearchQuery).not.toHaveBeenCalled();
+
+      act(() => jest.advanceTimersByTime(searchDebounceTimeInMs));
+
+      expect(setSearchQuery).toHaveBeenCalledTimes(1);
+      expect(setSearchQuery).toHaveBeenCalledWith('abc');
+    });
+
+    it('applies an empty search without waiting for the debounce time', async () => {
+      const { setSearchQuery, searchUser } = setupSearch();
+
+      await searchUser.type(getSearchInput(), 'abc');
+      act(() => jest.advanceTimersByTime(searchDebounceTimeInMs));
+      setSearchQuery.mockClear();
+
+      await searchUser.clear(getSearchInput());
+
+      expect(setSearchQuery).toHaveBeenCalledWith('');
+    });
+
+    it('does not apply a pending search after the search has been cleared', async () => {
+      const { setSearchQuery, searchUser } = setupSearch();
+
+      await searchUser.type(getSearchInput(), 'abc');
+      await searchUser.click(
+        screen.getByRole('button', { name: textMock('text_editor.new_text') }),
+      );
+      expect(setSearchQuery).toHaveBeenCalledWith('');
+      setSearchQuery.mockClear();
+
+      act(() => jest.advanceTimersByTime(searchDebounceTimeInMs * 2));
+
+      expect(setSearchQuery).not.toHaveBeenCalled();
+      expect(getSearchInput()).toHaveValue('');
+    });
+
+    it('updates the search field when the search query changes externally', () => {
+      const { rerender, allProps } = renderTextEditor({ searchQuery: 'first query' });
+      expect(getSearchInput()).toHaveValue('first query');
+
+      rerender(
+        <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+          <TextEditor {...allProps} searchQuery='second query' />
+        </ServicesContextProvider>,
+      );
+
+      expect(getSearchInput()).toHaveValue('second query');
     });
   });
 });

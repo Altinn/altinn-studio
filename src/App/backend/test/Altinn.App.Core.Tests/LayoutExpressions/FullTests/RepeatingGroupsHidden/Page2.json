@@ -12,7 +12,7 @@
         "textResourceBindings": {
           "title": "Page2.RepeatingGroup-LRetJ5.title",
           "description": "Page2.RepeatingGroup-LRetJ5.description",
-          "add_button_full": "Page2.RepeatingGroup-LRetJ5.add_button_full"
+          "addButtonFull": "Page2.RepeatingGroup-LRetJ5.add_button_full"
         },
         "maxCount": 10,
         "minCount": 1,

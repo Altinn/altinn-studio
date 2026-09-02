@@ -119,4 +119,72 @@ internal static partial class EngineRepositoryLogs
         int lostCount,
         int totalCount
     );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to {Operation} mailbox {MailboxId} after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedMailboxOperation(
+        this ILogger<EngineRepository> logger,
+        string operation,
+        Guid mailboxId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to mint a batch of {MailboxCount} mailbox(es): {Message}")]
+    internal static partial void FailedToBatchMintMailboxes(
+        this ILogger<EngineRepository> logger,
+        int mailboxCount,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to close a batch of {MailboxCount} mailbox(es): {Message}")]
+    internal static partial void FailedToBatchCloseMailboxes(
+        this ILogger<EngineRepository> logger,
+        int mailboxCount,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to deliver a batch of {DeliveryCount} mailbox message(s): {Message}")]
+    internal static partial void FailedToBatchDeliverToMailboxes(
+        this ILogger<EngineRepository> logger,
+        int deliveryCount,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to read the mailbox receipt for receive workflow {WorkflowId} after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedMailboxReceiptRead(
+        this ILogger<EngineRepository> logger,
+        Guid workflowId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to {Operation} after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedMailboxRead(
+        this ILogger<EngineRepository> logger,
+        string operation,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Mailbox {MailboxId} closed at its deadline holding {UnpairedDeliveries} delivered message(s) no receiver was ever enqueued for; they stay readable until retention purges the mailbox"
+    )]
+    internal static partial void MailboxClosedWithUnpairedDeliveries(
+        this ILogger<EngineRepository> logger,
+        Guid mailboxId,
+        long unpairedDeliveries
+    );
 }

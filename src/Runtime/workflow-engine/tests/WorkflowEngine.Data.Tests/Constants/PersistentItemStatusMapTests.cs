@@ -48,11 +48,25 @@ public class PersistentItemStatusMapTests
     }
 
     [Fact]
-    public void Fetchable_IsIncompleteMinusProcessing()
+    public void Fetchable_IsASubsetOfIncomplete_AndExcludesTheStatusesNoWorkerClaims()
     {
-        var expected = PersistentItemStatusMap.Incomplete.Where(s => s != PersistentItemStatus.Processing).Order();
+        // Both the partial index and FetchAndLockWorkflows interpolate FetchableSqlList, so this
+        // pin covers the fetch gate as well as the index.
+        Assert.All(PersistentItemStatusMap.Fetchable, s => Assert.Contains(s, PersistentItemStatusMap.Incomplete));
 
-        Assert.Equal(expected, PersistentItemStatusMap.Fetchable.Order());
+        Assert.DoesNotContain(PersistentItemStatus.Processing, PersistentItemStatusMap.Fetchable);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Fetchable);
+    }
+
+    [Fact]
+    public void Held_IsUnsettledButNeverFetchable()
+    {
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Fetchable);
+
+        Assert.Contains(PersistentItemStatus.Held, PersistentItemStatusMap.Incomplete);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Finished);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Failed);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Successful);
     }
 
     [Fact]

@@ -737,6 +737,232 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsHeld_ReturnsProcessingWithoutAWaitingReason()
+    {
+        // A Held head is the whole of what remains of its transition; reading it as settled would report the
+        // instance idle while an exchange is open. Not Retrying — nothing failed — and no waiting reason is
+        // persisted: the wording is static per task.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Held,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
+                            },
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.False(result.Retrying);
+        Assert.Null(result.Failure);
+        Assert.Null(result.WaitingReason);
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_HeldWorkflowInTheChain_KeepsTheChainUnsettled()
+    {
+        // Heads can look inactive while the chain is unsettled — the anchored-chain guard's case. Observable
+        // because a settled read returns at once where an unsettled one polls to timeout.
+        Guid mainWorkflowId = Guid.NewGuid();
+        Guid receiverWorkflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = new Instance();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, mainWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(mainWorkflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, mainWorkflowId, PersistentItemStatus.Completed));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                // Main explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created strictly
+                // after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow.AddSeconds(-1),
+                    status: PersistentItemStatus.Completed,
+                    databaseId: mainWorkflowId,
+                    steps:
+                    [
+                        CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                    ]
+                ),
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Held,
+                    databaseId: receiverWorkflowId,
+                    steps: [CreateStep(ExecuteServiceTask.Key, PersistentItemStatus.Enqueued)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 0,
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            mainWorkflowId,
+            collectionKey,
+            CancellationToken.None
+        );
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_ParkedHeldChain_ReleasesEarlyAsCommittedSuccess()
+    {
+        // A receiver may stay parked for days by design, so the committed chain releases early and the
+        // read-path annotation takes over — as for a deferring service task.
+        Guid mainWorkflowId = Guid.NewGuid();
+        Guid receiverWorkflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = new Instance();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, mainWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(mainWorkflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = mainWorkflowId,
+                            Status = PersistentItemStatus.Completed,
+                        },
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = receiverWorkflowId,
+                            Status = PersistentItemStatus.Held,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                // Main explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created strictly
+                // after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow.AddSeconds(-1),
+                    status: PersistentItemStatus.Completed,
+                    databaseId: mainWorkflowId,
+                    steps:
+                    [
+                        CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                    ]
+                ),
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Held,
+                    databaseId: receiverWorkflowId,
+                    steps: [CreateStep(ExecuteServiceTask.Key, PersistentItemStatus.Enqueued)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 0,
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            mainWorkflowId,
+            collectionKey,
+            CancellationToken.None
+        );
+
+        Assert.Null(result.WorkflowFailure);
+        Assert.True(result.ProcessStateChanged);
+    }
+
+    [Fact]
     public async Task ResolveWorkflowTaskStatus_WhenHeadIsFailed_ReturnsFailedWithFailureDetail()
     {
         // A resume-required head (Failed/Canceled/DependencyFailed) surfaces as Failed with the

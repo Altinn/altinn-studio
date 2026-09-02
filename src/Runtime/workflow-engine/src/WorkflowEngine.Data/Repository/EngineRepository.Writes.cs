@@ -235,17 +235,47 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
+            // The first act on mailbox state, and only for genuinely new requests: a replay consumes no position,
+            // and locking for one would stall the rest of the flush.
+            var mailboxes = await LockAndReadMailboxes(conn, requests, newRequestIndices, cancellationToken);
+
+            var receiverPlan = PlanMailboxReceivers(
+                requests,
+                newRequestIndices,
+                bulkInsertData,
+                mailboxes,
+                results,
+                cancellationToken
+            );
+
+            if (receiverPlan.RejectedRequestIndices.Count > 0)
+            {
+                await ReleaseIdempotencyKeys(conn, requests, receiverPlan.RejectedRequestIndices, cancellationToken);
+            }
+
             await BulkCopyNewWorkflows(conn, newRequestIndices, bulkInsertData, cancellationToken);
 
             await ProcessCollections(conn, requests, newRequestIndices, perRequestWorkflows, cancellationToken);
 
+            await WriteMailboxReceivers(conn, receiverPlan, cancellationToken);
+
             await tx.CommitAsync(cancellationToken);
 
-            existingRequestIndices.AddRange(duplicates);
+            receiverPlan.Births.Record();
 
             foreach (var i in newRequestIndices)
             {
                 results[i] = BatchEnqueueResult.Created([.. perRequestWorkflows[i].Select(w => w.DatabaseId)]);
+            }
+
+            foreach (var (index, primaryIndex) in duplicates)
+            {
+                // A duplicate of a refused request cannot classify against the stored key — the flush released it —
+                // so it inherits the primary's verdict.
+                if (results[primaryIndex] is { } primary && IsMailboxRejection(primary.Status))
+                    results[index] = primary;
+                else
+                    existingRequestIndices.Add(index);
             }
 
             if (existingRequestIndices.Count > 0)
@@ -395,10 +425,12 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
+        // Distinct() keeps the unnest a set: repeated (key, namespace) pairs would multiply the joined row.
         var (keys, namespaces) = existingRequestIndices
             .Select(i =>
                 (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
             )
+            .Distinct()
             .ToArray()
             .Unzip();
 
@@ -414,10 +446,11 @@ internal sealed partial class EngineRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var existingLookup = existingEntities.ToDictionary(
-            e => (e.IdempotencyKey, e.Namespace),
-            e => (hash: e.RequestBodyHash, workflowIds: e.WorkflowIds)
-        );
+        // Indexer rather than ToDictionary: a duplicate key here would throw inside the flush and fail every
+        // unrelated caller batched into the transaction.
+        var existingLookup = new Dictionary<(string Key, string Namespace), (byte[] Hash, Guid[] WorkflowIds)>();
+        foreach (var entity in existingEntities)
+            existingLookup[(entity.IdempotencyKey, entity.Namespace)] = (entity.RequestBodyHash, entity.WorkflowIds);
 
         foreach (var i in existingRequestIndices)
         {
@@ -425,8 +458,8 @@ internal sealed partial class EngineRepository
             var compositeKey = (req.Metadata.IdempotencyKey, WorkflowNamespace.Normalize(req.Metadata.Namespace));
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
-                if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
-                    results[i] = BatchEnqueueResult.Duplicate(existing.workflowIds);
+                if (existing.Hash.AsSpan().SequenceEqual(req.RequestBodyHash))
+                    results[i] = BatchEnqueueResult.Duplicate(existing.WorkflowIds);
                 else
                     results[i] = BatchEnqueueResult.Conflicted();
             }
@@ -505,10 +538,18 @@ internal sealed partial class EngineRepository
         return validIndices;
     }
 
-    private static List<int> RemoveDuplicates(IReadOnlyList<BufferedEnqueueRequest> requests, List<int> indicesToCheck)
+    /// <summary>
+    /// Removes intra-batch duplicates from <paramref name="indicesToCheck"/>, each paired with the request it
+    /// duplicates.
+    /// </summary>
+    private static List<(int Index, int PrimaryIndex)> RemoveDuplicates(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> indicesToCheck
+    )
     {
-        var duplicates = new List<int>();
+        var duplicates = new List<(int Index, int PrimaryIndex)>();
         BufferedEnqueueRequest? previous = null;
+        int previousKeptIndex = -1;
         foreach (
             var (current, index) in requests
                 .Select((value, index) => (Value: value, Index: index))
@@ -528,8 +569,12 @@ internal sealed partial class EngineRepository
                 && current.Metadata.IdempotencyKey == previous.Metadata.IdempotencyKey
             )
             {
-                duplicates.Add(index);
+                duplicates.Add((index, previousKeptIndex));
                 indicesToCheck.Remove(index);
+            }
+            else
+            {
+                previousKeptIndex = index;
             }
             previous = current;
         }
@@ -666,6 +711,318 @@ internal sealed partial class EngineRepository
         {
             await _insertLinks(conn, allLinkEdges, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// One mailbox's state under its row lock. Deliveries are gapless, so <c>seq &lt; NextIdx</c> is exactly
+    /// "a delivery already sits at this receiver's position".
+    /// </summary>
+    private sealed record MailboxReceiverRow(string Namespace, bool IsDisposed, long NextIdx, long NextSeq);
+
+    /// <summary>Published after the commit.</summary>
+    private readonly record struct MailboxBirthCounts(long Delivered, long Closed, long Held)
+    {
+        public void Record()
+        {
+            if (Delivered > 0)
+                Metrics.MailboxReceiversCreated.Add(Delivered, new KeyValuePair<string, object?>("birth", "delivered"));
+
+            if (Closed > 0)
+                Metrics.MailboxReceiversCreated.Add(Closed, new KeyValuePair<string, object?>("birth", "closed"));
+
+            if (Held > 0)
+                Metrics.MailboxReceiversCreated.Add(Held, new KeyValuePair<string, object?>("birth", "held"));
+        }
+    }
+
+    /// <summary>Exactly one of <c>HeldAt</c> and <c>ReleasedAt</c> is set.</summary>
+    private readonly record struct MailboxReceiverRegistration(
+        Guid MailboxId,
+        long Seq,
+        Guid WorkflowId,
+        DateTimeOffset? HeldAt,
+        DateTimeOffset? ReleasedAt
+    );
+
+    /// <summary>
+    /// Rejected requests are already answered, but their idempotency keys must be released before commit;
+    /// registrations cover every receiver, parked or not.
+    /// </summary>
+    private sealed record MailboxReceiverPlan(
+        List<int> RejectedRequestIndices,
+        List<MailboxReceiverRegistration> Registrations,
+        Dictionary<Guid, long> SeqAdvances,
+        MailboxBirthCounts Births
+    )
+    {
+        public static readonly MailboxReceiverPlan Empty = new([], [], [], default);
+    }
+
+    private static bool IsMailboxRejection(BatchEnqueueResultStatus status) =>
+        status is BatchEnqueueResultStatus.MailboxNotFound or BatchEnqueueResultStatus.MailboxLogFull;
+
+    /// <summary>
+    /// The lock leaves only two interleavings between a delivery and its receiver's enqueue. Returns
+    /// <c>null</c> when the batch declares no mailbox (keeping the ordinary path free of mailbox statements); an
+    /// empty dictionary means the named mailboxes do not exist.
+    /// </summary>
+    private static async Task<Dictionary<Guid, MailboxReceiverRow>?> LockAndReadMailboxes(
+        NpgsqlConnection conn,
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> validRequestIndices,
+        CancellationToken cancellationToken
+    )
+    {
+        SortedSet<Guid>? mailboxIds = null;
+        foreach (var i in validRequestIndices)
+        {
+            foreach (var workflow in requests[i].Request.Workflows)
+            {
+                if (workflow.Mailbox is { } mailbox)
+                    (mailboxIds ??= []).Add(mailbox.Id);
+            }
+        }
+
+        if (mailboxIds is null)
+            return null;
+
+        var ids = mailboxIds.ToArray();
+
+        // ORDER BY keeps concurrent flushes from deadlocking each other.
+        const string sql = """
+            SELECT m.id, m.namespace, m.status, m.next_idx, m.next_seq
+            FROM engine.mailboxes m
+            WHERE m.id = ANY(@ids)
+            ORDER BY m.id
+            FOR UPDATE
+            """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+
+        var rows = new Dictionary<Guid, MailboxReceiverRow>(ids.Length);
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+#pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is buffered after ReadAsync
+            rows[reader.GetGuid(0)] = new MailboxReceiverRow(
+                Namespace: reader.GetString(1),
+                IsDisposed: MailboxStatusMap.FromDbValue(reader.GetString(2)) == MailboxStatus.Disposed,
+                NextIdx: reader.GetInt64(3),
+                NextSeq: reader.GetInt64(4)
+            );
+#pragma warning restore CA1849, S6966
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// A delivery at the position outranks a closed mailbox, so a saga replaying after the deadline drains its
+    /// promised backlog. A request is refused whole or not at all.
+    /// </summary>
+    private MailboxReceiverPlan PlanMailboxReceivers(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> newRequestIndices,
+        BulkInsertData bulkInsertData,
+        Dictionary<Guid, MailboxReceiverRow>? mailboxes,
+        BatchEnqueueResult[] results,
+        CancellationToken cancellationToken
+    )
+    {
+        if (mailboxes is null)
+            return MailboxReceiverPlan.Empty;
+
+        var cap = settings.Value.MaxMailboxLogLength;
+
+        // The engine's own clock: these stamps are compared against instants the engine writes.
+        var now = timeProvider.GetUtcNow();
+        var rejected = new List<int>();
+        var registrations = new List<MailboxReceiverRegistration>();
+        var advances = new Dictionary<Guid, long>(mailboxes.Count);
+        long bornDelivered = 0;
+        long bornClosed = 0;
+        long bornHeld = 0;
+        var pending = new List<(Guid MailboxId, long Seq, WorkflowEntity Entity)>();
+        var reserved = new Dictionary<Guid, long>();
+
+        foreach (var reqIdx in newRequestIndices)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var request = requests[reqIdx];
+            var ns = WorkflowNamespace.Normalize(request.Metadata.Namespace);
+            var workflowRequests = request.Request.Workflows;
+            var entities = bulkInsertData.WorkflowEntities[reqIdx];
+
+            pending.Clear();
+            reserved.Clear();
+            BatchEnqueueResult? rejection = null;
+
+            for (int j = 0; j < workflowRequests.Count && rejection is null; j++)
+            {
+                if (workflowRequests[j].Mailbox is not { } declared)
+                    continue;
+
+                if (!mailboxes.TryGetValue(declared.Id, out var mailbox) || mailbox.Namespace != ns)
+                {
+                    rejection = BatchEnqueueResult.MailboxRejected(
+                        BatchEnqueueResultStatus.MailboxNotFound,
+                        $"Workflow '{workflowRequests[j].Ref ?? $"#{j}"}' declares mailbox {declared.Id}, "
+                            + $"which does not exist in namespace '{ns}'."
+                    );
+                    continue;
+                }
+
+                var seq =
+                    mailbox.NextSeq + advances.GetValueOrDefault(declared.Id) + reserved.GetValueOrDefault(declared.Id);
+
+                if (seq >= cap)
+                {
+                    rejection = BatchEnqueueResult.MailboxRejected(
+                        BatchEnqueueResultStatus.MailboxLogFull,
+                        $"The receivers log of mailbox {declared.Id} already holds {seq} positions, maximum is {cap}."
+                    );
+                    continue;
+                }
+
+                pending.Add((declared.Id, seq, entities[j]));
+                reserved[declared.Id] = reserved.GetValueOrDefault(declared.Id) + 1;
+            }
+
+            if (rejection is not null)
+            {
+                results[reqIdx] = rejection;
+                rejected.Add(reqIdx);
+                continue;
+            }
+
+            foreach (var (mailboxId, seq, entity) in pending)
+            {
+                var mailbox = mailboxes[mailboxId];
+                var hasDelivery = seq < mailbox.NextIdx;
+
+                if (hasDelivery || mailbox.IsDisposed)
+                {
+                    // Runnable at birth, but it still registers: the position is what the executor reads its delivery
+                    // by. Born released, so no release statement can match it.
+                    entity.Status = PersistentItemStatus.Enqueued;
+                    registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, null, now));
+
+                    if (hasDelivery)
+                        bornDelivered++;
+                    else
+                        bornClosed++;
+                }
+                else
+                {
+                    entity.Status = PersistentItemStatus.Held;
+                    registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, now, null));
+                    bornHeld++;
+                }
+
+                advances[mailboxId] = advances.GetValueOrDefault(mailboxId) + 1;
+            }
+        }
+
+        foreach (var reqIdx in rejected)
+        {
+            newRequestIndices.Remove(reqIdx);
+        }
+
+        return new MailboxReceiverPlan(
+            rejected,
+            registrations,
+            advances,
+            new MailboxBirthCounts(bornDelivered, bornClosed, bornHeld)
+        );
+    }
+
+    /// <summary>
+    /// Deletes the keys of refused requests, so the same request may be made again once the reason is gone.
+    /// </summary>
+    private static async Task ReleaseIdempotencyKeys(
+        NpgsqlConnection conn,
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> requestIndices,
+        CancellationToken cancellationToken
+    )
+    {
+        var (keys, namespaces) = requestIndices
+            .Select(i =>
+                (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
+            )
+            .ToArray()
+            .Unzip();
+
+        const string sql = """
+            DELETE FROM engine.idempotency_keys ik
+            USING unnest(@keys, @namespaces) AS t(idempotency_key, namespace)
+            WHERE ik.idempotency_key = t.idempotency_key AND ik.namespace = t.namespace
+            """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", keys));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The transaction is what makes the log gapless: every position handed out is written with the counter that
+    /// consumed it, or not at all.
+    /// </summary>
+    private static async Task WriteMailboxReceivers(
+        NpgsqlConnection conn,
+        MailboxReceiverPlan plan,
+        CancellationToken cancellationToken
+    )
+    {
+        if (plan.SeqAdvances.Count == 0)
+            return;
+
+        var (mailboxIds, counts) = plan.SeqAdvances.Select(kvp => (kvp.Key, kvp.Value)).ToArray().Unzip();
+
+        const string advanceSql = """
+            UPDATE engine.mailboxes AS m
+            SET next_seq = m.next_seq + v.n
+            FROM unnest(@ids, @counts) AS v(id, n)
+            WHERE m.id = v.id
+            """;
+
+        await using (var advanceCmd = new NpgsqlCommand(advanceSql, conn))
+        {
+            advanceCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", mailboxIds));
+            advanceCmd.Parameters.Add(new NpgsqlParameter<long[]>("counts", counts));
+            await advanceCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        if (plan.Registrations.Count == 0)
+            return;
+
+        var (registryMailboxIds, seqs, workflowIds, heldAt, releasedAt) = plan
+            .Registrations.Select(r => (r.MailboxId, r.Seq, r.WorkflowId, r.HeldAt, r.ReleasedAt))
+            .ToArray()
+            .Unzip();
+
+        const string registrySql = """
+            INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+            SELECT mailbox_id, seq, workflow_id, held_at, released_at, NULL
+            FROM unnest(@mailbox_ids, @seqs, @workflow_ids, @held_at, @released_at)
+                AS t(mailbox_id, seq, workflow_id, held_at, released_at)
+            """;
+
+        await using var registryCmd = new NpgsqlCommand(registrySql, conn);
+        registryCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", registryMailboxIds));
+        registryCmd.Parameters.Add(new NpgsqlParameter<long[]>("seqs", seqs));
+        registryCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("workflow_ids", workflowIds));
+        registryCmd.Parameters.Add(
+            new NpgsqlParameter("held_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = heldAt }
+        );
+        registryCmd.Parameters.Add(
+            new NpgsqlParameter("released_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = releasedAt }
+        );
+        await registryCmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>
@@ -1044,11 +1401,57 @@ internal sealed partial class EngineRepository
             .Where(w => ids.Contains(w.Id))
             .ToListAsync(cancellationToken);
 
+        await RecordWakeToClaimLatency(context, entities, now, cancellationToken);
+
         var workflows = entities.Select(x => x.ToDomainModel()).ToList();
 
         Metrics.DbOperationsSucceeded.Add(1);
 
         return workflows;
+    }
+
+    /// <summary>
+    /// Records wake-to-claim latency and stamps <c>claimed_at</c>. <c>claimed_at IS NULL</c> keeps it once per
+    /// release rather than per retry; <c>held_at IS NOT NULL</c> keeps it about the wake — a receiver born
+    /// runnable never waited. Clamped at zero: the two ends come from two pods' clocks.
+    /// </summary>
+    private static async Task RecordWakeToClaimLatency(
+        EngineDbContext context,
+        List<WorkflowEntity> claimed,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        List<Guid>? receiverIds = null;
+        foreach (var entity in claimed)
+        {
+            if (entity.MailboxId is not null)
+                (receiverIds ??= []).Add(entity.Id);
+        }
+
+        if (receiverIds is null)
+            return;
+
+        var ids = receiverIds.ToArray();
+
+        var releasedAt = await context
+            .Database.SqlQuery<DateTimeOffset?>(
+                $"""
+                UPDATE engine.mailbox_receivers mr
+                SET claimed_at = {now}
+                WHERE mr.workflow_id = ANY({ids})
+                  AND mr.released_at IS NOT NULL
+                  AND mr.claimed_at IS NULL
+                RETURNING CASE WHEN mr.held_at IS NOT NULL THEN mr.released_at END AS "Value"
+                """
+            )
+            .ToListAsync(cancellationToken);
+
+        foreach (var released in releasedAt)
+        {
+            if (released is { } releaseInstant)
+                Metrics.MailboxReceiverWakeLatency.Record(Math.Max(0, (now - releaseInstant).TotalSeconds));
+        }
     }
 
     /// <inheritdoc/>

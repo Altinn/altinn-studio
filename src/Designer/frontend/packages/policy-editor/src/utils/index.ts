@@ -52,7 +52,7 @@ export const organizationSubject: PolicySubject = {
 /**
  * Maps the resource string from backend to a resource object with type and id.
  *
- * @param resource the resoruce string to map
+ * @param resource the resource string to map
  *
  * @returns a mapped resource object
  */

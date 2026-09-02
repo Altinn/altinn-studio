@@ -5,6 +5,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { existsSync } = require('node:fs');
 const env = require('dotenv').config();
+const configureCypressShard = require('./scripts/cypress-shard');
 
 const CYPRESS_WINDOW_WIDTH = env.parsed?.CYPRESS_WINDOW_WIDTH || 1920;
 const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
@@ -80,26 +81,36 @@ module.exports = defineConfig({
 
       const validEnvironments = ['localtest', 'tt02'];
       if (validEnvironments.includes(config.env.environment)) {
-        return getConfigurationByFile(config.env.environment).then((fileConfig) => ({
-          ...fileConfig,
-          env: {
-            ...config.env,
-            ...fileConfig.env,
-          },
-          expose: {
-            ...config.expose,
-            ...fileConfig.expose,
-            // Specs that assert on backend-local date/time values need the backend's timezone.
-            // Only in localtest does the app backend run on the same machine as Cypress, so only
-            // then is the machine timezone valid - read it here in the Node process, since the
-            // browser's timezone may be emulated via CDP and cannot be trusted. Against remote
-            // environments (tt02) this is deliberately left unset; specs fall back to UTC, which
-            // is what those backends run in.
-            ...(config.env.environment === 'localtest'
-              ? { machineTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
-              : {}),
-          },
-        }));
+        return getConfigurationByFile(config.env.environment).then((fileConfig) => {
+          const configured = {
+            ...config,
+            ...fileConfig,
+            env: {
+              ...config.env,
+              ...fileConfig.env,
+            },
+            expose: {
+              ...config.expose,
+              ...fileConfig.expose,
+              // Specs that assert on backend-local date/time values need the backend's timezone.
+              // Only in localtest does the app backend run on the same machine as Cypress, so only
+              // then is the machine timezone valid - read it here in the Node process, since the
+              // browser's timezone may be emulated via CDP and cannot be trusted. Against remote
+              // environments (tt02) this is deliberately left unset; specs fall back to UTC, which
+              // is what those backends run in.
+              ...(config.env.environment === 'localtest'
+                ? { machineTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+                : {}),
+            },
+          };
+
+          return configureCypressShard(configured, {
+            specRoot: path.resolve(__dirname, 'test/e2e/integration'),
+            timingsFile: path.resolve(__dirname, 'test/e2e/cypress-timings.json'),
+            total: process.env.E2E_SHARD_TOTAL,
+            number: process.env.E2E_SHARD_NUMBER,
+          });
+        });
       }
 
       throw new Error(`Unknown environment "${config.env.environment}"

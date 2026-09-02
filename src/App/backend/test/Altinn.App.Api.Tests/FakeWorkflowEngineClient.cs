@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,6 +48,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private readonly ConcurrentDictionary<Guid, StoredWorkflow> _workflows = new();
     private readonly ConcurrentDictionary<string, Guid[]> _workflowsByIdempotencyKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, List<Guid>> _collectionHeadsByKey = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, MailboxResponse> _mailboxesByIdempotencyKey = new(
+        StringComparer.Ordinal
+    );
+    private readonly ConcurrentDictionary<string, MailboxDeliveryResponse> _deliveriesByKey = new(
+        StringComparer.Ordinal
+    );
     private readonly object _gate = new();
     private bool _isProcessing;
 
@@ -334,6 +341,119 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         return abandoned;
+    }
+
+    /// <summary>
+    /// Mints idempotently on <c>(namespace, idempotencyKey)</c>, as the engine does. The fake models the
+    /// address, not the rendezvous.
+    /// </summary>
+    public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
+    {
+        MailboxResponse mailbox = _mailboxesByIdempotencyKey.GetOrAdd(
+            CreateBatchKey(ns, request.IdempotencyKey),
+            _ =>
+            {
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                return new MailboxResponse
+                {
+                    Id = Guid.CreateVersion7(now),
+                    Namespace = ns,
+                    IdempotencyKey = request.IdempotencyKey,
+                    CollectionKey = request.CollectionKey,
+                    Timeout = request.Timeout,
+                    Deadline = now + request.Timeout,
+                    Status = MailboxStatus.Open,
+                    NextIdx = 0,
+                    NextSeq = 0,
+                    CreatedAt = now,
+                };
+            }
+        );
+
+        return Task.FromResult<MailboxMintResult>(new MailboxMintResult.Minted(mailbox));
+    }
+
+    /// <summary>
+    /// Terminal and idempotent as the engine is; <c>null</c> for an unknown id (the engine's <c>404</c>).
+    /// </summary>
+    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    {
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id != mailboxId || !string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                return Task.FromResult<MailboxResponse?>(mailbox);
+            }
+
+            MailboxResponse closed = mailbox with
+            {
+                Status = MailboxStatus.Disposed,
+                DisposedReason = MailboxDisposedReason.Request,
+                DisposedAt = DateTimeOffset.UtcNow,
+            };
+            _mailboxesByIdempotencyKey.TryUpdate(key, closed, mailbox);
+            return Task.FromResult<MailboxResponse?>(closed);
+        }
+
+        return Task.FromResult<MailboxResponse?>(null);
+    }
+
+    /// <summary>
+    /// Models the engine's response matrix: <c>404</c> unknown, <c>409</c> closed, <c>200</c> replay (even
+    /// after closure), <c>202</c> appended. Stores the delivery but wakes nobody.
+    /// </summary>
+    public Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);
+
+        // The idempotency lookup runs before the closed check, exactly as the engine's does.
+        if (_deliveriesByKey.TryGetValue(deliveryKey, out MailboxDeliveryResponse? existing))
+        {
+            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null));
+        }
+
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id != mailboxId || !string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                return Task.FromResult(
+                    new MailboxDeliveryResult(
+                        HttpStatusCode.Conflict,
+                        Body: null,
+                        ErrorDetail: $"Mailbox {mailboxId} is closed and no longer accepts deliveries."
+                    )
+                );
+            }
+
+            var delivery = new MailboxDeliveryResponse
+            {
+                MailboxId = mailboxId,
+                Idx = mailbox.NextIdx,
+                IdempotencyKey = request.IdempotencyKey,
+                AcceptedAt = DateTimeOffset.UtcNow,
+            };
+            _deliveriesByKey[deliveryKey] = delivery;
+            _mailboxesByIdempotencyKey.TryUpdate(key, mailbox with { NextIdx = mailbox.NextIdx + 1 }, mailbox);
+
+            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.Accepted, delivery, ErrorDetail: null));
+        }
+
+        return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.NotFound, Body: null, ErrorDetail: null));
     }
 
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)

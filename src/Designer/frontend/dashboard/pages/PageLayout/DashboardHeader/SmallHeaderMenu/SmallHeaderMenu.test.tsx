@@ -22,14 +22,12 @@ describe('SmallHeaderMenu', () => {
     const user = userEvent.setup();
     renderSmallHeaderMenu();
 
-    expect(
-      screen.queryByRole('menuitem', {
-        name: textMock(headerContextValueMock.menuItems[0].key),
-      }),
-    ).not.toBeInTheDocument();
+    const button = getTopMenuButton();
+    expect(button).toHaveAttribute('aria-expanded', 'false');
 
-    await user.click(getTopMenuButton());
+    await user.click(button);
 
+    expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(getMenuItem(0)).toBeInTheDocument();
   });
 
@@ -37,12 +35,14 @@ describe('SmallHeaderMenu', () => {
     const user = userEvent.setup();
     renderSmallHeaderMenu();
 
-    await user.click(getTopMenuButton());
+    const button = getTopMenuButton();
+    await user.click(button);
 
     const menuItem = getMenuItem(0);
     expect(menuItem).toBeInTheDocument();
     await user.click(menuItem);
-    expect(menuItem).not.toBeInTheDocument();
+
+    expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('should display user name in the profile section', async () => {

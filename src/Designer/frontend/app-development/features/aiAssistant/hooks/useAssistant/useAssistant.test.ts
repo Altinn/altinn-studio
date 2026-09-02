@@ -55,6 +55,7 @@ const createThreadState = (): AssistantThreadState => ({
   deleteThread: jest.fn(),
   deleteMessage: jest.fn(),
   createMessage: jest.fn(),
+  refreshMessages: jest.fn(),
 });
 
 const renderUseAssistant = () => renderHook(() => useAssistant());

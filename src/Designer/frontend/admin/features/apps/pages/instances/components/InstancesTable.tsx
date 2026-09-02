@@ -4,6 +4,7 @@ import {
   StudioTable,
   StudioError,
   StudioAlert,
+  StudioSkeleton,
 } from '@studio/components';
 import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
@@ -14,7 +15,6 @@ import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
-import { Skeleton } from '@digdir/designsystemet-react';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { Link } from 'react-router-dom';
 
@@ -95,9 +95,9 @@ const InstancesTableSkeleton = ({ n }: { n: number }) => {
   return (
     <div aria-label={t('general.loading')} className={classes.skeletonWrapper}>
       {Array.from({ length: n }).map((_, i) => (
-        <Skeleton.Rectangle key={i} className={classes.rowSkeleton} />
+        <StudioSkeleton key={i} className={classes.rowSkeleton} />
       ))}
-      <Skeleton.Rectangle className={classes.buttonSkeleton} />
+      <StudioSkeleton className={classes.buttonSkeleton} />
     </div>
   );
 };

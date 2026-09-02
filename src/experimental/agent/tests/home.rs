@@ -4,7 +4,7 @@ mod support;
 
 use std::path::Path;
 
-use agent::home::ControlPlaneHome;
+use agent::local::home::ControlPlaneHome;
 
 use support::TempDirectory;
 

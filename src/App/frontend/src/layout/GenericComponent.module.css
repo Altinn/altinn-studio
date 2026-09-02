@@ -1,3 +1,5 @@
+@value mediaSmUp, mediaMdUp, mediaLgUp from '@app/form-component/styles/breakpoints.module.css';
+
 @media print {
   .container {
     display: flex !important;
@@ -12,7 +14,7 @@
   padding-left: 12px;
 }
 
-@media (min-width: 600px) {
+@media mediaSmUp {
   .sm {
     border-bottom: 1px dashed #949494;
   }
@@ -22,7 +24,7 @@
   }
 }
 
-@media (min-width: 1025px) {
+@media mediaMdUp {
   .md {
     border-bottom: 1px dashed #949494;
   }
@@ -32,22 +34,12 @@
   }
 }
 
-@media (min-width: 1440px) {
+@media mediaLgUp {
   .lg {
     border-bottom: 1px dashed #949494;
   }
 
   .lg > div:nth-child(2) {
-    padding-left: 12px;
-  }
-}
-
-@media (min-width: 1920px) {
-  .xl {
-    border-bottom: 1px dashed #949494;
-  }
-
-  .xl > div:nth-child(2) {
     padding-left: 12px;
   }
 }

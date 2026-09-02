@@ -11,7 +11,7 @@ import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggl
  * and sorts the list before it is being returned. For resources not checked into
  * Gitea, it sets a special last changed date to prioritize them in the sorted list.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  *
  * @returns UseQueryResult with a list of resources of Resource
  */

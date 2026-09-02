@@ -54,7 +54,7 @@ export interface DropdownProps {
   labelGrid?: IGridStyling;
   /**
    * Whether the component is rendered inside a table cell. When true the visible label is suppressed
-   * and a visually-hidden label + `aria-label` are rendered instead (DS Combobox does not honour
+   * and a visually-hidden label + `aria-label` are rendered instead (DS Combobox does not honor
    * `aria-label` on the input directly — see digdir/designsystemet#3893).
    */
   renderedInTable?: boolean;

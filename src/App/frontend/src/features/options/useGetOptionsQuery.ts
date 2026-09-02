@@ -3,14 +3,13 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosResponse } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IMapping, IQueryParameters } from 'src/layout/common.generated';
+import type { IQueryParameters } from 'src/layout/common.generated';
 
 export const useGetOptionsQuery = (
   url: string,
@@ -37,11 +36,9 @@ export const useGetOptionsQuery = (
 
 export const useGetOptionsUrl = (
   optionsId: string | undefined,
-  mapping?: IMapping,
   queryParameters?: IQueryParameters,
   secure?: boolean,
 ): string | undefined => {
-  const mappingResult = FormStore.data.useMapping(mapping, FormStore.bootstrap.useDefaultDataType());
   const language = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
   const resolvedQueryParameters = useResolvedQueryParameters(queryParameters);
@@ -50,10 +47,7 @@ export const useGetOptionsUrl = (
     ? getOptionsUrl({
         optionsId,
         language,
-        queryParameters: {
-          ...mappingResult,
-          ...resolvedQueryParameters,
-        },
+        queryParameters: resolvedQueryParameters,
         secure,
         instanceId,
       })

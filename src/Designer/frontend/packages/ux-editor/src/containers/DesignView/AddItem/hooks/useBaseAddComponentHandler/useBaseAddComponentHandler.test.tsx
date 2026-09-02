@@ -5,10 +5,10 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useBaseAddComponentHandler } from './useBaseAddComponentHandler';
 import { waitFor } from '@testing-library/react';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { useFormItemContext } from '../../../../FormItemContext';
 
-jest.mock('app-development/contexts/PreviewContext');
+jest.mock('app-shared/contexts/PreviewContext');
 jest.mock('../../../../../hooks', () => ({
   useAppContext: () => ({
     selectedFormLayoutSetName: 'testLayoutSet',
@@ -52,6 +52,19 @@ describe('useAddComponentHandler', () => {
 
     await waitFor(() => expect(doReloadPreviewMock).toHaveBeenCalled());
     expect(onDoneMock).toHaveBeenCalled();
+  });
+
+  it('does not add a removed component type', () => {
+    const handleEditMock = mockFormItemContext();
+    const doReloadPreviewMock = mockPreviewContext();
+    const onDoneMock = jest.fn();
+
+    const { addItem } = renderUseAddComponentHandler(layoutMock);
+    addItem(ComponentType.FileUploadWithTag, BASE_CONTAINER_ID, 0, 'new-id', onDoneMock);
+
+    expect(handleEditMock).not.toHaveBeenCalled();
+    expect(doReloadPreviewMock).not.toHaveBeenCalled();
+    expect(onDoneMock).not.toHaveBeenCalled();
   });
 });
 

@@ -1,0 +1,98 @@
+[
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(49,14),
+    Code: HandleReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'archive' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(63,14),
+    Code: ConcludeOnReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'journal' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(79,24),
+    Code: ConcludeOnReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'registry' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0703,
+    Title: Mailbox opened but never answered,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(90,87),
+    Code: forgotten,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0703,
+    MessageFormat: The mailbox opened into '{0}' is never answered: its handle is never passed anywhere, so the messages that come back would have no handler. Answer it before the pipeline ends — with HandleReplies to carry on afterwards, or with ConcludeOnReplies to end there.,
+    Message: The mailbox opened into 'forgotten' is never answered: its handle is never passed anywhere, so the messages that come back would have no handler. Answer it before the pipeline ends — with HandleReplies to carry on afterwards, or with ConcludeOnReplies to end there.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(341,14),
+    Code: HandleReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'afterMerge' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(359,14),
+    Code: HandleReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'afterCoalesce' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(376,14),
+    Code: HandleReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'insideUsing' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  },
+  {
+    Id: ALTINNAPP0702,
+    Title: Mailbox handle answered twice,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/MailboxHandleConsumption.cs(493,31),
+    Code: HandleReplies,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0702,
+    MessageFormat: The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Message: The mailbox opened into 'rethrown' is already answered by an earlier handler. Each mailbox is answered exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a second handler for the same exchange would be dead code.,
+    Category: Contracts
+  }
+]

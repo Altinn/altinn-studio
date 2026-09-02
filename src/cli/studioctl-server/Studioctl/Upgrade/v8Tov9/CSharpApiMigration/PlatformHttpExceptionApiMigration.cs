@@ -38,10 +38,11 @@ internal sealed class PlatformHttpExceptionApiMigration
 
     public MigrationResult Migrate()
     {
-        var changes = new List<string>();
+        var rewrites = new List<string>();
         var unresolved = new List<string>();
 
-        foreach (var file in _scanner.Files)
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        foreach (var file in _scanner.Files.ToArray())
         {
             var rewriter = new Rewriter(file);
             var updated = rewriter.Visit(file.Root);
@@ -51,36 +52,32 @@ internal sealed class PlatformHttpExceptionApiMigration
                 continue;
             }
 
-            File.WriteAllText(file.Path, updated.ToFullString());
-            changes.AddRange(rewriter.Changes);
+            _scanner.Update(file, (CompilationUnitSyntax)updated);
+            rewrites.AddRange(rewriter.Changes);
         }
 
-        if (changes.Count == 0 && unresolved.Count == 0)
+        var messages = new List<UpgradeMessage>();
+        if (rewrites.Count > 0)
         {
-            return new MigrationResult(ManualActionRequired: false, Array.Empty<string>());
-        }
-
-        if (changes.Count > 0)
-        {
-            changes.Insert(
-                0,
+            messages.Warn(
                 "Migrated PlatformHttpException to its v9 shape. The constructor now takes a status code; where "
                     + "the response body and headers matter, switch the call site to the asynchronous "
                     + "PlatformHttpException.Create(response), which captures them. Rewrites:"
             );
-        }
-
-        if (unresolved.Count > 0)
-        {
-            changes.Add(
-                "These PlatformHttpException constructor calls could not be rewritten - the response argument's "
-                    + "type is not determinable from syntax, and a wrong guess would not compile:"
-            );
-            changes.AddRange(unresolved);
+            messages.WarnRange(rewrites);
         }
 
         // The rewrites leave the app compiling; anything left unresolved does need a human.
-        return new MigrationResult(ManualActionRequired: unresolved.Count > 0, changes);
+        if (unresolved.Count > 0)
+        {
+            messages.Todo(
+                "These PlatformHttpException constructor calls could not be rewritten - the response argument's "
+                    + "type is not determinable from syntax, and a wrong guess would not compile:"
+            );
+            messages.WarnRange(unresolved);
+        }
+
+        return new MigrationResult(messages);
     }
 
     private sealed class Rewriter : CSharpSyntaxRewriter

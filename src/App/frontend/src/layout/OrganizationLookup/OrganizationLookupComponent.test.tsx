@@ -25,8 +25,8 @@ const orgLookupId = 'org-lookup';
 const textSiblingId = 'text-sibling';
 
 const defaultBindings = {
-  organization_lookup_orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
-  organization_lookup_name: { field: 'orgName', dataType: defaultDataTypeMock },
+  orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
+  name: { field: 'orgName', dataType: defaultDataTypeMock },
 };
 
 const render = async ({
@@ -41,7 +41,7 @@ const render = async ({
       id: orgLookupId,
       dataModelBindings: defaultBindings,
       textResourceBindings: {
-        title: 'Organisation lookup',
+        title: 'Organization lookup',
       },
       ...component,
     },
@@ -73,7 +73,7 @@ const layoutWithSiblingText: ILayoutCollection = {
           type: 'OrganizationLookup',
           dataModelBindings: defaultBindings,
           textResourceBindings: {
-            title: 'Organisation lookup',
+            title: 'Organization lookup',
           },
         },
         {
@@ -115,13 +115,13 @@ describe('OrganizationLookupComponent', () => {
     expect(screen.getByText(/Organisasjonsnummeret er ugyldig/i)).toBeInTheDocument();
     expect(mockedHttpGet).not.toHaveBeenCalled();
 
-    const statusRegion = screen.getByTestId('organisation-lookup-status');
+    const statusRegion = screen.getByTestId('organization-lookup-status');
     await waitFor(() => {
       expect(statusRegion).toHaveTextContent(/Organisasjonsnummeret er ugyldig/i);
     });
   });
 
-  it('fetches organisation, announces details, and allows clearing', async () => {
+  it('fetches organization, announces details, and allows clearing', async () => {
     mockedHttpGet.mockResolvedValue({
       success: true,
       organisationDetails: {
@@ -169,7 +169,7 @@ describe('OrganizationLookupComponent', () => {
 
     expect(screen.getByLabelText('Organisasjonsnavn')).toHaveTextContent(orgName);
 
-    const statusRegion = screen.getByTestId('organisation-lookup-status');
+    const statusRegion = screen.getByTestId('organization-lookup-status');
     await waitFor(() => {
       expect(statusRegion).toHaveTextContent(`Organisasjonsnummer ${validOrgNr}`);
       expect(statusRegion).toHaveTextContent('Sibling Name');
@@ -197,7 +197,7 @@ describe('OrganizationLookupComponent', () => {
     await waitFor(() => expect(mockedHttpGet).toHaveBeenCalled());
   });
 
-  it('shows not found error when lookup returns no organisation', async () => {
+  it('shows not found error when lookup returns no organization', async () => {
     mockedHttpGet.mockResolvedValue({
       success: false,
       organisationDetails: null,

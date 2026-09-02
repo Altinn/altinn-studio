@@ -1,14 +1,14 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
-  margin-top: var(--fds-spacing-3);
+  gap: var(--ds-size-4);
+  margin-top: var(--ds-size-3);
 }
 
 .inputFields {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .customReceiptField {
@@ -18,6 +18,6 @@
 
 .buttonWrapper {
   display: flex;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
   padding-inline: var(--custom-receipt-spacing);
 }

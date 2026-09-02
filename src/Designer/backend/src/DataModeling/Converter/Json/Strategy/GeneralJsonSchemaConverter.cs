@@ -1235,7 +1235,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
         var sequence = new XmlSchemaSequence { Parent = extension };
 
         // Loop sub-schemas except the one with RefKeyword since this
-        // is alread handled.
+        // is already handled.
         var i = 0;
         foreach (var subSchema in subSchemas)
         {

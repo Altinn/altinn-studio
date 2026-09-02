@@ -1,7 +1,7 @@
 .container {
   --homePage-link-color: #663299;
   --layoutSet-link-color: #0061b8;
-  margin-left: var(--fds-spacing-1);
+  margin-left: var(--ds-size-1);
 }
 
 .homePage {

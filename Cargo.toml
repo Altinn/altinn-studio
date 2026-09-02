@@ -1,0 +1,74 @@
+[workspace]
+members = [
+  "src/experimental/agent",
+  "src/experimental/sandbox-authorization",
+  "src/experimental/sandbox",
+  "src/experimental/sandbox/examples/self-dev",
+  "src/experimental/sandbox-microsandbox",
+  "src/ci/github-runner/coordinator",
+]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+rust-version = "1.97.1"
+version = "0.1.0"
+
+[workspace.dependencies]
+base64 = "0.22.1"
+bollard = { version = "0.21.1", features = ["buildkit", "time"] }
+bytes = "1.12.1"
+clap = { version = "4.6.6", features = ["derive"] }
+crossterm = { version = "0.29.0", features = ["event-stream"] }
+futures-core = "0.3.34"
+futures-util = "0.3.34"
+ignore = "0.4.33"
+jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
+# Microsandbox fork commit from `main-digdir`; update all four revisions together.
+microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["net"] }
+microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", package = "microsandbox-image" }
+microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", package = "microsandbox-network" }
+# Microsandbox does not ship its embedded sandbox agent in the crate.
+# Enabling this transitive feature downloads only that build artifact into
+# Cargo's output directory; the host runtime is installed automatically on
+# first use into the control-plane home.
+microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["prebuilt"] }
+ratatui = "0.30.2"
+reqwest = { version = "0.13.4", features = ["json"] }
+rusqlite = "0.39.0"
+sandbox = { path = "src/experimental/sandbox" }
+sandbox-microsandbox = { path = "src/experimental/sandbox-microsandbox" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+serde_yaml_ng = "0.10.0"
+sha2 = "0.11.0"
+tar = "0.4.46"
+tempfile = "3.27.0"
+thiserror = "2.0.20"
+time = { version = "0.3.55", features = ["formatting", "parsing", "serde"] }
+tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
+tokio-util = { version = "0.7.19", features = ["io"] }
+tracing = "0.1.44"
+uuid = { version = "1.24.1", features = ["serde", "v4"] }
+zeroize = "1.9.0"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+warnings = "deny"
+unreachable_pub = "deny"
+unexpected_cfgs = { level = "deny", check-cfg = ["cfg(fuzzing)"] }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+cargo_common_metadata = "allow"
+expect_used = "deny"
+future_not_send = "allow"
+iter_with_drain = "allow"
+multiple_crate_versions = "allow"
+panic = "deny"
+redundant_pub_crate = "allow"
+unwrap_used = "deny"

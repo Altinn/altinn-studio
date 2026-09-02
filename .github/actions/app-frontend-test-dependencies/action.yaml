@@ -25,9 +25,9 @@ runs:
       shell: bash
       env:
         PROVIDED_CACHE_KEY: ${{ inputs.cache-key }}
-        SOURCE_HASH: ${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json', 'src/App/frontend/package.json', 'app-libs/**/package.json') }}
+        SOURCE_HASH: ${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json', 'src/App/frontend/package.json', 'src/common/ts/package.json', 'src/common/ts/*/package.json') }}
       run: |
-        cache_key="${PROVIDED_CACHE_KEY:-app-frontend-focused-dependencies-v2-${{ runner.os }}-${{ runner.arch }}-node22-yarn4.18-${SOURCE_HASH}}"
+        cache_key="${PROVIDED_CACHE_KEY:-app-frontend-focused-dependencies-v3-${{ runner.os }}-${{ runner.arch }}-node22-yarn4.18-${SOURCE_HASH}}"
         echo "cache-key=${cache_key}" >> "$GITHUB_OUTPUT"
 
     - name: Restore focused App Frontend dependencies
@@ -37,7 +37,8 @@ runs:
         path: |
           node_modules
           src/App/frontend/node_modules
-          app-libs/**/node_modules
+          src/common/ts/node_modules
+          src/common/ts/*/node_modules
           .yarn/install-state.gz
         key: ${{ steps.resolve-cache-key.outputs.cache-key }}
         lookup-only: ${{ inputs.populate-cache }}
@@ -95,7 +96,8 @@ runs:
         path: |
           node_modules
           src/App/frontend/node_modules
-          app-libs/**/node_modules
+          src/common/ts/node_modules
+          src/common/ts/*/node_modules
           .yarn/install-state.gz
         key: ${{ steps.resolve-cache-key.outputs.cache-key }}
 
@@ -106,7 +108,8 @@ runs:
         path: |
           node_modules
           src/App/frontend/node_modules
-          app-libs/**/node_modules
+          src/common/ts/node_modules
+          src/common/ts/*/node_modules
           .yarn/install-state.gz
         key: ${{ steps.resolve-cache-key.outputs.cache-key }}
         lookup-only: true

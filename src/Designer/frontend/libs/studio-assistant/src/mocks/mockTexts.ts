@@ -4,6 +4,7 @@ import type {
   MessageFeedbackTexts,
   EmptyThreadTexts,
   CriticalFileAlertTexts,
+  SecurityNoticeAlertTexts,
   TextAreaTexts,
   PermissionPromptTexts,
 } from '../types/AssistantTexts';
@@ -11,12 +12,9 @@ import type {
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   heading: 'aboutAssistantHeading',
   intro: 'aboutAssistantIntro',
-  howToHeading: 'aboutAssistantHowToHeading',
-  description: 'aboutAssistantDescription',
-  branchInfo: 'aboutAssistantBranchInfo',
-  branchDocsLink: 'aboutAssistantBranchDocsLink',
+  assistantDocsInfo: 'aboutAssistantDocsInfo',
+  assistantDocsLink: 'aboutAssistantDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
-  privacyHeading: 'aboutAssistantPrivacyHeading',
   privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
 };
 
@@ -36,7 +34,13 @@ export const messageFeedbackTexts: MessageFeedbackTexts = {
   detailsLabel: 'feedbackDetailsLabel',
   detailsOptionalTag: 'feedbackDetailsOptionalTag',
   submit: 'feedbackSubmit',
+  clear: 'feedbackClear',
   cancel: 'feedbackCancel',
+};
+
+export const securityNoticeAlertTexts: SecurityNoticeAlertTexts = {
+  heading: 'securityNoticeAlertHeading',
+  description: 'securityNoticeAlertDescription',
 };
 
 export const criticalFileAlertTexts: CriticalFileAlertTexts = {
@@ -68,6 +72,7 @@ export const mockTexts: AssistantTexts = {
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
   feedback: messageFeedbackTexts,
   criticalFileAlert: criticalFileAlertTexts,
+  securityNoticeAlert: securityNoticeAlertTexts,
   permissionPrompt: permissionPromptTexts,
   sourcesLabel: 'sourcesLabel',
 };

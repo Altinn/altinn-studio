@@ -7,7 +7,7 @@ partial class Telemetry
     internal Activity? StartGetOrganizationActivity(string? orgNr)
     {
         var activity = ActivitySource.StartActivity("RegisterERClient.GetOrganization");
-        activity?.SetOrganisationNumber(orgNr);
+        activity?.SetOrganizationNumber(orgNr);
         return activity;
     }
 }

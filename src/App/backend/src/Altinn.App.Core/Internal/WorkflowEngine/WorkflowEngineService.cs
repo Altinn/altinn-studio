@@ -18,9 +18,22 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    private const int InitialWorkflowPollingDelayMs = 100;
+    // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
+    // wait adds to a settled transition and how many collection reads a slow one costs. Poll tightly
+    // for as long as a synchronous completion is still plausible - the same window as the parked
+    // release grace below - then slope off to the 2s cap, which bounds what a genuinely slow
+    // transition costs. Doubling from 100ms was the old shape, and its rungs (100/300/700/1500)
+    // overshot a ~115ms transition by ~190ms; a permanently tight ladder is the opposite mistake,
+    // turning a slow transition into a thousand reads. Change none of these without measuring both.
+    private const int InitialWorkflowPollingDelayMs = 50;
+    private const int WorkflowPollingTightWindowMs = 2_000;
+    private const int WorkflowPollingBackoffPercent = 50;
     private const int MaxWorkflowPollingDelayMs = 2_000;
     private const int AcceptanceProbeAttempts = 3;
+
+    // Not the polling delay above: this grace lets the engine's write buffer make the collection
+    // visible before an unknown enqueue is concluded "not accepted".
+    private const int AcceptanceProbeDelayMs = 100;
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
@@ -146,6 +159,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     ) =>
         EnqueueDependentWorkflow(
@@ -156,6 +170,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             collectionKey,
             state,
             actor,
+            idempotencyKey,
             ct
         );
 
@@ -338,13 +353,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey,
         CancellationToken ct
     )
     {
         (Guid workflowId, _) = await CreateAndEnqueueWorkflow(
             instance,
             processStateChange,
-            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
+            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
             lockToken,
             state,
             actor: actor,
@@ -460,7 +476,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
             if (attempt < AcceptanceProbeAttempts - 1)
             {
-                await Task.Delay(InitialWorkflowPollingDelayMs, ct);
+                await Task.Delay(AcceptanceProbeDelayMs, ct);
             }
         }
 
@@ -470,10 +486,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <summary>
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
-    /// active workflow in it is <c>Waiting</c> because a service task deferred — is released as a
-    /// committed success once <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that
-    /// is neither settled nor parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported
-    /// as a <see cref="WorkflowFailureKind.Timeout"/>.
+    /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
+    /// a mailbox receive workflow is waiting for its message — is released as a committed success once
+    /// <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that is neither settled nor
+    /// parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a
+    /// <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
@@ -526,17 +543,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     }
                 }
                 else if (
-                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsWaitingCollectionHeadStatus)
+                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus)
                     && stopwatch.ElapsedMilliseconds >= WorkflowParkedReleaseGraceMs
                 )
                 {
-                    // The chain is parked on a deferring service task and may stay so for its whole
-                    // wait budget; holding the request would misreport a designed wait as a timeout.
-                    // Deferral is post-commit by construction (only ExecuteServiceTask defers, after
-                    // SaveProcessStateToStorage), so the instance already carries the committed
-                    // target task and the ordinary success shape applies — the read-path workflow
-                    // annotation renders the waiting UI from here. The grace window lets quick polls
-                    // complete synchronously.
+                    // Parked (deferring task, or a Held receiver) may last its whole budget; holding the request would
+                    // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
+                    // success shape applies and the read-path annotation takes over.
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
                         await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
                         sinceWorkflowId
@@ -549,9 +562,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             || currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
                         )
                         && activeWorkflows.Count > 0
-                        && activeWorkflows.TrueForAll(workflow =>
-                            workflow.OverallStatus == PersistentItemStatus.Waiting
-                        );
+                        && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
 
                     // The committed-state guard is defensive: should a pre-commit step ever learn to
                     // defer, fall through to the ordinary wait (and its timeout) rather than returning a
@@ -586,7 +597,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             }
 
             await Task.Delay(currentDelayMs, ct);
-            currentDelayMs = Math.Min(currentDelayMs * 2, MaxWorkflowPollingDelayMs);
+            currentDelayMs =
+                stopwatch.ElapsedMilliseconds < WorkflowPollingTightWindowMs
+                    ? InitialWorkflowPollingDelayMs
+                    : Math.Min(
+                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
+                        MaxWorkflowPollingDelayMs
+                    );
         }
 
         ct.ThrowIfCancellationRequested();
@@ -686,22 +703,31 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     // Waiting counts as active: a step that deferred while awaiting an external outcome is still
     // mid-transition, holding no lease but owning the process. Reading it as settled would let the
     // wait return success on an uncommitted transition and let the next action start on top of it.
+    // Held counts for the same reason, and is the stronger case: a parked receiver is the whole of what
+    // remains of its transition, so reading it as settled is exactly the early execution the frontier
+    // convention prevents.
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
-                or PersistentItemStatus.Waiting;
+                or PersistentItemStatus.Waiting
+                or PersistentItemStatus.Held;
 
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
-                or PersistentItemStatus.Waiting;
+                or PersistentItemStatus.Waiting
+                or PersistentItemStatus.Held;
 
-    private static bool IsWaitingCollectionHeadStatus(CollectionHeadStatus workflow) =>
-        workflow.Status is PersistentItemStatus.Waiting;
+    // Parked: active with nothing running and nothing scheduled — waiting on the outside world.
+    private static bool IsParkedCollectionHeadStatus(CollectionHeadStatus workflow) =>
+        workflow.Status is PersistentItemStatus.Waiting or PersistentItemStatus.Held;
+
+    private static bool IsParkedWorkflowStatus(WorkflowStatusResponse workflow) =>
+        workflow.OverallStatus is PersistentItemStatus.Waiting or PersistentItemStatus.Held;
 
     private static bool IsResumeRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status

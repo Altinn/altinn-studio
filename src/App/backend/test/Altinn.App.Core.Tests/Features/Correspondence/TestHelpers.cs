@@ -9,8 +9,8 @@ namespace Altinn.App.Core.Tests.Features.Correspondence;
 
 public static class TestHelpers
 {
-    public static OrganisationNumber GetOrganisationNumber(int index) =>
-        IdentificationNumberProvider.OrganisationNumbers.GetValidNumber(index);
+    public static OrganizationNumber GetOrganizationNumber(int index) =>
+        IdentificationNumberProvider.OrganizationNumbers.GetValidNumber(index);
 
     public static NationalIdentityNumber GetNationalIdentityNumber(int index) =>
         IdentificationNumberProvider.NationalIdentityNumbers.GetValidNumber(index);
@@ -51,7 +51,7 @@ public static class TestHelpers
                 {
                     CorrespondenceId = Guid.Empty,
                     Status = CorrespondenceStatus.Initialized,
-                    Recipient = OrganisationOrPersonIdentifier.Create(GetOrganisationNumber(0)),
+                    Recipient = OrganizationOrPersonIdentifier.Create(GetOrganizationNumber(0)),
                 },
             },
         };
@@ -77,8 +77,8 @@ public static class TestHelpers
             CorrespondenceId = Guid.Empty,
             Created = DateTimeOffset.MinValue,
             StatusChanged = DateTimeOffset.MinValue,
-            Recipient = GetOrganisationNumber(0),
-            Sender = GetOrganisationNumber(1),
+            Recipient = GetOrganizationNumber(0),
+            Sender = GetOrganizationNumber(1),
             Status = CorrespondenceStatus.Published,
             StatusHistory = [],
             ResourceId = string.Empty,

@@ -28,8 +28,7 @@ The frontend consists of several React packages in the following directories:
 - `./language` - Contains language-related utilities, most notably the `nb.json` file, where all text resources for the app should be kept. There is also an English version of the file, but language support for English is not yet available in the project, and the `en.json` file is not maintained.
 - `./libs` - Contains independent libraries that are used in the project.
   - `studio-components` - React component facade wrapping `digdir/designsystemet-react` to isolate the application from external design system changes. Also includes custom components.
-  - `studio-components-legacy` - Legacy React components that should eventually be transferred to the directory above.
-  - `studio-content-library` - A content library that is used by organisations in the `./dashboard` package, and by individual apps in the `./app-development` package.
+  - `studio-content-library` - A content library that is used by organizations in the `./dashboard` package, and by individual apps in the `./app-development` package.
   - `studio-feedback-form` - A feedback form library used for getting user feedback.
   - `studio-hooks` - A collection of React hooks.
   - `studio-icons` - A collection of SVG icons exported as React elements.

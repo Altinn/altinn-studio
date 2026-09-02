@@ -19,6 +19,7 @@ export type MessagesProps = {
   currentUser?: User;
   assistantAvatarUrl?: string;
   onMessageFeedback?: (feedback: UserFeedback) => void;
+  onClearMessageFeedback?: (traceId: string) => void;
   onPermissionResponse?: (requestId: string, granted: boolean) => void;
 };
 
@@ -29,6 +30,7 @@ export function Messages({
   currentUser,
   assistantAvatarUrl,
   onMessageFeedback,
+  onClearMessageFeedback,
   onPermissionResponse,
 }: MessagesProps): ReactElement {
   const showLoadingBubble = workflowStatus?.isActive === true;
@@ -53,6 +55,7 @@ export function Messages({
             texts={texts}
             assistantAvatarUrl={assistantAvatarUrl}
             onMessageFeedback={onMessageFeedback}
+            onClearMessageFeedback={onClearMessageFeedback}
           />
         ),
       )}

@@ -1,0 +1,7 @@
+# US English, for extracted translation KEYS (a key is a code contract, like
+# any identifier) and for the few English values that follow an en-US
+# upstream (the Gitea locale overrides). Applied by run.mjs to derived
+# copies — see typos.values.en-gb.toml for the mechanism.
+
+[default]
+locale = "en-us"

@@ -3,7 +3,7 @@
 //! Application code normally provisions through [`crate::SandboxService`] and
 //! operates the resulting [`crate::SandboxHandle`].
 
-use std::{future::Future, pin::Pin};
+use std::{collections::BTreeMap, future::Future, pin::Pin};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -120,6 +120,8 @@ pub struct CreateSandboxRequest {
     pub init_system: InitSystem,
     /// Filesystem attachments materialized when the Sandbox is created.
     pub mounts: Vec<Mount>,
+    /// Non-secret environment inherited by image init and Sandbox Executions.
+    pub environment: BTreeMap<String, String>,
     /// Immutable Network attachment selected by the caller.
     pub network: Option<network::NetworkAttachment>,
 }
@@ -141,6 +143,8 @@ pub struct Sandbox {
     pub state: SandboxState,
     /// Filesystem attachments materialized in the Sandbox.
     pub mounts: Vec<Mount>,
+    /// Non-secret environment inherited by image init and Sandbox Executions.
+    pub environment: BTreeMap<String, String>,
     /// Immutable Network attachment materialized with the Sandbox.
     pub network: Option<network::NetworkAttachment>,
 }
@@ -165,6 +169,13 @@ pub trait SandboxBackend {
 
     /// Reconciles the mutable resource assignment of an existing Sandbox.
     fn update_resources<'a>(&'a self, id: &'a SandboxId, resources: SandboxResources) -> PendingOperation<'a, Sandbox>;
+
+    /// Replaces the non-secret environment of a stopped Sandbox.
+    fn update_environment<'a>(
+        &'a self,
+        id: &'a SandboxId,
+        environment: BTreeMap<String, String>,
+    ) -> PendingOperation<'a, Sandbox>;
 
     /// Finds a Sandbox by its stable caller-provided name.
     fn find<'a>(&'a self, name: &'a SandboxName) -> LocalFuture<'a, Result<Sandbox, Error>>;

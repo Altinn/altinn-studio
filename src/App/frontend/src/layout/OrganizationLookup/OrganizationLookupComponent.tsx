@@ -40,14 +40,14 @@ const orgLookupQueries = {
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
 
-export type Organisation = {
+export type Organization = {
   orgNr: string;
   name: string;
 };
 export type OrganizationLookupResponse =
-  { success: false; organisationDetails: null } | { success: true; organisationDetails: Organisation };
+  { success: false; organisationDetails: null } | { success: true; organisationDetails: Organization };
 
-async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null } | { org: null; error: string }> {
+async function fetchOrg(orgNr: string): Promise<{ org: Organization; error: null } | { org: null; error: string }> {
   if (!orgNr) {
     throw new Error('orgNr is required');
   }
@@ -85,7 +85,7 @@ export function OrganizationLookupComponent({
   const statusRef = useRef<HTMLDivElement>(null);
 
   const {
-    formData: { organization_lookup_orgnr, organization_lookup_name: orgName },
+    formData: { orgnr, name: orgName },
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
@@ -158,8 +158,8 @@ export function OrganizationLookupComponent({
 
     const { data } = await performLookup();
     if (data?.org) {
-      setValue('organization_lookup_orgnr', data.org.orgNr);
-      dataModelBindings.organization_lookup_name && setValue('organization_lookup_name', data.org.name);
+      setValue('orgnr', data.org.orgNr);
+      dataModelBindings.name && setValue('name', data.org.name);
       await waitForSave(true);
       announceOrgDetails(data.org.orgNr);
     } else if (data?.error) {
@@ -168,14 +168,14 @@ export function OrganizationLookupComponent({
   }
 
   function handleClear() {
-    setValue('organization_lookup_orgnr', '');
-    dataModelBindings.organization_lookup_name && setValue('organization_lookup_name', '');
+    setValue('orgnr', '');
+    dataModelBindings.name && setValue('name', '');
     setTempOrgNr('');
     setOrgNrErrors(undefined);
     setStatusMessage('');
   }
 
-  const hasSuccessfullyFetched = !!organization_lookup_orgnr;
+  const hasSuccessfullyFetched = !!orgnr;
 
   const isValid = (orgNrErrors?.length && orgNrErrors?.length > 0) || data?.error;
 
@@ -210,7 +210,7 @@ export function OrganizationLookupComponent({
               id={`${id}_orgnr`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_orgnr`) : undefined}
               aria-label={langAsString('organization_lookup.orgnr_label')}
-              value={hasSuccessfullyFetched ? organization_lookup_orgnr : tempOrgNr}
+              value={hasSuccessfullyFetched ? orgnr : tempOrgNr}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={!!isValid}
@@ -278,7 +278,7 @@ export function OrganizationLookupComponent({
           ref={statusRef}
           tabIndex={-1}
           lang={currentLanguage}
-          data-testid='organisation-lookup-status'
+          data-testid='organization-lookup-status'
           className={utilClasses.visuallyHidden}
         >
           {statusMessage}
