@@ -1,0 +1,99 @@
+{
+  "id": "ttd/basic",
+  "org": "ttd",
+  "title": {
+    "nb": "basic"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "attachment",
+      "allowedContentTypes": [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "text/plain"
+      ],
+      "maxCount": 10,
+      "minCount": 0,
+      "taskId": "Task_1",
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "model",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model.model",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signature",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributors": [
+        "app:owned"
+      ],
+      "taskId": "Task_Sign",
+      "maxCount": 0,
+      "minCount": 1,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signing-state",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributors": [
+        "app:owned"
+      ],
+      "taskId": "Task_Sign",
+      "maxCount": 1,
+      "minCount": 0,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-05-15T12:17:03.656228Z",
+  "createdBy": "altinn",
+  "lastChanged": "2024-05-15T12:17:03.65623Z",
+  "lastChangedBy": "altinn"
+}
