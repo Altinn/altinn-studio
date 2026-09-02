@@ -24,8 +24,11 @@ pub(crate) const CODE_INVALID_PARAMS: i32 = -32602;
 pub(crate) const CODE_INTERNAL: i32 = -32603;
 pub(crate) const CODE_AGENT_NOT_FOUND: i32 = -32004;
 pub(crate) const CODE_IMMUTABLE: i32 = -32009;
+pub(crate) const CODE_CALLER_NOT_PERMITTED: i32 = -32010;
+pub(crate) const MESSAGE_CALLER_NOT_PERMITTED: &str = "operation not permitted for this caller";
 pub(crate) const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
+#[derive(Debug)]
 pub(crate) enum ReadMessage {
     EndOfStream,
     Complete(Vec<u8>),
@@ -53,7 +56,7 @@ pub(crate) struct Response {
     pub error: Option<ResponseError>,
 }
 
-/// JSON-RPC error returned by the local control plane.
+/// JSON-RPC error returned by the Agent control plane.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, thiserror::Error)]
 #[error("{message}")]
 pub struct ResponseError {

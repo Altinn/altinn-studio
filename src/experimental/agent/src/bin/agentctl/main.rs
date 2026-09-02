@@ -9,12 +9,16 @@ use agent::{
     Agent, ConditionStatus, Error,
     control_api::Client,
     control_plane::ApplyRequest,
-    local::home::ControlPlaneHome,
+    local::{
+        contexts::{CONTEXT_ENVIRONMENT_VARIABLE, Contexts, Endpoint},
+        home::ControlPlaneHome,
+    },
     manifest,
     sessions::{Session, SessionName},
 };
 use clap::{Parser, Subcommand};
 
+mod config;
 mod format;
 mod forward;
 mod tui;
@@ -31,6 +35,9 @@ struct Arguments {
     /// Agent control-plane home.
     #[arg(long, global = true)]
     home: Option<PathBuf>,
+    /// Context used to reach the Agent control plane.
+    #[arg(long, global = true)]
+    context: Option<String>,
     #[command(subcommand)]
     command: Command,
 }
@@ -44,6 +51,11 @@ const fn agent_version() -> &'static str {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Manage Agent control-plane contexts.
+    Config {
+        #[command(subcommand)]
+        command: config::ConfigCommand,
+    },
     /// Manage Claude Code harness authentication.
     Claude {
         #[command(subcommand)]
@@ -188,20 +200,86 @@ fn main() -> ExitCode {
 }
 
 fn run() -> CommandResult<ExitCode> {
-    let arguments = Arguments::parse();
-    let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
-    let client = Client::for_path(home.socket_path());
-    LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        ensure_daemon(&home, &client).await?;
-        execute(arguments.command, &home, &client).await
-    })
+    let Arguments { home, context, command } = Arguments::parse();
+    let config_path = Contexts::resolve_path()?;
+    let mut contexts = Contexts::load(&config_path)?;
+    let environment_context = environment_context()?;
+    let command = match command {
+        Command::Config { command } => {
+            config::execute(
+                command,
+                &mut contexts,
+                &config_path,
+                home.as_deref(),
+                context.as_deref(),
+                environment_context.as_deref(),
+            )?;
+            return Ok(ExitCode::SUCCESS);
+        }
+        command => command,
+    };
+
+    let selected = contexts.select(context.as_deref(), environment_context.as_deref())?;
+    reject_unsupported_tcp(&command, selected.endpoint())?;
+    let runtime = LocalRuntime::new().map_err(Error::from)?;
+    match selected.endpoint() {
+        Endpoint::Local => {
+            let home = ControlPlaneHome::resolve(home.as_deref())?;
+            let client = Client::for_path(home.socket_path());
+            runtime.block_on(async move {
+                ensure_daemon(&home, &client).await?;
+                execute(command, Some(&home), &client).await
+            })
+        }
+        Endpoint::Tcp(endpoint) => {
+            config::warn_insecure_tcp(endpoint);
+            let client = Client::for_tcp(endpoint.clone());
+            runtime.block_on(async move { execute(command, None, &client).await })
+        }
+    }
 }
 
-async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
+fn environment_context() -> Result<Option<String>, Error> {
+    let Some(value) = std::env::var_os(CONTEXT_ENVIRONMENT_VARIABLE).filter(|value| !value.is_empty()) else {
+        return Ok(None);
+    };
+    value
+        .into_string()
+        .map(Some)
+        .map_err(|_| Error::Configuration(format!("{CONTEXT_ENVIRONMENT_VARIABLE} is not valid UTF-8")))
+}
+
+fn reject_unsupported_tcp(command: &Command, endpoint: &Endpoint) -> CommandResult<()> {
+    if !matches!(endpoint, Endpoint::Tcp(_)) {
+        return Ok(());
+    }
+    let message = match command {
+        Command::Claude { .. } | Command::Codex { .. } => {
+            "authentication login is not permitted through an unauthenticated TCP context"
+        }
+        Command::Attach { .. } => "attach is not supported through a TCP context yet",
+        Command::Exec { .. } => "exec is not supported through a TCP context yet",
+        Command::PortForward { .. } => "port-forward is not supported through a TCP context yet",
+        Command::Tui => "TUI is not supported through a TCP context yet",
+        Command::Config { .. }
+        | Command::Apply { .. }
+        | Command::Get { .. }
+        | Command::Describe { .. }
+        | Command::Delete { .. }
+        | Command::Wait { .. } => return Ok(()),
+    };
+    Err(CommandError::Message(message.into()))
+}
+
+async fn execute(command: Command, home: Option<&ControlPlaneHome>, client: &Client) -> CommandResult<ExitCode> {
     match command {
+        Command::Config { .. } => {
+            return Err(Error::Configuration("config command reached daemon execution".into()).into());
+        }
         Command::Claude {
             command: ClaudeCommand::Login,
         } => {
+            let home = require_local_home(home)?;
             let token = agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?;
             let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
             println!("{} authentication stored", imported.provider);
@@ -209,6 +287,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::Codex {
             command: CodexCommand::Login,
         } => {
+            let home = require_local_home(home)?;
             let credential = agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?;
             let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
             println!("{} authentication stored", imported.provider);
@@ -242,18 +321,18 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             name,
             agent,
             harness,
-        } => attach(home, client, &resource, name, agent, harness).await?,
+        } => attach(require_local_home(home)?, client, &resource, name, agent, harness).await?,
         Command::Exec {
             stdin,
             tty,
             resource,
             agent,
             command,
-        } => return exec_command(home, client, resource, agent, &command, stdin, tty).await,
+        } => return exec_command(require_local_home(home)?, client, resource, agent, &command, stdin, tty).await,
         Command::PortForward { agent, arguments } => {
-            return port_forward(home, client, agent, &arguments).await;
+            return port_forward(require_local_home(home)?, client, agent, &arguments).await;
         }
-        Command::Tui => return tui::run(home, client).await,
+        Command::Tui => return tui::run(require_local_home(home)?, client).await,
         Command::Wait {
             condition,
             timeout,
@@ -262,6 +341,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         } => wait(client, &condition, timeout, &resource, name).await?,
     }
     Ok(ExitCode::SUCCESS)
+}
+
+fn require_local_home(home: Option<&ControlPlaneHome>) -> CommandResult<&ControlPlaneHome> {
+    home.ok_or_else(|| CommandError::Message("command requires the built-in local context".into()))
 }
 
 async fn get_resources(
@@ -719,14 +802,18 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    if client.health().await.is_ok() {
-        return Ok(());
+    match client.health().await {
+        Ok(()) => return Ok(()),
+        Err(error) if daemon_needs_start(&error) => {}
+        Err(error) => return Err(error),
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if client.health().await.is_ok() {
-            return Ok(());
+        match client.health().await {
+            Ok(()) => return Ok(()),
+            Err(error) if daemon_needs_start(&error) => {}
+            Err(error) => return Err(error),
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
@@ -739,6 +826,10 @@ async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), E
         "automatic startup did not become ready within 10 seconds; see {}",
         home.daemon_log_path().display()
     )))
+}
+
+const fn daemon_needs_start(error: &Error) -> bool {
+    matches!(error, Error::ControlApiUnavailable { .. })
 }
 
 fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
@@ -958,5 +1049,80 @@ mod tests {
         let agentctl = directory.join(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
         let agentd = directory.join(format!("agentd{}", std::env::consts::EXE_SUFFIX));
         assert_eq!(daemon_executable(&agentctl), agentd);
+    }
+
+    #[test]
+    fn contexts_follow_the_expected_cli_shapes() {
+        let get = Arguments::try_parse_from(["agentctl", "--context", "local", "config", "get-contexts"])
+            .expect("get contexts arguments");
+        assert_eq!(get.context.as_deref(), Some("local"));
+        assert!(matches!(
+            get.command,
+            Command::Config {
+                command: config::ConfigCommand::GetContexts
+            }
+        ));
+
+        let set = Arguments::try_parse_from([
+            "agentctl",
+            "config",
+            "set-context",
+            "mac-host",
+            "--endpoint",
+            "tcp://host.docker.internal:7463",
+        ])
+        .expect("set context arguments");
+        assert!(matches!(
+            set.command,
+            Command::Config {
+                command: config::ConfigCommand::SetContext { name, endpoint }
+            } if name == "mac-host" && endpoint.address() == "host.docker.internal:7463"
+        ));
+        assert!(
+            Arguments::try_parse_from([
+                "agentctl",
+                "config",
+                "set-context",
+                "bad",
+                "--endpoint",
+                "http://host:7463",
+            ])
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn tcp_rejects_provider_local_and_credential_commands_before_execution() {
+        let endpoint = Endpoint::Tcp("tcp://host.docker.internal:7463".parse().expect("valid TCP endpoint"));
+        for arguments in [
+            vec!["agentctl", "claude", "login"],
+            vec!["agentctl", "codex", "login"],
+            vec!["agentctl", "attach", "session/s1", "--agent", "worker"],
+            vec!["agentctl", "exec", "worker", "--", "true"],
+            vec!["agentctl", "port-forward", "worker", "8080"],
+            vec!["agentctl", "tui"],
+        ] {
+            let parsed = Arguments::try_parse_from(arguments).expect("command should parse");
+            assert!(reject_unsupported_tcp(&parsed.command, &endpoint).is_err());
+        }
+
+        let supported = Arguments::try_parse_from(["agentctl", "get", "agents"]).expect("get arguments");
+        assert!(reject_unsupported_tcp(&supported.command, &endpoint).is_ok());
+    }
+
+    #[test]
+    fn automatic_start_is_limited_to_an_unavailable_local_endpoint() {
+        let unavailable = Error::ControlApiUnavailable {
+            endpoint: "missing.sock".into(),
+            source: std::io::ErrorKind::NotFound.into(),
+        };
+        let mismatch = Error::ControlApiVersion {
+            expected: "v1",
+            actual: "v0".into(),
+        };
+
+        assert!(daemon_needs_start(&unavailable));
+        assert!(!daemon_needs_start(&mismatch));
+        assert!(!daemon_needs_start(&Error::Invalid("malformed response".into())));
     }
 }

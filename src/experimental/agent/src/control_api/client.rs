@@ -7,10 +7,10 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
-    DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE,
-    METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE,
-    METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, ReadMessage, Request, Response, SessionListParams,
-    SessionParams, read_message,
+    CODE_CALLER_NOT_PERMITTED, DirectoryParams, JSON_RPC_VERSION, LoginParams, MESSAGE_CALLER_NOT_PERMITTED,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, ReadMessage,
+    Request, Response, ResponseError, SessionListParams, SessionParams, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -18,13 +18,19 @@ pub trait Connection: AsyncRead + AsyncWrite + Unpin {}
 
 impl<T: AsyncRead + AsyncWrite + Unpin> Connection for T {}
 
-/// Opens one connection for one local API call.
+/// Opens one connection for one Agent Control API call.
 pub trait Connector {
-    /// Connects to the local control plane.
+    /// Connects to the configured control plane.
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>>;
+
+    /// Reports whether this transport may carry host credentials.
+    #[must_use]
+    fn allows_credential_transfer(&self) -> bool {
+        true
+    }
 }
 
-/// Calls an Agent control plane over a local stream transport.
+/// Calls an Agent control plane over a replaceable stream transport.
 pub struct Client {
     connector: Rc<dyn Connector>,
     next_id: Cell<u64>,
@@ -46,14 +52,27 @@ impl Client {
         Self::new(Rc::new(super::socket::PathConnector::new(path)))
     }
 
-    /// Checks whether the local daemon speaks the expected Control API.
+    /// Creates a client for an unauthenticated and unencrypted TCP endpoint.
+    #[must_use]
+    pub fn for_tcp(endpoint: super::TcpEndpoint) -> Self {
+        Self::new(Rc::new(super::tcp::TcpConnector::new(endpoint)))
+    }
+
+    /// Checks whether the daemon speaks the expected Control API.
     ///
     /// # Errors
     ///
     /// Returns an error when the daemon is unavailable or protocol-incompatible.
     pub async fn health(&self) -> Result<(), Error> {
-        let _result: serde_json::Value = self.call(METHOD_HEALTH, serde_json::json!({})).await?;
-        Ok(())
+        let result: Health = self.call(METHOD_HEALTH, serde_json::json!({})).await?;
+        if result.protocol_version == super::PROTOCOL_VERSION {
+            Ok(())
+        } else {
+            Err(Error::ControlApiVersion {
+                expected: super::PROTOCOL_VERSION,
+                actual: result.protocol_version,
+            })
+        }
     }
 
     /// Creates or updates an Agent resource.
@@ -123,6 +142,12 @@ impl Client {
         harness: harness::Harness,
         credential: String,
     ) -> Result<harness::ImportedAuthentication, Error> {
+        if !self.connector.allows_credential_transfer() {
+            return Err(Error::Rpc(ResponseError {
+                code: CODE_CALLER_NOT_PERMITTED,
+                message: MESSAGE_CALLER_NOT_PERMITTED.into(),
+            }));
+        }
         self.call(METHOD_AUTH_LOGIN, LoginParams { harness, credential }).await
     }
 
@@ -216,4 +241,10 @@ impl Client {
         )
         .map_err(Error::from)
     }
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Health {
+    protocol_version: String,
 }

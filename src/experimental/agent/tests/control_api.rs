@@ -2,11 +2,17 @@
 
 mod support;
 
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
+    control_api::{
+        AuthenticationApi, Caller, Client, Connection, Connector, ExecutionApi, Server, SessionApi, TcpEndpoint,
+    },
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
 };
@@ -17,7 +23,9 @@ use support::agent;
 
 struct IgnoreNotifications;
 
-struct FakeAuthentication;
+struct FakeAuthentication {
+    login_count: Rc<Cell<usize>>,
+}
 struct FakeExecutions;
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
@@ -33,6 +41,7 @@ impl AuthenticationApi for FakeAuthentication {
         _harness: agent::Harness,
         _token: &'a str,
     ) -> LocalFuture<'a, Result<ImportedAuthentication, Error>> {
+        self.login_count.set(self.login_count.get() + 1);
         Box::pin(async {
             Ok(ImportedAuthentication {
                 provider: "claude".into(),
@@ -87,12 +96,18 @@ impl ExecutionApi for FakeExecutions {
 
 struct InProcessConnector {
     server: Rc<Server>,
+    caller: Caller,
+}
+
+struct VersionConnector {
+    protocol_version: &'static str,
 }
 
 struct ApiFixture {
     server: Rc<Server>,
     client: Client,
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    login_count: Rc<Cell<usize>>,
 }
 
 impl Connector for InProcessConnector {
@@ -100,8 +115,35 @@ impl Connector for InProcessConnector {
         Box::pin(async move {
             let (client, server) = tokio::io::duplex(64 * 1024);
             let api = self.server.clone();
+            let caller = self.caller;
             tokio::task::spawn_local(async move {
-                let _ignored = api.serve_connection(server).await;
+                let _ignored = api.serve_connection(server, caller).await;
+            });
+            Ok(Box::new(client) as Box<dyn Connection>)
+        })
+    }
+}
+
+impl Connector for VersionConnector {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            let (client, server) = tokio::io::duplex(4096);
+            let protocol_version = self.protocol_version;
+            tokio::task::spawn_local(async move {
+                let mut server = BufReader::new(server);
+                let mut request = String::new();
+                server.read_line(&mut request).await.expect("read health request");
+                let request: serde_json::Value = serde_json::from_str(&request).expect("decode health request");
+                let response = serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "id": request["id"],
+                    "result": { "protocolVersion": protocol_version }
+                });
+                server
+                    .get_mut()
+                    .write_all(format!("{response}\n").as_bytes())
+                    .await
+                    .expect("write health response");
             });
             Ok(Box::new(client) as Box<dyn Connection>)
         })
@@ -114,21 +156,28 @@ fn api() -> ApiFixture {
         Rc::new(IgnoreNotifications),
     ));
     let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
+    let login_count = Rc::new(Cell::new(0));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let server = Rc::new(Server::new(
         control_plane,
-        Rc::new(FakeAuthentication),
+        Rc::new(FakeAuthentication {
+            login_count: login_count.clone(),
+        }),
         Rc::new(FakeExecutions),
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
         }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
-    let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: server.clone(),
+        caller: Caller::Local,
+    }));
     ApiFixture {
         server,
         client,
         ensured_harnesses,
+        login_count,
     }
 }
 
@@ -142,6 +191,45 @@ async fn login_returns_only_non_secret_readiness() {
         .expect("login");
     assert_eq!(imported.provider, "claude");
     assert!(imported.ready);
+    assert_eq!(fixture.login_count.get(), 1);
+}
+
+#[tokio::test(flavor = "local")]
+async fn unauthenticated_remote_callers_cannot_store_credentials() {
+    let fixture = api();
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+        caller: Caller::RemoteUnauthenticated,
+    }));
+
+    let error = client
+        .auth_login(agent::Harness::ClaudeCode, "must-not-be-imported".into())
+        .await
+        .expect_err("remote login should fail");
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+    assert_eq!(fixture.login_count.get(), 0);
+}
+
+#[tokio::test(flavor = "local")]
+async fn tcp_clients_reject_credentials_before_connecting() {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("bind TCP listener");
+    let address = listener.local_addr().expect("TCP listener address").to_string();
+    let client = Client::for_tcp(TcpEndpoint::from_address(&address).expect("TCP endpoint"));
+
+    let error = client
+        .auth_login(agent::Harness::ClaudeCode, "must-not-be-transmitted".into())
+        .await
+        .expect_err("TCP credential transfer should fail");
+
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), listener.accept())
+            .await
+            .is_err(),
+        "the TCP client must reject credentials before opening a connection"
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -149,6 +237,16 @@ async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     fixture.client.health().await.expect("health check");
     assert_eq!(agent::control_api::PROTOCOL_VERSION, "v1");
+}
+
+#[tokio::test(flavor = "local")]
+async fn health_reports_a_distinct_protocol_version_error() {
+    let client = Client::new(Rc::new(VersionConnector { protocol_version: "v0" }));
+
+    assert!(matches!(
+        client.health().await.expect_err("version mismatch should fail"),
+        Error::ControlApiVersion { expected: "v1", actual } if actual == "v0"
+    ));
 }
 
 fn request(name: &str) -> ApplyRequest {
@@ -226,7 +324,7 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
     let (mut malformed_client, malformed_server) = tokio::io::duplex(1024);
     let malformed_api = server.clone();
     tokio::task::spawn_local(async move {
-        let _ignored = malformed_api.serve_connection(malformed_server).await;
+        let _ignored = malformed_api.serve_connection(malformed_server, Caller::Local).await;
     });
     malformed_client
         .write_all(b"{not-json}\n")
@@ -242,7 +340,7 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
     let (_idle_client, idle_server) = tokio::io::duplex(1024);
     let idle_api = server;
     tokio::task::spawn_local(async move {
-        let _ignored = idle_api.serve_connection(idle_server).await;
+        let _ignored = idle_api.serve_connection(idle_server, Caller::Local).await;
     });
     let fetched = tokio::time::timeout(Duration::from_secs(1), client.get("worker"))
         .await
@@ -292,4 +390,41 @@ async fn unix_socket_transport_is_private_and_usable() {
     assert_eq!(directory_mode, 0o700);
     assert_eq!(socket_mode, 0o600);
     server_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn tcp_transport_is_usable() {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("bind TCP listener");
+    let address = listener.local_addr().expect("TCP listener address").to_string();
+    let fixture = api();
+    let server = fixture.server;
+    let server_task = tokio::task::spawn_local(async move { server.serve_tcp(listener).await });
+    let client = Client::for_tcp(TcpEndpoint::from_address(&address).expect("TCP endpoint"));
+
+    client.health().await.expect("health over TCP");
+    let applied = client.apply(request("worker")).await.expect("apply over TCP");
+    assert_eq!(applied.metadata.name, "worker");
+    let error = client
+        .auth_login(agent::Harness::ClaudeCode, "must-not-be-imported".into())
+        .await
+        .expect_err("remote login should fail");
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+
+    server_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn unavailable_local_socket_has_a_distinct_error() {
+    let temporary = tempfile::Builder::new()
+        .prefix("agent-api-missing-")
+        .tempdir()
+        .expect("temporary API directory");
+    let client = Client::for_path(temporary.path().join("missing.sock"));
+
+    assert!(matches!(
+        client.health().await.expect_err("missing socket should fail"),
+        Error::ControlApiUnavailable { .. }
+    ));
 }

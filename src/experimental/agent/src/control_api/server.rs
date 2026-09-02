@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, time::Duration};
 
 use sandbox::LocalFuture;
 use serde::Serialize;
@@ -8,12 +8,15 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
-    CODE_AGENT_NOT_FOUND, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST,
-    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
-    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams,
-    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionListParams, SessionParams, error_response, read_message,
+    CODE_AGENT_NOT_FOUND, CODE_CALLER_NOT_PERMITTED, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS,
+    CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, JSON_RPC_VERSION, LoginParams,
+    MESSAGE_CALLER_NOT_PERMITTED, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET,
+    METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, NameParams, PROTOCOL_VERSION, ReadMessage, Request, Response, SessionListParams,
+    SessionParams, error_response, read_message,
 };
+
+const REMOTE_REQUEST_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Agent operations exposed through the Agent Control API.
 pub trait AgentApi {
@@ -137,6 +140,24 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
 /// Observes an isolated connection error without terminating the daemon.
 pub type ErrorHandler = Rc<dyn Fn(&Error)>;
 
+/// Trust level established by the transport accepting a Control API connection.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Caller {
+    /// Current OS user authenticated by local socket permissions.
+    Local,
+    /// Caller on the explicitly insecure TCP listener.
+    RemoteUnauthenticated,
+}
+
+impl Caller {
+    const fn request_idle_timeout(self) -> Option<Duration> {
+        match self {
+            Self::Local => None,
+            Self::RemoteUnauthenticated => Some(REMOTE_REQUEST_IDLE_TIMEOUT),
+        }
+    }
+}
+
 /// Serves the Agent Control API.
 pub struct Server {
     agents: Rc<dyn AgentApi>,
@@ -174,18 +195,27 @@ impl Server {
         super::socket::serve(self, path).await
     }
 
+    /// Serves the explicitly insecure Control API on a pre-bound TCP listener.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when accepting or serving TCP connections fails.
+    pub async fn serve_tcp(self: Rc<Self>, listener: tokio::net::TcpListener) -> Result<(), Error> {
+        super::tcp::serve(self, listener).await
+    }
+
     /// Serves one JSON object per line until the client closes its stream.
     ///
     /// # Errors
     ///
     /// Returns an error when a message is malformed, exceeds the limit, or cannot be read or written.
-    pub async fn serve_connection<S>(&self, stream: S) -> Result<(), Error>
+    pub async fn serve_connection<S>(&self, stream: S, caller: Caller) -> Result<(), Error>
     where
         S: AsyncRead + AsyncWrite + Unpin,
     {
         let mut stream = BufReader::new(stream);
         loop {
-            let line = match read_message(&mut stream).await? {
+            let line = match read_message_with_timeout(&mut stream, caller.request_idle_timeout()).await? {
                 ReadMessage::EndOfStream => return Ok(()),
                 ReadMessage::Complete(line) => line,
                 ReadMessage::TooLarge => {
@@ -209,7 +239,7 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
-            let response = self.handle(request).await;
+            let response = self.handle(request, caller).await;
             write_response(stream.get_mut(), &response).await?;
         }
     }
@@ -218,7 +248,7 @@ impl Server {
         (self.on_error)(error);
     }
 
-    async fn handle(&self, request: Request) -> Response {
+    async fn handle(&self, request: Request, caller: Caller) -> Response {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
         }
@@ -235,6 +265,9 @@ impl Server {
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_AUTH_LOGIN if caller == Caller::RemoteUnauthenticated => {
+                error_response(request.id, CODE_CALLER_NOT_PERMITTED, MESSAGE_CALLER_NOT_PERMITTED)
+            }
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
@@ -316,6 +349,24 @@ impl Server {
     }
 }
 
+async fn read_message_with_timeout<R>(reader: &mut R, timeout: Option<Duration>) -> Result<ReadMessage, Error>
+where
+    R: tokio::io::AsyncBufRead + Unpin,
+{
+    match timeout {
+        Some(timeout) => tokio::time::timeout(timeout, read_message(reader))
+            .await
+            .map_err(|_| {
+                Error::Io(std::io::Error::new(
+                    std::io::ErrorKind::TimedOut,
+                    "Agent Control API request read timed out",
+                ))
+            })?
+            .map_err(Error::from),
+        None => read_message(reader).await.map_err(Error::from),
+    }
+}
+
 fn name_params(value: Value) -> Result<NameParams, Response> {
     serde_json::from_value::<NameParams>(value)
         .ok()
@@ -353,4 +404,24 @@ async fn write_response<W: AsyncWrite + Unpin>(writer: &mut W, response: &Respon
     writer.write_all(&bytes).await?;
     writer.flush().await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    #[tokio::test(flavor = "local")]
+    async fn incomplete_request_reads_have_a_configurable_idle_deadline() {
+        let (mut client, server) = tokio::io::duplex(64);
+        client.write_all(b"{").await.expect("write incomplete request");
+        let mut server = BufReader::new(server);
+
+        let error = read_message_with_timeout(&mut server, Some(Duration::from_millis(10)))
+            .await
+            .expect_err("incomplete request should time out");
+
+        assert!(matches!(error, Error::Io(error) if error.kind() == std::io::ErrorKind::TimedOut));
+    }
 }

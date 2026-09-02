@@ -51,12 +51,32 @@ pub enum Error {
     /// Session lifecycle or attachment failed.
     #[error("Session operation failed: {0}")]
     Session(String),
-    /// Local persistence or transport failed.
+    /// Persistence or an established transport failed.
     #[error("I/O operation failed: {0}")]
     Io(#[from] std::io::Error),
     /// A required daemon subsystem stopped unexpectedly.
     #[error("Agent daemon subsystem failed: {0}")]
     Daemon(String),
+    /// Agent CLI configuration could not be resolved or validated.
+    #[error("Agent CLI configuration failed: {0}")]
+    Configuration(String),
+    /// The configured Agent Control API endpoint could not be opened.
+    #[error("Agent Control API endpoint {endpoint} is unavailable: {source}")]
+    ControlApiUnavailable {
+        /// Endpoint whose initial connection failed.
+        endpoint: String,
+        /// Transport error returned while opening the connection.
+        #[source]
+        source: std::io::Error,
+    },
+    /// The client and daemon use incompatible Agent Control API versions.
+    #[error("Agent Control API protocol mismatch: expected {expected}, received {actual}; restart agentd")]
+    ControlApiVersion {
+        /// Protocol version required by this client.
+        expected: &'static str,
+        /// Protocol version reported by the daemon.
+        actual: String,
+    },
     /// A JSON protocol document was invalid.
     #[error("invalid JSON: {0}")]
     Json(#[from] serde_json::Error),

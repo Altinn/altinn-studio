@@ -1,4 +1,4 @@
-use std::{path::PathBuf, process::ExitCode, rc::Rc, time::Duration};
+use std::{net::Ipv4Addr, path::PathBuf, process::ExitCode, rc::Rc, time::Duration};
 
 use agent::{
     Error,
@@ -16,6 +16,9 @@ struct Arguments {
     /// Agent control-plane home.
     #[arg(long)]
     home: Option<PathBuf>,
+    /// Listen on unauthenticated, unencrypted IPv4 loopback TCP.
+    #[arg(short = 'p', long, value_parser = clap::value_parser!(u16).range(1..))]
+    insecure_tcp_port: Option<u16>,
 }
 
 const fn agent_version() -> &'static str {
@@ -38,13 +41,30 @@ fn main() -> ExitCode {
 fn run() -> Result<(), Error> {
     let arguments = Arguments::parse();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
-    let _lock = home.acquire_lock()?;
+    let _lock = match home.acquire_lock() {
+        Err(Error::Io(error))
+            if arguments.insecure_tcp_port.is_some() && error.kind() == std::io::ErrorKind::WouldBlock =>
+        {
+            return Err(Error::Daemon(format!(
+                "another agentd owns {}; stop it before relaunching with --insecure-tcp-port",
+                home.path().display()
+            )));
+        }
+        result => result?,
+    };
     let database = persistence::Database::open(&home.path().join("agent.db"))?;
     let runtime = LocalRuntime::new()?;
-    runtime.block_on(run_control_plane(home, database))
+    runtime.block_on(async move {
+        let tcp_listener = bind_insecure_tcp(arguments.insecure_tcp_port).await?;
+        run_control_plane(home, database, tcp_listener).await
+    })
 }
 
-async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
+async fn run_control_plane(
+    home: ControlPlaneHome,
+    database: persistence::Database,
+    tcp_listener: Option<tokio::net::TcpListener>,
+) -> Result<(), Error> {
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
     let policy = Rc::new(agent::authorization::AgentPolicyEngine::new());
@@ -65,7 +85,6 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let platform: Rc<dyn agent::sandbox::PlatformAdapter> = Rc::new(agent::sandbox::platform::Linux);
     let sandboxes = Rc::new(agent::sandbox::Service::new([provider], [platform])?);
     let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
-
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
         session_store.clone(),
         Rc::new(|error| eprintln!("agentd Platform API: {error}")),
@@ -114,15 +133,17 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         credentials.clone(),
         executions,
         sessions,
-        Rc::new(|error| eprintln!("agentd local API connection: {error}")),
+        Rc::new(|error| eprintln!("agentd Control API connection: {error}")),
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());
     let mut session_controller_task = tokio::task::spawn_local(session_controller.run());
     let mut platform_api_task = tokio::task::spawn_local(platform_api_server.serve(platform_api_listener));
     let socket_path = home.socket_path();
-
+    let tcp_api = serve_insecure_tcp(server.clone(), tcp_listener);
+    tokio::pin!(tcp_api);
     let result = tokio::select! {
         result = server.serve_path(&socket_path) => result,
+        result = &mut tcp_api => result,
         result = tokio::signal::ctrl_c() => result.map_err(Error::from),
         result = &mut controller_task => match result {
             Ok(()) => Err(Error::Daemon("reconciliation controller stopped".into())),
@@ -142,4 +163,41 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     session_controller_task.abort();
     platform_api_task.abort();
     result
+}
+
+async fn bind_insecure_tcp(port: Option<u16>) -> Result<Option<tokio::net::TcpListener>, Error> {
+    let Some(port) = port else {
+        return Ok(None);
+    };
+    let listener = tokio::net::TcpListener::bind((Ipv4Addr::LOCALHOST, port)).await?;
+    eprintln!(
+        "agentd: WARNING: listening on {} without authentication or encryption",
+        listener.local_addr()?
+    );
+    Ok(Some(listener))
+}
+
+async fn serve_insecure_tcp(server: Rc<Server>, listener: Option<tokio::net::TcpListener>) -> Result<(), Error> {
+    match listener {
+        Some(listener) => server.serve_tcp(listener).await,
+        None => std::future::pending().await,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::Parser as _;
+
+    use super::Arguments;
+
+    #[test]
+    fn insecure_tcp_port_accepts_long_and_short_flags_but_not_zero() {
+        let long =
+            Arguments::try_parse_from(["agentd", "--insecure-tcp-port", "7463"]).expect("long TCP flag should parse");
+        let short = Arguments::try_parse_from(["agentd", "-p", "8463"]).expect("short TCP flag should parse");
+
+        assert_eq!(long.insecure_tcp_port, Some(7463));
+        assert_eq!(short.insecure_tcp_port, Some(8463));
+        assert!(Arguments::try_parse_from(["agentd", "-p", "0"]).is_err());
+    }
 }
