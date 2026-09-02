@@ -647,6 +647,15 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSigneesState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
+        [Microsoft.AspNetCore.Mvc.HttpPost("sign")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(202)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 403)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 503)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Sign([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromBody(EmptyBodyBehavior=Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] Altinn.App.Api.Models.SigningRequest? request, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/v1/data")]
@@ -1225,6 +1234,12 @@ namespace Altinn.App.Api.Models
     {
         public SigningDataElementsResponse() { }
         public required System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.DataElement> DataElements { get; set; }
+    }
+    public class SigningRequest
+    {
+        public SigningRequest() { }
+        [System.Text.Json.Serialization.JsonPropertyName("onBehalfOf")]
+        public string? OnBehalfOf { get; set; }
     }
     public class SigningStateResponse
     {

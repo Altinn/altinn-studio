@@ -1,14 +1,17 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -17,6 +20,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -41,8 +45,13 @@ public class SigningControllerTests
     private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
+    private readonly Mock<IAuthorizationService> _authorizationServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<IServiceTaskReplyForwarder> _forwarderMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataClientWithStorageMetadata> _metadataDataClientMock;
     private readonly ServiceCollection _serviceCollection = new();
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Strict);
+
+    private const string SigningStateDataType = "signingStateDataType";
 
     private readonly AltinnTaskExtension _altinnTaskExtension = new()
     {
@@ -52,6 +61,7 @@ public class SigningControllerTests
             SignatureDataType = "signatureDataType",
             SigneeProviderId = "signeeProviderId",
             SigneeStatesDataTypeId = "signeeStatesDataTypeId",
+            SigningStateDataType = SigningStateDataType,
             SigningPdfDataType = "signingPdfDataType",
             CorrespondenceResources = [],
             RunDefaultValidator = true,
@@ -61,7 +71,7 @@ public class SigningControllerTests
     public SigningControllerTests(ITestOutputHelper output)
     {
         _metadataInstanceClientMock = _instanceClientMock.As<IInstanceClientWithStorageMetadata>();
-        var metadataDataClientMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
+        _metadataDataClientMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
         var mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
         _serviceCollection.AddTransient<ModelSerializationService>();
         _serviceCollection.AddTransient<InstanceDataUnitOfWorkInitializer>();
@@ -72,13 +82,15 @@ public class SigningControllerTests
         _serviceCollection.AddSingleton(_signingServiceMock.Object);
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
-        _serviceCollection.AddSingleton(metadataDataClientMock.Object);
+        _serviceCollection.AddSingleton(_metadataDataClientMock.Object);
         _serviceCollection.AddSingleton(mutationClientMock.Object);
         _serviceCollection.AddSingleton(_applicationMetadataMock.Object);
         _serviceCollection.AddSingleton(_translationServiceMock.Object);
         _serviceCollection.AddSingleton(_appResourcesMock.Object);
         _serviceCollection.AddSingleton(_processReaderMock.Object);
         _serviceCollection.AddSingleton(_httpContextAccessorMock.Object);
+        _serviceCollection.AddSingleton(_authorizationServiceMock.Object);
+        _serviceCollection.AddSingleton(_forwarderMock.Object);
         _serviceCollection.AddFakeLoggingWithXunit(output);
 
         var defaultInstance = new Instance
@@ -1607,6 +1619,427 @@ public class SigningControllerTests
             "This endpoint is only callable while the current task is a signing task, or when taskId query param is set to a signing task's ID.",
             problemDetails.Detail
         );
+    }
+
+    [Fact]
+    public async Task Sign_NotSigningTask_Returns_BadRequest()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance(currentTaskId: "task-not-signing");
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(actionResult);
+        Assert.Equal("Not a signing task", Assert.IsType<ProblemDetails>(badRequest.Value).Title);
+    }
+
+    [Fact]
+    public async Task Sign_Unauthenticated_Returns_Unauthorized()
+    {
+        SetupAuthenticationContextMock(CreateAuthenticatedNone());
+        SetupSigningInstance();
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(actionResult);
+    }
+
+    [Fact]
+    public async Task Sign_NotAuthorizedForSignAction_Returns_Forbidden()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance();
+        SetupSignAuthorization(authorized: false);
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        Assert.IsType<ForbidResult>(actionResult);
+    }
+
+    [Fact]
+    public async Task Sign_OnBehalfOfNotAuthorized_Returns_Forbidden()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance();
+        SetupSignAuthorization(authorized: true);
+        SetupAuthorizedOrganizations("123456789");
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign(
+            "tdd",
+            "app",
+            1337,
+            Guid.NewGuid(),
+            new SigningRequest { OnBehalfOf = "987654321" },
+            CancellationToken.None
+        );
+
+        AssertProblem(actionResult, StatusCodes.Status403Forbidden, "Unauthorized to sign on behalf of");
+        _forwarderMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Sign_NoSigningStateElement_Returns_Conflict()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance(withSigningRound: false);
+        SetupSignAuthorization(authorized: true);
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        AssertProblem(actionResult, StatusCodes.Status409Conflict, "No signing round is open");
+        _forwarderMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Sign_DeadlinePassed_Returns_Conflict()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance(deadline: DateTimeOffset.UtcNow.AddMinutes(-1));
+        SetupSignAuthorization(authorized: true);
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        AssertProblem(actionResult, StatusCodes.Status409Conflict, "No signing round is open");
+        _forwarderMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Sign_AuthorizedUser_ForwardsSignMessage_Returns_Accepted()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        string dataElementToSign = SetupSigningInstance();
+        SetupSignAuthorization(authorized: true);
+        ForwardCapture forwarded = CaptureForwardedReply();
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign(
+            "tdd",
+            "app",
+            1337,
+            Guid.NewGuid(),
+            null,
+            CancellationToken.None,
+            language: "nb"
+        );
+
+        Assert.IsType<AcceptedResult>(actionResult);
+        Assert.NotNull(forwarded.Reply);
+        Assert.Equal(_mailboxId, forwarded.Reply.MailboxId);
+        Assert.Equal("signing", forwarded.Reply.ServiceTaskType);
+        SignMessage message = DeserializeSignMessage(forwarded.Reply.Payload);
+        Assert.Equal(SignMessage.CurrentVersion, message.Version);
+        Assert.False(string.IsNullOrEmpty(message.RequestId));
+        Assert.Equal(message.RequestId, forwarded.Reply.IdempotencyKey);
+        Assert.Equal("1337", message.Signee.UserId);
+        Assert.Equal("12345678901", message.Signee.PersonNumber);
+        Assert.Null(message.Signee.SystemUserId);
+        Assert.Null(message.Signee.OrganizationNumber);
+        Assert.Equal("nb", message.Language);
+        Assert.Equal([dataElementToSign], message.DataElementIds);
+    }
+
+    [Fact]
+    public async Task Sign_AuthorizedOnBehalfOf_ForwardsOrganizationNumber()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance();
+        SetupSignAuthorization(authorized: true);
+        SetupAuthorizedOrganizations("123456789");
+        ForwardCapture forwarded = CaptureForwardedReply();
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign(
+            "tdd",
+            "app",
+            1337,
+            Guid.NewGuid(),
+            new SigningRequest { OnBehalfOf = "123456789" },
+            CancellationToken.None
+        );
+
+        Assert.IsType<AcceptedResult>(actionResult);
+        Assert.NotNull(forwarded.Reply);
+        SignMessage message = DeserializeSignMessage(forwarded.Reply.Payload);
+        Assert.Equal("1337", message.Signee.UserId);
+        Assert.Equal("123456789", message.Signee.OrganizationNumber);
+    }
+
+    [Fact]
+    public async Task Sign_SystemUser_ForwardsSystemUserId()
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetSystemUserAuthentication());
+        SetupSigningInstance();
+        SetupSignAuthorization(authorized: true);
+        ForwardCapture forwarded = CaptureForwardedReply();
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        Assert.IsType<AcceptedResult>(actionResult);
+        Assert.NotNull(forwarded.Reply);
+        SignMessage message = DeserializeSignMessage(forwarded.Reply.Payload);
+        Assert.Null(message.Signee.UserId);
+        Assert.Equal(Guid.Parse(TestAuthentication.DefaultSystemUserId), message.Signee.SystemUserId);
+    }
+
+    [Theory]
+    [InlineData(ServiceTaskReplyForwardOutcome.Late, StatusCodes.Status409Conflict, "The signing round is closed")]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.Unroutable,
+        StatusCodes.Status409Conflict,
+        "The signing round is closed"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.PayloadTooLarge,
+        StatusCodes.Status500InternalServerError,
+        "The signature could not be forwarded"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.MailboxFull,
+        StatusCodes.Status500InternalServerError,
+        "The signature could not be forwarded"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.Rejected,
+        StatusCodes.Status500InternalServerError,
+        "The signature could not be forwarded"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.EngineUnavailable,
+        StatusCodes.Status503ServiceUnavailable,
+        "Signing is temporarily unavailable"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.SigningUnavailable,
+        StatusCodes.Status503ServiceUnavailable,
+        "Signing is temporarily unavailable"
+    )]
+    public async Task Sign_ForwardingFails_MapsOutcomeToStatus(
+        ServiceTaskReplyForwardOutcome outcome,
+        int expectedStatus,
+        string expectedTitle
+    )
+    {
+        SetupAuthenticationContextMock(TestAuthentication.GetUserAuthentication());
+        SetupSigningInstance();
+        SetupSignAuthorization(authorized: true);
+        _forwarderMock
+            .Setup(f =>
+                f.ForwardReply(
+                    _mailboxId,
+                    "signing",
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new ServiceTaskReplyForwardException(outcome, _mailboxId, "request-id", "not accepted"));
+        await using var sp = _serviceCollection.BuildStrictServiceProvider();
+        var controller = CreateSignController(sp);
+
+        var actionResult = await controller.Sign("tdd", "app", 1337, Guid.NewGuid(), null, CancellationToken.None);
+
+        AssertProblem(actionResult, expectedStatus, expectedTitle);
+    }
+
+    private static readonly Guid _mailboxId = Guid.Parse("6f9b2b1e-3f6a-4d0c-9a7e-2c1d5e8f0a11");
+
+    private sealed record ForwardedReply(Guid MailboxId, string ServiceTaskType, string Payload, string IdempotencyKey);
+
+    private sealed class ForwardCapture
+    {
+        public ForwardedReply? Reply { get; set; }
+    }
+
+    private static SigningController CreateSignController(ServiceProvider sp)
+    {
+        var controller = sp.GetRequiredService<SigningController>();
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { RequestServices = sp },
+        };
+        return controller;
+    }
+
+    private string SetupSigningInstance(
+        string currentTaskId = "task1",
+        bool withSigningRound = true,
+        DateTimeOffset? deadline = null
+    )
+    {
+        var instanceGuid = Guid.NewGuid();
+        var dataElementToSign = Guid.NewGuid();
+        var instance = new Instance
+        {
+            Id = $"1337/{instanceGuid}",
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = currentTaskId, AltinnTaskType = "signing" },
+            },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = dataElementToSign.ToString(),
+                    DataType = "dataTypeToSign1",
+                    ContentType = "application/xml",
+                },
+                new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DataType = "otherDataType",
+                    ContentType = "application/pdf",
+                },
+            ],
+        };
+
+        if (withSigningRound)
+        {
+            var signingStateElementId = Guid.NewGuid();
+            instance.Data.Add(
+                new DataElement
+                {
+                    Id = signingStateElementId.ToString(),
+                    DataType = SigningStateDataType,
+                    ContentType = "application/json",
+                }
+            );
+            var signingRound = new SigningRoundState("task1", _mailboxId, deadline ?? DateTimeOffset.UtcNow.AddDays(7));
+            _metadataDataClientMock
+                .Setup(d =>
+                    d.GetDataBytesWithExpectedBlobVersionId(
+                        1337,
+                        instanceGuid,
+                        signingStateElementId,
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(signingRound));
+        }
+
+        _metadataInstanceClientMock
+            .Setup(x =>
+                x.GetInstanceWithStorageMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        _applicationMetadataMock
+            .Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(
+                new ApplicationMetadata("ttd/app")
+                {
+                    DataTypes =
+                    [
+                        new DataType { Id = "dataTypeToSign1" },
+                        new DataType { Id = "dataTypeToSign2" },
+                        new DataType { Id = "otherDataType" },
+                        new DataType { Id = SigningStateDataType },
+                    ],
+                }
+            );
+
+        return dataElementToSign.ToString();
+    }
+
+    private void SetupSignAuthorization(bool authorized)
+    {
+        _authorizationServiceMock
+            .Setup(a =>
+                a.AuthorizeAction(
+                    It.Is<AppIdentifier>(id => id.Org == "tdd" && id.App == "app"),
+                    It.Is<InstanceIdentifier>(id => id.InstanceOwnerPartyId == 1337),
+                    It.IsAny<ClaimsPrincipal>(),
+                    "sign",
+                    "task1"
+                )
+            )
+            .ReturnsAsync(authorized);
+    }
+
+    private void SetupAuthorizedOrganizations(params string[] orgNumbers)
+    {
+        _signingServiceMock
+            .Setup(s =>
+                s.GetAuthorizedOrganizationSignees(
+                    It.IsAny<InstanceDataUnitOfWork>(),
+                    _altinnTaskExtension.SignatureConfiguration!,
+                    1337,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                .. orgNumbers.Select(orgNumber => new OrganizationSignee
+                {
+                    OrgName = $"org {orgNumber}",
+                    OrgNumber = orgNumber,
+                    OrgParty = new Party { PartyId = 1 },
+                }),
+            ]);
+    }
+
+    private ForwardCapture CaptureForwardedReply()
+    {
+        var capture = new ForwardCapture();
+        _forwarderMock
+            .Setup(f =>
+                f.ForwardReply(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Guid, string, string, string, CancellationToken>(
+                (mailboxId, serviceTaskType, payload, idempotencyKey, _) =>
+                    capture.Reply = new ForwardedReply(mailboxId, serviceTaskType, payload, idempotencyKey)
+            )
+            .Returns(Task.CompletedTask);
+        return capture;
+    }
+
+    private static SignMessage DeserializeSignMessage(string payload)
+    {
+        var message = JsonSerializer.Deserialize<SignMessage>(
+            payload,
+            new JsonSerializerOptions { RespectNullableAnnotations = true }
+        );
+        Assert.NotNull(message);
+        return message;
+    }
+
+    private static void AssertProblem(IActionResult actionResult, int expectedStatus, string expectedTitle)
+    {
+        var objectResult = Assert.IsAssignableFrom<ObjectResult>(actionResult);
+        Assert.Equal(expectedStatus, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal(expectedStatus, problem.Status);
+        Assert.Equal(expectedTitle, problem.Title);
     }
 
     private void SetupAuthenticationContextMock(Authenticated? authenticated = null)
