@@ -62,7 +62,7 @@
                       Plan Rows: {Scrubbed},
                       Plan Width: {Scrubbed},
                       Disabled: false,
-                      Filter: (((backoff_until IS NULL) OR (backoff_until <= '2026-03-19 12:00:00+00'::timestamp with time zone) OR (cancellation_requested_at IS NOT NULL)) AND ((throttled_until IS NULL) OR (throttled_until <= '2026-03-19 12:00:00+00'::timestamp with time zone)) AND (status = ANY ('{0,2,8}'::integer[])))
+                      Filter: (((backoff_until IS NULL) OR (backoff_until <= '2026-03-19 12:00:00+00'::timestamp with time zone) OR (cancellation_requested_at IS NOT NULL)) AND ((throttled_until IS NULL) OR (throttled_until <= '2026-03-19 12:00:00+00'::timestamp with time zone) OR (cancellation_requested_at IS NOT NULL)) AND (status = ANY ('{0,2,8}'::integer[])))
                     },
                     {
                       Node Type: Nested Loop,

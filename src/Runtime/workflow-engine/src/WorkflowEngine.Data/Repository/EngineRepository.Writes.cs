@@ -51,6 +51,16 @@ internal sealed partial class EngineRepository
     // folds NOT @throttle_gate away and both settings produce the plan the ungated query did
     // (QueryPlanTests pins both). Only a generic plan would carry the predicate as a residual
     // filter, which is the small, deliberate cost of having one query instead of two.
+    //
+    // Like the backoff gate, the throttle gate is bypassed by a pending cancellation, and for the
+    // same reason — see the invariant RequestCancellation documents: promptness comes from this
+    // gate, not from the clearing it does, and it never clears throttled_until. Throttle windows
+    // run to MaxWindow (an hour by default) rather than a retry backoff's minutes, so without the
+    // bypass a cancelled workflow would sit unleased — invisible to watcher and sweep alike — for
+    // far longer than the case the backoff bypass was written to prevent. It costs the throttled
+    // namespace nothing: the handler cancels a flagged workflow before executing anything, so the
+    // fetch issues no downstream call. (The dependency gate stays un-bypassed for the planner
+    // reason below; a column comparison on the same row carries no such cost.)
     private const string FetchAndLockSql = $"""
         WITH ready AS (
             SELECT w.id
@@ -65,6 +75,7 @@ internal sealed partial class EngineRepository
                 NOT @throttle_gate
                 OR w.throttled_until IS NULL
                 OR w.throttled_until <= @now
+                OR w.cancellation_requested_at IS NOT NULL
               )
               AND NOT EXISTS (
                   SELECT 1 FROM engine.workflow_dependency wd

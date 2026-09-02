@@ -7,9 +7,10 @@ namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
 /// Tests the <c>throttled_until</c> fetch gate: with throttling enabled the fetch skips workflows
-/// parked behind a future <c>throttled_until</c>, while past or null values do not gate. With
-/// throttling disabled the process selects the fetch SQL variant without the predicate at startup,
-/// so the column is fully inert ("disabled means inert").
+/// parked behind a future <c>throttled_until</c>, while past or null values do not gate, and a
+/// pending cancellation bypasses the gate outright. With throttling disabled the gate's
+/// <c>@throttle_gate</c> parameter switches it off, so the column is fully inert ("disabled means
+/// inert").
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class ThrottleGateTests(PostgresFixture fixture) : IAsyncLifetime
@@ -92,7 +93,7 @@ public sealed class ThrottleGateTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task FetchAndLock_ThrottlingDisabled_FutureThrottledUntil_IsIgnored()
     {
         // Arrange — the fixture's default settings leave Throttling.Enabled = false, so the
-        // repository selected the fetch SQL variant without the throttled_until predicate.
+        // repository passes @throttle_gate = false and the throttled_until predicate never binds.
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
 
@@ -105,6 +106,37 @@ public sealed class ThrottleGateTests(PostgresFixture fixture) : IAsyncLifetime
         // Assert
         var fetched = Assert.Single(workflows);
         Assert.Equal(wf.DatabaseId, fetched.DatabaseId);
+    }
+
+    [Fact]
+    public async Task FetchAndLock_ThrottlingEnabled_PendingCancellation_BypassesThrottleGate()
+    {
+        // Arrange — a cancelled workflow parked behind a future throttled_until must still be
+        // claimed: RequestCancellation never clears that column, and it documents the fetch gate
+        // as what makes cancellation prompt. The handler cancels before executing anything, so
+        // claiming the row costs the throttled namespace no downstream call.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(ThrottlingEnabledSettings);
+
+        var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
+        await SetThrottledUntil(context.Database, wf.DatabaseId, DateTimeOffset.UtcNow.AddHours(1));
+
+        Assert.True(
+            await repo.RequestCancellation(
+                wf.DatabaseId,
+                wf.Namespace,
+                DateTimeOffset.UtcNow,
+                TestContext.Current.CancellationToken
+            )
+        );
+
+        // Act
+        var workflows = await repo.FetchAndLockWorkflows(10, TestContext.Current.CancellationToken);
+
+        // Assert
+        var fetched = Assert.Single(workflows);
+        Assert.Equal(wf.DatabaseId, fetched.DatabaseId);
+        Assert.NotNull(fetched.ThrottledUntil);
     }
 
     [Fact]
