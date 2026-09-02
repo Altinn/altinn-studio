@@ -83,11 +83,11 @@ describe('altinnParty', () => {
       pendingPartyId: partyWithChildParties.partyId,
     });
 
-    const wrapper = screen.getByTestId('AltinnParty-PartyWrapper');
+    const wrapper = screen.getByRole('button', { name: /ola privatperson/i });
     expect(wrapper).toHaveAttribute('aria-busy', 'true');
     expect(wrapper).toHaveAttribute('aria-disabled', 'false');
 
-    const subUnit = screen.getByText(/child party 1/i).closest('[role="button"]');
+    const subUnit = screen.getByRole('button', { name: /child party 1/i });
     expect(subUnit).toHaveAttribute('aria-busy', 'false');
     expect(subUnit).toHaveAttribute('aria-disabled', 'true');
   });
