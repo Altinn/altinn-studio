@@ -104,7 +104,7 @@ als
 staf
 
 # Altinn org slug (uppercased) in fixtures and policy data
-@paths src/runner-org-sync/** src/AI/agents/**
+@paths src/runner-org-sync/** src/Designer/assistant/**
 ACN
 
 # Azure Kubernetes Service, in infra config, workflow comments, and the

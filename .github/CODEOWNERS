@@ -26,17 +26,19 @@ src/Designer/frontend/**/package.json                                     @altin
 .github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml  @altinn/team-access-info
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
-# AI
-src/AI/agents/**/docker-compose.*.yml                                     @ErlingHauan
-src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
-src/AI/agents/**/dockerfile*                                              @ErlingHauan
-src/AI/agents/**/pyproject.toml                                           @ErlingHauan
-src/AI/agents/**/requirements-dev.txt                                     @ErlingHauan
-src/AI/agents/**/requirements.txt                                         @ErlingHauan
-src/AI/agents/**/uv.lock                                                  @ErlingHauan
-src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
-src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
-src/AI/augmenter-agent/**/dockerfile*                                     @ErlingHauan
+# Studio assistant
+src/Designer/assistant/**/docker-compose.*.yml                            @ErlingHauan
+src/Designer/assistant/**/docker-compose.yaml                             @ErlingHauan
+src/Designer/assistant/**/dockerfile*                                     @ErlingHauan
+src/Designer/assistant/**/pyproject.toml                                  @ErlingHauan
+src/Designer/assistant/**/requirements-dev.txt                            @ErlingHauan
+src/Designer/assistant/**/requirements.txt                                @ErlingHauan
+src/Designer/assistant/**/uv.lock                                         @ErlingHauan
+
+# AI augmenter agent
+src/AI/augmenter-agent/**/*.csproj                                        @olebhansen
+src/AI/augmenter-agent/**/docker-compose.yaml                             @olebhansen
+src/AI/augmenter-agent/**/dockerfile*                                     @olebhansen
 
 # Squad Kjøring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring

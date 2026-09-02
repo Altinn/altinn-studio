@@ -36,7 +36,7 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 | Area                                     | What it is                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/Designer`](src/Designer/AGENTS.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/AGENTS.md) (.NET) and [`frontend`](src/Designer/frontend/AGENTS.md) (React/TS).                                                                                                                                      |
+| [`src/Designer`](src/Designer/AGENTS.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/AGENTS.md) (.NET), [`frontend`](src/Designer/frontend/AGENTS.md) (React/TS), and [`assistant`](src/Designer/assistant/AGENTS.md) (Python natural-language app-building agent).                                        |
 | [`src/App`](src/App/AGENTS.md)           | The **Altinn 3 app runtime** every deployed service builds on: [`backend`](src/App/backend/AGENTS.md) (Altinn.App .NET libraries), [`frontend`](src/App/frontend/AGENTS.md) (React form renderer), plus support libs [`codelists`](src/App/codelists/AGENTS.md), [`fileanalyzers`](src/App/fileanalyzers/AGENTS.md), the [`template`](src/App/template/AGENTS.md), and `azure-pipelines`. |
 
 ### Runtime & platform services — [`src/Runtime`](src/Runtime/AGENTS.md)
@@ -59,8 +59,8 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
-R&D projects from the AI lab (to be handed off to the Studio team): `agents` (Altinity natural-language
-app builder) and `augmenter-agent` (document/PDF augmentation microservice).
+R&D projects from the AI lab (to be handed off to the Studio team): `augmenter-agent` (document/PDF
+augmentation microservice).
 
 ### Experimental — [`src/experimental`](src/experimental/AGENTS.md)
 
