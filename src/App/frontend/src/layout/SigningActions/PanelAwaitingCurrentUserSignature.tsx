@@ -5,7 +5,7 @@ import { Button, FullWidthWrapper, LiveValidationMessage, Panel, Spinner } from 
 import { Checkbox, Heading } from '@digdir/designsystemet-react';
 
 import { useRequestFocus } from 'src/core/contexts/ElementFocusProvider';
-import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
+import { useIsAuthorized, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -19,6 +19,7 @@ import { OnBehalfOfChooser } from 'src/layout/SigningActions/OnBehalfOfChooser';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 type AwaitingCurrentUserSignaturePanelProps = {
@@ -35,6 +36,7 @@ export function AwaitingCurrentUserSignaturePanel({
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const isAuthorized = useIsAuthorized();
   const canSign = isAuthorized('sign');
+  const isServiceTask = useProcessQuery().data?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK;
   const canWrite = isAuthorized('write');
 
   const currentUserPartyId = useProfile()?.partyId;
@@ -136,7 +138,9 @@ export function AwaitingCurrentUserSignaturePanel({
           >
             <Lang id={signingButtonText} />
           </Button>
-          {!hasMissingSignatures && canWrite && <SubmitSigningButton baseComponentId={baseComponentId} />}
+          {!hasMissingSignatures && canWrite && !isServiceTask && (
+            <SubmitSigningButton baseComponentId={baseComponentId} />
+          )}
         </>
       }
       description={<Lang id={checkboxDescription} />}
