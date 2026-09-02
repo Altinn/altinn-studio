@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Entities;
@@ -14,29 +16,54 @@ namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
 /// Fixture for the handler's cooperative throttle parking: throttling is <em>enabled</em> so the
-/// process selects the fetch-query variant with the <c>throttled_until</c> predicate at startup,
-/// and the sweep interval is set to one hour so the sweep's own snapshot refresh never overwrites
-/// the tripped breaker a test publishes directly on the <see cref="ThrottleStateView"/> singleton.
+/// fetch query's throttle gate binds, and the handler reads a view instance of its own, published
+/// to by the tests rather than by the sweep.
+/// <para>
+/// A long <c>SweepInterval</c> is not enough to keep the sweep out of the way: its loop works
+/// before it waits, so it runs one cycle at startup regardless of the interval, and that cycle
+/// publishes a snapshot both before and after its state machine — empty, with no breaker rows in
+/// the database. Whether that landed before or after a test's own publish was a race, and losing
+/// it left the handler with no breaker to act on.
+/// </para>
 /// </summary>
 public sealed class ThrottlingEngineAppFixture : EngineAppFixture<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
-        builder.ConfigureAppConfiguration(
-            (_, config) =>
-                config.AddJsonStream(
-                    """
-                    {
-                      "EngineSettings": {
-                        "Throttling": {
-                          "Enabled": true,
-                          "SweepInterval": "01:00:00",
-                          "InitialWindow": "00:10:00"
+        builder
+            .ConfigureAppConfiguration(
+                (_, config) =>
+                    config.AddJsonStream(
+                        """
+                        {
+                          "EngineSettings": {
+                            "Throttling": {
+                              "Enabled": true,
+                              "SweepInterval": "01:00:00",
+                              "InitialWindow": "00:10:00"
+                            }
+                          }
                         }
-                      }
-                    }
-                    """.ToJsonStream()
-                )
-        );
+                        """.ToJsonStream()
+                    )
+            )
+            .ConfigureServices(services =>
+            {
+                // Give the handler its own view instance. The sweep publishes to the concrete
+                // ThrottleStateView singleton; the handler reads IThrottleStateView. Normally both
+                // are the same object, and the sweep's startup cycle would then wipe the breaker a
+                // test publishes. Pointing them at separate instances of the same class removes
+                // the race outright while still exercising the real view — including its
+                // staleness expiry — on the read path the handler uses.
+                services.RemoveAll<IThrottleStateView>();
+                services.AddSingleton<IThrottleStateView>(sp =>
+                    ActivatorUtilities.CreateInstance<ThrottleStateView>(sp)
+                );
+            });
+
+    /// <summary>
+    /// The view the handler reads, which no sweep cycle can overwrite. Tests publish here.
+    /// </summary>
+    internal ThrottleStateView HandlerView => (ThrottleStateView)Services.GetRequiredService<IThrottleStateView>();
 }
 
 [CollectionDefinition(Name)]
@@ -50,7 +77,7 @@ public sealed class ThrottlingEngineCollection : ICollectionFixture<ThrottlingEn
 /// a retryable failure in a namespace whose breaker is tripped in the handler's snapshot must stamp
 /// <c>throttled_until</c> through the real write-back path, and the gated fetch must then skip the
 /// workflow. The sweep's own state machine is covered in <c>WorkflowEngine.Repository.Tests</c>;
-/// here the sweep is idle and the snapshot is published directly.
+/// here the sweep never reaches the handler's view, and the snapshot is published directly.
 /// </summary>
 [Collection(ThrottlingEngineCollection.Name)]
 public sealed class ThrottleCooperationTests(ThrottlingEngineAppFixture fixture) : IAsyncLifetime
@@ -69,7 +96,7 @@ public sealed class ThrottleCooperationTests(ThrottlingEngineAppFixture fixture)
     }
 
     [Fact]
-    public async Task RetryableFailure_OpenBreaker_StampPersists_AndGatedFetchSkipsTheWorkflow()
+    public async Task RetryableFailure_TrippedBreaker_StampPersists_AndGatedFetchSkipsTheWorkflow()
     {
         var ct = TestContext.Current.CancellationToken;
 
@@ -77,17 +104,12 @@ public sealed class ThrottleCooperationTests(ThrottlingEngineAppFixture fixture)
         fixture.WireMock.Reset();
         fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
 
-        // ... and the enqueue namespace has an OPEN breaker in the handler-facing snapshot. In
-        // production only the sweep publishes; with the sweep interval at one hour it stays idle
-        // for the whole test, so this snapshot is what every handler sees.
-        fixture
-            .Services.GetRequiredService<ThrottleStateView>()
-            .Publish(
-                new Dictionary<string, TimeSpan>(StringComparer.Ordinal)
-                {
-                    [EngineApiClient.DefaultNamespace] = _window,
-                }
-            );
+        // ... and the enqueue namespace has a TRIPPED breaker in the handler-facing snapshot. In
+        // production the sweep publishes it; here the handler's view is a separate instance the
+        // sweep never touches, so this snapshot is the only one it sees.
+        fixture.HandlerView.Publish(
+            new Dictionary<string, TimeSpan>(StringComparer.Ordinal) { [EngineApiClient.DefaultNamespace] = _window }
+        );
 
         var enqueuedAt = DateTimeOffset.UtcNow;
         var response = await _client.Enqueue(
