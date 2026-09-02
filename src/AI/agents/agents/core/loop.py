@@ -426,7 +426,7 @@ def _accumulate_usage(acc: dict[str, int], delta: dict[str, int]) -> None:
 def _tool_signature(tool_use: ToolUseBlock) -> str:
     """Stable fingerprint of (name, input).
 
-    Used by the anti-thrash check.  We hash the serialised input so a
+    Used by the anti-thrash check.  We hash the serialized input so a
     long argument blob doesn't bloat the recent-signatures buffer, and
     we sort keys so semantically-identical inputs in different field
     orders collapse to the same signature.

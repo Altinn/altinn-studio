@@ -52,7 +52,7 @@ public class EventsClientTest
     }
 
     [Fact]
-    public async Task AddEvent_RegisterEventWithInstanceOwnerOrganisation_CloudEventInRequestContainOrganisationNumber()
+    public async Task AddEvent_RegisterEventWithInstanceOwnerOrganization_CloudEventInRequestContainOrganizationNumber()
     {
         TelemetrySink telemetrySink = new();
         // Arrange

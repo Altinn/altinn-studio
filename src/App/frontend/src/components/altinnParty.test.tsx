@@ -82,7 +82,7 @@ describe('altinnParty', () => {
       expect(screen.getByTestId('person-icon')).toBeVisible();
     });
 
-    it('should render with building icon if party is a organisation', async () => {
+    it('should render with building icon if party is a organization', async () => {
       await render({
         party: {
           ...getPartyMock(),

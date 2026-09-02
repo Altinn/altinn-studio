@@ -174,6 +174,46 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Retention_PreservesWorkflows_ReferencedByAHeldReceiver()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var depTargetId = Guid.NewGuid();
+        var linkTargetId = Guid.NewGuid();
+        foreach (var targetId in new[] { depTargetId, linkTargetId })
+        {
+            await InsertWorkflow(
+                dataSource,
+                targetId,
+                status: PersistentItemStatus.Completed,
+                updatedAt: _now.AddDays(-31),
+                ct: ct
+            );
+        }
+
+        // Aged well past the cutoff, so nothing but its status keeps it — or its targets — alive.
+        var receiverId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            receiverId,
+            status: PersistentItemStatus.Held,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+        await InsertDependency(dataSource, workflowId: receiverId, dependsOnId: depTargetId, ct: ct);
+        await InsertLink(dataSource, workflowId: receiverId, linkedWorkflowId: linkTargetId, ct: ct);
+
+        await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
+
+        await using var ctx = fixture.CreateDbContext();
+        var remaining = await ctx.Workflows.Select(w => w.Id).ToListAsync(ct);
+        Assert.Contains(receiverId, remaining);
+        Assert.Contains(depTargetId, remaining);
+        Assert.Contains(linkTargetId, remaining);
+    }
+
+    [Fact]
     public async Task Retention_DrainsAllEligibleRows_InBatches()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -193,6 +233,37 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
 
         await using var ctx = fixture.CreateDbContext();
         Assert.Equal(0, await ctx.Workflows.CountAsync(ct));
+    }
+
+    [Fact]
+    public async Task Retention_WithAZeroBatchSize_EndsTheSweepInsteadOfSpinningForever()
+    {
+        // A zero batch selects nothing, so a loop bounded by "came back short" never ends — and zero is what
+        // EngineSettings.Retention defaults to, and what PostgresFixture builds.
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        var ct = cts.Token;
+
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+
+        try
+        {
+            await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), batchSize: 0, ct: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Assert.Fail("PurgeExpiredWorkflows was still running ten seconds in at BatchSize == 0.");
+        }
+
+        await using var ctx = fixture.CreateDbContext();
+        Assert.Equal(1, await ctx.Workflows.CountAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -403,6 +474,117 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     // --- Helpers ---
+
+    [Fact]
+    public async Task Retention_FirstSweep_IsDeferredPastStartup()
+    {
+        // A start must not be immediately due for a retention drain: on a real backlog that is a
+        // multi-second bulk delete landing on the first requests the fresh instance serves.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var expiredWorkflowId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            expiredWorkflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: DateTimeOffset.UtcNow.AddDays(-31),
+            ct: ct
+        );
+
+        // Positive control: the stale sweep shares the loop iteration retention would have run in,
+        // so reclaiming this workflow proves the loop ran rather than never having started.
+        var staleWorkflowId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            staleWorkflowId,
+            status: PersistentItemStatus.Processing,
+            updatedAt: DateTimeOffset.UtcNow.AddMinutes(-5),
+            ct: ct
+        );
+        await MakeHeartbeatStale(dataSource, staleWorkflowId, ct);
+
+        // A long interval places the deferred first sweep far outside the test window whatever the
+        // jitter picks.
+        using var limiter = new ConcurrencyLimiter(10, 10, 5);
+        using var service = new DbMaintenanceService(
+            NullLogger<DbMaintenanceService>.Instance,
+            TimeProvider.System,
+            dataSource,
+            CreateEngineSettings(retentionPeriod: TimeSpan.FromDays(30), interval: TimeSpan.FromDays(30)),
+            limiter
+        );
+
+        await service.StartAsync(ct);
+        try
+        {
+            await WaitUntilReclaimed(staleWorkflowId, ct);
+        }
+        finally
+        {
+            await service.StopAsync(ct);
+        }
+
+        await using var ctx = fixture.CreateDbContext();
+        var remaining = await ctx.Workflows.Select(w => w.Id).ToListAsync(ct);
+        Assert.Contains(expiredWorkflowId, remaining);
+    }
+
+    private static async Task MakeHeartbeatStale(NpgsqlDataSource dataSource, Guid id, CancellationToken ct)
+    {
+        await using var cmd = dataSource.CreateCommand(
+            "UPDATE engine.workflows SET heartbeat_at = @heartbeat WHERE id = @id"
+        );
+        cmd.Parameters.AddWithValue("id", id);
+        cmd.Parameters.AddWithValue("heartbeat", DateTimeOffset.UtcNow.AddMinutes(-5));
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private async Task WaitUntilReclaimed(Guid id, CancellationToken ct)
+    {
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            await using var ctx = fixture.CreateDbContext();
+            var status = await ctx.Workflows.Where(w => w.Id == id).Select(w => w.Status).SingleAsync(ct);
+            if (status == PersistentItemStatus.Enqueued)
+            {
+                return;
+            }
+
+            await Task.Delay(50, ct);
+        }
+
+        Assert.Fail("Maintenance loop did not reclaim the stale workflow, so the test proves nothing.");
+    }
+
+    private static IOptions<EngineSettings> CreateEngineSettings(
+        TimeSpan retentionPeriod,
+        TimeSpan interval,
+        int batchSize = 1000
+    ) =>
+        Options.Create(
+            new EngineSettings
+            {
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                MaxStepCommandTimeout = TimeSpan.FromHours(2),
+                DefaultStepRetryStrategy = null!,
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
+                DatabaseRetryStrategy = null!,
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                Retention = new RetentionSettings
+                {
+                    RetentionPeriod = retentionPeriod,
+                    BatchSize = batchSize,
+                    Interval = interval,
+                },
+            }
+        );
 
     private static async Task RunRetention(
         NpgsqlDataSource dataSource,

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -43,7 +44,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    ServiceTaskType = null,
+                    ServiceTask = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -54,7 +55,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    ServiceTaskType = null,
+                    ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     RegisterEvents = true,
@@ -66,7 +67,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    ServiceTaskType = null,
+                    ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     Notification = new InstantiationNotification(),
@@ -79,7 +80,20 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    ServiceTaskType = "DummyServiceTask",
+                    ServiceTask = new ResolvedServiceTask("DummyServiceTask", CreateDummyPipeline()),
+                    IsInitialTaskStart = false,
+                    RegisterEvents = true,
+                }
+            ),
+            keys
+        );
+        // A mailbox-opening pipeline is the one expansion that emits MintMailbox, so the required-key set has
+        // to be collected from one.
+        CollectCommandKeys(
+            WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    ServiceTask = new ResolvedServiceTask("DummyMailboxServiceTask", CreateDummyMailboxPipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -100,14 +114,37 @@ internal static class WorkflowEngineCommandValidator
             keys
         );
 
-        // MutateProcessState, SaveProcessStateToStorage, and EnqueueSideEffectsWorkflow are
-        // inserted by ProcessNextRequestFactory rather than declared in WorkflowCommandSet
+        // MutateProcessState, SaveProcessStateToStorage and EnqueueSideEffectsWorkflow are inserted by
+        // ProcessNextRequestFactory rather than declared in WorkflowCommandSet
         keys.Add(MutateProcessState.Key);
         keys.Add(SaveProcessStateToStorage.Key);
         keys.Add(EnqueueSideEffectsWorkflow.Key);
 
         return keys;
     }
+
+    /// <summary>
+    /// The plainest pipeline there is — the shape every simple service task forwards to. Composed rather than
+    /// stubbed so the key collection walks the real expansion.
+    /// </summary>
+    private static ServiceTaskPipeline CreateDummyPipeline() =>
+        new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+    /// <summary>
+    /// A mailbox-opening pipeline, for the one expansion that emits <see cref="MintMailbox"/>.
+    /// </summary>
+    private static ServiceTaskPipeline CreateDummyMailboxPipeline() =>
+        new ServiceTaskPipelineBuilder()
+            .Stage(
+                (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
+                new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
+                out MailboxHandle handle
+            )
+            .ConcludeOnReplies(
+                handle,
+                (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+            );
 
     private static void CollectCommandKeys(WorkflowCommandSet eventCommandSet, HashSet<string> keys)
     {

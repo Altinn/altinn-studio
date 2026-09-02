@@ -77,6 +77,20 @@ internal sealed class ProcessNextRequestFactory
     /// </summary>
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 
+    /// <summary>
+    /// OperationId prefix for a receive workflow — enqueued by <see cref="MailboxRelay"/>, never by this
+    /// factory; the constant lives here beside its siblings. A naming convention for ops and logs; nothing
+    /// identifies a receiver by it.
+    /// </summary>
+    internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
+
+    /// <summary>
+    /// OperationId prefix for a workflow running a pipeline segment after an exchange concluded — enqueued by
+    /// <see cref="MailboxRelay"/>, never by this factory. A naming convention for ops and logs; nothing
+    /// identifies a continuation by it.
+    /// </summary>
+    internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
@@ -363,8 +377,7 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
-                        ServiceTaskType = serviceTaskType,
-                        ServiceTaskStageNames = GetServiceTaskStageNames(serviceTaskType),
+                        ServiceTask = ResolveServiceTask(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -405,22 +418,16 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The ordered names of the service task's pipeline stages — empty for most tasks, whose
-    /// pipeline is just the conclusion. Enumerated at enqueue time: this is the moment the
-    /// pipeline's shape is fixed for the workflow's lifetime (callback dispatch is by these
-    /// names).
+    /// The service task and its composed pipeline, or null when this is not a service task (or names a
+    /// type no implementation is registered for). Read at enqueue time: this is the moment the pipeline's
+    /// shape is fixed for the workflow's lifetime — callback dispatch is by item index, and whether the
+    /// transition ends with a concluding step or with a receive workflow is decided here.
     /// </summary>
-    private IReadOnlyList<string>? GetServiceTaskStageNames(string? serviceTaskType)
-    {
-        if (serviceTaskType is null)
-            return null;
-
-        return _appImplementationFactory
-            .FindServiceTask(serviceTaskType)
-            ?.ResolvePipeline()
-            .Stages.Select(s => s.Name)
-            .ToList();
-    }
+    private ResolvedServiceTask? ResolveServiceTask(string? serviceTaskType) =>
+        serviceTaskType is not null
+        && _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline() is { } pipeline
+            ? new ResolvedServiceTask(serviceTaskType, pipeline)
+            : null;
 
     private async Task<Actor> ExtractActor()
     {
@@ -457,7 +464,7 @@ internal sealed class ProcessNextRequestFactory
             {
                 AuthenticationLevel = systemUser.AuthenticationLevel,
                 SystemUserId = systemUser.SystemUserId[0],
-                SystemUserOwnerOrgNo = systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),
+                SystemUserOwnerOrgNo = systemUser.SystemUserOrgNr.Get(OrganizationNumberFormat.Local),
                 SystemUserName = null,
                 Language = resolvedLanguage,
             },

@@ -521,6 +521,11 @@ def _make_event_bridge(session_id: str) -> EventCallback:
     return on_event
 
 
+def _turn_carried_attachment_content(state: AgentState) -> bool:
+    """Whether anything the user supplied could have carried an instruction."""
+    return bool(state.attachments) or state.form_spec is not None
+
+
 def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopContext) -> None:
     """Emit the final `assistant_message` and `done` the frontend needs to close
     out a session; without both it renders empty bubbles and never runs its
@@ -534,14 +539,22 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
         "sources": ctx.extras.get("sources", []),
     }
     if security_notice:
-        # Only the flag crosses into Designer; attacker-influenced prose is
-        # never rendered to the user.
-        message_data["attachmentInstructionFlagged"] = True
         log.warning(
             "Prompt injection reported by the model for session %s: %s",
             state.session_id,
             security_notice,
         )
+        # The alert tells the user a document they uploaded carried the
+        # instruction, so it must not fire when there was no document.
+        if _turn_carried_attachment_content(state):
+            # Only the flag crosses into Designer; attacker-influenced prose is
+            # never rendered to the user.
+            message_data["attachmentInstructionFlagged"] = True
+        else:
+            log.warning(
+                "Ignoring the report for session %s: the turn had no attachment content",
+                state.session_id,
+            )
     if not state.allow_app_changes:
         message_data["no_branch_operations"] = True
     trace_id = state.trace_id or get_current_trace_id()

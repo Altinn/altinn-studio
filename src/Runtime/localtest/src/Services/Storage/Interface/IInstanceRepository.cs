@@ -67,7 +67,7 @@ public interface IInstanceRepository
     );
 
     /// <summary>
-    /// Delets an instance.
+    /// Deletes an instance.
     /// </summary>
     /// <param name="instance">The instance to delete</param>
     /// <param name="cancellationToken">CancellationToken</param>

@@ -2848,11 +2848,12 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<Actor>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, ProcessStateChange, string, Guid, string, string, Actor, CancellationToken>(
-                (_, processStateChange, _, _, _, _, _, _) => capturedStateChange = processStateChange
+            .Callback<Instance, ProcessStateChange, string, Guid, string, string, Actor, string?, CancellationToken>(
+                (_, processStateChange, _, _, _, _, _, _, _) => capturedStateChange = processStateChange
             )
             .ReturnsAsync(Guid.NewGuid());
 
@@ -2903,11 +2904,12 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<Actor>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, ProcessStateChange, string, Guid, string, string, Actor, CancellationToken>(
-                (_, processStateChange, _, _, _, _, _, _) => capturedStateChange = processStateChange
+            .Callback<Instance, ProcessStateChange, string, Guid, string, string, Actor, string?, CancellationToken>(
+                (_, processStateChange, _, _, _, _, _, _, _) => capturedStateChange = processStateChange
             )
             .ReturnsAsync(Guid.NewGuid());
 

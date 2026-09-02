@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.DatepickerMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.DeprecatedLayoutPropertiesMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
@@ -107,6 +108,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveLoggingDebugPackage(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
@@ -136,6 +140,12 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateMisspelledApis(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileAnalysisNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -163,6 +173,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -179,6 +192,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDeprecatedLayoutProperties(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -288,6 +304,33 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing Swashbuckle.AspNetCore package reference", ex);
+        }
+    }
+
+    // net10.0's shared framework now carries Microsoft.Extensions.Logging.Debug's DebugLoggerProvider
+    // itself, so an app's own explicit reference to the (older) NuGet package collides with it at
+    // build time (CS0433, ambiguous 'DebugLoggerProvider'). The provider is still wired up by default
+    // through WebApplication.CreateBuilder, so dropping the package reference loses nothing.
+    static async Task<int> RemoveLoggingDebugPackage(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Logging.Debug package");
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            if (await rewriter.RemovePackageReference("Microsoft.Extensions.Logging.Debug"))
+            {
+                UpgradeConsole.Ok("Microsoft.Extensions.Logging.Debug package reference removed");
+            }
+            else
+            {
+                UpgradeConsole.Skip("No Microsoft.Extensions.Logging.Debug package reference");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing Microsoft.Extensions.Logging.Debug package reference", ex);
         }
     }
 
@@ -466,7 +509,54 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// Renames the misspelled public C# API names that v9 corrected to US English (the
+    /// OrganisationNumber and IFileAnalyser families, InstansiationInstance, and friends). Compile-time
+    /// names only; the wire spellings are pinned in the SDK and no string literal is touched.
+    /// </summary>
+    static async Task<int> MigrateMisspelledApis(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Misspelled APIs");
+        try
+        {
+            var result = new MisspelledApiMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No renamed SDK API spellings in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating misspelled APIs", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites usings of the misspelled v8 <c>Features.FileAnalyzis</c> namespace. Runs after
+    /// <see cref="MigrateMisspelledApis"/>, which leaves those using directives alone precisely so this
+    /// step can merge them with an existing using of the correctly spelled sibling namespace.
+    /// </summary>
+    static async Task<int> MigrateFileAnalysisNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("FileAnalysis namespace");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            migration.Migrate(
+                "Altinn.App.Core.Features.FileAnalyzis",
+                "Altinn.App.Core.Features.FileAnalysis",
+                _allCSharpFilesMatcher
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileAnalysis namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>
@@ -604,6 +694,23 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Datepicker timeStamp defaults", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
+    /// so a customized validation message keeps applying after the v9 key rename.
+    /// </summary>
+    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Datepicker text keys");
+        try
+        {
+            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Datepicker text-resource keys", ex);
         }
     }
 
@@ -916,6 +1023,11 @@ internal static class V8Tov9Upgrade
                 return ExitSuccess;
             }
 
+            foreach (var todo in result.Todos)
+            {
+                UpgradeConsole.Todo(todo);
+            }
+
             UpgradeConsole.Ok($"Migrated {result.MigratedFolderCount} UI folder(s)");
             UpgradeConsole.Ok(
                 $"Folder operations: {result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, {result.DeletedSourceFolderCount} deleted source folder(s)"
@@ -955,6 +1067,56 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating NavigationButtons showBackButton flags", ex);
+        }
+    }
+
+    /// <summary>
+    /// Converts the option/data list layout properties v9 removed - <c>mapping</c> and
+    /// <c>bindingToShowInSummary</c> - to <c>queryParameters</c> and <c>summaryBinding</c>.
+    /// </summary>
+    static async Task<int> MigrateDeprecatedLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Removed layout properties");
+        try
+        {
+            var result = await new DeprecatedLayoutPropertiesMigrator(projectFolder).Migrate();
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.QueryParametersConverted > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Converted {result.QueryParametersConverted} mapping entry/entries to queryParameters"
+                );
+            }
+
+            if (result.SummaryBindingsConverted > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Replaced {result.SummaryBindingsConverted} bindingToShowInSummary property/properties with summaryBinding"
+                );
+            }
+
+            if (result.FilesChanged == 0 && result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No mapping or bindingToShowInSummary properties found");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                UpgradeConsole.Todo(
+                    "Some layout properties removed in v9 could not be converted automatically. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating layout properties removed in v9", ex);
         }
     }
 

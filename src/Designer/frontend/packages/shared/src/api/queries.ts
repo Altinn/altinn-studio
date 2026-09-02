@@ -246,7 +246,7 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 // Contact Page
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
-// Organisation library
+// Organization library
 export const getSharedResources = async (org: string, path: string, reference?: string): Promise<SharedResourcesResponse> => get<SharedResourcesResponse>(orgLibraryPath(org, path, reference));
 
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));

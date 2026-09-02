@@ -28,9 +28,12 @@ internal static class StepRequestStepOptionsExtensions
 
     /// <summary>
     /// Resolves the effective step options for a single step (via <paramref name="resolver"/>) and maps
-    /// them onto the wire request. A service-task pipeline stage resolves by its command key plus its
-    /// stage name (its OperationId is a display identity carrying the stage name); every other
-    /// step's OperationId is its command key.
+    /// them onto the wire request. Resolution keys off the step's <see cref="StepRequest.CommandKey"/>,
+    /// falling back to its OperationId for a step assembled without one (where the two are the same
+    /// string): an OperationId can be a display identity — a service-task stage or the mailbox mint carries
+    /// its item index there — and keying off it would silently miss the command's own tier-2 default. A
+    /// service-task step additionally resolves the options of the one pipeline item it runs by
+    /// <see cref="StepRequest.ServiceTaskItemIndex"/>.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
@@ -39,12 +42,7 @@ internal static class StepRequestStepOptionsExtensions
         string? serviceTaskType
     ) =>
         step.WithStepOptions(
-            resolver.Resolve(
-                step.ServiceTaskStageName is null ? step.OperationId : Commands.ExecuteServiceTask.Key,
-                taskId,
-                serviceTaskType,
-                step.ServiceTaskStageName
-            )
+            resolver.Resolve(step.CommandKey ?? step.OperationId, taskId, serviceTaskType, step.ServiceTaskItemIndex)
         );
 
     /// <summary>

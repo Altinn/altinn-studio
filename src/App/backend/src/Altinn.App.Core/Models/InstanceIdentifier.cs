@@ -33,7 +33,7 @@ public class InstanceIdentifier
     /// <summary>
     /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class.
     /// </summary>
-    /// <param name="instance">Is the instance you want to get an idenifier from</param>
+    /// <param name="instance">Is the instance you want to get an identifier from</param>
     public InstanceIdentifier(Instance instance)
         : this(instance.Id) { }
 
@@ -119,8 +119,8 @@ public class InstanceIdentifier
 
     /// <summary>
     /// Deconstructs an instance based url string into instanceOwnerId and InstanceGuid.
-    /// The url needs to conform to .../instances/{instanceOwerId}/{instanceOwnerGuid}/... or
-    /// .../instance/{instanceOwerId}/{instanceOwnerGuid}/... pattern.
+    /// The url needs to conform to .../instances/{instanceOwnerId}/{instanceOwnerGuid}/... or
+    /// .../instance/{instanceOwnerId}/{instanceOwnerGuid}/... pattern.
     /// </summary>
     /// <param name="url">The url to parse</param>
     /// <returns>A 2-tuple with the partyId (int) and the instanceGuid (Guid).</returns>
@@ -146,7 +146,7 @@ public class InstanceIdentifier
         if (string.IsNullOrEmpty(instanceSubpath))
         {
             throw new ArgumentException(
-                $"Parameter with value {url} is not recognised as a valid instance url.",
+                $"Parameter with value {url} is not recognized as a valid instance url.",
                 nameof(url)
             );
         }

@@ -5,7 +5,7 @@ import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
-import { useSinlgeResourceQuery, useValidatePolicyQuery } from '../../hooks/queries';
+import { useSingleResourceQuery, useValidatePolicyQuery } from '../../hooks/queries';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
 import { useEditResourceMutation } from '../../hooks/mutations';
@@ -57,7 +57,7 @@ export const ResourcePage = (): React.JSX.Element => {
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(org, app, resourceId);
 
-  const { data: loadedResourceData, isPending: resourcePending } = useSinlgeResourceQuery(
+  const { data: loadedResourceData, isPending: resourcePending } = useSingleResourceQuery(
     org,
     app,
     resourceId,
@@ -142,7 +142,7 @@ export const ResourcePage = (): React.JSX.Element => {
   };
 
   /**
-   * Handles the navigation to a page that has erros. This is used from the deploy
+   * Handles the navigation to a page that has errors. This is used from the deploy
    * page when information is displayed about errors on the policy or the resource page.
    *
    * @param page the page to navigate to

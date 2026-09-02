@@ -7,7 +7,8 @@ import type {
   WorkflowEvent,
   WorkflowRequest,
 } from '@studio/assistant';
-import { ErrorMessages, MessageAuthor } from '@studio/assistant';
+import { MessageAuthor } from '@studio/assistant';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from './useAssistantWorkflow';
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
@@ -1061,7 +1062,9 @@ describe('useAssistantWorkflow', () => {
       'thread-a',
       expect.objectContaining({
         role: MessageAuthor.Assistant,
-        content: `${ErrorMessages.REQUEST_REJECTED}\n\nMålet ble avvist\n\nForslag:\nPrøv A`,
+        content:
+          `${textMock('ai_assistant.request_rejected_heading')}\n\nMålet ble avvist\n\n` +
+          `${textMock('ai_assistant.suggestions_label')}\nPrøv A`,
       }),
     );
   });

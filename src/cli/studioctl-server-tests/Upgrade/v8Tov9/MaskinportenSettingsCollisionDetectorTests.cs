@@ -250,7 +250,7 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
     }
 
     /// <summary>
-    /// An unparseable appsettings file is skipped rather than reported: a JSON complaint from a
+    /// An unparsable appsettings file is skipped rather than reported: a JSON complaint from a
     /// Maskinporten check would be a confusing way to learn the file is malformed.
     /// </summary>
     [Fact]

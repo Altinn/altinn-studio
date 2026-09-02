@@ -55,7 +55,7 @@ describe('Elements', () => {
   it('should render default toolbar when shouldShowConfPageToolbar is false', () => {
     renderElements({ selectedFormLayoutName: 'test' });
     expect(
-      screen.getByText(textMock('ux_editor.collapsable_standard_components')),
+      screen.getByText(textMock('ux_editor.collapsible_standard_components')),
     ).toBeInTheDocument();
   });
 
@@ -68,7 +68,7 @@ describe('Elements', () => {
     });
 
     expect(
-      screen.queryByText(textMock('ux_editor.collapsable_standard_components')),
+      screen.queryByText(textMock('ux_editor.collapsible_standard_components')),
     ).not.toBeInTheDocument();
 
     const headingComponent = screen.getAllByText(textMock('ux_editor.component_title.Heading'));

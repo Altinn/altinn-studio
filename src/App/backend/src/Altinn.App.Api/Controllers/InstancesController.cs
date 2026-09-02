@@ -138,8 +138,8 @@ public class InstancesController : ControllerBase
     /// <summary>
     ///  Gets an instance object from storage.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="cancellationToken">cancellation token</param>
@@ -215,8 +215,8 @@ public class InstancesController : ControllerBase
     /// Gets an instance object from storage with enriched process state including authorized actions,
     /// read/write access, element types, and process task metadata.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="includeWorkflowStatus">
@@ -310,8 +310,8 @@ public class InstancesController : ControllerBase
     /// names that correspond to the element types defined in the application metadata.
     /// The data elements are stored. Currently calculate and validate is not implemented.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="language">The currently active user language</param>
     /// <returns>the created instance</returns>
@@ -600,9 +600,9 @@ public class InstancesController : ControllerBase
     /// <summary>
     /// Simplified instantiation with support for fieldprefill
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
-    /// <param name="instansiationInstance">instantiation information</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
+    /// <param name="instantiationInstance">instantiation information</param>
     /// <param name="language">The currently active user language</param>
     /// <returns>The new instance</returns>
     [HttpPost("create")]
@@ -615,7 +615,7 @@ public class InstancesController : ControllerBase
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromBody] InstansiationInstance instansiationInstance,
+        [FromBody] InstantiationInstance instantiationInstance,
         [FromQuery] string? language = null
     )
     {
@@ -629,7 +629,7 @@ public class InstancesController : ControllerBase
             return BadRequest("The path parameter 'app' cannot be empty");
         }
 
-        bool isCopyRequest = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
+        bool isCopyRequest = !string.IsNullOrEmpty(instantiationInstance.SourceInstanceId);
 
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         if (VerifyInstantiationPermissions(application, org, app, isCopy: isCopyRequest) is { } verificationResult)
@@ -644,7 +644,7 @@ public class InstancesController : ControllerBase
             );
         }
 
-        InstanceOwner? lookup = instansiationInstance.InstanceOwner;
+        InstanceOwner? lookup = instantiationInstance.InstanceOwner;
 
         if (
             lookup == null
@@ -665,9 +665,9 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instansiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
+            party = await LookupParty(instantiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
 
-            instansiationInstance.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
+            instantiationInstance.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
                 _authenticationContext
             );
@@ -680,7 +680,7 @@ public class InstancesController : ControllerBase
                 {
                     _logger.LogWarning(
                         "Party lookup returned Unauthorized (401) for InstanceOwner={@InstanceOwner}",
-                        instansiationInstance.InstanceOwner
+                        instantiationInstance.InstanceOwner
                     );
                     return StatusCode(StatusCodes.Status403Forbidden);
                 }
@@ -692,7 +692,7 @@ public class InstancesController : ControllerBase
         if (
             isCopyRequest
             && party.PartyId.ToString(CultureInfo.InvariantCulture)
-                != instansiationInstance.SourceInstanceId?.Split("/")[0]
+                != instantiationInstance.SourceInstanceId?.Split("/")[0]
         )
         {
             return BadRequest("It is not possible to copy instances between instance owners.");
@@ -737,9 +737,9 @@ public class InstancesController : ControllerBase
 
         Instance instanceTemplate = new()
         {
-            InstanceOwner = instansiationInstance.InstanceOwner,
-            VisibleAfter = instansiationInstance.VisibleAfter,
-            DueBefore = instansiationInstance.DueBefore,
+            InstanceOwner = instantiationInstance.InstanceOwner,
+            VisibleAfter = instantiationInstance.VisibleAfter,
+            DueBefore = instantiationInstance.DueBefore,
             Org = application.Org,
         };
 
@@ -771,7 +771,7 @@ public class InstancesController : ControllerBase
             if (isCopyRequest)
             {
                 string[] sourceSplit =
-                    instansiationInstance.SourceInstanceId?.Split("/")
+                    instantiationInstance.SourceInstanceId?.Split("/")
                     ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
                 Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
@@ -826,7 +826,7 @@ public class InstancesController : ControllerBase
             {
                 Instance = instanceTemplate,
                 User = User,
-                Prefill = instansiationInstance.Prefill,
+                Prefill = instantiationInstance.Prefill,
             };
 
             ProcessChangeResult processResult = await _processEngine.CreateInitialProcessState(startRequest);
@@ -871,8 +871,8 @@ public class InstancesController : ControllerBase
                 _instanceLocker.CurrentLockToken
                     ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
                 isInstantiation: true,
-                prefill: instansiationInstance.Prefill,
-                notification: instansiationInstance.Notification
+                prefill: instantiationInstance.Prefill,
+                notification: instantiationInstance.Notification
             );
         }
         catch (WorkflowSubmissionFailedException exception)
@@ -916,8 +916,8 @@ public class InstancesController : ControllerBase
     /// The endpoint will primarily be accessed directly by a user clicking the copy button for an archived instance
     /// from the message box in the Altinn 2 portal/Altinn 3 arbeidsflate.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">Application identifier which is unique within an organisation</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app</param>
+    /// <param name="app">Application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
     /// <param name="language">The currently active user language</param>
@@ -1177,8 +1177,8 @@ public class InstancesController : ControllerBase
     /// <summary>
     /// Allows an app owner to update the substatus of an instance.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance to update.</param>
     /// <param name="substatus">The new substatus of the instance.</param>
@@ -1279,10 +1279,10 @@ public class InstancesController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves all active instances that fulfull the org, app, and instanceOwnerParty Id combination.
+    /// Retrieves all active instances that fulfill the org, app, and instanceOwnerParty Id combination.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <returns>A list of light weight instance objects that contains instanceId, lastChanged and lastChangedBy (full name).</returns>
     [Authorize]
@@ -1670,7 +1670,7 @@ public class InstancesController : ControllerBase
         else
         {
             string lookupNumber = "personNumber or organisationNumber";
-            string personOrOrganisationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
+            string personOrOrganizationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
             try
             {
                 if (!string.IsNullOrEmpty(instanceOwner.ExternalIdentifier))
@@ -1731,13 +1731,13 @@ public class InstancesController : ControllerBase
             {
                 _logger.LogWarning(
                     e,
-                    "Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}",
+                    "Failed to lookup party by {lookupNumber}: {personOrOrganizationNumber}",
                     lookupNumber,
-                    personOrOrganisationNumber
+                    personOrOrganizationNumber
                 );
                 throw new ServiceException(
                     HttpStatusCode.BadRequest,
-                    $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}",
+                    $"Failed to lookup party by {lookupNumber}: {personOrOrganizationNumber}. The exception was: {e.Message}",
                     e
                 );
             }
@@ -1759,7 +1759,7 @@ public class InstancesController : ControllerBase
             // NOTE: part.Name is nullable on the type here, but `RequestPartValidator.ValidatePart` which is called
             // further up the stack will error out if it actually null, so we just sanity-check here
             // and throw if it is null.
-            // TODO: improve the modelling of this type.
+            // TODO: improve the modeling of this type.
             if (part.Name is null)
             {
                 throw new InvalidOperationException("Unexpected state - part name is null");

@@ -90,7 +90,7 @@ public class TextsService : ITextsService
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         string[] duplicateKeys = textResource
-            .Resources.GroupBy(tre => tre.Id)
+            .Resources.GroupBy(resource => resource.Id)
             .Where(grp => grp.Count() > 1)
             .Select(grp => grp.Key)
             .ToArray();
@@ -102,8 +102,8 @@ public class TextsService : ITextsService
         }
 
         // updating application metadata with appTitle.
-        TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(tre =>
-            tre.Id == "appName" || tre.Id == "ServiceName"
+        TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(resource =>
+            resource.Id == "appName" || resource.Id == "ServiceName"
         );
 
         if (appTitleResourceElement != null && !string.IsNullOrEmpty(appTitleResourceElement.Value))
@@ -220,7 +220,7 @@ public class TextsService : ITextsService
     /// <summary>
     /// Updates text keys in layouts for a specific layoutset
     /// </summary>
-    /// <param name="org">Identifier for the organisation</param>
+    /// <param name="org">Identifier for the organization</param>
     /// <param name="app">Identifier for the application</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="layoutSetName">Name of the layoutset</param>

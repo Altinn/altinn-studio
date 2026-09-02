@@ -52,8 +52,8 @@ public class PaymentController : ControllerBase
     /// <summary>
     /// Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task, or a payment task ID must be supplied via the <c>taskId</c> query parameter. See payment related documentation.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
@@ -181,8 +181,8 @@ public class PaymentController : ControllerBase
     /// <summary>
     /// Run order details calculations and return the result. Does not require the current task to be a payment task.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
@@ -222,8 +222,8 @@ public class PaymentController : ControllerBase
     /// <summary>
     /// Endpoint to receive payment webhooks from the payment processor.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="webhookPayload">The webhook payload from nets</param>
@@ -303,12 +303,12 @@ public class PaymentController : ControllerBase
         var validPaymentConfiguration = paymentConfiguration.Validate();
 
         // Update payment status using ServiceOwner authentication
-        var responsText = await _paymentService.HandlePaymentCompletedWebhook(
+        var responseText = await _paymentService.HandlePaymentCompletedWebhook(
             instance,
             validPaymentConfiguration,
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        return Ok(responsText);
+        return Ok(responseText);
     }
 }

@@ -46,7 +46,7 @@ describe('XSDUpload', () => {
 
     renderXsdUpload();
 
-    expect(screen.getByText(textMock('app_data_modelling.uploading_xsd'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_data_modeling.uploading_xsd'))).toBeInTheDocument();
   });
 
   it('shows file picker button', () => {
@@ -160,7 +160,7 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(window.alert).toHaveBeenCalledWith(
-      textMock('app_data_modelling.upload_xsd_invalid_name_error'),
+      textMock('app_data_modeling.upload_xsd_invalid_name_error'),
     );
     expect(window.alert).toHaveBeenCalledTimes(1);
   });

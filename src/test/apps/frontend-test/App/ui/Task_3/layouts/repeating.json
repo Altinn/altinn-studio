@@ -315,8 +315,8 @@
         "grid": {
           "md": 6
         },
-        "mapping": {
-          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].source": "source"
+        "queryParameters": {
+          "source": ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]
         }
       },
       {
@@ -431,8 +431,8 @@
         "grid": {
           "md": 6
         },
-        "mapping": {
-          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].nested-grp-1234[{1}].source": "source"
+        "queryParameters": {
+          "source": ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.source"]
         }
       },
       {

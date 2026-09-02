@@ -56,6 +56,10 @@ internal sealed class DirectFileRestorer
             resultContent += lineEnding;
         }
 
+        // Encoding.UTF8 emits a byte order mark, which would add one to every file that never had it -
+        // the opposite of restoring. Keep whatever the file on disk had: the migrators preserve the
+        // original state when they rewrite, and ChunkClassifier already counts a BOM change as
+        // whitespace to be restored.
         File.WriteAllText(fullFilePath, resultContent, new UTF8Encoding(encoderShouldEmitUTF8Identifier: hadBom));
     }
 

@@ -25,7 +25,7 @@ public interface IOptionsService
     /// <summary>
     /// Gets an options list from the app repository with the specified optionListId.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the options list to fetch</param>
@@ -42,7 +42,7 @@ public interface IOptionsService
     /// <summary>
     /// Gets all option lists from the app repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -58,7 +58,7 @@ public interface IOptionsService
     /// Creates a new options list in the app repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the new options list</param>
@@ -77,7 +77,7 @@ public interface IOptionsService
     /// Adds a new option to the option list.
     /// If the file already exists, it will be overwritten.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the new options list</param>
@@ -95,7 +95,7 @@ public interface IOptionsService
     /// <summary>
     /// Deletes an options list from the app repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the options list</param>
@@ -104,7 +104,7 @@ public interface IOptionsService
     /// <summary>
     /// Checks if an options list exists in the app repository.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the options list</param>
@@ -132,9 +132,9 @@ public interface IOptionsService
     );
 
     /// <summary>
-    /// Imports a code list from the static content repository associated with a provided organisation.
+    /// Imports a code list from the static content repository associated with a provided organization.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the option list</param>

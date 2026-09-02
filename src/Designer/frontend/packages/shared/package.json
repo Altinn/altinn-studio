@@ -3,8 +3,6 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "@digdir/designsystemet-css": "0.10.0",
-    "@digdir/designsystemet-theme": "0.15.3",
     "bpmn-moddle": "9.0.4",
     "classnames": "2.5.1",
     "qs": "6.15.3",

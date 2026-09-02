@@ -12,12 +12,9 @@ import type {
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   heading: 'aboutAssistantHeading',
   intro: 'aboutAssistantIntro',
-  howToHeading: 'aboutAssistantHowToHeading',
-  description: 'aboutAssistantDescription',
-  branchInfo: 'aboutAssistantBranchInfo',
-  branchDocsLink: 'aboutAssistantBranchDocsLink',
+  assistantDocsInfo: 'aboutAssistantDocsInfo',
+  assistantDocsLink: 'aboutAssistantDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
-  privacyHeading: 'aboutAssistantPrivacyHeading',
   privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
 };
 

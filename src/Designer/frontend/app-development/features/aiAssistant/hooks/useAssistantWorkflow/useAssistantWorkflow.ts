@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type {
   UserMessage,
   AssistantMessage,
@@ -27,6 +28,7 @@ import {
   getAssistantMessageTimestamp,
   shouldSkipBranchOps,
 } from '../../utils/messageUtils';
+import type { RejectionTexts } from '../../utils/messageUtils';
 
 const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
@@ -48,6 +50,14 @@ export interface UseAssistantWorkflowResult {
 }
 
 export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistantWorkflowResult => {
+  const { t } = useTranslation();
+  const rejectionTexts: RejectionTexts = useMemo(
+    () => ({
+      heading: t('ai_assistant.request_rejected_heading'),
+      suggestionsLabel: t('ai_assistant.suggestions_label'),
+    }),
+    [t],
+  );
   const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
     Record<string, WorkflowStatus>
   >({});
@@ -381,7 +391,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         // Rejections carry the actual reason — show it instead of the generic text.
         const content =
           event.data?.status === 'rejected'
-            ? formatRejectedEventMessage(event.data)
+            ? formatRejectedEventMessage(event.data, rejectionTexts)
             : WORKFLOW_ERROR_MESSAGE;
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
@@ -402,6 +412,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       markThreadTerminated,
       refreshMessagesForAdoptedRun,
       refreshMessages,
+      rejectionTexts,
     ],
   );
 
@@ -469,7 +480,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         if (!result.accepted) {
           createMessage(threadId, {
             role: MessageAuthor.Assistant,
-            content: formatRejectionMessage(result),
+            content: formatRejectionMessage(result, rejectionTexts),
             createdAt: new Date().toISOString(),
             filesChanged: [],
           });
@@ -484,7 +495,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         });
       }
     },
-    [createMessage, startAgentWorkflow],
+    [createMessage, startAgentWorkflow, rejectionTexts],
   );
 
   const onSubmitMessage = useCallback(

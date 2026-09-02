@@ -7,8 +7,10 @@ using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -101,9 +103,10 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         InstanceDataUnitOfWork instanceDataUnitOfWork;
+        WorkflowCallbackStateCarry stateCarry;
         try
         {
-            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
+            (instanceDataUnitOfWork, stateCarry) = await _workflowCallbackStateService.RestoreState(
                 instanceId,
                 payload.State,
                 payload.Actor.Language
@@ -125,9 +128,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
-        // state blob has been validated against the route instance, so the token is only applied once we know
-        // the callback targets the expected instance.
+        // The lock token is applied only after the state blob has been validated against the route instance.
         var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
         instanceLocker.UseExternalLockToken(payload.LockToken);
 
@@ -141,6 +142,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
+                StateCarry = stateCarry,
             }
         );
 
@@ -171,13 +173,33 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
-                // Capture updated state (includes Storage-assigned IDs for newly created data elements)
-                string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
+                string updatedState = await _workflowCallbackStateService.CaptureState(
+                    instanceDataUnitOfWork,
+                    stateCarry
+                );
 
-                // If the command signals auto-advance, enqueue a dependent process-next workflow.
-                // This happens AFTER save so the state blob includes Storage-assigned IDs.
-                // If this fails, we return 500 — the engine retries the whole callback (at-least-once).
-                // The enqueue uses an idempotency key, so duplicates are safe.
+                // The relay runs here, not in the command: whatever it starts must begin on the state the
+                // handler *published* — saved, re-captured, re-signed above.
+                if (success.MailboxContinuation is { } continuation)
+                {
+                    await RunMailboxRelay(
+                        continuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork.Instance,
+                        updatedState,
+                        success.AutoAdvanceProcess,
+                        success.AutoAdvanceAction,
+                        ct
+                    );
+
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    return Ok(new AppCallbackResponse { State = updatedState });
+                }
+
+                // Auto-advance runs AFTER save so the state blob includes Storage-assigned IDs; the enqueue is
+                // idempotency-keyed, so a retried callback is safe.
                 if (success.AutoAdvanceProcess)
                 {
                     string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
@@ -206,7 +228,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         collectionKey,
                         updatedState,
                         success.AutoAdvanceAction,
-                        ct
+                        ct: ct
                     );
                 }
 
@@ -214,12 +236,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                 return Ok(new AppCallbackResponse { State = updatedState });
 
             case DeferredProcessEngineCommandResult deferred:
-                // A deferral is stateless by contract: nothing is saved and the incoming state is
-                // echoed back unchanged, so the re-run starts exactly where this attempt did. A step
-                // that checks-and-waits is not a step that records — work that produces something
-                // durable belongs in its own pipeline step. Enforced rather than silently discarded:
-                // a deferring handler that made data changes has broken the contract, and dropping
-                // its writes quietly would be the one worse outcome.
+                // A deferral is stateless by contract: nothing is saved and the incoming state is echoed back
+                // unchanged. Enforced rather than silently discarded — dropping a deferring handler's writes
+                // quietly would be the one worse outcome.
                 DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
                 if (deferredChanges.AllChanges.Count > 0)
                 {
@@ -241,8 +260,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                     );
                 }
 
-                // The resolved command's own key rather than the route string it matched: same value,
-                // but provably from the registered set, so nothing route-derived reaches the log.
+                // The resolved command's own key, so nothing route-derived reaches the log.
                 _logger.LogInformation(
                     "Callback handler deferred. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Delay: {Delay}",
                     command.GetKey(),
@@ -261,8 +279,24 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedProcessEngineCommandResult failed:
-                // The resolved command's own key rather than the route string it matched - same value,
-                // but provably from the registered set, as in the deferral branch above.
+                // A permanent failure still concludes the exchange — the mailbox must stop accepting messages.
+                // Before the response, so a retried step repeats it.
+                if (failed.MailboxContinuation is { } failedContinuation)
+                {
+                    await RunMailboxRelay(
+                        failedContinuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork.Instance,
+                        state: null,
+                        autoAdvanceProcess: false,
+                        autoAdvanceAction: null,
+                        ct
+                    );
+                }
+
+                // The resolved command's own key, as in the deferral branch above.
                 _logger.LogError(
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
                     command.GetKey(),
@@ -272,17 +306,11 @@ public class WorkflowEngineCallbackController : ControllerBase
                     failed.ExceptionType
                 );
 
-                // A service-owner 403 reads as a platform failure but is a policy gap, and the bare
-                // status code gives nobody a way to find that out. Logged separately so the reason is
-                // spelled out where the app and task are known; the failure is classified and
-                // answered exactly as before. The app's own metadata names the app, not the request's
-                // route: this is a statement about this app's policy file either way, and the route
-                // values are caller-supplied.
+                // A service-owner 403 reads as a platform failure but is a policy gap; logged and tagged
+                // separately so ops can tell a policy change from a redrive. The app's own metadata names the
+                // app — route values are caller-supplied.
                 if (failed.ServiceOwnerAuthorizationDenied)
                 {
-                    // Tagged as well as logged: the engine's failed-workflow metrics cannot tell a
-                    // policy gap from a transient platform failure, and the two want different
-                    // responses - a policy change for every instance of the app, versus a redrive.
                     activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
 
                     ApplicationMetadata appMetadata = await _serviceProvider
@@ -327,6 +355,36 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
                 throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
         }
+    }
+
+    /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
+    private Task RunMailboxRelay(
+        MailboxContinuation continuation,
+        AppIdentifier appId,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        Instance instance,
+        string? state,
+        bool autoAdvanceProcess,
+        string? autoAdvanceAction,
+        CancellationToken ct
+    )
+    {
+        var relay = _serviceProvider.GetRequiredService<MailboxRelay>();
+        return relay.Continue(
+            continuation,
+            new MailboxRelayRequest
+            {
+                AppId = appId,
+                InstanceId = instanceId,
+                Payload = payload,
+                Instance = instance,
+                State = state,
+                AutoAdvanceProcess = autoAdvanceProcess,
+                AutoAdvanceAction = autoAdvanceAction,
+            },
+            ct
+        );
     }
 
     private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)

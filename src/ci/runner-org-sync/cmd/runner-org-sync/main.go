@@ -167,7 +167,7 @@ func run() error { //nolint:funlen // Main wires dependencies and emits run tele
 	return nil
 }
 
-// loadSecretFromKV resolves a single Key Vault secret, honouring an env-var
+// loadSecretFromKV resolves a single Key Vault secret, honoring an env-var
 // override for local development. When override is non-empty it
 // short-circuits without constructing the Azure SDK client; otherwise it
 // fetches from KV via Workload Identity (DefaultAzureCredential). Generic

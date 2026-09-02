@@ -95,8 +95,8 @@ public class DataController : ControllerBase
     /// <summary>
     /// Creates and instantiates a data element of a given element-type. Clients can upload the data element in the request content.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataType">identifies the data element type to create</param>
@@ -162,8 +162,8 @@ public class DataController : ControllerBase
     /// <summary>
     /// Creates and instantiates a data element of a given element-type. Clients can upload the data element in the request content.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataType">identifies the data element type to create</param>
@@ -419,8 +419,8 @@ public class DataController : ControllerBase
     /// File validation requires json object in response and is introduced in the
     /// methods above validating files. In order to be consistent for the return types
     /// of this controller, old methods are updated to return json object in response.
-    /// Since this is a breaking change, a feature flag is introduced to control the behaviour,
-    /// and the developer need to opt in to the new behaviour. Json object are by default
+    /// Since this is a breaking change, a feature flag is introduced to control the behavior,
+    /// and the developer need to opt in to the new behavior. Json object are by default
     /// returned as part of file validation which is a new feature.
     /// </summary>
     private async Task<object> GetErrorDetails(List<ValidationIssueWithSource> errors)
@@ -433,12 +433,12 @@ public class DataController : ControllerBase
     /// <summary>
     /// Gets a data element from storage and applies business logic if necessary.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataGuid">unique id to identify the data element to get</param>
-    /// <param name="dataType">Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec</param>
+    /// <param name="dataType">Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec</param>
     /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>The data element is returned in the body of the response</returns>
@@ -515,12 +515,12 @@ public class DataController : ControllerBase
     /// <summary>
     /// Updates an existing data element with new content.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataGuid">unique id to identify the data element to update</param>
-    /// <param name="dataType">Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec,</param>
+    /// <param name="dataType">Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>The updated data element, including the changed fields in the event of a calculation that changed data.</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
@@ -587,8 +587,8 @@ public class DataController : ControllerBase
     /// <summary>
     /// Updates an existing form data element with a patch of changes.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataGuid">unique id to identify the data element to update</param>
@@ -639,8 +639,8 @@ public class DataController : ControllerBase
     /// <summary>
     /// Updates an existing form data element with patches to multiple data elements.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataPatchRequestMultiple">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
@@ -726,12 +726,12 @@ public class DataController : ControllerBase
     /// <summary>
     ///  Delete a data element.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataGuid">unique id to identify the data element to update</param>
-    /// <param name="dataType">Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec,</param>
+    /// <param name="dataType">Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,</param>
     /// <param name="ignoredValidators">comma separated string of validators to ignore</param>
     /// <param name="language">The currently active language</param>
     /// <returns>The updated data element.</returns>

@@ -9,6 +9,7 @@ public class PersistentItemStatusMapTests
     private static readonly IReadOnlyCollection<PersistentItemStatus>[] _allCollections =
     [
         PersistentItemStatusMap.Incomplete,
+        PersistentItemStatusMap.Fetchable,
         PersistentItemStatusMap.Successful,
         PersistentItemStatusMap.Failed,
         PersistentItemStatusMap.Finished,
@@ -36,6 +37,32 @@ public class PersistentItemStatusMapTests
             PersistentItemStatusMap.IncompleteSqlList,
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Incomplete)
         );
+        Assert.Equal(
+            PersistentItemStatusMap.FetchableSqlList,
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Fetchable)
+        );
+    }
+
+    [Fact]
+    public void Fetchable_IsASubsetOfIncomplete_AndExcludesTheStatusesNoWorkerClaims()
+    {
+        // This cannot check the set against FetchAndLockWorkflows, whose SQL spells its statuses out itself:
+        // the drift caught here is index-versus-set, not gate-versus-set.
+        Assert.All(PersistentItemStatusMap.Fetchable, s => Assert.Contains(s, PersistentItemStatusMap.Incomplete));
+
+        Assert.DoesNotContain(PersistentItemStatus.Processing, PersistentItemStatusMap.Fetchable);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Fetchable);
+    }
+
+    [Fact]
+    public void Held_IsUnsettledButNeverFetchable()
+    {
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Fetchable);
+
+        Assert.Contains(PersistentItemStatus.Held, PersistentItemStatusMap.Incomplete);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Finished);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Failed);
+        Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Successful);
     }
 
     [Fact]

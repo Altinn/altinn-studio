@@ -11,8 +11,8 @@ public static class ApplicationHelper
     /// <summary>
     /// Gets the application id  (appId) formatted as "org/app"
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns></returns>
     public static string GetFormattedApplicationId(string org, string app)
     {

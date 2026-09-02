@@ -1,13 +1,5 @@
 import type { UserAttachment, Source } from './ChatThread';
 
-export const ErrorMessages = {
-  CONNECTION_ERROR: '**Connection Error**',
-  REQUEST_REJECTED: '**Request Rejected**',
-  REQUEST_FAILED: '**Request Failed**',
-  NO_SESSION_AVAILABLE: "No session available. Please ensure you're connected to the server.",
-  UNKNOWN_ERROR: 'Unknown error occurred',
-} as const;
-
 export interface AssistantMessageData {
   response?: string;
   message?: string;
