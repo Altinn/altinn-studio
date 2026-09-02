@@ -11,13 +11,11 @@
   gap: 0.75rem;
 }
 
-/* Shared by parties and sub-units: a row the user can select. */
 .partySelectable:hover {
   background-color: var(--colors-primary-blueLight);
   cursor: pointer;
 }
 
-/* Shared by parties and sub-units: the row whose selection is in flight. */
 .partySubmitting {
   background-color: var(--colors-primary-blueLighterActive);
   cursor: progress;
