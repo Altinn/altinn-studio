@@ -10,7 +10,6 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -268,69 +267,17 @@ public class SigningServiceTaskTests
         await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         _pdfServiceMock.VerifyAll();
-        dataMutator.VerifyAll();
-    }
-
-    [Fact]
-    public async Task End_WithExistingTaskGeneratedPdf_ShouldUpdatePdfOnMutator()
-    {
-        DataElement existingSigningPdf = new()
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "signing-pdf",
-            ContentType = "application/pdf",
-            Filename = "signing-pdf.pdf",
-            References =
-            [
-                new Reference
-                {
-                    Relation = RelationType.GeneratedFrom,
-                    ValueType = ReferenceType.Task,
-                    Value = "Task_1",
-                },
-            ],
-        };
-        Instance instance = CreateInstance(existingSigningPdf);
-        var dataMutator = CreateDataMutator(instance);
-        var altinnTaskExtension = new AltinnTaskExtension
-        {
-            SignatureConfiguration = new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" },
-        };
-
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
-        _pdfServiceMock
-            .Setup(x => x.GeneratePdf(dataMutator.Object, "Task_1", false, null, CancellationToken.None))
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
-        dataMutator
-            .Setup(x =>
-                x.UpdateBinaryDataElement(existingSigningPdf, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
-            )
-            .Returns(
-                new BinaryDataChange(
-                    ChangeType.Updated,
-                    new DataType { Id = "signing-pdf" },
-                    "application/pdf",
-                    existingSigningPdf,
-                    "signing-pdf.pdf",
-                    ReadOnlyMemory<byte>.Empty
-                )
-            );
-
-        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
-
-        _pdfServiceMock.VerifyAll();
-        dataMutator.VerifyAll();
         dataMutator.Verify(
             x =>
                 x.AddBinaryDataElement(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
+                    "signing-pdf",
+                    "application/pdf",
+                    "signing-pdf.pdf",
                     It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<List<KeyValueEntry>?>()
+                    "Task_1",
+                    null
                 ),
-            Times.Never
+            Times.Once
         );
     }
 

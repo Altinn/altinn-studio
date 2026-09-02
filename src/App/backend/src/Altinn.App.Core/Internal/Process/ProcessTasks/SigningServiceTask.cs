@@ -11,7 +11,6 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -129,13 +128,12 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
             using var memoryStream = new MemoryStream();
             await pdfStream.CopyToAsync(memoryStream, ct);
 
-            UpsertTaskGeneratedBinaryDataElement(
-                dataMutator,
+            dataMutator.AddBinaryDataElement(
                 signingPdfDataType,
                 PdfContentType,
                 signingPdfDataType + ".pdf",
                 memoryStream.ToArray(),
-                taskId
+                generatedFromTask: taskId
             );
         }
 
@@ -502,40 +500,4 @@ internal sealed class SigningServiceTask : IPipelineServiceTask
         dataAccessor.TaskId
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
-
-    /// <summary>
-    /// Adds the element, or updates it if one tagged with this task already exists. The update branch
-    /// is retry idempotency, not re-entry protection: a re-run of a partially completed transition
-    /// (this command succeeded and committed the element, a later command in the transition failed)
-    /// finds the earlier attempt's element and overwrites it instead of duplicating it. Stale elements
-    /// from previous visits never reach this point - CleanupGeneratedFromTask removes them when the
-    /// task is entered.
-    /// </summary>
-    private static void UpsertTaskGeneratedBinaryDataElement(
-        IInstanceDataMutator dataMutator,
-        string dataTypeId,
-        string contentType,
-        string fileName,
-        ReadOnlyMemory<byte> bytes,
-        string taskId
-    )
-    {
-        DataElement? existingDataElement = dataMutator.Instance.Data.SingleOrDefault(de =>
-            de.DataType == dataTypeId
-            && de.References?.Exists(reference =>
-                reference.Relation == RelationType.GeneratedFrom
-                && reference.ValueType == ReferenceType.Task
-                && reference.Value == taskId
-            )
-                is true
-        );
-
-        if (existingDataElement is not null)
-        {
-            dataMutator.UpdateBinaryDataElement(existingDataElement, contentType, bytes);
-            return;
-        }
-
-        dataMutator.AddBinaryDataElement(dataTypeId, contentType, fileName, bytes, generatedFromTask: taskId);
-    }
 }
