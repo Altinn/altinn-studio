@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Represents an organisation.
+/// Represents an organization.
 /// </summary>
 /// <remarks>
 /// Field-for-field identical to the old, deprecated <c>Altinn.Platform.Register.Models.Organization</c> —
@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Models;
 public record Organization
 {
     /// <summary>
-    /// Gets or sets the organisation number.
+    /// Gets or sets the organization number.
     /// </summary>
     [JsonPropertyName("orgNumber")]
     public required string OrgNumber { get; set; }

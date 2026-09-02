@@ -193,13 +193,15 @@ designet
 # The OrganisationOrPersonIdentifier nested record `Organisation`, the
 # SystemUser/MaskinportenTokenRequest `Organisation` properties and their
 # pattern-match locals, the platform Register/Storage members
-# PartyType.Organisation / PartyTypesAllowed.Organisation, the
-# organisation.* telemetry attribute keys, and Designer's Organisation
-# namespace segment (which cannot become Organization: it would shadow the
-# Gitea Organization model type). Prose in these files stays enforced
-# through the exact-identifier scope.
+# PartyType.Organisation / PartyTypesAllowed.Organisation (and the App SDK's
+# own vendored `Altinn.App.Core.Models.PartyType.Organisation`, kept
+# identical to the discontinued Altinn.Platform.Register.Enums.PartyType it
+# replaces), the organisation.* telemetry attribute keys, and Designer's
+# Organisation namespace segment (which cannot become Organization: it would
+# shadow the Gitea Organization model type). Prose in these files stays
+# enforced through the exact-identifier scope.
 @identifiers Organisation organisation
-@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts src/App/frontend/src/features/applicationMetadata/types.ts src/App/frontend/src/features/instantiate/containers/NoValidPartiesError.tsx src/App/frontend/src/features/instantiate/containers/PartySelection.tsx
+@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Models/PartyType.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts src/App/frontend/src/features/applicationMetadata/types.ts src/App/frontend/src/features/instantiate/containers/NoValidPartiesError.tsx src/App/frontend/src/features/instantiate/containers/PartySelection.tsx
 Organisation
 organisation
 

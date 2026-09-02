@@ -31,7 +31,7 @@ public record Party
     public required Guid PartyUuid { get; set; }
 
     /// <summary>
-    /// Gets or sets the external URN reference of the party (e.g. a person identifier, organisation
+    /// Gets or sets the external URN reference of the party (e.g. a person identifier, organization
     /// identifier, or system user UUID URN), as the raw URN string.
     /// </summary>
     [JsonPropertyName("externalUrn")]
@@ -44,7 +44,7 @@ public record Party
     public PartyType PartyTypeName { get; set; }
 
     /// <summary>
-    /// Gets or sets the organisation number, if the party is an organisation.
+    /// Gets or sets the organization number, if the party is an organization.
     /// </summary>
     [JsonPropertyName("orgNumber")]
     public string? OrgNumber { get; set; }
@@ -56,7 +56,7 @@ public record Party
     public string? SSN { get; set; }
 
     /// <summary>
-    /// Gets or sets the unit type, if the party is an organisation.
+    /// Gets or sets the unit type, if the party is an organization.
     /// </summary>
     [JsonPropertyName("unitType")]
     public string? UnitType { get; set; }
@@ -86,7 +86,7 @@ public record Party
     public Person? Person { get; set; }
 
     /// <summary>
-    /// Gets or sets the <see cref="Models.Organization"/>, if the party is an organisation.
+    /// Gets or sets the <see cref="Models.Organization"/>, if the party is an organization.
     /// </summary>
     [JsonPropertyName("organization")]
     public Organization? Organization { get; set; }

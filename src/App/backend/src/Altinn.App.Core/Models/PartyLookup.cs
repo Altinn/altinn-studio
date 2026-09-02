@@ -21,7 +21,7 @@ public record PartyLookup
     public string? Ssn { get; set; }
 
     /// <summary>
-    /// Gets or sets the organisation number of the party to look for.
+    /// Gets or sets the organization number of the party to look for.
     /// </summary>
     [JsonPropertyName("orgNo")]
     public string? OrgNo { get; set; }

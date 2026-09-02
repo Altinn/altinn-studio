@@ -15,7 +15,7 @@ public enum PartyType
     Person = 1,
 
     /// <summary>
-    /// The party is an organisation.
+    /// The party is an organization.
     /// </summary>
     Organisation = 2,
 
