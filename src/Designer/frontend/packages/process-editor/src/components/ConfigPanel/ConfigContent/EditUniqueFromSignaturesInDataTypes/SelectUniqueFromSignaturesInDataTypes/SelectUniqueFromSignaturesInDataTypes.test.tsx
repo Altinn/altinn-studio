@@ -93,7 +93,7 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
 
     renderSelectDataTypes(existingDataTypesProps);
 
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
     });
     await user.click(suggestionInput);

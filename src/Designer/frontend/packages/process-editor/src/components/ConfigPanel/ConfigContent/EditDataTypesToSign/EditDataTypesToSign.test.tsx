@@ -47,7 +47,7 @@ describe('EditDataTypesToSign', () => {
   it('should display a suggestion input with an error message when task has no data type', () => {
     renderEditDataType();
 
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
     expect(suggestionInput).toBeInvalid();
@@ -65,7 +65,7 @@ describe('EditDataTypesToSign', () => {
 
     renderEditDataType();
 
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
 
