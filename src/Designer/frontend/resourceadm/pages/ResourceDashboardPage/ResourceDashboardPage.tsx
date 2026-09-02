@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PadlockLockedIcon, PlusCircleIcon, TasklistIcon } from '@studio/icons';
@@ -17,6 +17,7 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 
 /**
  * @component
@@ -27,6 +28,9 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
+  const isEnableAltinn2RolesPolicyEditor = useFeatureFlag(
+    FeatureFlag.EnableAltinn2RolesPolicyEditor,
+  );
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
@@ -125,23 +129,21 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </StudioHeading>
         <div className={classes.topRightWrapper}>
-          <StudioButton
-            variant='tertiary'
-            onClick={() => navigate(`${getResourceDashboardURL(org, app)}/altinn2resourcepolicies`)}
-            data-size='md'
-            icon={<PadlockLockedIcon />}
-          >
-            <strong>{t('resourceadm.altinn2policy_dashboard_link')}</strong>
-          </StudioButton>
-          <div className={classes.verticalDivider} data-color='neutral' />
-          <StudioButton
-            variant='tertiary'
-            onClick={() => navigate(`${getResourceDashboardURL(org, app)}/accesslists`)}
-            data-size='md'
-            icon={<TasklistIcon />}
-          >
-            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-          </StudioButton>
+          {isEnableAltinn2RolesPolicyEditor && (
+            <>
+              <Link to={`${getResourceDashboardURL(org, app)}/altinn2resourcepolicies`}>
+                <StudioButton variant='tertiary' data-size='md' icon={<PadlockLockedIcon />}>
+                  <strong>{t('resourceadm.altinn2policy_dashboard_link')}</strong>
+                </StudioButton>
+              </Link>
+              <div className={classes.verticalDivider} data-color='neutral' />
+            </>
+          )}
+          <Link to={`${getResourceDashboardURL(org, app)}/accesslists`}>
+            <StudioButton variant='tertiary' data-size='md' icon={<TasklistIcon />}>
+              <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+            </StudioButton>
+          </Link>
           <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
