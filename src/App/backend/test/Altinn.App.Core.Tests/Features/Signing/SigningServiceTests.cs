@@ -764,7 +764,7 @@ public sealed class SigningServiceTests : IDisposable
     public async Task RevokeSigneeRightsOnTaskEnd_Revokes_Delegation_When_ProcessHasMovedPastTheTask()
     {
         // Arrange
-        // Simulates the state of `instance` when SigningProcessTask.End runs as the last task in the process:
+        // Simulates the state of `instance` when SigningServiceTask.End runs as the last task in the process:
         // by the time the end-task event is handled, instance.Process.CurrentTask has already been
         // cleared (process moved to the end event), so the task ID can only be read from TaskId.
         var signatureConfiguration = new AltinnSignatureConfiguration

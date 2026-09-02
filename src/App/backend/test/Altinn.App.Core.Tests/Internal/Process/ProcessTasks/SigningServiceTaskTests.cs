@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
@@ -6,33 +8,42 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
 
-public class SigningProcessTaskTests
+public class SigningServiceTaskTests
 {
+    private static readonly Guid _mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
+    private static readonly DateTimeOffset _deadline = DateTimeOffset.Parse("2026-09-16T10:15:30+02:00");
+
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
     private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
-    private readonly SigningProcessTask _signingProcessTask;
+    private readonly SigningServiceTask _signingProcessTask;
 
-    public SigningProcessTaskTests()
+    public SigningServiceTaskTests()
     {
-        _signingProcessTask = new SigningProcessTask(
+        _signingProcessTask = new SigningServiceTask(
             _signingServiceMock.Object,
             _processReaderMock.Object,
             _appMetadataMock.Object,
             _hostEnvironmentMock.Object,
             _pdfServiceMock.Object,
-            _signeeContextsManagerMock.Object
+            _signeeContextsManagerMock.Object,
+            Mock.Of<ISignDocumentManager>(MockBehavior.Strict),
+            Mock.Of<ISigningReceiptService>(MockBehavior.Strict),
+            NullLogger<SigningServiceTask>.Instance
         );
 
         _appMetadataMock
@@ -59,6 +70,7 @@ public class SigningProcessTaskTests
                             Id = "SigningStateDataType",
                             TaskId = "Task_1",
                             AllowedContributors = ["app:owned"],
+                            ActionRequiredToRead = "read",
                         },
                     ],
                 }
@@ -320,6 +332,165 @@ public class SigningProcessTaskTests
                 ),
             Times.Never
         );
+    }
+
+    [Fact]
+    public void Define_OpensTheSigningRoundAndConcludesOnItsReplies()
+    {
+        ServiceTaskPipeline pipeline = _signingProcessTask.ResolvePipeline();
+
+        Assert.Equal(2, pipeline.Items.Count);
+        var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
+        Assert.Equal(TimeSpan.FromDays(14), opening.Declaration.Timeout);
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[1]);
+        Assert.Equal(0, exchange.OpeningIndex);
+    }
+
+    [Fact]
+    public void ProcessTaskResolver_PrefersTheServiceTaskForTheSigningType()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<IPipelineServiceTask>(_signingProcessTask);
+        services.AddSingleton<IProcessTask>(new LegacySigningTask());
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        var resolver = new ProcessTaskResolver(serviceProvider.GetRequiredService<AppImplementationFactory>());
+
+        Assert.Same(_signingProcessTask, resolver.GetProcessTaskInstance("signing"));
+    }
+
+    [Fact]
+    public async Task OpenSigningRound_AddsTheSigningStateElementWithTheMailbox()
+    {
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        ReadOnlyMemory<byte> written = SetupSigningStateWrite(dataMutator);
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() });
+
+        ServiceTaskOpeningStageResult result = await OpenSigningRound(dataMutator.Object);
+
+        Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
+        dataMutator.VerifyAll();
+        dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
+        SigningRoundState? state = JsonSerializer.Deserialize<SigningRoundState>(_writtenSigningState.Span);
+        Assert.Equal(new SigningRoundState("Task_1", _mailboxId, _deadline), state);
+    }
+
+    [Fact]
+    public async Task OpenSigningRound_ReplacesAnExistingSigningStateElement()
+    {
+        DataElement existing = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "SigningStateDataType",
+            ContentType = "application/json",
+        };
+        Instance instance = CreateInstance(existing);
+        var dataMutator = CreateDataMutator(instance);
+        SetupSigningStateWrite(dataMutator);
+        dataMutator.Setup(x => x.RemoveDataElement(It.Is<DataElementIdentifier>(id => id.Id == existing.Id)));
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() });
+
+        ServiceTaskOpeningStageResult result = await OpenSigningRound(dataMutator.Object);
+
+        Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
+        dataMutator.VerifyAll();
+    }
+
+    [Fact]
+    public async Task OpenSigningRound_WithoutSigningStateDataType_FailsPermanentlyNamingTheElement()
+    {
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension("Task_1"))
+            .Returns(
+                new AltinnTaskExtension
+                {
+                    SignatureConfiguration = new AltinnSignatureConfiguration
+                    {
+                        SignatureDataType = "SignatureDataType",
+                    },
+                }
+            );
+
+        ServiceTaskOpeningStageResult result = await OpenSigningRound(dataMutator.Object);
+
+        var failed = Assert.IsType<FailedServiceTaskOpeningStageResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains(nameof(AltinnSignatureConfiguration.SigningStateDataType), failed.ErrorMessage);
+        dataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                ),
+            Times.Never
+        );
+    }
+
+    private ReadOnlyMemory<byte> _writtenSigningState;
+
+    private ReadOnlyMemory<byte> SetupSigningStateWrite(Mock<IInstanceDataMutator> dataMutator)
+    {
+        dataMutator.Setup(x =>
+            x.OverrideAuthenticationMethod(
+                It.Is<DataType>(d => d.Id == "SigningStateDataType"),
+                It.IsAny<StorageAuthenticationMethod>()
+            )
+        );
+        dataMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    "SigningStateDataType",
+                    "application/json",
+                    null,
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    "Task_1",
+                    null
+                )
+            )
+            .Callback(
+                (string _, string _, string? _, ReadOnlyMemory<byte> bytes, string? _, List<KeyValueEntry>? _) =>
+                    _writtenSigningState = bytes
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Created,
+                    new DataType { Id = "SigningStateDataType" },
+                    "application/json",
+                    null,
+                    null,
+                    ReadOnlyMemory<byte>.Empty,
+                    "Task_1"
+                )
+            );
+        return _writtenSigningState;
+    }
+
+    private Task<ServiceTaskOpeningStageResult> OpenSigningRound(IInstanceDataMutator dataMutator)
+    {
+        var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(_signingProcessTask.ResolvePipeline().Items[0]);
+        var context = new ServiceTaskContext
+        {
+            InstanceDataMutator = dataMutator,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
+        return opening.Work(context, new ServiceTaskMailbox { Id = _mailboxId, Deadline = _deadline });
+    }
+
+    private sealed class LegacySigningTask : IProcessTask
+    {
+        public string Type => "signing";
     }
 
     private static Mock<IInstanceDataMutator> CreateDataMutator(Instance instance)

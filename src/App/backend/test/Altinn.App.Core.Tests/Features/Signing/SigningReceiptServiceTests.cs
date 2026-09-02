@@ -1,21 +1,17 @@
-using System.Net;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Correspondence;
-using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -28,7 +24,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
     SigningReceiptService SetupService(
         Mock<ICorrespondenceClient>? correspondenceClientMockOverride = null,
         Mock<IHostEnvironment>? hostEnvironmentMockOverride = null,
-        Mock<IDataClient>? dataClientMockOverride = null,
         Mock<IAltinnCdnClient>? altinnCdnClientMockOverride = null,
         Mock<IAppMetadata>? appMetadataMockOverride = null,
         ITranslationService? translationServiceOverride = null
@@ -36,13 +31,11 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
     {
         Mock<ICorrespondenceClient> correspondenceClientMock = correspondenceClientMockOverride ?? new();
         Mock<IHostEnvironment> hostEnvironmentMock = hostEnvironmentMockOverride ?? new();
-        Mock<IDataClient>? dataClientMock = dataClientMockOverride ?? new();
         Mock<IAppMetadata> appMetadataMock = appMetadataMockOverride ?? new();
         Mock<IAltinnCdnClient> altinnCdnClientMock = altinnCdnClientMockOverride ?? new();
         Mock<ITranslationService> translationServiceMock = new();
         return new SigningReceiptService(
             correspondenceClientMock.Object,
-            dataClientMock.Object,
             hostEnvironmentMock.Object,
             altinnCdnClientMock.Object,
             appMetadataMock.Object,
@@ -121,31 +114,17 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         Instance instance = new() { Id = "org/app", Data = [signedElement, unsignedElement] };
         InstanceIdentifier instanceIdentifier = new(123, Guid.Parse("ab0cdeb5-dc5e-4faa-966b-d18bb932ca07"));
 
-        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
-        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
-        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
-
-        using var dataStream = new MemoryStream([1, 2, 3]);
-        var dataClientMock = new Mock<IDataClient>();
-        dataClientMock
-            .Setup(x =>
-                x.GetBinaryDataStream(
-                    It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
-                    It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
-                    It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(dataStream);
+        Mock<IInstanceDataAccessor> instanceDataAccessorMock = new();
+        instanceDataAccessorMock.Setup(x => x.Instance).Returns(instance);
+        instanceDataAccessorMock
+            .Setup(x => x.GetBinaryData(It.Is<DataElementIdentifier>(id => id.Id == signedElement.Id)))
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         SigningReceiptService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
             altinnCdnClientMockOverride: altinnCdnClientMock,
             appMetadataMockOverride: appMetadataMock,
-            hostEnvironmentMockOverride: hostEnvironmentMock,
-            dataClientMockOverride: dataClientMock
+            hostEnvironmentMockOverride: hostEnvironmentMock
         );
 
         Core.Internal.Sign.Signee signee = new()
@@ -168,10 +147,11 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         // Act
         await service.SendSignatureReceipt(
-            instanceIdentifier,
             signee,
             dataElementSignatures,
-            context,
+            instanceDataAccessorMock.Object,
+            null,
+            instanceIdentifier.ToString(),
             correspondenceResources,
             CancellationToken.None
         );
@@ -291,12 +271,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         var service = SetupService(translationServiceOverride: translationService);
 
-        Instance instance = new() { AppId = "org/app" };
-
-        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
-        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
-        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
-
         // Setup ApplicationMetadata with a fallback title.
         ApplicationMetadata appMetadata = new("org/app")
         {
@@ -315,7 +289,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         };
 
         // Act
-        CorrespondenceContent result = await service.GetContent(context, appMetadata, senderDetails);
+        CorrespondenceContent result = await service.GetContent(null, appMetadata, senderDetails);
 
         // Assert
         Assert.Equal("Custom receipt title", result.Title);
@@ -343,12 +317,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         var service = SetupService(translationServiceOverride: translationService);
 
-        Instance instance = new() { Id = "org/app" };
-
-        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
-        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
-        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
-
         ApplicationMetadata appMetadata = new("org/app")
         {
             Title = new Dictionary<string, string> { { LanguageConst.Nb, "Fallback App Name" } },
@@ -366,7 +334,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         };
 
         // Act
-        CorrespondenceContent result = await service.GetContent(context, appMetadata, senderDetails);
+        CorrespondenceContent result = await service.GetContent(null, appMetadata, senderDetails);
 
         // Assert
         Assert.Contains("Signeringen er bekreftet", result.Title);
@@ -379,8 +347,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
     public async Task GetCorrespondenceAttachments_ReturnsCorrectAttachments()
     {
         // Arrange
-        InstanceIdentifier instanceIdentifier = new(123456, Guid.NewGuid());
-
         // Create two data elements; only one will have a corresponding signature.
         DataElement signedElement = new()
         {
@@ -400,36 +366,20 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         Instance instance = new() { Data = [signedElement, unsignedElement] };
 
-        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
-        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
-        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
+        Mock<IInstanceDataAccessor> instanceDataAccessorMock = new(MockBehavior.Strict);
+        instanceDataAccessorMock.Setup(x => x.Instance).Returns(instance);
+        instanceDataAccessorMock
+            .Setup(x => x.GetBinaryData(It.Is<DataElementIdentifier>(id => id.Id == signedElement.Id)))
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
         IEnumerable<DataElementSignature> dataElementSignatures = [new DataElementSignature(signedElement.Id)];
 
         ApplicationMetadata appMetadata = new("org/app");
 
-        using var dataStream = new MemoryStream([1, 2, 3]);
-        var dataClientMock = new Mock<IDataClient>();
-        dataClientMock
-            .Setup(x =>
-                x.GetBinaryDataStream(
-                    It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
-                    It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
-                    It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(dataStream);
-
         // Act
         IEnumerable<CorrespondenceAttachment> attachments = await SigningReceiptService.GetCorrespondenceAttachments(
-            instanceIdentifier,
             dataElementSignatures,
             appMetadata,
-            context,
-            dataClientMock.Object,
-            CancellationToken.None
+            instanceDataAccessorMock.Object
         );
 
         // Assert
@@ -440,168 +390,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         using var ms = new MemoryStream();
         await attachment.Data.CopyToAsync(ms);
         Assert.Equal(new byte[] { 1, 2, 3 }, ms.ToArray());
-    }
-
-    [Fact]
-    public async Task GetCorrespondenceAttachments_DisposesAcquiredStreams_WhenALaterDownloadFails()
-    {
-        // Arrange
-        InstanceIdentifier instanceIdentifier = new(123456, Guid.NewGuid());
-
-        DataElement firstElement = new()
-        {
-            Id = "11111111-1111-1111-1111-111111111111",
-            Filename = "first.pdf",
-            ContentType = "application/pdf",
-            DataType = "someType",
-        };
-
-        DataElement secondElement = new()
-        {
-            Id = "22222222-2222-2222-2222-222222222222",
-            Filename = "second.pdf",
-            ContentType = "application/pdf",
-            DataType = "someType",
-        };
-
-        Instance instance = new() { Data = [firstElement, secondElement] };
-
-        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
-        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
-        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
-        IEnumerable<DataElementSignature> dataElementSignatures =
-        [
-            new DataElementSignature(firstElement.Id),
-            new DataElementSignature(secondElement.Id),
-        ];
-
-        ApplicationMetadata appMetadata = new("org/app");
-
-        // The first element's stream downloads fine; the second download fails. The stream already
-        // acquired holds an open HTTP response, so the failure path must dispose it.
-        var firstStream = new MemoryStream([1, 2, 3]);
-        var dataClientMock = new Mock<IDataClient>();
-        dataClientMock
-            .Setup(x =>
-                x.GetBinaryDataStream(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.Is<Guid>(id => id == Guid.Parse(firstElement.Id)),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(firstStream);
-        dataClientMock
-            .Setup(x =>
-                x.GetBinaryDataStream(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.Is<Guid>(id => id == Guid.Parse(secondElement.Id)),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.InternalServerError, "storage exploded"));
-
-        // Act
-        await Assert.ThrowsAsync<PlatformHttpException>(async () =>
-            await SigningReceiptService.GetCorrespondenceAttachments(
-                instanceIdentifier,
-                dataElementSignatures,
-                appMetadata,
-                context,
-                dataClientMock.Object,
-                CancellationToken.None
-            )
-        );
-
-        // Assert — a disposed MemoryStream reports CanRead false.
-        Assert.False(firstStream.CanRead, "the stream acquired before the failure was not disposed");
-    }
-
-    [Fact]
-    public async Task GetCorrespondenceAttachments_DisposesAllStreams_WhenAttachmentConstructionFails()
-    {
-        // Arrange
-        InstanceIdentifier instanceIdentifier = new(123456, Guid.NewGuid());
-
-        DataElement firstElement = new()
-        {
-            Id = "11111111-1111-1111-1111-111111111111",
-            Filename = "first.pdf",
-            ContentType = "application/pdf",
-            DataType = "someType",
-        };
-
-        // No filename and an empty data type produce an empty attachment filename, which the
-        // builder rejects in Build() — after this element's stream has already been acquired.
-        DataElement elementWithoutFilename = new()
-        {
-            Id = "22222222-2222-2222-2222-222222222222",
-            Filename = null,
-            ContentType = null,
-            DataType = "",
-        };
-
-        Instance instance = new() { Data = [firstElement, elementWithoutFilename] };
-
-        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
-        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
-        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
-        IEnumerable<DataElementSignature> dataElementSignatures =
-        [
-            new DataElementSignature(firstElement.Id),
-            new DataElementSignature(elementWithoutFilename.Id),
-        ];
-
-        ApplicationMetadata appMetadata = new("org/app") { DataTypes = [] };
-
-        var firstStream = new MemoryStream([1, 2, 3]);
-        var secondStream = new MemoryStream([4, 5, 6]);
-        var dataClientMock = new Mock<IDataClient>();
-        dataClientMock
-            .Setup(x =>
-                x.GetBinaryDataStream(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.Is<Guid>(id => id == Guid.Parse(firstElement.Id)),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(firstStream);
-        dataClientMock
-            .Setup(x =>
-                x.GetBinaryDataStream(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.Is<Guid>(id => id == Guid.Parse(elementWithoutFilename.Id)),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(secondStream);
-
-        // Act
-        await Assert.ThrowsAsync<CorrespondenceArgumentException>(async () =>
-            await SigningReceiptService.GetCorrespondenceAttachments(
-                instanceIdentifier,
-                dataElementSignatures,
-                appMetadata,
-                context,
-                dataClientMock.Object,
-                CancellationToken.None
-            )
-        );
-
-        // Assert — both the attachment already built and the stream whose attachment failed to build.
-        Assert.False(firstStream.CanRead, "the first stream (already wrapped in an attachment) was not disposed");
-        Assert.False(secondStream.CanRead, "the stream acquired for the failing attachment was not disposed");
     }
 
     [Fact]

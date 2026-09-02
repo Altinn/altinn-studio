@@ -380,10 +380,10 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IProcessTask, DataProcessTask>();
         services.AddTransient<IProcessTask, ConfirmationProcessTask>();
         services.AddTransient<IProcessTask, FeedbackProcessTask>();
-        services.AddTransient<IProcessTask, SigningProcessTask>();
         services.AddTransient<IProcessTask, NullTypeProcessTask>();
 
         // Service tasks
+        services.AddTransient<IPipelineServiceTask, SigningServiceTask>();
         services.AddTransient<IServiceTask, PdfServiceTask>();
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();

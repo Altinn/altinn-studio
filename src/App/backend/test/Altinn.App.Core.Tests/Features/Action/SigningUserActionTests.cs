@@ -74,10 +74,11 @@ public class SigningUserActionTests
             signingReceiptService
                 .Setup(x =>
                     x.SendSignatureReceipt(
-                        It.IsAny<InstanceIdentifier>(),
                         It.IsAny<Signee>(),
                         It.IsAny<IEnumerable<DataElementSignature>>(),
-                        It.IsAny<UserActionContext>(),
+                        It.IsAny<IInstanceDataAccessor>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<string>(),
                         It.IsAny<List<AltinnEnvironmentConfig>>(),
                         CancellationToken.None
                     )

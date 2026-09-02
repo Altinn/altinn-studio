@@ -1,24 +1,25 @@
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Sign;
-using Altinn.App.Core.Models;
-using Altinn.App.Core.Models.UserAction;
 
 namespace Altinn.App.Core.Features.Signing.Services;
 
 /// <summary>
-/// Interface for sending correspondence receipt for a signing user action.
+/// Interface for sending a correspondence receipt to a signee.
 /// </summary>
 internal interface ISigningReceiptService
 {
     /// <summary>
-    /// Sends correspondence to a signee after signing action has been completed.
+    /// Sends correspondence to a signee after their signature has been registered. The signed data elements are read
+    /// through <paramref name="instanceDataAccessor"/> and attached, and <paramref name="sendersReference"/> becomes
+    /// the correspondence's senders reference — key it on the request that produced the signature.
     /// </summary>
     Task<SendCorrespondenceResponse?> SendSignatureReceipt(
-        InstanceIdentifier instanceIdentifier,
         Signee signee,
         IEnumerable<DataElementSignature> dataElementSignatures,
-        UserActionContext context,
+        IInstanceDataAccessor instanceDataAccessor,
+        string? language,
+        string sendersReference,
         List<AltinnEnvironmentConfig>? correspondenceResources,
         CancellationToken ct
     );

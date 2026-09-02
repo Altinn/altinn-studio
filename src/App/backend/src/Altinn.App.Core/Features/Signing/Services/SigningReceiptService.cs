@@ -7,13 +7,11 @@ using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -22,7 +20,6 @@ namespace Altinn.App.Core.Features.Signing.Services;
 
 internal sealed class SigningReceiptService(
     ICorrespondenceClient correspondenceClient,
-    IDataClient dataClient,
     IHostEnvironment hostEnvironment,
     IAltinnCdnClient altinnCdnClient,
     IAppMetadata appMetadata,
@@ -32,7 +29,6 @@ internal sealed class SigningReceiptService(
 ) : ISigningReceiptService
 {
     private readonly ICorrespondenceClient _correspondenceClient = correspondenceClient;
-    private readonly IDataClient _dataClient = dataClient;
     private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
     private readonly IAltinnCdnClient _altinnCdnClient = altinnCdnClient;
     private readonly IAppMetadata _appMetadata = appMetadata;
@@ -40,10 +36,11 @@ internal sealed class SigningReceiptService(
     private readonly Telemetry? _telemetry = telemetry;
 
     public async Task<SendCorrespondenceResponse?> SendSignatureReceipt(
-        InstanceIdentifier instanceIdentifier,
         Internal.Sign.Signee signee,
         IEnumerable<DataElementSignature> dataElementSignatures,
-        UserActionContext context,
+        IInstanceDataAccessor instanceDataAccessor,
+        string? language,
+        string sendersReference,
         List<AltinnEnvironmentConfig>? correspondenceResources,
         CancellationToken ct
     )
@@ -54,18 +51,14 @@ internal sealed class SigningReceiptService(
             signee.PersonNumber,
             applicationMetadata,
             correspondenceResources,
-            ct,
-            context.AltinnCdnClient
+            ct
         );
 
-        CorrespondenceContent content = await GetContent(context, applicationMetadata, senderDetails);
+        CorrespondenceContent content = await GetContent(language, applicationMetadata, senderDetails);
         IEnumerable<CorrespondenceAttachment> attachments = await GetCorrespondenceAttachments(
-            instanceIdentifier,
             dataElementSignatures,
             applicationMetadata,
-            context,
-            _dataClient,
-            ct
+            instanceDataAccessor
         );
 
         return await _correspondenceClient.Send(
@@ -73,7 +66,7 @@ internal sealed class SigningReceiptService(
                 CorrespondenceRequestBuilder
                     .Create()
                     .WithResourceId(resource)
-                    .WithSendersReference(instanceIdentifier.ToString())
+                    .WithSendersReference(sendersReference)
                     .WithRecipient(recipient)
                     .WithContent(content)
                     .WithAttachments(attachments)
@@ -93,8 +86,7 @@ internal sealed class SigningReceiptService(
         string? recipientNin,
         ApplicationMetadata appMetadata,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct,
-        IAltinnCdnClient? altinnCdnClient = null
+        CancellationToken ct
     )
     {
         using var activity = _telemetry?.StartGetCorrespondenceHeadersActivity();
@@ -115,9 +107,7 @@ internal sealed class SigningReceiptService(
             );
         }
 
-        altinnCdnClient ??= _altinnCdnClient;
-
-        AltinnCdnOrgDetails? senderDetails = await altinnCdnClient.GetOrgDetails(ct);
+        AltinnCdnOrgDetails? senderDetails = await _altinnCdnClient.GetOrgDetails(ct);
         string? senderOrgNumber = senderDetails?.Orgnr;
 
         if (senderDetails is null || string.IsNullOrEmpty(senderOrgNumber))
@@ -131,7 +121,7 @@ internal sealed class SigningReceiptService(
     }
 
     internal async Task<CorrespondenceContent> GetContent(
-        UserActionContext context,
+        string? requestedLanguage,
         ApplicationMetadata appMetadata,
         AltinnCdnOrgDetails senderDetails
     )
@@ -148,7 +138,7 @@ internal sealed class SigningReceiptService(
             ?? appMetadata.Title?.FirstOrDefault().Value
             ?? appMetadata.Id;
 
-        string language = context.Language ?? defaultLanguage;
+        string language = requestedLanguage ?? defaultLanguage;
 
         try
         {
@@ -183,66 +173,30 @@ internal sealed class SigningReceiptService(
         return content;
     }
 
+    /// <summary>
+    /// The signed elements' bytes come through the accessor, which serves them from its cache when the caller has
+    /// already read them and otherwise with the authentication the accessor is configured with.
+    /// </summary>
     internal static async Task<IEnumerable<CorrespondenceAttachment>> GetCorrespondenceAttachments(
-        InstanceIdentifier instanceIdentifier,
         IEnumerable<DataElementSignature> dataElementSignatures,
         ApplicationMetadata appMetadata,
-        UserActionContext context,
-        IDataClient dataClient,
-        CancellationToken cancellationToken
+        IInstanceDataAccessor instanceDataAccessor
     )
     {
-        List<CorrespondenceAttachment> attachments = [];
-        IEnumerable<DataElement> signedElements = context.Instance.Data.Where(IsSignedDataElement);
+        IEnumerable<DataElement> signedElements = instanceDataAccessor.Instance.Data.Where(IsSignedDataElement);
 
-        // Acquired but not yet owned by an attachment in the list; the catch below is responsible for it.
-        Stream? currentStream = null;
-        try
-        {
-            foreach (DataElement element in signedElements)
+        return await Task.WhenAll(
+            signedElements.Select(async element =>
             {
-                string filename = GetDataElementFilename(element, appMetadata);
-
-                currentStream = await dataClient.GetBinaryDataStream(
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    Guid.Parse(element.Id),
-                    authenticationMethod: null,
-                    timeout: TimeSpan.FromHours(1),
-                    cancellationToken
-                );
-
-                attachments.Add(
-                    CorrespondenceAttachmentBuilder
-                        .Create()
-                        .WithFilename(filename)
-                        .WithSendersReference(element.Id)
-                        .WithData(currentStream)
-                        .Build()
-                );
-
-                currentStream = null;
-            }
-        }
-        catch
-        {
-            // Each stream acquired so far holds an open, unbuffered HTTP response. Nothing downstream
-            // will receive them now, so this scope must release them before propagating: the one still
-            // in flight (acquired, but attachment construction failed) plus every attachment already built.
-            if (currentStream is not null)
-            {
-                await currentStream.DisposeAsync();
-            }
-
-            foreach (CorrespondenceAttachment attachment in attachments)
-            {
-                await attachment.Data.DisposeAsync();
-            }
-
-            throw;
-        }
-
-        return attachments;
+                ReadOnlyMemory<byte> data = await instanceDataAccessor.GetBinaryData(element);
+                return CorrespondenceAttachmentBuilder
+                    .Create()
+                    .WithFilename(GetDataElementFilename(element, appMetadata))
+                    .WithSendersReference(element.Id)
+                    .WithData(new MemoryStream(data.ToArray()))
+                    .Build();
+            })
+        );
 
         bool IsSignedDataElement(DataElement dataElement) =>
             dataElementSignatures.Any(x => x.DataElementId == dataElement.Id);

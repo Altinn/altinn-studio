@@ -1,8 +1,7 @@
-using System.Globalization;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Correspondence.Models;
-using Altinn.App.Core.Features.Signing.Exceptions;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -15,11 +14,9 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.UserAction;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Signee = Altinn.App.Core.Internal.Sign.Signee;
 
 namespace Altinn.App.Core.Features.Action;
 
@@ -97,20 +94,19 @@ internal class SigningUserAction : IUserAction
             ?? throw new ApplicationConfigException(
                 "Missing configuration for signing. Check that the task has a signature configuration and that the data types to sign are defined."
             );
-        List<string> dataTypeIds = signatureConfiguration.DataTypesToSign ?? [];
-        List<DataType>? dataTypesToSign =
-            appMetadata.DataTypes?.Where(d => dataTypeIds.Contains(d.Id, StringComparer.OrdinalIgnoreCase)).ToList()
-            ?? throw new ApplicationConfigException(
-                "Faulty configuration for signing task. Unable to data types to sign."
-            );
+        List<DataType> dataTypesToSign = SignatureRequestHelper.GetDataTypesToSign(appMetadata, signatureConfiguration);
 
         string signatureDataType =
-            GetDataTypeForSignature(currentTask, context.Instance.Data, dataTypesToSign)
+            SignatureRequestHelper.GetDataTypeForSignature(
+                signatureConfiguration,
+                context.Instance.Data,
+                dataTypesToSign
+            )
             ?? throw new ApplicationConfigException(
                 "Faulty configuration for signing task. Unable to get data type for signature."
             );
 
-        List<DataElementSignature>? dataElementSignatures = GetDataElementSignatures(
+        List<DataElementSignature> dataElementSignatures = SignatureRequestHelper.GetDataElementSignatures(
             context.Instance.Data,
             dataTypesToSign
         );
@@ -118,7 +114,7 @@ internal class SigningUserAction : IUserAction
             new InstanceIdentifier(context.Instance),
             currentTask.Id,
             signatureDataType,
-            await GetSignee(context),
+            await SignatureRequestHelper.GetSignee(context.Authentication, context.OnBehalfOf),
             dataElementSignatures
         );
 
@@ -169,10 +165,11 @@ internal class SigningUserAction : IUserAction
 
         ServiceResult<SendCorrespondenceResponse?, Exception> res = await CatchError(() =>
             _signingReceiptService.SendSignatureReceipt(
-                signatureContext.InstanceIdentifier,
                 signatureContext.Signee,
                 dataElementSignatures,
-                context,
+                context.DataMutator,
+                context.Language,
+                signatureContext.InstanceIdentifier.ToString(),
                 signatureConfiguration.CorrespondenceResources,
                 ct
             )
@@ -245,70 +242,6 @@ internal class SigningUserAction : IUserAction
         }
 
         return isAuthorized;
-    }
-
-    private static string? GetDataTypeForSignature(
-        ProcessTask currentTask,
-        List<DataElement> dataElements,
-        List<DataType>? dataTypesToSign
-    )
-    {
-        var signatureDataType = currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType;
-        if (dataTypesToSign is null or [] || signatureDataType is null)
-        {
-            return null;
-        }
-
-        var dataElementMatchExists = dataElements.Any(de =>
-            dataTypesToSign.Any(dt => string.Equals(dt.Id, de.DataType, StringComparison.OrdinalIgnoreCase))
-        );
-        var allDataTypesAreOptional = dataTypesToSign.All(d => d.MinCount == 0);
-        return dataElementMatchExists || allDataTypesAreOptional ? signatureDataType : null;
-    }
-
-    private static List<DataElementSignature> GetDataElementSignatures(
-        List<DataElement> dataElements,
-        List<DataType> dataTypesToSign
-    )
-    {
-        var connectedDataElements = new List<DataElementSignature>();
-        if (dataTypesToSign is null or [])
-            return connectedDataElements;
-        foreach (var dataType in dataTypesToSign)
-        {
-            connectedDataElements.AddRange(
-                dataElements
-                    .Where(d => d.DataType.Equals(dataType.Id, StringComparison.OrdinalIgnoreCase))
-                    .Select(d => new DataElementSignature(d.Id))
-            );
-        }
-
-        return connectedDataElements;
-    }
-
-    private static async Task<Signee> GetSignee(UserActionContext context)
-    {
-        switch (context.Authentication)
-        {
-            case Authenticated.User user:
-            {
-                UserProfile userProfile = await user.LookupProfile();
-                return new Signee
-                {
-                    UserId = userProfile.UserId.ToString(CultureInfo.InvariantCulture),
-                    PersonNumber = userProfile.Party.SSN,
-                    OrganizationNumber = context.OnBehalfOf,
-                };
-            }
-            case Authenticated.SystemUser systemUser:
-                return new Signee
-                {
-                    SystemUserId = systemUser.SystemUserId[0],
-                    OrganizationNumber = context.OnBehalfOf,
-                };
-            default:
-                throw new SigningException("Could not get signee");
-        }
     }
 
     /// <summary>

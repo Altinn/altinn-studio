@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Signing.Exceptions;
@@ -149,11 +148,7 @@ internal sealed class SignDocumentManager(
         using var activity = telemetry?.StartDownloadSignDocumentActivity();
         try
         {
-            ReadOnlyMemory<byte> data = await instanceDataAccessor.GetBinaryData(signatureDataElement);
-            string signDocumentSerialized = Encoding.UTF8.GetString(data.ToArray());
-
-            return JsonSerializer.Deserialize<SignDocument>(signDocumentSerialized, _jsonSerializerOptions)
-                ?? throw new JsonException("Could not deserialize signature document.");
+            return Deserialize(await instanceDataAccessor.GetBinaryData(signatureDataElement));
         }
         catch (Exception ex)
         {
@@ -165,6 +160,10 @@ internal sealed class SignDocumentManager(
             throw;
         }
     }
+
+    internal static SignDocument Deserialize(ReadOnlyMemory<byte> data) =>
+        JsonSerializer.Deserialize<SignDocument>(data.Span, _jsonSerializerOptions)
+        ?? throw new JsonException("Could not deserialize signature document.");
 
     private static void SortSigneeContexts(List<SigneeContext> signeeContexts)
     {

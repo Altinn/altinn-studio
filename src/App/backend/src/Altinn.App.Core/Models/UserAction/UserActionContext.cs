@@ -1,6 +1,5 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.UserAction;
@@ -124,6 +123,4 @@ public class UserActionContext
     /// The cancellation token associated with the action
     /// </summary>
     public CancellationToken CancellationToken { get; }
-
-    internal IAltinnCdnClient? AltinnCdnClient { get; set; }
 }
