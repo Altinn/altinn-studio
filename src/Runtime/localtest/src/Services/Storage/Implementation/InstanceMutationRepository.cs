@@ -994,11 +994,12 @@ public sealed class InstanceMutationRepository(
 
         if (hadInstanceEventFolder)
         {
-            CopyDirectory(instanceEventFolder, snapshotInstanceEventFolder);
+            CopyInstanceEvents(instanceEventFolder, snapshotInstanceEventFolder, instanceGuid);
         }
 
         return new MutationSnapshot(
             snapshotRoot,
+            instanceGuid,
             instancePath,
             dataFolder,
             instanceEventFolder,
@@ -1013,6 +1014,7 @@ public sealed class InstanceMutationRepository(
 
     private static void RestoreSnapshot(MutationSnapshot snapshot) =>
         RestoreSnapshot(
+            snapshot.InstanceGuid,
             snapshot.InstancePath,
             snapshot.DataFolder,
             snapshot.SnapshotInstancePath,
@@ -1033,6 +1035,7 @@ public sealed class InstanceMutationRepository(
     }
 
     private static void RestoreSnapshot(
+        Guid instanceGuid,
         string instancePath,
         string dataFolder,
         string snapshotInstancePath,
@@ -1066,14 +1069,43 @@ public sealed class InstanceMutationRepository(
 
         if (Directory.Exists(instanceEventFolder))
         {
-            Directory.Delete(instanceEventFolder, true);
+            foreach (
+                string file in Directory.GetFiles(
+                    instanceEventFolder,
+                    InstanceEventSearchPattern(instanceGuid)
+                )
+            )
+            {
+                File.Delete(file);
+            }
         }
 
         if (hadInstanceEventFolder)
         {
-            CopyDirectory(snapshotInstanceEventFolder, instanceEventFolder);
+            CopyInstanceEvents(snapshotInstanceEventFolder, instanceEventFolder, instanceGuid);
         }
     }
+
+    /// <summary>
+    /// Copies one instance's events, which is all a mutation may add to them. The events collection is one
+    /// flat folder shared by every instance, so the copy is scoped by file name rather than taking the
+    /// folder wholesale: another instance's event written while this one is being snapshotted would
+    /// otherwise make the copy fail on a file that appeared after the listing.
+    /// </summary>
+    private static void CopyInstanceEvents(string source, string destination, Guid instanceGuid)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (string file in Directory.GetFiles(source, InstanceEventSearchPattern(instanceGuid)))
+        {
+            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: true);
+        }
+    }
+
+    /// <summary>
+    /// Matches the <c>{instanceOwnerPartyId}_{instanceGuid}_{eventId}.json</c> names
+    /// <see cref="InstanceEventRepository"/> writes.
+    /// </summary>
+    private static string InstanceEventSearchPattern(Guid instanceGuid) => $"*_{instanceGuid}_*.json";
 
     private static void CopyDirectory(string source, string destination)
     {
@@ -1106,6 +1138,7 @@ public sealed class InstanceMutationRepository(
 
     private sealed record MutationSnapshot(
         string SnapshotRoot,
+        Guid InstanceGuid,
         string InstancePath,
         string DataFolder,
         string InstanceEventFolder,
