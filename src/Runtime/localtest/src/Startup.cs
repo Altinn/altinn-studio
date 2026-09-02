@@ -240,8 +240,10 @@ namespace LocalTest
                 app.UseHsts();
             }
 
-            app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
+
+            // After the proxy: /health on a proxied component host must reach that component, not us.
+            app.UseHealthChecks("/health");
             app.UseWebSockets();
 
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
