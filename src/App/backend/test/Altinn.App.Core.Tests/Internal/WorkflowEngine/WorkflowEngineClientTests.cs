@@ -258,6 +258,400 @@ public class WorkflowEngineClientTests
         Assert.Equal(["process-next:abc:Task_1:2"], headerValues);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.OK)]
+    public async Task MintMailbox_PostsToMailboxEndpointAndReadsTheMailbox(HttpStatusCode statusCode)
+    {
+        HttpRequestMessage? capturedRequest = null;
+        string? capturedBody = null;
+        Guid mailboxId = Guid.NewGuid();
+        DateTimeOffset deadline = new(2026, 9, 9, 12, 0, 0, TimeSpan.Zero);
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                async (request, ct) =>
+                {
+                    capturedRequest = request;
+                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    HttpResponseMessage response = CreateJsonResponse(
+                        new MailboxResponse
+                        {
+                            Id = mailboxId,
+                            Namespace = "ttd/app",
+                            IdempotencyKey = "step-key",
+                            CollectionKey = "collection-key",
+                            Timeout = TimeSpan.FromDays(3),
+                            Deadline = deadline,
+                            Status = MailboxStatus.Open,
+                            NextIdx = 0,
+                            NextSeq = 0,
+                            CreatedAt = deadline - TimeSpan.FromDays(3),
+                        }
+                    );
+                    response.StatusCode = statusCode;
+                    return response;
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxMintResult result = await client.MintMailbox(
+            "ttd/app",
+            new MailboxCreateRequest
+            {
+                IdempotencyKey = "step-key",
+                Timeout = TimeSpan.FromDays(3),
+                CollectionKey = "collection-key",
+            }
+        );
+
+        MailboxMintResult.Minted minted = Assert.IsType<MailboxMintResult.Minted>(result);
+        Assert.Equal(mailboxId, minted.Mailbox.Id);
+        Assert.Equal(deadline, minted.Mailbox.Deadline);
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
+        Assert.Equal("http://workflow-engine/api/v1/ttd%2Fapp/mailboxes", capturedRequest.RequestUri!.ToString());
+        Assert.NotNull(capturedBody);
+        using JsonDocument body = JsonDocument.Parse(capturedBody!);
+        Assert.Equal("step-key", body.RootElement.GetProperty("idempotencyKey").GetString());
+        Assert.Equal("collection-key", body.RootElement.GetProperty("collectionKey").GetString());
+        Assert.Equal("3.00:00:00", body.RootElement.GetProperty("timeout").GetString());
+    }
+
+    [Fact]
+    public async Task MintMailbox_BadRequest_ReturnsRejectedCarryingTheEngineDetail()
+    {
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (_, _) =>
+                    Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.BadRequest,
+                            Content = new StringContent(
+                                """{"title":"Bad Request","status":400,"detail":"Timeout 30.00:00:00 exceeds the maximum mailbox timeout of 21.00:00:00."}""",
+                                Encoding.UTF8,
+                                "application/problem+json"
+                            ),
+                        }
+                    )
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxMintResult result = await client.MintMailbox(
+            "ttd/app",
+            new MailboxCreateRequest { IdempotencyKey = "step-key", Timeout = TimeSpan.FromDays(30) }
+        );
+
+        MailboxMintResult.Rejected rejected = Assert.IsType<MailboxMintResult.Rejected>(result);
+        Assert.Equal("Timeout 30.00:00:00 exceeds the maximum mailbox timeout of 21.00:00:00.", rejected.Detail);
+    }
+
+    [Fact]
+    public async Task MintMailbox_TooManyRequests_ReturnsAtCapacityCarryingTheEngineDetail()
+    {
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (_, _) =>
+                    Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.TooManyRequests,
+                            Content = new StringContent(
+                                """{"title":"Too Many Requests","status":429,"detail":"Collection 'inst-1' already holds the maximum of 100 open mailboxes."}""",
+                                Encoding.UTF8,
+                                "application/problem+json"
+                            ),
+                        }
+                    )
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxMintResult result = await client.MintMailbox(
+            "ttd/app",
+            new MailboxCreateRequest { IdempotencyKey = "step-key", Timeout = TimeSpan.FromDays(3) }
+        );
+
+        MailboxMintResult.AtCapacity atCapacity = Assert.IsType<MailboxMintResult.AtCapacity>(result);
+        Assert.Equal("Collection 'inst-1' already holds the maximum of 100 open mailboxes.", atCapacity.Detail);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task MintMailbox_OtherFailures_Throw(HttpStatusCode statusCode)
+    {
+        // 400 and 429 are the only statuses modeled as values; every other unsuccessful status throws to put
+        // the step back on its ladder.
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (_, _) =>
+                    Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = statusCode,
+                            Content = new StringContent("{}", Encoding.UTF8, "application/problem+json"),
+                        }
+                    )
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.MintMailbox(
+                "ttd/app",
+                new MailboxCreateRequest { IdempotencyKey = "step-key", Timeout = TimeSpan.FromDays(3) }
+            )
+        );
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.OK)]
+    public async Task DeliverToMailbox_PostsToTheDeliveriesEndpointAndReadsThePosition(HttpStatusCode statusCode)
+    {
+        HttpRequestMessage? capturedRequest = null;
+        string? capturedBody = null;
+        Guid mailboxId = Guid.NewGuid();
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                async (request, ct) =>
+                {
+                    capturedRequest = request;
+                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    HttpResponseMessage response = CreateJsonResponse(
+                        new MailboxDeliveryResponse
+                        {
+                            MailboxId = mailboxId,
+                            Idx = 4,
+                            IdempotencyKey = "fiks-message-42",
+                            AcceptedAt = new DateTimeOffset(2026, 8, 20, 9, 0, 0, TimeSpan.Zero),
+                        }
+                    );
+                    response.StatusCode = statusCode;
+                    return response;
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxDeliveryResult result = await client.DeliverToMailbox(
+            "ttd/app",
+            mailboxId,
+            new MailboxDeliveryRequest { IdempotencyKey = "fiks-message-42", Payload = "sealed-envelope" }
+        );
+
+        Assert.Equal(statusCode, result.StatusCode);
+        Assert.Equal(4, result.Body!.Idx);
+        Assert.Null(result.ErrorDetail);
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
+        Assert.Equal(
+            $"http://workflow-engine/api/v1/ttd%2Fapp/mailboxes/{mailboxId}/deliveries",
+            capturedRequest.RequestUri!.ToString()
+        );
+        Assert.NotNull(capturedBody);
+        using JsonDocument body = JsonDocument.Parse(capturedBody!);
+        Assert.Equal("fiks-message-42", body.RootElement.GetProperty("idempotencyKey").GetString());
+        Assert.Equal("sealed-envelope", body.RootElement.GetProperty("payload").GetString());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.RequestEntityTooLarge)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task DeliverToMailbox_UnsuccessfulStatuses_ComeBackAsValuesWithTheEngineDetail(
+        HttpStatusCode statusCode
+    )
+    {
+        // None of these throws: each is a decision the receiving channel makes about its own message.
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = new StringContent(
+                        """{"detail":"Mailbox 018f4e00 was closed at its deadline."}""",
+                        Encoding.UTF8,
+                        "application/problem+json"
+                    ),
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxDeliveryResult result = await client.DeliverToMailbox(
+            "ttd/app",
+            Guid.NewGuid(),
+            new MailboxDeliveryRequest { IdempotencyKey = "fiks-message-42", Payload = "sealed-envelope" }
+        );
+
+        Assert.Equal(statusCode, result.StatusCode);
+        Assert.Null(result.Body);
+        Assert.Contains("closed at its deadline", result.ErrorDetail!, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_AcceptedWithAnUnreadableBody_StillReportsAcceptance()
+    {
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.Accepted,
+                    Content = new StringContent("not json at all", Encoding.UTF8, "application/json"),
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxDeliveryResult result = await client.DeliverToMailbox(
+            "ttd/app",
+            Guid.NewGuid(),
+            new MailboxDeliveryRequest { IdempotencyKey = "fiks-message-42", Payload = "sealed-envelope" }
+        );
+
+        Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
+        Assert.Null(result.Body);
+        Assert.Null(result.ErrorDetail);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_OverlongErrorBody_IsTruncated()
+    {
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.BadGateway,
+                    Content = new StringContent(new string('x', 5000), Encoding.UTF8, "text/html"),
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxDeliveryResult result = await client.DeliverToMailbox(
+            "ttd/app",
+            Guid.NewGuid(),
+            new MailboxDeliveryRequest { IdempotencyKey = "fiks-message-42", Payload = "sealed-envelope" }
+        );
+
+        Assert.Equal(512, result.ErrorDetail!.Length);
+    }
+
     private static HttpResponseMessage CreateJsonResponse<T>(T body) =>
         new()
         {

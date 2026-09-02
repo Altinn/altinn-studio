@@ -137,7 +137,7 @@ public class GitRepository
     {
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-        // Commented out ref comment below in the ReadTextByRelativePathAsync methdod
+        // Commented out ref comment below in the ReadTextByRelativePathAsync method
         // return await ReadTextAsync(absoluteFilePath)
         return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
     }

@@ -1,0 +1,169 @@
+# Shared glossary: language-NEUTRAL tokens the Norwegian checks accept in
+# both bokmål and nynorsk — names, quoted identifiers, formats and literals.
+# Norwegian *words* never belong here; they go in glossary.nb.txt /
+# glossary.nn.txt so a native reviewer of one language never has to rule on
+# the other. One word per line; '#' starts a comment; matching is
+# case-insensitive.
+#
+# Entries must earn their keep: the check reports an entry that no longer
+# rescues any flagged word as stale, in either language. Reviewing this file
+# in a PR is a name-spotting exercise, not a language ruling. Keep entries
+# alphabetized within each section.
+
+# Product and organisation names in UI text
+altinn
+ansattporten
+bankid
+buypass
+commfides
+digdir
+entraid
+figma
+gitea
+github
+grafana
+maskinporten
+minid
+studioctl
+
+# Products and registries named by the Gitea UI translation
+codebasehq
+codecommit
+conda
+dingtalk
+feishu
+gitbucket
+gitlab
+gogs
+haveibeenpwned
+mariadb
+notabug
+npm
+nuget
+onedev
+packagist
+pacman
+postgresql
+redhat
+rubygem
+sendmail
+tidb
+wechat
+wecom
+
+# Technical terms, protocols, formats and file names quoted in UI text
+addr        # "SMTP Addr" config label in the Gitea UI
+agit        # Gitea's AGit workflow
+api
+authorization # the HTTP Authorization header
+authorized    # the authorized_keys file
+backend
+bpmn
+cmd         # the Cmd key in shortcut hints
+com         # slack.com
+condarc
+config
+devtool
+ecdsa
+fsck
+gemfile       # Ruby Gemfile
+gitignore
+goroutines
+homeserver    # Matrix homeserver
+iframe
+iframes
+ini         # app.ini
+io          # code.gitea.io
+json
+kanban
+likert      # the Likert scale component
+mcache        # Go runtime metric
+md          # README.md
+mspan         # Go runtime metric
+nistp       # ecdsa-sha2-nistp256
+noreply
+npmrc
+oauth
+oids
+openid
+png
+pom         # pom.xml
+proto         # the X-Forwarded-Proto header
+regex
+rprofile    # Rprofile.site
+rsa
+sha
+srcdoc
+ui          # the App/ui/ folder
+uris
+url
+vendored      # Gitea's diff badge for vendored files
+webauthn
+webhook
+webhooks
+xml
+yml
+
+# Identifiers and placeholders quoted verbatim in UI text
+applicationmetadata
+componentref
+deletionstrategy
+disallowusercreate
+folderid
+funksjonforsubuttrykk
+inntektsaar
+labelsettings
+layoutsets
+maskinportenscope
+metadatanavn
+oid         # the "oid" claim named in the OIDC admin help text
+pagebreak
+pageref
+showaddbutton
+
+# JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
+# schema-editor UI text
+allof
+anyof
+oneof
+
+# Abbreviations and literals
+dd          # yyyy-mm-dd
+ifm         # i forbindelse med
+orgnr
+param
+personnr
+yyyy
+æøå         # quoted as literal letters in a validation message
+
+# Language names, from the ISO 639 language picker in Designer
+# (language.* keys). The Norwegian exonyms are identical in both languages.
+aragonsk
+avestisk
+belarusisk
+bislama
+chamorro
+dhivehi
+dzongkha
+fulfulde
+herero
+hiri        # Hiri Motu
+interlingue
+kanuri
+katanga     # Luba-Katanga
+kikongo
+kinyarwanda
+kirundi
+kwanyama
+limburgsk
+lingala
+motu
+ndebele
+ndonga
+sango
+sardisk
+swati
+tigrinya
+twi
+wolof
+yi          # Sichuan Yi

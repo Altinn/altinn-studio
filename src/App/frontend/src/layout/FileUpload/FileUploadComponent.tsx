@@ -3,7 +3,13 @@ import { useNavigation } from 'react-router';
 import { toast } from 'react-toastify';
 import type { FileRejection } from 'react-dropzone';
 
-import { Dropzone, getDescriptionId, getLabelId, mapExtensionToAcceptMime } from '@app/form-component';
+import {
+  Dropzone,
+  getDescriptionId,
+  getLabelId,
+  mapExtensionToAcceptMime,
+  useIsMobileOrTablet,
+} from '@app/form-component';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -17,7 +23,6 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { FailedAttachments } from 'src/layout/FileUpload/Error/FailedAttachments';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
@@ -28,13 +33,8 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export function FileUploadComponent({
-  baseComponentId,
-}: PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>): React.JSX.Element {
-  const item = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    baseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  );
+export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): React.JSX.Element {
+  const item = useItemWhenType<'FileUpload'>(baseComponentId, 'FileUpload');
   const {
     id,
     maxFileSizeInMB,

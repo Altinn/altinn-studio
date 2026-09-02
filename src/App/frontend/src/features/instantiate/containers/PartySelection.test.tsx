@@ -84,7 +84,7 @@ describe('PartySelection', () => {
     expect(screen.queryByRole('button', { name: /last flere/i })).not.toBeInTheDocument();
   });
 
-  it('should find an organisation when searching for an org number containing whitespace', async () => {
+  it('should find an organization when searching for an org number containing whitespace', async () => {
     const user = userEvent.setup({ delay: null });
     await render();
 

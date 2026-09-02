@@ -85,7 +85,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -118,7 +118,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -153,7 +153,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserFailureStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerFailureStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -337,16 +337,16 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 }
 
-public class MimeTypeAnalyserSuccessStub : IFileAnalyser
+public class MimeTypeAnalyzerSuccessStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)
@@ -359,16 +359,16 @@ public class MimeTypeAnalyserSuccessStub : IFileAnalyser
     }
 }
 
-public class MimeTypeAnalyserFailureStub : IFileAnalyser
+public class MimeTypeAnalyzerFailureStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)

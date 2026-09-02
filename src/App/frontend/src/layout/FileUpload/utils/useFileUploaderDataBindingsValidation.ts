@@ -3,7 +3,7 @@ import { validateDataModelBindingsList, validateDataModelBindingsSimple } from '
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function validateFileUploaderDataBindings<T extends 'FileUpload' | 'FileUploadWithTag' | 'ImageUpload'>(
+export function validateFileUploaderDataBindings<T extends 'FileUpload' | 'ImageUpload'>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
   { lookupBinding, layoutLookups }: DataModelBindingValidationContext,

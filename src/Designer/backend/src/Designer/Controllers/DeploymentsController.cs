@@ -52,11 +52,11 @@ public class DeploymentsController : ControllerBase
     /// <summary>
     /// Gets deployments based on a query
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of Pipeline deployments and Kubernete deployments</returns>
+    /// <returns>List of Pipeline deployments and Kubernetes deployments</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
     public async Task<DeploymentsResponse> Get(
@@ -111,7 +111,7 @@ public class DeploymentsController : ControllerBase
     /// <summary>
     /// Creates a deployment
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="createDeployment">Release model</param>
     /// <returns>Created deployment</returns>
@@ -141,7 +141,7 @@ public class DeploymentsController : ControllerBase
     /// <summary>
     /// Initiates the undeployment of an application from a specific environment
     /// </summary>
-    /// <param name="org">Organisation name</param>
+    /// <param name="org">Organization name</param>
     /// <param name="app">Application name</param>
     /// <param name="undeployRequest">Undeployment request containing the target environment</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>

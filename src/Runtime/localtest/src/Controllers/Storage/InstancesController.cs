@@ -895,7 +895,7 @@ public class InstancesController : ControllerBase
         {
             _logger.LogError(
                 e,
-                "Unable to update sub status for instance {instaneOwnerPartyId}/{instanceGuid}",
+                "Unable to update sub status for instance {instanceOwnerPartyId}/{instanceGuid}",
                 instanceOwnerPartyId,
                 instanceGuid
             );
@@ -933,7 +933,7 @@ public class InstancesController : ControllerBase
     {
         if (presentationTexts?.Texts == null)
         {
-            return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
+            return BadRequest($"Missing parameter value: presentationTexts is malformed or empty");
         }
 
         (Instance instance, _) = await _instanceRepository.GetOne(
@@ -998,7 +998,7 @@ public class InstancesController : ControllerBase
     {
         if (dataValues?.Values == null)
         {
-            return BadRequest($"Missing parameter value: dataValues is misformed or empty");
+            return BadRequest($"Missing parameter value: dataValues is malformed or empty");
         }
 
         (Instance instance, _) = await _instanceRepository.GetOne(

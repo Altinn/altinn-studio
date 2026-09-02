@@ -19,20 +19,19 @@ public class GetCanUseFeatureTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     public GetCanUseFeatureTests(WebApplicationFactory<Program> factory)
-        : base(
-            factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
-                    evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
-                    evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
+        : base(factory) { }
 
-                    services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
-                    services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
-                });
-            })
-        ) { }
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+
+        var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
+        evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
+        evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
+
+        services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
+        services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
+    }
 
     [Fact]
     public async Task CanUseFeature_Returns200Ok_WithTrue()

@@ -5,5 +5,5 @@
 }
 
 .alert {
-  margin: var(--fds-spacing-6);
+  margin: var(--ds-size-6);
 }

@@ -20,6 +20,7 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
     public type: Val,
   ) {
     super();
+    this.assertCamelCase(name);
   }
 
   protected ensureMutable(): void {
@@ -88,5 +89,14 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
 
   setAsAdded() {
     this._added = true;
+  }
+
+  protected assertCamelCase(name: string) {
+    if (name === '$schema') {
+      return;
+    }
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) {
+      throw new Error(`Property name must be camelCase: ${name}`);
+    }
   }
 }

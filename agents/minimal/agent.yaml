@@ -1,0 +1,41 @@
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: altinn-minimal
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-minimal:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "4"
+      memory: "8Gi"
+      rootFilesystem:
+        capacity: "64Gi"
+        mode: layered
+    initSystem: image
+  home:
+    source: home
+  instructions:
+    source: ../instructions.md
+  harnesses:
+    - type: claudeCode
+      version: "2.1.239"
+      auth: mediated
+      default: true
+    # - type: codex
+    #   version: "0.149.1"
+    #   auth: mediated
+  secrets:
+    - environment: GITHUB_TOKEN
+      allowedHosts:
+        - github.com
+        - api.github.com
+        - gist.github.com
+  network:
+    mode: mediated
+    allow: all
+    deny:
+      - metadata.google.internal

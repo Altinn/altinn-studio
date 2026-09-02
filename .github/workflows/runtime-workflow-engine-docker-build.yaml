@@ -40,10 +40,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # No cache ref for the standalone workflow-engine image: nothing
+          # publishes a cache for it (only this workflow builds it).
           - name: workflow-engine
             dockerfile: Runtime/workflow-engine/Dockerfile
+            cache-from: ''
           - name: workflow-engine-app
             dockerfile: Runtime/workflow-engine-app/Dockerfile
+            # Written by deploy-runtime-workflow-engine-app.yaml on main;
+            # public package, so the read needs no auth.
+            cache-from: type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache
     defaults:
       run:
         working-directory: src
@@ -54,4 +60,9 @@ jobs:
           persist-credentials: false
 
       - name: Build image
-        run: docker build -f ${{ matrix.dockerfile }} .
+        run: |
+          if [ -n "${{ matrix.cache-from }}" ]; then
+            docker build --cache-from "${{ matrix.cache-from }}" -f ${{ matrix.dockerfile }} .
+          else
+            docker build -f ${{ matrix.dockerfile }} .
+          fi

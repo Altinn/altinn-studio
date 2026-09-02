@@ -8,7 +8,7 @@ import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-f
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
-import { PreviewContext, type PreviewContextProps } from '../contexts/PreviewContext';
+import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 export const renderWithProviders =

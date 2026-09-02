@@ -3,7 +3,9 @@
 import { dom } from '../core/state.js';
 import {
     esc,
+    escAttr,
     escHtml,
+    escJsArg,
     expandJsonStrings,
     syntaxHighlight,
     lineDiff,
@@ -172,17 +174,17 @@ const buildDetailsContent = (data) => {
         const abs = fmtTime(raw);
         const rel = fmtAgo(raw);
         const suffix = rel ? `<span class="detail-ago">${esc(rel)}</span>` : '';
-        return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value"><span class="timestamp" data-iso="${esc(raw)}">${esc(abs || '')}</span>${suffix}</span></div>`;
+        return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value"><span class="timestamp" data-iso="${escAttr(raw)}">${esc(abs || '')}</span>${suffix}</span></div>`;
     };
 
     const status = /** @type {string} */ (data.status) || '';
 
     // Rich status row: pill + retry badge + action buttons (all inline)
-    let statusParts = `<span class="status-pill ${status}">${esc(status)}</span>`;
+    let statusParts = `<span class="status-pill ${escAttr(status)}">${esc(status)}</span>`;
     if (data.backoffUntil && (status === 'Requeued' || status === 'Waiting')) {
-        statusParts += ` <span class="step-backoff" data-backoff="${esc(/** @type {string} */ (data.backoffUntil))}"></span>`;
+        statusParts += ` <span class="step-backoff" data-backoff="${escAttr(/** @type {string} */ (data.backoffUntil))}"></span>`;
     } else if (status === 'Processing' && data.executionStartedAt) {
-        statusParts += ` <span data-step-started="${esc(/** @type {string} */ (data.executionStartedAt))}"></span>`;
+        statusParts += ` <span data-step-started="${escAttr(/** @type {string} */ (data.executionStartedAt))}"></span>`;
     }
     if (data.retryCount) {
         statusParts += ` <span class="step-retry" style="margin-left:4px;margin-top:0">&#8635;${esc(String(data.retryCount))}</span>`;
@@ -192,10 +194,10 @@ const buildDetailsContent = (data) => {
         (status === 'Requeued' || status === 'Waiting') &&
         new Date(/** @type {string} */ (data.backoffUntil)) - Date.now() > 5000;
     if (status === 'Failed') {
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">&#8635; Retry</a>`;
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">&#8635; Retry</a>`;
     } else if (showNudge) {
         const skipLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">${skipLabel}</a>`;
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${skipLabel}</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
@@ -250,7 +252,7 @@ const buildDetailsContent = (data) => {
             html += `<div class="error-entry-meta">`;
             html += `<span class="error-entry-badge ${retryable}">${retryable}${statusCode}</span>`;
             if (ts)
-                html += `<span class="error-entry-time"><span class="timestamp" data-iso="${esc(entry.timestamp)}">${esc(ts)}</span>`;
+                html += `<span class="error-entry-time"><span class="timestamp" data-iso="${escAttr(entry.timestamp)}">${esc(ts)}</span>`;
             if (ago) html += ` <span class="detail-ago">${esc(ago)}</span>`;
             if (ts) html += `</span>`;
             html += `</div>`;

@@ -1,0 +1,36 @@
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: altinn-worktree
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-full:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "4"
+      memory: "8Gi"
+      rootFilesystem:
+        capacity: "64Gi"
+        mode: direct
+    initSystem: image
+    mounts:
+      - type: bind
+        source: ../..
+        target: /home/agent/code/altinn-studio
+        readOnly: false
+  home:
+    source: home
+  instructions:
+    source: ../instructions.md
+  harnesses:
+    - type: claudeCode
+      version: "2.1.239"
+      auth: mediated
+  network:
+    mode: mediated
+    allow: all
+    deny:
+      - metadata.google.internal

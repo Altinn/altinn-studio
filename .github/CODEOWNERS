@@ -15,9 +15,7 @@
 .github/workflows/designer-frontend-playwright-staging.yml                @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-run-playwright-on-pr.yaml             @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-unit-tests.yml                        @altinn/team-altinn-studio-utforming
-.github/workflows/storybook-to-github-pages.yaml                          @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-deploy.yaml                           @altinn/team-altinn-studio-utforming
-.github/workflows/studio-components-legacy-deploy.yaml                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                          @altinn/team-altinn-studio-utforming
 src/common/ts/**/package.json                                             @altinn/team-altinn-studio-utforming
@@ -81,6 +79,9 @@ charts/altinn-loadbalancer-config/**/Chart.yaml                           @altin
 charts/altinn-loadbalancer/**/Chart.yaml                                  @altinn/team-altinn-studio-kjoring
 charts/gitea-org-runner-config/**/Chart.yaml                              @altinn/team-altinn-studio-kjoring
 charts/gitea-org-runner/**/Chart.yaml                                     @altinn/team-altinn-studio-kjoring
+src/ci/**/Dockerfile*                                                     @altinn/team-altinn-studio-kjoring
+src/ci/**/go.mod                                                          @altinn/team-altinn-studio-kjoring
+src/ci/**/go.sum                                                          @altinn/team-altinn-studio-kjoring
 src/cli/**/*.csproj                                                       @altinn/team-altinn-studio-kjoring
 src/cli/**/Directory.Packages.props                                       @altinn/team-altinn-studio-kjoring
 src/cli/**/dockerfile*                                                    @altinn/team-altinn-studio-kjoring
@@ -93,7 +94,6 @@ src/Designer/development/fake-ansattporten/**/Dockerfile*                 @altin
 src/Designer/development/fake-ansattporten/**/go.mod                      @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/docker-compose.*.yml                                   @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/Dockerfile*                                            @altinn/team-altinn-studio-kjoring
-src/gitea-runner/**/Dockerfile*                                           @altinn/team-altinn-studio-kjoring
 src/gitea/**/Dockerfile*                                                  @altinn/team-altinn-studio-kjoring
 src/lhci-server/**/compose.yaml                                           @altinn/team-altinn-studio-kjoring
 src/lhci-server/**/Dockerfile*                                            @altinn/team-altinn-studio-kjoring

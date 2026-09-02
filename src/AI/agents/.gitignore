@@ -27,6 +27,7 @@ htmlcov/
 # Debug trace dumps
 trace-*.json
 
-# Benchmark fixtures (PDFs etc.) — local only
+# Benchmark fixtures (PDFs etc.), local only
 benchmarks/assets/
 benchmarks/.env
+benchmarks/.playwright-auth.json

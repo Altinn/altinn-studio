@@ -26,10 +26,7 @@ const id = container1IdMock;
 jest.mock('bpmn-moddle', () =>
   jest.fn(() => ({
     fromXML: jest.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([
-        componentMocks[ComponentType.FileUpload].id,
-        componentMocks[ComponentType.FileUploadWithTag].id,
-      ]),
+      rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
     }),
     toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
   })),
@@ -67,7 +64,7 @@ describe('useDeleteFormContainerMutation', () => {
     );
   });
 
-  it('Should remove FileUpload and FileUploadWithTag data types from signing tasks', async () => {
+  it('Should remove FileUpload data types from signing tasks', async () => {
     const { result } = await renderDeleteFormContainerMutation();
 
     const containerToDelete = container2IdMock;
@@ -86,10 +83,6 @@ describe('useDeleteFormContainerMutation', () => {
           },
           {
             oldComponentId: component3IdMock,
-            newComponentId: undefined,
-          },
-          {
-            oldComponentId: componentMocks[ComponentType.FileUploadWithTag].id,
             newComponentId: undefined,
           },
           {

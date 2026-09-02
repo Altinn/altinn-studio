@@ -40,8 +40,7 @@ internal sealed class EFormidlingRegistrationMigration
 
     public MigrationResult Migrate()
     {
-        var warnings = new List<string>();
-        var manualActionRequired = false;
+        var messages = new List<UpgradeMessage>();
 
         // Type arguments are matched on their right-most identifier, so an app with a type of its own
         // called DefaultEFormidlingReceivers would otherwise have that registration dropped as if it
@@ -53,7 +52,8 @@ internal sealed class EFormidlingRegistrationMigration
                 .Any(t => t.Identifier.Text == DefaultReceiversTypeName)
         );
 
-        foreach (var file in _scanner.Files)
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        foreach (var file in _scanner.Files.ToArray())
         {
             var rewrites = new Dictionary<InvocationExpressionSyntax, string>();
 
@@ -76,23 +76,21 @@ internal sealed class EFormidlingRegistrationMigration
                     || invocation.ArgumentList.Arguments.Count != 1
                 )
                 {
-                    warnings.Add(
+                    messages.Todo(
                         $"{file.RelativePath}:{line}: found '{methodName}' in a call shape this upgrade does "
                             + $"not rewrite (it expects services.{methodName}<..>(configuration)). Replace it by "
                             + "hand with services.AddEFormidling().WithMetadata<T>()."
                     );
-                    manualActionRequired = true;
                     continue;
                 }
 
                 if (typeArguments.Count is < 1 or > 2)
                 {
-                    warnings.Add(
+                    messages.Todo(
                         $"{file.RelativePath}:{line}: found '{methodName}' with an unexpected number of type "
                             + "arguments and left it alone. Replace it by hand with "
                             + "services.AddEFormidling().WithMetadata<T>()."
                     );
-                    manualActionRequired = true;
                     continue;
                 }
 
@@ -102,7 +100,7 @@ internal sealed class EFormidlingRegistrationMigration
                     appDeclaresDefaultReceivers
                 );
                 rewrites[invocation] = replacement;
-                warnings.Add(
+                messages.Warn(
                     $"{file.RelativePath}:{line}: rewrote '{methodName}' to "
                         + "AddEFormidling().WithMetadata<T>(). The IConfiguration argument was dropped — "
                         + "eFormidling now binds its 'EFormidlingClientSettings' section from the app's "
@@ -111,7 +109,7 @@ internal sealed class EFormidlingRegistrationMigration
 
                 if (droppedDefaultReceivers)
                 {
-                    warnings.Add(
+                    messages.Warn(
                         $"{file.RelativePath}:{line}: dropped the '{DefaultReceiversTypeName}' type argument, "
                             + "which AddEFormidling() now registers on its own. Add "
                             + $".WithReceivers<{DefaultReceiversTypeName}>() back if that named a type other than "
@@ -121,7 +119,7 @@ internal sealed class EFormidlingRegistrationMigration
 
                 if (DroppedArgumentNeedsReview(invocation))
                 {
-                    warnings.Add(
+                    messages.Warn(
                         $"{file.RelativePath}:{line}: the dropped argument was not a plain configuration "
                             + "variable. Check whether the app was binding eFormidling settings from "
                             + "somewhere other than the host configuration, and restore it with WithConfig(...)."
@@ -138,10 +136,10 @@ internal sealed class EFormidlingRegistrationMigration
                 rewrites.Keys,
                 (original, _) => SyntaxFactory.ParseExpression(rewrites[original]).WithTriviaFrom(original)
             );
-            File.WriteAllText(file.Path, updatedRoot.ToFullString());
+            _scanner.Update(file, updatedRoot);
         }
 
-        return new MigrationResult(manualActionRequired, warnings);
+        return new MigrationResult(messages);
     }
 
     /// <summary>
@@ -191,7 +189,7 @@ internal sealed class EFormidlingRegistrationMigration
     )
     {
         // The replacement node inherits the original invocation's leading/trailing trivia, so only the
-        // pieces carried over need normalising - and they need it: a receiver written across several
+        // pieces carried over need normalizing - and they need it: a receiver written across several
         // lines keeps those line breaks between its own tokens, which would land mid-chain here.
         var text = $"{Render(receiver)}.AddEFormidling().WithMetadata<{Render(typeArguments[0])}>()";
 

@@ -4,7 +4,7 @@ using System;
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 /// <summary>
-/// Indicates that an error occured with interaction with the local git clone files.
+/// Indicates that an error occurred with interaction with the local git clone files.
 /// </summary>
 [Serializable]
 public class LocalGitCloneIoException : Exception

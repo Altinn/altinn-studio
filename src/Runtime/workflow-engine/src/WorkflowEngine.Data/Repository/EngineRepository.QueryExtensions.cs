@@ -45,18 +45,27 @@ internal static class EngineRepositoryQueryExtensions
         /// must not hide a claimable workflow.
         /// </para>
         /// </summary>
+        /// <remarks>
+        /// Mirrors the fetch gate's own conditions — <see cref="PersistentItemStatusMap.Fetchable"/>, the timer
+        /// gate (including the throttle gate and its cancellation bypass), and the dependency gate. Getting any
+        /// of them wrong turns the harness's "wait until nothing can start" into a wait that never ends.
+        /// </remarks>
         public IQueryable<WorkflowEntity> GetRunnableWorkflows(bool throttleGate = false) =>
-            dbContext
-                .Workflows.Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
-                .Where(wf =>
-                    wf.Status == PersistentItemStatus.Processing
-                    || wf.CancellationRequestedAt != null
-                    || (
-                        (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
-                        && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
-                        && (!throttleGate || wf.ThrottledUntil == null || wf.ThrottledUntil <= DateTime.UtcNow)
+            dbContext.Workflows.Where(wf =>
+                wf.Status == PersistentItemStatus.Processing
+                || (
+                    PersistentItemStatusMap.Fetchable.Contains(wf.Status)
+                    && (
+                        wf.CancellationRequestedAt != null
+                        || (
+                            (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
+                            && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+                            && (!throttleGate || wf.ThrottledUntil == null || wf.ThrottledUntil <= DateTime.UtcNow)
+                        )
                     )
-                );
+                    && !wf.Dependencies.Any(dep => !PersistentItemStatusMap.Finished.Contains(dep.Status))
+                )
+            );
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,

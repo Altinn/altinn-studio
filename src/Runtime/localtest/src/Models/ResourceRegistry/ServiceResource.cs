@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.ResourceRegistry.Models
 {
     /// <summary>
-    /// Model describing a complete resource from the resrouce registry
+    /// Model describing a complete resource from the resource registry
     /// </summary>
     public class ServiceResource
     {

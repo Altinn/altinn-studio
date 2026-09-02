@@ -68,13 +68,13 @@ func (e *MissingSecretError) Error() string {
 	return "app secret not found for MaskinportenClient: " + e.AppName
 }
 
-// ClientState reprsents a snapshot of the state of a Maskinporten client
+// ClientState represents a snapshot of the state of a Maskinporten client
 // across sources such as
 //   - MaskinportenClient k8s CRD
 //   - Maskinporten Self-Service API
 //   - Altinn app k8s secret
 //
-// The struct is organized to reflect this and the responsbility
+// The struct is organized to reflect this and the responsibility
 // of this model is to communicate a path forward in terms of reconciliation/desired state.
 // You can think of this struct as a state machine without explicit states or state transitions.
 // The `reconcile` function just emits a set of commands that will take the current state -> desired state.
@@ -276,7 +276,7 @@ func (s *ClientState) Reconcile(
 	clock opclock.Clock,
 ) (CommandList, error) {
 	// ClientState keeps the state of Maskinporten-related config
-	// related to a specific app. This function evalues current state,
+	// related to a specific app. This function evaluates current state,
 	// computes desired state based on state, and returns
 	// a set of commands for the controller to apply (call Maskinporten API, etc).
 	// This function should be pure and easily testable.

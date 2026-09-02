@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     path::{Path, PathBuf},
     rc::Rc,
     time::Instant,
@@ -35,6 +35,7 @@ const MATERIALIZE_DIRECT_ROOT_IMAGE: &str = "Materialize direct root image";
 const CREATE_RUNTIME: &str = "Create Microsandbox VM";
 const START_RUNTIME: &str = "Start Microsandbox VM";
 const UPDATE_RUNTIME_RESOURCES: &str = "Update Microsandbox VM resources";
+const UPDATE_RUNTIME_ENVIRONMENT: &str = "Update Microsandbox environment";
 
 /// Microsandbox Provider pairing its Sandbox Backend with its Image Backend.
 pub struct MicrosandboxProvider {
@@ -132,15 +133,7 @@ impl MicrosandboxProvider {
         }
         self.cached_image_reference(&request.image.manifest_digest).await?;
 
-        let record = SandboxRecord::new(
-            request.id,
-            request.name,
-            request.image,
-            request.resources,
-            request.init_system,
-            request.mounts,
-            request.network,
-        );
+        let record = SandboxRecord::new(request);
         self.state.save_sandbox(&record).await?;
         Ok(record.to_sandbox(SandboxState::Stopped))
     }
@@ -213,6 +206,42 @@ impl MicrosandboxProvider {
         }
 
         record.resources = resources;
+        self.state.update_sandbox(&record).await?;
+        self.inspect_record(&record).await
+    }
+
+    async fn update_sandbox_environment(
+        &self,
+        id: &SandboxId,
+        environment: BTreeMap<String, String>,
+        progress: &SandboxProgress,
+    ) -> Result<Sandbox, Error> {
+        let mut record = self.state.sandbox_by_id(id).await?;
+        if record.environment == environment {
+            return self.inspect_record(&record).await;
+        }
+        let sandbox = self.inspect_record(&record).await?;
+        if sandbox.state != SandboxState::Stopped {
+            return Err(Error::invalid("sandbox.state", "must be stopped"));
+        }
+
+        if let Some(handle) = self.runtime_handle(&record.runtime_name).await? {
+            let mut modification = handle.modify().next_start();
+            for name in record.environment.keys() {
+                if !environment.contains_key(name) {
+                    modification = modification.remove_env(name);
+                }
+            }
+            for (name, value) in &environment {
+                modification = modification.env(name, value);
+            }
+            let started = Instant::now();
+            let step = progress.start_step(UPDATE_RUNTIME_ENVIRONMENT).await;
+            modification.apply().await.map_err(error::microsandbox)?;
+            step.complete(started.elapsed()).await;
+        }
+
+        record.environment = environment;
         self.state.update_sandbox(&record).await?;
         self.inspect_record(&record).await
     }
@@ -301,6 +330,7 @@ impl MicrosandboxProvider {
         }
         let mut builder =
             Client::sandbox_builder(&record.runtime_name, image, record.resources)?.pull_policy(PullPolicy::Never);
+        builder = builder.envs(record.environment.clone());
         if record
             .network
             .as_ref()
@@ -503,6 +533,16 @@ impl SandboxBackend for MicrosandboxProvider {
         })
     }
 
+    fn update_environment<'a>(
+        &'a self,
+        id: &'a SandboxId,
+        environment: BTreeMap<String, String>,
+    ) -> PendingOperation<'a, Sandbox> {
+        PendingOperation::run(SandboxPhase::SandboxUpdate, move |progress| {
+            Box::pin(async move { self.update_sandbox_environment(id, environment, &progress).await })
+        })
+    }
+
     fn find<'a>(&'a self, name: &'a SandboxName) -> LocalFuture<'a, Result<Sandbox, Error>> {
         Box::pin(async move {
             let record = self.state.sandbox_by_name(name).await?;
@@ -628,6 +668,7 @@ impl SandboxRecord {
             resources: self.resources,
             state,
             mounts: self.mounts.clone(),
+            environment: self.environment.clone(),
             network: self.network.clone(),
         }
     }

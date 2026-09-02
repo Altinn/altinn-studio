@@ -24,7 +24,7 @@ public class ValidateController : ControllerBase
     private readonly IValidationService _validationService;
 
     /// <summary>
-    /// Initialises a new instance of the <see cref="ValidateController"/> class
+    /// Initializes a new instance of the <see cref="ValidateController"/> class
     /// </summary>
     public ValidateController(
         IInstanceClient instanceClient,
@@ -43,8 +43,8 @@ public class ValidateController : ControllerBase
     /// Validate an app instance. This will validate all individual data elements, both the binary elements and the elements bound
     /// to a model, and then finally the state of the instance.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
     /// <param name="ignoredValidators">Comma separated list of validators to ignore</param>
@@ -116,8 +116,8 @@ public class ValidateController : ControllerBase
     /// Validate a single data element (deprecated).
     /// Use `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerId">Unique id of the party that is the owner of the instance.</param>
     /// <param name="instanceId">Unique id to identify the instance</param>
     /// <param name="dataGuid">Unique id identifying specific data element</param>

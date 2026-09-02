@@ -58,7 +58,7 @@ public class ApplicationsController : ControllerBase
     /// Get all applications deployed by a given application owner.
     /// </summary>
     /// <param name="org">The id of the application owner.</param>
-    /// <returns>List of all applications depoyed by the given owner.</returns>
+    /// <returns>List of all applications deployed by the given owner.</returns>
     [AllowAnonymous]
     [HttpGet("{org}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -79,10 +79,10 @@ public class ApplicationsController : ControllerBase
     }
 
     /// <summary>
-    /// Get the metadata for a spesific application based on the given application identifiers.
+    /// Get the metadata for a specific application based on the given application identifiers.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A token that is cancelled when the request is aborted.</param>
     /// <returns>The metadata for the identified application.</returns>
     [AllowAnonymous]
@@ -110,7 +110,7 @@ public class ApplicationsController : ControllerBase
     /// </summary>
     /// <param name="appId">The unique identification of the application to be added. Format: '{org}/{app}'</param>
     /// <param name="application">The application metadata object to store.</param>
-    /// <returns>The applicaiton metadata object.</returns>
+    /// <returns>The application metadata object.</returns>
     [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
     [HttpPost]
     [Consumes("application/json")]
@@ -226,8 +226,8 @@ public class ApplicationsController : ControllerBase
     /// <summary>
     /// Delete an application metadata object. Applications will not be deleted, but will be marked as deleted.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="hard">Controls whether the application should be deleted permanently.</param>
     /// <returns>The application metadata of the deleted application.</returns>
     [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]

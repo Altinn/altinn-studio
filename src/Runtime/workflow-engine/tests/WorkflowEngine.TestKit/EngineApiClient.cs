@@ -33,6 +33,9 @@ public sealed class EngineApiClient : IDisposable
     private string GetCollectionsBasePath(string? ns = null) =>
         $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/collections";
 
+    private string GetMailboxesBasePath(string? ns = null) =>
+        $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/mailboxes";
+
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
@@ -401,6 +404,93 @@ public sealed class EngineApiClient : IDisposable
     /// </summary>
     public Task<HttpResponseMessage> ClearThrottleRaw(string? ns = null) =>
         _client.PostAsync($"{GetThrottleBasePath(ns)}/clear", content: null);
+
+    public Task<HttpResponseMessage> MintMailboxRaw(MailboxCreateRequest request, string? ns = null) =>
+        _client.PostAsJsonAsync(GetMailboxesBasePath(ns), request);
+
+    /// <summary>Mints from raw JSON, to exercise binding and validation directly.</summary>
+    public async Task<HttpResponseMessage> MintMailboxRaw(string jsonRequest, string? ns = null)
+    {
+        using var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+        return await _client.PostAsync(GetMailboxesBasePath(ns), content);
+    }
+
+    public async Task<MailboxResponse> MintMailbox(
+        string idempotencyKey,
+        TimeSpan timeout,
+        string? collectionKey = null,
+        string? ns = null
+    )
+    {
+        using var response = await MintMailboxRaw(
+            new MailboxCreateRequest
+            {
+                IdempotencyKey = idempotencyKey,
+                Timeout = timeout,
+                CollectionKey = collectionKey,
+            },
+            ns
+        );
+        return await AssertSuccessAndDeserialize<MailboxResponse>(response);
+    }
+
+    public Task<HttpResponseMessage> GetMailboxRaw(Guid mailboxId, string? ns = null) =>
+        _client.GetAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}", CancellationToken.None);
+
+    public async Task<MailboxResponse?> GetMailbox(Guid mailboxId, string? ns = null)
+    {
+        using var response = await GetMailboxRaw(mailboxId, ns);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        return await AssertSuccessAndDeserialize<MailboxResponse>(response);
+    }
+
+    public Task<HttpResponseMessage> CloseMailboxRaw(Guid mailboxId, string? ns = null) =>
+        _client.DeleteAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}", CancellationToken.None);
+
+    /// <summary>
+    /// Asserts 2xx — 202 when this call closed it, 200 on an idempotent repeat. Use
+    /// <see cref="CloseMailboxRaw"/> when the distinction is what the test is about.
+    /// </summary>
+    public async Task<MailboxResponse> CloseMailbox(Guid mailboxId, string? ns = null)
+    {
+        using var response = await CloseMailboxRaw(mailboxId, ns);
+        return await AssertSuccessAndDeserialize<MailboxResponse>(response);
+    }
+
+    public Task<HttpResponseMessage> DeliverToMailboxRaw(
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        string? ns = null
+    ) => _client.PostAsJsonAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}/deliveries", request);
+
+    /// <summary>Delivers from raw JSON, to exercise binding and validation directly.</summary>
+    public async Task<HttpResponseMessage> DeliverToMailboxRaw(Guid mailboxId, string jsonRequest, string? ns = null)
+    {
+        using var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+        return await _client.PostAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}/deliveries", content);
+    }
+
+    /// <summary>
+    /// Asserts 2xx — 202 when this call appended it, 200 on an idempotent replay. Use the raw overload when
+    /// the distinction is what the test is about.
+    /// </summary>
+    public async Task<MailboxDeliveryResponse> DeliverToMailbox(
+        Guid mailboxId,
+        string idempotencyKey,
+        string payload = "{}",
+        string? ns = null
+    )
+    {
+        using var response = await DeliverToMailboxRaw(
+            mailboxId,
+            new MailboxDeliveryRequest { IdempotencyKey = idempotencyKey, Payload = payload },
+            ns
+        );
+        return await AssertSuccessAndDeserialize<MailboxDeliveryResponse>(response);
+    }
 
     /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches

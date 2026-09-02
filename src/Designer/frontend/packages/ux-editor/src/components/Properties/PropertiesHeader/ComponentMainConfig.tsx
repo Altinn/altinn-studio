@@ -62,7 +62,6 @@ export const ComponentMainConfig = ({
         />
       );
     case ComponentType.FileUpload:
-    case ComponentType.FileUploadWithTag:
       return (
         <FileUploadMainConfig
           component={component}

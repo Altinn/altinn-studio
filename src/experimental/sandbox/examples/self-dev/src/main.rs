@@ -214,11 +214,11 @@ fn resolve_host_paths(host_home: &Path, repository: PathBuf) -> Result<HostPaths
 
 fn self_dev_repository() -> Result<PathBuf, Box<dyn Error>> {
     let repository = current_git_repository()?;
-    if !repository.join("src/experimental/Cargo.toml").is_file() {
+    if !repository.join("Cargo.toml").is_file() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             format!(
-                "{} does not contain the experimental Sandbox workspace",
+                "{} does not contain the Altinn Studio Rust workspace",
                 repository.display()
             ),
         )

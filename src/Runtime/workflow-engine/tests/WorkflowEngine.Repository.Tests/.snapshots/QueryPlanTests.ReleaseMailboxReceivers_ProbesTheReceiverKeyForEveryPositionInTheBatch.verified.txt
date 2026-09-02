@@ -1,0 +1,156 @@
+﻿[
+  {
+    Plan: {
+      Node Type: ModifyTable,
+      Operation: Update,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Relation Name: mailbox_receivers,
+      Alias: mr,
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Plans: [
+        {
+          Node Type: ModifyTable,
+          Operation: Update,
+          Parent Relationship: InitPlan,
+          Subplan Name: CTE released,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Relation Name: workflows,
+          Alias: w,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Plans: [
+            {
+              Node Type: Nested Loop,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Join Type: Inner,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Inner Unique: true,
+              Plans: [
+                {
+                  Node Type: Nested Loop,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Join Type: Inner,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Inner Unique: false,
+                  Plans: [
+                    {
+                      Node Type: Function Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Alias: t,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false
+                    },
+                    {
+                      Node Type: Index Scan,
+                      Parent Relationship: Inner,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Scan Direction: Forward,
+                      Index Name: pk_mailbox_receivers,
+                      Relation Name: mailbox_receivers,
+                      Alias: mr_1,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Index Cond: ((mailbox_id = t.mailbox_id) AND (seq >= t.seq_lo) AND (seq <= t.seq_hi)),
+                      Filter: (released_at IS NULL)
+                    }
+                  ]
+                },
+                {
+                  Node Type: Index Scan,
+                  Parent Relationship: Inner,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: pk_workflows,
+                  Relation Name: workflows,
+                  Alias: w,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Index Cond: (id = mr_1.workflow_id),
+                  Filter: (status = 9)
+                }
+              ]
+            }
+          ]
+        },
+        {
+          Node Type: Nested Loop,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Join Type: Inner,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Inner Unique: true,
+          Plans: [
+            {
+              Node Type: CTE Scan,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              CTE Name: released,
+              Alias: released,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false
+            },
+            {
+              Node Type: Index Scan,
+              Parent Relationship: Inner,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Scan Direction: Forward,
+              Index Name: pk_mailbox_receivers,
+              Relation Name: mailbox_receivers,
+              Alias: mr,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Index Cond: ((mailbox_id = released.mailbox_id) AND (seq = released.seq))
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

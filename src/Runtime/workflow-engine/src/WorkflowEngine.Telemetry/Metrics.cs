@@ -290,6 +290,70 @@ public static class Metrics
         "Wait budget consumed by a deferring step, from first deferral to resolution (seconds). Recorded once per deferring step."
     );
 
+    /// <summary>An idempotent replay creates nothing, so counting it would overstate how many exchanges are open.</summary>
+    public static readonly Counter<long> MailboxesCreated = Meter.CreateCounter<long>(
+        "engine.mailboxes.created",
+        description: "Number of mailboxes minted (idempotent replays excluded — they create nothing)"
+    );
+
+    /// <summary>Counts the close that actually happened, so an idempotent repeat does not count twice.</summary>
+    public static readonly Counter<long> MailboxesClosed = Meter.CreateCounter<long>(
+        "engine.mailboxes.closed",
+        description: "Number of mailboxes closed for deliveries, tagged by reason (request or deadline)"
+    );
+
+    /// <summary>
+    /// Every outcome, pre-lock refusals included. <c>closed</c> is the one to watch: a counterparty answered
+    /// after the exchange gave up on it.
+    /// </summary>
+    public static readonly Counter<long> MailboxDeliveriesReceived = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.received",
+        description: "Number of messages offered to the mailbox delivery endpoint, tagged with the outcome"
+    );
+
+    /// <summary>The deadline is the one closure with no caller to report the number to.</summary>
+    public static readonly Counter<long> MailboxDeliveriesUnpaired = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.unpaired",
+        description: "Number of accepted deliveries no receiver was ever enqueued for, counted when a mailbox closes at its deadline"
+    );
+
+    /// <summary>
+    /// The birth state separates "the relay is running" from "the relay is parked". Counted after commit, so a
+    /// rolled-back birth is not counted.
+    /// </summary>
+    public static readonly Counter<long> MailboxReceiversCreated = Meter.CreateCounter<long>(
+        "engine.mailboxes.receivers.created",
+        description: "Number of mailbox receive workflows created, tagged by the state they were born in"
+    );
+
+    /// <summary>
+    /// <c>delivered</c> and <c>closed</c> are the only two causes, so the tags partition it. Counted once per
+    /// receiver: both release paths skip stamped rows.
+    /// </summary>
+    public static readonly Counter<long> MailboxReceiversReleased = Meter.CreateCounter<long>(
+        "engine.mailboxes.receivers.released",
+        description: "Number of parked mailbox receivers released to run, tagged by cause (delivered or closed)"
+    );
+
+    /// <summary>
+    /// The part <c>NOTIFY</c> accelerates and the fetch cycle bounds. A receiver born runnable is excluded via
+    /// <c>held_at</c>. Clamped at zero: the two ends come from two pods' clocks.
+    /// </summary>
+    public static readonly Histogram<double> MailboxReceiverWakeLatency = Meter.CreateHistogram<double>(
+        "engine.mailboxes.receivers.wake_latency",
+        "s",
+        "Seconds between a mailbox receiver being released and a worker first claiming it. Recorded once per release."
+    );
+
+    /// <summary>
+    /// Alert on any value above zero: both <c>unregistered</c> and <c>undecided</c> mean the engine is violating
+    /// its own rendezvous invariant, which the ordinary execution-failed counter would not distinguish.
+    /// </summary>
+    public static readonly Counter<long> MailboxRendezvousViolations = Meter.CreateCounter<long>(
+        "engine.mailboxes.rendezvous.violations",
+        description: "Number of receive workflows the rendezvous could not answer for, tagged by the state that could not be answered"
+    );
+
     /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
@@ -312,6 +376,34 @@ public static class Metrics
     public static readonly Counter<long> UpdateBufferFlushedItems = Meter.CreateCounter<long>(
         "engine.update_buffer.flushed",
         description: "Number of workflow status updates actually written to the database after deduplication"
+    );
+
+    /// <summary>
+    /// Counter of mailbox <b>requests</b> answered by a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// <c>close</c> or <c>delivery</c>) — requests rather than flushes, counted once the batch's database work has
+    /// returned without faulting. Divide by <see cref="MailboxBufferFlushedBatches"/> over the same window and
+    /// tag for the mean batch size.
+    /// </summary>
+    public static readonly Counter<long> MailboxBufferFlushedItems = Meter.CreateCounter<long>(
+        "engine.mailbox_buffer.flushed",
+        description: "Number of mailbox requests answered by a batch flush — one per request, not per flush — tagged by operation (mint, close, delivery). Divide by engine.mailbox_buffer.batches for the mean batch size"
+    );
+
+    /// <summary>
+    /// Counter of mailbox <b>batch flushes</b>, one per flush whatever its size, tagged with <c>operation</c>
+    /// (<c>mint</c>, <c>close</c> or <c>delivery</c>). The denominator of
+    /// <see cref="MailboxBufferFlushedItems"/> ÷ this, the mean batch size — the only thing the engine emits that
+    /// says whether requests are actually being batched. Recorded at exactly the same point as the numerator, so
+    /// a flush that faulted answers nobody and counts in neither.
+    /// </summary>
+    /// <remarks>
+    /// Named <c>batches</c> rather than <c>flushes</c> on purpose: it counts what
+    /// <see cref="MailboxBufferFlushedItems"/> counts the contents of, and a name one letter from <c>flushed</c>
+    /// carrying different units is a ratio silently misread as 1.00.
+    /// </remarks>
+    public static readonly Counter<long> MailboxBufferFlushedBatches = Meter.CreateCounter<long>(
+        "engine.mailbox_buffer.batches",
+        description: "Number of mailbox batch flushes — one per flush whatever its size, not per request — tagged by operation (mint, close, delivery). The denominator of engine.mailbox_buffer.flushed for the mean batch size"
     );
 
     /// <summary>
@@ -472,6 +564,42 @@ public static class Metrics
         static () => _finishedWorkflowsCount
     );
 
+    private static long _overdueOpenMailboxesCount;
+
+    /// <summary>
+    /// The cutoff is the deadline plus one <c>MailboxSweepInterval</c> — the grace the sweep's cadence entitles
+    /// it to. Zero is the only healthy value; alert on it staying above zero.
+    /// </summary>
+    public static readonly ObservableGauge<long> OverdueOpenMailboxes = Meter.CreateObservableGauge(
+        "engine.mailboxes.open.overdue",
+        static () => _overdueOpenMailboxesCount,
+        description: "Number of mailboxes still open more than one sweep cadence past their deadline (0 = healthy)"
+    );
+
+    private static long _mailboxMintBufferDepth;
+    private static long _mailboxCloseBufferDepth;
+    private static long _mailboxDeliveryBufferDepth;
+
+    /// <summary>
+    /// Gauge of mailbox requests waiting for a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// <c>close</c> or <c>delivery</c>). Read it as latency rather than as capacity — the queues wait rather than
+    /// refuse when full — and read only the sustained value: it is a coarse sample, written once per
+    /// <c>MetricsCollectionInterval</c> over a queue that fills and drains between flushes, so a zero is no
+    /// evidence the queue never filled and this cannot show whether requests are being batched at all.
+    /// <see cref="MailboxBufferFlushedItems"/> ÷ <see cref="MailboxBufferFlushedBatches"/> is what shows that.
+    /// </summary>
+    public static readonly ObservableGauge<long> MailboxBufferDepth = Meter.CreateObservableGauge(
+        "engine.mailbox_buffer.depth",
+        static () =>
+            new Measurement<long>[]
+            {
+                new(_mailboxMintBufferDepth, new KeyValuePair<string, object?>("operation", "mint")),
+                new(_mailboxCloseBufferDepth, new KeyValuePair<string, object?>("operation", "close")),
+                new(_mailboxDeliveryBufferDepth, new KeyValuePair<string, object?>("operation", "delivery")),
+            },
+        description: "Number of mailbox requests waiting for a batch flush, tagged by operation (mint, close, delivery)"
+    );
+
     private static long _availableInboxSlotsCount;
 
     /// <summary>
@@ -596,6 +724,19 @@ public static class Metrics
     /// Sets the value reported by <see cref="FinishedWorkflows"/>.
     /// </summary>
     public static void SetFinishedWorkflowsCount(long count) => _finishedWorkflowsCount = count;
+
+    /// <summary>Sets the value reported by <see cref="OverdueOpenMailboxes"/>.</summary>
+    public static void SetOverdueOpenMailboxesCount(long count) => _overdueOpenMailboxesCount = count;
+
+    /// <summary>
+    /// Sets the three values reported by <see cref="MailboxBufferDepth"/>.
+    /// </summary>
+    public static void SetMailboxBufferDepths(int mint, int close, int delivery)
+    {
+        _mailboxMintBufferDepth = mint;
+        _mailboxCloseBufferDepth = close;
+        _mailboxDeliveryBufferDepth = delivery;
+    }
 
     /// <summary>
     /// Sets the value reported by <see cref="AvailableInboxSlots"/>.

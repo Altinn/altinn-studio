@@ -98,11 +98,18 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
           id={`subform-${id}-table`}
           className={classes.subformTable}
         >
-          <Caption
-            id={`subform-${id}-caption`}
-            title={<Lang id={textResourceBindings?.title} />}
-            description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-          />
+          {textResourceBindings?.title && (
+            <Caption
+              id={`subform-${id}-caption`}
+              title={<Lang id={textResourceBindings.title} />}
+              description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+              helpText={
+                textResourceBindings.help
+                  ? { text: <Lang id={textResourceBindings.help} />, accessibleTitle: textResourceBindings.title }
+                  : undefined
+              }
+            />
+          )}
           {subformEntries.length > 0 && (
             <>
               <Table.Head id={`subform-${id}-table-body`}>

@@ -51,6 +51,12 @@ public class EngineWireContractTests
             typeof(AbandonWorkflowResponse),
             typeof(NudgeWorkflowResponse),
             typeof(NamespaceThrottleResponse),
+            // Mailbox mint/read/close — one response shape for all three
+            typeof(MailboxCreateRequest),
+            typeof(MailboxResponse),
+            // Mailbox delivery ingestion
+            typeof(MailboxDeliveryRequest),
+            typeof(MailboxDeliveryResponse),
             // AppCommand callback contract (owned by the engine host)
             typeof(Actor),
             typeof(AppCommandData),

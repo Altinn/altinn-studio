@@ -1,56 +1,55 @@
 import type { ReactElement } from 'react';
-import { StudioLink } from '@studio/components';
+import { Fragment } from 'react';
+import { StudioDropdown, StudioLink } from '@studio/components';
 import type { StudioProfileMenuGroup } from '@studio/components';
-import { DropdownMenu } from '@digdir/designsystemet-react';
 import classes from './Items.module.css';
 
 type ItemsProps = {
   items: StudioProfileMenuGroup[];
-  onClose: () => void;
 };
 
-export const Items = ({ items, onClose }: ItemsProps): ReactElement => {
+export const Items = ({ items }: ItemsProps): ReactElement => {
   return (
     <>
       {items.map((group, groupIndex) => (
-        <DropdownMenu.Group
-          key={groupIndex}
-          heading={group.name}
-          className={classes.dropDownMenuGroup}
-        >
-          {group.items.map((item) => {
-            const itemKey = `${groupIndex}-${item.itemName}`;
-            const { action } = item;
+        <Fragment key={groupIndex}>
+          <StudioDropdown.Heading>{group.name}</StudioDropdown.Heading>
+          <StudioDropdown.List className={classes.dropDownMenuGroup}>
+            {group.items.map((item) => {
+              const itemKey = `${groupIndex}-${item.itemName}`;
+              const { action } = item;
 
-            if (action.type === 'link') {
+              if (action.type === 'link') {
+                return (
+                  <StudioDropdown.Item key={itemKey}>
+                    <StudioDropdown.Button asChild>
+                      <StudioLink
+                        href={action.href}
+                        role='menuitem'
+                        target={action.openInNewTab ? '_blank' : undefined}
+                        rel={action.openInNewTab ? 'noopener noreferrer' : undefined}
+                      >
+                        {item.itemName}
+                      </StudioLink>
+                    </StudioDropdown.Button>
+                  </StudioDropdown.Item>
+                );
+              }
+
               return (
-                <DropdownMenu.Item key={itemKey} asChild>
-                  <StudioLink
-                    href={action.href}
-                    target={action.openInNewTab ? '_blank' : undefined}
-                    rel={action.openInNewTab ? 'noopener noreferrer' : undefined}
-                    onClick={onClose}
+                <StudioDropdown.Item key={itemKey}>
+                  <StudioDropdown.Button
+                    role='menuitem'
+                    onClick={action.onClick}
+                    className={item.isActive ? classes.active : undefined}
                   >
                     {item.itemName}
-                  </StudioLink>
-                </DropdownMenu.Item>
+                  </StudioDropdown.Button>
+                </StudioDropdown.Item>
               );
-            }
-
-            return (
-              <DropdownMenu.Item
-                key={itemKey}
-                onClick={() => {
-                  action.onClick();
-                  onClose();
-                }}
-                className={item.isActive ? classes.active : undefined}
-              >
-                {item.itemName}
-              </DropdownMenu.Item>
-            );
-          })}
-        </DropdownMenu.Group>
+            })}
+          </StudioDropdown.List>
+        </Fragment>
       ))}
     </>
   );

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
+import { LaptopIcon, MobileIcon, MobileSmallIcon, TabletIcon } from '@studio/icons';
 import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
@@ -48,7 +48,6 @@ export const EditGrid = <T extends ComponentType>({
     [ViewSize.Sm]: <MobileIcon />,
     [ViewSize.Md]: <TabletIcon />,
     [ViewSize.Lg]: <LaptopIcon />,
-    [ViewSize.Xl]: <MonitorIcon />,
   };
 
   return (

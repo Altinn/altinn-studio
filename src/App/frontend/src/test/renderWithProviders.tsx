@@ -705,7 +705,7 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     );
   };
 
-  async function formBoostrap(
+  async function formBootstrap(
     ...args: Parameters<typeof fetchFormBootstrapForInstance>
   ): Promise<FormBootstrapResponse> {
     const mock =
@@ -737,8 +737,8 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     initialPage,
     queries: {
       ...rest.queries,
-      fetchFormBootstrapForInstance: formBoostrap,
-      fetchFormBootstrapForStateless: formBoostrap,
+      fetchFormBootstrapForInstance: formBootstrap,
+      fetchFormBootstrapForStateless: formBootstrap,
     },
   }) as RenderGenericComponentReturnType<InInstance>;
 }

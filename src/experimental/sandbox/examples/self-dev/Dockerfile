@@ -28,6 +28,7 @@ RUN pacman -Syu --noconfirm --needed \
         rustup \
         strace \
         sudo \
+        tmux \
     && pacman -Scc --noconfirm \
     && rustup set profile minimal \
     && rustup default "${RUST_VERSION}" \
@@ -127,7 +128,7 @@ RUN mkdir -p "${COREPACK_HOME}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
 ARG CODEX_VERSION=0.147.0
-ARG CLAUDE_CODE_VERSION=2.1.233
+ARG CLAUDE_CODE_VERSION=2.1.239
 
 RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
@@ -146,6 +147,7 @@ RUN { getent group docker >/dev/null || groupadd --system docker; } \
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
+ENV DISABLE_AUTOUPDATER=1
 ENV PATH=/home/agent/.local/bin:${PATH}
 
 COPY tmpfiles.conf /usr/lib/tmpfiles.d/self-dev.conf

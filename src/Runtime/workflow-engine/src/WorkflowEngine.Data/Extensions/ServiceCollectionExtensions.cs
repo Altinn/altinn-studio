@@ -98,6 +98,7 @@ internal static class ServiceCollectionExtensions
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
             services.AddHostedService<DbMaintenanceService>();
+            services.AddHostedService<MailboxDeadlineService>();
 
             // Namespace failure-storm throttling (see the failure-throttling ADR). The view is a
             // singleton so the workflow handler can consume the same snapshot the sweep publishes.

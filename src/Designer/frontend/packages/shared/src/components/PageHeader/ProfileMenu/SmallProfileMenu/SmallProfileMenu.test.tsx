@@ -60,9 +60,13 @@ describe('SmallProfileMenu', () => {
     expect(getTriggerButton()).toBeInTheDocument();
   });
 
-  it('does not show menu items before the trigger is clicked', () => {
+  it('keeps the menu closed until the trigger is clicked', async () => {
+    const user = userEvent.setup();
     renderSmallMenu();
-    expect(screen.queryByText(textMock('dashboard.header_item_dashboard'))).not.toBeInTheDocument();
+
+    expect(getTriggerButton()).toHaveAttribute('aria-expanded', 'false');
+    await user.click(getTriggerButton());
+    expect(getTriggerButton()).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('shows the trigger profile text and menu items after opening the menu', async () => {
@@ -116,7 +120,7 @@ describe('SmallProfileMenu', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Skatteetaten' }));
 
     expect(mockMenuAction).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('menuitem', { name: 'Skatteetaten' })).not.toBeInTheDocument();
+    expect(getTriggerButton()).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('renders links with expected href and target attributes', async () => {

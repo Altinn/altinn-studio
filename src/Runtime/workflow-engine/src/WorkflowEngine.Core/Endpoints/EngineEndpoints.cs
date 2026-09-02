@@ -226,6 +226,100 @@ internal static class EngineEndpoints
             .WithSummary("Get collection")
             .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
 
+        var mailboxGroup = app.MapGroup("/api/v1/{namespace}/mailboxes").WithTags("Mailboxes");
+
+        mailboxGroup
+            .MapPost("", EngineRequestHandlers.MintMailbox)
+            .WithName("MintMailbox")
+            .WithSummary("Mint mailbox")
+            .WithDescription(
+                """
+                Mints a mailbox: a durable inbox that external messages are delivered into, addressed by the
+                engine-generated id this returns.
+
+                The caller supplies an idempotencyKey unique within the namespace, so a retried step replays
+                onto the same mailbox instead of forking a second one, and a required positive timeout from
+                which the engine stamps the mailbox's one absolute deadline (createdAt + timeout). An optional
+                collectionKey groups the mailbox under a workflow collection and scopes the open-mailboxes cap.
+                Both keys are limited to 200 characters and may not be empty or whitespace.
+
+                201 Created when this call minted the mailbox, 200 OK when the idempotency key had already
+                minted one (the existing mailbox is returned unchanged, even when the collection is at its cap),
+                400 Bad Request for a key that is empty or too long, or a timeout that is not positive or
+                exceeds the configured maximum, and 429 Too Many Requests when the collection already holds
+                the maximum number of open mailboxes.
+
+                That cap is a best-effort resource guard, not an exact bound: it is evaluated against the
+                snapshot the mint runs on, so mints in flight at the same instant can each see room and the
+                collection can end up slightly over. The overshoot is bounded by how many mints are in flight
+                together, and is deliberate — serializing every mint to make the guard exact would cost more
+                than the guard is worth.
+                """
+            );
+
+        mailboxGroup
+            .MapGet("/{mailboxId:guid}", EngineRequestHandlers.GetMailbox)
+            .WithName("GetMailbox")
+            .WithSummary("Get mailbox")
+            .WithDescription(
+                """
+                Gets a mailbox: its status and deadline, both log counters, and how many accepted deliveries
+                no receiver was ever enqueued for.
+
+                200 OK with the mailbox, 404 Not Found when no mailbox with that id exists in the namespace.
+                """
+            );
+
+        mailboxGroup
+            .MapDelete("/{mailboxId:guid}", EngineRequestHandlers.CloseMailbox)
+            .WithName("CloseMailbox")
+            .WithSummary("Close mailbox")
+            .WithDescription(
+                """
+                Closes a mailbox for deliveries. Terminal and idempotent: nothing reopens a mailbox, and a
+                repeat close reports the original disposedAt and disposedReason rather than overwriting them —
+                so does a close that lost the race to the mailbox's deadline.
+
+                202 Accepted when this call closed the mailbox, 200 OK when it was already closed (an
+                idempotent replay, reporting the original disposedAt and disposedReason), and 404 Not Found
+                when no mailbox with that id exists in the namespace.
+                """
+            );
+
+        mailboxGroup
+            .MapPost("/{mailboxId:guid}/deliveries", EngineRequestHandlers.DeliverToMailbox)
+            .WithName("DeliverToMailbox")
+            .WithSummary("Deliver to mailbox")
+            .WithDescription(
+                """
+                Delivers one message into a mailbox, appending it to the mailbox's log at the next gapless
+                position. The engine stores the payload verbatim and never parses it.
+
+                The caller supplies an idempotencyKey unique within the mailbox — pass the source's own
+                message id — so an at-least-once forwarder that sends the same message twice gets one
+                delivery at one position rather than two. The key is limited to 200 characters and may not
+                be empty or whitespace.
+
+                202 Accepted when this call appended the delivery (the assigned idx is returned), and
+                200 OK when the key had already delivered a message into this mailbox, returning it at the
+                position it has held since. Treat the two alike: both mean the message is durably held.
+
+                Acceptance is not consumption. A message with no receiver yet simply sits at its position
+                until one is enqueued for it, so an early delivery is first-class and there is no "too
+                early" answer.
+
+                404 Not Found when no mailbox with that id exists in the namespace, 409 Conflict when the
+                mailbox is closed — by request or at its deadline, and always meaning too late, so it can
+                be logged or dead-lettered without inspecting anything else — 413 when the payload exceeds
+                the configured cap, and 429 when the mailbox's log has reached its length cap.
+
+                A refusal stores nothing, so the idempotency key stays free: the same key may be offered
+                again, and a repeat of a refused delivery is refused identically. The converse holds too —
+                a delivery the mailbox accepted replays as 200 even after the mailbox has closed, because
+                the engine kept it and it is still waiting to be read.
+                """
+            );
+
         return app;
     }
 }
@@ -774,6 +868,78 @@ internal static class EngineRequestHandlers
         };
     }
 
+    public static async Task<Results<Created<MailboxResponse>, Ok<MailboxResponse>, ProblemHttpResult>> MintMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromBody] MailboxCreateRequest request,
+        [FromServices] IEngine engine,
+        [FromServices] IOptions<EngineSettings> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "mint-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.MintMailbox(ns, request, cancellationToken);
+
+        return result switch
+        {
+            MailboxMintResult.Minted minted => TypedResults.Created(
+                $"/api/v1/{Uri.EscapeDataString(ns)}/mailboxes/{minted.Mailbox.Id}",
+                minted.Mailbox
+            ),
+            MailboxMintResult.Existing existing => TypedResults.Ok(existing.Mailbox),
+            MailboxMintResult.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            MailboxMintResult.AtCollectionCapacity => TypedResults.Problem(
+                detail: $"Collection '{request.CollectionKey}' already holds the maximum of "
+                    + $"{settings.Value.MaxOpenMailboxesPerCollection} open mailboxes.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<Results<Ok<MailboxResponse>, NotFound>> GetMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var mailbox = await repository.GetMailbox(mailboxId, ns, cancellationToken);
+
+        return mailbox is null ? TypedResults.NotFound() : TypedResults.Ok(mailbox);
+    }
+
+    public static async Task<Results<Accepted<MailboxResponse>, Ok<MailboxResponse>, NotFound>> CloseMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "close-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.CloseMailbox(mailboxId, ns, cancellationToken);
+
+        return result switch
+        {
+            MailboxCloseResult.Closed closed => TypedResults.Accepted((string?)null, closed.Mailbox),
+            MailboxCloseResult.AlreadyClosed already => TypedResults.Ok(already.Mailbox),
+            MailboxCloseResult.NotFound => TypedResults.NotFound(),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     public static async Task<
         Results<Accepted<NamespaceThrottleResponse>, Ok<NamespaceThrottleResponse>, NotFound, Conflict<ProblemDetails>>
     > ClearThrottle(
@@ -802,6 +968,52 @@ internal static class EngineRequestHandlers
         };
     }
 
+    public static async Task<
+        Results<Accepted<MailboxDeliveryResponse>, Ok<MailboxDeliveryResponse>, NotFound, ProblemHttpResult>
+    > DeliverToMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromBody] MailboxDeliveryRequest request,
+        [FromServices] IEngine engine,
+        [FromServices] IOptions<EngineSettings> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "deliver-to-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.DeliverToMailbox(mailboxId, ns, request, cancellationToken);
+
+        return result switch
+        {
+            MailboxDeliveryResult.Accepted accepted => TypedResults.Accepted((string?)null, accepted.Delivery),
+            MailboxDeliveryResult.Duplicate duplicate => TypedResults.Ok(duplicate.Delivery),
+            MailboxDeliveryResult.NotFound => TypedResults.NotFound(),
+
+            // The reason and instant ride the detail: "closed at its deadline" is actionable, "409" is not.
+            MailboxDeliveryResult.Closed closed => TypedResults.Problem(
+                detail: $"Mailbox {mailboxId} was closed {DescribeDisposal(closed.Mailbox.DisposedReason)} "
+                    + $"at {closed.Mailbox.DisposedAt:O} and no longer accepts deliveries.",
+                statusCode: StatusCodes.Status409Conflict
+            ),
+            MailboxDeliveryResult.LogFull full => TypedResults.Problem(
+                detail: $"Mailbox {mailboxId} already holds {full.LogLength} deliveries, the maximum of "
+                    + $"{settings.Value.MaxMailboxLogLength}.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            ),
+            MailboxDeliveryResult.PayloadTooLarge tooLarge => TypedResults.Problem(
+                detail: tooLarge.Message,
+                statusCode: StatusCodes.Status413PayloadTooLarge
+            ),
+            MailboxDeliveryResult.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     private static ProblemDetails ThrottlingDisabledProblem() =>
         new()
         {
@@ -811,5 +1023,17 @@ internal static class EngineRequestHandlers
                 + "fetch ignores throttled_until entirely, so throttle overrides would be inert. "
                 + "Enable throttling (restart required) to use the breaker.",
             Status = StatusCodes.Status409Conflict,
+        };
+
+    /// <summary>Exhaustive on purpose: a new reason must fail loudly here.</summary>
+    private static string DescribeDisposal(MailboxDisposedReason? reason) =>
+        reason switch
+        {
+            MailboxDisposedReason.Request => "by request",
+            MailboxDisposedReason.Deadline => "at its deadline",
+
+            // The check constraint makes a disposed mailbox without a reason unrepresentable.
+            null => throw new UnreachableException("A closed mailbox always carries its disposal reason."),
+            _ => throw new UnreachableException($"Unknown mailbox disposal reason {reason}."),
         };
 }
