@@ -38,8 +38,9 @@ internal sealed class DbMaintenanceService(
     /// Anchoring at a random point inside the retention interval - rather than at
     /// <see cref="DateTimeOffset.MinValue"/>, which is immediately due - keeps a start from
     /// scheduling a full drain on top of the requests the fresh instance is about to serve, and
-    /// de-synchronizes the replicas of a rollout that all start at once. A sweep still happens
-    /// within one interval of startup.
+    /// de-synchronizes the replicas of a rollout that all start at once. The check is only evaluated
+    /// once per maintenance iteration, so the first sweep lands within one retention interval plus
+    /// one <see cref="EngineSettings.MaintenanceInterval"/> of startup.
     /// </summary>
     private DateTimeOffset? _lastRetentionRun;
 
