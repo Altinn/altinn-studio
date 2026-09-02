@@ -36,7 +36,6 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const isOrg = party.partyTypeName === PartyType.Organization;
-  const noAccess = party.onlyHierarchyElementWithNoAccess;
   const selectionState = getSelectionState(party, pendingPartyId);
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -120,7 +119,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId
   }
 
   return (
-    <div className={noAccess ? classes.partyPaperDisabled : classes.partyPaper}>
+    <div className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
       <Flex
         id={`party-${party.partyId}`}
         role={party.onlyHierarchyElementWithNoAccess ? undefined : 'button'}
@@ -129,8 +128,8 @@ export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId
         direction='row'
         alignItems='center'
         className={cn(classes.partyWrapper, {
-          [classes.partySelectable]: !noAccess && selectionState === 'selectable',
-          [classes.partyWrapperDisabled]: noAccess,
+          [classes.partySelectable]: !party.onlyHierarchyElementWithNoAccess && selectionState === 'selectable',
+          [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess,
           [classes.partySubmitting]: selectionState === 'submitting',
         })}
         onClick={!party.onlyHierarchyElementWithNoAccess ? (event) => onClickParty(party, event) : undefined}

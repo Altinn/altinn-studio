@@ -63,10 +63,7 @@ export const PartySelection = () => {
 
   const onSelectParty = (party: IParty) =>
     performProcess(party.partyId, async () => {
-      const result = await selectParty(party);
-      if (!result) {
-        return;
-      }
+      await selectParty(party);
       setUserHasSelectedParty(true);
       // await navigation, including running loaders, keeping the pressed state and the click guard active until the page swaps.
       await navigate('/');
