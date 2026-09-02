@@ -234,7 +234,10 @@ fn run() -> CommandResult<ExitCode> {
         Endpoint::Tcp(endpoint) => {
             config::warn_insecure_tcp(endpoint);
             let client = Client::for_tcp(endpoint.clone());
-            runtime.block_on(async move { execute(command, None, &client).await })
+            runtime.block_on(async move {
+                client.health().await?;
+                execute(command, None, &client).await
+            })
         }
     }
 }
