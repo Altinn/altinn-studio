@@ -550,6 +550,12 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    // The two throttle plans below assert the index and deliberately do not snapshot: this query's
+    // plan is not stable across environments — it has been seen to alternate between a bitmap scan
+    // and an index-only scan of the same index on one machine minutes apart, which is the same
+    // instability GetScheduledWorkflows' snapshot suffers from. The assertions state the invariant
+    // the index exists for; the full plan text states only which shape the planner chose today.
+
     [Fact]
     public async Task NamespaceWorkflowCounts_IsServedByTheNamespaceStatusIndex()
     {
@@ -569,7 +575,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_status_incomplete");
-        await VerifyJson(plan.GetRawText());
     }
 
     [Fact]
@@ -596,7 +601,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_status_incomplete");
-        await VerifyJson(plan.GetRawText());
     }
 
     // --- Seed data ---
