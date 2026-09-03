@@ -91,7 +91,9 @@ const consoleLoggers = ['error', 'warn', 'log'];
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
   let featureTogglesWere: typeof window.featureToggles;
+  let forceLayoutPropertiesValidationWas: typeof window.forceLayoutPropertiesValidation;
   beforeAll(() => {
+    forceLayoutPropertiesValidationWas = window.forceLayoutPropertiesValidation;
     window.forceLayoutPropertiesValidation = 'on';
     featureTogglesWere = window.featureToggles;
     window.featureToggles = { ...window.featureToggles, simpleTableEnabled: true };
@@ -117,7 +119,7 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterAll(() => {
-    window.forceLayoutPropertiesValidation = 'off';
+    window.forceLayoutPropertiesValidation = forceLayoutPropertiesValidationWas;
     window.featureToggles = featureTogglesWere;
     window.history.replaceState({}, '', pathnameWas);
     vi.restoreAllMocks();

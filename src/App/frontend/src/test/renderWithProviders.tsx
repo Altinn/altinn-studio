@@ -285,7 +285,7 @@ export function StatelessRouter({
   initialPage = 'FormLayout',
   alwaysRouteToChildren = false,
   query,
-}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId'>>) {
+}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId' | 'initialPath'>>) {
   const path = `/ttd/test/${initialPage}`;
   const router = createMemoryRouter(
     [
