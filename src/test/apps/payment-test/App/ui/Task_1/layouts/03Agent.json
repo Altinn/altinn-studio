@@ -33,7 +33,6 @@
         "id": "AgentInformation",
         "type": "Group",
         "children": [
-          "agentAccordion",
           "agentNumber",
           "agentName",
           "agentFirstName",

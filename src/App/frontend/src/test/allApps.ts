@@ -107,6 +107,19 @@ export class ExternalApp {
     return parseInt(version.split('.')[0], 10);
   }
 
+  getProcessTaskType(taskId: string): string | undefined {
+    const processPath = '/App/config/process/process.bpmn';
+    if (!this.fileExists(processPath)) {
+      return undefined;
+    }
+
+    const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const task = this.readFile(processPath).match(
+      new RegExp(`<bpmn:([A-Za-z]*Task|task)\\b[^>]*\\bid="${escapedTaskId}"[^>]*>([\\s\\S]*?)<\\/bpmn:\\1>`),
+    );
+    return task?.[2].match(/<altinn:taskType>([^<]+)<\/altinn:taskType>/)?.[1];
+  }
+
   isValid(): boolean {
     if (!this.dirExists('/App')) {
       return false;
@@ -384,7 +397,7 @@ export class ExternalAppUiFolder {
     const pageSettings = this.getSettings().pages;
     const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
 
-    let pathname = `/dummyOrg/dummyApp/instance/${instance.instanceOwner.partyId}/${instance.id}`;
+    let pathname = `/ttd/test/instance/${instance.id}`;
     let mainSet: ExternalAppUiFolder | undefined;
     let subformComponent: CompExternal<'Subform'> | undefined = undefined;
 
@@ -420,12 +433,15 @@ export class ExternalAppUiFolder {
 
   simulateProcessData(): IProcess {
     const taskId = this.getTaskId();
+    const taskType = this.app.getProcessTaskType(taskId);
     return getProcessDataMock((process) => {
       assert(process.currentTask?.elementId === 'Task_1');
       process.currentTask.elementId = taskId;
       process.currentTask.name = taskId;
+      process.currentTask.altinnTaskType = taskType ?? process.currentTask.altinnTaskType;
       assert(process.processTasks?.[0]?.elementId === 'Task_1');
       process.processTasks[0].elementId = taskId;
+      process.processTasks[0].altinnTaskType = taskType ?? process.processTasks[0].altinnTaskType;
     });
   }
 }
@@ -538,9 +554,9 @@ export function getAllApps(dir: string): ExternalApp[] {
  * Utility function used to get the path to a directory containing all known apps.
  * Only call this from unit tests, and be sure to stop the test if it fails.
  */
-export function ensureAppsDirIsSet(runVoidTest = true) {
+export function ensureAppsDirIsSet(runVoidTest = true, fallbackDir?: string) {
   const env = dotenv.config({ quiet: true });
-  const dir = env.parsed?.ALTINN_ALL_APPS_DIR;
+  const dir = env.parsed?.ALTINN_ALL_APPS_DIR ?? fallbackDir;
   if (!dir) {
     if (runVoidTest) {
       it('did not find any apps', () => {
