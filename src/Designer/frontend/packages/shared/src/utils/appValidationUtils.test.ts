@@ -137,5 +137,34 @@ describe('appValidationUtils', () => {
     it('returns undefined for unknown error keys', () => {
       expect(getFieldConfig('unknown_error_key')).toBeUndefined();
     });
+
+    it('returns task settings config for missing defaultDataType binding', () => {
+      expect(getFieldConfig('taskSettings[Task_1].defaultDataType.missing')).toEqual({
+        anchor: '',
+        translationKey: 'app_validation.task_settings.default_data_type.missing',
+        critical: false,
+        hrefPath: 'process-editor',
+        getTranslationParams: expect.any(Function),
+      });
+    });
+
+    it('maps task settings warning to process editor link', () => {
+      const result = mapErrorKeyErrorItems(
+        ['taskSettings[Task_1].defaultDataType.notFound.model'],
+        'warning',
+        'testOrg',
+        'testApp',
+        (key, params) => `${key}:${params?.taskId}:${params?.dataTypeId}`,
+      );
+
+      expect(result).toEqual([
+        {
+          errorKey: 'taskSettings[Task_1].defaultDataType.notFound.model',
+          search: 'currentTab=about&focus=',
+          fullHref: '/editor/testOrg/testApp/process-editor',
+          errorMessage: 'app_validation.task_settings.default_data_type.not_found:Task_1:model',
+        },
+      ]);
+    });
   });
 });

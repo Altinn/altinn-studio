@@ -4,6 +4,8 @@ export type FieldConfig = {
   anchor: string;
   translationKey: string;
   critical: boolean;
+  hrefPath?: string;
+  getTranslationParams?: (errorKey: string) => Record<string, string>;
 };
 
 export type ErrorItem = {
@@ -18,7 +20,7 @@ export const mapErrorKeyErrorItems = (
   severity: 'warning' | 'danger',
   org: string,
   app: string,
-  t: (key: string) => string,
+  t: (key: string, params?: Record<string, string>) => string,
 ): ErrorItem[] => {
   return errorKeys
     .filter((errorKey) => {
@@ -33,8 +35,12 @@ export const mapErrorKeyErrorItems = (
       const fieldConfig = getFieldConfig(errorKey);
       const anchor = fieldConfig?.anchor ?? '';
       const search = `currentTab=about&focus=${anchor}`;
-      const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?${search}`;
-      const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
+      const fullHref = fieldConfig?.hrefPath
+        ? `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/${fieldConfig.hrefPath}`
+        : `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?${search}`;
+      const errorMessage = fieldConfig?.getTranslationParams
+        ? t(fieldConfig.translationKey, fieldConfig.getTranslationParams(errorKey))
+        : t(fieldConfig?.translationKey ?? errorKey);
       return { errorKey, search, fullHref, errorMessage };
     });
 };
@@ -138,6 +144,24 @@ export const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
       anchor: `contactPoints-${index}`,
       translationKey: 'app_validation.app_metadata.contact_points.incomplete',
       critical: true,
+    };
+  }
+
+  const taskSettingsMatch = errorKey.match(
+    /^taskSettings\[([^\]]+)\]\.defaultDataType\.(missing|notFound)(?:\.(.+))?$/,
+  );
+  if (taskSettingsMatch) {
+    const [, taskId, issue, dataTypeId] = taskSettingsMatch;
+    return {
+      anchor: '',
+      translationKey:
+        issue === 'missing'
+          ? 'app_validation.task_settings.default_data_type.missing'
+          : 'app_validation.task_settings.default_data_type.not_found',
+      critical: false,
+      hrefPath: 'process-editor',
+      getTranslationParams: () =>
+        issue === 'missing' ? { taskId } : { taskId, dataTypeId: dataTypeId ?? '' },
     };
   }
 

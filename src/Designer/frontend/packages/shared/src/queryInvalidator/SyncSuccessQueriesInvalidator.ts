@@ -22,13 +22,19 @@ export class SyncSuccessQueriesInvalidator extends Queue {
 
   // Maps file names to their cache keys for invalidation upon sync success - can be extended to include more files
   private readonly fileNameCacheKeysMap: Record<string, Array<Array<QueryKey | string>>> = {
-    'applicationmetadata.json': [[QueryKey.AppMetadata, '[org]', '[app]']],
+    'applicationmetadata.json': [
+      [QueryKey.AppMetadata, '[org]', '[app]'],
+      [QueryKey.AppValidation, '[org]', '[app]'],
+    ],
     'layout-sets.json': [
       [QueryKey.LayoutSets, '[org]', '[app]'],
       [QueryKey.LayoutSetsExtended, '[org]', '[app]'],
     ],
     'policy.xml': [[QueryKey.AppPolicy, '[org]', '[app]']],
-    'Settings.json': [[QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]']],
+    'Settings.json': [
+      [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
+      [QueryKey.AppValidation, '[org]', '[app]'],
+    ],
   };
 
   // Maps folder names to their cache keys for invalidation upon sync success - can be extended to include more folders
