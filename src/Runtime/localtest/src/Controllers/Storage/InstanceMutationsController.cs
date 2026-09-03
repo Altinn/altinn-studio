@@ -67,8 +67,8 @@ public class InstanceMutationsController(
     /// responses use the instance snapshot returned by LocalTest's mutation repository.
     /// Delete-instance mutations check instance existence before delete authorization, so a missing
     /// instance returns 404 before a possible delete-policy 403. A complete confirmation is subject
-    /// to the <c>InstanceComplete</c> policy and is recorded for the calling organisation only; an
-    /// organisation that already has a confirmation keeps the one it has, and the remaining
+    /// to the <c>InstanceComplete</c> policy and is recorded for the calling organization only; an
+    /// organization that already has a confirmation keeps the one it has, and the remaining
     /// operations commit either way.
     /// </remarks>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
@@ -1173,7 +1173,6 @@ public class InstanceMutationsController(
             return null;
         }
 
-        // A caller without an organisation has no stakeholder to confirm as.
         if (User.GetOrg() is null)
         {
             return Forbid();

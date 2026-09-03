@@ -565,7 +565,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     /// <summary>
     /// Stages a complete confirmation for the service owner. Storage records it for the calling
-    /// organisation, which for an app is the instance's own org, so a confirmation this instance
+    /// organization, which for an app is the instance's own org, so a confirmation this instance
     /// already carries is not requested again: the mutation would bump the instance version for a
     /// write that changes nothing, and every fence held elsewhere with it. A confirmation added after
     /// this snapshot was captured is still requested, and Storage keeps that from duplicating.
@@ -845,7 +845,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             defaultAuthenticationMethod
         );
 
-        // Storage records the confirmation for the calling organisation, and only a service owner token
+        // Storage records the confirmation for the calling organization, and only a service owner token
         // carries one. A data type demanding another authentication method resolves the whole aggregate
         // to it, which would confirm as the wrong stakeholder or as none at all.
         if (
