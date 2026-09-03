@@ -11,7 +11,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, Mou
 use futures_util::StreamExt as _;
 use sandbox::terminal::{TerminalAttachOutcome, TerminalEvent, TerminalSize};
 #[cfg(unix)]
-use std::{fs::File, io::Read as _};
+use std::{ffi::OsStr, fs::File, io::Read as _, os::unix::ffi::OsStrExt as _, path::Path};
 use tokio::io::AsyncWriteExt as _;
 #[cfg(unix)]
 use tokio::io::unix::AsyncFd;
@@ -102,7 +102,13 @@ struct LocalEvents {
 #[cfg(unix)]
 impl LocalEvents {
     fn open() -> Result<Self, Error> {
-        let input = File::open("/dev/tty")?;
+        let terminal_path = rustix::termios::ttyname(std::io::stdin(), Vec::new())
+            .map_err(|error| Error::Session(format!("resolve terminal device for stdin: {error}")))?;
+        // Polling the /dev/tty alias with kqueue fails on macOS. Reopen the
+        // actual terminal device so making it nonblocking also stays local to us.
+        let terminal_path = Path::new(OsStr::from_bytes(terminal_path.to_bytes()));
+        let input = File::open(terminal_path)
+            .map_err(|error| Error::Session(format!("open terminal input {}: {error}", terminal_path.display())))?;
         let flags = rustix::fs::fcntl_getfl(&input).map_err(std::io::Error::from)?;
         rustix::fs::fcntl_setfl(&input, flags | rustix::fs::OFlags::NONBLOCK).map_err(std::io::Error::from)?;
         Ok(Self {
