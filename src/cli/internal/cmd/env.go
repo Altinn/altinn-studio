@@ -356,7 +356,7 @@ func (c *EnvCommand) runLocaltestUp(
 	if err != nil {
 		return fmt.Errorf("get status: %w", err)
 	}
-	if status.Running && !flags.devWorkflowEngine && !env.BuildsDevImages(ctx) {
+	if status.Running && !flags.devWorkflowEngine {
 		return envUpOutput{
 			Runtime:        runtimeLocaltest,
 			Running:        true,
