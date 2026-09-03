@@ -105,6 +105,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Keep subforms identifiable when running `studioctl app upgrade v9`.
 - Prefer the latest stable v9 app packages in `studioctl app upgrade v9`, falling back to the latest preview until a stable version is available.
 
+### Fixed
+
+- Remove the hidden 100-second cap on requests tunneled through the host bridge: `studioctl-server` left `HttpClient.Timeout` at its default, so any app request running longer — such as a workflow-engine service-task callback with a generous per-step `MaxExecutionTime` (e.g. long-running AI or external-system tasks) — was aborted at exactly 100s (the app saw 499/`TaskCanceledException`) and the step failed despite being within its budget. The bridge now relies on the tunnel's own per-request cancellation, matching how the workflow engine itself disables the client timeout so the step budget is the single source of truth.
+
 ## [0.1.0-preview.18] - 2026-07-24
 
 ### Added
