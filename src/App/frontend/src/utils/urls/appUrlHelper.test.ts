@@ -33,7 +33,7 @@ describe('Frontend urlHelper.ts', () => {
     });
     it('should return the expected url for getUpgradeAuthLevelUrl', () => {
       expect(getUpgradeAuthLevelUrl()).toBe(
-        'https://platform.local.altinn.cloud/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
+        'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
       );
     });
   });
@@ -56,68 +56,92 @@ describe('Frontend urlHelper.ts', () => {
       };
     };
     describe('util', () => {
-      it('should return the expected url for getUpgradeAuthLevelUrl', () => {
-        resetWindow();
-        expect(getUpgradeAuthLevelUrl()).toBe(
-          'https://platform.altinn.no/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
-        );
-      });
       it('changes the window location', () => {
         resetWindow();
         expect(window.location.href).toBe('https://ttd.apps.altinn.no/ttd/test');
         redirectToUpgrade();
         expect(window.location.href).toBe(
-          'https://platform.altinn.no/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
+          'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
         );
+      });
+
+      it('does not navigate when no step-up url is configured', () => {
+        resetWindow();
+        window.altinnAppGlobalData.platformFrontendSettings.upgradeAuthenticationLevelUrl = undefined;
+
+        redirectToUpgrade();
+
+        expect(window.location.href).toBe('https://ttd.apps.altinn.no/ttd/test');
       });
     });
     describe('getEnvironmentLoginUrl', () => {
+      const loginUrl = 'https://platform.tt02.altinn.no/authentication/api/v1/authentication';
+
       beforeEach(() => {
         resetWindow();
       });
-      it('should return correct url when oidc provider is "idporten" and host has 3 subdomains', () => {
-        const oidcProvider = 'idporten';
-        expect(getEnvironmentLoginUrl(oidcProvider)).toContain(
-          'https://platform.altinn.no/authentication/api/v1/authentication?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest&iss=idporten',
+
+      it('appends the oidc provider when the app specifies one', () => {
+        expect(getEnvironmentLoginUrl('idporten')).toEqual(
+          `${loginUrl}?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest&iss=idporten`,
         );
       });
 
-      it('should return correct url when oidc provider is "idporten" and host has 4 subdomains', () => {
-        const oidcProvider = 'idporten';
+      it.each([null, ''])('omits the oidc provider when it is %p', (oidcProvider) => {
         expect(getEnvironmentLoginUrl(oidcProvider)).toEqual(
-          'https://platform.altinn.no/authentication/api/v1/authentication?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest&iss=idporten',
+          `${loginUrl}?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest`,
         );
       });
 
-      it('should return correct url when oidc provider is null', () => {
-        const oidcProvider = null;
-        expect(getEnvironmentLoginUrl(oidcProvider)).toEqual(
-          'https://platform.altinn.no/authentication/api/v1/authentication?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest',
-        );
+      it('starts the query string when the configured url has none', () => {
+        window.altinnAppGlobalData.platformFrontendSettings.loginUrl = 'https://ny.altinn.no/logg-inn';
+
+        expect(getEnvironmentLoginUrl('idporten')).toEqual('https://ny.altinn.no/logg-inn?iss=idporten');
       });
 
-      it('should return correct url when oidc provider is ""', () => {
-        const oidcProvider = '';
-        expect(getEnvironmentLoginUrl(oidcProvider)).toEqual(
-          'https://platform.altinn.no/authentication/api/v1/authentication?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest',
-        );
-      });
+      it('returns undefined when no login url is configured', () => {
+        window.altinnAppGlobalData.platformFrontendSettings.loginUrl = undefined;
 
-      it('should throw error when host has too many subdomains', () => {
-        const oldWindowLocation = window.location;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (window as any).location;
-        // @ts-expect-error: can be removed when this issue is fixed: https://github.com/microsoft/TypeScript/issues/61335
-        window.location = {
-          ...oldWindowLocation,
-          origin: 'https://ttd.apps.altinn.no',
-          pathname: '/ttd/jesttest/',
-          host: 'https://ttd.apps.too.many.domains.altinn.no',
-          href: 'https://ttd.apps.altinn.no/ttd/test',
+        expect(getEnvironmentLoginUrl('idporten')).toBe(undefined);
+      });
+    });
+
+    describe('authentication urls come from the runtime config map', () => {
+      // Configures yt01 URLs while the window host says altinn.no: host derivation would answer
+      // platform.altinn.no, so every assertion below fails if the config is not what is read.
+      it('uses the configured urls, not ones derived from window.location.host', () => {
+        resetWindow();
+        window.altinnAppGlobalData.platformFrontendSettings = {
+          ...window.altinnAppGlobalData.platformFrontendSettings,
+          loginUrl: 'https://platform.yt01.altinn.cloud/authentication/api/v1/authentication?goto={goTo}',
+          upgradeAuthenticationLevelUrl:
+            'https://platform.yt01.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high',
         };
-        const oidcProvider = '';
 
-        expect(() => getEnvironmentLoginUrl(oidcProvider)).toThrow('Unknown domain');
+        expect(getEnvironmentLoginUrl(null)).toBe(
+          'https://platform.yt01.altinn.cloud/authentication/api/v1/authentication?goto=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest',
+        );
+        expect(getUpgradeAuthLevelUrl()).toBe(
+          'https://platform.yt01.altinn.cloud/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
+        );
+      });
+
+      // Guards the reason these are whole URL templates rather than a base URL: the platform can
+      // restructure its authentication routes and we change configuration, not the frontend bundle.
+      it('a changed route structure needs no frontend change', () => {
+        resetWindow();
+        window.altinnAppGlobalData.platformFrontendSettings = {
+          ...window.altinnAppGlobalData.platformFrontendSettings,
+          loginUrl: 'https://ny.altinn.no/logg-inn?tilbake={goTo}',
+          upgradeAuthenticationLevelUrl: 'https://ny.altinn.no/nivaaheving?tilbake={goTo}&nivaa=hoyt',
+        };
+
+        expect(getEnvironmentLoginUrl(null)).toBe(
+          'https://ny.altinn.no/logg-inn?tilbake=https%3A%2F%2Fttd.apps.altinn.no%2Fttd%2Ftest',
+        );
+        expect(getUpgradeAuthLevelUrl()).toBe(
+          'https://ny.altinn.no/nivaaheving?tilbake=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&nivaa=hoyt',
+        );
       });
     });
 

@@ -318,8 +318,8 @@ public class SourceControlService(
 
                     if (!remote.PushUrl.Equals(remoteUrl))
                     {
-                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                        // Requires adminstrator access to update files.
+                        // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+                        // Requires administrator access to update files.
                         repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                         remoteUrlUpdated = true;
                     }
@@ -386,8 +386,8 @@ public class SourceControlService(
 
         if (!remote.PushUrl.Equals(remoteUrl))
         {
-            // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-            // Requires adminstrator access to update files.
+            // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+            // Requires administrator access to update files.
             repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
         }
 
@@ -585,7 +585,7 @@ public class SourceControlService(
                             When = c.Author.When,
                         },
 
-                        Comitter = new Designer.Models.Signature
+                        Committer = new Designer.Models.Signature
                         {
                             Name = c.Committer.Name,
                             Email = c.Committer.Email,
@@ -1195,7 +1195,7 @@ public class SourceControlService(
     /// <summary>
     /// Returns the remote repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of the repository</param>
     /// <returns>The path to the remote repo</returns>
     private string FindRemoteRepoLocation(string org, string repository)

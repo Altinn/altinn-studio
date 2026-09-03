@@ -98,7 +98,7 @@
         <div class="form-group">
           <label for="prefill">
             Prefill xml (use this to copy all the values from a <a id="prefillLink" href="/LocalPlatformStorage/blobs/@(Model.TestApps?.FirstOrDefault()?.Text ?? "")">previous instance</a>)<br />
-            A token autenticated as <strong id="prefillOrg">@(Model.TestApps?.FirstOrDefault()?.Text?.Split("/").FirstOrDefault() ?? "")</strong> will be used for for instantiation
+            A token authenticated as <strong id="prefillOrg">@(Model.TestApps?.FirstOrDefault()?.Text?.Split("/").FirstOrDefault() ?? "")</strong> will be used for for instantiation
           </label>
           <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
         </div>

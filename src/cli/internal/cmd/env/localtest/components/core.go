@@ -11,7 +11,7 @@ import (
 
 const (
 	devImageTagLocaltest   = "localtest:dev"
-	buildCacheRefLocaltest = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
+	buildCacheRefLocaltest = "ghcr.io/altinn/altinn-studio/localtest-dev-cache:buildcache"
 
 	// LocaltestServicePort is the HTTP port used by the localtest container.
 	LocaltestServicePort = "5101"
@@ -26,13 +26,13 @@ func registerCoreComponents(manifest *Manifest, opts *Options) {
 
 func localtestImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.BuiltImage{
+		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile:  filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/localtest/Dockerfile")),
 			Build:       buildCacheOptions(buildCacheRefLocaltest),
 			Tag:         devImageTagLocaltest,
-		}
+		})
 	}
 	return &resource.PulledImage{
 		Enabled:    nil,

@@ -16,6 +16,22 @@
       "depNameTemplate": "grafana/k6",
       "versioningTemplate": "docker",
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Claude Code release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CLAUDE_CODE_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@anthropic-ai/claude-code"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Codex release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@openai/codex"
     }
   ],
   "separateMultipleMajor": true,
@@ -129,6 +145,15 @@
       "automerge": true
     },
     {
+      "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["@anthropic-ai/claude-code", "@openai/codex"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
       "matchFileNames": ["src/Runtime/localtest/**"],
       "additionalBranchPrefix": "localtest/",
       "commitMessageSuffix": " (localtest)"
@@ -203,7 +228,15 @@
       "description": "Manage experimental agent platform dependencies manually",
       "matchFileNames": ["src/experimental/**"],
       "enabled": false
+    },
+    {
+      "description": "Manage all Rust dependencies manually",
+      "matchManagers": ["cargo"],
+      "enabled": false
     }
   ],
-  "schedule": []
+  "schedule": ["* 7-15 * * 1-5"],
+  "updateNotScheduled": false,
+  "automergeSchedule": ["* 7-15 * * 1-5"],
+  "platformAutomerge": false
 }

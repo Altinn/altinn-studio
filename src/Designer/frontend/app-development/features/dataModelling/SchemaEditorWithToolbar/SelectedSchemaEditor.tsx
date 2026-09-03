@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSchemaQuery, usePrefillQuery } from '../../../hooks/queries';
 import { useSchemaMutation, usePrefillMutation } from '../../../hooks/mutations';
-import { ErrorMessage } from '@digdir/designsystemet-react';
-import { StudioCenter, StudioError, StudioPageSpinner, StudioParagraph } from '@studio/components';
+import {
+  StudioCenter,
+  StudioError,
+  StudioPageSpinner,
+  StudioParagraph,
+  StudioValidationMessage,
+} from '@studio/components';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
@@ -36,9 +41,9 @@ export const SelectedSchemaEditor = ({ modelPath }: SelectedSchemaEditorProps) =
           <StudioError>
             <StudioParagraph>{t('general.fetch_error_message')}</StudioParagraph>
             <StudioParagraph>{t('general.error_message_with_colon')}</StudioParagraph>
-            <ErrorMessage>
+            <StudioValidationMessage>
               {error.response?.data?.customErrorMessages[0] ?? error.message}
-            </ErrorMessage>
+            </StudioValidationMessage>
           </StudioError>
         </StudioCenter>
       );

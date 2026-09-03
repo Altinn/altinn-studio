@@ -50,6 +50,7 @@ def _as_trace(payload: dict[str, Any]) -> Trace:
     return {
         "id": payload["id"],
         "user_id": payload["userId"],
+        "environment": payload.get("environment") or "",
         "metadata": payload.get("metadata") or {},
     }
 

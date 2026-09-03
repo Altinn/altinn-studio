@@ -4,7 +4,10 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{mount::MountKindSet, network::NetworkEndpointCapabilities, root_filesystem::RootFilesystemModeSet};
+use crate::{
+    image::ImageOperationCapabilities, mount::MountKindSet, network::NetworkEndpointCapabilities,
+    root_filesystem::RootFilesystemModeSet,
+};
 
 /// Optional functionality that callers may require from a Sandbox implementation.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -86,6 +89,8 @@ pub struct SandboxCapabilities {
     features: SandboxFeatureSet,
     mount_kinds: MountKindSet,
     root_filesystem_modes: RootFilesystemModeSet,
+    prepared_image_export: ImageOperationCapabilities,
+    prepared_image_import: ImageOperationCapabilities,
     network_available: bool,
 }
 
@@ -94,12 +99,16 @@ impl SandboxCapabilities {
         features: SandboxFeatureSet,
         mount_kinds: MountKindSet,
         root_filesystem_modes: RootFilesystemModeSet,
+        prepared_image_export: ImageOperationCapabilities,
+        prepared_image_import: ImageOperationCapabilities,
         network_available: bool,
     ) -> Self {
         Self {
             features,
             mount_kinds,
             root_filesystem_modes,
+            prepared_image_export,
+            prepared_image_import,
             network_available,
         }
     }
@@ -116,10 +125,23 @@ impl SandboxCapabilities {
         &self.mount_kinds
     }
 
-    /// Returns root-filesystem materialization modes accepted during creation.
+    /// Returns root-filesystem modes accepted by both the Sandbox Backend and
+    /// the Image Backend's resolve operation.
     #[must_use]
     pub const fn root_filesystem_modes(&self) -> &RootFilesystemModeSet {
         &self.root_filesystem_modes
+    }
+
+    /// Returns prepared-image export support for this Platform.
+    #[must_use]
+    pub const fn prepared_image_export(&self) -> &ImageOperationCapabilities {
+        &self.prepared_image_export
+    }
+
+    /// Returns prepared-image import support for this Platform.
+    #[must_use]
+    pub const fn prepared_image_import(&self) -> &ImageOperationCapabilities {
+        &self.prepared_image_import
     }
 
     /// Reports whether the configured Network Backend can use this Provider.

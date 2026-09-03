@@ -6,8 +6,8 @@ use bytes::Bytes;
 use futures_core::Stream as _;
 use sandbox::{
     ByteQuantity, CpuQuantity, EnsureSandboxRequest, Error, OperationEvent, PendingOperation, Platform,
-    RetentionPolicy, RootFilesystem, SandboxEvent, SandboxFeature, SandboxName, SandboxPath, SandboxPhase,
-    SandboxResources, SandboxService, SandboxSpec,
+    RetentionPolicy, RootFilesystem, RootFilesystemMode, SandboxEvent, SandboxFeature, SandboxName, SandboxPath,
+    SandboxPhase, SandboxResources, SandboxService, SandboxSpec,
     execution::{ExecutionEvent, ExecutionSpec, ExitStatus, StartExecutionRequest},
     image::{self, ImageSource},
     memory,
@@ -23,7 +23,7 @@ fn spec() -> SandboxSpec {
             context: PathBuf::from("."),
             dockerfile: PathBuf::from("Dockerfile"),
         },
-        platform: Platform::new("linux", "amd64"),
+        platform: Platform::native("linux"),
         resources: resources("2", "1Gi", "4Gi"),
         init_system: sandbox::init::InitSystem::Backend,
         retention_policy: RetentionPolicy::Retain,
@@ -80,12 +80,14 @@ async fn component_errors_preserve_stable_kind_and_resource_identity() {
 
 #[tokio::test(flavor = "local")]
 async fn capabilities_describe_the_configured_consumer_surface() {
-    let platform = Platform::new("linux", "amd64");
+    let platform = Platform::native("linux");
     let without_network = SandboxService::new(Rc::new(memory::Provider::new()))
         .capabilities(&platform)
         .await
         .expect("Provider capabilities should be available");
     assert!(without_network.features().contains(SandboxFeature::Execution));
+    assert!(without_network.prepared_image_export().sources.iter().next().is_none());
+    assert!(without_network.prepared_image_import().sources.iter().next().is_none());
     assert!(!without_network.network_available());
 
     let with_network = SandboxService::new(Rc::new(memory::Provider::new())).with_network_backend(Rc::new(
@@ -98,6 +100,140 @@ async fn capabilities_describe_the_configured_consumer_surface() {
             .expect("compatible Network should be discoverable")
             .network_available()
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn memory_provider_rejects_prepared_image_transport_with_typed_errors() {
+    let service = SandboxService::new(Rc::new(memory::Provider::new()));
+    let spec = spec();
+    let request = image::ResolveRequest {
+        source: spec.image,
+        platform: spec.platform,
+        root_filesystem_mode: spec.resources.root_filesystem().mode(),
+    };
+
+    let export_error = service
+        .export_prepared_image(&request, std::path::Path::new("unused"))
+        .await
+        .expect_err("memory Image Backend should not export prepared images");
+    assert!(matches!(
+        export_error,
+        Error::UnsupportedImageOperation(image::ImageOperation::PreparedImageExport)
+    ));
+
+    let import_error = service
+        .import_prepared_image(&request, std::path::Path::new("unused"))
+        .await
+        .expect_err("memory Image Backend should not import prepared images");
+    assert!(matches!(
+        import_error,
+        Error::UnsupportedImageOperation(image::ImageOperation::PreparedImageImport)
+    ));
+}
+
+struct PreparedImageBackend {
+    prepared: image::PreparedImage,
+}
+
+impl image::ImageBackend for PreparedImageBackend {
+    fn capabilities<'a>(
+        &'a self,
+        _platform: &'a Platform,
+    ) -> sandbox::LocalFuture<'a, Result<image::ImageBackendCapabilities, Error>> {
+        Box::pin(async {
+            let operation = image::ImageOperationCapabilities::new(
+                [image::ImageSourceKind::Build].into(),
+                [RootFilesystemMode::Layered].into(),
+            );
+            Ok(image::ImageBackendCapabilities::new(
+                operation.clone(),
+                operation.clone(),
+                operation,
+            ))
+        })
+    }
+
+    fn resolve<'a>(&'a self, _request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
+        let image = self.prepared.image.clone();
+        PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
+            Box::pin(async move { Ok(image) })
+        })
+    }
+
+    fn export_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _destination: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        completed_prepared_image(self.prepared.clone())
+    }
+
+    fn import_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _source: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        completed_prepared_image(self.prepared.clone())
+    }
+}
+
+fn completed_prepared_image(prepared: image::PreparedImage) -> PendingOperation<'static, image::PreparedImage> {
+    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
+        Box::pin(async move { Ok(prepared) })
+    })
+}
+
+struct PreparedImageProvider {
+    sandbox_backend: memory::Provider,
+    image_backend: PreparedImageBackend,
+}
+
+impl sandbox::provider::SandboxProvider for PreparedImageProvider {
+    fn backend(&self) -> &dyn sandbox::backend::SandboxBackend {
+        &self.sandbox_backend
+    }
+
+    fn image_backend(&self) -> &dyn image::ImageBackend {
+        &self.image_backend
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn service_accepts_prepared_image_metadata_coherent_with_the_request() {
+    let spec = spec();
+    let request = image::ResolveRequest {
+        source: spec.image,
+        platform: spec.platform,
+        root_filesystem_mode: spec.resources.root_filesystem().mode(),
+    };
+    let prepared = image::PreparedImage {
+        image: image::ResolvedImage {
+            source: request.source.clone(),
+            platform: request.platform.clone(),
+            manifest_digest: "sha256:resolved-oci-manifest".into(),
+        },
+        root_filesystem_mode: request.root_filesystem_mode,
+        artifact_digest: "sha256:opaque-artifact".into(),
+        virtual_size_bytes: 4096,
+    };
+    let service = SandboxService::new(Rc::new(PreparedImageProvider {
+        sandbox_backend: memory::Provider::new(),
+        image_backend: PreparedImageBackend {
+            prepared: prepared.clone(),
+        },
+    }));
+
+    let exported = service
+        .export_prepared_image(&request, std::path::Path::new("unused"))
+        .await
+        .expect("coherent exported metadata should be accepted");
+    let imported = service
+        .import_prepared_image(&request, std::path::Path::new("unused"))
+        .await
+        .expect("coherent imported metadata should be accepted");
+
+    assert_eq!(exported, prepared);
+    assert_eq!(imported, prepared);
 }
 
 #[tokio::test(flavor = "local")]
@@ -286,6 +422,47 @@ async fn ensure_reconciles_mutable_resources() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn ensure_reconciles_environment_by_restarting_the_sandbox_and_network() {
+    let backend = Rc::new(memory::Provider::new());
+    let network = Rc::new(memory::NetworkBackend::for_endpoint(
+        "network-a",
+        NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+    ));
+    let service = SandboxService::new(backend).with_network_backend(network.clone());
+    let first_request = request().with_environment([("API_TOKEN".into(), "placeholder-one".into())]);
+    let first = service.ensure(&first_request).await.expect("first ensure");
+
+    let second_request = request().with_environment([("API_TOKEN".into(), "placeholder-two".into())]);
+    let updated = service.ensure(&second_request).await.expect("environment update");
+
+    assert_eq!(updated.id(), first.id());
+    assert_eq!(updated.snapshot().state, sandbox::SandboxState::Running);
+    assert_eq!(updated.snapshot().environment, second_request.environment().clone());
+    assert!(network.is_running(updated.id()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_rejects_invalid_environment_before_materialization() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend.clone());
+    let request = request().with_environment([("NOT-AN-ENV".into(), "placeholder".into())]);
+
+    let error = service
+        .ensure(&request)
+        .await
+        .expect_err("invalid environment should fail at the SDK boundary");
+
+    assert!(matches!(
+        error,
+        Error::Invalid {
+            field: "environment",
+            ..
+        }
+    ));
+    assert_eq!(backend.count(), 0);
+}
+
+#[tokio::test(flavor = "local")]
 async fn root_filesystem_mode_is_immutable() {
     let backend = Rc::new(memory::Provider::new());
     let service = SandboxService::new(backend);
@@ -398,6 +575,14 @@ async fn service_and_handle_expose_execution_and_volume_operations() {
     assert!(!output.status.success());
     assert_eq!(output.stdout, Bytes::from_static(b"output"));
     assert_eq!(output.stderr, Bytes::from_static(b"warning"));
+    assert_eq!(backend.execution_specs().len(), 1);
+    assert_eq!(
+        backend.execution_specs()[0].program(),
+        &sandbox::execution::Program::Command {
+            executable: SandboxPath::new("/usr/bin/example"),
+            args: vec!["--check".into()],
+        }
+    );
 
     let execution = sandbox
         .start_execution(StartExecutionRequest::new(ExecutionSpec::image_entrypoint()))
@@ -436,6 +621,45 @@ async fn service_and_handle_expose_execution_and_volume_operations() {
         poll_fn(|context| terminal.events.as_mut().poll_next(context)).await,
         Some(Ok(TerminalEvent::Started { process_id: Some(43) }))
     ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn memory_provider_matches_execution_responses_without_fifo_coupling() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend.clone());
+    let sandbox = service.ensure(&request()).await.expect("ensure");
+    backend.queue_execution_events_matching(
+        |spec| {
+            matches!(
+                spec.program(),
+                sandbox::execution::Program::Command { executable, .. }
+                    if executable.as_str() == "/usr/bin/matched"
+            )
+        },
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Exited(ExitStatus { code: 23 }),
+        ],
+    );
+
+    let unrelated = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/unrelated"),
+            Vec::<String>::new(),
+        ))
+        .await
+        .expect("unrelated Execution");
+    let matched = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/matched"),
+            Vec::<String>::new(),
+        ))
+        .await
+        .expect("matched Execution");
+
+    assert!(unrelated.status.success());
+    assert_eq!(matched.status.code, 23);
+    assert_eq!(backend.execution_specs().len(), 2);
 }
 
 #[tokio::test(flavor = "local")]
@@ -486,25 +710,63 @@ async fn ensure_rejects_an_unsupported_platform() {
     assert_eq!(backend.count(), 0);
 }
 
-struct IncompatibleImageResolver;
+struct IncompatibleImageBackend;
 
-impl image::Resolver for IncompatibleImageResolver {
+impl image::ImageBackend for IncompatibleImageBackend {
+    fn capabilities<'a>(
+        &'a self,
+        _platform: &'a Platform,
+    ) -> sandbox::LocalFuture<'a, Result<image::ImageBackendCapabilities, Error>> {
+        Box::pin(async {
+            Ok(image::ImageBackendCapabilities::new(
+                image::ImageOperationCapabilities::new(
+                    [image::ImageSourceKind::Build, image::ImageSourceKind::Reference].into(),
+                    [RootFilesystemMode::Layered].into(),
+                ),
+                image::ImageOperationCapabilities::default(),
+                image::ImageOperationCapabilities::default(),
+            ))
+        })
+    }
+
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
             Box::pin(async move {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
                     platform: Platform::new("windows", "amd64"),
-                    digest: "sha256:incompatible".into(),
+                    manifest_digest: "sha256:incompatible".into(),
                 })
             })
         })
     }
+
+    fn export_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _destination: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        unsupported_prepared_image(image::ImageOperation::PreparedImageExport)
+    }
+
+    fn import_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _source: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        unsupported_prepared_image(image::ImageOperation::PreparedImageImport)
+    }
+}
+
+fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
+    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
+        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
+    })
 }
 
 struct IncompatibleProvider {
     backend: memory::Provider,
-    resolver: IncompatibleImageResolver,
+    image_backend: IncompatibleImageBackend,
 }
 
 impl sandbox::provider::SandboxProvider for IncompatibleProvider {
@@ -512,16 +774,16 @@ impl sandbox::provider::SandboxProvider for IncompatibleProvider {
         &self.backend
     }
 
-    fn image_resolver(&self) -> &dyn image::Resolver {
-        &self.resolver
+    fn image_backend(&self) -> &dyn image::ImageBackend {
+        &self.image_backend
     }
 }
 
 #[tokio::test(flavor = "local")]
 async fn ensure_rejects_an_image_that_does_not_satisfy_the_requested_platform() {
     let provider = Rc::new(IncompatibleProvider {
-        backend: memory::Provider::with_platforms(Platform::new("linux", "amd64"), [Platform::new("windows", "amd64")]),
-        resolver: IncompatibleImageResolver,
+        backend: memory::Provider::with_platforms(Platform::native("linux"), [Platform::new("windows", "amd64")]),
+        image_backend: IncompatibleImageBackend,
     });
     let service = SandboxService::new(provider.clone());
 
@@ -535,9 +797,57 @@ async fn ensure_rejects_an_image_that_does_not_satisfy_the_requested_platform() 
 }
 
 #[tokio::test(flavor = "local")]
+async fn ensure_rejects_a_root_mode_the_image_backend_cannot_materialize() {
+    let provider = Rc::new(IncompatibleProvider {
+        backend: memory::Provider::new(),
+        image_backend: IncompatibleImageBackend,
+    });
+    let service = SandboxService::new(provider.clone());
+    let mut request = request();
+    request.spec_mut().resources = SandboxResources::new(
+        "2".parse::<CpuQuantity>().expect("test CPU should be valid"),
+        "1Gi".parse::<ByteQuantity>().expect("test memory should be valid"),
+        RootFilesystem::direct(
+            "4Gi"
+                .parse::<ByteQuantity>()
+                .expect("test root filesystem should be valid"),
+        ),
+    );
+
+    let capabilities = service
+        .capabilities(&request.spec().platform)
+        .await
+        .expect("Provider capabilities should be available");
+    assert!(
+        capabilities
+            .root_filesystem_modes()
+            .contains(RootFilesystemMode::Layered)
+    );
+    assert!(
+        !capabilities
+            .root_filesystem_modes()
+            .contains(RootFilesystemMode::Direct)
+    );
+
+    let error = service
+        .ensure(&request)
+        .await
+        .expect_err("Image Backend should reject direct materialization");
+
+    assert!(matches!(
+        error,
+        Error::UnsupportedImageRootFilesystemMode {
+            operation: image::ImageOperation::Resolve,
+            mode: RootFilesystemMode::Direct,
+        }
+    ));
+    assert_eq!(provider.backend.count(), 0);
+}
+
+#[tokio::test(flavor = "local")]
 async fn platform_is_immutable_after_materialization() {
-    let linux = Platform::new("linux", "amd64");
-    let windows = Platform::new("windows", "amd64");
+    let linux = Platform::native("linux");
+    let windows = Platform::native("windows");
     let backend = Rc::new(memory::Provider::with_platforms(linux.clone(), [windows.clone()]));
     let service = SandboxService::new(backend);
     let linux_request = request();

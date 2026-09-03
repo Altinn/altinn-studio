@@ -26,7 +26,7 @@
         "maxCount": 99999,
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
-          "add_button_full": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
+          "addButtonFull": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
         },
 
         "children": [
@@ -58,7 +58,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
           "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
-          "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
+          "addButtonFull": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
         "children": [
           "organisationLookup",
@@ -75,8 +75,8 @@
         "id": "organisationLookup",
         "type": "OrganizationLookup",
         "dataModelBindings": {
-          "organization_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
-          "organization_lookup_name": "StifterVirksomhet.Navn"
+          "orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "name": "StifterVirksomhet.Navn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
@@ -121,8 +121,8 @@
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "StifterPerson.Foedselsnummer",
-          "person_lookup_name": "StifterPerson.Etternavn"
+          "ssn": "StifterPerson.Foedselsnummer",
+          "fullName": "StifterPerson.Etternavn"
         },
         "textResourceBindings": {
           "title": "Stifter",
@@ -241,8 +241,8 @@
         "hidden": ["notEquals", ["component", "fullmektig-checkbox"], "Ja"],
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "StifterPerson.Fullmektig.Foedselsnummer",
-          "person_lookup_name": "StifterPerson.Fullmektig.Etternavn"
+          "ssn": "StifterPerson.Fullmektig.Foedselsnummer",
+          "fullName": "StifterPerson.Fullmektig.Etternavn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Group-xCsfYx.title"

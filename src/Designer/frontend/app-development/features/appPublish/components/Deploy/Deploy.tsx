@@ -3,9 +3,8 @@ import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
-import { StudioSpinner, StudioError } from '@studio/components';
+import { StudioSpinner, StudioError, StudioAlert } from '@studio/components';
 
 export interface DeployProps {
   appDeployedVersion: string;
@@ -47,7 +46,9 @@ export const Deploy = ({
       ? t(`general.production_environment_alt`).toLowerCase()
       : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
     return (
-      <Alert severity='info'>{t('app_deployment.missing_rights', { envTitle, orgName })}</Alert>
+      <StudioAlert data-color='info'>
+        {t('app_deployment.missing_rights', { envTitle, orgName })}
+      </StudioAlert>
     );
   }
 

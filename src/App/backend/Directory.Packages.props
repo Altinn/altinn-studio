@@ -75,7 +75,5 @@
   <ItemGroup>
     <PackageVersion Include="KS.Fiks.Arkiv.Models.V1" Version="1.0.10" />
     <PackageVersion Include="KS.Fiks.IO.Client" Version="6.1.2" />
-    <PackageVersion Include="Polly.Extensions" Version="8.6.6" />
-    <PackageVersion Include="Polly.Testing" Version="8.6.6" />
   </ItemGroup>
 </Project>

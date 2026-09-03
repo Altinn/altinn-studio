@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .container:has(:nth-child(3)) {
@@ -12,7 +12,7 @@
 .label {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
   font-weight: 500;
 }
 

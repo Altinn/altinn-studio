@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Fieldset } from '@digdir/designsystemet-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
-import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
-import { StudioSwitch } from '@studio/components';
+import type { AvailableAttachmentLists, InternalDataTypesFormat } from './types';
+import { StudioFieldset, StudioSwitch, StudioValidationMessage } from '@studio/components';
 
 type AttachmentListInternalFormatProps = {
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;
-  availableAttachments: AvailableAttachementLists;
+  availableAttachments: AvailableAttachmentLists;
   internalDataFormat: InternalDataTypesFormat;
   isTaskCustomReceipt: boolean;
   className?: string;
@@ -80,9 +79,8 @@ export const AttachmentListInternalFormat = ({
     : t('ux_editor.component_title.AttachmentList_error');
 
   return (
-    <Fieldset
+    <StudioFieldset
       legend={t('ux_editor.component_title.AttachmentList_legend')}
-      error={!isValid && errorMessage}
       className={className}
     >
       <StudioSwitch
@@ -104,7 +102,8 @@ export const AttachmentListInternalFormat = ({
         selectedDataTypes={ArrayUtils.intersection(selectedDataTypes, currentAvailableAttachments)}
         onChange={handleSelectedDataTypesChange}
       />
-    </Fieldset>
+      {!isValid && <StudioValidationMessage>{errorMessage}</StudioValidationMessage>}
+    </StudioFieldset>
   );
 };
 

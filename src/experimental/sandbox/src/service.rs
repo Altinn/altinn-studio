@@ -101,6 +101,25 @@ pub enum Error {
     /// A requested root filesystem mode is unavailable.
     #[error("unsupported Sandbox root filesystem mode: {0:?}")]
     UnsupportedRootFilesystemMode(crate::RootFilesystemMode),
+    /// An Image Backend operation is unavailable for the requested Platform.
+    #[error("unsupported Image operation: {0:?}")]
+    UnsupportedImageOperation(image::ImageOperation),
+    /// An Image Backend operation does not accept the requested OCI source form.
+    #[error("unsupported Image Source kind {source_kind:?} for operation {operation:?}")]
+    UnsupportedImageSourceKind {
+        /// Operation being requested.
+        operation: image::ImageOperation,
+        /// OCI source form rejected by the Image Backend.
+        source_kind: image::ImageSourceKind,
+    },
+    /// An Image Backend operation cannot materialize the requested root mode.
+    #[error("unsupported root filesystem mode {mode:?} for Image operation {operation:?}")]
+    UnsupportedImageRootFilesystemMode {
+        /// Operation being requested.
+        operation: image::ImageOperation,
+        /// Root filesystem mode rejected by the Image Backend.
+        mode: crate::RootFilesystemMode,
+    },
     /// A Sandbox Backend cannot materialize the requested Platform.
     #[error("unsupported Sandbox Platform: {0}")]
     UnsupportedPlatform(Platform),
@@ -227,6 +246,9 @@ impl Error {
             Self::UnsupportedFeature(_)
             | Self::UnsupportedMountKind(_)
             | Self::UnsupportedRootFilesystemMode(_)
+            | Self::UnsupportedImageOperation(_)
+            | Self::UnsupportedImageSourceKind { .. }
+            | Self::UnsupportedImageRootFilesystemMode { .. }
             | Self::UnsupportedPlatform(_)
             | Self::UnsupportedResourceValue { .. }
             | Self::UnsupportedResourceChange { .. }
@@ -323,6 +345,8 @@ pub struct EnsureSandboxRequest {
     spec: SandboxSpec,
     /// Attachments contributed by the caller or a higher platform layer.
     mounts: Vec<Mount>,
+    /// Non-secret environment contributed by the caller or a higher platform layer.
+    environment: std::collections::BTreeMap<String, String>,
     /// Optional functionality required from the selected Sandbox Backend.
     required_features: SandboxFeatureSet,
 }
@@ -335,6 +359,7 @@ impl EnsureSandboxRequest {
             name,
             spec,
             mounts: Vec::new(),
+            environment: std::collections::BTreeMap::new(),
             required_features: SandboxFeatureSet::new(),
         }
     }
@@ -343,6 +368,13 @@ impl EnsureSandboxRequest {
     #[must_use]
     pub fn with_mounts(mut self, mounts: impl IntoIterator<Item = Mount>) -> Self {
         self.mounts = mounts.into_iter().collect();
+        self
+    }
+
+    /// Adds non-secret environment inherited by image init and Sandbox Executions.
+    #[must_use]
+    pub fn with_environment(mut self, environment: impl IntoIterator<Item = (String, String)>) -> Self {
+        self.environment.extend(environment);
         self
     }
 
@@ -375,6 +407,12 @@ impl EnsureSandboxRequest {
     #[must_use]
     pub fn mounts(&self) -> &[Mount] {
         &self.mounts
+    }
+
+    /// Returns the desired non-secret Sandbox environment.
+    #[must_use]
+    pub const fn environment(&self) -> &std::collections::BTreeMap<String, String> {
+        &self.environment
     }
 
     /// Returns explicit optional Feature requirements.
@@ -427,6 +465,7 @@ impl SandboxService {
     /// configured Network Backend cannot use any offered endpoint.
     pub async fn capabilities(&self, platform: &Platform) -> Result<SandboxCapabilities, Error> {
         let capabilities = self.backend_capabilities(platform).await?;
+        let image_capabilities = self.image_backend_capabilities(platform).await?;
         let network_available = match &self.network_backend {
             Some(network) => {
                 let backend_id = network.id();
@@ -437,10 +476,19 @@ impl SandboxService {
             }
             None => false,
         };
+        let root_filesystem_modes = if image_capabilities.resolve.is_available() {
+            capabilities
+                .root_filesystems
+                .intersection(&image_capabilities.resolve.root_filesystem_modes)
+        } else {
+            crate::RootFilesystemModeSet::default()
+        };
         Ok(SandboxCapabilities::new(
             capabilities.features,
             capabilities.mounts,
-            capabilities.root_filesystems,
+            root_filesystem_modes,
+            image_capabilities.prepared_image_export,
+            image_capabilities.prepared_image_import,
             network_available,
         ))
     }
@@ -450,6 +498,14 @@ impl SandboxService {
             .capabilities(platform)
             .await
             .map_err(|error| Error::component("discover Sandbox capabilities", error))
+    }
+
+    async fn image_backend_capabilities(&self, platform: &Platform) -> Result<image::ImageBackendCapabilities, Error> {
+        self.provider
+            .image_backend()
+            .capabilities(platform)
+            .await
+            .map_err(|error| Error::component("discover Image capabilities", error))
     }
 
     /// Attaches every newly materialized Sandbox to this Network Backend.
@@ -473,6 +529,54 @@ impl SandboxService {
         PendingOperation::with_events(|events| Box::pin(async move { self.ensure_inner(request, &events).await }))
     }
 
+    /// Exports a prepared Image into an opaque Provider-owned artifact.
+    #[must_use]
+    pub fn export_prepared_image<'a>(
+        &'a self,
+        request: &'a image::ResolveRequest,
+        destination: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        PendingOperation::with_events(|events| {
+            Box::pin(async move {
+                request.validate()?;
+                self.require_image_operation(image::ImageOperation::PreparedImageExport, request)
+                    .await?;
+                let prepared = self
+                    .provider
+                    .image_backend()
+                    .export_prepared_image(request, destination)
+                    .forward(&events)
+                    .await?;
+                prepared.validate_for(request)?;
+                Ok(prepared)
+            })
+        })
+    }
+
+    /// Imports a prepared Image into this Provider's materialization domain.
+    #[must_use]
+    pub fn import_prepared_image<'a>(
+        &'a self,
+        request: &'a image::ResolveRequest,
+        source: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        PendingOperation::with_events(|events| {
+            Box::pin(async move {
+                request.validate()?;
+                self.require_image_operation(image::ImageOperation::PreparedImageImport, request)
+                    .await?;
+                let prepared = self
+                    .provider
+                    .image_backend()
+                    .import_prepared_image(request, source)
+                    .forward(&events)
+                    .await?;
+                prepared.validate_for(request)?;
+                Ok(prepared)
+            })
+        })
+    }
+
     async fn ensure_inner(
         &self,
         request: &EnsureSandboxRequest,
@@ -491,6 +595,7 @@ impl SandboxService {
         let started = Instant::now();
         events.phase_started(SandboxPhase::Validate).await;
         request.spec.validate()?;
+        validate_environment(&request.environment)?;
         events
             .phase_completed(SandboxPhase::Validate, PhaseOutcome::Completed, started.elapsed())
             .await;
@@ -523,6 +628,7 @@ impl SandboxService {
                 if sandbox.network != network {
                     return Err(Error::Immutable("network"));
                 }
+                let sandbox = self.ensure_environment(sandbox, &request.environment, events).await?;
                 let sandbox = self.ensure_resources(sandbox, request.spec.resources, events).await?;
                 self.ensure_running(sandbox, events).await
             }
@@ -532,28 +638,7 @@ impl SandboxService {
                     .await;
                 self.require_backend_features_observed(&request.spec.platform, request, events)
                     .await?;
-                let started = Instant::now();
-                events.phase_started(SandboxPhase::ImageResolve).await;
-                let image = self
-                    .provider
-                    .image_resolver()
-                    .resolve(&image::ResolveRequest {
-                        source: request.spec.image.clone(),
-                        platform: request.spec.platform.clone(),
-                    })
-                    .forward(events)
-                    .await
-                    .map_err(|error| Error::component("resolve Sandbox Image", error))?;
-                image.validate()?;
-                if !image.platform.satisfies(&request.spec.platform) {
-                    return Err(Error::ImagePlatformMismatch {
-                        requested: Box::new(request.spec.platform.clone()),
-                        actual: Box::new(image.platform),
-                    });
-                }
-                events
-                    .phase_completed(SandboxPhase::ImageResolve, PhaseOutcome::Completed, started.elapsed())
-                    .await;
+                let image = self.resolve_image(request, events).await?;
                 let network = self
                     .require_backend_features_observed(&image.platform, request, events)
                     .await?;
@@ -569,6 +654,7 @@ impl SandboxService {
                         resources: request.spec.resources,
                         init_system: request.spec.init_system,
                         mounts: request.mounts.clone(),
+                        environment: request.environment.clone(),
                         network,
                     })
                     .forward(events)
@@ -589,6 +675,37 @@ impl SandboxService {
         }
     }
 
+    async fn resolve_image(
+        &self,
+        request: &EnsureSandboxRequest,
+        events: &SandboxEvents,
+    ) -> Result<image::ResolvedImage, Error> {
+        let started = Instant::now();
+        events.phase_started(SandboxPhase::ImageResolve).await;
+        let image = self
+            .provider
+            .image_backend()
+            .resolve(&image::ResolveRequest {
+                source: request.spec.image.clone(),
+                platform: request.spec.platform.clone(),
+                root_filesystem_mode: request.spec.resources.root_filesystem().mode(),
+            })
+            .forward(events)
+            .await
+            .map_err(|error| Error::component("resolve Sandbox Image", error))?;
+        image.validate()?;
+        if !image.platform.satisfies(&request.spec.platform) {
+            return Err(Error::ImagePlatformMismatch {
+                requested: Box::new(request.spec.platform.clone()),
+                actual: Box::new(image.platform),
+            });
+        }
+        events
+            .phase_completed(SandboxPhase::ImageResolve, PhaseOutcome::Completed, started.elapsed())
+            .await;
+        Ok(image)
+    }
+
     async fn ensure_resources(
         &self,
         sandbox: Sandbox,
@@ -606,6 +723,43 @@ impl SandboxService {
                 .forward(events)
                 .await
                 .map_err(|error| Error::component("update Sandbox resources", error))?;
+            (sandbox, PhaseOutcome::Completed)
+        };
+        events
+            .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
+            .await;
+        Ok(sandbox)
+    }
+
+    async fn ensure_environment(
+        &self,
+        sandbox: Sandbox,
+        environment: &std::collections::BTreeMap<String, String>,
+        events: &SandboxEvents,
+    ) -> Result<Sandbox, Error> {
+        let started = Instant::now();
+        events.phase_started(SandboxPhase::SandboxUpdate).await;
+        let (sandbox, outcome) = if &sandbox.environment == environment {
+            (sandbox, PhaseOutcome::Reused)
+        } else {
+            if sandbox.state != SandboxState::Stopped {
+                self.backend()
+                    .stop(&sandbox.id)
+                    .await
+                    .map_err(|error| Error::component("stop Sandbox for environment update", error))?;
+                if let Some(network_backend) = self.network_backend_for(&sandbox)? {
+                    network_backend
+                        .stop(&sandbox.id)
+                        .await
+                        .map_err(|error| Error::component("stop Sandbox Network for environment update", error))?;
+                }
+            }
+            let sandbox = self
+                .backend()
+                .update_environment(&sandbox.id, environment.clone())
+                .forward(events)
+                .await
+                .map_err(|error| Error::component("update Sandbox environment", error))?;
             (sandbox, PhaseOutcome::Completed)
         };
         events
@@ -653,6 +807,15 @@ impl SandboxService {
         if !capabilities.root_filesystems.contains(root_filesystem_mode) {
             return Err(Error::UnsupportedRootFilesystemMode(root_filesystem_mode));
         }
+        self.require_image_operation(
+            image::ImageOperation::Resolve,
+            &image::ResolveRequest {
+                source: request.spec.image.clone(),
+                platform: platform.clone(),
+                root_filesystem_mode,
+            },
+        )
+        .await?;
         let Some(network_backend) = &self.network_backend else {
             return Ok(None);
         };
@@ -669,6 +832,39 @@ impl SandboxService {
         }))
     }
 
+    async fn require_image_operation(
+        &self,
+        operation: image::ImageOperation,
+        request: &image::ResolveRequest,
+    ) -> Result<(), Error> {
+        let capabilities = self.image_backend_capabilities(&request.platform).await?;
+        let operation_capabilities = match operation {
+            image::ImageOperation::Resolve => &capabilities.resolve,
+            image::ImageOperation::PreparedImageExport => &capabilities.prepared_image_export,
+            image::ImageOperation::PreparedImageImport => &capabilities.prepared_image_import,
+        };
+        if !operation_capabilities.is_available() {
+            return Err(Error::UnsupportedImageOperation(operation));
+        }
+        let source = request.source.kind();
+        if !operation_capabilities.sources.contains(source) {
+            return Err(Error::UnsupportedImageSourceKind {
+                operation,
+                source_kind: source,
+            });
+        }
+        if !operation_capabilities
+            .root_filesystem_modes
+            .contains(request.root_filesystem_mode)
+        {
+            return Err(Error::UnsupportedImageRootFilesystemMode {
+                operation,
+                mode: request.root_filesystem_mode,
+            });
+        }
+        Ok(())
+    }
+
     /// Returns the materialized Sandbox for a stable name.
     ///
     /// # Errors
@@ -679,6 +875,28 @@ impl SandboxService {
             .find(name)
             .await
             .map_err(|error| Error::component("find Sandbox", error))
+    }
+
+    /// Opens an effect-free Handle for an already materialized Sandbox.
+    ///
+    /// This never creates, starts, updates, or reconnects the Sandbox. Callers
+    /// that own only in-Sandbox effects use it after a lifecycle owner has
+    /// persisted the exact Sandbox identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Sandbox does not exist or cannot be inspected.
+    pub async fn open(&self, id: &crate::SandboxId, retention_policy: RetentionPolicy) -> Result<SandboxHandle, Error> {
+        let sandbox = self
+            .backend()
+            .inspect(id)
+            .await
+            .map_err(|error| Error::component("inspect Sandbox", error))?;
+        Ok(SandboxHandle {
+            service: self.clone(),
+            sandbox,
+            retention_policy,
+        })
     }
 
     /// Stops and deletes a named Sandbox if it exists.
@@ -844,6 +1062,22 @@ impl SandboxService {
     pub async fn delete_volume(&self, id: &volume::VolumeId) -> Result<(), Error> {
         self.backend().delete_volume(id).await
     }
+}
+
+fn validate_environment(environment: &std::collections::BTreeMap<String, String>) -> Result<(), Error> {
+    for (name, value) in environment {
+        let valid_name = !name.is_empty()
+            && name.bytes().enumerate().all(|(index, byte)| {
+                byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit())
+            });
+        if !valid_name || value.contains('\0') {
+            return Err(Error::invalid(
+                "environment",
+                "names must be portable environment variables and values must not contain NUL",
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// A ready Sandbox and the operations scoped to its immutable lifecycle ID.

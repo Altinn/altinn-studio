@@ -31,7 +31,7 @@ const fingerprint = (wf) => {
     const rel = (/** @type {import('../core/state.js').WorkflowRelation[] | undefined} */ rels) =>
         rels?.map((r) => r.status).join('.') ?? '';
     return (
-        `${wf.status}|${wf.steps.map((s) => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}` +
+        `${wf.status}|${wf.steps.map((s) => `${s.status}:${s.retryCount}:${s.deferCount}:${s.backoffUntil || ''}`).join(',')}` +
         `|${rel(wf.dependsOn)}|${rel(wf.dependents)}|${rel(wf.links)}`
     );
 };

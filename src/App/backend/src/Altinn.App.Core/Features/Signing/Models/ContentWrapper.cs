@@ -7,7 +7,7 @@ internal record ContentWrapper
 {
     internal required CorrespondenceContent CorrespondenceContent { get; init; }
     internal required string SendersReference { get; init; }
-    internal OrganisationOrPersonIdentifier? Recipient { get; init; }
+    internal OrganizationOrPersonIdentifier? Recipient { get; init; }
     internal NotificationChoice? NotificationChoice { get; init; }
     internal Notification? Notification { get; init; }
     internal Notification? ReminderNotification { get; init; }

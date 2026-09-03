@@ -59,6 +59,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
     assert_provisioning_progress(&events);
     assert_eq!(sandbox.state, SandboxState::Running);
     assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_nested_container_networking(backend.as_ref(), &sandbox).await;
 
     sandbox = assert_resource_update_and_root_growth(backend.as_ref(), &service, &mut request, sandbox).await;
 
@@ -109,6 +110,34 @@ async fn assert_direct_root_filesystem(backend: &MicrosandboxProvider, sandbox: 
     )
     .await;
     assert_eq!(output.stdout.as_ref(), b"ext4\n");
+}
+
+async fn assert_nested_container_networking(backend: &MicrosandboxProvider, sandbox: &Sandbox) {
+    let output = run(
+        backend,
+        &sandbox.id,
+        shell(
+            r"set -eu
+cleanup() {
+    iptables -t nat -F SBX_KUBE_PROXY_TEST 2>/dev/null || true
+    iptables -t nat -X SBX_KUBE_PROXY_TEST 2>/dev/null || true
+    nft delete table ip sandbox_test 2>/dev/null || true
+}
+trap cleanup EXIT
+iptables -t nat -N SBX_KUBE_PROXY_TEST
+iptables -t nat -A SBX_KUBE_PROXY_TEST -m statistic --mode random --probability 0.5 -j RETURN
+nft add table ip sandbox_test
+nft add chain ip sandbox_test service
+nft add rule ip sandbox_test service meta mark set numgen random mod 2
+",
+        ),
+    )
+    .await;
+    assert!(
+        output.status.success(),
+        "nested container networking kernel probes failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 async fn assert_resource_update_and_root_growth(

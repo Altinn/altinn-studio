@@ -76,13 +76,29 @@ describe('altinnParty', () => {
     });
   });
 
+  it('should mark the selected party as busy and block the others', async () => {
+    await render({
+      showSubUnits: true,
+      party: partyWithChildParties,
+      pendingPartyId: partyWithChildParties.partyId,
+    });
+
+    const wrapper = screen.getByRole('button', { name: /ola privatperson/i });
+    expect(wrapper).toHaveAttribute('aria-busy', 'true');
+    expect(wrapper).toHaveAttribute('aria-disabled', 'false');
+
+    const subUnit = screen.getByRole('button', { name: /child party 1/i });
+    expect(subUnit).toHaveAttribute('aria-busy', 'false');
+    expect(subUnit).toHaveAttribute('aria-disabled', 'true');
+  });
+
   describe('should render with correct icon based on what kind of party it is', () => {
     it('should render with person icon if party is a person', async () => {
       await render();
       expect(screen.getByTestId('person-icon')).toBeVisible();
     });
 
-    it('should render with building icon if party is a organisation', async () => {
+    it('should render with building icon if party is a organization', async () => {
       await render({
         party: {
           ...getPartyMock(),

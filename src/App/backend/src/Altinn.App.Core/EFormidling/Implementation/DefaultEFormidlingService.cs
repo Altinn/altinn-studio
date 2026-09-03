@@ -197,7 +197,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         {
             Identifier = new Identifier
             {
-                // 0192 prefix for all Norwegian organisations.
+                // 0192 prefix for all Norwegian organizations.
                 Value = $"0192:{_appSettings.EFormidlingSender}",
                 Authority = "iso6523-actorid-upis",
             },
@@ -304,7 +304,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     /// Set when resuming a message created by an earlier attempt, where re-uploading an attachment
     /// that already exists may be rejected. Known blind spot: a <see cref="PlatformHttpException"/>
     /// here cannot be told apart from a transient failure, so a resume could in principle proceed to
-    /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behaviour is
+    /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behavior is
     /// unverified. Hence the loud warning per skipped attachment rather than silence.
     /// </param>
     /// <param name="cancellationToken">Checked before each attachment; see the caller's remarks on why abandoning here is safe.</param>

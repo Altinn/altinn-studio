@@ -203,6 +203,7 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
         Assert.Contains("InternalServerError", result.Message, StringComparison.Ordinal);
+        Assert.Equal(500, result.HttpStatusCode);
     }
 
     [Theory]
@@ -225,6 +226,7 @@ public class AppCommandExecutionTests
         var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
+        Assert.Equal((int)statusCode, result.HttpStatusCode);
     }
 
     [Theory]
@@ -250,6 +252,7 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("client error", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal((int)statusCode, result.HttpStatusCode);
     }
 
     // --- StateOut handling ---
@@ -317,6 +320,9 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("invalid response body", result.Message, StringComparison.OrdinalIgnoreCase);
+        // Only failure-classifying HTTP branches carry a status code; this is a 2xx response with a
+        // bad body, so the error is not an HTTP transport failure and the code stays null.
+        Assert.Null(result.HttpStatusCode);
     }
 
     // --- StateIn / payload completeness ---

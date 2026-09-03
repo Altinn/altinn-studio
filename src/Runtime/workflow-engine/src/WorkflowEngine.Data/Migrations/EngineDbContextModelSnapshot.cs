@@ -18,7 +18,7 @@ namespace WorkflowEngine.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("engine")
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -54,6 +54,216 @@ namespace WorkflowEngine.Data.Migrations
                         .HasDatabaseName("ix_idempotency_keys_created_at");
 
                     b.ToTable("idempotency_keys", "engine");
+                });
+
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxDeliveryEntity", b =>
+                {
+                    b.Property<Guid>("MailboxId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mailbox_id");
+
+                    b.Property<long>("Idx")
+                        .HasColumnType("bigint")
+                        .HasColumnName("idx");
+
+                    b.Property<DateTimeOffset>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("idempotency_key");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("payload");
+
+                    b.HasKey("MailboxId", "Idx")
+                        .HasName("pk_mailbox_deliveries");
+
+                    b.HasIndex("MailboxId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_mailbox_deliveries_mailbox_id_idempotency_key");
+
+                    b.ToTable("mailbox_deliveries", "engine");
+                });
+
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CollectionKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("collection_key");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("Deadline")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deadline");
+
+                    b.Property<DateTimeOffset?>("DisposedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("disposed_at");
+
+                    b.Property<string>("DisposedReason")
+                        .HasColumnType("text")
+                        .HasColumnName("disposed_reason");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("idempotency_key");
+
+                    b.Property<string>("Namespace")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("namespace");
+
+                    b.Property<long>("NextIdx")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("next_idx");
+
+                    b.Property<long>("NextSeq")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("next_seq");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("open")
+                        .HasColumnName("status");
+
+                    b.Property<TimeSpan>("Timeout")
+                        .HasColumnType("interval")
+                        .HasColumnName("timeout");
+
+                    b.HasKey("Id")
+                        .HasName("pk_mailboxes");
+
+                    b.HasIndex("Deadline")
+                        .HasDatabaseName("ix_mailboxes_deadline_open")
+                        .HasFilter("status = 'open'");
+
+                    b.HasIndex("DisposedAt")
+                        .HasDatabaseName("ix_mailboxes_disposed_at")
+                        .HasFilter("status = 'disposed'");
+
+                    b.HasIndex("Namespace", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_mailboxes_namespace_idempotency_key");
+
+                    b.HasIndex("Namespace", "CollectionKey", "Status")
+                        .HasDatabaseName("ix_mailboxes_namespace_collection_key");
+
+                    b.ToTable("mailboxes", "engine", t =>
+                        {
+                            t.HasCheckConstraint("ck_mailboxes_disposal_is_complete", "(status = 'open' AND disposed_reason IS NULL AND disposed_at IS NULL) OR (status = 'disposed' AND disposed_reason IS NOT NULL AND disposed_at IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_mailboxes_disposed_reason", "disposed_reason IN ('request', 'deadline')");
+
+                            t.HasCheckConstraint("ck_mailboxes_status", "status IN ('open', 'disposed')");
+                        });
+                });
+
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxReceiverEntity", b =>
+                {
+                    b.Property<Guid>("MailboxId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mailbox_id");
+
+                    b.Property<long>("Seq")
+                        .HasColumnType("bigint")
+                        .HasColumnName("seq");
+
+                    b.Property<DateTimeOffset?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("claimed_at");
+
+                    b.Property<DateTimeOffset?>("HeldAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("held_at");
+
+                    b.Property<DateTimeOffset?>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("released_at");
+
+                    b.Property<Guid>("WorkflowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workflow_id");
+
+                    b.HasKey("MailboxId", "Seq")
+                        .HasName("pk_mailbox_receivers");
+
+                    b.HasIndex("WorkflowId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_mailbox_receivers_workflow_id");
+
+                    b.ToTable("mailbox_receivers", "engine", t =>
+                        {
+                            t.HasCheckConstraint("ck_mailbox_receivers_birth_is_recorded", "held_at IS NOT NULL OR released_at IS NOT NULL");
+                        });
+                });
+
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.NamespaceThrottleEntity", b =>
+                {
+                    b.Property<string>("Namespace")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("namespace");
+
+                    b.Property<string>("Canaries")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("canaries");
+
+                    b.Property<TimeSpan>("CurrentWindow")
+                        .HasColumnType("interval")
+                        .HasColumnName("current_window");
+
+                    b.Property<int>("LastActiveCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("last_active_count");
+
+                    b.Property<DateTimeOffset?>("LastEvaluatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_evaluated_at");
+
+                    b.Property<int>("LastRequeuedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("last_requeued_count");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer")
+                        .HasColumnName("state");
+
+                    b.Property<DateTimeOffset>("TrippedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("tripped_at");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Namespace")
+                        .HasName("pk_namespace_throttles");
+
+                    b.ToTable("namespace_throttles", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
@@ -245,6 +455,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("lease_token");
 
+                    b.Property<Guid?>("MailboxId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mailbox_id");
+
                     b.Property<string>("Namespace")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -268,6 +482,10 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("ThrottledUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("throttled_until");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -302,10 +520,15 @@ namespace WorkflowEngine.Data.Migrations
                         .HasDatabaseName("ix_workflows_backoff_until_created_at")
                         .HasFilter("status IN (0, 2, 8)");
 
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { "ThrottledUntil" });
                     NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
                     b.HasIndex("Namespace", "Status")
                         .HasDatabaseName("ix_workflows_namespace_status");
+
+                    b.HasIndex(new[] { "Namespace", "Status" }, "ix_workflows_namespace_status_incomplete")
+                        .HasDatabaseName("ix_workflows_namespace_status_incomplete")
+                        .HasFilter("status IN (0, 1, 2, 8, 9)");
 
                     b.ToTable("workflows", "engine");
                 });
@@ -346,6 +569,26 @@ namespace WorkflowEngine.Data.Migrations
                         .HasDatabaseName("ix_workflow_link_linked_workflow_id");
 
                     b.ToTable("workflow_link", "engine");
+                });
+
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxDeliveryEntity", b =>
+                {
+                    b.HasOne("WorkflowEngine.Data.Entities.MailboxEntity", null)
+                        .WithMany()
+                        .HasForeignKey("MailboxId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_mailbox_deliveries_mailboxes_mailbox_id");
+                });
+
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxReceiverEntity", b =>
+                {
+                    b.HasOne("WorkflowEngine.Data.Entities.MailboxEntity", null)
+                        .WithMany()
+                        .HasForeignKey("MailboxId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_mailbox_receivers_mailboxes_mailbox_id");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>

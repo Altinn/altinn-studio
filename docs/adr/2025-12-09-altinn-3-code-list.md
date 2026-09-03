@@ -47,7 +47,7 @@ Other things that would be nice to solve at the same time:
   optionsIdOrCodeListId becomes the codeListId
 - **A4: Modify existing path so that option id is wild card path segment**
   _GET /{org}/{app}/api/options/{\*\*optionsIdOrLibraryRef}&language={language}_
-  OptionId is now allowed to contain slashes, and can be formated as /{org}/{codeListId}/{version}
+  OptionId is now allowed to contain slashes, and can be formatted as /{org}/{codeListId}/{version}
 - **A5: Add a new endpoint /{creatorOrg}/{codeListId}?version={version}**
 
 ## Pros and cons

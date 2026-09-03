@@ -47,6 +47,7 @@
 
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="Altinn.App.Api.Tests" />
+    <InternalsVisibleTo Include="Altinn.App.Analyzers.Tests" />
     <InternalsVisibleTo Include="Altinn.App.SourceGenerator.Integration.Tests" />
     <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
     <InternalsVisibleTo Include="Altinn.App.Tests.Common" />

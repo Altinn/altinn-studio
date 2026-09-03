@@ -1308,7 +1308,7 @@ func (w *browserSession) close() {
 // isProcessing returns true if a request is currently being processed, or if there is a queue.
 func (w *browserSession) isProcessing() bool {
 	// NOTE: this should not be racy because we only call this when
-	// the sesions has been "swapped away" during session recycling..
+	// the sessions has been "swapped away" during session recycling..
 	// See `waitForDrain` below and `periodicRestart` in the generator
 	queued := len(w.queue)
 	return w.currentRequest.Load() != nil || queued > 0

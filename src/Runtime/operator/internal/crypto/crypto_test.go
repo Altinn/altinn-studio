@@ -206,7 +206,7 @@ func TestPublicJwksConversion(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(publicJwks).NotTo(BeNil())
-	// Certificates is marshalled as "x5c", which Maskinporten doesn't want
+	// Certificates is marshaled as "x5c", which Maskinporten doesn't want
 	g.Expect(publicJwks.Keys[0].Certificates()).To(BeNil())
 	g.Expect(jwks.Keys[0].Certificates()).NotTo(BeNil())
 

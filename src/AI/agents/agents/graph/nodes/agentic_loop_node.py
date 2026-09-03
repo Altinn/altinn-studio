@@ -1,29 +1,8 @@
-"""Agentic-loop graph node — runs the model-driven loop end-to-end.
+"""Agentic-loop graph node: builds the prompt and tool registry, runs the loop,
+bridges its events to the EventSink, and reflects the outcome onto AgentState.
 
-Replaces the planning_tool → planner → actor → verifier → reviewer
-chain.  All of those concerns become tools the model can invoke in
-whatever order it chooses.
-
-The node:
-    1.  Assembles a `SessionContext` from `AgentState` and renders the
-        immutable system prompt.
-    2.  Builds a `ToolRegistry` populated with the in-process tools
-        (`scan_repo`, `propose_patch`, `verify_changes`,
-        `commit_session_branch`, `rollback`) plus the in-process Altinn
-        tools.
-    3.  Bridges loop events to the existing `EventSink` so the
-        frontend keeps seeing status messages; wires
-        `sink.is_cancelled(session_id)` as the cancel signal.
-    4.  Runs `run_loop` against the configured LLM adapter (role
-        `actor`).
-    5.  Reflects the outcome onto `AgentState`'s legacy fields so
-        downstream code (run_once's success/failure emit, evaluators)
-        keeps working unchanged.
-
-This node serves BOTH modes: `state.allow_app_changes` gates the write
-tools (read-only "chat" runs can still scan/read the repo, load skills,
-and fetch docs), and prior session turns are prepended as conversation
-history so follow-ups keep their context across modes.
+`state.allow_app_changes` gates the write tools, so a read-only run can still
+scan, read, load skills and fetch docs.
 """
 
 from __future__ import annotations
@@ -43,6 +22,7 @@ from agents.core import (
     LayoutPropsTool,
     LoopContext,
     LoopResult,
+    PreviewRenderCheckTool,
     ReadFileTool,
     ScanRepoTool,
     SessionContext,
@@ -63,14 +43,11 @@ from agents.core import (
 )
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
+from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
-# Tool names whose invocation produces a user-meaningful progress
-# update.  Everything else (read_file, lookups, scan_repo) is
-# silent — the model's own narration carries the context better than
-# "Calling altinn_layout_props…" ever could.
 _TOOL_STATUS_MESSAGES = {
     "scan_repo": "Skanner repo",
     "read_file": "Leser",
@@ -83,9 +60,6 @@ _TOOL_STATUS_MESSAGES = {
     "web_fetch": "Leser dokumentasjon",
 }
 
-# Human-readable labels for the Altinn schema tools.  Without these the
-# UI would show the raw tool name (e.g., "altinn_layout_props"), which
-# means nothing to end users.
 _ALTINN_TOOL_LABELS = {
     "altinn_layout_props": "Slår opp komponent",
     "altinn_datamodel_sync": "Synkroniserer datamodell",
@@ -93,12 +67,9 @@ _ALTINN_TOOL_LABELS = {
 
 
 def _status_for_tool_call(name: str, tool_input: dict[str, Any] | None) -> str | None:
-    """Build a user-facing status string for a tool_call event.
+    """User-facing status for a tool_call, or None when the tool should not surface.
 
-    Returns None when the tool shouldn't surface.  Format is
-    "<verb phrase> <subject>" — e.g. "Leser App/ui/Side1.json",
-    "Slår opp komponent: Input".  No technical tool names in the
-    output; those map through _ALTINN_TOOL_LABELS for the altinn_ family.
+    Reads as "<verb> <subject>" with no technical tool names.
     """
     base = _TOOL_STATUS_MESSAGES.get(name)
     args = tool_input or {}
@@ -116,11 +87,6 @@ def _status_for_tool_call(name: str, tool_input: dict[str, Any] | None) -> str |
     return None
 
 
-# What we show while the model is generating a tool_use block but the
-# input JSON hasn't fully streamed yet.  Path/args aren't available — we
-# only know the tool name from the `content_block_start` event.  These
-# are placeholders the call-time message replaces in-place (matched by
-# tool_use_id on the frontend), so keep them short and generic.
 _TOOL_PENDING_MESSAGES = {
     "scan_repo": "Skanner repo",
     "read_file": "Leser fil",
@@ -135,26 +101,17 @@ _TOOL_PENDING_MESSAGES = {
 
 
 def _status_for_tool_pending(name: str) -> str | None:
-    """Placeholder shown the moment a tool_use block starts streaming.
-
-    Replaced by the call-time message as soon as the input JSON is
-    complete and the dispatcher fires the tool.  Same vocabulary as
-    `_status_for_tool_call` so the swap feels like the same entry just
-    gaining detail.
+    """Placeholder shown while a tool_use block is still streaming, replaced by the
+    call-time message once the input JSON completes.
     """
     base = _TOOL_PENDING_MESSAGES.get(name)
     if base:
         return base
     if name.startswith("altinn_"):
         return _ALTINN_TOOL_LABELS.get(name, "Slår opp dokumentasjon")
-    # Unknown tool: show nothing rather than the raw tool name — "skill"
-    # or "web_fetch" as a trail row means nothing to end users.
     return None
 
 
-# Phase labels surfaced to the frontend so it can highlight the active
-# pill in the activity row.  Kept short and stable — the frontend renders
-# its own user-facing strings; these are just identifiers.
 _PHASE_READING = "reading"
 _PHASE_WRITING = "writing"
 _PHASE_VERIFYING = "verifying"
@@ -170,29 +127,18 @@ _TOOL_PHASES: dict[str, str] = {
     "edit_file": _PHASE_WRITING,
     "write_file": _PHASE_WRITING,
     "discard_file_changes": _PHASE_WRITING,
-    "altinn_datamodel_sync": _PHASE_WRITING,  # generates + writes files
+    "altinn_datamodel_sync": _PHASE_WRITING,
     "verify_changes": _PHASE_VERIFYING,
     "commit_session_branch": _PHASE_COMMITTING,
 }
 
 
 def _phase_for_tool(name: str) -> str:
-    """Map a tool name to the activity phase the UI highlights.
-
-    Unknown tools land in `thinking` so the UI still has something to
-    show.
-    """
     return _TOOL_PHASES.get(name, _PHASE_THINKING)
 
-# Cap on turns inside a single workflow run.  20 comfortably covers a
-# scan → read → edit → verify → commit sequence with room for retries;
-# can be raised via env var without code changes if a session needs more.
 _DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
-# Bound the history prepended to the loop: enough for the model to keep
-# the thread, small enough not to crowd out the actual task.  Long
-# individual messages (pasted logs, full summaries) are truncated.
 _HISTORY_MAX_MESSAGES = 12
 _HISTORY_MAX_CHARS_PER_MESSAGE = 6000
 
@@ -200,9 +146,8 @@ _HISTORY_MAX_CHARS_PER_MESSAGE = 6000
 def _history_messages(state: AgentState) -> list:
     """Prior session turns as loop messages, oldest first.
 
-    The shared per-session history contains both chat and workflow turns,
-    so a follow-up like "what did you just change?" has the earlier
-    exchanges available regardless of which mode produced them.
+    Chat and workflow turns share one history, so "what did you just change?"
+    works whichever mode produced the earlier exchange.
     """
     messages: list = []
     for entry in state.conversation_history[-_HISTORY_MAX_MESSAGES:]:
@@ -219,12 +164,7 @@ def _history_messages(state: AgentState) -> list:
 
 
 async def handle(state: AgentState) -> AgentState:
-    """Drive one workflow run via the agentic loop."""
     log.info("🤖 Agentic loop node executing")
-    # No initial status — the frontend's journal renders its own
-    # placeholder while we wait for the first streaming event.  An
-    # explicit "Tenker…" here would land as a real step in the journal
-    # with a misleading duration.
 
     session = SessionContext(
         session_id=state.session_id,
@@ -234,7 +174,7 @@ async def handle(state: AgentState) -> AgentState:
         form_spec_summary=state.form_spec.to_summary() if state.form_spec else None,
         developer=state.developer,
         org=state.org,
-        repo_facts=state.repo_facts,  # may be None — model can call scan_repo
+        repo_facts=state.repo_facts,
     )
     skills = discover_skills()
     system_prompt = build_system_prompt(
@@ -255,14 +195,13 @@ async def handle(state: AgentState) -> AgentState:
         developer=state.developer,
         org=state.org,
         designer_api_key=state.designer_api_key,
-        # In read-only sessions a write attempt asks the user for
-        # permission (inline prompt in the chat) instead of a flat denial.
         permission_requester=(
             None
             if state.allow_app_changes
             else lambda action: permission_broker.request(state.session_id, action)
         ),
     )
+    ctx.extras["app_name"] = state.app_name
 
     adapter = build_adapter("actor")
     on_event = _make_event_bridge(state.session_id)
@@ -284,8 +223,84 @@ async def handle(state: AgentState) -> AgentState:
     _apply_result_to_state(state, result, ctx)
     if state.allow_app_changes:
         await _maybe_auto_commit(state, result, ctx)
+        result = await _repair_render_failures(
+            state,
+            result,
+            ctx,
+            registry=registry,
+            adapter=adapter,
+            system_prompt=system_prompt,
+            on_event=on_event,
+        )
+    if result.reason is TerminationReason.CANCELLED:
+        return state
     _emit_workflow_completion(state, result, ctx)
     return state
+
+
+MAX_RENDER_REPAIR_ROUNDS = 1
+
+
+async def _repair_render_failures(
+    state: AgentState,
+    result: LoopResult,
+    ctx: LoopContext,
+    *,
+    registry,
+    adapter,
+    system_prompt: str,
+    on_event,
+) -> LoopResult:
+    """Render-check the committed app and send failures back to the model.
+
+    The prompt asks the model to run the check, but a skipped one looks exactly
+    like a clean one. Bounded by MAX_RENDER_REPAIR_ROUNDS.
+    """
+    if result.reason is TerminationReason.CANCELLED:
+        return result
+
+    check = PreviewRenderCheckTool()
+    args = check.input_schema.model_validate({})
+    for attempt in range(MAX_RENDER_REPAIR_ROUNDS + 1):
+        if not ctx.extras.get("session_committed"):
+            return result
+        try:
+            outcome = await check.run(args, ctx)
+        except Exception:
+            log.exception("Render check raised for session %s", state.session_id)
+            return result
+        if outcome.metadata.get("unavailable") or not outcome.is_error:
+            return result
+        if sink.is_cancelled(state.session_id):
+            return result
+        if attempt == MAX_RENDER_REPAIR_ROUNDS:
+            log.warning(
+                "Render check still failing for session %s after %s repair round(s)",
+                state.session_id,
+                MAX_RENDER_REPAIR_ROUNDS,
+            )
+            state.tests_passed = False
+            state.verify_notes = [
+                f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."
+            ]
+            return result
+
+        log.info("Render check failed for session %s; asking the model to fix", state.session_id)
+        ctx.extras["session_committed"] = False
+        result = await run_loop(
+            user_message=outcome.content,
+            system_prompt=system_prompt,
+            registry=registry,
+            adapter=adapter,
+            ctx=ctx,
+            max_turns=_DEFAULT_MAX_TURNS,
+            is_cancelled=lambda: sink.is_cancelled(state.session_id),
+            on_event=on_event,
+            history=_history_messages(state),
+        )
+        _apply_result_to_state(state, result, ctx)
+        await _maybe_auto_commit(state, result, ctx)
+    return result
 
 
 async def _maybe_auto_commit(
@@ -293,19 +308,11 @@ async def _maybe_auto_commit(
     result: LoopResult,
     ctx: LoopContext,
 ) -> None:
-    """Force a commit when the loop ends with uncommitted changes.
+    """Commit uncommitted changes left behind by a max_turns or stuck exit, so
+    partial progress is inspectable instead of stranded in the container.
 
-    Without this, a `max_turns` or `stuck` termination drops all the
-    partial progress on the floor — the files are on disk in the
-    agents container but nobody else sees them.  We commit them to the
-    session branch with a generic message so the user can at least
-    inspect and decide.
-
-    Skipped when:
-        - The model already called `commit_session_branch` successfully
-          (ctx.extras["session_committed"] is True).
-        - There were no tracked changes.
-        - The loop ended on CANCELLED (user pulled the plug).
+    Skipped when the model already committed, nothing changed, or the run was
+    cancelled.
     """
     if result.reason is TerminationReason.CANCELLED:
         return
@@ -337,7 +344,6 @@ async def _maybe_auto_commit(
 
 
 def _auto_commit_message(state: AgentState, result: LoopResult) -> str:
-    """Best-effort commit subject for the safety-net path."""
     goal = (state.user_goal or "").strip().splitlines()[0][:60] if state.user_goal else "agent changes"
     prefix = {
         TerminationReason.COMPLETED: "feat",
@@ -348,21 +354,10 @@ def _auto_commit_message(state: AgentState, result: LoopResult) -> str:
     return f"{prefix}: {goal}"
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 def _augment_goal_for_missing_spec(state: AgentState) -> str:
-    """Prepend a warning when the user attached a file but spec extraction
-    failed to produce one.
-
-    Without this, the loop sees only the bare goal text ("build the
-    attached form") with no field list — the model has no concrete
-    content to act on, so it answers conversationally and the loop
-    exits with zero changes.  The note tells the model explicitly that
-    it must stop and ask the user for the field list rather than
-    inventing one.
+    """Warn the model when an attachment produced no spec, so it asks for the field
+    list instead of answering conversationally and changing nothing.
     """
     goal = state.user_goal or ""
     if state.form_spec is not None or not state.attachments:
@@ -383,12 +378,7 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
 
 
 def _build_registry(skills: list | None = None) -> ToolRegistry:
-    """Register every tool available in workflow mode.
-
-    The node is workflow-only, so write tools are always present.
-    Everything runs in-process — no network dependency beyond the
-    (cached) schema fetches inside the Altinn tools.
-    """
+    """Register every tool available in workflow mode, all in-process."""
     registry = ToolRegistry()
     for tool in _internal_tools(skills or []):
         registry.register(tool)
@@ -404,6 +394,7 @@ def _internal_tools(skills: list) -> list[Tool]:
         DiscardFileChangesTool(),
         VerifyChangesTool(),
         CommitSessionBranchTool(),
+        PreviewRenderCheckTool(),
         SkillTool(skills),
         LayoutPropsTool(),
         DatamodelSyncTool(),
@@ -414,24 +405,11 @@ def _internal_tools(skills: list) -> list[Tool]:
 def _make_event_bridge(session_id: str) -> EventCallback:
     """Translate loop events into AgentEvent payloads for the frontend.
 
-    The Designer frontend reads `data.content`/`data.filesChanged` and
-    silently ignores `data.text`, so `assistant_message` events must
-    carry `{author, content, filesChanged}`, NOT `{text}`.
-
-    Per-turn assistant messages are emitted *as the model goes*, with an
-    empty `filesChanged` list; the final summary message (with the real
-    file list) and the workflow-end `done` event are emitted by
-    `_emit_workflow_completion`, not from here.
-
-    Other events (turn_start, tool_result, compacted) are log-only — the
-    UI doesn't need them.
+    The frontend reads `data.content`/`data.filesChanged` and ignores
+    `data.text`. Per-turn messages go out as the model streams; the final
+    summary and `done` come from `_emit_workflow_completion`.
     """
 
-    # Throttle text deltas so each Anthropic micro-chunk isn't a separate
-    # WebSocket frame.  ~10 updates/second feels like real typing and keeps
-    # network/frontend churn bounded.  The accumulated text is always sent
-    # — never the raw single-token delta — so the UI can replace its bubble
-    # contents wholesale and remain consistent if intermediate chunks drop.
     _MIN_DELTA_INTERVAL_S = 0.10
     delta_state: dict[str, Any] = {
         "last_emit": 0.0,
@@ -464,15 +442,12 @@ def _make_event_bridge(session_id: str) -> EventCallback:
         tool_use_id: str | None = None,
         pending: bool = False,
     ) -> None:
-        """Push a status event with phase + tool-use bookkeeping.
+        """Push a status event with phase and tool-use bookkeeping.
 
-        `tool_use_id` is the model's id for a single tool_use block, so
-        the frontend can match the call back to its pending placeholder
-        and replace one entry in-place rather than rendering both.
-        `pending` marks the placeholder so the dedupe is asymmetric: a
-        non-pending status replaces a previous pending one with the same
-        id; the reverse never happens.
-        """
+    `tool_use_id` lets the frontend replace a pending placeholder in place
+    rather than rendering both. The dedupe is asymmetric: a non-pending status
+    replaces a pending one, never the reverse.
+    """
         delta_state["phase"] = phase
         data: dict[str, Any] = {"message": message, "phase": phase}
         if tool_use_id:
@@ -489,8 +464,6 @@ def _make_event_bridge(session_id: str) -> EventCallback:
 
     def on_event(event: str, payload: dict[str, Any]) -> None:
         if event == "text_delta":
-            # New turn → flush any leftover accumulator from the previous
-            # turn so the UI doesn't keep stale tail text.
             turn = payload.get("turn", 0)
             if turn != delta_state["turn"]:
                 delta_state["turn"] = turn
@@ -502,13 +475,6 @@ def _make_event_bridge(session_id: str) -> EventCallback:
                 _flush_pending_delta()
             return
         if event == "tool_use_pending":
-            # The model has stopped emitting text and is now generating a
-            # tool_use block.  No further text deltas will arrive for this
-            # turn — flush what we have and announce the upcoming tool so
-            # the UI keeps moving while the input JSON streams in.  We
-            # tag with `pending=True` and the tool's id so the call event
-            # can replace this placeholder rather than appending a second
-            # row.
             _flush_pending_delta()
             delta_state["pending_text"] = ""
             name = payload.get("name") or ""
@@ -523,10 +489,6 @@ def _make_event_bridge(session_id: str) -> EventCallback:
                 )
             return
         if event == "tool_call":
-            # A tool call signals the model finished the tool_use block.
-            # Same tool_use_id as the pending event from above, so the
-            # frontend can collapse them into a single entry that just
-            # updates its message.
             _flush_pending_delta()
             delta_state["pending_text"] = ""
             name = payload.get("name", "")
@@ -539,12 +501,6 @@ def _make_event_bridge(session_id: str) -> EventCallback:
                     tool_use_id=tool_use_id,
                 )
         elif event == "assistant_message":
-            # Streaming has already shipped this turn's text to the UI
-            # via `assistant_message_chunk` events.  We still flush any
-            # pending tail (the last <100ms of throttled deltas) so the
-            # bubble shows the complete narration before the next status
-            # message overlays it.  The terminal turn is handled by
-            # `_emit_workflow_completion`, never here.
             _flush_pending_delta()
             delta_state["pending_text"] = ""
         elif event == "terminated":
@@ -565,31 +521,45 @@ def _make_event_bridge(session_id: str) -> EventCallback:
     return on_event
 
 
+def _turn_carried_attachment_content(state: AgentState) -> bool:
+    """Whether anything the user supplied could have carried an instruction."""
+    return bool(state.attachments) or state.form_spec is not None
+
+
 def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopContext) -> None:
-    """Emit the events the Designer frontend uses to close out a session.
-
-    The frontend expects two events at the end of a workflow: a final
-    `assistant_message` carrying the model's summary + the `filesChanged`
-    list, and a `done` event it reads as "workflow is over, you can
-    navigate to the diff now".
-
-    Without these two, the frontend renders empty bubbles and never
-    triggers its post-workflow logic (e.g. checkout the session branch).
+    """Emit the final `assistant_message` and `done` the frontend needs to close
+    out a session; without both it renders empty bubbles and never runs its
+    post-workflow logic, such as checking out the session branch.
     """
-    summary = _final_summary_text(result)
+    summary, security_notice = _extract_security_notice(_final_summary_text(result))
     message_data = {
         "author": "assistant",
         "content": summary,
         "filesChanged": state.changed_files,
-        # Knowledge sources the loop actually consulted (docs pages,
-        # skills, schema lookups) — collected from tool executions, not
-        # self-reported by the model.
         "sources": ctx.extras.get("sources", []),
     }
+    if security_notice:
+        log.warning(
+            "Prompt injection reported by the model for session %s: %s",
+            state.session_id,
+            security_notice,
+        )
+        # The alert tells the user a document they uploaded carried the
+        # instruction, so it must not fire when there was no document.
+        if _turn_carried_attachment_content(state):
+            # Only the flag crosses into Designer; attacker-influenced prose is
+            # never rendered to the user.
+            message_data["attachmentInstructionFlagged"] = True
+        else:
+            log.warning(
+                "Ignoring the report for session %s: the turn had no attachment content",
+                state.session_id,
+            )
     if not state.allow_app_changes:
-        # Read-only run: the frontend must not reset the repo or check out
-        # a session branch — nothing was (or could have been) committed.
         message_data["no_branch_operations"] = True
+    trace_id = state.trace_id or get_current_trace_id()
+    if trace_id:
+        message_data["traceId"] = trace_id
     sink.send(
         AgentEvent(
             type="assistant_message",
@@ -597,10 +567,13 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
             data=message_data,
         )
     )
-    # Also store in conversation history so follow-up turns have context;
-    # without it the chat assistant loses the thread between workflow runs.
     try:
-        sink.add_to_conversation_history(state.session_id, "assistant", summary)
+        # A fixed marker, never the notice itself: replaying attacker text as
+        # assistant history would reintroduce it undelimited on the next turn.
+        history_text = (
+            f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_MARKER}]" if security_notice else summary
+        )
+        sink.add_to_conversation_history(state.session_id, "assistant", history_text)
     except Exception:
         log.exception("Failed to store assistant message in conversation history")
 
@@ -618,13 +591,34 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
 
 _SOURCES_LINE_RE = re.compile(r"\n+SOURCES:[^\n]*\s*$", re.IGNORECASE)
 
+_SECURITY_NOTICE_RE = re.compile(
+    r"^[ \t]*(?:[*_`>\-]*\s*)?SECURITY_NOTICE[*_`]*\s*:\s*(.+?)[ \t]*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+MAX_SECURITY_NOTICE_LENGTH = 500
+SECURITY_NOTICE_HISTORY_MARKER = (
+    "Et vedlegg forsøkte å gi instruksjoner til assistenten. Instruksjonene ble ikke fulgt."
+)
+
+
+def _extract_security_notice(text: str) -> tuple[str, str | None]:
+    """Split a SECURITY_NOTICE line off the summary; it renders as an alert.
+
+    Only the first is kept: repeats are more likely quoted from the document
+    than a second report.
+    """
+    matches = _SECURITY_NOTICE_RE.findall(text)
+    if not matches:
+        return text, None
+    notice = " ".join(matches[0].split())[:MAX_SECURITY_NOTICE_LENGTH]
+    cleaned = _SECURITY_NOTICE_RE.sub("", text)
+    return cleaned.strip(), notice or None
+
 
 def _strip_sources_line(text: str) -> str:
-    """Drop a trailing `SOURCES: ...` line if the model appended one.
-
-    Sources are attached structurally from the tool trace; a text
-    SOURCES line is a leftover habit from the old prompt convention and
-    would render as raw text in the chat.
+    """Drop a trailing `SOURCES:` line: sources are attached structurally from the
+    tool trace, so the model's text version would render as raw chat text.
     """
     return _SOURCES_LINE_RE.sub("", text)
 
@@ -632,11 +626,8 @@ def _strip_sources_line(text: str) -> str:
 def _final_summary_text(result: LoopResult) -> str:
     """User-facing summary chosen by termination reason.
 
-    On COMPLETED we use the model's own final text — that's what it
-    chose to say.  For the other reasons the model never produced a
-    final text (the loop bailed mid-flight), so we fall back to a
-    Norwegian explanation rather than "Workflow completed." which
-    misleadingly implied success.
+    Only COMPLETED has the model's own final text; the others bailed mid-flight
+    and fall back to a Norwegian explanation rather than implying success.
     """
     if result.reason is TerminationReason.COMPLETED:
         return _strip_sources_line(result.final_text or "Ferdig.").strip()
@@ -666,25 +657,8 @@ def _apply_result_to_state(
     result: LoopResult,
     ctx: LoopContext,
 ) -> None:
-    """Reflect the loop's outcome onto AgentState's legacy fields.
-
-    `next_action = "stop"` regardless of reason — the new graph has no
-    more nodes downstream, so the routing functions don't matter.  The
-    legacy fields kept in sync:
-
-        tests_passed   — True iff the model completed normally.
-        verify_notes   — populated only on ERROR or MAX_TURNS, so the
-                          completion message in run_once is informative.
-        changed_files  — taken from ctx.extras, populated by
-                          propose_patch / cleared by rollback.
-        assistant_response — final text from the model, surfaced for
-                          downstream Q&A consumers and Langfuse.
-    """
     state.next_action = "stop"
 
-    # A mid-run permission grant upgrades the session to write mode —
-    # reflect it so auto-commit and the completion events (branch
-    # checkout on the frontend) treat the run as a change run.
     state.allow_app_changes = ctx.allow_app_changes
 
     changed = ctx.extras.get("changed_files") or set()
@@ -693,12 +667,7 @@ def _apply_result_to_state(
     if result.final_text:
         state.assistant_response = {
             "text": result.final_text,
-            # Consulted knowledge sources — surfaced in the trace output so
-            # the Langfuse no_hallucination evaluator can compare the answer
-            # against what was actually read.
             "sources": ctx.extras.get("sources", []),
-            # Actual commit hash (None if nothing was committed) — evidence
-            # for the faithful_summary evaluator when the summary names one.
             "commit": ctx.extras.get("commit"),
         }
 
@@ -718,6 +687,6 @@ def _apply_result_to_state(
     elif result.reason is TerminationReason.CANCELLED:
         state.tests_passed = False
         state.verify_notes = ["Workflow cancelled."]
-    else:  # ERROR
+    else:
         state.tests_passed = False
         state.verify_notes = [f"Loop error: {result.error or 'unknown'}"]

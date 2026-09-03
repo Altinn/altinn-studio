@@ -6,7 +6,9 @@ import {
   StudioHeading,
   StudioAlert,
 } from '@studio/components';
-import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
+import type { UncommittedChangesError, UncommittedFile } from 'app-shared/types/api/BranchTypes';
+import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
+import { FileChangesTable } from '../../FileChangesTable';
 import classes from './UncommittedChangesDialog.module.css';
 
 export interface UncommittedChangesDialogProps {
@@ -37,7 +39,12 @@ export const UncommittedChangesDialog = ({
     : t('branching.uncommitted_changes_dialog.discard_and_switch');
 
   return (
-    <StudioDialog open={true} onClose={onClose} data-color-scheme='light'>
+    <StudioDialog
+      open={true}
+      onClose={onClose}
+      data-color-scheme='light'
+      className={classes.dialog}
+    >
       <StudioDialog.Block>
         <StudioHeading>{t('branching.uncommitted_changes_dialog.heading')}</StudioHeading>
       </StudioDialog.Block>
@@ -50,25 +57,11 @@ export const UncommittedChangesDialog = ({
             shouldUnescape
           />
         </StudioAlert>
-
-        <div className={classes.fileList}>
-          <StudioHeading level={4}>
-            {t('branching.uncommitted_changes_dialog.uncommitted_files', {
-              count: error.uncommittedFiles.length,
-            })}
-          </StudioHeading>
-          <ul className={classes.files}>
-            {error.uncommittedFiles.map((file) => (
-              <li key={file.filePath}>
-                <span className={classes.fileName}>{file.filePath}</span>
-                <span className={classes.fileStatus}>{file.status}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <FileChangesTable
+          fileChanges={mapUncommittedFilesToContentStatus(error.uncommittedFiles)}
+        />
 
         <StudioParagraph>{t('branching.uncommitted_changes_dialog.choose_action')}</StudioParagraph>
-
         <div className={classes.buttons}>
           <StudioButton
             variant='secondary'
@@ -86,3 +79,6 @@ export const UncommittedChangesDialog = ({
     </StudioDialog>
   );
 };
+
+const mapUncommittedFilesToContentStatus = (files: UncommittedFile[]): RepoContentStatus[] =>
+  files.map((file) => ({ filePath: file.filePath, fileStatus: file.status }));

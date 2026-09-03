@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import { Fieldset } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@studio/icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -12,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks/useAppContext';
-import { StudioButton, StudioTextarea } from '@studio/components';
+import { StudioButton, StudioFieldset, StudioTextarea } from '@studio/components';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
@@ -28,7 +27,7 @@ export const TextResourceEdit = () => {
   }
 
   return (
-    <Fieldset
+    <StudioFieldset
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id', { id: editId })}
     >
@@ -51,7 +50,7 @@ export const TextResourceEdit = () => {
           {t('general.close')}
         </StudioButton>
       </div>
-    </Fieldset>
+    </StudioFieldset>
   );
 };
 

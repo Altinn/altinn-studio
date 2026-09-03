@@ -1,10 +1,15 @@
 import React, { createRef } from 'react';
-import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDialog, StudioHeading, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioDialog,
+  StudioHeading,
+  StudioSpinner,
+  StudioValidationMessage,
+} from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
@@ -28,11 +33,11 @@ export function OptionListFromAppLibrarySelector({
       return <StudioSpinner aria-label={t('ux_editor.modal_properties_loading')} />;
     case 'error':
       return (
-        <ErrorMessage>
+        <StudioValidationMessage>
           {error instanceof Error
             ? error.message
             : t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
-        </ErrorMessage>
+        </StudioValidationMessage>
       );
     case 'success':
       return (

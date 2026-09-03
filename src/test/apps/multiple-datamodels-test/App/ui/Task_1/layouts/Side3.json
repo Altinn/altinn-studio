@@ -107,7 +107,7 @@
       },
       {
         "id": "fileUploadSingle",
-        "type": "FileUploadWithTag",
+        "type": "FileUpload",
         "textResourceBindings": {
           "title": "Kopi av legitimasjon"
         },

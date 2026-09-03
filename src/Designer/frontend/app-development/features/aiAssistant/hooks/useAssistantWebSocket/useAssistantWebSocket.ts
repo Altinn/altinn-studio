@@ -29,23 +29,30 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
 
   useEffect(() => {
-    const wsInstance = new WSConnector(
+    // One shared connection per browser tab (WSConnector.getInstance is keyed by hub URL).
+    const wsInstance = WSConnector.getInstance(
       [altinityWebSocketHub()],
       [AltinityClientsName.ReceiveAgentMessage],
     );
     wsInstanceRef.current = wsInstance;
 
     const connection = getAltinitySignalRConnection(wsInstance);
-    if (connection) {
-      registerAgentMessageHandler(connection, messageCallbackRef);
-      setConnectionStatus('connected');
-    }
+    if (!connection) return undefined;
+
+    ensureAgentMessageDispatcher(connection);
+    ensureConnectionStatusTracker(connection);
+    const subscriber = (message: WorkflowEvent) => messageCallbackRef.current?.(message);
+    agentMessageSubscribers.add(subscriber);
+    connectionStatusSubscribers.add(setConnectionStatus);
+    setConnectionStatus(readConnectionStatus(connection));
+    // The initial start fires no lifecycle callback, so settle the status once it resolves.
+    wsInstance
+      .whenStarted?.()
+      .then(() => publishConnectionStatus(readConnectionStatus(connection)));
 
     return () => {
-      if (connection) {
-        cleanupConnectionHandlers(connection);
-      }
-      setConnectionStatus('disconnected');
+      agentMessageSubscribers.delete(subscriber);
+      connectionStatusSubscribers.delete(setConnectionStatus);
     };
   }, []);
 
@@ -129,14 +136,43 @@ function getAltinitySignalRConnection(wsInstance: any): any | null {
   return connections[ALTINITY_CONNECTION_INDEX];
 }
 
-function cleanupConnectionHandlers(connection: any): void {
-  connection.off(AltinityClientsName.ReceiveAgentMessage);
+const agentMessageSubscribers = new Set<(message: WorkflowEvent) => void>();
+const dispatchedConnections = new WeakSet<object>();
+const connectionStatusSubscribers = new Set<(status: ConnectionStatus) => void>();
+const statusTrackedConnections = new WeakSet<object>();
+
+function readConnectionStatus(connection: any): ConnectionStatus {
+  switch (connection?.state) {
+    case 'Connected':
+      return 'connected';
+    case 'Connecting':
+    case 'Reconnecting':
+      return 'connecting';
+    default:
+      return 'disconnected';
+  }
 }
 
-function registerAgentMessageHandler(
-  connection: any,
-  messageCallbackRef: React.MutableRefObject<((message: WorkflowEvent) => void) | null>,
-): void {
+function publishConnectionStatus(status: ConnectionStatus): void {
+  connectionStatusSubscribers.forEach((subscriber) => subscriber(status));
+}
+
+// SignalR cannot detach onclose/onreconnecting, so register once per connection.
+function ensureConnectionStatusTracker(connection: any): void {
+  if (statusTrackedConnections.has(connection)) return;
+  statusTrackedConnections.add(connection);
+
+  connection.onreconnecting?.(() => publishConnectionStatus('connecting'));
+  connection.onreconnected?.(() => publishConnectionStatus('connected'));
+  connection.onclose?.((error?: Error) =>
+    publishConnectionStatus(error ? 'error' : 'disconnected'),
+  );
+}
+
+function ensureAgentMessageDispatcher(connection: any): void {
+  if (dispatchedConnections.has(connection)) return;
+  dispatchedConnections.add(connection);
+
   connection.on(AltinityClientsName.ReceiveAgentMessage, (message: WorkflowEvent) => {
     if (
       message.type === 'workflow_status' &&
@@ -145,9 +181,14 @@ function registerAgentMessageHandler(
       return;
     }
 
-    if (messageCallbackRef.current) {
-      messageCallbackRef.current(message);
-    }
+    agentMessageSubscribers.forEach((subscriber) => {
+      try {
+        subscriber(message);
+      } catch (error) {
+        // One failing subscriber must not block delivery to the others.
+        console.error('Altinity agent message subscriber failed:', error);
+      }
+    });
   });
 }
 

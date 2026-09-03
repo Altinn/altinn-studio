@@ -1,10 +1,10 @@
 .toolbarItem {
   cursor: grab;
-  margin: var(--fds-spacing-1);
+  margin: var(--ds-size-1);
   display: flex;
-  padding: var(--fds-spacing-2);
+  padding: var(--ds-size-2);
   align-items: center;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .toolbarItem:hover {
@@ -17,9 +17,9 @@
 }
 
 .componentIcon {
-  min-width: var(--fds-spacing-10);
+  min-width: var(--ds-size-10);
   display: flex;
-  font-size: var(--fds-spacing-8);
+  font-size: var(--ds-size-8);
   flex: 0 0 40;
 }
 
@@ -30,5 +30,5 @@
 }
 
 .componentHelpIcon {
-  flex: 0 0 var(--fds-spacing-8);
+  flex: 0 0 var(--ds-size-8);
 }

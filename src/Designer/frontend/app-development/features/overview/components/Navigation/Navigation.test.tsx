@@ -40,7 +40,7 @@ describe('Navigation', () => {
     expect(deployLink).not.toBeInTheDocument();
   });
 
-  it('shows AI assistant when the repo owner is an organisation and feature flag is enabled', () => {
+  it('shows AI assistant when the repo owner is an organization and feature flag is enabled', () => {
     renderNavigation({ featureFlags: [FeatureFlag.AiAssistant], isRepoOwnerOrg: true });
     const assistantLink = screen.getByRole('link', {
       name: textMock(HeaderMenuItemKey.AiAssistant),

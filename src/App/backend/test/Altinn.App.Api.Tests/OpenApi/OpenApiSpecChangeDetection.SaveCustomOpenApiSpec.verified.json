@@ -3974,7 +3974,7 @@
       "instanceOwnerPartyId": {
         "name": "instanceOwnerPartyId",
         "in": "path",
-        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
+        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organization, person or self registered user. Might be the current user, or a party the user has rights to represent.",
         "required": true,
         "schema": {
           "type": "integer"

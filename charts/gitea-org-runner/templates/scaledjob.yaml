@@ -13,6 +13,8 @@ spec:
   maxReplicaCount: {{ index $.Values.maxConcurrentOverrides .name | default $.Values.maxConcurrentDefault }}
   minReplicaCount: 0
   pollingInterval: {{ $.Values.keda.pollingInterval | default 30 }}
+  rollout:
+    strategy: gradual
   successfulJobsHistoryLimit: {{ $.Values.keda.successfulJobsHistoryLimit | default 5 }}
   failedJobsHistoryLimit: {{ $.Values.keda.failedJobsHistoryLimit | default 5 }}
   jobTargetRef:
@@ -113,7 +115,7 @@ spec:
               - name: DOCKER_CERT_PATH
                 value: "/certs/client"
               {{- end }}
-              # Runner registration + behaviour. Constructed from chart-level config
+              # Runner registration + behavior. Constructed from chart-level config
               # (giteaInstanceUrl, runnerLabels) and the per-org Secret produced by
               # runner-org-sync — no per-runner environmentVariables block required.
               - name: GITEA_INSTANCE_URL
@@ -177,19 +179,13 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
   triggers:
-    - type: github-runner
+    - type: metrics-api
       metadata:
-        # github-runner scaler is GitHub-compatible; pointed at Gitea's API URL
-        # it polls the org's Actions queue depth via the same shape.
-        # NOTE: the metadata key is `githubApiURL` — lowercase 'g', capital
-        # 'A' in 'Api', all-caps 'URL'. Any other casing is silently ignored
-        # and the scaler falls back to https://api.github.com.
-        githubApiURL: {{ $.Values.gitea.apiUrl | quote }}
-        owner: {{ .name | quote }}
-        runnerScope: "org"
-        labels: {{ $.Values.gitea.scalerLabels | default "ubuntu-latest" | quote }}
-        noDefaultLabels: "true"
-        targetWorkflowQueueLength: {{ $.Values.keda.targetWorkflowQueueLength | default "1" | quote }}
+        url: {{ printf "%s/api/v1/orgs/%s/actions/jobs?status=queued&status=in_progress&limit=1" $.Values.gitea.instanceUrl .name | quote }}
+        format: "json"
+        valueLocation: "total_count"
+        targetValue: {{ $.Values.keda.targetValue | default "1" | quote }}
+        authMode: "bearer"
       authenticationRef:
         name: {{ $.Values.keda.authenticationRef.name }}
 {{- end }}

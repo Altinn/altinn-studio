@@ -668,6 +668,21 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
+    /// Gets the raw footer layout as a JsonNode (or null if there is no footer), preserving the authored
+    /// JSON exactly. The typed FooterFile does not round-trip enum values (icon) under System.Text.Json.
+    /// </summary>
+    public async Task<JsonNode> GetFooterAsJsonNode(CancellationToken cancellationToken = default)
+    {
+        string footerFilePath = GetPathToFooterFile();
+        if (!FileExistsByRelativePath(footerFilePath))
+        {
+            return null;
+        }
+        string fileContent = await ReadTextByRelativePathAsync(footerFilePath, cancellationToken);
+        return JsonNode.Parse(fileContent);
+    }
+
+    /// <summary>
     /// Saves the RuleHandler.js for a specific layout set
     /// </summary>
     /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
@@ -832,8 +847,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var serialiseOptions = new JsonSerializerOptions { WriteIndented = true };
-        string payloadString = JsonSerializer.Serialize(payload, serialiseOptions);
+        var serializeOptions = new JsonSerializerOptions { WriteIndented = true };
+        string payloadString = JsonSerializer.Serialize(payload, serializeOptions);
 
         string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
         await WriteTextByRelativePathAsync(optionsFilePath, payloadString, true, cancellationToken);

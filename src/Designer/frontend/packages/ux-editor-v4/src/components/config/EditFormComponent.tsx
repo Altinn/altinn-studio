@@ -1,11 +1,10 @@
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Fieldset } from '@digdir/designsystemet-react';
-import classes from './EditFormComponent.module.css';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { FormComponentConfig } from './FormComponentConfig';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
+import { StudioFieldset } from '@studio/components';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
@@ -20,7 +19,7 @@ export const EditFormComponent = ({
 }: IEditFormComponentProps) => {
   const { data: schema } = useComponentSchemaQuery(component.type);
   return (
-    <Fieldset className={classes.root} legend='' size='sm'>
+    <StudioFieldset hideLegend>
       <FormComponentConfig
         schema={schema}
         component={component}
@@ -31,6 +30,6 @@ export const EditFormComponent = ({
         component={component}
         handleComponentChange={handleComponentUpdate}
       />
-    </Fieldset>
+    </StudioFieldset>
   );
 };

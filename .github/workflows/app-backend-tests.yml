@@ -22,9 +22,11 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     timeout-minutes: 10
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/app-build-frontend
   analyze:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
@@ -33,7 +35,7 @@ jobs:
       matrix:
         os:
           - id: ubuntu-latest
-            runner: self-hosted-single
+            runner: self-hosted-ubuntu
             workingDir: src/App/backend/
           - id: macos-latest
             runner: macos-latest
@@ -52,7 +54,7 @@ jobs:
         run: git config --system core.longpaths true
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          persist-credentials: false
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:

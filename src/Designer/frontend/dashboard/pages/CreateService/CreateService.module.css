@@ -2,6 +2,6 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-top: var(--fds-spacing-12);
-  padding-bottom: var(--fds-spacing-12);
+  padding-top: var(--ds-size-12);
+  padding-bottom: var(--ds-size-12);
 }

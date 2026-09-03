@@ -3,15 +3,6 @@
   display: grid;
 }
 
-.tab {
-  white-space: nowrap;
-}
-
-.tabs {
-  overflow: scroll;
-  --scroll-bar-color: white;
-}
-
 .tabs:hover {
   overflow: scroll;
   --scroll-bar-color: lightgray;

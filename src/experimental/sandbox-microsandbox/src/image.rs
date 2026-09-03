@@ -12,7 +12,9 @@ use bollard::{
 use futures_util::StreamExt as _;
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
 use sandbox::progress::{ProgressStep, SandboxProgress};
-use sandbox::{Error, OutputStream, PendingOperation, ProgressUnit, SandboxPhase, image};
+use sandbox::{
+    Error, LocalFuture, OutputStream, PendingOperation, ProgressUnit, RootFilesystemMode, SandboxPhase, image,
+};
 use sha2::{Digest as _, Sha256};
 use tokio::io::AsyncWriteExt as _;
 use tokio_util::codec::{BytesCodec, FramedRead};
@@ -29,22 +31,26 @@ const EXPORT_IMAGE: &str = "Export Docker image";
 const IMPORT_IMAGE: &str = "Import Microsandbox image";
 const RETAIN_BUILD_CACHE: &str = "Retain Docker build cache";
 const REMOVE_TEMPORARY_IMAGE: &str = "Remove temporary Docker image";
+const EXPORT_PREPARED_ROOT: &str = "Export prepared root";
+const IMPORT_PREPARED_ROOT: &str = "Import prepared root";
 const EXPORT_PROGRESS_INTERVAL: u64 = 32 * 1024 * 1024;
 const CACHE_REPOSITORY: &str = "sandbox-microsandbox-cache";
 const IMPORT_CACHE_REPOSITORY: &str = "sandbox-microsandbox-import";
 
 /// Resolves Dockerfile builds and OCI references into the Microsandbox cache
 /// used by its paired Backend.
-pub(crate) struct MicrosandboxImageResolver {
+pub(crate) struct MicrosandboxImageBackend {
     client: Client,
     docker: Result<Docker, String>,
+    registry_authentication: Option<sandbox::image::RegistryAuthentication>,
 }
 
-impl MicrosandboxImageResolver {
-    pub(crate) fn new(client: Client) -> Self {
+impl MicrosandboxImageBackend {
+    pub(crate) fn new(client: Client, registry_authentication: Option<sandbox::image::RegistryAuthentication>) -> Self {
         Self {
             client,
             docker: Docker::connect_with_defaults().map_err(|failure| failure.to_string()),
+            registry_authentication,
         }
     }
 
@@ -76,13 +82,13 @@ impl MicrosandboxImageResolver {
             )
             .await;
         let cleanup = self.remove_temporary_image(&temporary_tag, progress).await;
-        let (digest, actual) = resolution?;
+        let (manifest_digest, actual) = resolution?;
         cleanup?;
 
         Ok(image::ResolvedImage {
             source: request.source.clone(),
             platform: actual,
-            digest,
+            manifest_digest,
         })
     }
 
@@ -372,9 +378,18 @@ impl MicrosandboxImageResolver {
         let step = progress.start_step(PULL_IMAGE).await;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let options = microsandbox_image::PullOptions {
-            pull_policy: microsandbox_image::PullPolicy::IfMissing,
+            pull_policy: reference_pull_policy(&parsed),
             force: false,
-            materialization: microsandbox_image::RootfsMaterialization::Layered,
+            materialization: match request.root_filesystem_mode {
+                RootFilesystemMode::Layered => microsandbox_image::RootfsMaterialization::Layered,
+                RootFilesystemMode::Direct => microsandbox_image::RootfsMaterialization::Flat,
+                mode => {
+                    return Err(Error::UnsupportedImageRootFilesystemMode {
+                        operation: image::ImageOperation::Resolve,
+                        mode,
+                    });
+                }
+            },
         };
 
         let metadata = if let Some((_, metadata)) =
@@ -383,13 +398,21 @@ impl MicrosandboxImageResolver {
             metadata
         } else {
             let config = self.client.local().config();
+            let authentication = match &self.registry_authentication {
+                Some(sandbox::image::RegistryAuthentication::Anonymous) => microsandbox_image::RegistryAuth::Anonymous,
+                Some(sandbox::image::RegistryAuthentication::Basic { username, password }) => {
+                    microsandbox_image::RegistryAuth::Basic {
+                        username: username.clone(),
+                        password: password.clone(),
+                    }
+                }
+                None => config
+                    .resolve_registry_auth(parsed.registry())
+                    .map_err(error::microsandbox)?,
+            };
             let registry =
                 microsandbox_image::Registry::builder(microsandbox_image::Platform::host_linux(), cache.clone())
-                    .auth(
-                        config
-                            .resolve_registry_auth(parsed.registry())
-                            .map_err(error::microsandbox)?,
-                    )
+                    .auth(authentication)
                     .extra_ca_certs(config.resolve_ca_certs().await.map_err(error::microsandbox)?)
                     .add_insecure_registries(config.insecure_registries())
                     .build()
@@ -415,13 +438,130 @@ impl MicrosandboxImageResolver {
         let handle = microsandbox::Image::get_local(self.client.local(), reference)
             .await
             .map_err(error::microsandbox)?;
-        let (digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
+        let (manifest_digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
         step.complete(started.elapsed()).await;
         Ok(image::ResolvedImage {
             source: request.source.clone(),
             platform: actual,
-            digest,
+            manifest_digest,
         })
+    }
+
+    async fn export_prepared_root(
+        &self,
+        request: &image::ResolveRequest,
+        destination: &Path,
+        progress: &SandboxProgress,
+    ) -> Result<image::PreparedImage, Error> {
+        let operation = image::ImageOperation::PreparedImageExport;
+        require_direct_prepared_root(request, operation)?;
+        let reference = prepared_root_reference(request, operation)?;
+        let resolved = self
+            .resolve_reference(request, &reference.to_string(), progress)
+            .await?;
+        let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
+        let started = Instant::now();
+        let step = progress.start_step(EXPORT_PREPARED_ROOT).await;
+        let prepared = microsandbox_image::export_prepared_root(
+            &cache,
+            &reference,
+            &microsandbox_image::Platform::host_linux(),
+            destination,
+        )
+        .await
+        .map_err(error::backend)?;
+        step.complete(started.elapsed()).await;
+        Ok(prepared_root(resolved, &prepared))
+    }
+
+    async fn import_prepared_root(
+        &self,
+        request: &image::ResolveRequest,
+        source: &Path,
+        progress: &SandboxProgress,
+    ) -> Result<image::PreparedImage, Error> {
+        let operation = image::ImageOperation::PreparedImageImport;
+        require_direct_prepared_root(request, operation)?;
+        let actual = platform::require_supported(&request.platform)?;
+        let reference = prepared_root_reference(request, operation)?;
+        let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
+        let started = Instant::now();
+        let step = progress.start_step(IMPORT_PREPARED_ROOT).await;
+        let prepared = microsandbox_image::import_prepared_root(
+            &cache,
+            &reference,
+            &microsandbox_image::Platform::host_linux(),
+            source,
+        )
+        .await
+        .map_err(error::backend)?;
+        step.complete(started.elapsed()).await;
+        Ok(prepared_root(
+            image::ResolvedImage {
+                source: request.source.clone(),
+                platform: actual,
+                manifest_digest: prepared.image.manifest_digest.clone(),
+            },
+            &prepared,
+        ))
+    }
+}
+
+fn require_direct_prepared_root(
+    request: &image::ResolveRequest,
+    operation: image::ImageOperation,
+) -> Result<(), Error> {
+    if request.root_filesystem_mode == RootFilesystemMode::Direct {
+        Ok(())
+    } else {
+        Err(Error::UnsupportedImageRootFilesystemMode {
+            operation,
+            mode: request.root_filesystem_mode,
+        })
+    }
+}
+
+fn reference_pull_policy(reference: &microsandbox_image::Reference) -> microsandbox_image::PullPolicy {
+    if reference.digest().is_some() {
+        microsandbox_image::PullPolicy::IfMissing
+    } else {
+        // A tag is mutable. Refresh its manifest when creating a Sandbox while
+        // retaining content-addressed layers and rootfs artifacts in the cache.
+        microsandbox_image::PullPolicy::Always
+    }
+}
+
+fn prepared_root_reference(
+    request: &image::ResolveRequest,
+    operation: image::ImageOperation,
+) -> Result<microsandbox_image::Reference, Error> {
+    let image::ImageSource::Reference { reference } = &request.source else {
+        return Err(Error::UnsupportedImageSourceKind {
+            operation,
+            source_kind: request.source.kind(),
+        });
+    };
+    let reference = reference
+        .parse::<microsandbox_image::Reference>()
+        .map_err(error::backend)?;
+    if reference.digest().is_none() {
+        return Err(Error::invalid(
+            "image.reference",
+            "prepared roots require an immutable digest-pinned OCI reference",
+        ));
+    }
+    Ok(reference)
+}
+
+fn prepared_root(
+    image: image::ResolvedImage,
+    prepared: &microsandbox_image::PreparedRootMetadata,
+) -> image::PreparedImage {
+    image::PreparedImage {
+        image,
+        root_filesystem_mode: RootFilesystemMode::Direct,
+        artifact_digest: prepared.root.artifact_digest.clone(),
+        virtual_size_bytes: prepared.root.virtual_size_bytes,
     }
 }
 
@@ -450,9 +590,9 @@ fn resolve_image_handle(
     requested: &sandbox::Platform,
     fallback: &sandbox::Platform,
 ) -> Result<(String, sandbox::Platform), Error> {
-    let digest = handle
+    let manifest_digest = handle
         .manifest_digest()
-        .ok_or_else(|| Error::Backend("Microsandbox did not report the imported image digest".to_string()))?
+        .ok_or_else(|| Error::Backend("Microsandbox did not report the image manifest digest".to_string()))?
         .to_string();
     let actual = sandbox::Platform::new(
         handle.os().unwrap_or(fallback.os.as_str()),
@@ -464,7 +604,7 @@ fn resolve_image_handle(
             actual: Box::new(actual),
         });
     }
-    Ok((digest, actual))
+    Ok((manifest_digest, actual))
 }
 
 async fn report_buildkit_status(
@@ -543,7 +683,31 @@ async fn report_image_progress(step: &ProgressStep, event: microsandbox_image::P
     }
 }
 
-impl image::Resolver for MicrosandboxImageResolver {
+impl image::ImageBackend for MicrosandboxImageBackend {
+    fn capabilities<'a>(
+        &'a self,
+        platform: &'a sandbox::Platform,
+    ) -> LocalFuture<'a, Result<image::ImageBackendCapabilities, Error>> {
+        Box::pin(async move {
+            platform::require_supported(platform)?;
+            // TODO: Add prepared-image transport for Microsandbox's layered
+            // EROFS/VMDK representation. The current artifact format packages
+            // only the flat ext4 representation used by direct roots.
+            let prepared = image::ImageOperationCapabilities::new(
+                [image::ImageSourceKind::Reference].into(),
+                [RootFilesystemMode::Direct].into(),
+            );
+            Ok(image::ImageBackendCapabilities::new(
+                image::ImageOperationCapabilities::new(
+                    [image::ImageSourceKind::Build, image::ImageSourceKind::Reference].into(),
+                    [RootFilesystemMode::Layered, RootFilesystemMode::Direct].into(),
+                ),
+                prepared.clone(),
+                prepared,
+            ))
+        })
+    }
+
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         PendingOperation::run(SandboxPhase::ImageResolve, move |progress| {
             Box::pin(async move {
@@ -556,6 +720,26 @@ impl image::Resolver for MicrosandboxImageResolver {
                     }
                 }
             })
+        })
+    }
+
+    fn export_prepared_image<'a>(
+        &'a self,
+        request: &'a image::ResolveRequest,
+        destination: &'a Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        PendingOperation::run(SandboxPhase::ImagePrepare, move |progress| {
+            Box::pin(async move { self.export_prepared_root(request, destination, &progress).await })
+        })
+    }
+
+    fn import_prepared_image<'a>(
+        &'a self,
+        request: &'a image::ResolveRequest,
+        source: &'a Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        PendingOperation::run(SandboxPhase::ImagePrepare, move |progress| {
+            Box::pin(async move { self.import_prepared_root(request, source, &progress).await })
         })
     }
 }
@@ -627,6 +811,25 @@ fn archive_path(path: &Path) -> Result<String, Error> {
 #[allow(clippy::expect_used)]
 mod tests {
     use std::{fs, path::Path};
+
+    #[test]
+    fn mutable_references_refresh_registry_metadata_while_digest_pins_reuse_the_cache() {
+        let tagged = "ghcr.io/altinn/agent:latest"
+            .parse()
+            .expect("tagged reference should parse");
+        let pinned = format!("ghcr.io/altinn/agent@sha256:{}", "0".repeat(64))
+            .parse()
+            .expect("digest-pinned reference should parse");
+
+        assert_eq!(
+            super::reference_pull_policy(&tagged),
+            microsandbox_image::PullPolicy::Always
+        );
+        assert_eq!(
+            super::reference_pull_policy(&pinned),
+            microsandbox_image::PullPolicy::IfMissing
+        );
+    }
 
     #[tokio::test(flavor = "local")]
     async fn context_archive_applies_dockerignore_and_keeps_build_inputs() {

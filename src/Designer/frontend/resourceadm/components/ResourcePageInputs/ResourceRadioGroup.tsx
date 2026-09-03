@@ -54,7 +54,7 @@ type ResourceRadioGroupProps = {
  * @property {string}[label] - The label of the dropdown
  * @property {ReactNode}[description] - The description of the dropdown
  * @property {string}[value] - The value selected
- * @property {{value: string, lable: string}[]}[options] - List of the options in the dropdown
+ * @property {{value: string, label: string}[]}[options] - List of the options in the dropdown
  * @property {function}[onChange] - Function to be executed on change
  * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[required] - Whether this field is required or not

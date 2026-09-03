@@ -5,7 +5,6 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
-import { ErrorMessage } from '@digdir/designsystemet-react';
 import type {
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerState,
@@ -97,10 +96,8 @@ export function NumberRestrictions({
               value={formatState.min === undefined ? '' : formatState.min.toString()}
               type='number'
               label={t(minLabel)}
+              error={minMaxErrorMessage}
             />
-            <div className={classes.minNumberErrorMassage}>
-              <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
-            </div>
           </div>
           <StudioSwitch
             data-size='sm'
@@ -108,6 +105,7 @@ export function NumberRestrictions({
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
             }
+            className={classes.includeMinMaxSwitch}
             label={t('schema_editor.format_date_inclusive')}
           />
         </div>
@@ -121,15 +119,14 @@ export function NumberRestrictions({
               value={formatState.max === undefined ? '' : formatState.max.toString()}
               type='number'
               label={t(maxLabel)}
+              error={minMaxErrorMessage}
             />
-            <div className={classes.minNumberErrorMassage}>
-              <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
-            </div>
           </div>
           <StudioSwitch
             data-size='sm'
             id='include-minimum-value-checkbox'
             checked={formatState.isMaxInclusive}
+            className={classes.includeMinMaxSwitch}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)
             }

@@ -167,7 +167,38 @@ Changes are atomic: the loop commits a working change to the session branch or r
 
 ### Chat Mode (`allow_app_changes: false`)
 
-Runs the same agentic loop **read-only** (write tools are denied): the model answers using the repo scan, documentation skills, and schema-lookup tools without modifying files.
+Runs the same agentic loop **read-only**: write tools are denied, so the model answers using the repo scan, documentation skills, and schema-lookup tools without modifying files. The denial is escalatable, so if the request genuinely needs a change, the first write-tool call prompts the user; granting it turns the session into a normal write session.
+
+## Security model
+
+Three layers, each covering what the others cannot.
+
+**Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment *filenames*, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
+
+**Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change the agent makes to a repository lands on a session branch a human reviews before merge. That covers repository changes only: publishing a prompt with `scripts/sync_prompts.py --push` reaches the deployed service immediately, with no branch and no review (see [Prompts and Langfuse](#prompts-and-langfuse)).
+
+**Spotlighting** (both modes) covers what the intent gate never sees: the content of uploaded documents. Users attach PDFs and images as context, and that content reaches the model twice: once as the attachment the spec extractor reads, and again as the extracted `FormSpec` in the loop's system prompt. Both are wrapped in `<attachment_content>` / `<form_spec>` delimiters carrying an explicit instruction that the block is data to describe, not instructions to obey. A closing tag written inside the content is escaped so a document cannot end its own block early.
+
+The delimiters are composed in `shared/utils/spotlight.py` and applied in code (`llm_client.py` for the attachment, `core/context.py` for the form spec). This is deliberate: Langfuse serves the system prompts in every configured environment, so a control that lives only in a prompt file is inert the moment a managed version exists. Prompt-file wording reinforces the control; it does not implement it.
+
+## Prompts and Langfuse
+
+The files in `agents/prompts/` are a **fallback**, not the source of truth. When Langfuse is configured, `get_prompt_with_langfuse` serves the version labeled `production` and the local file is never read. The two drift, quietly: a prompt edited in the Langfuse UI is invisible in a code review, and a prompt edited in the repo has no effect until someone publishes it.
+
+`scripts/sync_prompts.py` makes that visible and fixable.
+
+```bash
+python -m scripts.sync_prompts --diff                    # every prompt, repo vs Langfuse
+python -m scripts.sync_prompts --diff spec_extraction    # just one
+python -m scripts.sync_prompts --push spec_extraction -m "why this changed"
+python -m scripts.sync_prompts --promote spec_extraction --version 1   # roll back
+```
+
+`--push` publishes the local file as a new version labeled `production`, so **the deployed service picks it up immediately**. Roll back by promoting the previous version.
+
+Run `--diff` before editing any prompt, and after merging a PR that touches one. At the time of writing 11 of 17 prompts differ from their repo copies, so treat a diff as expected rather than alarming, and read it before pushing: the local file may be behind, not ahead.
+
+This is also why the attachment spotlighting above is implemented in code. A security control that lives only in a prompt file is inert the moment a managed version exists.
 
 ## Project Structure
 
@@ -184,7 +215,7 @@ altinity-agents/
 │   ├── core/             # Agentic loop engine (loop, tool registry, skills, tools/)
 │   ├── altinn/           # Altinn domain library (datamodel, layout, policy, resources)
 │   ├── skills/           # Domain-knowledge skills, loaded on demand
-│   ├── prompts/          # System + user prompts (+ loader)
+│   ├── prompts/          # System + user prompts (+ loader; Langfuse overrides these)
 │   ├── services/         # git, llm, events, validation, repo, patching, telemetry
 │   └── workflows/        # Up-front pipeline stages (intake, spec)
 └── shared/               # Config, models, utilities

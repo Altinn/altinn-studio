@@ -44,23 +44,28 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     timeout-minutes: 10
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
   lighthouse:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Lighthouse CI
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     needs: [build-frontend]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env

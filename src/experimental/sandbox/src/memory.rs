@@ -11,6 +11,7 @@ use std::{
 };
 
 use futures_core::Stream;
+use sha2::{Digest as _, Sha256};
 use tokio::{io::AsyncReadExt as _, sync::mpsc};
 use tokio_util::sync::PollSender;
 use zeroize::Zeroizing;
@@ -32,8 +33,8 @@ impl SandboxProvider for Provider {
         self
     }
 
-    fn image_resolver(&self) -> &dyn image::Resolver {
-        &ImageResolver
+    fn image_backend(&self) -> &dyn image::ImageBackend {
+        &MemoryImageBackend
     }
 }
 
@@ -49,12 +50,19 @@ struct BackendState {
     by_name: BTreeMap<SandboxName, SandboxId>,
     executions: BTreeSet<(SandboxId, execution::ExecutionId)>,
     files: BTreeMap<(SandboxId, SandboxPath), Vec<u8>>,
+    execution_specs: Vec<execution::ExecutionSpec>,
+    matched_execution_events: VecDeque<MatchedExecutionEvents>,
     queued_execution_events: VecDeque<Vec<execution::ExecutionEvent>>,
     queued_terminal_events: VecDeque<Vec<terminal::TerminalEvent>>,
     volumes_by_id: BTreeMap<volume::VolumeId, volume::Volume>,
     volumes_by_name: BTreeMap<volume::VolumeName, volume::VolumeId>,
     network_endpoints: BTreeMap<SandboxId, PacketPeer>,
     network_properties: BTreeMap<SandboxId, network::PacketEndpointProperties>,
+}
+
+struct MatchedExecutionEvents {
+    predicate: Rc<dyn Fn(&execution::ExecutionSpec) -> bool>,
+    events: Vec<execution::ExecutionEvent>,
 }
 
 impl Provider {
@@ -84,6 +92,30 @@ impl Provider {
     /// Supplies the events returned by the next Execution started by this Provider.
     pub fn queue_execution_events(&self, events: Vec<execution::ExecutionEvent>) {
         self.state.borrow_mut().queued_execution_events.push_back(events);
+    }
+
+    /// Supplies events for the next Execution whose specification matches the predicate.
+    ///
+    /// Unlike [`Self::queue_execution_events`], unrelated Executions do not
+    /// consume this response while exercising multi-command reconciliation.
+    pub fn queue_execution_events_matching(
+        &self,
+        predicate: impl Fn(&execution::ExecutionSpec) -> bool + 'static,
+        events: Vec<execution::ExecutionEvent>,
+    ) {
+        self.state
+            .borrow_mut()
+            .matched_execution_events
+            .push_back(MatchedExecutionEvents {
+                predicate: Rc::new(predicate),
+                events,
+            });
+    }
+
+    /// Returns every normal Execution specification observed by this Provider.
+    #[must_use]
+    pub fn execution_specs(&self) -> Vec<execution::ExecutionSpec> {
+        self.state.borrow().execution_specs.clone()
     }
 
     /// Supplies the events returned by the next terminal Execution.
@@ -297,6 +329,7 @@ impl SandboxBackend for Provider {
                     resources: request.resources,
                     state: SandboxState::Stopped,
                     mounts: request.mounts,
+                    environment: request.environment,
                     network: request.network,
                 };
                 storage.by_name.insert(sandbox.name.clone(), id.clone());
@@ -318,6 +351,27 @@ impl SandboxBackend for Provider {
                     return Err(Error::Immutable("resources.rootFilesystem.mode"));
                 }
                 sandbox.resources = resources;
+                Ok(sandbox.clone())
+            })
+        })
+    }
+
+    fn update_environment<'a>(
+        &'a self,
+        id: &'a SandboxId,
+        environment: BTreeMap<String, String>,
+    ) -> PendingOperation<'a, Sandbox> {
+        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+            Box::pin(async move {
+                let mut storage = self.state.borrow_mut();
+                let sandbox = storage
+                    .by_id
+                    .get_mut(id)
+                    .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
+                if sandbox.state != SandboxState::Stopped {
+                    return Err(Error::invalid("sandbox.state", "must be stopped"));
+                }
+                sandbox.environment = environment;
                 Ok(sandbox.clone())
             })
         })
@@ -417,17 +471,26 @@ impl SandboxBackend for Provider {
         request: execution::StartExecutionRequest,
     ) -> LocalFuture<'a, Result<execution::StartedExecution, Error>> {
         Box::pin(async move {
-            let (id, _spec) = request.into_parts();
+            let (id, spec) = request.into_parts();
             self.ensure_running(sandbox_id)?;
             let mut storage = self.state.borrow_mut();
             let execution_key = (sandbox_id.clone(), id.clone());
             storage.executions.insert(execution_key.clone());
-            let events = storage.queued_execution_events.pop_front().unwrap_or_else(|| {
-                vec![
-                    execution::ExecutionEvent::Started { process_id: None },
-                    execution::ExecutionEvent::Exited(execution::ExitStatus { code: 0 }),
-                ]
-            });
+            storage.execution_specs.push(spec.clone());
+            let matched = storage
+                .matched_execution_events
+                .iter()
+                .position(|response| (response.predicate)(&spec))
+                .and_then(|index| storage.matched_execution_events.remove(index))
+                .map(|response| response.events);
+            let events = matched
+                .or_else(|| storage.queued_execution_events.pop_front())
+                .unwrap_or_else(|| {
+                    vec![
+                        execution::ExecutionEvent::Started { process_id: None },
+                        execution::ExecutionEvent::Exited(execution::ExitStatus { code: 0 }),
+                    ]
+                });
 
             Ok(execution::StartedExecution {
                 id,
@@ -869,28 +932,106 @@ impl network::NetworkBackend for NetworkBackend {
     }
 }
 
-/// Deterministically resolves source paths to synthetic digests.
+/// Deterministically resolves OCI Image Sources to synthetic digests.
 #[derive(Default)]
-pub struct ImageResolver;
+pub struct MemoryImageBackend;
 
-impl image::Resolver for ImageResolver {
+impl image::ImageBackend for MemoryImageBackend {
+    fn capabilities<'a>(
+        &'a self,
+        _platform: &'a Platform,
+    ) -> LocalFuture<'a, Result<image::ImageBackendCapabilities, Error>> {
+        Box::pin(async {
+            Ok(image::ImageBackendCapabilities::new(
+                image::ImageOperationCapabilities::new(
+                    [image::ImageSourceKind::Build, image::ImageSourceKind::Reference].into(),
+                    [RootFilesystemMode::Layered, RootFilesystemMode::Direct].into(),
+                ),
+                image::ImageOperationCapabilities::default(),
+                image::ImageOperationCapabilities::default(),
+            ))
+        })
+    }
+
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
             Box::pin(async move {
-                let source = match &request.source {
-                    image::ImageSource::Build { context, dockerfile } => {
-                        format!("build:{}:{}", context.display(), dockerfile.display())
-                    }
-                    image::ImageSource::Reference { reference } => format!("reference:{reference}"),
-                };
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
                     platform: request.platform.clone(),
-                    digest: format!("sha256:{}:{source}", request.platform),
+                    manifest_digest: memory_manifest_digest(request),
                 })
             })
         })
     }
+
+    fn export_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _destination: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        unsupported_prepared_image(image::ImageOperation::PreparedImageExport)
+    }
+
+    fn import_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _source: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        unsupported_prepared_image(image::ImageOperation::PreparedImageImport)
+    }
+}
+
+fn memory_manifest_digest(request: &image::ResolveRequest) -> String {
+    let mut digest = Sha256::new();
+    digest.update(b"sandbox.memory-image-manifest.v1\0");
+    match &request.source {
+        image::ImageSource::Build { context, dockerfile } => {
+            update_digest_part(&mut digest, b"build");
+            update_digest_part(&mut digest, context.as_os_str().as_encoded_bytes());
+            update_digest_part(&mut digest, dockerfile.as_os_str().as_encoded_bytes());
+        }
+        image::ImageSource::Reference { reference } => {
+            update_digest_part(&mut digest, b"reference");
+            update_digest_part(&mut digest, reference.as_bytes());
+        }
+    }
+    update_digest_part(&mut digest, request.platform.os.as_bytes());
+    update_digest_part(&mut digest, request.platform.architecture.as_bytes());
+    update_optional_digest_part(&mut digest, request.platform.variant.as_deref());
+    update_optional_digest_part(&mut digest, request.platform.os_version.as_deref());
+    for feature in &request.platform.os_features {
+        update_digest_part(&mut digest, feature.as_bytes());
+    }
+    let mut encoded = String::with_capacity("sha256:".len() + 64);
+    encoded.push_str("sha256:");
+    for byte in digest.finalize() {
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        encoded.push(char::from(HEX[usize::from(byte >> 4)]));
+        encoded.push(char::from(HEX[usize::from(byte & 0x0f)]));
+    }
+    encoded
+}
+
+fn update_optional_digest_part(digest: &mut Sha256, value: Option<&str>) {
+    match value {
+        Some(value) => {
+            digest.update([1]);
+            update_digest_part(digest, value.as_bytes());
+        }
+        None => digest.update([0]),
+    }
+}
+
+fn update_digest_part(digest: &mut Sha256, value: &[u8]) {
+    digest.update(value.len().to_le_bytes());
+    digest.update(value);
+}
+
+fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
+    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
+        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
+    })
 }
 
 fn test_platform() -> Platform {

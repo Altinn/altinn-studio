@@ -2,7 +2,6 @@ import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, FieldNode, UiSchemaNode } from '@altinn/schema-model';
@@ -34,7 +33,14 @@ import { renamePrefillMappings } from '@altinn/schema-editor/components/SchemaIn
 import { NameField } from './NameField';
 import { RequiredSwitch } from './RequiredSwitch';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioSelect, StudioSwitch, StudioTextarea, StudioTextfield } from '@studio/components';
+import {
+  StudioDivider,
+  StudioFieldset,
+  StudioSelect,
+  StudioSwitch,
+  StudioTextarea,
+  StudioTextfield,
+} from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -209,28 +215,27 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         </>
       )}
       {hasCustomProps && <CustomProperties path={schemaPointer} />}
-      <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
-        <div className={classes.fieldSetItem}>
-          <StudioTextfield
-            id={titleId}
-            label={t('schema_editor.title')}
-            onBlur={onChangeTitle}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setItemItemTitle(e.target.value)}
-            value={itemTitle}
-          />
-        </div>
-        <div>
-          <StudioTextarea
-            id={descriptionId}
-            label={t('schema_editor.description')}
-            onBlur={onChangeDescription}
-            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-              setItemItemDescription(event.target.value)
-            }
-            value={itemDescription}
-          />
-        </div>
-      </Fieldset>
+      <StudioDivider />
+      <StudioFieldset legend={t('schema_editor.descriptive_fields')}>
+        <StudioTextfield
+          id={titleId}
+          label={t('schema_editor.title')}
+          onBlur={onChangeTitle}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setItemItemTitle(e.target.value)}
+          value={itemTitle}
+        />
+        <StudioDivider />
+        <StudioTextarea
+          id={descriptionId}
+          label={t('schema_editor.description')}
+          onBlur={onChangeDescription}
+          onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+            setItemItemDescription(event.target.value)
+          }
+          value={itemDescription}
+        />
+        {/* </div> */}
+      </StudioFieldset>
     </div>
   );
 }

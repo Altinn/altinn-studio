@@ -24,7 +24,7 @@ On-demand paginated search against the database. Not SSE-driven — user clicks 
 
 **Controls:**
 
-- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Completed, Failed, Canceled
+- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
 - Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
 - Text search (triggers on Enter)
@@ -130,6 +130,10 @@ Response:
     "status": "Completed",
     "processingOrder": 3,
     "retryCount": 0,
+    "deferCount": 0,
+    "firstDeferredAt": "ISO | null",
+    "lastDeferredAt": "ISO | null",
+    "lastDeferReason": "string | null",
     "errorHistory": [
         { "timestamp": "ISO", "message": "string", "httpStatusCode": 500, "wasRetryable": true }
     ],
@@ -216,6 +220,88 @@ Response:
 }
 ```
 
+### `GET /dashboard/mailboxes`
+
+The mailboxes grouped under the named collections, each with its log laid out position by position.
+The first non-workflow noun the dashboard reads, and a fetch rather than a field on the live stream:
+mailboxes are not workflows, so nothing in that payload's shape or its fingerprint loop accommodates
+them, and a three-table read on a two-second loop would charge every engine for a feature most of them
+do not use.
+
+Open and closed mailboxes alike — under a finished collection a concluded exchange is the ordinary
+case. The read is bounded on every axis before it runs: at most 100 collection keys are honored per
+call, at most **10 mailboxes per collection** (most recently minted first), and each mailbox's log is
+capped by the engine's `MaxMailboxLogLength`. Naming no collections returns an empty array without
+querying.
+
+**The mailbox bound is per collection, not global**, and that is load-bearing rather than incidental. A
+single global limit ordered newest-first drops its casualties at the older end across every requested
+key at once, so one busy collection starves the rest and whole groups come back with no mailbox — which
+on a card is indistinguishable from an exchange that never had one. Per key, one collection's history
+can only ever cost that collection.
+
+`truncatedCollections` names the keys whose window was full, so a group with an unshown tail can say so
+and no other group has to. It is the per-collection form of the `truncated` flag `/dashboard/graph`
+returns for its node cap, for the sharper version of the same reason.
+
+| Parameter        | Type   | Description                                              |
+| ---------------- | ------ | -------------------------------------------------------- |
+| `collectionKeys` | string | Comma-separated collection keys; max 100, extras ignored |
+| `namespace`      | string | Optional namespace filter; omitted reads every namespace |
+
+Response:
+
+```json
+{
+    "truncatedCollections": ["collection keys with older mailboxes not shown"],
+    "mailboxes": [
+        {
+            "id": "guid",
+            "namespace": "ttd/app",
+            "idempotencyKey": "Task_1:SendToArchive",
+            "collectionKey": "instance-42",
+            "status": "Open | Disposed",
+            "disposedReason": "Request | Deadline",
+            "deadline": "2026-08-19T14:00:00Z",
+            "createdAt": "2026-08-19T12:00:00Z",
+            "disposedAt": "2026-08-19T14:00:00Z",
+            "nextIdx": 2,
+            "nextSeq": 2,
+            "unpairedDeliveries": 0,
+            "positions": [
+                {
+                    "position": 0,
+                    "state": "delivered | paired | waiting | closed",
+                    "deliveryKey": "the forwarding source's own message id",
+                    "acceptedAt": "2026-08-19T12:30:00Z",
+                    "receiverWorkflowId": "guid",
+                    "heldAt": "2026-08-19T12:00:01Z",
+                    "releasedAt": "2026-08-19T12:30:00Z",
+                    "claimedAt": "2026-08-19T12:30:00Z",
+                    "parkedForSeconds": 1799
+                }
+            ]
+        }
+    ]
+}
+```
+
+`positions` is empty for a mailbox minted but not yet delivered into or received from — a real and
+often long-lived state, since the mailbox exists from the moment its id goes out as a reply address.
+The four `state` values:
+
+| State       | Meaning                                                                                 |
+| ----------- | --------------------------------------------------------------------------------------- |
+| `delivered` | A message stands here and no receiver has been enqueued for it — an unpaired delivery |
+| `paired`    | A receiver holds this position and its message is standing at it                        |
+| `waiting`   | A receiver is parked here and its message has not arrived                               |
+| `closed`    | A receiver holds this position, no message ever came, and the mailbox closed            |
+
+`heldAt` is what separates a receiver that parked from one that ran straight away, which the workflow
+status alone cannot say once the receiver has settled — and it is what makes `parkedForSeconds` a park
+duration rather than a meaningless subtraction. `parkedForSeconds` is absent while a receiver is still
+parked (count up from `heldAt` instead) and absent for one that never parked.
+
 ### `GET /dashboard/scheduled`
 
 All workflows with future `startAt`. Response: `Workflow[]`
@@ -276,7 +362,7 @@ Horizontal row of step circles connected by SVG lines.
 **Below each circle:**
 
 - Command detail label (e.g. "StartTask", "WebhookCall")
-- Sub-label (if applicable)
+- Sub-label — for a Waiting step, the reason its command gave for deferring (`lastDeferReason`), ellipsised to the node's width with the full text in the tooltip
 - Command type badge (`app`, `webhook`, etc.)
 - Retry count (if > 0)
 - Backoff countdown (if requeued with future backoffUntil)
@@ -357,6 +443,8 @@ The modal has four distinct DOM zones:
     - Execution Started (if set)
     - Last Updated (if set)
     - Backoff Until (if set)
+    - Deferrals (if > 0), First Deferred and Last Deferred (formatted time + relative age, if set)
+    - Defer Reason — the step's `lastDeferReason`, the command's own words for what it is waiting for (if set)
     - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
     - Command Type
     - Max Execution Time (formatted duration, if set)
@@ -480,7 +568,7 @@ compact cards in their original position. Group chrome and the history control l
 **Group anatomy:** a header row (label segments from the newest head member, workflow count,
 wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
 history control) above the shared chain rows. Aggregate status: an in-flight member wins
-(Processing/Requeued/Waiting/Enqueued), then the worst terminal outcome, then Completed.
+(Processing/Requeued/Waiting/Held/Enqueued), then the worst terminal outcome, then Completed.
 
 **Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
 fetches needed (`isHead` is already on the card DTOs). The **history** control fetches
@@ -498,6 +586,56 @@ finishes.
 over the members, so a group matches when any member matches (status chips count groups, not
 workflows). The expanded cards inside a group are not matched individually (`:scope >` selectors
 in `applyFilter`).
+
+**Mailbox blocks:** a group that has mailboxes closes with one block per mailbox, oldest-minted first
+so the exchanges read in the same direction as the spine above them. A group with no mailbox — nearly
+every group — renders nothing at all, and a collection with an unshown older tail (the endpoint's
+per-collection window was full) carries a `⋯ older mailboxes not shown` line above its blocks, over
+that group and no other.
+
+Each block is a header and a row of position chips:
+
+- **Header** — the mailbox id abbreviated (full id in the tooltip, alongside the mint instant), the
+  mint idempotency key, an `open` / `closed · request` / `closed · deadline` pill, both log counters
+  as `idx N · seq N`, an amber `N unpaired` badge when accepted messages were never enqueued for,
+  and the deadline. An open mailbox counts down to its deadline live (`closes in 20d 4h`, turning red
+  and counting up as `overdue …` past it); a closed one says when it closed instead. The absolute
+  deadline follows either way, as an ordinary timestamp honoring the UTC and show-timestamps
+  settings — whether a closed mailbox was closed _at_ its deadline or long before it is the difference
+  between an exchange that timed out and one that concluded.
+- **Position chips** — one per position, numbered, colored by state: `delivered` amber (a message
+  standing unpaired), `paired` green, `waiting` dashed cyan (borrowing the `Held` pill's chrome,
+  since that is the workflow status on the other side of the same rendezvous), `closed` dashed gray.
+  Everything else about the position — the source's message id, the accept/park/release/claim
+  instants, the park duration — is in the chip's tooltip. A `waiting` chip carries a live count-up
+  from `heldAt`, because the server deliberately sends no `parkedForSeconds` while the wait is still
+  running; a settled receiver that did park shows the duration it was sent. A mailbox with no
+  positions says `no messages and no receivers yet`.
+- **The link into the spine** — a chip whose receive workflow is one of the rows this group actually
+  rendered is clickable and reveals that row (scroll + `rel-flash`, the relation chips' behavior). A
+  chip whose receiver exists but is outside the window says so in its tooltip rather than pretending
+  to be a link, and a `delivered` position — which by definition has no receiver — says that instead.
+
+**Freshness:** the blocks are fetched, not streamed. Each render pass records the collections it
+drew and asks for their mailboxes as one batch per namespace, chunked so the key list always fits
+inside the server's request line, and re-renders only when the answer actually differs — which is
+what keeps the re-render it can trigger from feeding itself. How often a collection is re-asked
+depends on what is known about it: **3s** for one holding mailboxes, one whose members include a
+receive workflow (`mailboxId` on the card), or one never read successfully; **60s** for one that
+answered "no mailboxes", which is nearly every collection and would otherwise put the endpoint's
+three-table read back on a loop. A failed request is never remembered as an empty answer.
+
+Once the dashboard has any evidence of mailboxes at all, the collections on screen are additionally
+re-read on a **5s** timer under the same TTLs, because an exchange advances without any workflow
+changing: a message that arrives before its receiver is enqueued is a row, not a workflow, so no
+SSE-driven pass would ever come. The timer walks the last render pass's collections rather than the
+mailbox blocks in the DOM — a collection whose blocks are missing is exactly the one that has to be
+asked again — and never starts at all on a deployment that has never minted a mailbox.
+
+Mailboxes are cached per namespace **and** collection key. Both chains surfaces group by collection
+key alone, so a group can hold two namespaces' workflows; each namespace present is asked for its own
+mailboxes and its blocks are drawn under the same group, rather than one member's namespace standing
+in for all of them.
 
 **Query-mode differences:** query results are a filtered subset of each collection
 (status/time/search + page boundaries), so group counts read "N matching" instead of
@@ -539,7 +677,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
 - **Recent**: All, Completed, Failed, Abandoned
-- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Completed, Failed, Canceled
+- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
 
 ### Text Filter
 
@@ -593,6 +731,9 @@ interface Step {
     status: StepStatus;
     processingOrder: number;
     retryCount: number;
+    deferCount: number;
+    firstDeferredAt: string | null;
+    lastDeferReason: string | null;
     backoffUntil: string | null;
     createdAt: string;
     executionStartedAt: string | null;
@@ -614,6 +755,14 @@ interface Workflow {
     traceId: string | null;
     namespace: string;
     collectionKey: string | null;
+    // Present only on a receive workflow — the mailbox its first step reads from, and what matches
+    // a card to the mailbox block under its collection. Omitted on every ordinary workflow.
+    // NOT dashboard-only any more: this projection is the only surface exposing the
+    // receive-workflow marker (the public workflow read omits it), so an app-lib integration test
+    // reads it to assert that a mailbox continuation is *not* a receiver
+    // (Altinn.App.Integration.Tests/WorkflowEngine/WorkflowEngineMailboxMultiExchangeTests). Renaming
+    // or dropping the field breaks that test, in another tree, not just a dashboard card.
+    mailboxId: string | undefined;
     labels: Record<string, string> | null;
     backoffUntil: string | null;
     createdAt: string;
@@ -641,8 +790,10 @@ interface Workflow {
 
 Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
 
-Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
-Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z|Completed||"`
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.deferCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
+Example: `"Processing|Completed:0:0:,Processing:0:0:,Enqueued:1:0:2024-01-15T10:30:45Z|Completed||"`
+`deferCount` is in the formula so a Waiting step's card re-renders on every deferral, refreshing its
+reason sub-label and its backoff countdown.
 The trailing relation-status segments keep relation chip dot colors fresh when only a related
 workflow's status changed.
 
@@ -704,6 +855,7 @@ Phases drive the bracket lines and task name labels shown on the pipeline. The `
 The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappings:
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
+- **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

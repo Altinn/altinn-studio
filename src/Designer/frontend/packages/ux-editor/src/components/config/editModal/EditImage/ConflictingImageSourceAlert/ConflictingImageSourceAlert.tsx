@@ -1,5 +1,5 @@
 import classes from './ConflictingImageSourceAlert.module.css';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 interface ConflictingImageSourceAlertProps {
@@ -15,11 +15,11 @@ export const ConflictingImageSourceAlert = ({
 
   return (
     showAlert && (
-      <Alert size='small' className={classes.alert}>
+      <StudioAlert data-size='sm' className={classes.alert}>
         {conflictSource === 'external'
           ? t('ux_editor.properties_panel.images.conflicting_image_source_when_entering_url')
           : t('ux_editor.properties_panel.images.conflicting_image_source_when_uploading_image')}
-      </Alert>
+      </StudioAlert>
     )
   );
 };

@@ -46,9 +46,12 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-Object.defineProperty(document, 'fonts', {
-  value: { ready: Promise.resolve({}) },
-});
+if (!document.fonts) {
+  Object.defineProperty(document, 'fonts', {
+    configurable: true,
+    value: { ready: Promise.resolve({}) },
+  });
+}
 
 if (!window.localStorage) {
   const values = new Map<string, string>();
@@ -94,6 +97,10 @@ beforeEach(() => {
       postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
       altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
       helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+      logoutUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/logout',
+      loginUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goto={goTo}',
+      upgradeAuthenticationLevelUrl:
+        'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high',
       arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
       arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
       arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',
@@ -122,6 +129,7 @@ window.scrollTo = () => {};
 document.getAnimations = () => [];
 
 vi.mock('axios', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importOriginal needs the module namespace shape
   const actual = await importOriginal<typeof import('axios')>();
   const pendingRequest = vi.fn(() => new Promise(() => undefined));
   const mockAxios = Object.assign(vi.fn(), {

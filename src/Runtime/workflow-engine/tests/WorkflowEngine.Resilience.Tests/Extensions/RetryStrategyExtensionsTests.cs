@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Time.Testing;
+using WorkflowEngine.Resilience.Constants;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
 
@@ -5,6 +7,17 @@ namespace WorkflowEngine.Resilience.Tests.Extensions;
 
 public class RetryStrategyExtensionsTests
 {
+    /// <summary>
+    /// A <see cref="Random"/> whose <see cref="Random.NextDouble"/> always returns the same value.
+    /// A value of 0.5 yields a jitter factor of exactly 1.0, making delay calculations deterministic.
+    /// </summary>
+    private sealed class FixedRandom(double value) : Random
+    {
+        public override double NextDouble() => value;
+    }
+
+    private static readonly Random _noJitter = new FixedRandom(0.5);
+
     [Fact]
     public void CalculateDelay_Constant_ReturnsBaseInterval()
     {
@@ -12,7 +25,7 @@ public class RetryStrategyExtensionsTests
         var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(5));
 
         // Act
-        var delay = strategy.CalculateDelay(1);
+        var delay = strategy.CalculateDelay(1, _noJitter);
 
         // Assert
         Assert.Equal(TimeSpan.FromSeconds(5), delay);
@@ -25,8 +38,8 @@ public class RetryStrategyExtensionsTests
         var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromMinutes(10));
 
         // Act
-        var delay1 = strategy.CalculateDelay(1);
-        var delay3 = strategy.CalculateDelay(3);
+        var delay1 = strategy.CalculateDelay(1, _noJitter);
+        var delay3 = strategy.CalculateDelay(3, _noJitter);
 
         // Assert
         Assert.Equal(TimeSpan.FromSeconds(2), delay1);
@@ -40,10 +53,10 @@ public class RetryStrategyExtensionsTests
         var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(4), maxDelay: TimeSpan.FromMinutes(10));
 
         // Act & Assert — progression: 1x, 2x, 4x, 8x base interval
-        Assert.Equal(TimeSpan.FromSeconds(4), strategy.CalculateDelay(1)); // 4 * 2^0 = 4
-        Assert.Equal(TimeSpan.FromSeconds(8), strategy.CalculateDelay(2)); // 4 * 2^1 = 8
-        Assert.Equal(TimeSpan.FromSeconds(16), strategy.CalculateDelay(3)); // 4 * 2^2 = 16
-        Assert.Equal(TimeSpan.FromSeconds(32), strategy.CalculateDelay(4)); // 4 * 2^3 = 32
+        Assert.Equal(TimeSpan.FromSeconds(4), strategy.CalculateDelay(1, _noJitter)); // 4 * 2^0 = 4
+        Assert.Equal(TimeSpan.FromSeconds(8), strategy.CalculateDelay(2, _noJitter)); // 4 * 2^1 = 8
+        Assert.Equal(TimeSpan.FromSeconds(16), strategy.CalculateDelay(3, _noJitter)); // 4 * 2^2 = 16
+        Assert.Equal(TimeSpan.FromSeconds(32), strategy.CalculateDelay(4, _noJitter)); // 4 * 2^3 = 32
     }
 
     [Fact]
@@ -53,7 +66,7 @@ public class RetryStrategyExtensionsTests
         var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1), maxDelay: TimeSpan.FromHours(24));
 
         // Act — should not throw, should be clamped to maxDelay
-        var delay = strategy.CalculateDelay(100);
+        var delay = strategy.CalculateDelay(100, _noJitter);
 
         // Assert
         Assert.Equal(TimeSpan.FromHours(24), delay);
@@ -66,10 +79,84 @@ public class RetryStrategyExtensionsTests
         var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(10), maxDelay: TimeSpan.FromSeconds(15));
 
         // Act
-        var delay = strategy.CalculateDelay(5); // 10 * 5 = 50s, clamped to 15s
+        var delay = strategy.CalculateDelay(5, _noJitter); // 10 * 5 = 50s, clamped to 15s
 
         // Assert
         Assert.Equal(TimeSpan.FromSeconds(15), delay);
+    }
+
+    [Fact]
+    public void CalculateDelay_Jitter_StaysWithinJitterBounds()
+    {
+        // Arrange — 10s base delay, jitter must keep the result within ±20% of it
+        var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(10), maxDelay: TimeSpan.FromMinutes(10));
+        var lowerBound = TimeSpan.FromSeconds(10 * (1 - Defaults.RetryDelayJitterFraction));
+        var upperBound = TimeSpan.FromSeconds(10 * (1 + Defaults.RetryDelayJitterFraction));
+
+        // Act & Assert — real randomness, bounds hold for every draw
+        for (var i = 0; i < 1_000; i++)
+        {
+            var delay = strategy.CalculateDelay(1);
+            Assert.InRange(delay, lowerBound, upperBound);
+        }
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.8)] // lowest draw → factor 1 - jitter fraction
+    [InlineData(1.0, 1.2)] // highest draw → factor 1 + jitter fraction
+    public void CalculateDelay_Jitter_MapsRandomDrawToJitterFactor(double randomValue, double expectedFactor)
+    {
+        // Arrange
+        var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(10), maxDelay: TimeSpan.FromMinutes(10));
+
+        // Act
+        var delay = strategy.CalculateDelay(1, new FixedRandom(randomValue));
+
+        // Assert
+        Assert.Equal(TimeSpan.FromSeconds(10 * expectedFactor), delay);
+    }
+
+    [Fact]
+    public void CalculateDelay_Jitter_NeverExceedsMaxDelay()
+    {
+        // Arrange — raw delay (50s) is clamped to maxDelay (15s) before jitter, so upward jitter
+        // must be re-clamped: effective spread at the cap is [0.8, 1.0] × maxDelay
+        var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(10), maxDelay: TimeSpan.FromSeconds(15));
+        var lowerBound = TimeSpan.FromSeconds(15 * (1 - Defaults.RetryDelayJitterFraction));
+
+        // Act & Assert
+        for (var i = 0; i < 1_000; i++)
+        {
+            var delay = strategy.CalculateDelay(5);
+            Assert.InRange(delay, lowerBound, TimeSpan.FromSeconds(15));
+        }
+    }
+
+    [Fact]
+    public void CalculateDelay_Jitter_NeverReturnsNegativeDelay()
+    {
+        // Arrange — zero base interval is the smallest computable delay
+        var strategy = RetryStrategy.None();
+
+        // Act
+        var delay = strategy.CalculateDelay(1, new FixedRandom(0.0));
+
+        // Assert
+        Assert.Equal(TimeSpan.Zero, delay);
+    }
+
+    [Fact]
+    public void CalculateDelay_Jitter_DifferentRandomValuesProduceDifferentDelays()
+    {
+        // Arrange — two workflows failing on the same cause at the same iteration
+        var strategy = RetryStrategy.Linear(TimeSpan.FromMinutes(5), maxDelay: TimeSpan.FromHours(1));
+
+        // Act
+        var delayA = strategy.CalculateDelay(1, new FixedRandom(0.25));
+        var delayB = strategy.CalculateDelay(1, new FixedRandom(0.75));
+
+        // Assert — different draws de-synchronize the retry wave
+        Assert.NotEqual(delayA, delayB);
     }
 
     [Fact]
@@ -98,6 +185,20 @@ public class RetryStrategyExtensionsTests
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void CanRetry_WithDuration_JudgesTheNominalDelay_NotAJitteredRoll()
+    {
+        // Arrange — the nominal delay (10s) fits the 11s budget, but a high jitter roll (up to
+        // 12s) would not. Admissibility is judged on the nominal schedule, so the verdict must
+        // be deterministically true; under a jittered gate it flips on roughly a quarter of rolls.
+        var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(10), maxDuration: TimeSpan.FromSeconds(11));
+        var startTime = DateTimeOffset.UtcNow;
+
+        // Act & Assert
+        for (int i = 0; i < 100; i++)
+            Assert.True(strategy.CanRetry(1, startTime));
     }
 
     [Fact]
@@ -274,6 +375,50 @@ public class RetryStrategyExtensionsTests
 
         // Should fail after first attempt because next retry delay (1h) exceeds deadline
         Assert.Equal(1, callCount);
+    }
+
+    [Fact]
+    public async Task Execute_ClampsTheFinalDelayToTheDeadline_InsteadOfRejectingIt()
+    {
+        // Arrange — the nominal delay (100ms) fits the 110ms budget, but a high jitter roll (up
+        // to 120ms) would overshoot it. The roll must be clamped to the deadline, never used to
+        // reject an attempt the nominal schedule admitted. Repeated on a fake clock so a
+        // regression to roll-based rejection (which trips on ~a quarter of rolls) cannot hide.
+        var strategy = RetryStrategy.Constant(
+            TimeSpan.FromMilliseconds(100),
+            maxRetries: 5,
+            maxDuration: TimeSpan.FromMilliseconds(110)
+        );
+
+        for (int round = 0; round < 20; round++)
+        {
+            var timeProvider = new FakeTimeProvider();
+            var callCount = 0;
+
+            var execution = strategy.Execute(
+                _ =>
+                {
+                    callCount++;
+                    throw new InvalidOperationException("always fails");
+                },
+                errorHandler: _ => RetryDecision.Retry,
+                timeProvider: timeProvider,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+            // Drive the fake clock until the execution settles (bounded so a hang fails fast).
+            for (int i = 0; i < 1000 && !execution.IsCompleted; i++)
+            {
+                timeProvider.Advance(TimeSpan.FromMilliseconds(10));
+                await Task.Yield();
+            }
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => execution);
+
+            // Attempt 1 at T0, attempt 2 within the (possibly clamped) delay, then CanRetry
+            // gives up — the second attempt must never be lost to an unlucky roll.
+            Assert.Equal(2, callCount);
+        }
     }
 
     [Fact]

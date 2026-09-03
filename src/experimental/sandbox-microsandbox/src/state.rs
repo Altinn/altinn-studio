@@ -1,15 +1,15 @@
-use std::{io::Write as _, path::PathBuf};
+use std::{collections::BTreeMap, io::Write as _, path::PathBuf};
 
 use sandbox::{
-    SandboxId, SandboxName, SandboxResources, image::ResolvedImage, init::InitSystem, mount::Mount,
-    network::NetworkAttachment, volume::VolumeId,
+    SandboxId, SandboxName, SandboxResources, backend::CreateSandboxRequest, image::ResolvedImage, init::InitSystem,
+    mount::Mount, network::NetworkAttachment, volume::VolumeId,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest as _, Sha256};
 
 use crate::{encoding::lower_hex, error};
 
-const SANDBOX_SCHEMA_VERSION: u32 = 3;
+const SANDBOX_SCHEMA_VERSION: u32 = 4;
 const VOLUME_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -24,30 +24,24 @@ pub(crate) struct SandboxRecord {
     #[serde(default)]
     pub(crate) init_system: InitSystem,
     pub(crate) mounts: Vec<Mount>,
+    pub(crate) environment: BTreeMap<String, String>,
     pub(crate) network: Option<NetworkAttachment>,
 }
 
 impl SandboxRecord {
-    pub(crate) fn new(
-        id: SandboxId,
-        name: SandboxName,
-        image: ResolvedImage,
-        resources: SandboxResources,
-        init_system: InitSystem,
-        mounts: Vec<Mount>,
-        network: Option<NetworkAttachment>,
-    ) -> Self {
-        let runtime_name = format!("sandbox-{}", id.as_uuid().simple());
+    pub(crate) fn new(request: CreateSandboxRequest) -> Self {
+        let runtime_name = format!("sandbox-{}", request.id.as_uuid().simple());
         Self {
             schema_version: SANDBOX_SCHEMA_VERSION,
             runtime_name,
-            id,
-            name,
-            image,
-            resources,
-            init_system,
-            mounts,
-            network,
+            id: request.id,
+            name: request.name,
+            image: request.image,
+            resources: request.resources,
+            init_system: request.init_system,
+            mounts: request.mounts,
+            environment: request.environment,
+            network: request.network,
         }
     }
 }
@@ -297,10 +291,11 @@ async fn remove_file(path: PathBuf, operation: &'static str) -> Result<(), sandb
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use std::path::PathBuf;
+    use std::{collections::BTreeMap, path::PathBuf};
 
     use sandbox::{
-        ByteQuantity, CpuQuantity, Platform, RootFilesystem, SandboxName, SandboxResources, image, init::InitSystem,
+        ByteQuantity, CpuQuantity, Platform, RootFilesystem, SandboxName, SandboxResources,
+        backend::CreateSandboxRequest, image, init::InitSystem,
     };
 
     use super::{SandboxRecord, StateStore, VolumeRecord};
@@ -316,7 +311,7 @@ mod tests {
                 dockerfile: PathBuf::from("Dockerfile"),
             },
             platform: Platform::new("linux", "amd64"),
-            digest: "sha256:1234".to_string(),
+            manifest_digest: "sha256:1234".to_string(),
         }
     }
 
@@ -336,21 +331,26 @@ mod tests {
         )
     }
 
+    fn sandbox_record(id: &str) -> SandboxRecord {
+        SandboxRecord::new(CreateSandboxRequest {
+            id: sandbox_id(id),
+            name: sandbox_name(),
+            image: image(),
+            resources: resources(),
+            init_system: InitSystem::Backend,
+            mounts: Vec::new(),
+            environment: BTreeMap::new(),
+            network: None,
+        })
+    }
+
     #[tokio::test(flavor = "local")]
     async fn sandbox_records_survive_reopening_the_store() {
         let home = tempfile::tempdir().expect("temporary state home should be created");
         let store = StateStore::open(home.path().to_path_buf())
             .await
             .expect("state store should open");
-        let record = SandboxRecord::new(
-            sandbox_id("00000000-0000-4000-8000-000000000001"),
-            sandbox_name(),
-            image(),
-            resources(),
-            InitSystem::Backend,
-            Vec::new(),
-            None,
-        );
+        let record = sandbox_record("00000000-0000-4000-8000-000000000001");
         store.save_sandbox(&record).await.expect("record should be saved");
 
         let reopened = StateStore::open(home.path().to_path_buf())
@@ -378,24 +378,8 @@ mod tests {
         let store = StateStore::open(home.path().to_path_buf())
             .await
             .expect("state store should open");
-        let original = SandboxRecord::new(
-            sandbox_id("00000000-0000-4000-8000-000000000002"),
-            sandbox_name(),
-            image(),
-            resources(),
-            InitSystem::Backend,
-            Vec::new(),
-            None,
-        );
-        let replacement = SandboxRecord::new(
-            sandbox_id("00000000-0000-4000-8000-000000000003"),
-            sandbox_name(),
-            image(),
-            resources(),
-            InitSystem::Backend,
-            Vec::new(),
-            None,
-        );
+        let original = sandbox_record("00000000-0000-4000-8000-000000000002");
+        let replacement = sandbox_record("00000000-0000-4000-8000-000000000003");
         store.save_sandbox(&original).await.expect("record should be saved");
 
         assert!(store.save_sandbox(&replacement).await.is_err());

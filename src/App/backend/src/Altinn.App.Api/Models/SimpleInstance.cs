@@ -6,7 +6,7 @@ namespace Altinn.App.Api.Models;
 public class SimpleInstance
 {
     /// <summary>
-    /// The instance identifier formated as {instanceOwner.partyId}/{instanceGuid}.
+    /// The instance identifier formatted as {instanceOwner.partyId}/{instanceGuid}.
     /// </summary>
 #nullable disable
     public string Id { get; set; }

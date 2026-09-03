@@ -19,7 +19,6 @@ COPY src/Designer/frontend/language/package.json ./src/Designer/frontend/languag
 COPY src/Designer/frontend/libs/studio-assistant/package.json ./src/Designer/frontend/libs/studio-assistant/
 COPY src/Designer/frontend/libs/studio-browser-storage/package.json ./src/Designer/frontend/libs/studio-browser-storage/
 COPY src/Designer/frontend/libs/studio-components/package.json ./src/Designer/frontend/libs/studio-components/
-COPY src/Designer/frontend/libs/studio-components-legacy/package.json ./src/Designer/frontend/libs/studio-components-legacy/
 COPY src/Designer/frontend/libs/studio-content-library/package.json ./src/Designer/frontend/libs/studio-content-library/
 COPY src/Designer/frontend/libs/studio-feature-flags/package.json ./src/Designer/frontend/libs/studio-feature-flags/
 COPY src/Designer/frontend/libs/studio-feedback-form/package.json ./src/Designer/frontend/libs/studio-feedback-form/
@@ -56,6 +55,8 @@ RUN yarn --immutable
 
 COPY . .
 RUN cd src/Designer/frontend && yarn build
+# Build the Altinn app frontend so Designer can serve it locally for v9 app previews (no CDN dependency)
+RUN cd src/App/frontend && yarn build
 
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
@@ -102,6 +103,9 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/di
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
+
+# Altinn app frontend bundle, served by Designer for v9 app previews at /altinn-app-frontend/
+COPY --from=generate-studio-frontend /build/src/App/frontend/dist ./wwwroot/altinn-app-frontend/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

@@ -111,7 +111,7 @@ public sealed class EFormidlingRegistrationMigrationTests : IDisposable
 
         var result = new EFormidlingRegistrationMigration(Scanner()).Migrate();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("dropped the 'DefaultEFormidlingReceivers' type argument", StringComparison.Ordinal)
@@ -213,10 +213,9 @@ public sealed class EFormidlingRegistrationMigrationTests : IDisposable
 
         var result = new EFormidlingRegistrationMigration(Scanner()).Migrate();
 
-        Assert.True(result.ManualActionRequired);
         Assert.Contains(
-            result.Warnings,
-            w => w.Contains("call shape this upgrade does not rewrite", StringComparison.Ordinal)
+            result.Todos,
+            t => t.Contains("call shape this upgrade does not rewrite", StringComparison.Ordinal)
         );
         // Crucially, it must not have treated the containing type as the service collection.
         Assert.DoesNotContain(
@@ -243,7 +242,7 @@ public sealed class EFormidlingRegistrationMigrationTests : IDisposable
 
         // Still rewritten - it has to be, or the app will not compile - but the developer is told the
         // settings source may not have carried over.
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("not a plain configuration", StringComparison.Ordinal));
     }
 }

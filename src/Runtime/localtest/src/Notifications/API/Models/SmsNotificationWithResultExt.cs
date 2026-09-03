@@ -10,7 +10,7 @@ namespace Altinn.Notifications.Core.Models.Notification
     /// A class representing an sms notification with result
     /// </summary>
     /// <remarks>
-    /// External representaion to be used in the API.
+    /// External representation to be used in the API.
     /// </remarks>    
     public class SmsNotificationWithResultExt
     {

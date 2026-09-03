@@ -30,7 +30,7 @@ public sealed class XsdAnyAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdA
     public string Id { get; }
 
     /// <summary>
-    /// The value of the namespacee attribute on the AnyAttribute element in an XSD.
+    /// The value of the namespace attribute on the AnyAttribute element in an XSD.
     /// </summary>
     public string Namespace { get; }
 

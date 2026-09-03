@@ -33,7 +33,7 @@ public static class JsonHelper
         foreach (var dataProcessor in dataProcessors)
         {
             logger.LogInformation(
-                "ProcessDataRead for {modelType} using {dataProcesor}",
+                "ProcessDataRead for {modelType} using {dataProcessor}",
                 serviceModel.GetType().Name,
                 dataProcessor.GetType().Name
             );

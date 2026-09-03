@@ -112,6 +112,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         using var slot = await _limiter.AcquireHttpSlot(activity?.Context, cancellationToken);
         using var httpClient = CreateAuthorizedClient(workflowContext);
 
+        var mailbox = MailboxBlock(context);
+
         var payload = new AppCallbackPayload
         {
             CommandKey = commandData.CommandKey,
@@ -119,6 +121,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             LockToken = workflowContext.LockToken,
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
+            Mailbox = mailbox,
             StepId = context.Step.DatabaseId,
             ExecutionReferenceTime = context.Workflow.StartAt ?? context.Step.CreatedAt,
             State = context.StateIn,
@@ -130,6 +133,18 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
+
+        if (mailbox is not null)
+        {
+            _logger.SendingAppCommandWithMailbox(
+                commandData.CommandKey,
+                context.Workflow.DatabaseId,
+                mailbox.Id,
+                mailbox.Seq,
+                mailbox.Delivery is not null,
+                mailbox.DisposedReason
+            );
+        }
 
         _logger.SendingAppCommand(
             commandData.CommandKey,
@@ -186,13 +201,43 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (statusCode is >= 400 and < 500 and not 408 and not 418 and not 429)
         {
             return ExecutionResult.CriticalError(
-                $"AppCommand failed with client error {response.StatusCode}: {errorBody}"
+                $"AppCommand failed with client error {response.StatusCode}: {errorBody}",
+                httpStatusCode: statusCode
             );
         }
 
         return ExecutionResult.RetryableError(
-            $"AppCommand execution failed with status code {response.StatusCode}: {errorBody}"
+            $"AppCommand execution failed with status code {response.StatusCode}: {errorBody}",
+            httpStatusCode: statusCode
         );
+    }
+
+    /// <summary>
+    /// Projects the engine's mailbox receipt onto the callback, or <c>null</c> when this step receives from no
+    /// mailbox. A projection and nothing more: the delivery is not re-derived here and the absence of one is not
+    /// re-interpreted.
+    /// </summary>
+    private static AppCallbackMailbox? MailboxBlock(CommandExecutionContext context)
+    {
+        if (context.MailboxReceipt is not { } receipt)
+            return null;
+
+        AppCallbackMailboxDelivery? delivery = receipt.Delivery is not { } message
+            ? null
+            : new AppCallbackMailboxDelivery
+            {
+                IdempotencyKey = message.IdempotencyKey,
+                Payload = message.Payload,
+                AcceptedAt = message.AcceptedAt,
+            };
+
+        return new AppCallbackMailbox
+        {
+            Id = receipt.MailboxId,
+            Seq = receipt.Seq,
+            Delivery = delivery,
+            DisposedReason = receipt.DisposedReason,
+        };
     }
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)
@@ -240,6 +285,21 @@ internal static partial class AppCommandDescriptorLogs
         Guid workflowId,
         int instanceOwnerPartyId,
         Guid instanceGuid
+    );
+
+    // Ids and shape only: the delivery's body is a forwarded external message and is never logged.
+    [LoggerMessage(
+        LogLevel.Information,
+        "AppCommand '{CommandKey}' receives from mailbox {MailboxId} at position {Seq} (workflowId: {WorkflowId}, delivered: {Delivered}, closed: {DisposedReason})"
+    )]
+    internal static partial void SendingAppCommandWithMailbox(
+        this ILogger<AppCommand> logger,
+        string commandKey,
+        Guid workflowId,
+        Guid mailboxId,
+        long seq,
+        bool delivered,
+        MailboxDisposedReason? disposedReason
     );
 
     // The app's reason is not logged here — it is free text, and it reaches the engine log via the deferral.

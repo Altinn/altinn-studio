@@ -13,7 +13,7 @@ public class ContactPoint
     public string Category { get; set; }
 
     /// <summary>
-    /// The contact details. The actual phone number, email adress
+    /// The contact details. The actual phone number, email address
     /// </summary>
     public string Email { get; set; }
 

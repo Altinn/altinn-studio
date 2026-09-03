@@ -318,6 +318,32 @@ class TestTermination:
         assert result.reason is TerminationReason.CANCELLED
         assert adapter.calls == []  # never reached the LLM
 
+    async def test_cancel_during_final_text_turn_prevents_completion(self, ctx):
+        """Chat-style runs are often a single streaming turn with no tool
+        calls — a cancel during that stream must not be returned as a
+        normal completion carrying the answer."""
+        adapter = FakeAdapter(
+            [AssistantMessage(content=[TextBlock(text="the answer")], stop_reason="end_turn")]
+        )
+        checks = {"count": 0}
+
+        def is_cancelled() -> bool:
+            checks["count"] += 1
+            # Turn-start check passes; the post-response check sees the cancel.
+            return checks["count"] > 1
+
+        result = await run_loop(
+            user_message="hi",
+            system_prompt="sys",
+            registry=ToolRegistry(),
+            adapter=adapter,
+            ctx=ctx,
+            is_cancelled=is_cancelled,
+        )
+
+        assert result.reason is TerminationReason.CANCELLED
+        assert result.final_text is None
+
 
 class TestTruncation:
     """A max_tokens cut must never masquerade as a normal completion —
@@ -420,6 +446,39 @@ class TestTruncation:
             is_cancelled=is_cancelled,
         )
         assert result.reason is TerminationReason.CANCELLED
+
+    async def test_cancel_during_model_call_skips_tool_execution(self, ctx):
+        """A cancel that lands while the model streams must stop the run
+        before that turn's tools execute — a cancelled run must not keep
+        writing files."""
+        registry = ToolRegistry()
+        registry.register(CountingTool())
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[tool_use("counting", text="write-1")], stop_reason="tool_use"
+                ),
+            ]
+        )
+        checks = {"count": 0}
+
+        def is_cancelled() -> bool:
+            checks["count"] += 1
+            # First check (turn start): not cancelled. Second check (after
+            # the model response, before tool dispatch): cancelled.
+            return checks["count"] > 1
+
+        result = await run_loop(
+            user_message="hi",
+            system_prompt="sys",
+            registry=registry,
+            adapter=adapter,
+            ctx=ctx,
+            is_cancelled=is_cancelled,
+        )
+
+        assert result.reason is TerminationReason.CANCELLED
+        assert ctx.extras.get("calls", []) == []  # the tool never ran
 
     async def test_adapter_error_propagates_as_error(self, ctx):
         class BoomAdapter(FakeAdapter):
@@ -740,7 +799,7 @@ class TestConcurrency:
         )
         assert peak <= 2, f"cap violated — peak in-flight was {peak}"
         # Sanity: the cap shouldn't trivially read 1, that would mean
-        # we accidentally serialised the whole batch.
+        # we accidentally serialized the whole batch.
         assert peak >= 2
 
     async def test_per_input_predicate_drives_batching(self, ctx):

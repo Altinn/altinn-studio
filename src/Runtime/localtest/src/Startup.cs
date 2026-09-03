@@ -72,8 +72,6 @@ namespace LocalTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAutoMapper(typeof(Program));
-
             services.AddControllers().AddJsonOptions(opt =>
             {
                 opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -242,8 +240,10 @@ namespace LocalTest
                 app.UseHsts();
             }
 
-            app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
+
+            // After the proxy: /health on a proxied component host must reach that component, not us.
+            app.UseHealthChecks("/health");
             app.UseWebSockets();
 
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);

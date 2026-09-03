@@ -134,7 +134,6 @@ const common = {
       new CG.prop('sm', CG.common('IGridSize').optional({ default: 'auto' })),
       new CG.prop('md', CG.common('IGridSize').optional({ default: 'auto' })),
       new CG.prop('lg', CG.common('IGridSize').optional({ default: 'auto' })),
-      new CG.prop('xl', CG.common('IGridSize').optional({ default: 'auto' })),
     ),
   IGrid: () =>
     new CG.obj(
@@ -374,12 +373,6 @@ const common = {
           .optional()
           .setTitle('Dynamic options (fetched from server)')
           .setDescription('ID of the option list to fetch from the server'),
-      ),
-      new CG.prop(
-        'mapping',
-        CG.common('IMapping')
-          .optional()
-          .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
       ),
       new CG.prop(
         'queryParameters',

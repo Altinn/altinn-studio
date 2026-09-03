@@ -9,7 +9,6 @@ on:
       - 'src/Runtime/workflow-engine/tests/**'
       - 'src/Runtime/workflow-engine/Directory.Build.props'
       - 'src/Runtime/workflow-engine/Directory.Packages.props'
-      - 'src/Runtime/workflow-engine/typos.toml'
       - '.github/workflows/runtime-workflow-engine-tests.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -23,7 +22,7 @@ jobs:
   build-and-test:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     defaults:
       run:
@@ -32,13 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
-
-      - name: Spell check
-        uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
-        with:
-          config: src/Runtime/workflow-engine/typos.toml
-          files: src/Runtime/workflow-engine
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0

@@ -96,7 +96,10 @@ describe('TextAreaLayout', () => {
 
   it('renders a character counter when maxLength is set', () => {
     render({ maxLength: 50 });
-    expect(screen.getByText('You have 50 characters left')).toBeInTheDocument();
+    expect(document.querySelector('[data-field="counter"]')).toHaveAttribute(
+      'data-label',
+      'You have 50 characters left',
+    );
   });
 
   it('does not render a character counter when readOnly', () => {
@@ -108,9 +111,10 @@ describe('TextAreaLayout', () => {
     // Value is 5 characters over the limit, so the `over` string
     // (input_components.exceeded_max_limit) is rendered with the overflow count.
     render({ maxLength: 5, value: 'abcdefghij' });
-    expect(
-      screen.getByText('You have exceeded the maximum limit with 5 characters'),
-    ).toBeInTheDocument();
+    expect(document.querySelector('[data-field="counter"]')).toHaveAttribute(
+      'data-label',
+      'You have exceeded the maximum limit with 5 characters',
+    );
   });
 
   it('renders validation messages when provided', () => {

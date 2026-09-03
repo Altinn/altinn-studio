@@ -1,5 +1,4 @@
-import { ErrorMessage } from '@digdir/designsystemet-react';
-import { StudioHelpText } from '@studio/components';
+import { StudioHelpText, StudioValidationMessage } from '@studio/components';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { TranslationKey } from 'language/type';
 import React, { useCallback, useEffect, useState, type JSX } from 'react';
@@ -148,9 +147,13 @@ export const FormField = <T extends unknown, TT extends unknown>({
         {helpText && <StudioHelpText aria-label={helpText}>{helpText}</StudioHelpText>}
       </div>
       {errorCode && (
-        <ErrorMessage id={errorMessageId} className={classes.errorMessageText} size='small'>
+        <StudioValidationMessage
+          id={errorMessageId}
+          className={classes.errorMessageText}
+          data-size='sm'
+        >
           {showErrorMessages()}
-        </ErrorMessage>
+        </StudioValidationMessage>
       )}
     </div>
   );

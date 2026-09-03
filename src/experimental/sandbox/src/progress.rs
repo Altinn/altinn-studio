@@ -29,6 +29,8 @@ pub enum SandboxPhase {
     FeatureDiscovery,
     /// Resolve the immutable Image.
     ImageResolve,
+    /// Export or import a prepared Image.
+    ImagePrepare,
     /// Materialize the Sandbox around the resolved Image.
     SandboxCreate,
     /// Reconcile mutable Sandbox configuration.
@@ -46,8 +48,9 @@ impl fmt::Display for SandboxPhase {
         formatter.write_str(match self {
             Self::Validate => "Validate Sandbox request",
             Self::Lookup => "Look up Sandbox",
-            Self::FeatureDiscovery => "Discover Sandbox Backend Features",
+            Self::FeatureDiscovery => "Discover Sandbox Capabilities",
             Self::ImageResolve => "Resolve Sandbox Image",
+            Self::ImagePrepare => "Prepare Sandbox Image",
             Self::SandboxCreate => "Create Sandbox",
             Self::SandboxUpdate => "Update Sandbox",
             Self::NetworkStart => "Start Sandbox Network",
@@ -178,7 +181,7 @@ pub enum OperationEvent<T> {
 /// Reports progress from inside one implementation-owned operation.
 ///
 /// Callers receive [`PendingOperation`] instead of constructing or passing a
-/// reporter. Backend and Resolver implementations obtain this reporter from
+/// reporter. Sandbox and Image Backend implementations obtain this reporter from
 /// [`PendingOperation::run`].
 #[derive(Clone)]
 pub struct SandboxProgress {

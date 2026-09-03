@@ -1,37 +1,13 @@
-"""Benchmark runner: execute the agent against a Langfuse dataset and
-record scored, comparable runs.
+"""Benchmark runner: run the agent against a Langfuse dataset and record
+scored, comparable runs.
 
-Flow per dataset item:
+Per dataset item: start a workflow on the local agent stack and poll it to
+completion, clone the session branch it pushed (the repo is ground truth, not
+the trace), score it against the item's structural rubric, preview-render every
+ordered page, then post the scores to the workflow trace and link it into the
+dataset run.
 
-    1. POST /api/agent/start on a local agent stack (goal + attachments
-       from the item), then poll /api/agent/status until terminal.
-    2. Clone the session branch the agent pushed to Gitea — the repo is
-       the ground truth, not the trace.
-    3. Run the deterministic evaluators against the item's structural
-       rubric (`expectedOutput`).
-    4. Post scores to the workflow trace and link it into the dataset
-       run (`runName`) so Langfuse's run-comparison view shows the
-       quality delta between agent versions.
-
-Usage:
-    python -m benchmarks.runner ensure-configs
-    python -m benchmarks.runner rubric --from-app <golden-clone> \
-        [--update-item <item-id> --dataset "Benchmarks/large-pdf"]
-    python -m benchmarks.runner run --run-name <name> \
-        [--dataset "Benchmarks/large-pdf"] [--assets-dir <dir>]
-
-Environment (a `.env` next to this package or exported):
-    LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY
-    AGENT_BASE_URL          default http://localhost:8071
-    AGENT_DESIGNER_API_KEY  X-Api-Key for the agent API and Gitea proxy
-    BENCH_DEVELOPER         X-Developer header, default "benchmark"
-    BENCH_REPO_URL          REQUIRED — a disposable Altinn app repo the
-                            benchmark may push session branches to, as the
-                            AGENT container resolves it, e.g.
-                            http://gitea-proxy:81/<org>/<app>.git
-                            (org is derived from the URL path)
-    BENCH_GITEA_CLONE_BASE  Gitea route reachable from THIS host,
-                            default http://localhost/repos (loadbalancer)
+Setup, environment and command reference live in README.md.
 """
 
 from __future__ import annotations
@@ -52,6 +28,7 @@ from urllib.parse import urlparse
 
 import httpx
 
+from . import preview_check
 from .app_model import load_app
 from .evaluators import Score, evaluate
 from .lf_api import LangfuseApi
@@ -72,6 +49,21 @@ SCORE_CONFIG_SPECS: dict[str, dict] = {
     "bench_texts_bound": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
 }
 
+PREVIEW_SCORE_CONFIG_SPECS: dict[str, dict] = {
+    preview_check.RENDERS_SCORE_NAME: {"dataType": "BOOLEAN"},
+    preview_check.PAGES_RENDER_SCORE_NAME: {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
+    preview_check.RENDER_FIX_ROUNDS_SCORE_NAME: {"dataType": "NUMERIC", "minValue": 0},
+    preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME: {
+        "dataType": "NUMERIC",
+        "minValue": 0,
+        "maxValue": 1,
+    },
+}
+
+RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
+RENDER_FIX_ROUNDS_ENV = "BENCH_RENDER_FIX_ROUNDS"
+DEFAULT_RENDER_FIX_ROUNDS = 1
+
 
 def _env(name: str, default: str | None = None) -> str:
     value = os.environ.get(name, default)
@@ -81,7 +73,7 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _bench_repo_url() -> str:
-    """The app repo the benchmark runs against — no default on purpose:
+    """The app repo the benchmark runs against. No default on purpose:
     it must be a repo the current developer owns and is happy to have
     session branches pushed to."""
     url = os.environ.get("BENCH_REPO_URL")
@@ -96,16 +88,11 @@ def _bench_repo_url() -> str:
 
 
 def _repo_org(repo_url: str) -> str:
-    """First path segment of the repo URL (…/<org>/<app>.git)."""
     segments = [segment for segment in urlparse(repo_url).path.split("/") if segment]
     if len(segments) < 2:
         sys.exit(f"BENCH_REPO_URL must look like …/<org>/<app>.git — got {repo_url!r}")
     return segments[0]
 
-
-# ---------------------------------------------------------------------------
-# Agent API
-# ---------------------------------------------------------------------------
 
 
 def _agent_headers() -> dict[str, str]:
@@ -134,20 +121,29 @@ def _load_attachments(item: dict, assets_dir: Path) -> list[dict]:
     return attachments
 
 
-def _start_agent(base_url: str, session_id: str, goal: str, attachments: list[dict]) -> None:
+def _start_agent(
+    base_url: str,
+    session_id: str,
+    goal: str,
+    attachments: list[dict],
+    branch: str | None = None,
+    experiment: dict | None = None,
+) -> None:
     repo_url = _bench_repo_url()
+    payload = {
+        "session_id": session_id,
+        "goal": goal,
+        "repo_url": repo_url,
+        "org": _repo_org(repo_url),
+        "allow_app_changes": True,
+        "attachments": attachments,
+    }
+    if experiment:
+        payload["experiment"] = experiment
+    if branch:
+        payload["branch"] = branch
     response = httpx.post(
-        f"{base_url}/api/agent/start",
-        headers=_agent_headers(),
-        json={
-            "session_id": session_id,
-            "goal": goal,
-            "repo_url": repo_url,
-            "org": _repo_org(repo_url),
-            "allow_app_changes": True,
-            "attachments": attachments,
-        },
-        timeout=120,
+        f"{base_url}/api/agent/start", headers=_agent_headers(), json=payload, timeout=120
     )
     response.raise_for_status()
 
@@ -163,10 +159,6 @@ def _await_workflow(base_url: str, session_id: str) -> dict:
             return status
     return {"status": "timeout"}
 
-
-# ---------------------------------------------------------------------------
-# Result branch
-# ---------------------------------------------------------------------------
 
 
 def _session_branch(session_id: str) -> str:
@@ -197,15 +189,120 @@ def _clone_result_branch(session_id: str, workdir: Path) -> Path | None:
     return destination
 
 
-# ---------------------------------------------------------------------------
-# Commands
-# ---------------------------------------------------------------------------
+
+def _is_render_fix_enabled() -> bool:
+    return os.environ.get(RENDER_FIX_FLAG, "0") == "1"
+
+
+def _render_fix_goal(failures: list[preview_check.PageRenderResult]) -> str:
+    failure_lines = "\n".join(f"- {failure.page}: {failure.detail}" for failure in failures)
+    return (
+        "The app you built fails to render in Studio's app preview. "
+        "Fix the app so every page renders without errors, verify your "
+        "changes, and commit them to the session branch.\n\n"
+        f"Failing pages:\n{failure_lines}"
+    )
+
+
+def _render_fix_rounds() -> int:
+    """Read the round budget, falling back rather than dying mid-run."""
+    raw = os.environ.get(RENDER_FIX_ROUNDS_ENV, str(DEFAULT_RENDER_FIX_ROUNDS))
+    try:
+        rounds = int(raw)
+    except ValueError:
+        rounds = -1
+    if rounds < 0:
+        print(
+            f"  {RENDER_FIX_ROUNDS_ENV}={raw!r} is not a non-negative integer; "
+            f"using {DEFAULT_RENDER_FIX_ROUNDS}"
+        )
+        return DEFAULT_RENDER_FIX_ROUNDS
+    return rounds
+
+
+def _fix_render_failures(
+    agent_base: str,
+    session_id: str,
+    failures: list[preview_check.PageRenderResult],
+    workdir: Path,
+) -> tuple[list[preview_check.PageRenderResult] | None, int]:
+    """Send render failures back into the agent session and re-check,
+    up to BENCH_RENDER_FIX_ROUNDS rounds (each round is a full agent
+    workflow). Returns (results of the last re-check, rounds run)."""
+    max_rounds = _render_fix_rounds()
+    branch = _session_branch(session_id)
+    results: list[preview_check.PageRenderResult] | None = None
+    rounds = 0
+    for round_number in range(1, max_rounds + 1):
+        rounds = round_number
+        print(f"  render fix round {round_number}: {len(failures)} failing page(s)")
+        _start_agent(agent_base, session_id, _render_fix_goal(failures), [], branch=branch)
+        status = _await_workflow(agent_base, session_id)
+        print(f"  fix workflow finished: {status.get('status')} success={status.get('success')}")
+
+        round_dir = workdir / f"fix-round-{round_number}"
+        round_dir.mkdir()
+        clone = _clone_result_branch(session_id, round_dir)
+        if clone is None:
+            break
+        results = preview_check.collect(branch, load_app(clone).page_order)
+        if results is None:
+            break
+        failures = [result for result in results if not result.rendered]
+        if not failures:
+            break
+    return results, rounds
+
+
+def _after_fix_scores(
+    results: list[preview_check.PageRenderResult] | None, rounds: int
+) -> list[Score]:
+    scores = [
+        Score(
+            name=preview_check.RENDER_FIX_ROUNDS_SCORE_NAME,
+            value=float(rounds),
+            data_type="NUMERIC",
+            comment=f"{rounds} render-fix round(s) sent back into the agent session",
+        )
+    ]
+    if results is None:
+        return scores
+    rendered_count = sum(1 for result in results if result.rendered)
+    failures = [result for result in results if not result.rendered]
+    failure_summary = "; ".join(f"{failure.page}: {failure.detail}" for failure in failures)
+    scores.append(
+        Score(
+            name=preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME,
+            value=rendered_count / len(results) if results else 0.0,
+            data_type="NUMERIC",
+            comment=f"{rendered_count}/{len(results)} pages rendered after fix"
+            + (f" — failed: {failure_summary}" if failures else ""),
+        )
+    )
+    return scores
+
+
+
+def _experiment_context(args, dataset_id: str, item_id: str) -> dict:
+    """The agent stamps this on its trace, so it is passed at start."""
+    return {
+        "experimentId": _experiment_id(args.run_name, dataset_id),
+        "experimentName": args.run_name,
+        "datasetId": dataset_id,
+        "itemId": item_id,
+        "description": args.run_description or None,
+    }
+
+
+def _experiment_id(run_name: str, dataset_id: str) -> str:
+    """Stable across the items of one run, distinct between runs."""
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"langfuse-experiment/{dataset_id}/{run_name}"))
 
 
 def cmd_ensure_configs(_: argparse.Namespace) -> None:
     lf = LangfuseApi()
     existing = lf.score_configs_by_name()
-    for name, spec in SCORE_CONFIG_SPECS.items():
+    for name, spec in {**SCORE_CONFIG_SPECS, **PREVIEW_SCORE_CONFIG_SPECS}.items():
         if name in existing:
             print(f"exists: {name}")
             continue
@@ -254,7 +351,13 @@ def cmd_run(args: argparse.Namespace) -> None:
         started_at = datetime.now(timezone.utc).isoformat()
         print(f"item {item['id']}: session {session_id}")
 
-        _start_agent(agent_base, session_id, goal, _load_attachments(item, assets_dir))
+        _start_agent(
+            agent_base,
+            session_id,
+            goal,
+            _load_attachments(item, assets_dir),
+            experiment=_experiment_context(args, item["datasetId"], item["id"]),
+        )
         status = _await_workflow(agent_base, session_id)
         completed = status.get("status") == "done" and bool(status.get("success", False))
         print(f"  workflow finished: {status.get('status')} success={status.get('success')}")
@@ -275,7 +378,20 @@ def cmd_run(args: argparse.Namespace) -> None:
         with tempfile.TemporaryDirectory(prefix="altinity-bench-") as tmp:
             clone = _clone_result_branch(session_id, Path(tmp))
             if clone is not None:
-                scores.extend(evaluate(load_app(clone), rubric))
+                app = load_app(clone)
+                scores.extend(evaluate(app, rubric))
+                if preview_check.is_enabled():
+                    render_results = preview_check.collect(
+                        _session_branch(session_id), app.page_order
+                    )
+                    if render_results is not None:
+                        scores.extend(preview_check.build_scores(render_results))
+                        failures = [r for r in render_results if not r.rendered]
+                        if failures and _is_render_fix_enabled():
+                            fixed_results, rounds = _fix_render_failures(
+                                agent_base, session_id, failures, Path(tmp)
+                            )
+                            scores.extend(_after_fix_scores(fixed_results, rounds))
             else:
                 comment = "no committed session branch to evaluate"
                 for name, spec in SCORE_CONFIG_SPECS.items():
@@ -294,13 +410,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             )
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
 
-        lf.create_dataset_run_item(
-            run_name=args.run_name,
-            dataset_item_id=item["id"],
-            trace_id=trace_id,
-            run_description=args.run_description,
-        )
-        print(f"  linked trace {trace_id} into run {args.run_name!r}")
+        print(f"  trace {trace_id} is item {item['id']} of run {args.run_name!r}")
 
 
 def main() -> None:

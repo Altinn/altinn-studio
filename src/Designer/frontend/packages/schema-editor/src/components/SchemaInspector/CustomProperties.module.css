@@ -1,10 +1,3 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  border-top: var(--studio-legacy-border-divider);
-  padding-top: var(--fds-spacing-5);
-}
-
 .listItem {
   --vertical-padding: 0.5rem; /* Must use padding instead of gap to get a proper hover effect */
   display: flex;

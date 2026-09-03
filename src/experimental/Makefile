@@ -1,57 +1,82 @@
-.PHONY: help build fmt fmt-check lint lint-fix test test-independent test-microsandbox check check-platforms deps deps-check
+.PHONY: help build user-install clean fmt lint lint-fix test test-e2e check check-platforms deps deps-check
 .DEFAULT_GOAL := help
 
-PORTABLE_PACKAGES := -p sandbox -p sandbox-authorization -p agent-runtime-protocol -p agent-runtime -p agent
-MICROSANDBOX_DIR ?= ../../../../private/microsandbox
-MICROSANDBOX_BIN := $(abspath $(MICROSANDBOX_DIR)/target/debug/msb)
-ifeq ($(OS),Windows_NT)
-MICROSANDBOX_BIN := $(MICROSANDBOX_BIN).exe
-endif
+USER_INSTALL_VERSION := v0.0.0
+USER_INSTALL_ARCHIVE := $(abspath build/user-install/agent-$(USER_INSTALL_VERSION).tar.gz)
+RELEASE_BIN_DIR := $(abspath ../../target/release)
+
+EXPERIMENTAL_PACKAGES := \
+	-p agent \
+	-p sandbox-authorization \
+	-p sandbox \
+	-p sandbox-self-dev \
+	-p sandbox-microsandbox
+PORTABLE_PACKAGES := \
+	-p sandbox \
+	-p sandbox-authorization \
+	-p agent \
+	-p sandbox-microsandbox
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Available targets:'
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
 
-build: ## Build the complete Rust workspace
-	cargo build --workspace --all-targets
+build: ## Build all experimental Rust crates
+	@echo "Building experimental Rust crates..."
+	@cargo build $(EXPERIMENTAL_PACKAGES) --all-targets --locked
+	@echo "✓ Build successful"
+
+user-install: ## Build, package and install agentctl and agentd for the current user
+	@echo "Building experimental Agent $(USER_INSTALL_VERSION)..."
+	@AGENT_VERSION=$(USER_INSTALL_VERSION) cargo build --release --locked -p agent --bins
+	@./agent/package.sh "$(USER_INSTALL_ARCHIVE)" "$(RELEASE_BIN_DIR)"
+ifeq ($(OS),Windows_NT)
+	@AGENT_VERSION=$(USER_INSTALL_VERSION) AGENT_LOCAL_ARCHIVE="$(USER_INSTALL_ARCHIVE)" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(abspath agent/install.ps1)"
+else
+	@AGENT_VERSION=$(USER_INSTALL_VERSION) AGENT_LOCAL_ARCHIVE="$(USER_INSTALL_ARCHIVE)" ./agent/install.sh
+endif
+
+clean: ## Clean experimental build artifacts
+	@echo "Cleaning experimental build artifacts..."
+	@cargo clean $(EXPERIMENTAL_PACKAGES)
+	@echo "✓ Cleaned"
 
 fmt: ## Format Rust code
-	cargo fmt --all
-
-fmt-check: ## Verify Rust formatting
-	cargo fmt --all --check
+	@echo "Formatting experimental Rust code..."
+	@cargo fmt $(EXPERIMENTAL_PACKAGES)
+	@echo "✓ Code formatted"
 
 lint: ## Run strict Clippy analysis
-	cargo clippy --workspace --all-targets --all-features
+	@echo "Linting experimental Rust crates..."
+	@cargo clippy $(EXPERIMENTAL_PACKAGES) --all-targets --all-features --locked
+	@echo "✓ Lint passed"
 
 lint-fix: ## Apply safe Clippy fixes
-	cargo clippy --workspace --all-targets --all-features --fix --allow-dirty
+	@echo "Applying Clippy fixes to experimental Rust crates..."
+	@cargo clippy $(EXPERIMENTAL_PACKAGES) --all-targets --all-features --fix --allow-dirty --locked
+	@echo "✓ Lint fixes applied"
 
 test: ## Run all tests
-	cargo test --workspace --all-targets
+	@echo "Testing experimental Rust crates..."
+	@cargo test $(EXPERIMENTAL_PACKAGES) --all-targets --locked
+	@echo "✓ Tests passed"
 
-test-independent: ## Test reusable lower-layer crates independently
-	cargo test --manifest-path sandbox/Cargo.toml --all-targets
-	cargo test --manifest-path sandbox-microsandbox/Cargo.toml --all-targets
-	cargo test --manifest-path sandbox-authorization/Cargo.toml --all-targets
-	cargo test --manifest-path agent-runtime-protocol/Cargo.toml --all-targets
-	cargo test --manifest-path agent-runtime/Cargo.toml --all-targets
-
-test-microsandbox: ## Run the real Docker/Microsandbox integration tests
-	cargo build --manifest-path $(MICROSANDBOX_DIR)/Cargo.toml -p microsandbox-cli
-	MSB_PATH=$(MICROSANDBOX_BIN) cargo test -p sandbox-microsandbox --tests -- --ignored
+test-e2e: ## Run integration tests that require Docker, Internet access, and KVM
+	@echo "Running experimental end-to-end tests..."
+	@cargo test -p sandbox-microsandbox --tests --locked -- --ignored
+	@echo "✓ End-to-end tests passed"
 
 deps: ## Print the workspace dependency graph
-	cargo tree --workspace
+	@cargo tree $(EXPERIMENTAL_PACKAGES) --locked
 
 deps-check: ## Check for unused direct dependencies
-	cargo machete --with-metadata
+	@cargo machete --with-metadata .
+	@git diff --exit-code -- ':(top)Cargo.lock'
 
-check: fmt-check lint build test test-independent test-microsandbox deps-check ## Run the complete local verification sequence
+check: fmt lint build test test-e2e deps-check ## Run all local checks
+	@echo "✓ All checks passed"
 
-check-platforms: ## Cross-check portable Windows and macOS code (requires rustup targets)
-	cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --target x86_64-pc-windows-gnu
-	cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --target aarch64-apple-darwin
-	cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --target x86_64-apple-darwin
+check-platforms: ## Check portable code on the current native host (CI covers every supported host)
+	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked

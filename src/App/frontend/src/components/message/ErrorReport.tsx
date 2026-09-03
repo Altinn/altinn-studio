@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Flex, FullWidthWrapper } from '@app/form-component';
+import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
@@ -11,7 +11,6 @@ import {
 } from 'src/features/instantiate/InstantiationValidation';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
@@ -37,18 +36,6 @@ const ErrorReportContext = createContext(false);
 export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
   const hasErrorReport = useContext(ErrorReportContext);
   const isMobile = useIsMobile();
-  const errorReportRef = useRef<React.ComponentRef<typeof ErrorSummary>>(null);
-  const wasVisible = useRef(false);
-
-  useEffect(() => {
-    // This makes sure we focus the ErrorReport after it has been rendered and first became visible. The same thing
-    // will happen in a future version of the design system, so when we upgrade to 1.18.0+ this can be removed.
-    const isVisible = show && !hasErrorReport && errors !== undefined;
-    if (isVisible && !wasVisible.current) {
-      errorReportRef.current?.focus();
-    }
-    wasVisible.current = isVisible;
-  }, [errors, hasErrorReport, show]);
 
   if (errors === undefined || hasErrorReport || !show) {
     return children;
@@ -58,7 +45,6 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
     <ErrorReportContext.Provider value={true}>
       <FullWidthWrapper isOnBottom={true}>
         <ErrorSummary
-          ref={errorReportRef}
           tabIndex={-1}
           data-testid='ErrorReport'
           className={classes.errorSummary}

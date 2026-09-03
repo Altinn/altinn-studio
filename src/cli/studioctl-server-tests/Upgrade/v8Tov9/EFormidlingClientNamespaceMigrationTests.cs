@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
@@ -20,7 +21,7 @@ public sealed class EFormidlingClientNamespaceMigrationTests : IDisposable
     {
         using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
         var projectFile = Path.Combine(_app.Root, "App", "App.csproj");
-        var migration = new UsingNamespaceMigration(projectFile);
+        var migration = new UsingNamespaceMigration(CSharpSourceScanner.ForProject(projectFile));
         foreach (var (oldNamespace, newNamespace) in V8Tov9Upgrade.EFormidlingNamespaces)
         {
             migration.Migrate(oldNamespace, newNamespace, AllCs);

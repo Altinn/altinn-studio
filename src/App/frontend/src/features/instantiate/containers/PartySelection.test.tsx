@@ -84,7 +84,7 @@ describe('PartySelection', () => {
     expect(screen.queryByRole('button', { name: /last flere/i })).not.toBeInTheDocument();
   });
 
-  it('should find an organisation when searching for an org number containing whitespace', async () => {
+  it('should find an organization when searching for an org number containing whitespace', async () => {
     const user = userEvent.setup({ delay: null });
     await render();
 
@@ -194,5 +194,23 @@ describe('PartySelection', () => {
         await waitFor(() => expect(screen.getByTestId('valid-party')).toHaveTextContent('true'));
       },
     );
+
+    it('should ignore further clicks while a selection is in flight', async () => {
+      const setSelectedPartyMock = vi.fn<PartyApi['setSelectedParty']>(() => new Promise(() => {}));
+      const user = userEvent.setup({ delay: null });
+      await render(
+        [
+          getPartyMock({ ssn: '010175*****', partyId: 12346, name: 'Kari Nordmann' }),
+          getPartyMock({ ssn: '030375*****', partyId: 12348, name: 'Per Nordmann' }),
+        ],
+        setSelectedPartyMock,
+      );
+
+      await user.click(screen.getByRole('button', { name: /^Kari Nordmann/ }));
+      await user.click(screen.getByRole('button', { name: /^Per Nordmann/ }));
+
+      expect(setSelectedPartyMock).toHaveBeenCalledTimes(1);
+      expect(setSelectedPartyMock).toHaveBeenCalledWith({ partyId: 12346 });
+    });
   });
 });

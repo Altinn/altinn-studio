@@ -225,14 +225,24 @@ describe('Shared urlHelper.ts', () => {
 
   test('logoutUrlAltinn() returning correct environments', () => {
     expect(logoutUrlAltinn(hostTT)).toBe('https://platform.tt02.altinn.no/authentication/api/v1/logout');
-    expect(logoutUrlAltinn(hostAT)).toBe('https://platform.at21.altinn.cloud/authentication/api/v1/logout');
-    expect(logoutUrlAltinn(hostYT)).toBe('https://platform.yt01.altinn.cloud/authentication/api/v1/logout');
-    expect(logoutUrlAltinn(hostProd)).toBe('https://platform.altinn.no/authentication/api/v1/logout');
     expect(logoutUrlAltinn(hostDocker)).toBe('http://local.altinn.cloud/');
     expect(logoutUrlAltinn(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(logoutUrlAltinn(hostStudio)).toBe(undefined);
     expect(logoutUrlAltinn(hostStudioDev)).toBe(undefined);
     expect(logoutUrlAltinn(hostUnknown)).toBe(undefined);
+  });
+
+  test('logoutUrlAltinn() uses the configured url, not one derived from the host', () => {
+    window.altinnAppGlobalData.platformFrontendSettings.logoutUrl = 'https://ny.altinn.no/logg-ut';
+
+    expect(logoutUrlAltinn(hostTT)).toBe('https://ny.altinn.no/logg-ut');
+    expect(logoutUrlAltinn(hostProd)).toBe('https://ny.altinn.no/logg-ut');
+  });
+
+  test('logoutUrlAltinn() returns undefined when no logout url is configured', () => {
+    window.altinnAppGlobalData.platformFrontendSettings.logoutUrl = undefined;
+
+    expect(logoutUrlAltinn(hostTT)).toBe(undefined);
   });
 
   test('customEncodeURI() returning correct encoding', () => {

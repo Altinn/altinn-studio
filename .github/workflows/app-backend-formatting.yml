@@ -17,7 +17,7 @@ jobs:
   verify-no-changes:
     if: |
       github.event.pull_request.user.login != 'renovate[bot]'
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 5
     defaults:
       run:
@@ -25,6 +25,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:

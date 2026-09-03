@@ -1,10 +1,9 @@
-import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
-import { StudioSelect, StudioTextfield } from '@studio/components';
+import { StudioFieldset, StudioSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({
@@ -65,7 +64,11 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <Fieldset className={classes.root} legend={t('ux_editor.image_component.settings')} hideLegend>
+    <StudioFieldset
+      className={classes.root}
+      legend={t('ux_editor.image_component.settings')}
+      hideLegend
+    >
       <FormField
         id={component.id}
         label={t('ux_editor.modal_properties_image_src_value_label')}
@@ -139,6 +142,6 @@ export const ImageComponent = ({
           </a>
         </p>
       </div>
-    </Fieldset>
+    </StudioFieldset>
   );
 };

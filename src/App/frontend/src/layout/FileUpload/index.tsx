@@ -9,6 +9,7 @@ import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
+import { validateMissingTagsForNode } from 'src/layout/FileUpload/Tag/useValidateMissingTag';
 import { validateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
 import { validateMinNumberOfAttachmentsForNode } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
@@ -30,6 +31,10 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
       return <FileUploadComponent {...props} />;
     },
   );
+
+  getOptionsEffectValueType() {
+    return 'single' as const;
+  }
 
   renderDefaultValidations(): boolean {
     return false;
@@ -57,10 +62,6 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return <AttachmentSummaryComponent2 {...props} />;
   }
 
-  shouldRenderInAutomaticPDF() {
-    return true;
-  }
-
   renderLayoutValidators(props: ComponentLayoutValidationProps<'FileUpload'>): JSX.Element | null {
     return <FileUploadLayoutValidator {...props} />;
   }
@@ -80,6 +81,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     );
     return [
       ...validateMinNumberOfAttachmentsForNode(ctx),
+      ...validateMissingTagsForNode(ctx),
       ...validateAttachmentDataElements(attachments, ctx.formState.validation.otherDataElementBackendValidations),
     ];
   }

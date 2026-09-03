@@ -25,6 +25,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     private async Task<IReadOnlyList<string>> Migrate(string policy, string? metadata = Metadata) =>
         (await MigrateResult(policy, metadata)).Warnings;
 
+    private async Task<IReadOnlyList<string>> MigrateTodos(string policy, string? metadata = Metadata) =>
+        (await MigrateResult(policy, metadata)).Todos;
+
     private string PolicyAfter() => _app.Read("config/authorization/policy.xml");
 
     [Fact]
@@ -65,7 +68,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -73,7 +76,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     public async Task DefaultStudioTemplatePolicy_NeedsNoMigration()
     {
         // A freshly-scaffolded app ships with the default Studio template, whose org rule already
-        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognise
+        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognize
         // that and leave the file completely untouched. The fixture is a verbatim copy of
         // src/App/template/v8/src/App/config/authorization/policy.xml.
         var policy = await File.ReadAllTextAsync(
@@ -84,7 +87,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy, metadata: null);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -161,6 +164,28 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
 
         Assert.Contains(warnings, w => w.Contains("[write, complete]", StringComparison.Ordinal));
         Assert.Contains("gives the app owner [ORG]", PolicyAfter(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task PolicyMixingAPlaceholderWithASubstitutedValue_IsStillReadCorrectly()
+    {
+        // A hand-edited policy can carry the org placeholder next to a substituted app value.
+        // Resolving the two as a pair would compare 'myapp' against '[APP]', fail the resource match,
+        // and insert a rule for grants this policy plainly already makes.
+        var policy = Policy(
+            Rule(
+                "1",
+                AnyOf(AllOf(SubjectOrg("[ORG]"))),
+                AnyOf(AllOf(ResourceOrg("[ORG]"), ResourceApp("myapp"))),
+                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
+            )
+        );
+
+        var result = await MigrateResult(policy);
+
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+        Assert.Equal(policy, PolicyAfter());
     }
 
     [Fact]
@@ -287,11 +312,14 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         Assert.Contains("v8 to v9 upgrade", PolicyAfter(), StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task TaskSpecificActions_MissingGrantsAreWarnedAbout()
+    [Theory]
+    [InlineData("signing")]
+    [InlineData("payment")]
+    public async Task TaskTypesThatAcceptWrite_NeedNothingBeyondTheBaseline(string taskType)
     {
-        // Org has the baseline (unscoped read/write/complete) but the process contains a signing
-        // task, whose transitions replay with sign/reject.
+        // Storage authorizes a signing transition with 'sign' OR 'write', and a payment transition
+        // with 'pay' OR 'write' (see ProcessAuthorizer). With the baseline in place, asking the app
+        // owner for 'sign' or 'pay' would be noise.
         var policy = Policy(
             Rule(
                 "1",
@@ -304,17 +332,103 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             "config/process/process.bpmn",
             BpmnBuilder.Process(
                 BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "signing"),
+                BpmnBuilder.Task("Task_2", taskType),
                 BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
             )
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
+
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public async Task TaskDeclaringReject_IsWarnedAboutRegardlessOfItsType()
+    {
+        // A task that declares 'reject' can be abandoned, and Storage authorizes the abandoning
+        // transition with 'reject' whatever the task's type is.
+        var policy = Policy(
+            Rule(
+                "1",
+                AnyOf(AllOf(SubjectOrg("ttd"))),
+                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
+                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
+            )
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            BpmnBuilder.Process(
+                BpmnBuilder.Task("Task_1", "data", actions: ["write", "reject"]),
+                BpmnBuilder.Flow("Flow_1", "Task_1", "EndEvent_1"),
+                BpmnBuilder.EndEvent("EndEvent_1")
+            )
+        );
+
+        var todos = await MigrateTodos(policy);
+
+        Assert.Contains(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ServerActionNamedReject_IsNotAProcessTransition()
+    {
+        var policy = Policy(
+            Rule(
+                "1",
+                AnyOf(AllOf(SubjectOrg("ttd"))),
+                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
+                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
+            )
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            BpmnBuilder.Process(
+                BpmnBuilder.Task("Task_1", "data", serverActions: ["reject"]),
+                BpmnBuilder.Flow("Flow_1", "Task_1", "EndEvent_1"),
+                BpmnBuilder.EndEvent("EndEvent_1")
+            )
+        );
+
+        var result = await MigrateResult(policy);
+
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public async Task AutoDeleteOnProcessEnd_AddsDeleteToTheInsertedRule()
+    {
+        // The instance delete at process end runs as the service owner, so the org needs 'delete'.
+        var policy = Policy(
+            Rule(
+                "1",
+                AnyOf(AllOf(SubjectOrg("ttd"))),
+                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
+                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
+            )
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            BpmnBuilder.Process(
+                BpmnBuilder.Task("Task_1", "data"),
+                BpmnBuilder.Flow("Flow_1", "Task_1", "EndEvent_1"),
+                BpmnBuilder.EndEvent("EndEvent_1")
+            )
+        );
+
+        var warnings = await Migrate(
+            policy,
+            metadata: """{"id":"ttd/myapp","org":"ttd","autoDeleteOnProcessEnd":true}"""
+        );
 
         Assert.Contains(
             warnings,
-            w => w.Contains("'sign'", StringComparison.Ordinal) && w.Contains("'reject'", StringComparison.Ordinal)
+            w =>
+                w.Contains("Added a policy rule", StringComparison.Ordinal)
+                && w.Contains("[delete]", StringComparison.Ordinal)
         );
+        Assert.Contains(">delete<", PolicyAfter(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -334,9 +448,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         _app.Write("config/applicationmetadata.json", Metadata);
         var bytesBefore = _app.ReadBytes("config/authorization/policy.xml");
 
-        var warnings = (await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Warnings;
+        var todos = (await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Todos;
 
-        Assert.Contains(warnings, w => w.Contains("not valid UTF-8", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("not valid UTF-8", StringComparison.Ordinal));
         Assert.Equal(bytesBefore, _app.ReadBytes("config/authorization/policy.xml"));
     }
 
@@ -358,10 +472,11 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 + "  -->"
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
-        Assert.Contains(warnings, w => w.Contains("inside a comment", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
+        Assert.Contains(result.Warnings, w => w.Contains("inside a comment", StringComparison.Ordinal));
+        Assert.Contains(result.Todos, t => t.Contains("Grant is still missing", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -388,13 +503,12 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
 
         var result = await MigrateResult(policy);
 
-        Assert.True(result.ManualActionRequired);
         Assert.Contains(
-            result.Warnings,
-            w =>
-                w.Contains("Deny rule", StringComparison.Ordinal)
-                && w.Contains("inconclusive", StringComparison.Ordinal)
-                && w.Contains("[read, write, complete]", StringComparison.Ordinal)
+            result.Todos,
+            t =>
+                t.Contains("Deny rule", StringComparison.Ordinal)
+                && t.Contains("inconclusive", StringComparison.Ordinal)
+                && t.Contains("[read, write, complete]", StringComparison.Ordinal)
         );
         Assert.DoesNotContain(result.Warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.Equal(policy, PolicyAfter());
@@ -439,7 +553,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task SignGrantScopedToANonSigningTask_DoesNotSatisfyTheSigningTask()
+    public async Task ConfirmGrantScopedToAnotherTask_DoesNotSatisfyTheConfirmationTask()
     {
         var policy = Policy(
             Rule(
@@ -452,25 +566,25 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 "2",
                 AnyOf(AllOf(SubjectOrg("ttd"))),
                 AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceTask("Task_1"))),
-                AnyOf(AllOf(Action("sign")), AllOf(Action("reject")))
+                AnyOf(AllOf(Action("confirm")))
             )
         );
         _app.Write(
             "config/process/process.bpmn",
             BpmnBuilder.Process(
                 BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "signing"),
+                BpmnBuilder.Task("Task_2", "confirmation"),
                 BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
             )
         );
 
-        var warnings = await Migrate(policy);
+        var todos = await MigrateTodos(policy);
 
-        Assert.Contains(warnings, w => w.Contains("'sign'", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("'confirm'", StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task SignGrantScopedToTheSigningTask_Satisfies()
+    public async Task ConfirmGrantScopedToTheConfirmationTask_Satisfies()
     {
         var policy = Policy(
             Rule(
@@ -483,21 +597,22 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 "2",
                 AnyOf(AllOf(SubjectOrg("ttd"))),
                 AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceTask("Task_2"))),
-                AnyOf(AllOf(Action("sign")), AllOf(Action("reject")))
+                AnyOf(AllOf(Action("confirm")))
             )
         );
         _app.Write(
             "config/process/process.bpmn",
             BpmnBuilder.Process(
                 BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "signing"),
+                BpmnBuilder.Task("Task_2", "confirmation"),
                 BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
             )
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
-        Assert.Empty(warnings);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -522,9 +637,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var todos = await MigrateTodos(policy);
 
-        Assert.Contains(warnings, w => w.Contains("'confirm'", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("'reject'", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("'confirm'", StringComparison.Ordinal));
+        Assert.DoesNotContain(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
     }
 }

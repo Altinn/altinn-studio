@@ -60,7 +60,7 @@ public static class TracingDI
         services.AddSingleton<IValidateQueryParamPrefill, ValidateQueryParamPrefill>();
         services.AddSingleton<IValidator, Validator>();
         services.AddSingleton<IExternalApiClient, ExternalApiClient>();
-        services.AddSingleton<IFileAnalyser, FileAnalyser>();
+        services.AddSingleton<IFileAnalyzer, FileAnalyzer>();
         services.AddSingleton<IAppOptionsFileHandler, AppOptionsFileHandler>();
         services.AddSingleton<IFileValidator, FileValidator>();
         services.AddSingleton<IEFormidlingMetadata, EFormidlingMetadata>();
@@ -387,13 +387,13 @@ internal sealed class ExternalApiClient : IExternalApiClient
     }
 }
 
-internal sealed class FileAnalyser : IFileAnalyser
+internal sealed class FileAnalyzer : IFileAnalyzer
 {
-    public string Id => "tracing-file-analyser";
+    public string Id => "tracing-file-analyzer";
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
-        SnapshotLogger.LogInfo("IFileAnalyser.Analyse");
+        SnapshotLogger.LogInfo("IFileAnalyzer.Analyze");
         return Task.FromResult(new FileAnalysisResult(Id));
     }
 }

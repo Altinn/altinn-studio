@@ -28,7 +28,7 @@ public class BaseEntity
     public string App { get; set; }
 
     /// <summary>
-    /// Organisation name
+    /// Organization name
     /// </summary>
     [JsonProperty("org")]
     public string Org { get; set; }
