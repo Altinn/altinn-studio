@@ -130,6 +130,10 @@ Response:
     "status": "Completed",
     "processingOrder": 3,
     "retryCount": 0,
+    "deferCount": 0,
+    "firstDeferredAt": "ISO | null",
+    "lastDeferredAt": "ISO | null",
+    "lastDeferReason": "string | null",
     "errorHistory": [
         { "timestamp": "ISO", "message": "string", "httpStatusCode": 500, "wasRetryable": true }
     ],
@@ -358,7 +362,7 @@ Horizontal row of step circles connected by SVG lines.
 **Below each circle:**
 
 - Command detail label (e.g. "StartTask", "WebhookCall")
-- Sub-label (if applicable)
+- Sub-label — for a Waiting step, the reason its command gave for deferring (`lastDeferReason`), ellipsised to the node's width with the full text in the tooltip
 - Command type badge (`app`, `webhook`, etc.)
 - Retry count (if > 0)
 - Backoff countdown (if requeued with future backoffUntil)
@@ -439,6 +443,8 @@ The modal has four distinct DOM zones:
     - Execution Started (if set)
     - Last Updated (if set)
     - Backoff Until (if set)
+    - Deferrals (if > 0), First Deferred and Last Deferred (formatted time + relative age, if set)
+    - Defer Reason — the step's `lastDeferReason`, the command's own words for what it is waiting for (if set)
     - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
     - Command Type
     - Max Execution Time (formatted duration, if set)
@@ -725,6 +731,9 @@ interface Step {
     status: StepStatus;
     processingOrder: number;
     retryCount: number;
+    deferCount: number;
+    firstDeferredAt: string | null;
+    lastDeferReason: string | null;
     backoffUntil: string | null;
     createdAt: string;
     executionStartedAt: string | null;
@@ -781,8 +790,10 @@ interface Workflow {
 
 Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
 
-Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
-Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z|Completed||"`
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.deferCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
+Example: `"Processing|Completed:0:0:,Processing:0:0:,Enqueued:1:0:2024-01-15T10:30:45Z|Completed||"`
+`deferCount` is in the formula so a Waiting step's card re-renders on every deferral, refreshing its
+reason sub-label and its backoff countdown.
 The trailing relation-status segments keep relation chip dot colors fresh when only a related
 workflow's status changed.
 
@@ -844,6 +855,7 @@ Phases drive the bracket lines and task name labels shown on the pipeline. The `
 The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappings:
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
+- **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

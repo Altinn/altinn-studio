@@ -539,6 +539,10 @@ internal static class DashboardEndpoints
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
+                            deferCount = s.DeferCount,
+                            firstDeferredAt = s.FirstDeferredAt,
+                            lastDeferredAt = s.LastDeferredAt,
+                            lastDeferReason = s.LastDeferReason,
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,
