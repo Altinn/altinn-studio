@@ -148,6 +148,14 @@ Registrering
 registrering
 Som
 
+# Noark 5 arkivmelding schema names carried by the eFormidling model in Altinn.App.Core:
+# the tilknyttetRegistreringSom element and its property, and the schema's registrering type
+# quoted in a doc comment. The English prose around them stays enforced.
+@paths src/App/backend/src/Altinn.App.Core/EFormidling/Models/Arkivmelding.cs
+Registrering
+registrering
+Som
+
 # the v8 API really was named Authorisation; the upgrade tooling matches it to rewrite it, and release notes describe it
 @paths src/cli/**/Upgrade/** **/CHANGELOG.md
 Authorisation

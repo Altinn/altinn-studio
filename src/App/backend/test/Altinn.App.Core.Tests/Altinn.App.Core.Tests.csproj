@@ -55,6 +55,32 @@
   </ItemGroup>
 
   <!--
+    The Noark 5 arkivmelding schema and the metadata catalogue it imports, embedded so
+    ArkivmeldingTests can validate a serialized shipment against the real schema rather than against
+    assertions we wrote ourselves. Test-only: this project is never packed, so these never reach the
+    Altinn.App.Core package, and nothing reads them at runtime.
+
+    Unmodified upstream copies, retrieved 2026-08-13 from Arkivverket's Noark 5 schemas as published
+    by difi/felleslosninger:
+      https://raw.githubusercontent.com/difi/felleslosninger/gh-pages/resources/arkivmelding/arkivmelding.xsd
+      https://raw.githubusercontent.com/difi/felleslosninger/gh-pages/resources/arkivmelding/metadatakatalog.xsd
+    Keep them byte-identical to upstream; a local edit would make the validation prove nothing. If the
+    standard is revised, replace them wholesale and let the tests report what moved.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Eformidling/Models/Schema/arkivmelding.xsd" />
+    <EmbeddedResource Include="Eformidling/Models/Schema/metadatakatalog.xsd" />
+  </ItemGroup>
+
+  <!--
+    A Standard Business Document captured from a real shipment, carried over from the eFormidling
+    client package's own test data. Pins the model against a payload we did not write.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Eformidling/Models/TestData/sbd.json" />
+  </ItemGroup>
+
+  <!--
     Workflow-engine wire-contract drift guard. The engine owns the contract; these two files are
     consumed (not copied) directly from the engine host's test project so there is a single source of
     truth in the monorepo. The shared describer is compiled in; the engine's committed contract
