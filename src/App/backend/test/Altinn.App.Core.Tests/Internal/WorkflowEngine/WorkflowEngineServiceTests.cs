@@ -1767,6 +1767,25 @@ public class WorkflowEngineServiceTests
         };
 
     [Fact]
+    public void BuildWorkflowFailure_ClassifiesFirstStepTakeOverConcurrencyFailureAsAcquireConflict()
+    {
+        Guid workflowId = Guid.NewGuid();
+        WorkflowStatusResponse workflow = CreateFailedWorkflow(
+            workflowId,
+            TakeOverProcessingStatus.Key,
+            processingOrder: 0,
+            httpStatusCode: (int)HttpStatusCode.Conflict,
+            wasRetryable: false
+        );
+
+        WorkflowFailure? failure = WorkflowEngineService.BuildWorkflowFailure([workflow]);
+
+        Assert.Equal(WorkflowFailureKind.AcquireConflict, failure?.Kind);
+        Assert.Equal(TakeOverProcessingStatus.Key, failure?.StepOperationId);
+        Assert.Equal(workflowId, failure?.WorkflowId);
+    }
+
+    [Fact]
     public void BuildWorkflowFailure_DoesNotClassifyFailureAfterAcquireAsAcquireConflict()
     {
         Guid workflowId = Guid.NewGuid();
@@ -1872,7 +1891,10 @@ public class WorkflowEngineServiceTests
                 [
                     new ErrorEntry(
                         DateTimeOffset.UtcNow,
-                        failedOperationId == AcquireProcessingStatus.Key && includeAcquireConcurrencyCode
+                        (
+                            failedOperationId == AcquireProcessingStatus.Key
+                            || failedOperationId == TakeOverProcessingStatus.Key
+                        ) && includeAcquireConcurrencyCode
                             ? "AppCommand failed with client error Conflict: "
                                 + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
                                 + "\"detail\":\"Refresh and retry.\"}"

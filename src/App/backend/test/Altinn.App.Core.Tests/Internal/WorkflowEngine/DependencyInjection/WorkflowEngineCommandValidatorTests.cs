@@ -58,6 +58,24 @@ public class WorkflowEngineCommandValidatorTests
         Assert.Contains("'MutateProcessState'", exception.Message);
     }
 
+    [Fact]
+    public void Validate_TakeOverProcessingStatusNotRegistered_ThrowsInvalidOperationException()
+    {
+        var services = new ServiceCollection();
+        RegisterAllCommands(services);
+        ServiceDescriptor registration = Assert.Single(
+            services,
+            descriptor => descriptor.ImplementationType == typeof(TakeOverProcessingStatus)
+        );
+        services.Remove(registration);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            WorkflowEngineCommandValidator.Validate(services)
+        );
+
+        Assert.Contains("'TakeOverProcessingStatus'", exception.Message);
+    }
+
     private static void RegisterAllCommands(IServiceCollection services)
     {
         // Register all commands that are referenced in ProcessEventCommands
@@ -80,6 +98,7 @@ public class WorkflowEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, EndProcessLegacyHook>();
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, AcquireProcessingStatus>();
+        services.AddTransient<IWorkflowEngineCommand, TakeOverProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();

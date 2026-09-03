@@ -389,6 +389,7 @@ internal class ProcessEngine : IProcessEngine
 
         Guid? abandonedWorkflowId = null;
         Guid? pendingCompleteProcessAbandonWorkflowId = null;
+        bool takeOverProcessingStatus = false;
         CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
             instance,
             ct
@@ -406,22 +407,11 @@ internal class ProcessEngine : IProcessEngine
                 return blockedResult;
             }
 
-            // A durable non-idle status means the failed workflow still owns the instance. Preserve
-            // the explicit resume recovery path, including for reject requests, without abandoning
-            // that workflow and then rejecting the replacement mutation.
-            case CurrentTaskWorkflowState.ResumeRequired when blockingProcessStatus is not null:
-            {
-                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
-                    ProcessNextState.ResumeRequired
-                );
-                activity?.SetProcessChangeResult(blockedResult);
-                return blockedResult;
-            }
-
             // A terminally failed workflow normally requires an explicit resume before the process
             // can continue. The one exception is a bpmn-allowed 'reject': the user is abandoning
             // the task (e.g. backing out of a failed service task from its failure screen, which
-            // offers both retry and go-back).
+            // offers both retry and go-back). A failed service task leaves the instance processing,
+            // so the reject is evaluated before the status guard and takes that status over.
             case CurrentTaskWorkflowState.ResumeRequired failedWorkflow
                 when request.Action is "reject" && rejectAllowedForTask:
             {
@@ -432,14 +422,15 @@ internal class ProcessEngine : IProcessEngine
                     instance,
                     ct: ct
                 );
-                blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(refreshed.Instance);
-                if (blockingProcessStatus is not null)
+                blockingProcessStatus = null;
+                if (ProcessStatusHelper.GetBlockingStatus(refreshed.Instance) is not null)
                 {
-                    ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
-                        ProcessNextState.ResumeRequired
-                    );
-                    activity?.SetProcessChangeResult(blockedResult);
-                    return blockedResult;
+                    // TODO: If the enqueue fails after the abandon below, the instance stays processing with no running
+                    // or failed workflow, and the plain process-status guard blocks every later request, including a
+                    // retried reject. A repair path for "processing with no owner" is still needed.
+                    // The takeover itself is a temporary workaround: Storage's status carries no owner identity, so
+                    // the holder cannot be verified. Rethink it together with the processing-status ownership model.
+                    takeOverProcessingStatus = true;
                 }
 
                 bool hasSameCurrentTask = HasSameCurrentTask(instance, refreshed.Instance);
@@ -505,6 +496,8 @@ internal class ProcessEngine : IProcessEngine
                 break;
             }
 
+            // Every other request keeps the explicit resume recovery path, whether or not the failed
+            // workflow still holds a non-idle status.
             case CurrentTaskWorkflowState.ResumeRequired:
             {
                 ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
@@ -626,21 +619,29 @@ internal class ProcessEngine : IProcessEngine
         MoveToNextResult moveToNextResult;
         try
         {
-            moveToNextResult = await HandleMoveToNext(instance, versions, processNextAction, ct);
+            moveToNextResult = await HandleMoveToNext(
+                instance,
+                versions,
+                processNextAction,
+                takeOverProcessingStatus,
+                ct
+            );
         }
         catch (WorkflowSubmissionFailedException exception) when (abandonedWorkflowId is Guid writtenOffWorkflowId)
         {
             // The failed workflow was written off, but the superseding reject never made it into
             // the engine. The write-off is not undone: the abandoned workflow no longer blocks the
             // task, and the engine released its idempotency key on abandon, so retrying the reject
-            // submits a fresh workflow.
+            // submits a fresh workflow while the instance is idle. A written-off workflow that still
+            // held the processing status leaves the instance blocked instead.
             _logger.LogWarning(
                 exception,
-                "The reject was not enqueued after workflow {AbandonedWorkflowId} was abandoned. Instance: {InstanceId}. Task: {TaskId}. Action: {ProcessNextAction}. The reject can be retried.",
+                "The reject was not enqueued after workflow {AbandonedWorkflowId} was abandoned. Instance: {InstanceId}. Task: {TaskId}. Action: {ProcessNextAction}. TakeOverProcessingStatus: {TakeOverProcessingStatus}. The reject can be retried while the instance is idle.",
                 writtenOffWorkflowId,
                 instance.Id,
                 LogSanitizer.Sanitize(currentTaskId),
-                LogSanitizer.Sanitize(request.Action ?? "none")
+                LogSanitizer.Sanitize(request.Action ?? "none"),
+                takeOverProcessingStatus
             );
 
             var submissionFailureResult = new ProcessChangeResult
@@ -649,7 +650,7 @@ internal class ProcessEngine : IProcessEngine
                 ErrorType = ProcessErrorType.Internal,
                 ErrorTitle = "The reject was not submitted.",
                 ErrorMessage =
-                    "The failed workflow was written off, but the reject was not submitted to the workflow engine. Try the reject again.",
+                    "The failed workflow was written off, but the reject was not submitted to the workflow engine. Try the reject again while the instance is idle.",
             };
             activity?.SetProcessChangeResult(submissionFailureResult);
             return submissionFailureResult;
@@ -1001,6 +1002,7 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         StorageVersionMetadata versions,
         string? action,
+        bool takeOverProcessingStatus,
         CancellationToken ct = default
     )
     {
@@ -1032,6 +1034,7 @@ internal class ProcessEngine : IProcessEngine
             versions,
             processStateChange,
             state,
+            takeOverProcessingStatus: takeOverProcessingStatus,
             ct: ct
         );
 

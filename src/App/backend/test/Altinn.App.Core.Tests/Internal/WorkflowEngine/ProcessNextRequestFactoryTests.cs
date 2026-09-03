@@ -1547,9 +1547,30 @@ public class ProcessNextRequestFactoryTests
         // Other process end commands should still be present
         Assert.Contains(EndProcessLegacyHook.Key, keys);
         Assert.Equal(AcquireProcessingStatus.Key, keys[0]);
+        Assert.DoesNotContain(TakeOverProcessingStatus.Key, keys);
         Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(CommitProcessState.Key));
         Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(EndProcessLegacyHook.Key));
         Assert.True(keys.IndexOf(EndProcessLegacyHook.Key) < keys.IndexOf(CommitProcessState.Key));
+    }
+
+    [Fact]
+    public async Task Create_TakeOverProcessingStatus_ReplacesAcquireAsTheFirstCommand()
+    {
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition();
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            takeOverProcessingStatus: true
+        );
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(TakeOverProcessingStatus.Key, keys[0]);
+        Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
+        Assert.Equal(EndTask.Key, keys[1]);
     }
 
     [Fact]
@@ -1570,6 +1591,7 @@ public class ProcessNextRequestFactoryTests
 
         var keys = ExtractCommandKeys(bundle);
         Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
+        Assert.DoesNotContain(TakeOverProcessingStatus.Key, keys);
         Assert.Equal(EndTask.Key, keys[0]);
         Assert.Equal("dependent-idempotency-key", bundle.IdempotencyKey);
         Assert.Equal("signed-state", bundle.Request.Workflows.Single().State);

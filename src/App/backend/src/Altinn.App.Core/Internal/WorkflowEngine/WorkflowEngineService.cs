@@ -74,6 +74,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false,
         CancellationToken ct = default
     )
     {
@@ -87,7 +88,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 state,
                 isInstantiation: isInstantiation,
                 prefill: prefill,
-                notification: notification
+                notification: notification,
+                takeOverProcessingStatus: takeOverProcessingStatus
             );
         }
         catch (Exception exception) when (!ct.IsCancellationRequested)
@@ -380,7 +382,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false
     ) =>
         _processNextRequestFactory.CreateChainInitiating(
             instance,
@@ -389,7 +392,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             isInstantiation: isInstantiation,
             prefill: prefill,
-            notification: notification
+            notification: notification,
+            takeOverProcessingStatus: takeOverProcessingStatus
         );
 
     private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowEnvelope(
@@ -905,7 +909,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         StepStatusResponse failedStep,
         ErrorEntry? lastError
     ) =>
-        failedStep.OperationId == AcquireProcessingStatus.Key
+        (
+            failedStep.OperationId == AcquireProcessingStatus.Key
+            || failedStep.OperationId == TakeOverProcessingStatus.Key
+        )
         && failedStep.ProcessingOrder == workflow.Steps.Min(step => step.ProcessingOrder)
         && lastError is { WasRetryable: false }
         && HasWorkflowFailureCode(lastError.Message, AcquireProcessingStatus.ConcurrencyFailureCode);

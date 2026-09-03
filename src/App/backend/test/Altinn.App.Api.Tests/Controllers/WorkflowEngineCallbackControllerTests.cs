@@ -307,6 +307,79 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_TakeOverProcessingStatus_IsAcceptedWhileTheInstanceIsProcessing()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            new TakeOverProcessingStatus(),
+            (_, instance) => instance.Process!.Status = ProcessStatus.Processing
+        );
+        setup.Services.Storage.EnforceExpectedProcessStatus = true;
+
+        IActionResult result = await setup.Execute(TakeOverProcessingStatus.Key, stepId: Guid.NewGuid());
+
+        Assert.IsType<OkObjectResult>(result);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+            request.RequestBody!
+        )!;
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Processing, mutation.ProcessState?.State?.Status);
+        Assert.Equal("Task_1", mutation.ProcessState?.State?.CurrentTask?.ElementId);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenTakeOverGetsProcessStatusConflict_ReturnsNonRetryableConflictWithoutMutation()
+    {
+        await using ControllerSetup setup = CreateSetup(new TakeOverProcessingStatus());
+        setup.Services.Storage.EnforceExpectedProcessStatus = true;
+
+        IActionResult result = await setup.Execute(TakeOverProcessingStatus.Key, stepId: Guid.NewGuid());
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("WorkflowAcquireConflict", problem.Title);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.Equal(
+            AcquireProcessingStatus.ConcurrencyFailureCode,
+            problem.Extensions["workflowFailureCode"] as string
+        );
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
+        Assert.Single(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenTakeOverGetsStaleInstanceVersion_ReturnsNonRetryableConflictWithoutMutation()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            new TakeOverProcessingStatus(),
+            (_, instance) => instance.Process!.Status = ProcessStatus.Processing
+        );
+        setup.Services.Storage.SetStorageVersions(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid,
+            instanceVersion: 2,
+            processStateVersion: 1
+        );
+
+        IActionResult result = await setup.Execute(TakeOverProcessingStatus.Key, stepId: Guid.NewGuid());
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("WorkflowAcquireConflict", problem.Title);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.Equal(
+            AcquireProcessingStatus.ConcurrencyFailureCode,
+            problem.Extensions["workflowFailureCode"] as string
+        );
+        Assert.Single(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_DoesNotTagAcquireConflict()
     {
         await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());

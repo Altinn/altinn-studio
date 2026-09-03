@@ -16,6 +16,7 @@ internal interface IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false,
         CancellationToken ct = default
     );
 

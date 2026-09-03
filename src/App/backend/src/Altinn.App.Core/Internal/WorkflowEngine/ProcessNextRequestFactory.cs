@@ -126,12 +126,13 @@ internal sealed class ProcessNextRequestFactory
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false
     ) =>
         Create(
             instance,
             processStateChange,
-            acquireProcessingStatus: true,
+            takeOverProcessingStatus ? ProcessStatusAcquisition.TakeOver : ProcessStatusAcquisition.Acquire,
             state,
             isInstantiation,
             actor: null,
@@ -155,7 +156,7 @@ internal sealed class ProcessNextRequestFactory
         Create(
             instance,
             processStateChange,
-            acquireProcessingStatus: false,
+            ProcessStatusAcquisition.None,
             state,
             isInstantiation: false,
             actor,
@@ -168,7 +169,7 @@ internal sealed class ProcessNextRequestFactory
     private async Task<WorkflowEnqueueEnvelope> Create(
         Instance instance,
         ProcessStateChange processStateChange,
-        bool acquireProcessingStatus,
+        ProcessStatusAcquisition processStatusAcquisition,
         string? state,
         bool isInstantiation,
         Actor? actor,
@@ -182,7 +183,7 @@ internal sealed class ProcessNextRequestFactory
 
         AssembledCommands commands = AssembleCommandSequence(
             processStateChange,
-            acquireProcessingStatus,
+            processStatusAcquisition,
             isInstantiation,
             prefill,
             notification
@@ -318,9 +319,16 @@ internal sealed class ProcessNextRequestFactory
         List<StepRequest> SideEffects
     );
 
+    private enum ProcessStatusAcquisition
+    {
+        None,
+        Acquire,
+        TakeOver,
+    }
+
     private AssembledCommands AssembleCommandSequence(
         ProcessStateChange processStateChange,
-        bool acquireProcessingStatus,
+        ProcessStatusAcquisition processStatusAcquisition,
         bool isInstantiation,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null
@@ -394,9 +402,14 @@ internal sealed class ProcessNextRequestFactory
         }
 
         var commands = new List<StepRequest>();
-        if (acquireProcessingStatus)
+        switch (processStatusAcquisition)
         {
-            commands.Add(CreateCommand(AcquireProcessingStatus.Key));
+            case ProcessStatusAcquisition.Acquire:
+                commands.Add(CreateCommand(AcquireProcessingStatus.Key));
+                break;
+            case ProcessStatusAcquisition.TakeOver:
+                commands.Add(CreateCommand(TakeOverProcessingStatus.Key));
+                break;
         }
         commands.AddRange(taskEndSteps);
         if (taskEndSteps.Count > 0)
