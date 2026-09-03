@@ -118,7 +118,11 @@ public class InstanceMutationsController(
             return BadRequest("The mutation request must contain at least one operation.");
         }
 
-        ActionResult deleteInstanceRequestError = ValidateDeleteInstanceRequest(mutationRequest);
+        ActionResult deleteInstanceRequestError = ValidateDeleteInstanceRequest(
+            mutationRequest,
+            preconditions,
+            idempotencyKey
+        );
         if (deleteInstanceRequestError is not null)
         {
             return deleteInstanceRequestError;
@@ -1069,7 +1073,11 @@ public class InstanceMutationsController(
         return null;
     }
 
-    private ActionResult ValidateDeleteInstanceRequest(InstanceMutationRequest request)
+    private ActionResult ValidateDeleteInstanceRequest(
+        InstanceMutationRequest request,
+        VersionPreconditions preconditions,
+        string idempotencyKey
+    )
     {
         if (request.DeleteInstance is null)
         {
@@ -1081,16 +1089,22 @@ public class InstanceMutationsController(
             return BadRequest("deleteInstance.hard must be true.");
         }
 
-        if (
+        bool hasUnrelatedMutationOperations =
             request.CreateDataElements?.Count > 0
             || request.UpdateDataElements?.Count > 0
-            || request.DeleteDataElements?.Count > 0
             || request.DataValues?.Count > 0
             || request.PresentationTexts?.Count > 0
-            || request.AddCompleteConfirmation
-            || request.ProcessState?.State is not null
-            || request.ProcessState?.Events?.Count > 0
-        )
+            || request.AddCompleteConfirmation;
+        bool isStandaloneDelete =
+            !hasUnrelatedMutationOperations
+            && request.DeleteDataElements?.Count is not > 0
+            && request.ProcessState?.State is null
+            && request.ProcessState?.Events?.Count is not > 0
+            && request.ExpectedProcessStatus is null or ProcessStatus.Idle;
+        bool isTerminalWorkflowDelete =
+            !hasUnrelatedMutationOperations
+            && IsTerminalWorkflowDeleteInstanceRequest(request, preconditions, idempotencyKey);
+        if (!isStandaloneDelete && !isTerminalWorkflowDelete)
         {
             return BadRequest(
                 "deleteInstance cannot be combined with other aggregate mutation operations."
@@ -1098,6 +1112,23 @@ public class InstanceMutationsController(
         }
 
         return null;
+    }
+
+    private static bool IsTerminalWorkflowDeleteInstanceRequest(
+        InstanceMutationRequest request,
+        VersionPreconditions preconditions,
+        string idempotencyKey
+    )
+    {
+        ProcessState processState = request.ProcessState?.State;
+        return processState?.Ended is not null
+            && processState.CurrentTask is null
+            && !string.IsNullOrWhiteSpace(processState.EndEvent)
+            && processState.Status == ProcessStatus.Idle
+            && request.ExpectedProcessStatus == ProcessStatus.Processing
+            && preconditions.InstanceVersion is not null
+            && preconditions.ProcessStateVersion is not null
+            && !string.IsNullOrWhiteSpace(idempotencyKey);
     }
 
     private ActionResult ValidateDuplicateDataElementMutationIds(
