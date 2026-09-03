@@ -119,9 +119,7 @@ public class FormDataReaderTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    public async Task ReadFormData_WithRowIdsAndNonIdleStatus_RunsReadHookWithoutInitializingOrPersisting(
-        ProcessStatus status
-    )
+    public async Task ReadFormData_WithRowIdsAndNonIdleStatus_InitializesInMemoryWithoutPersisting(ProcessStatus status)
     {
         var instance = new Instance { Process = new ProcessState { Status = status } };
         var dataElement = new DataElement
@@ -155,7 +153,7 @@ public class FormDataReaderTests
         );
 
         Assert.Equal("from-hook", model.Name);
-        Assert.Equal(Guid.Empty, model.Rows.Single().AltinnRowId);
+        Assert.NotEqual(Guid.Empty, model.Rows.Single().AltinnRowId);
         Assert.Equal(0, persistCount);
         _dataProcessor.Verify(x => x.ProcessDataRead(instance, Guid.Parse(dataElement.Id), model, null), Times.Once);
     }

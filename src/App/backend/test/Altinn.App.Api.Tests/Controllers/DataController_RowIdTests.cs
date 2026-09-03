@@ -30,7 +30,7 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    public async Task GetWithRowIds_WhenNonIdle_ReturnsStoredRowsWithoutWritingAndStillRunsReadHook(
+    public async Task GetWithRowIds_WhenNonIdle_ReturnsInitializedRowsWithoutWritingAndStillRunsReadHook(
         ProcessStatus status
     )
     {
@@ -57,7 +57,7 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
         Skjema responseModel = await GetModel(client, state, includeRowId: true);
 
         Assert.Equal("from-read-hook", responseModel.Melding!.Name);
-        Assert.Equal(Guid.Empty, GetOnlyRow(responseModel).AltinnRowId);
+        Assert.NotEqual(Guid.Empty, GetOnlyRow(responseModel).AltinnRowId);
         Assert.Equal(Guid.Empty, GetOnlyRow(storedModel).AltinnRowId);
         dataClient.Verify(
             client =>
@@ -163,7 +163,7 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
 
         Skjema subsequentResponse = await GetModel(client, state, includeRowId: true);
 
-        Assert.Equal(Guid.Empty, GetOnlyRow(subsequentResponse).AltinnRowId);
+        Assert.NotEqual(Guid.Empty, GetOnlyRow(subsequentResponse).AltinnRowId);
         Assert.Equal(Guid.Empty, GetOnlyRow(storedModel).AltinnRowId);
         dataClient.Verify(
             client =>

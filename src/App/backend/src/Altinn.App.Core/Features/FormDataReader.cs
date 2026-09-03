@@ -87,7 +87,7 @@ internal sealed class FormDataReader : IFormDataReader
 
         await RunDataProcessors(instance, resolvedDataId, appModel, language);
 
-        if (includeRowId && canModifyFormData)
+        if (includeRowId)
         {
             ObjectUtils.InitializeAltinnRowId(appModel);
         }
