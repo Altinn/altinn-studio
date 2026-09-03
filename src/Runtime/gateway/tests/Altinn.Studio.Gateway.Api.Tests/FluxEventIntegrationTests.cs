@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using Altinn.Studio.Gateway.Api.Tests.Models;
 using k8s;
 using k8s.Models;
@@ -23,14 +22,7 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 
     public FluxEventIntegrationTests()
     {
-        // Register our custom types with the k8s JSON serializer for AOT compatibility
-        KubernetesJson.AddJsonOptions(options =>
-        {
-#pragma warning disable NX0003 // TypeInfoResolver is guaranteed to be non-null after KubernetesJson initializes options
-            options.TypeInfoResolver = JsonTypeInfoResolver.Combine(TestJsonContext.Default, options.TypeInfoResolver!);
-#pragma warning restore NX0003
-        });
-
+        // Custom types are registered with the k8s JSON serializer by KubernetesJsonTestMetadata.
         var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
         _client = new Kubernetes(config);
     }
