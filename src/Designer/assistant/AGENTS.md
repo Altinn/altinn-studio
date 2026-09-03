@@ -1,7 +1,5 @@
 # AGENTS.md — Studio assistant (`src/Designer/assistant`)
 
-This file provides guidance to AI agents when working with code.
-
 The natural-language app-building agent behind the Studio assistant panel in
 [`frontend`](../frontend/AGENTS.md): a FastAPI service that plans and applies changes to a user's Altinn
 app repository through an LLM agent loop, over a WebSocket the frontend proxies via the
