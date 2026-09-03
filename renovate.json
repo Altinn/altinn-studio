@@ -16,6 +16,22 @@
       "depNameTemplate": "grafana/k6",
       "versioningTemplate": "docker",
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Claude Code release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CLAUDE_CODE_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@anthropic-ai/claude-code"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Codex release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@openai/codex"
     }
   ],
   "separateMultipleMajor": true,
@@ -125,6 +141,15 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Altinn app template NuGet packages (v9)",
       "groupSlug": "app-template-nuget-v9",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["@anthropic-ai/claude-code", "@openai/codex"],
+      "matchUpdateTypes": ["minor", "patch"],
       "addLabels": ["approve"],
       "automerge": true
     },
