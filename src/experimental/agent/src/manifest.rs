@@ -321,7 +321,7 @@ impl Spec {
         let mut duplicate_harness = None;
         let mut default_count = 0;
         for (index, harness) in self.harnesses.iter().enumerate() {
-            if harness.version.is_empty() {
+            if harness.version.as_deref().is_some_and(str::is_empty) {
                 return Err(Error::Invalid(format!(
                     "spec.harnesses[{index}].version must not be empty"
                 )));

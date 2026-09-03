@@ -556,7 +556,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
 
     let mut mutable_change = request.clone();
     mutable_change.agent.spec.sandbox.retention_policy = Some(RetentionPolicy::Delete);
-    mutable_change.agent.spec.harnesses[0].version = "2.1.240".into();
+    mutable_change.agent.spec.harnesses[0].version = Some("2.1.240".into());
     mutable_change.agent.spec.harnesses[0].default = true;
     let updated_request = mutable_change.clone();
     let updated = fixture
@@ -565,14 +565,14 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         .await
         .expect("mutable update");
     assert_eq!(updated.metadata.generation, 2);
-    assert_eq!(updated.spec.harnesses[0].version, "2.1.240");
+    assert_eq!(updated.spec.harnesses[0].version.as_deref(), Some("2.1.240"));
     assert!(updated.spec.harnesses[0].default);
 
     let mut kind_set_change = updated_request.clone();
     kind_set_change.agent.spec.harnesses[0].default = true;
     kind_set_change.agent.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
-        version: "0.149.1".into(),
+        version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
     });

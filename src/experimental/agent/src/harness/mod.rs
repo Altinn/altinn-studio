@@ -63,8 +63,9 @@ pub struct HarnessSpec {
     /// Closed harness family identifier.
     #[serde(rename = "type")]
     pub kind: Harness,
-    /// Version installed by the Agent image.
-    pub version: String,
+    /// Exact version installed by the Agent image; omitted when the image owns the version, so image bumps need no manifest change.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
     /// Authentication delivery mode.
     pub auth: HarnessAuthMode,
     /// Whether new Sessions select this installation when no harness is specified.
@@ -191,11 +192,11 @@ pub(crate) async fn bootstrap_linux(
     }
 }
 
-/// Verifies that the declared harness installation exists at the exact version.
+/// Verifies that the declared harness installation exists, at the exact version when one is declared.
 pub(crate) async fn verify_linux(
     harness: Harness,
     sandbox: &sandbox::SandboxHandle,
-    expected_version: &str,
+    expected_version: Option<&str>,
 ) -> Result<(), Error> {
     match harness {
         Harness::ClaudeCode => claude_code::verify_linux(sandbox, expected_version).await,

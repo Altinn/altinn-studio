@@ -126,7 +126,10 @@ pub(super) async fn bootstrap_linux(
     bootstrap::configure_linux(sandbox, home, instructions).await
 }
 
-pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {
+pub(super) async fn verify_linux(
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
     use sandbox::{SandboxPath, execution::ExecutionSpec};
 
     let output = sandbox
@@ -137,7 +140,7 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .await?;
     if !output.status.success() {
         return Err(Error::SandboxSetup(format!(
-            "declared Codex {expected_version:?} is missing or `codex --version` exited with code {}",
+            "Codex is missing or `codex --version` exited with code {}",
             output.status.code
         )));
     }
@@ -147,9 +150,9 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .split_whitespace()
         .nth(1)
         .ok_or_else(|| Error::SandboxSetup("`codex --version` returned no version".into()))?;
-    if installed != expected_version {
+    if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
         return Err(Error::SandboxSetup(format!(
-            "declared Codex version {expected_version:?} does not match installed version {installed:?}"
+            "declared Codex version {expected:?} does not match installed version {installed:?}"
         )));
     }
     Ok(())
