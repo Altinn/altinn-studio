@@ -82,7 +82,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 - Cards use `data-*` attributes for filter matching (avoids reparsing): `data-namespace`, `data-collectionkey`, `data-labels`, `data-status`, `data-filter`
 - Workflow fingerprinting (`status + step statuses + retry counts + defer counts`) to skip unchanged DOM updates
 - Pulse animation sync after card re-render prevents CSS animation flicker
-- Pipeline scroll-on-change: only scrolls to active step when the processing step index changes
+- Pipeline scroll-on-change: a card rebuild keeps the operator's sideways pipeline scroll (`setCardHTMLKeepingPipelineScroll`); the pipeline only scrolls to the active step when the processing step index changes
 - Inline `onclick` handlers exposed via `window.*` for cards generated as HTML strings
 - URL state sync via `syncUrl()`/`restoreUrl()` — shareable URLs capture full dashboard state
 - Grafana trace links built from workflow `traceId` for Tempo integration
