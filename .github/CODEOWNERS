@@ -40,6 +40,8 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 
 # Squad Kjøring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring
+.github/workflows/cli-rider-plugin.yaml                                   @altinn/team-altinn-studio-kjoring
+.github/workflows/cli-vscode-extension.yaml                               @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml                 @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                               @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-github-runners.yaml                              @altinn/team-altinn-studio-kjoring
@@ -62,6 +64,8 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 .github/workflows/deployer-check.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-check-texts-file.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-runner-test.yml                                   @altinn/team-altinn-studio-kjoring
+.github/workflows/release-studioctl-rider.yaml                            @altinn/team-altinn-studio-kjoring
+.github/workflows/release-studioctl-vscode.yaml                           @altinn/team-altinn-studio-kjoring
 .github/workflows/release-studioctl.yaml                                  @altinn/team-altinn-studio-kjoring
 .github/workflows/releaser-build-test.yml                                 @altinn/team-altinn-studio-kjoring
 .github/workflows/repositories-scan.yml                                   @altinn/team-altinn-studio-kjoring
@@ -88,6 +92,8 @@ src/cli/**/dockerfile*                                                    @altin
 src/cli/**/global.json                                                    @altinn/team-altinn-studio-kjoring
 src/cli/**/go.mod                                                         @altinn/team-altinn-studio-kjoring
 src/cli/**/go.sum                                                         @altinn/team-altinn-studio-kjoring
+src/cli/**/package-lock.json                                              @altinn/team-altinn-studio-kjoring
+src/cli/**/package.json                                                   @altinn/team-altinn-studio-kjoring
 src/common/dotnet/**/*.csproj                                             @altinn/team-altinn-studio-kjoring
 src/common/dotnet/**/global.json                                          @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/Dockerfile*                 @altinn/team-altinn-studio-kjoring
