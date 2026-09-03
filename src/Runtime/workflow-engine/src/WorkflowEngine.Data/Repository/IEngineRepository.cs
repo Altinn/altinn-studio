@@ -40,6 +40,12 @@ internal interface IEngineRepository
     /// Replaces both <c>GetFinishedWorkflows</c> and <c>QueryWorkflowsWithCount</c>.
     /// Set <paramref name="includeTotalCount"/> to true to include the total count (adds a COUNT query).
     /// </summary>
+    /// <remarks>
+    /// <paramref name="isHead"/> filters on head <em>visibility</em>, not directive equality:
+    /// <see langword="true"/> matches workflows whose persisted <c>isHead</c> directive is anything
+    /// but <c>false</c> (i.e. <c>true</c> or unset), <see langword="false"/> matches exactly
+    /// <c>isHead = false</c>, and <see langword="null"/> applies no filter.
+    /// </remarks>
     Task<CursorPaginatedResult> QueryWorkflows(
         int pageSize,
         IReadOnlyCollection<PersistentItemStatus> statuses,
@@ -51,6 +57,7 @@ internal interface IEngineRepository
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
         string? collectionKey = null,
+        bool? isHead = null,
         CancellationToken cancellationToken = default
     );
 
@@ -271,15 +278,39 @@ internal interface IEngineRepository
     Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all workflow collections in a namespace.
+    /// Queries workflow collections in a namespace with cursor-based pagination, each carrying its
+    /// per-collection workflow status rollup (<see cref="WorkflowCollectionResponse.WorkflowCounts"/>).
+    /// Results follow a stable, collation-defined key order (the database column collation, not
+    /// necessarily ordinal); the cursor is opaque — pass the
+    /// <see cref="CollectionQueryResult.NextCursor"/> from a previous page as <paramref name="cursor"/>.
     /// </summary>
-    Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(
+    /// <param name="ns">The namespace to query.</param>
+    /// <param name="pageSize">Maximum number of collections to return.</param>
+    /// <param name="cursor">Exclusive lower bound on the collection key (keyset pagination).</param>
+    /// <param name="keys">
+    /// Annotate mode: restrict the result to these collection keys and report the keys without a
+    /// collection row via <see cref="CollectionQueryResult.UnmatchedKeys"/>. Mutually exclusive with
+    /// <paramref name="cursor"/> and <paramref name="failures"/> (enforced by the caller).
+    /// </param>
+    /// <param name="failures">
+    /// Discover mode: restrict the result to collections containing at least one failed workflow,
+    /// per <see cref="CollectionFailureFilter"/>. Driven from the workflow side (namespace + status
+    /// index scan, then distinct keys) so the query stays cheap when failures are rare.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<CollectionQueryResult> GetCollections(
         string ns,
+        int pageSize,
+        string? cursor = null,
+        IReadOnlyCollection<string>? keys = null,
+        CollectionFailureFilter? failures = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Gets a single workflow collection by key and namespace, including head workflow statuses.
+    /// This is a frontier view by contract: workflows enqueued with <c>isHead = false</c> never
+    /// appear in it and carry no rollup here — use <see cref="GetCollections"/> for health reads.
     /// </summary>
     Task<WorkflowCollectionDetailResponse?> GetCollection(
         string key,

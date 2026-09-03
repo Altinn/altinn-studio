@@ -52,8 +52,32 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             "Filter by workflow status (repeatable, case-insensitive). Omit to return all statuses; an unrecognized value returns 400.",
         ["label"] = "Filter by label, formatted as key:value (repeatable). Entries without a colon are ignored.",
         ["collectionKey"] = "Filter to a single workflow collection.",
+        ["isHead"] =
+            "Filter by head visibility. Deliberately asymmetric with the response field of the same name: "
+            + "the field is the raw enqueue directive (true, false, or absent), while this parameter is effective "
+            + "visibility — isHead=true matches every workflow the head frontier can see (directive true OR unset, "
+            + "so it returns rows whose isHead field reads null), and isHead=false matches exactly the invisible "
+            + "ones (directive false). Omit to return both.",
         ["cursor"] = "Pagination cursor — pass the nextCursor from the previous response to fetch the next page.",
         ["pageSize"] = "Items per page (default 25, clamped to 1–100).",
+    };
+
+    private static readonly Dictionary<string, string> _listCollectionParamDescriptions = new()
+    {
+        ["key"] =
+            "Annotate mode: report health for these collection keys (repeatable; duplicates are deduplicated). "
+            + "Mutually exclusive with cursor and failures (400). Requests with more distinct keys than the maximum "
+            + "page size are rejected with 400, never truncated. Keys without a collection row are reported in "
+            + "unmatchedKeys.",
+        ["failures"] =
+            "Discover mode: only collections containing at least one failed workflow (Failed, Canceled, "
+            + "DependencyFailed; Abandoned never matches). 'visible' restricts to failures the head frontier can "
+            + "see (isHead directive not false), 'invisible' to failures of workflows enqueued with isHead=false, "
+            + "'any' ignores visibility. An unrecognized value returns 400.",
+        ["cursor"] =
+            "Pagination cursor — pass the nextCursor from the previous response to fetch the next page. "
+            + "Not valid together with key.",
+        ["pageSize"] = "Items per page (default 25, clamped to 1–100). Ignored in annotate (key) mode.",
     };
 
     public Task TransformAsync(
@@ -95,6 +119,30 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
                                 .. Enum.GetNames<PersistentItemStatus>().Select(JsonNode (x) => JsonValue.Create(x)),
                             ],
                         },
+                    };
+                }
+            }
+        }
+
+        if (operationId == "ListCollections" && operation.Parameters is not null)
+        {
+            foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
+            {
+                if (
+                    parameter.Name is { } name
+                    && _listCollectionParamDescriptions.TryGetValue(name, out var description)
+                )
+                    parameter.Description = description;
+
+                if (parameter.Name == "failures")
+                {
+                    parameter.Schema = new OpenApiSchema
+                    {
+                        Type = JsonSchemaType.String,
+                        Enum =
+                        [
+                            .. Enum.GetNames<CollectionFailureFilter>().Select(JsonNode (x) => JsonValue.Create(x)),
+                        ],
                     };
                 }
             }

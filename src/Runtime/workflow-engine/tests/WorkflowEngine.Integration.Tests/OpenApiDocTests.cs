@@ -42,6 +42,56 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
     }
 
     [Fact]
+    public async Task IsHeadFilter_DocumentsVisibilityAsymmetry()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var isHeadParam = doc
+            .RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/{namespace}/workflows")
+            .GetProperty("get")
+            .GetProperty("parameters")
+            .EnumerateArray()
+            .Single(p => p.GetProperty("name").GetString() == "isHead");
+
+        // The param is deliberately asymmetric with the response field of the same name
+        // (field = raw directive, param = effective visibility) — the description must say so.
+        var description = isHeadParam.GetProperty("description").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(description));
+        Assert.Contains("asymmetric", description, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("visibility", description, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ListCollectionsParameters_ExposeDescriptionsAndFailuresEnum()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var parameters = doc
+            .RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/{namespace}/collections")
+            .GetProperty("get")
+            .GetProperty("parameters")
+            .EnumerateArray()
+            .ToDictionary(p => p.GetProperty("name").GetString()!);
+
+        foreach (var name in new[] { "key", "failures", "cursor", "pageSize" })
+            Assert.False(string.IsNullOrWhiteSpace(parameters[name].GetProperty("description").GetString()));
+
+        var failureValues = parameters["failures"]
+            .GetProperty("schema")
+            .GetProperty("enum")
+            .EnumerateArray()
+            .Select(e => e.GetString())
+            .ToList();
+
+        foreach (var name in Enum.GetNames<CollectionFailureFilter>())
+            Assert.Contains(name, failureValues);
+    }
+
+    [Fact]
     public async Task LinksToTechnicalGuide_AtDocumentAndOperationLevel()
     {
         using var client = fixture.CreateEngineClient();

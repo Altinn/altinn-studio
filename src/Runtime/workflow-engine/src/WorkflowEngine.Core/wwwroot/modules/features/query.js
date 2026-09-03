@@ -1,6 +1,6 @@
 /* Query tab — on-demand DB fetch with pagination */
 
-import { dom, state } from '../core/state.js';
+import { dom, state, queryStatusIds } from '../core/state.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
 import { buildGroupEl, onChainGroupsChanged } from '../shared/chain-groups.js';
 import {
@@ -155,6 +155,7 @@ const fetchQuery = async (opts) => {
     const effectiveCustom = isGuid ? null : customTimeRange;
     const effectiveTimeRange = isGuid ? 0 : queryTimeRange;
     const effectiveRetried = isGuid ? false : retried;
+    const effectiveIsHead = isGuid ? null : headVisibilityParam();
 
     const btn = /** @type {HTMLButtonElement} */ (document.getElementById('query-load'));
     btn.disabled = true;
@@ -188,6 +189,7 @@ const fetchQuery = async (opts) => {
             params.set('since', new Date(Date.now() - effectiveTimeRange * 60000).toISOString());
         }
         if (effectiveRetried) params.set('retried', 'true');
+        if (effectiveIsHead !== null) params.set('isHead', effectiveIsHead ? 'true' : 'false');
         const res = await fetch(`/dashboard/query?${params}`);
         const body = await res.json();
         /** @type {import('../core/state.js').Workflow[]} */
@@ -328,29 +330,42 @@ window.applyCustomTimeRange = () => {
     if (state.queryLoaded) loadQuery();
 };
 
-// Query status checkboxes
-const queryStatusIds = [
-    'enqueued',
-    'processing',
-    'requeued',
-    'waiting',
-    'held',
-    'completed',
-    'failed',
-    'canceled',
-];
+// Query status checkboxes (ids shared with url.js via core/state.js). The checked set is always
+// sent explicitly — collapsing all-checked to an omitted status param would hand the backend its
+// default subset (Completed/Failed/Requeued) instead of every status. Zero checked keeps the
+// existing "no filter" idiom (backend defaults).
 window.toggleQueryStatus = () => {
     const checked = queryStatusIds.filter(
         (s) => /** @type {HTMLInputElement} */ (document.getElementById(`${s}-check`))?.checked,
     );
-    state.sectionStatus.query =
-        checked.length === queryStatusIds.length || checked.length === 0 ? '' : checked.join(',');
+    state.sectionStatus.query = checked.join(',');
     syncUrl();
     if (state.queryLoaded) loadQuery();
 };
 
 // Retried checkbox (query only)
 window.toggleRetried = () => {
+    syncUrl();
+    if (state.queryLoaded) loadQuery();
+};
+
+/**
+ * Head-visibility facet as an isHead query param: null when both (or neither) checkbox is on
+ * (no filter), true for head-only, false for non-head-only. Mirrors the backend semantics —
+ * true is visibility (directive true or unset), false is exactly isHead=false.
+ * @returns {boolean | null}
+ */
+const headVisibilityParam = () => {
+    const head = /** @type {HTMLInputElement | null} */ (document.getElementById('head-check'));
+    const nonHead = /** @type {HTMLInputElement | null} */ (
+        document.getElementById('nonhead-check')
+    );
+    if (!head || !nonHead || head.checked === nonHead.checked) return null;
+    return head.checked;
+};
+
+// Head-visibility checkboxes (query only)
+window.toggleHeadVisibility = () => {
     syncUrl();
     if (state.queryLoaded) loadQuery();
 };

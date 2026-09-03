@@ -129,6 +129,8 @@ No active workflows
       <label class="retried-toggle" title="Show completed workflows"><input type="checkbox" id="completed-check" onchange="toggleQueryStatus()"><span>Completed</span></label>
       <label class="retried-toggle" title="Show failed workflows"><input type="checkbox" id="failed-check" checked onchange="toggleQueryStatus()"><span>Failed</span></label>
       <label class="retried-toggle" title="Show canceled workflows"><input type="checkbox" id="canceled-check" onchange="toggleQueryStatus()"><span>Canceled</span></label>
+      <label class="retried-toggle" title="Show workflows failed because a dependency failed"><input type="checkbox" id="dependencyfailed-check" onchange="toggleQueryStatus()"><span>Dep. failed</span></label>
+      <label class="retried-toggle" title="Show abandoned (written-off) workflows"><input type="checkbox" id="abandoned-check" onchange="toggleQueryStatus()"><span>Abandoned</span></label>
       <div class="chip-sep"></div>
       <div class="time-range-group">
         <button class="time-range-btn" id="time-range-btn" onclick="toggleTimeDropdown()">
@@ -156,6 +158,9 @@ No active workflows
       </div>
       <div class="chip-sep"></div>
       <label class="retried-toggle" title="Only show workflows where steps were retried"><input type="checkbox" id="retried-check" onchange="toggleRetried()"><span>Has retries</span></label>
+      <div class="chip-sep"></div>
+      <label class="retried-toggle" title="Show workflows visible to the collection head frontier (isHead directive true or unset)"><input type="checkbox" id="head-check" checked onchange="toggleHeadVisibility()"><span>Head</span></label>
+      <label class="retried-toggle" title="Show invisible workflows (enqueued with isHead=false)"><input type="checkbox" id="nonhead-check" checked onchange="toggleHeadVisibility()"><span>Non-head</span></label>
       <div class="chip-sep"></div>
       <div class="query-search">
         <input type="text" id="query-search-input" placeholder="Search..." autocomplete="off" spellcheck="false">

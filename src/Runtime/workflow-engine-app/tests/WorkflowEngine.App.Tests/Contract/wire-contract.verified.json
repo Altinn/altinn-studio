@@ -334,6 +334,31 @@
       }
     ]
   },
+  "CollectionWorkflowCounts": {
+    "Name": "CollectionWorkflowCounts",
+    "Fields": [
+      {
+        "Name": "active",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "failedInvisible",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "failedVisible",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "total",
+        "Kind": "int",
+        "Nullable": false
+      }
+    ]
+  },
   "CommandDefinition": {
     "Name": "CommandDefinition",
     "Fields": [
@@ -755,6 +780,71 @@
       {
         "Name": "updatedAt",
         "Kind": "datetimeoffset",
+        "Nullable": true
+      }
+    ]
+  },
+  "WorkflowCollectionListResponse": {
+    "Name": "WorkflowCollectionListResponse",
+    "Fields": [
+      {
+        "Name": "data",
+        "Kind": "array<object<WorkflowCollectionResponse>>",
+        "Nullable": false
+      },
+      {
+        "Name": "nextCursor",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "pageSize",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "totalCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "unmatchedKeys",
+        "Kind": "array<string>",
+        "Nullable": true
+      }
+    ]
+  },
+  "WorkflowCollectionResponse": {
+    "Name": "WorkflowCollectionResponse",
+    "Fields": [
+      {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "heads",
+        "Kind": "array<guid>",
+        "Nullable": false
+      },
+      {
+        "Name": "key",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "updatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "workflowCounts",
+        "Kind": "object<CollectionWorkflowCounts>",
         "Nullable": true
       }
     ]

@@ -156,6 +156,101 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(doc.RootElement.GetProperty("totalCount").GetInt32() >= 3);
     }
 
+    [Fact]
+    public async Task Query_StatusFilter_RecognizesDependencyFailedAndAbandoned()
+    {
+        // Arrange — a failing workflow with a dependent: the head fails, the dependent lands in
+        // DependencyFailed, and abandoning the head moves it to Abandoned. Both statuses used to be
+        // silently dropped by the query status parser.
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(WireMock.RequestBuilders.Request.Create().WithPath("/dash-fail").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(WireMock.ResponseBuilders.Response.Create().WithStatusCode(500));
+        // Catch-all at the lowest precedence (lower priority values win) so the failing path above matches first.
+        fixture
+            .WireMock.Given(WireMock.RequestBuilders.Request.Create().UsingAnyMethod())
+            .AtPriority(int.MaxValue)
+            .RespondWith(WireMock.ResponseBuilders.Response.Create().WithStatusCode(200));
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("wf-fail", [_testHelpers.CreateWebhookStep("/dash-fail")]),
+            _testHelpers.CreateWorkflow(
+                "wf-dep",
+                [_testHelpers.CreateWebhookStep("/hook")],
+                dependsOn: [(WorkflowRef)"wf-fail"]
+            ),
+        ]);
+        var enqueueResponse = await _client.Enqueue(request);
+        var failedId = enqueueResponse.Workflows[0].DatabaseId;
+        var dependentId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus(failedId, PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(dependentId, PersistentItemStatus.DependencyFailed);
+        await _client.AbandonWorkflow(failedId);
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var depResponse = await client.GetAsync(
+            "/dashboard/query?status=DEPENDENCYFAILED",
+            TestContext.Current.CancellationToken
+        );
+        using var abandonedResponse = await client.GetAsync(
+            "/dashboard/query?status=ABANDONED",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, depResponse.StatusCode);
+        var depJson = await depResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var depDoc = JsonDocument.Parse(depJson);
+        var depWorkflow = Assert.Single(depDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(dependentId, depWorkflow.GetProperty("databaseId").GetGuid());
+
+        Assert.Equal(HttpStatusCode.OK, abandonedResponse.StatusCode);
+        var abandonedJson = await abandonedResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var abandonedDoc = JsonDocument.Parse(abandonedJson);
+        var abandonedWorkflow = Assert.Single(abandonedDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(failedId, abandonedWorkflow.GetProperty("databaseId").GetGuid());
+    }
+
+    [Fact]
+    public async Task Query_IsHeadFacet_FiltersByVisibility()
+    {
+        // Arrange — a visible (null directive) and an invisible workflow, both completing.
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("wf-visible", [_testHelpers.CreateWebhookStep("/hook")]),
+            _testHelpers.CreateWorkflow("wf-invisible", [_testHelpers.CreateWebhookStep("/hook")], isHead: false),
+        ]);
+        var enqueueResponse = await _client.Enqueue(request);
+        var visibleId = enqueueResponse.Workflows[0].DatabaseId;
+        var invisibleId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus([visibleId, invisibleId], PersistentItemStatus.Completed);
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var visibleResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&isHead=true",
+            TestContext.Current.CancellationToken
+        );
+        using var invisibleResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&isHead=false",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert — the facet carries the same visibility semantics as the public list endpoint.
+        var visibleJson = await visibleResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var visibleDoc = JsonDocument.Parse(visibleJson);
+        var visibleWorkflow = Assert.Single(visibleDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(visibleId, visibleWorkflow.GetProperty("databaseId").GetGuid());
+
+        var invisibleJson = await invisibleResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var invisibleDoc = JsonDocument.Parse(invisibleJson);
+        var invisibleWorkflow = Assert.Single(invisibleDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(invisibleId, invisibleWorkflow.GetProperty("databaseId").GetGuid());
+    }
+
     // ── /dashboard/scheduled ───────────────────────────────────────────
 
     [Fact]

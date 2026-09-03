@@ -308,10 +308,78 @@ Note: If B joining the heads is not desired, it can be marked `IsHead = false` t
 
 ---
 
+## One Concept, Three Vocabularies
+
+The wire carries three vocabularies for a single concept — whether the head frontier can see a
+workflow. They are defined here, once:
+
+1. **The `isHead` directive** — the tri-state enqueue instruction on `WorkflowRequest` (see above),
+   persisted verbatim as `is_head` and echoed raw on `WorkflowStatusResponse.isHead`. It is only ever
+   *interpreted* at enqueue time, by head tracking; post-enqueue, nothing in the engine distinguishes
+   `true` from `null`.
+2. **Visibility semantics** — what the `?isHead=` query parameter on `GET /workflows` filters on:
+   - `isHead=true` → **visible**: directive `true` **or** unset (`is_head IS DISTINCT FROM false`)
+   - `isHead=false` → **invisible**: directive exactly `false` (`is_head = false`)
+
+   The parameter is deliberately asymmetric with the response field of the same name (field = raw
+   directive, parameter = effective visibility): exact matching would be a footgun, because `null`
+   is the default directive and `?isHead=true` would then silently omit nearly every ordinary
+   workflow. `?isHead=true` therefore returns rows whose `isHead` field reads `null`.
+3. **The visible/invisible count labels** — the `failedVisible` / `failedInvisible` buckets in the
+   `workflowCounts` rollup on `GET /collections`, and the matching `failures=visible|invisible`
+   discovery filter. These apply the same visibility split to the unsuccessfully terminal statuses
+   (`Failed`, `Canceled`, `DependencyFailed`). `Abandoned` is excluded from both failed buckets —
+   it is the engine's adjudication marker for a written-off failure — but still counts in `total`.
+
+A `failedInvisible > 0` collection is the silent-loss case this vocabulary exists for: an invisible
+workflow's terminal failure gates nothing, so no head status, frontier read, or app-side annotation
+will ever report it.
+
+---
+
 ## Query Endpoints
 
-**`GET /api/v1/{namespace}/collections/{key}`**
-Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns 404 if not found.
+**`GET /api/v1/{namespace}/collections`** — the *health* view.
+Cursor-paginated list — a stable, collation-defined key order; treat the cursor as opaque — where
+every entry carries a `workflowCounts` rollup across
+**all** of the collection's workflows, visible and invisible alike:
+
+```json
+"workflowCounts": { "active": 3, "failedVisible": 0, "failedInvisible": 1, "total": 12 }
+```
+
+- `active` = the engine's non-terminal (`Incomplete`) status set: `Enqueued | Processing | Requeued | Waiting | Held`.
+  A `Held` mailbox receiver is active — parked, but consuming admission budget and gating its dependents
+- `failedVisible` = `Failed | Canceled | DependencyFailed` and visible (`is_head IS DISTINCT FROM false`)
+- `failedInvisible` = same statuses and invisible (`is_head = false`)
+- `total` = every workflow in the collection. There is deliberately no named "settled" bucket —
+  successful, abandoned, and any future status appear as the remainder, so a new status can never be
+  silently misfiled.
+
+Three mutually exclusive modes:
+
+| Mode     | Parameters                              | Use                                                        |
+| -------- | --------------------------------------- | ---------------------------------------------------------- |
+| list     | `cursor`, `pageSize`                    | enumerate the namespace's collections                      |
+| annotate | `key` (repeatable)                      | health for a set of keys the caller already holds          |
+| discover | `failures=any\|visible\|invisible`, `cursor` | the errors view                                       |
+
+`key` × `cursor` → 400. `key` × `failures` → 400. More keys than the maximum page size → 400 — the
+request is **rejected, never truncated**, because silently dropping keys from a health read is the
+exact failure class this endpoint exists to fix. Annotate mode additionally returns
+`unmatchedKeys: [...]` for requested keys with no collection row; absence must not collapse into
+"healthy" — it can equally mean the collection was purged by retention. List and discover mode
+return 204 No Content when nothing matches; annotate mode always returns 200 so `unmatchedKeys`
+stays explicit.
+
+**`GET /api/v1/{namespace}/collections/{key}`** — the *frontier* view.
+Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns
+404 if not found. This endpoint is a frontier view **by contract**: it reports only the current head
+workflows, so invisible (`isHead = false`) workflows never appear in it, and it carries no
+`workflowCounts` rollup — it sits on the app's page-view-scale hot path and stays cheap. For health,
+use the list endpoint's rollup; to enumerate a collection's failures, use
+`GET /workflows?collectionKey={key}&isHead=false&status=Failed&status=Canceled&status=DependencyFailed`
+(drop the `isHead` filter for all of them).
 
 ---
 

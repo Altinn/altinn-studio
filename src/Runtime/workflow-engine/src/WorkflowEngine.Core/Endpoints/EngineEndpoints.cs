@@ -40,7 +40,8 @@ internal static class EngineEndpoints
                 Lists workflows in the namespace, newest first.
 
                 Optionally filtered by status (repeatable, case-insensitive), label (key:value, repeatable),
-                and collectionKey. Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
+                collectionKey, and isHead (head visibility — see the parameter description).
+                Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
 
                 Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status value.
                 """
@@ -141,13 +142,46 @@ internal static class EngineEndpoints
             .MapGet("", EngineRequestHandlers.ListCollections)
             .WithName("ListCollections")
             .WithSummary("List collections")
-            .WithDescription("Lists all workflow collections in the namespace, ordered by most recently updated");
+            .WithDescription(
+                """
+                Lists workflow collections in the namespace as a health view: every entry carries a
+                workflowCounts rollup covering all of the collection's workflows, including the
+                invisible (isHead = false) ones the head frontier hides. Cursor-paginated over a stable,
+                collation-defined key order; treat the cursor as opaque and pass the nextCursor from a
+                response back as the cursor parameter.
+
+                Three mutually exclusive modes:
+                - list: no key/failures parameters — enumerate the namespace's collections page by page.
+                - annotate (key, repeatable): health for a set of collection keys the caller already
+                  holds. The response also reports unmatchedKeys — requested keys with no collection row,
+                  which must not be read as healthy (the collection may have been purged by retention).
+                - discover (failures=any|visible|invisible): only collections containing at least one
+                  failed workflow (Failed, Canceled, DependencyFailed — Abandoned is a written-off
+                  failure and never matches), optionally restricted by head visibility.
+
+                Returns 400 Bad Request when key is combined with cursor or failures, when more keys are
+                supplied than the maximum page size (the request is rejected rather than truncated), or
+                for an unrecognized failures value. Returns 204 No Content when nothing matches in list
+                or discover mode; annotate mode always returns 200 so unmatchedKeys is explicit.
+                """
+            );
 
         collectionGroup
             .MapGet("/{key}", EngineRequestHandlers.GetCollection)
             .WithName("GetCollection")
             .WithSummary("Get collection")
-            .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
+            .WithDescription(
+                """
+                Gets a single workflow collection by key, including head workflow statuses.
+
+                This is a frontier view by contract: it reports only the current head workflows, so
+                workflows enqueued with isHead = false (invisible side effects) never appear and no
+                health rollup is included — it sits on a hot path and stays cheap. For per-collection
+                health use the collection list endpoint's workflowCounts rollup; to enumerate a
+                collection's failures use the workflow list endpoint with collectionKey, status and
+                isHead filters.
+                """
+            );
 
         var mailboxGroup = app.MapGroup("/api/v1/{namespace}/mailboxes").WithTags("Mailboxes");
 
@@ -326,6 +360,7 @@ internal static class EngineRequestHandlers
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
         [FromQuery(Name = "status")] string[]? statuses,
+        [FromQuery] bool? isHead,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
@@ -354,6 +389,7 @@ internal static class EngineRequestHandlers
             labelFilters: labelFilters,
             namespaceFilter: ns,
             collectionKey: collectionKey,
+            isHead: isHead,
             cancellationToken: cancellationToken
         );
 
@@ -696,19 +732,98 @@ internal static class EngineRequestHandlers
         return edges;
     }
 
-    public static async Task<Results<Ok<IReadOnlyList<WorkflowCollectionResponse>>, NoContent>> ListCollections(
+    public static async Task<Results<Ok<WorkflowCollectionListResponse>, NoContent, ProblemHttpResult>> ListCollections(
         [FromRoute(Name = "namespace")] string ns,
+        [FromQuery(Name = "key")] string[]? keys,
+        [FromQuery] string? failures,
+        [FromQuery] string? cursor,
+        [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
+        [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
 
+        var pagination = settings.Value.Pagination;
+
+        // Deduplicate up front so repeated ?key= values neither trip the cap nor inflate the
+        // echoed page size; the repository receives the deduplicated set.
+        string[]? distinctKeys = keys is { Length: > 0 } ? keys.Distinct(StringComparer.Ordinal).ToArray() : null;
+        var keyCount = distinctKeys?.Length ?? 0;
+        var annotate = keyCount > 0;
+
+        // The three modes are orthogonal by design: annotate answers "how are these specific
+        // collections", so pagination and discovery filters cannot meaningfully combine with it.
+        if (annotate && cursor is not null)
+            return TypedResults.Problem(
+                detail: "The key filter cannot be combined with a cursor: annotate requests are not paginated.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+
+        if (annotate && failures is not null)
+            return TypedResults.Problem(
+                detail: "The key filter cannot be combined with the failures filter: annotate reports the health of the requested keys as-is.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+
+        // Reject rather than truncate: silently dropping keys from a health read would let their
+        // failures pass as healthy, which is the exact failure class this endpoint exists to fix.
+        if (keyCount > pagination.MaxPageSize)
+            return TypedResults.Problem(
+                detail: $"Too many keys: {keyCount} distinct keys supplied, maximum is {pagination.MaxPageSize}. Split the request instead — keys are never silently truncated.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+
+        CollectionFailureFilter? failureFilter = null;
+        if (failures is not null)
+        {
+            // Match the named values explicitly: Enum.TryParse also accepts the underlying numeric
+            // strings ("0"/"1"/"2"), which this endpoint's contract does not offer.
+            var names = Enum.GetNames<CollectionFailureFilter>();
+            var match = Array.Find(names, name => name.Equals(failures, StringComparison.OrdinalIgnoreCase));
+
+            if (match is null)
+                return TypedResults.Problem(
+                    detail: $"'{failures}' is not a valid failures filter. Valid values (case-insensitive): {string.Join(", ", names)}.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            failureFilter = Enum.Parse<CollectionFailureFilter>(match);
+        }
+
+        // Annotate mode is a single page by construction: the page must fit every requested key
+        // (their count is already capped at MaxPageSize above), so pageSize is ignored.
+        var effectivePageSize = annotate
+            ? keyCount
+            : Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
+
         ns = NormalizeNamespace(ns);
 
-        var collections = await repository.GetCollections(ns, cancellationToken);
+        var result = await repository.GetCollections(
+            ns,
+            effectivePageSize,
+            cursor: cursor,
+            keys: distinctKeys,
+            failures: failureFilter,
+            cancellationToken: cancellationToken
+        );
 
-        return collections.Count == 0 ? TypedResults.NoContent() : TypedResults.Ok(collections);
+        // Annotate mode always answers 200: an empty data set still carries unmatchedKeys, which the
+        // caller must be able to distinguish from "no failures".
+        if (result.TotalCount == 0 && !annotate)
+            return TypedResults.NoContent();
+
+        return TypedResults.Ok(
+            new WorkflowCollectionListResponse
+            {
+                Data = result.Collections,
+                PageSize = effectivePageSize,
+                TotalCount = result.TotalCount,
+                NextCursor = result.NextCursor,
+                UnmatchedKeys = result.UnmatchedKeys,
+            }
+        );
     }
 
     public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
