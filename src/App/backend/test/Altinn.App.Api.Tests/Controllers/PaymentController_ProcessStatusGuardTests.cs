@@ -31,7 +31,7 @@ public sealed class PaymentControllerProcessStatusGuardTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    public async Task CurrentPaymentTask_WhenStatusBlocks_ReturnsSharedProblemBeforePaymentService(ProcessStatus status)
+    public async Task CurrentPaymentTask_WhenNotIdle_ReturnsReadOnlyStatusWithoutPersisting(ProcessStatus status)
     {
         using HttpClient setupClient = GetRootedUserClient(Org, App);
         Guid instanceGuid = await CreateIsolatedInstance(setupClient);
@@ -42,6 +42,29 @@ public sealed class PaymentControllerProcessStatusGuardTests
                 .Setup(reader => reader.GetAltinnTaskExtension("Task_1"))
                 .Returns(CreatePaymentTaskExtension());
             var paymentService = new Mock<IPaymentService>(MockBehavior.Strict);
+            paymentService
+                .Setup(service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        "Task_1",
+                        It.IsAny<string?>()
+                    )
+                )
+                .ReturnsAsync(
+                    new PaymentInformation
+                    {
+                        TaskId = "Task_1",
+                        Status = PaymentStatus.Paid,
+                        OrderDetails = new OrderDetails
+                        {
+                            PaymentProcessorId = "test",
+                            Currency = "NOK",
+                            OrderLines = [],
+                            Receiver = new(),
+                        },
+                    }
+                );
             using HttpClient client = GetRootedUserClient(
                 Org,
                 App,
@@ -60,7 +83,22 @@ public sealed class PaymentControllerProcessStatusGuardTests
                 $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/payment"
             );
 
-            await ProcessStatusProblemAssertions.AssertResponse(response, status);
+            PaymentInformation paymentInformation = await VerifyStatusAndDeserialize<PaymentInformation>(
+                response,
+                System.Net.HttpStatusCode.OK
+            );
+            paymentInformation.TaskId.Should().Be("Task_1");
+            paymentInformation.Status.Should().Be(PaymentStatus.Paid);
+            paymentService.Verify(
+                service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        "Task_1",
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
             paymentService.VerifyNoOtherCalls();
             Instance after = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, instanceGuid);
             after.Data.Should().BeEquivalentTo(before.Data);

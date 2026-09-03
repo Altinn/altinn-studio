@@ -18,7 +18,6 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -635,7 +634,7 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task GetPaymentInformation_LegacyConflictAndRefreshedProcessing_ReturnsSharedProblem()
+    public async Task GetPaymentInformation_LegacyConflictAndRefreshedProcessing_FallsBackToReadOnly()
     {
         SetupAltinnTaskExtensionMock(
             "currentTask",
@@ -651,9 +650,11 @@ public class PaymentControllerTests
         );
 
         _services.Services.RemoveAll<IPaymentService>();
-        using var storageResponse = new HttpResponseMessage(HttpStatusCode.Conflict)
+        var fallbackResult = new PaymentInformation
         {
-            Content = new StringContent("\"The instance is currently processing.\"", Encoding.UTF8, "application/json"),
+            TaskId = "currentTask",
+            Status = PaymentStatus.Paid,
+            OrderDetails = _orderDetails,
         };
         _services
             .Mock<IPaymentService>()
@@ -666,18 +667,25 @@ public class PaymentControllerTests
             )
             .Callback(() => _instance.Process.Status = ProcessStatus.Processing)
             .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Conflict, "409 - Conflict"));
+        _services
+            .Mock<IPaymentService>()
+            .Setup(service =>
+                service.CheckPaymentStatus(
+                    It.Is<Instance>(instance => instance.Process.Status == ProcessStatus.Processing),
+                    It.IsAny<ValidAltinnPaymentConfiguration>(),
+                    "currentTask",
+                    It.IsAny<string?>()
+                )
+            )
+            .ReturnsAsync(fallbackResult);
 
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
 
         IActionResult result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
 
-        var conflict = Assert.IsType<JsonResult>(result);
-        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
-        Assert.Equal("application/problem+json", conflict.ContentType);
-        var problem = Assert.IsType<ProblemDetails>(conflict.Value);
-        Assert.Equal("instance-processing", problem.Type);
-        Assert.Equal(ProcessStatus.Processing, problem.Extensions["processStatus"]);
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(fallbackResult, ok.Value);
         Assert.Equal(2, InstanceGetRequestCount());
         _services
             .Mock<IPaymentService>()
@@ -697,10 +705,10 @@ public class PaymentControllerTests
                     service.CheckPaymentStatus(
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string>(),
+                        "currentTask",
                         It.IsAny<string?>()
                     ),
-                Times.Never
+                Times.Once
             );
         _services.VerifyMocks();
     }

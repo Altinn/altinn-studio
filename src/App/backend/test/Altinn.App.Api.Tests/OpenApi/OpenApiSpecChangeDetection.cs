@@ -88,13 +88,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         );
         AssertProblemDetailsConflictResponse(
             paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/payment")
-                .GetProperty("get")
-                .GetProperty("responses"),
-            "application/problem+json"
-        );
-        AssertProblemDetailsConflictResponse(
-            paths
                 .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/complete")
                 .GetProperty("post")
                 .GetProperty("responses"),

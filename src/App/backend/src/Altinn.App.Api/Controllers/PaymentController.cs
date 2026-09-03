@@ -62,11 +62,6 @@ public class PaymentController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(PaymentInformation), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(
-        typeof(ProblemDetails),
-        StatusCodes.Status409Conflict,
-        ProcessStatusProblemResult.ContentType
-    )]
     public async Task<IActionResult> GetPaymentInformation(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -96,13 +91,8 @@ public class PaymentController : ControllerBase
         bool isCurrentTask = finalTaskId == instance.Process?.CurrentTask?.ElementId;
 
         PaymentInformation paymentInformation;
-        if (isCurrentTask)
+        if (isCurrentTask && ProcessStatusHelper.IsIdle(instance))
         {
-            if (ProcessStatusHelper.GetMutationProblem(instance) is { } processStatusProblem)
-            {
-                return ProcessStatusProblemResult.Create(processStatusProblem);
-            }
-
             try
             {
                 paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
@@ -117,11 +107,6 @@ public class PaymentController : ControllerBase
                 // conflicts and unrelated failures. Re-read the instance once and classify only from the
                 // authoritative snapshot instead of interpreting the response body.
                 Instance refreshed = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-                if (ProcessStatusHelper.GetMutationProblem(refreshed) is { } refreshedStatusProblem)
-                {
-                    return ProcessStatusProblemResult.Create(refreshedStatusProblem);
-                }
-
                 bool currentTaskMoved = !string.Equals(
                     refreshed.Process?.CurrentTask?.ElementId,
                     finalTaskId,
@@ -135,7 +120,7 @@ public class PaymentController : ControllerBase
                     )
                 );
                 bool paymentDataElementLocked = paymentDataElement?.Locked is true;
-                if (!currentTaskMoved && !paymentDataElementLocked)
+                if (ProcessStatusHelper.IsIdle(refreshed) && !currentTaskMoved && !paymentDataElementLocked)
                 {
                     // An idle instance with the same current task and no locked target does not prove the
                     // known webhook race. Preserve unrelated blob/version/idempotency conflicts exactly.
