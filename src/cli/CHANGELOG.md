@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; the renamed Standard Business Document `Arkivmelding`; and references the namespace rewrite cannot reach — an aliased `using X = Altinn.Common.EFormidlingClient;`, one written with `global::`, or a name written out in full — since it only rewrites plain `using` directives matched by name. Each is reported separately, with the fix to apply.
+
 ### Changed
 
 - Report a TODO in `studioctl app upgrade v9` when a layout set in `layout-sets.json` has no `dataType`, so `defaultDataType` is not migrated into `Settings.json` without notice. Connect the datamodel in the process editor after upgrade.
@@ -21,6 +25,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
 - `studioctl app upgrade v9` converts the two layout properties v9 removes from the components that fetch options or data lists. `mapping` becomes `queryParameters` holding `["dataModel", "<field>"]` expressions on `Checkboxes`, `Dropdown`, `FileUploadWithTag`, `Likert`, `List`, `MultipleSelect`, `Option` and `RadioButtons`, and `bindingToShowInSummary` on `List` becomes `summaryBinding`, naming the key in `dataModelBindings` instead of repeating the field. Repeating group row markers (`[{0}]`) are dropped, because an expression already resolves relative to the row it is rendered in. Anything the upgrade cannot decide for you — a query parameter name that is already taken, or a summary field no data model binding points at — is left in place and reported. `mapping` on `Button`, `InstantiationButton` and `PaymentDetails` is untouched: it is prefill and refetch configuration there, and v9 still supports it.
 - `studioctl app upgrade v9` now removes an explicit `Microsoft.Extensions.Logging.Debug` package reference, which fails to build on .NET 10 because the debug logger it provides is already built into the framework.
+- `studioctl app upgrade v9` rewrites the eFormidling client namespaces, which moved into `Altinn.App.Core` in v9: `Altinn.Common.EFormidlingClient` becomes `Altinn.App.Core.EFormidling.Interface`, and its `.Configuration`, `.Models` and `.Models.SBD` namespaces become the matching ones under `Altinn.App.Core.EFormidling`. For most apps this is a single `using` in the file implementing `IEFormidlingReceivers`.
 
 ### Fixed
 
@@ -32,7 +37,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; the renamed Standard Business Document `Arkivmelding`; and references the namespace rewrite cannot reach — an aliased `using X = Altinn.Common.EFormidlingClient;`, one written with `global::`, or a name written out in full — since it only rewrites plain `using` directives matched by name. Each is reported separately, with the fix to apply.
 - Allow CI jobs to reuse prebuilt development images by setting `STUDIOCTL_PREBUILT_DEV_IMAGES=true` together with `STUDIOCTL_INTERNAL_DEV=true`. `studioctl env up` now requires the expected local image tags in this mode instead of rebuilding or pulling other images.
 - Added option --allow-dirty to upgrade script. `studioctl app upgrade --allow-dirty` allows updating when the repository contains modified or untracked files.
 
@@ -42,7 +46,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - End every `studioctl app upgrade` with the same closing advice, whichever migration you run. The v4 upgrade previously ended without any, and the v8 upgrade worded its own differently.
 - Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labeling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
 - Rewrite legacy Datepicker `format` values (`DD.MM.YYYY`, `DD/MM/YYYY`, `YYYY-MM-DD`) to their supported equivalents (`dd.MM.yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`) in layout files when running `studioctl app upgrade v9`.
-- `studioctl app upgrade v9` rewrites the eFormidling client namespaces, which moved into `Altinn.App.Core` in v9: `Altinn.Common.EFormidlingClient` becomes `Altinn.App.Core.EFormidling.Interface`, and its `.Configuration`, `.Models` and `.Models.SBD` namespaces become the matching ones under `Altinn.App.Core.EFormidling`. For most apps this is a single `using` in the file implementing `IEFormidlingReceivers`.
 - `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
 
 ### Fixed
