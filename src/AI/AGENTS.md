@@ -4,9 +4,9 @@
 
 The `/AI` folder contains one project:
 
-| Project         | Description                                     | Path                |
-| --------------- | ------------------------------------------------ | ------------------- |
-| Augmenter agent | Augments caseworker workflow with LLM support   | `./augmenter-agent` |
+| Project         | Description                                   | Path                |
+| --------------- | --------------------------------------------- | ------------------- |
+| Augmenter agent | Augments caseworker workflow with LLM support | `./augmenter-agent` |
 
 This is an R&D project.
 
