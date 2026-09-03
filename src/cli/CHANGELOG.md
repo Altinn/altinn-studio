@@ -9,6 +9,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` now rewrites the removed `IText` interface to `IAppResources.GetTexts(org, app, language)` - the same method under its v9 name. A field, parameter or property typed `IText` is retyped to `IAppResources`, and the `.GetText(..)` call reached through it is renamed to `.GetTexts(..)`. A class implementing `IText` directly, or a direct reference to the concrete `TextClient` type, has no mechanical fix and is reported instead.
+- `studioctl app upgrade v9` now reports (rather than staying silent about) two more removed APIs that need manual porting: `IAppResources.GetApplication()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()` (replaced by the asynchronous `IAppMetadata.GetApplicationMetadata()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()`), and the two `IDataClient.UpdateBinaryData` overloads that took an `HttpRequest` and separate `org`/`app` strings (replaced by the overload taking an `InstanceIdentifier` and a `Stream`).
+
 ### Changed
 
 - Report a TODO in `studioctl app upgrade v9` when a layout set in `layout-sets.json` has no `dataType`, so `defaultDataType` is not migrated into `Settings.json` without notice. Connect the datamodel in the process editor after upgrade.

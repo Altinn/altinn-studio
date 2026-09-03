@@ -470,20 +470,6 @@ public class DataClientMock : IDataClient
         return dataElement;
     }
 
-    public Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<DataElement> Update(
         Instance instance,
         DataElement dataElement,

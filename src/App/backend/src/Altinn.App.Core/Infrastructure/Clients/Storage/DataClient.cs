@@ -621,54 +621,6 @@ public sealed class DataClient : IDataClient
     }
 
     /// <inheritdoc />
-    [Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes a Stream instead")]
-    public async Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
-        using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
-        string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
-        string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
-
-        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cts.Token
-        );
-
-        StreamContent content = request.CreateContentStream();
-
-        using HttpResponseMessage response = await _client.PutAsync(
-            token,
-            apiUrl,
-            content,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
-        );
-
-        if (response.IsSuccessStatusCode)
-        {
-            string instancedata = await response.Content.ReadAsStringAsync(cts.Token);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
-
-            return dataElement;
-        }
-
-        _logger.LogError(
-            $"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}"
-        );
-        throw await PlatformHttpException.Create(response, cts.Token);
-    }
-
-    /// <inheritdoc />
     public async Task<DataElement> UpdateBinaryData(
         InstanceIdentifier instanceIdentifier,
         string? contentType,

@@ -1979,6 +1979,247 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- TextServiceMigration ---------------------------------------------------------------------
+
+    private string MigrateTextService(string relativePath, string source, out MigrationResult result)
+    {
+        var path = _app.Write(relativePath, source);
+        result = new TextServiceMigration(Scanner()).Migrate();
+
+        var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
+
+        var syntaxErrors = CSharpSyntaxTree
+            .ParseText(migrated)
+            .GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.ToString())
+            .ToList();
+        Assert.Empty(syntaxErrors);
+
+        return migrated;
+    }
+
+    [Fact]
+    public void TextServiceMigration_RetypesFieldAndRenamesCall()
+    {
+        var migrated = MigrateTextService(
+            "logic/Greeter.cs",
+            """
+            using Altinn.App.Core.Internal.Texts;
+
+            public class Greeter
+            {
+                private readonly IText _textService;
+
+                public Greeter(IText textService)
+                {
+                    _textService = textService;
+                }
+
+                public async Task<TextResource?> Greet(string org, string app, string language) =>
+                    await _textService.GetText(org, app, language);
+            }
+            """,
+            out var result
+        );
+
+        Assert.DoesNotContain("IText", migrated);
+        Assert.Contains("IAppResources _textService", migrated);
+        Assert.Contains("IAppResources textService", migrated);
+        Assert.Contains("await _textService.GetTexts(org, app, language)", migrated);
+        Assert.DoesNotContain(".GetText(", migrated);
+        Assert.Empty(result.Todos);
+        Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
+    public void TextServiceMigration_DoesNotRenameUnrelatedAppResourcesGetText()
+    {
+        // IAppResources already declares its own GetText(org, app, textResource) - a byte[] file read,
+        // unrelated to the removed IText.GetText. A receiver never retyped from IText must be left alone.
+        var migrated = MigrateTextService(
+            "logic/Resources.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class Resources
+            {
+                private readonly IAppResources _appResources;
+
+                public Resources(IAppResources appResources)
+                {
+                    _appResources = appResources;
+                }
+
+                public byte[] Read(string org, string app, string name) => _appResources.GetText(org, app, name);
+            }
+            """,
+            out var result
+        );
+
+        Assert.Contains("_appResources.GetText(org, app, name)", migrated);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public void TextServiceMigration_FlagsDirectImplementer_LeavesFileUntouched()
+    {
+        const string source = """
+            using Altinn.App.Core.Internal.Texts;
+
+            public class FakeText : IText
+            {
+                public Task<TextResource?> GetText(string org, string app, string language) => Task.FromResult<TextResource?>(null);
+            }
+            """;
+
+        var migrated = MigrateTextService("logic/FakeText.cs", source, out var result);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("FakeText.cs") && w.Contains("implements IText directly"));
+    }
+
+    [Fact]
+    public void TextServiceMigration_FlagsDirectTextClientReference()
+    {
+        const string source = """
+            using Altinn.App.Core.Infrastructure.Clients.Storage;
+
+            public class Factory
+            {
+                public TextClient Create() => null!;
+            }
+            """;
+
+        var migrated = MigrateTextService("logic/Factory.cs", source, out var result);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Factory.cs") && w.Contains("TextClient referenced directly"));
+    }
+
+    [Fact]
+    public void TextServiceMigration_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Service.cs",
+            """
+            public class Service
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new TextServiceMigration(Scanner()).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- RemovedAppResourcesApiDetector -------------------------------------------------------------
+
+    [Fact]
+    public void AppResourcesDetector_FlagsBareGetApplicationCall()
+    {
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            public class Reader
+            {
+                public object Read(IAppResources resources) => resources.GetApplication();
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Reader.cs") && w.Contains("GetApplication"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_SyntaxOnly_DoesNotFlagAmbiguousXacmlOrBpmnNames()
+    {
+        // Without a semantic model these share their exact name and arity with the still-current
+        // IAppMetadata replacement, so the syntax-only path deliberately does not guess.
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            public class Reader
+            {
+                public object Read(IAppMetadata metadata) => metadata.GetApplicationXACMLPolicy();
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void AppResourcesDetector_FlagsUpdateBinaryDataWithRequestArgument()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            public class Uploader : ControllerBase
+            {
+                public Task Upload(IDataClient client, string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid) =>
+                    client.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Uploader.cs") && w.Contains("UpdateBinaryData"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_DoesNotFlagStreamBasedUpdateBinaryData()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            public class Uploader
+            {
+                public Task Upload(IDataClient client, InstanceIdentifier id, System.Guid dataGuid, System.IO.Stream stream) =>
+                    client.UpdateBinaryData(id, "application/pdf", "file.pdf", dataGuid, stream);
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void AppResourcesDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Service.cs",
+            """
+            public class Service
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- Scanner ---------------------------------------------------------------------------------
 
     [Fact]
