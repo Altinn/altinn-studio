@@ -28,7 +28,7 @@ public sealed class StandardBusinessDocument
 public sealed class Identifier
 {
     /// <summary>
-    /// The identifying value. Requires a <c>0192:</c> prefix for Norwegian organisations; the prefix is
+    /// The identifying value. Requires a <c>0192:</c> prefix for Norwegian organizations; the prefix is
     /// not required for individuals.
     /// </summary>
     [JsonPropertyName("value")]
@@ -42,7 +42,7 @@ public sealed class Identifier
 }
 
 /// <summary>
-/// The organisation that created the standard business document.
+/// The organization that created the standard business document.
 /// </summary>
 public sealed class Sender
 {
@@ -60,7 +60,7 @@ public sealed class Sender
 }
 
 /// <summary>
-/// An organisation receiving the standard business document.
+/// An organization receiving the standard business document.
 /// </summary>
 public sealed class Receiver
 {
