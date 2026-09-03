@@ -283,6 +283,12 @@ When Storage marks the mutation response as replayed, `InstanceDataUnitOfWork` d
 
 `WorkflowEngineCallbackController` is the caller that handles this exception. It logs at information level and continues to capture state from the rebuilt unit of work. The semantic is first-commit-wins: the workflow proceeds with the result committed by the first successful attempt. Any other caller that receives `InstanceMutationReplayedException` fails permanently, because a retry with the same key would deterministically replay again.
 
+### Known gap: a retried step that re-reads content the lost attempt wrote
+
+Replay covers a retry that *re-executes* the step, not one that *re-reads* what the lost attempt committed. The retried callback is restored from the step's input blob, so its instance snapshot still carries the pre-commit blob version ids. Form data is safe: the blob carries every form-data element and `RestoreState` preloads them, so no form read reaches Storage. A **binary attachment** is read on demand with `If-Match` set to that stale blob version; if the lost attempt updated it, Storage answers 412, the unit of work throws `DataElementContentConflictException`, and the controller returns 409. The engine's default non-retryable status codes include 409, so the workflow fails, and a resume replays the same stale input and fails the same way — the instance stays `processing` with no way forward short of manual repair. Today no in-tree command reads a binary element it updated in the same step (`SigningProcessTask`'s upsert writes without reading), so the exposure is app-supplied service tasks that read, transform, and rewrite an attachment.
+
+The intended fix, not yet implemented: when a callback hits `DataElementContentConflictException`, send a no-op aggregate mutation with the same `Idempotency-Key` and `If-Instance-Version-Match`. A `replayed` response proves the step already committed — rebuild the unit of work from the returned instance, capture state, and return success as the replay branch does today. A non-replayed response means the content changed for another reason, which remains a genuine conflict.
+
 ## Waiting, Failure Classification, and Reject/Resume
 
 `WorkflowEngineService` does more than fire-and-forget. After enqueueing it polls the workflow **collection** (keyed by the instance guid — every transition of an instance shares one collection) until the active heads settle, then refetches the instance and builds a `ProcessNextWorkflowResult`:
