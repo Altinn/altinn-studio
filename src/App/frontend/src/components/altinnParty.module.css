@@ -11,8 +11,18 @@
   gap: 0.75rem;
 }
 
-.partyWrapper:hover {
+.partySelectable:hover {
+  background-color: var(--colors-primary-blueLight);
   cursor: pointer;
+}
+
+.partySubmitting {
+  background-color: var(--colors-primary-blueLighterActive);
+  cursor: progress;
+}
+
+.partyBlocked {
+  cursor: not-allowed;
 }
 
 .partyWrapperDisabled:hover {
@@ -60,11 +70,6 @@
 .subUnit {
   width: 100%;
   padding: 0 1.25rem;
-}
-
-.subUnit:hover {
-  background: var(--colors-primary-blueLight);
-  cursor: pointer;
 }
 
 .subUnitListHeader {
