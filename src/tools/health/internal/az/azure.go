@@ -71,14 +71,17 @@ func ListClusters() ([]Cluster, error) {
 
 // EnsureCredentials ensures credentials are available for the cluster
 // This must be called sequentially, not in parallel, as it mutates kube config.
-func EnsureCredentials(cluster *Cluster) error {
-	args := make([]string, 0, 9)
+func EnsureCredentials(cluster *Cluster, kubeconfigPath string) error {
+	args := make([]string, 0, 11)
 	args = append(args,
 		"aks", "get-credentials",
 		"--resource-group", cluster.ResourceGroup,
 		"--name", cluster.Name,
 		"--overwrite-existing",
 	)
+	if kubeconfigPath != "" {
+		args = append(args, "--file", kubeconfigPath)
+	}
 
 	if cluster.SubscriptionID == "" {
 		return fmt.Errorf("%w: %s", errClusterMissingSubscriptionID, cluster.Name)
