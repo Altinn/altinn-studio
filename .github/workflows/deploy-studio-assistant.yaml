@@ -46,8 +46,8 @@ jobs:
         run: |
           SHA="${GITHUB_SHA::10}"
           echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio-assistant:${SHA}" >> "$GITHUB_OUTPUT"
-          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/configs/altinn-studio-assistant-repo:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-altinity-agents:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/configs/altinn-altinity-agents-repo:${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
