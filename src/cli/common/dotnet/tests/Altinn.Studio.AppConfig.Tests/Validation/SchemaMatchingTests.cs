@@ -1,7 +1,6 @@
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Validation;
 using Altinn.Studio.AppConfig.Validation.Schemas;
-using Xunit;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 

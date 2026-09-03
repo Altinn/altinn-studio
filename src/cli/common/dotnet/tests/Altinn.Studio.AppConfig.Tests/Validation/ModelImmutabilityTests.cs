@@ -1,7 +1,6 @@
 using System.Reflection;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Models;
-using Xunit;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 

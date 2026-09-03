@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Altinn.Studio.AppConfigLsp;
-using Xunit;
 
 namespace Altinn.Studio.AppConfigLsp.Tests;
 

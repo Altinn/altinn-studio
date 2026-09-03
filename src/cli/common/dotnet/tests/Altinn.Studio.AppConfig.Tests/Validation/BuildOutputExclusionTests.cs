@@ -1,6 +1,5 @@
 using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
-using Xunit;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 

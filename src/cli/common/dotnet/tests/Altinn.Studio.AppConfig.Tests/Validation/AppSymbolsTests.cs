@@ -1,7 +1,6 @@
 using System.Text;
 using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Validation;
-using Xunit;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 

@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Altinn.Studio.AppConfig.Validation.Schemas;
-using Xunit;
 
 namespace Altinn.Studio.AppConfigLsp.Tests;
 
@@ -65,7 +64,7 @@ public sealed class SchemaSetLoaderTests
         Assert.Null(loader.Current);
 
         loads.Complete("B", setB);
-        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(setB, loader.Current);
     }
 
@@ -92,7 +91,7 @@ public sealed class SchemaSetLoaderTests
         }
         WaitFor(() => loads.Requested.Count == 2);
         loads.Complete("A", set);
-        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(set, loader.Current);
     }
 
@@ -111,7 +110,7 @@ public sealed class SchemaSetLoaderTests
             loader.Observe("B");
         WaitFor(() => loads.Requested.Count == 2);
         loads.Complete("B", Set());
-        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         WaitFor(() => loader.Current is not null);
 
         lock (sync)
@@ -162,7 +161,7 @@ public sealed class SchemaSetLoaderTests
             loader.Observe("A");
         WaitFor(() => loads.Requested.Count == 1);
         loads.Complete("A", Set());
-        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(loaded.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         WaitFor(() => loader.Current is not null);
 
         lock (sync)

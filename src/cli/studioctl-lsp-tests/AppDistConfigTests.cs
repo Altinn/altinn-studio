@@ -3,7 +3,6 @@ using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfigLsp;
 using Altinn.Studio.AppDist;
-using Xunit;
 
 namespace Altinn.Studio.AppConfigLsp.Tests;
 
@@ -84,7 +83,7 @@ public sealed class AppDistConfigTests
             }
         );
 
-        var schemas = await AppDistConfig.LoadSchemasAsync(appDist, "9.1.0");
+        var schemas = await AppDistConfig.LoadSchemasAsync(appDist, "9.1.0", TestContext.Current.CancellationToken);
 
         Assert.NotNull(schemas);
         var report = AppConfigEngine.Open(app).ValidateSchemas(schemas);
@@ -95,6 +94,12 @@ public sealed class AppDistConfigTests
     [Fact]
     public async Task LoadSchemas_UnavailableLayerReturnsNull()
     {
-        Assert.Null(await AppDistConfig.LoadSchemasAsync(new FakeAppDist(files: null), "9.1.0"));
+        Assert.Null(
+            await AppDistConfig.LoadSchemasAsync(
+                new FakeAppDist(files: null),
+                "9.1.0",
+                TestContext.Current.CancellationToken
+            )
+        );
     }
 }

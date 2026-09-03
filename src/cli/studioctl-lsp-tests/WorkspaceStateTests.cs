@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Altinn.Studio.AppConfigLsp.Tests;
 
 public sealed class WorkspaceStateTests
