@@ -45,6 +45,85 @@ export const instanceDetailsPath = (org: string, env: string, app: string, insta
 export const instanceDeletePath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Delete
 
+const workflowsBasePath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/workflows/${org}/${env}/${app}`;
+
+/**
+ * Collection reads on the workflow engine. Three mutually exclusive modes, mirroring the engine:
+ * annotate (`keys`, health for a known set of instances), discover (`failures`, cursor-paginated
+ * search for broken instances), and plain list (neither).
+ */
+export const workflowCollectionsPath = (
+  org: string,
+  env: string,
+  app: string,
+  { keys, failures, cursor, pageSize }: WorkflowCollectionsQuery = {},
+) => {
+  const queryParams = new URLSearchParams();
+  keys?.forEach((key) => queryParams.append('key', key));
+  appendIfSet(queryParams, 'failures', failures);
+  appendIfSet(queryParams, 'cursor', cursor);
+  appendIfSet(queryParams, 'pageSize', pageSize);
+  return `${workflowsBasePath(org, env, app)}/collections${toQueryString(queryParams)}`; // Get
+};
+
+type WorkflowCollectionsQuery = {
+  keys?: string[];
+  failures?: string;
+  cursor?: string;
+  pageSize?: number;
+};
+
+export const workflowsListPath = (
+  org: string,
+  env: string,
+  app: string,
+  { collectionKey, statuses, isHead, cursor, pageSize }: WorkflowsQuery = {},
+) => {
+  const queryParams = new URLSearchParams();
+  appendIfSet(queryParams, 'collectionKey', collectionKey);
+  statuses?.forEach((status) => queryParams.append('status', status));
+  appendIfSet(queryParams, 'isHead', isHead);
+  appendIfSet(queryParams, 'cursor', cursor);
+  appendIfSet(queryParams, 'pageSize', pageSize);
+  return `${workflowsBasePath(org, env, app)}/workflows${toQueryString(queryParams)}`; // Get
+};
+
+type WorkflowsQuery = {
+  collectionKey?: string;
+  statuses?: string[];
+  isHead?: boolean;
+  cursor?: string;
+  pageSize?: number;
+};
+
+export const resumeWorkflowPath = (
+  org: string,
+  env: string,
+  app: string,
+  workflowId: string,
+  cascade: boolean,
+) =>
+  `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/resume?cascade=${String(cascade)}`; // Post
+
+export const abandonWorkflowPath = (org: string, env: string, app: string, workflowId: string) =>
+  `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/abandon`; // Post
+
+function appendIfSet(
+  queryParams: URLSearchParams,
+  key: string,
+  value: string | number | boolean | undefined,
+): void {
+  if (value !== undefined && value !== null && value !== '') {
+    queryParams.append(key, String(value));
+  }
+}
+
+function toQueryString(queryParams: URLSearchParams): string {
+  const queryString = queryParams.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
 /**
  * Returns an encoded query string from a key-value object, or an empty string if the object is empty.
  * Also removes parameters that are empty, null, or undefined.
