@@ -118,7 +118,7 @@ public static class Metrics
 
     /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
-    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c>) and
+    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c> / <c>manual</c>) and
     /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
     /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
     /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
@@ -127,6 +127,8 @@ public static class Metrics
     /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
     /// the default alert: a step's wait budget running out means the awaited external outcome
     /// never arrived, not that the engine or command failed — route it to the owning team instead.
+    /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose, through the fail
+    /// endpoint or the dashboard's button.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"

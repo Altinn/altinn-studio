@@ -215,6 +215,94 @@ public sealed class DeferralTests(EngineAppFixture<Program> fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task WaitingWorkflow_DashboardFail_FailsStepWithManualErrorEntry_AndStaysResumable()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-dashboard-fail",
+                [CreateDeferStep("poll-dashboard-fail", succeedOnAttempt: 2, deferDelayMs: 600_000)]
+            )
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+
+        using var client = fixture.CreateEngineClient();
+        using var failResponse = await client.PostAsJsonAsync(
+            "/dashboard/fail",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, failResponse.StatusCode);
+
+        // A deferral records no error history, so the manual entry is the step's only one
+        var failed = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Failed,
+            TimeSpan.FromSeconds(30)
+        );
+        var step = Assert.Single(failed.Steps);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Equal(1, step.DeferCount);
+        Assert.NotNull(step.ErrorHistory);
+        var entry = Assert.Single(step.ErrorHistory);
+        Assert.False(entry.WasRetryable);
+        Assert.Null(entry.HttpStatusCode);
+        Assert.Equal(1, DeferringCommand.InvocationCount("poll-dashboard-fail"));
+
+        // Resume re-executes the step, which succeeds on its second attempt
+        using var retryResponse = await client.PostAsJsonAsync(
+            "/dashboard/retry",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, retryResponse.StatusCode);
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+        Assert.Equal(2, DeferringCommand.InvocationCount("poll-dashboard-fail"));
+    }
+
+    [Fact]
+    public async Task WaitingWorkflow_Fail_RecordsReasonAndStaysResumable()
+    {
+        const string reason = "Operator confirmed the receipt will never arrive";
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-api-fail",
+                [CreateDeferStep("poll-api-fail", succeedOnAttempt: 2, deferDelayMs: 600_000)]
+            )
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+
+        var response = await _client.FailWorkflow(workflowId, reason);
+        Assert.Equal(workflowId, response.WorkflowId);
+
+        // A deferral records no error history, so the caller's reason is the step's only entry
+        var failed = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Failed,
+            TimeSpan.FromSeconds(30)
+        );
+        var step = Assert.Single(failed.Steps);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Equal(1, step.DeferCount);
+        Assert.NotNull(step.ErrorHistory);
+        var entry = Assert.Single(step.ErrorHistory);
+        Assert.Equal(reason, entry.Message);
+        Assert.False(entry.WasRetryable);
+        Assert.Equal(1, DeferringCommand.InvocationCount("poll-api-fail"));
+
+        // Resume re-executes the step, which succeeds on its second attempt
+        await _client.ResumeWorkflow(workflowId);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+        Assert.Equal(2, DeferringCommand.InvocationCount("poll-api-fail"));
+    }
+
+    [Fact]
     public async Task Nudge_CompletedWorkflow_Returns409()
     {
         var request = _testHelpers.CreateEnqueueRequest(

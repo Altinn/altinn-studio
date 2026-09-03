@@ -199,6 +199,10 @@ const buildDetailsContent = (data) => {
         const skipLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${skipLabel}</a>`;
     }
+    if (status === 'Requeued' || status === 'Waiting') {
+        const failTitle = status === 'Waiting' ? 'Stop waiting and mark the step Failed' : 'Stop retrying and mark the step Failed';
+        statusParts += `<a class="step-retry-badge fail" style="${showNudge ? '' : 'margin-left:auto'}" title="${failTitle}" onclick="failWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">&#10005; Fail</a>`;
+    }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
 
@@ -538,6 +542,42 @@ window.nudgeWorkflow = async (e, workflowId, ns) => {
             btn.textContent = 'retry now';
             btn.classList.remove('skip-failed');
         }, 3000);
+    }
+};
+
+/** Fail a parked (Requeued/Waiting) workflow by hand — called from the status row / pipeline fail button */
+window.failWorkflow = async (e, workflowId, ns) => {
+    e.stopPropagation();
+    const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
+    if (btn.hasAttribute('disabled')) return;
+    const original = btn.innerHTML;
+    btn.setAttribute('disabled', '');
+    btn.textContent = '...';
+    const restore = () =>
+        setTimeout(() => {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = original;
+            btn.classList.remove('skip-failed');
+        }, 3000);
+    try {
+        const res = await fetch('/dashboard/fail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workflowId, namespace: ns }),
+        });
+        if (res.ok) {
+            btn.textContent = 'Marked failed';
+            btn.classList.remove('fail');
+            btn.classList.add('skip-success');
+        } else {
+            btn.textContent = 'Rejected';
+            btn.classList.add('skip-failed');
+            restore();
+        }
+    } catch {
+        btn.textContent = 'Error';
+        btn.classList.add('skip-failed');
+        restore();
     }
 };
 

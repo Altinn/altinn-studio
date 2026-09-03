@@ -324,6 +324,17 @@ the workflow is re-executed rather than skipped.
 
 Body: `{ "workflowId": "<guid>" }`
 
+### `POST /dashboard/fail`
+
+Fail a parked workflow (Requeued or Waiting) by operator decision. A compare-and-set to Failed with the
+backoff cleared; the parked step is marked Failed and gets a non-retryable error entry ("Failed manually by
+an operator from the workflow engine dashboard"), so it reads exactly like an exhausted retry and stays
+resumable via `POST /dashboard/retry`. 409 when the workflow is not parked (including one the processor
+claimed first), 404 when it does not exist. The dashboard face of
+`POST /api/v1/{namespace}/workflows/{id}/fail` — same primitive, with a fixed reason naming the dashboard.
+
+Body: `{ "workflowId": "<guid>", "namespace": "<string>" }`
+
 ---
 
 ## Workflow Card Anatomy
@@ -437,7 +448,7 @@ The modal has four distinct DOM zones:
 ### Tabs
 
 1. **Details** (default) — Rows top to bottom:
-    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued / Check now for Waiting, with >5s backoff remaining). All elements flex-aligned in a single row.
+    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action buttons (Retry for Failed; Retry now for Requeued / Check now for Waiting, with >5s backoff remaining; Fail for Requeued or Waiting, always). All elements flex-aligned in a single row.
     - Idempotency Key
     - Created (formatted time + relative age)
     - Execution Started (if set)
@@ -466,8 +477,9 @@ The modal has four distinct DOM zones:
 - **Retry** — Shown for Failed steps in the status row. Calls `POST /dashboard/retry`.
 - **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/nudge`.
 - **Check now** (nudge) — The same control on a Waiting step, relabelled: the step is polling, not retrying. Same endpoint; only the wording changes, because "retry" misdescribes a step that never failed.
+- **Fail** — Shown for Requeued and Waiting steps in the status row (and as a `fail` button on parked pipeline steps, next to the nudge button when one is shown). Calls `POST /dashboard/fail`: the step is marked Failed with a manual error entry, after which the Retry button applies. Red, to mark it as the give-up action.
 
-**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped" with success CSS class (stays disabled). On failure, text changes to "Failed" with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
+**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped"/"Marked failed" with success CSS class (stays disabled). On failure, text changes to "Failed" ("Rejected" for the Fail action, whose success outcome _is_ a failed step) with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
 
 ### SSE-Driven Refresh
 

@@ -779,6 +779,147 @@ public class EngineEndpointTests
     // === CancelWorkflow Handler Tests ===
 
     [Fact]
+    public async Task FailWorkflow_ParkedWorkflow_Returns202AndPassesReason()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.FailWorkflow(workflowId, It.IsAny<string>(), "upstream gave up", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new FailWorkflowResult.Failed(workflowId, now));
+
+        // Act
+        var result = await EngineRequestHandlers.FailWorkflow(
+            DefaultNamespace,
+            workflowId,
+            new FailWorkflowRequest { Reason = "upstream gave up" },
+            engine.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        var accepted = Assert.IsType<Accepted<FailWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.Equal(workflowId, accepted.Value.WorkflowId);
+        Assert.Equal(now, accepted.Value.FailedAt);
+        engine.VerifyAll();
+    }
+
+    [Fact]
+    public async Task FailWorkflow_NoBody_UsesDefaultReason()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.FailWorkflow(
+                    workflowId,
+                    It.IsAny<string>(),
+                    EngineRequestHandlers.DefaultFailReason,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new FailWorkflowResult.Failed(workflowId, DateTimeOffset.UtcNow));
+
+        // Act
+        var result = await EngineRequestHandlers.FailWorkflow(
+            DefaultNamespace,
+            workflowId,
+            request: null,
+            engine.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<Accepted<FailWorkflowResponse>>(result.Result);
+        engine.VerifyAll();
+    }
+
+    [Fact]
+    public async Task FailWorkflow_NotParked_Returns409()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.FailWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new FailWorkflowResult.NotParked(PersistentItemStatus.Completed));
+
+        // Act
+        var result = await EngineRequestHandlers.FailWorkflow(
+            DefaultNamespace,
+            workflowId,
+            request: null,
+            engine.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
+        Assert.NotNull(conflict.Value);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
+        Assert.Contains("Completed", conflict.Value.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FailWorkflow_NotFound_Returns404()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.FailWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new FailWorkflowResult.NotFound());
+
+        // Act
+        var result = await EngineRequestHandlers.FailWorkflow(
+            DefaultNamespace,
+            workflowId,
+            request: null,
+            engine.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task FailWorkflow_InvalidReason_Returns400()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.FailWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new FailWorkflowResult.Invalid("Reason cannot be empty or whitespace."));
+
+        // Act
+        var result = await EngineRequestHandlers.FailWorkflow(
+            DefaultNamespace,
+            workflowId,
+            new FailWorkflowRequest { Reason = "   " },
+            engine.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequest<ProblemDetails>>(result.Result);
+        Assert.NotNull(badRequest.Value);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequest.Value.Status);
+    }
+
+    [Fact]
     public async Task CancelWorkflow_ActiveWorkflow_Returns202()
     {
         // Arrange

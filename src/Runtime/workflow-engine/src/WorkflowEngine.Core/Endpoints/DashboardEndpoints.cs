@@ -32,6 +32,12 @@ internal static class DashboardEndpoints
     };
 
     /// <summary>
+    /// The error-history entry a manual failure leaves on the parked step. Read by anyone inspecting the
+    /// step afterwards — the dashboard's error history, the app side's failure view — so it says who did it.
+    /// </summary>
+    private const string ManualFailureReason = "Failed manually by an operator from the workflow engine dashboard";
+
+    /// <summary>
     /// Maps the dashboard UI: static files (embedded or physical), <c>/api/config</c>,
     /// and the <c>/api/hot-reload</c> dev endpoint.
     /// </summary>
@@ -682,24 +688,9 @@ internal static class DashboardEndpoints
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
                     using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
+                    if (TryParseWorkflowTarget(doc.RootElement, out Guid workflowId, out string ns) is { } invalid)
+                        return invalid;
 
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp)
-                        || nsProp.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp.GetString() ?? throw new UnreachableException();
                     var engine = sp.GetRequiredService<IEngine>();
                     var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
 
@@ -721,24 +712,9 @@ internal static class DashboardEndpoints
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
                     using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
+                    if (TryParseWorkflowTarget(doc.RootElement, out Guid workflowId, out string ns) is { } invalid)
+                        return invalid;
 
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
-                        || nsProp2.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp2.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp2.GetString() ?? throw new UnreachableException();
                     using IServiceScope scope = sp.CreateScope();
                     var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
 
@@ -758,7 +734,57 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        app.MapPost(
+                "/dashboard/fail",
+                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    if (TryParseWorkflowTarget(doc.RootElement, out Guid workflowId, out string ns) is { } invalid)
+                        return invalid;
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
+
+                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/fail, with a fixed reason that
+                    // names the dashboard as the place the operator gave up from.
+                    var result = await engine.FailWorkflow(workflowId, ns, ManualFailureReason, ct);
+
+                    return result switch
+                    {
+                        FailWorkflowResult.Failed => Results.Ok(),
+                        FailWorkflowResult.NotFound => Results.NotFound(),
+                        FailWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
+                        FailWorkflowResult.Invalid r => Results.BadRequest(r.Message),
+                        _ => throw new UnreachableException(),
+                    };
+                }
+            )
+            .ExcludeFromDescription();
+
         return app;
+    }
+
+    /// <summary>
+    /// Reads the <c>workflowId</c> + <c>namespace</c> body shared by the dashboard's workflow actions.
+    /// Returns the 400 to answer with when the body does not name a valid target, <c>null</c> when it does.
+    /// </summary>
+    private static IResult? TryParseWorkflowTarget(JsonElement root, out Guid workflowId, out string ns)
+    {
+        workflowId = Guid.Empty;
+        ns = string.Empty;
+
+        if (!root.TryGetProperty("workflowId", out var wfProp) || !Guid.TryParse(wfProp.GetString(), out workflowId))
+            return Results.BadRequest("Missing or invalid workflowId");
+
+        if (
+            !root.TryGetProperty("namespace", out var nsProp)
+            || nsProp.ValueKind != JsonValueKind.String
+            || string.IsNullOrWhiteSpace(nsProp.GetString())
+        )
+            return Results.BadRequest("Missing namespace");
+
+        ns = nsProp.GetString() ?? throw new UnreachableException();
+        return null;
     }
 
     private static Dictionary<string, string>? ParseLabelFilters(string? labels)

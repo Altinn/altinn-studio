@@ -5,6 +5,7 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -173,6 +174,122 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         // Act
         using var response = await client.PostAsJsonAsync(
             "/dashboard/nudge",
+            new { notAWorkflowId = "hello" },
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    // ── POST /dashboard/fail ──────────────────────────────────────────
+
+    [Fact]
+    public async Task Fail_RequeuedWorkflow_FailsStepWithManualErrorEntry_AndStaysResumable()
+    {
+        // Arrange — a retryable failure (500) parked behind a backoff long enough to hold still
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .RespondWith(Response.Create().WithStatusCode(500).WithBody("boom"));
+
+        var step = _testHelpers.CreateWebhookStep(
+            "/fail-parked",
+            retryStrategy: RetryStrategy.Constant(TimeSpan.FromMinutes(10), maxRetries: 5)
+        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Requeued);
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var failResponse = await client.PostAsJsonAsync(
+            "/dashboard/fail",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert — terminal Failed, backoff gone, the manual entry appended after the retryable one
+        Assert.Equal(HttpStatusCode.OK, failResponse.StatusCode);
+
+        var failed = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+        Assert.Null(failed.BackoffUntil);
+        var failedStep = Assert.Single(failed.Steps);
+        Assert.Equal(PersistentItemStatus.Failed, failedStep.Status);
+        Assert.NotNull(failedStep.ErrorHistory);
+        Assert.Equal(2, failedStep.ErrorHistory.Count);
+        Assert.True(failedStep.ErrorHistory[0].WasRetryable);
+        var manual = failedStep.ErrorHistory[1];
+        Assert.False(manual.WasRetryable);
+        Assert.Null(manual.HttpStatusCode);
+        Assert.Contains("manually", manual.Message, StringComparison.Ordinal);
+
+        // A manual failure is an ordinary failure: Retry resumes it
+        fixture.WireMock.Reset();
+        fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200));
+
+        using var retryResponse = await client.PostAsJsonAsync(
+            "/dashboard/retry",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, retryResponse.StatusCode);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+    }
+
+    [Fact]
+    public async Task Fail_CompletedWorkflow_Returns409()
+    {
+        // Arrange
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.PostAsJsonAsync(
+            "/dashboard/fail",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert — nothing to give up on, and the completed workflow is left alone
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var workflow = await _client.GetWorkflow(workflowId);
+        Assert.NotNull(workflow);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.OverallStatus);
+    }
+
+    [Fact]
+    public async Task Fail_NonExistentWorkflow_Returns404()
+    {
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.PostAsJsonAsync(
+            "/dashboard/fail",
+            new { workflowId = Guid.NewGuid(), @namespace = "nonexistent-ns" },
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Fail_InvalidPayload_Returns400()
+    {
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.PostAsJsonAsync(
+            "/dashboard/fail",
             new { notAWorkflowId = "hello" },
             TestContext.Current.CancellationToken
         );
