@@ -21,6 +21,7 @@ dependencies = [
  "ratatui",
  "reqwest",
  "rusqlite",
+ "rustix",
  "sandbox",
  "sandbox-authorization",
  "sandbox-microsandbox",

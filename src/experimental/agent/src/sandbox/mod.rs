@@ -1,6 +1,6 @@
 //! Runtime selection and lifecycle integration for Agent Sandboxes.
 
-use std::{collections::BTreeSet, path::Path, rc::Rc};
+use std::{collections::BTreeSet, rc::Rc};
 
 use ::sandbox::{LocalFuture, Platform, SandboxHandle, SandboxId};
 use serde::{Deserialize, Serialize};
@@ -14,8 +14,9 @@ pub mod platform;
 mod runtime;
 
 pub use execution::{ExecutionService, ExecutionTarget};
-pub use forward::{PortForward, PortForwardService, PortForwardSpec, RunningPortForward};
-pub use microsandbox::{GuestConnection, GuestDialer};
+pub use forward::{
+    GuestTcpConnection, GuestTcpDialer, PortForward, PortForwardService, PortForwardSpec, RunningPortForward,
+};
 pub use runtime::RuntimeService;
 
 /// Stable identity of one configured Sandbox Provider.
@@ -120,6 +121,9 @@ pub trait Provider {
 
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
     fn open<'a>(&'a self, record: &'a AgentRecord, id: &'a SandboxId) -> LocalFuture<'a, Result<SandboxHandle, Error>>;
+
+    /// Connects a guest TCP dialer to the exact already-materialized Sandbox.
+    fn guest_tcp_dialer<'a>(&'a self, id: &'a SandboxId) -> LocalFuture<'a, Result<Rc<dyn GuestTcpDialer>, Error>>;
 
     /// Idempotently releases the Sandbox and its Provider-specific host integration.
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>>;
@@ -240,6 +244,19 @@ impl Service {
         self.provider(provider)?.open(record, id).await
     }
 
+    /// Connects a guest TCP dialer through the recorded Sandbox Provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error unless the assignment is materialized through a
+    /// configured Provider and its Sandbox runtime is running.
+    pub async fn guest_tcp_dialer(&self, assignment: &Assignment) -> Result<Rc<dyn GuestTcpDialer>, Error> {
+        let Assignment::Materialized { provider, id } = assignment else {
+            return Err(Error::Invalid("forward target Sandbox is not materialized".into()));
+        };
+        self.provider(provider)?.guest_tcp_dialer(id).await
+    }
+
     /// Releases the selected Provider idempotently. An unassigned Agent has no effect to release.
     ///
     /// # Errors
@@ -268,20 +285,5 @@ impl Service {
             .find(|provider| provider.id() == id)
             .map(Rc::as_ref)
             .ok_or_else(|| Error::Invalid(format!("assigned Sandbox Provider {id:?} is not configured")))
-    }
-}
-
-/// Connects a guest TCP dialer through the recorded Sandbox Provider.
-///
-/// # Errors
-///
-/// Returns an error when the Provider is unsupported by this client or the
-/// Sandbox is not running.
-pub async fn guest_tcp_dialer(home: &Path, assignment: &Assignment) -> Result<GuestDialer, Error> {
-    match assignment.provider().as_str() {
-        microsandbox::PROVIDER_ID => microsandbox::guest_tcp_dialer(home, assignment).await,
-        provider => Err(Error::Invalid(format!(
-            "guest TCP forwarding is not supported through Sandbox Provider {provider:?}"
-        ))),
     }
 }

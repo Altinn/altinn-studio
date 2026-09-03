@@ -3,12 +3,18 @@
 use std::io::IsTerminal as _;
 
 use agent::{Error, control_api::AttachedTerminal};
-use crossterm::event::{
-    Event, EventStream, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
-};
+#[cfg(windows)]
+use crossterm::event::EventStream;
+#[cfg(any(windows, test))]
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
+#[cfg(windows)]
 use futures_util::StreamExt as _;
 use sandbox::terminal::{TerminalAttachOutcome, TerminalEvent, TerminalSize};
+#[cfg(unix)]
+use std::{fs::File, io::Read as _};
 use tokio::io::AsyncWriteExt as _;
+#[cfg(unix)]
+use tokio::io::unix::AsyncFd;
 
 const DETACH: u8 = 0x1d; // Ctrl+], matching the former Microsandbox attachment default.
 
@@ -27,26 +33,32 @@ pub(super) fn current_size() -> Result<TerminalSize, Error> {
 pub(super) async fn run(terminal: AttachedTerminal) -> Result<TerminalAttachOutcome, Error> {
     let _raw_mode = RawMode::enter()?;
     let AttachedTerminal {
-        mut input, mut events, ..
+        input: mut remote_input,
+        mut events,
+        ..
     } = terminal;
-    // EventStream owns a wakeable terminal reader. Unlike Tokio's blocking
-    // stdin adapter, it can be dropped when an attachment ends before the TUI
-    // resumes, without consuming a later keystroke.
-    let mut local_events = EventStream::new();
+    #[cfg(unix)]
+    let mut local_events = LocalEvents::open()?;
+    #[cfg(windows)]
+    let mut local_events = LocalEvents::open();
     let mut stdout = tokio::io::stdout();
 
     loop {
         tokio::select! {
-            event = local_events.next() => {
-                let event = event
-                    .ok_or_else(|| Error::Session("local terminal event stream ended".into()))??;
-                match encode_event(event) {
-                    Some(LocalInput::Bytes(data)) if data.contains(&DETACH) => {
-                        return Ok(TerminalAttachOutcome::Detached);
+            event = local_events.next(), if local_events.is_open() => {
+                match event? {
+                    LocalInput::Bytes(data) => {
+                        let (forward, detached) = before_detach(&data);
+                        remote_input.write(forward).await?;
+                        if detached {
+                            return Ok(TerminalAttachOutcome::Detached);
+                        }
                     }
-                    Some(LocalInput::Bytes(data)) => input.write(&data).await?,
-                    Some(LocalInput::Resize(size)) => input.resize(size).await?,
-                    None => {}
+                    LocalInput::Resize(size) => remote_input.resize(size).await?,
+                    LocalInput::Close => {
+                        remote_input.close().await?;
+                        local_events.close();
+                    }
                 }
             }
             event = events.next() => match event? {
@@ -71,8 +83,105 @@ pub(super) async fn run(terminal: AttachedTerminal) -> Result<TerminalAttachOutc
 enum LocalInput {
     Bytes(Vec<u8>),
     Resize(TerminalSize),
+    Close,
 }
 
+fn before_detach(data: &[u8]) -> (&[u8], bool) {
+    data.iter()
+        .position(|byte| *byte == DETACH)
+        .map_or((data, false), |detach| (&data[..detach], true))
+}
+
+#[cfg(unix)]
+struct LocalEvents {
+    input: AsyncFd<File>,
+    resize: tokio::signal::unix::Signal,
+    open: bool,
+}
+
+#[cfg(unix)]
+impl LocalEvents {
+    fn open() -> Result<Self, Error> {
+        let input = File::open("/dev/tty")?;
+        let flags = rustix::fs::fcntl_getfl(&input).map_err(std::io::Error::from)?;
+        rustix::fs::fcntl_setfl(&input, flags | rustix::fs::OFlags::NONBLOCK).map_err(std::io::Error::from)?;
+        Ok(Self {
+            input: AsyncFd::new(input)?,
+            resize: tokio::signal::unix::signal(tokio::signal::unix::SignalKind::window_change())?,
+            open: true,
+        })
+    }
+
+    const fn is_open(&self) -> bool {
+        self.open
+    }
+
+    const fn close(&mut self) {
+        self.open = false;
+    }
+
+    async fn next(&mut self) -> Result<LocalInput, Error> {
+        loop {
+            tokio::select! {
+                ready = self.input.readable() => {
+                    let mut ready = ready?;
+                    let mut buffer = [0_u8; 4096];
+                    match ready.try_io(|descriptor| {
+                        let mut input = descriptor.get_ref();
+                        input.read(&mut buffer)
+                    }) {
+                        Ok(Ok(0)) => return Ok(LocalInput::Close),
+                        Ok(Ok(read)) => return Ok(LocalInput::Bytes(buffer[..read].to_vec())),
+                        Ok(Err(error)) if error.kind() == std::io::ErrorKind::Interrupted => {}
+                        Ok(Err(error)) => return Err(error.into()),
+                        Err(_would_block) => {}
+                    }
+                }
+                resized = self.resize.recv() => {
+                    resized.ok_or_else(|| Error::Session("terminal resize signal stream ended".into()))?;
+                    return current_size().map(LocalInput::Resize);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(windows)]
+struct LocalEvents {
+    events: EventStream,
+    open: bool,
+}
+
+#[cfg(windows)]
+impl LocalEvents {
+    fn open() -> Self {
+        Self {
+            events: EventStream::new(),
+            open: true,
+        }
+    }
+
+    const fn is_open(&self) -> bool {
+        self.open
+    }
+
+    const fn close(&mut self) {
+        self.open = false;
+    }
+
+    async fn next(&mut self) -> Result<LocalInput, Error> {
+        loop {
+            let Some(event) = self.events.next().await else {
+                return Ok(LocalInput::Close);
+            };
+            if let Some(input) = encode_event(event?) {
+                return Ok(input);
+            }
+        }
+    }
+}
+
+#[cfg(any(windows, test))]
 fn encode_event(event: Event) -> Option<LocalInput> {
     match event {
         Event::Key(key) if key.kind != KeyEventKind::Release => encode_key(key).map(LocalInput::Bytes),
@@ -87,6 +196,7 @@ fn encode_event(event: Event) -> Option<LocalInput> {
     }
 }
 
+#[cfg(any(windows, test))]
 fn encode_key(key: KeyEvent) -> Option<Vec<u8>> {
     let modifiers = key.modifiers;
     let bytes = match key.code {
@@ -114,6 +224,7 @@ fn encode_key(key: KeyEvent) -> Option<Vec<u8>> {
     Some(bytes)
 }
 
+#[cfg(any(windows, test))]
 fn encode_character(character: char, modifiers: KeyModifiers) -> Vec<u8> {
     let mut bytes = if modifiers.contains(KeyModifiers::CONTROL) {
         control_byte(character).map_or_else(|| character.to_string().into_bytes(), |byte| vec![byte])
@@ -126,6 +237,7 @@ fn encode_character(character: char, modifiers: KeyModifiers) -> Vec<u8> {
     bytes
 }
 
+#[cfg(any(windows, test))]
 const fn control_byte(character: char) -> Option<u8> {
     match character {
         ' ' | '@' | '2' => Some(0),
@@ -141,6 +253,7 @@ const fn control_byte(character: char) -> Option<u8> {
     }
 }
 
+#[cfg(any(windows, test))]
 fn with_alt(mut bytes: Vec<u8>, modifiers: KeyModifiers) -> Vec<u8> {
     if modifiers.contains(KeyModifiers::ALT) {
         bytes.insert(0, 0x1b);
@@ -148,6 +261,7 @@ fn with_alt(mut bytes: Vec<u8>, modifiers: KeyModifiers) -> Vec<u8> {
     bytes
 }
 
+#[cfg(any(windows, test))]
 fn cursor_sequence(final_byte: char, modifiers: KeyModifiers) -> Vec<u8> {
     if modifier_parameter(modifiers) == 1 {
         format!("\x1b[{final_byte}").into_bytes()
@@ -156,6 +270,7 @@ fn cursor_sequence(final_byte: char, modifiers: KeyModifiers) -> Vec<u8> {
     }
 }
 
+#[cfg(any(windows, test))]
 fn tilde_sequence(number: u8, modifiers: KeyModifiers) -> Vec<u8> {
     if modifier_parameter(modifiers) == 1 {
         format!("\x1b[{number}~").into_bytes()
@@ -164,6 +279,7 @@ fn tilde_sequence(number: u8, modifiers: KeyModifiers) -> Vec<u8> {
     }
 }
 
+#[cfg(any(windows, test))]
 fn function_key_sequence(number: u8, modifiers: KeyModifiers) -> Option<Vec<u8>> {
     let modifier = modifier_parameter(modifiers);
     if let Some(final_byte) = ['P', 'Q', 'R', 'S'].get(usize::from(number.checked_sub(1)?)) {
@@ -195,6 +311,7 @@ fn function_key_sequence(number: u8, modifiers: KeyModifiers) -> Option<Vec<u8>>
     Some(tilde_sequence(parameter, modifiers))
 }
 
+#[cfg(any(windows, test))]
 const fn modifier_parameter(modifiers: KeyModifiers) -> u8 {
     1 + if modifiers.contains(KeyModifiers::SHIFT) { 1 } else { 0 }
         + if modifiers.contains(KeyModifiers::ALT) { 2 } else { 0 }
@@ -208,6 +325,7 @@ const fn modifier_parameter(modifiers: KeyModifiers) -> u8 {
         + if modifiers.contains(KeyModifiers::META) { 32 } else { 0 }
 }
 
+#[cfg(any(windows, test))]
 fn encode_mouse(mouse: MouseEvent) -> Vec<u8> {
     let modifiers = (if mouse.modifiers.contains(KeyModifiers::SHIFT) {
         4
@@ -241,6 +359,7 @@ fn encode_mouse(mouse: MouseEvent) -> Vec<u8> {
     .into_bytes()
 }
 
+#[cfg(any(windows, test))]
 const fn mouse_button(button: MouseButton) -> u8 {
     match button {
         MouseButton::Left => 0,
@@ -268,7 +387,13 @@ impl Drop for RawMode {
 mod tests {
     use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 
-    use super::{LocalInput, encode_event};
+    use super::{LocalInput, before_detach, encode_event};
+
+    #[test]
+    fn raw_input_is_preserved_until_the_detach_byte() {
+        assert_eq!(before_detach(b"\x1b[>1uhello"), (b"\x1b[>1uhello".as_slice(), false));
+        assert_eq!(before_detach(b"hello\x1dignored"), (b"hello".as_slice(), true));
+    }
 
     #[test]
     fn encodes_text_control_navigation_and_detach_keys() {

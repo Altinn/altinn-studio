@@ -93,6 +93,27 @@ fn microsandbox_internals_are_contained_by_the_microsandbox_adapter() {
 }
 
 #[test]
+fn microsandbox_provider_is_opened_once_by_its_adapter() {
+    let adapter = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("sandbox")
+        .join("microsandbox");
+    let mut files = Vec::new();
+    rust_files(&adapter, &mut files);
+    let opens = files
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path)
+                .expect("Microsandbox adapter source should be readable")
+                .matches("MicrosandboxProvider::open(")
+                .count()
+        })
+        .sum::<usize>();
+
+    assert_eq!(opens, 1, "the daemon must reuse its one Microsandbox Provider");
+}
+
+#[test]
 fn agentctl_never_opens_sandbox_runtime_operations_directly() {
     let client = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("src")

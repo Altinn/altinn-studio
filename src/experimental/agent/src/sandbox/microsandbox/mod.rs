@@ -10,9 +10,6 @@ use crate::{Error, authorization::AgentPolicyEngine, control_plane::AgentRecord,
 mod forward;
 mod preparation;
 
-pub(super) use forward::guest_tcp_dialer;
-pub use forward::{GuestConnection, GuestDialer};
-
 use preparation::Preparation;
 
 use super::{Provider, ProviderEnsureOutcome, ProviderId};
@@ -29,6 +26,7 @@ pub const HOST_ALIAS: &str = "host.microsandbox.internal";
 /// Runtime-selectable Agent adapter for a Microsandbox Provider.
 pub struct Adapter {
     id: ProviderId,
+    provider: Rc<MicrosandboxProvider>,
     service: SandboxService,
     preparation: Preparation,
     default_architecture: String,
@@ -50,10 +48,11 @@ impl Adapter {
     ) -> Result<Self, Error> {
         let provider = Rc::new(MicrosandboxProvider::open(home.join("microsandbox")).await?);
         let network = Rc::new(MicrosandboxNetworkBackend::new(policy.clone()).with_secret_store(secret_store));
-        let service = SandboxService::new(provider).with_network_backend(network.clone());
+        let service = SandboxService::new(provider.clone()).with_network_backend(network.clone());
         policy.set_platform_endpoint(HOST_ALIAS, platform_port);
         Ok(Self {
             id: ProviderId::new(PROVIDER_ID)?,
+            provider,
             service,
             preparation: Preparation::new(database, policy, network),
             default_architecture: Platform::native("linux").architecture,
@@ -148,6 +147,13 @@ impl Provider for Adapter {
                 .await
                 .map_err(Error::from)
         })
+    }
+
+    fn guest_tcp_dialer<'a>(
+        &'a self,
+        id: &'a ::sandbox::SandboxId,
+    ) -> LocalFuture<'a, Result<Rc<dyn super::GuestTcpDialer>, Error>> {
+        Box::pin(async move { forward::guest_tcp_dialer(&self.provider, id).await })
     }
 
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {

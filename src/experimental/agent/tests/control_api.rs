@@ -4,7 +4,9 @@ mod support;
 
 use std::{
     cell::{Cell, RefCell},
+    pin::Pin,
     rc::Rc,
+    task::{Context, Poll},
     time::Duration,
 };
 
@@ -30,6 +32,12 @@ struct FakeAuthentication {
 struct FakeExecutions;
 struct FakeAttachments;
 struct FakePortForwards;
+struct DropObservedExecutions {
+    dropped: Rc<Cell<bool>>,
+}
+struct DropObservedPortForwards {
+    dropped: Rc<Cell<bool>>,
+}
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
 }
@@ -39,6 +47,53 @@ struct NoopTerminalControl;
 struct FinishedPortForward {
     spec: agent::sandbox::PortForwardSpec,
     local_address: std::net::SocketAddr,
+}
+
+struct DropObservedExecutionStream {
+    dropped: Rc<Cell<bool>>,
+}
+
+impl futures_util::Stream for DropObservedExecutionStream {
+    type Item = Result<sandbox::execution::ExecutionEvent, sandbox::Error>;
+
+    fn poll_next(self: Pin<&mut Self>, _context: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Poll::Pending
+    }
+}
+
+impl Drop for DropObservedExecutionStream {
+    fn drop(&mut self) {
+        self.dropped.set(true);
+    }
+}
+
+struct DropObservedPortForward {
+    spec: agent::sandbox::PortForwardSpec,
+    dropped: Rc<Cell<bool>>,
+}
+
+impl Drop for DropObservedPortForward {
+    fn drop(&mut self) {
+        self.dropped.set(true);
+    }
+}
+
+impl agent::sandbox::RunningPortForward for DropObservedPortForward {
+    fn spec(&self) -> &agent::sandbox::PortForwardSpec {
+        &self.spec
+    }
+
+    fn local_address(&self) -> std::net::SocketAddr {
+        std::net::SocketAddr::from(([127, 0, 0, 1], 54_321))
+    }
+
+    fn status(&self) -> Option<String> {
+        None
+    }
+
+    fn finished(&self) -> bool {
+        false
+    }
 }
 
 impl agent::sandbox::RunningPortForward for FinishedPortForward {
@@ -77,6 +132,27 @@ impl PortForwardApi for FakePortForwards {
                     Ok(Rc::new(FinishedPortForward {
                         spec,
                         local_address: std::net::SocketAddr::from(([127, 0, 0, 1], port)),
+                    }) as Rc<dyn agent::sandbox::RunningPortForward>)
+                })
+                .collect()
+        })
+    }
+}
+
+impl PortForwardApi for DropObservedPortForwards {
+    fn start<'a>(
+        &'a self,
+        _agent: &'a str,
+        specs: Vec<agent::sandbox::PortForwardSpec>,
+    ) -> LocalFuture<'a, Result<Vec<Rc<dyn agent::sandbox::RunningPortForward>>, Error>> {
+        let dropped = self.dropped.clone();
+        Box::pin(async move {
+            specs
+                .into_iter()
+                .map(|spec| {
+                    Ok(Rc::new(DropObservedPortForward {
+                        spec,
+                        dropped: dropped.clone(),
                     }) as Rc<dyn agent::sandbox::RunningPortForward>)
                 })
                 .collect()
@@ -284,6 +360,37 @@ impl ExecutionApi for FakeExecutions {
     }
 }
 
+impl ExecutionApi for DropObservedExecutions {
+    fn ensure<'a>(&'a self, _name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+
+    fn start<'a>(
+        &'a self,
+        _name: &'a str,
+        _spec: sandbox::execution::ExecutionSpec,
+    ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
+        let dropped = self.dropped.clone();
+        Box::pin(async move {
+            Ok(sandbox::execution::StartedExecution {
+                id: "4bb35a5a-0d9d-4614-a8ad-8c847594e606"
+                    .parse()
+                    .map_err(|error| Error::Invalid(format!("invalid test Execution ID: {error}")))?,
+                events: Box::pin(DropObservedExecutionStream { dropped }),
+            })
+        })
+    }
+
+    fn start_terminal<'a>(
+        &'a self,
+        _name: &'a str,
+        _spec: sandbox::execution::ExecutionSpec,
+        _initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+}
+
 struct InProcessConnector {
     server: Rc<Server>,
     caller: Caller,
@@ -345,6 +452,14 @@ fn api() -> ApiFixture {
 }
 
 fn api_with_attachments(attachments: Rc<dyn AttachmentApi>) -> ApiFixture {
+    api_with_runtime(attachments, Rc::new(FakeExecutions), Rc::new(FakePortForwards))
+}
+
+fn api_with_runtime(
+    attachments: Rc<dyn AttachmentApi>,
+    executions: Rc<dyn ExecutionApi>,
+    port_forwards: Rc<dyn PortForwardApi>,
+) -> ApiFixture {
     let control_plane = Rc::new(ControlPlane::new(
         Rc::new(InMemoryAgentStore::new()),
         Rc::new(IgnoreNotifications),
@@ -358,8 +473,8 @@ fn api_with_attachments(attachments: Rc<dyn AttachmentApi>) -> ApiFixture {
             login_count: login_count.clone(),
         }),
         attachments,
-        Rc::new(FakeExecutions),
-        Rc::new(FakePortForwards),
+        executions,
+        port_forwards,
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
         }),
@@ -619,6 +734,80 @@ async fn port_forwards_are_connector_independent_and_daemon_owned() {
             message: Some("listener stopped for test".into()),
         })
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn unauthenticated_remote_callers_can_only_bind_loopback_forwards() {
+    let fixture = api();
+    let wildcard = agent::sandbox::PortForwardSpec::new(std::net::IpAddr::from([0, 0, 0, 0]), 0, 3000)
+        .expect("wildcard port-forward spec");
+
+    let local = fixture
+        .client
+        .start_port_forwards("worker", vec![wildcard.clone()])
+        .await
+        .expect("local callers may explicitly bind a non-loopback address");
+    drop(local);
+
+    let remote = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server,
+        caller: Caller::RemoteUnauthenticated,
+    }));
+    let Err(error) = remote.start_port_forwards("worker", vec![wildcard]).await else {
+        panic!("unauthenticated remote wildcard bind should fail");
+    };
+
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+}
+
+#[tokio::test(flavor = "local")]
+async fn client_disconnect_releases_daemon_owned_stream_operations() {
+    let execution_dropped = Rc::new(Cell::new(false));
+    let forward_dropped = Rc::new(Cell::new(false));
+    let fixture = api_with_runtime(
+        Rc::new(FakeAttachments),
+        Rc::new(DropObservedExecutions {
+            dropped: execution_dropped.clone(),
+        }),
+        Rc::new(DropObservedPortForwards {
+            dropped: forward_dropped.clone(),
+        }),
+    );
+    let spec = sandbox::execution::ExecutionSpec::command(sandbox::SandboxPath::new("/bin/true"), Vec::<String>::new());
+
+    let execution = fixture
+        .client
+        .start_execution("worker", spec)
+        .await
+        .expect("start tracked Execution");
+    assert!(!execution_dropped.get());
+    drop(execution);
+    wait_for_drop(&execution_dropped, "server should release disconnected Execution").await;
+
+    let forward = fixture
+        .client
+        .start_port_forwards(
+            "worker",
+            vec![
+                agent::sandbox::PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 0, 3000)
+                    .expect("port-forward spec"),
+            ],
+        )
+        .await
+        .expect("start tracked port forward");
+    assert!(!forward_dropped.get());
+    drop(forward);
+    wait_for_drop(&forward_dropped, "server should release disconnected port forward").await;
+}
+
+async fn wait_for_drop(dropped: &Cell<bool>, message: &str) {
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while !dropped.get() {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect(message);
 }
 
 #[tokio::test(flavor = "local")]

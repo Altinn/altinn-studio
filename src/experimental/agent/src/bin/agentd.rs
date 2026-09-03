@@ -16,7 +16,7 @@ struct Arguments {
     /// Agent control-plane home.
     #[arg(long)]
     home: Option<PathBuf>,
-    /// Listen on unauthenticated, unencrypted IPv4 loopback TCP.
+    /// Expose full Sandbox control on unauthenticated, unencrypted IPv4 loopback TCP.
     #[arg(short = 'p', long, value_parser = clap::value_parser!(u16).range(1..))]
     insecure_tcp_port: Option<u16>,
 }
@@ -121,7 +121,7 @@ async fn run_control_plane(
         }),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
-    let (executions, port_forwards) = runtime_services(&home, store.clone(), wakeup.clone(), sandboxes.clone());
+    let (executions, port_forwards) = runtime_services(store.clone(), wakeup.clone(), sandboxes.clone());
     let sessions = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
         store.clone(),
@@ -189,7 +189,6 @@ async fn supervise(
 }
 
 fn runtime_services(
-    home: &ControlPlaneHome,
     store: Rc<persistence::Database>,
     wakeup: agent::control_plane::Wakeup,
     sandboxes: Rc<agent::sandbox::Service>,
@@ -198,11 +197,12 @@ fn runtime_services(
     Rc<agent::sandbox::PortForwardService>,
 ) {
     let targets = Rc::new(agent::sandbox::ExecutionService::new(store.clone(), wakeup));
-    let runtime = Rc::new(agent::sandbox::RuntimeService::new(targets.clone(), store, sandboxes));
-    let forwards = Rc::new(agent::sandbox::PortForwardService::new(
-        home.path().to_path_buf(),
-        targets,
+    let runtime = Rc::new(agent::sandbox::RuntimeService::new(
+        targets.clone(),
+        store,
+        sandboxes.clone(),
     ));
+    let forwards = Rc::new(agent::sandbox::PortForwardService::new(sandboxes, targets));
     (runtime, forwards)
 }
 
@@ -212,7 +212,7 @@ async fn bind_insecure_tcp(port: Option<u16>) -> Result<Option<tokio::net::TcpLi
     };
     let listener = tokio::net::TcpListener::bind((Ipv4Addr::LOCALHOST, port)).await?;
     eprintln!(
-        "agentd: WARNING: listening on {} without authentication or encryption",
+        "agentd: WARNING: exposing full Sandbox control on {} without authentication or encryption",
         listener.local_addr()?
     );
     Ok(Some(listener))

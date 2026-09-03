@@ -146,6 +146,17 @@ impl Provider for MemoryProvider {
         })
     }
 
+    fn guest_tcp_dialer<'a>(
+        &'a self,
+        _id: &'a sandbox::SandboxId,
+    ) -> LocalFuture<'a, Result<Rc<dyn agent::sandbox::GuestTcpDialer>, Error>> {
+        Box::pin(async {
+            Err(Error::Invalid(
+                "memory Provider does not support guest TCP dialing".into(),
+            ))
+        })
+    }
+
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
             self.service
@@ -189,6 +200,13 @@ impl Provider for UnsupportedProvider {
         _record: &'a AgentRecord,
         _id: &'a sandbox::SandboxId,
     ) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+        Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
+    }
+
+    fn guest_tcp_dialer<'a>(
+        &'a self,
+        _id: &'a sandbox::SandboxId,
+    ) -> LocalFuture<'a, Result<Rc<dyn agent::sandbox::GuestTcpDialer>, Error>> {
         Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
     }
 

@@ -1,13 +1,26 @@
 //! Daemon-owned host listeners forwarding TCP connections into Agent Sandboxes.
 
-use std::{cell::RefCell, net::IpAddr, path::PathBuf, rc::Rc};
+use std::{cell::RefCell, net::IpAddr, rc::Rc};
 
+use ::sandbox::LocalFuture;
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 
 use crate::Error;
 
-use super::{Assignment, ExecutionService, GuestDialer};
+use super::{Assignment, ExecutionService, Service};
+
+/// Provider-owned capability for dialing TCP connections inside one Sandbox.
+pub trait GuestTcpDialer {
+    /// Opens a TCP stream from the guest network namespace.
+    fn connect<'a>(&'a self, host: &'a str, port: u16) -> LocalFuture<'a, Result<Box<dyn GuestTcpConnection>, Error>>;
+}
+
+/// One Provider-owned guest TCP stream which can relay a daemon listener connection.
+pub trait GuestTcpConnection {
+    /// Relays bytes bidirectionally until both sides close or one side fails.
+    fn relay(self: Box<Self>, stream: tokio::net::TcpStream) -> LocalFuture<'static, Result<(), Error>>;
+}
 
 /// One requested host-to-guest port mapping.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -78,12 +91,12 @@ pub trait RunningPortForward {
 }
 
 impl PortForward {
-    async fn start(home: PathBuf, assignment: Assignment, spec: PortForwardSpec) -> Result<Self, Error> {
+    async fn start(sandboxes: Rc<Service>, assignment: Assignment, spec: PortForwardSpec) -> Result<Self, Error> {
         let listener = TcpListener::bind((spec.address, spec.local_port)).await?;
         let local = listener.local_addr()?;
         let status = Rc::new(RefCell::new(None));
         let task = tokio::task::spawn_local(accept_loop(
-            home,
+            sandboxes,
             assignment,
             spec.guest_port,
             listener,
@@ -148,15 +161,15 @@ impl RunningPortForward for PortForward {
 
 /// Starts port forwards after converging their owning Agent.
 pub struct PortForwardService {
-    home: PathBuf,
+    sandboxes: Rc<Service>,
     executions: Rc<ExecutionService>,
 }
 
 impl PortForwardService {
     /// Creates the daemon-owned port-forward service.
     #[must_use]
-    pub const fn new(home: PathBuf, executions: Rc<ExecutionService>) -> Self {
-        Self { home, executions }
+    pub const fn new(sandboxes: Rc<Service>, executions: Rc<ExecutionService>) -> Self {
+        Self { sandboxes, executions }
     }
 
     /// Starts every requested mapping against one exact ready Sandbox.
@@ -179,7 +192,7 @@ impl PortForwardService {
             if spec.guest_port == 0 {
                 return Err(Error::Invalid("guest port must not be zero".into()));
             }
-            let forward = PortForward::start(self.home.clone(), target.sandbox.clone(), spec).await?;
+            let forward = PortForward::start(self.sandboxes.clone(), target.sandbox.clone(), spec).await?;
             forwards.push(Rc::new(forward) as Rc<dyn RunningPortForward>);
         }
         Ok(forwards)
@@ -187,13 +200,13 @@ impl PortForwardService {
 }
 
 async fn accept_loop(
-    home: PathBuf,
+    sandboxes: Rc<Service>,
     assignment: Assignment,
     guest_port: u16,
     listener: TcpListener,
     status: Rc<RefCell<Option<String>>>,
 ) {
-    let mut dialer: Option<Rc<GuestDialer>> = None;
+    let mut dialer: Option<Rc<dyn GuestTcpDialer>> = None;
     let mut relays = tokio::task::JoinSet::new();
     loop {
         while relays.try_join_next().is_some() {}
@@ -205,8 +218,8 @@ async fn accept_loop(
             }
         };
         if dialer.is_none() {
-            match super::guest_tcp_dialer(&home, &assignment).await {
-                Ok(connected) => dialer = Some(Rc::new(connected)),
+            match sandboxes.guest_tcp_dialer(&assignment).await {
+                Ok(connected) => dialer = Some(connected),
                 Err(error) => {
                     *status.borrow_mut() = Some(error.to_string());
                     continue;

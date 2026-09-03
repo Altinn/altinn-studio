@@ -85,15 +85,21 @@ one endpoint for a command. Configuration is stored in `$HOME/.agentctl/config.y
 
 For trusted local development, `agentd --insecure-tcp-port PORT` additionally listens on `127.0.0.1`. This listener is
 deliberately unauthenticated and unencrypted. Docker Desktop may make it reachable to containers, so any process that
-can reach the port can control the daemon and potentially cause it to access host paths. It is disabled by default and
-must not be exposed on a wildcard address. Authentication will be provided by a separate TLS endpoint later.
+can reach the port can manage Agents, execute commands inside their Sandboxes, attach to Sessions, create listeners on
+the daemon host and potentially cause the daemon to access host paths. It is disabled by default and must not be exposed
+on a wildcard address. Authentication will be provided by a separate TLS endpoint later.
 
 Resource commands, `exec`, `attach`, `port-forward` and the TUI use the same Control API over every Connector. Streaming
 operations upgrade their request connection and end when the operation completes or `agentctl` disconnects. Harness
 login remains disabled for insecure TCP because it would expose a bearer credential. A future SSH Connector can proxy
 the remote Unix socket without changing the Control API or command implementations. Port-forward addresses are bound
-on the `agentd` host. Host paths sent by `apply` or current-directory inference must exist at the same absolute path on
-the daemon host.
+on the `agentd` host; unauthenticated TCP callers may only bind loopback addresses. Therefore a forward requested from
+a container is available to host applications at `127.0.0.1`, not at the container's own loopback address. Host paths
+sent by `apply` or current-directory inference must exist at the same absolute path on the daemon host.
+
+Interactive terminal input is forwarded byte-for-byte on Unix. `Ctrl-]` ends the attachment: a Session remains alive in
+tmux, while a transient interactive `exec` process is stopped when its Control API stream closes. End-of-file on the
+local terminal closes the remote process input and continues receiving output until the process exits.
 
 ## Images, home and harnesses
 

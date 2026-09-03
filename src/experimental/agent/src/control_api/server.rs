@@ -330,7 +330,7 @@ impl Server {
                 }
             };
             if request.jsonrpc == JSON_RPC_VERSION && is_streaming_method(&request.method) {
-                return self.serve_stream_request(stream, request).await;
+                return self.serve_stream_request(stream, request, caller).await;
             }
             let response = self.handle(request, caller).await;
             write_response(stream.get_mut(), &response).await?;
@@ -341,7 +341,7 @@ impl Server {
         (self.on_error)(error);
     }
 
-    async fn serve_stream_request<S>(&self, stream: BufReader<S>, request: Request) -> Result<(), Error>
+    async fn serve_stream_request<S>(&self, stream: BufReader<S>, request: Request, caller: Caller) -> Result<(), Error>
     where
         S: AsyncRead + AsyncWrite + Unpin,
     {
@@ -354,9 +354,7 @@ impl Server {
                 begin_terminal_stream(stream, id, self.start_terminal_execution(params).await).await
             }
             METHOD_EXECUTION_START => begin_execution_stream(stream, id, self.start_execution(params).await).await,
-            METHOD_PORT_FORWARD_START => {
-                begin_port_forward_stream(stream, id, self.start_port_forwards(params).await).await
-            }
+            METHOD_PORT_FORWARD_START => self.begin_port_forward_stream(stream, id, params, caller).await,
             _ => Err(Error::Invalid("unknown streaming Control API method".into())),
         }
     }
@@ -489,13 +487,37 @@ impl Server {
         self.executions.start_terminal(&params.agent, params.spec, size).await
     }
 
-    async fn start_port_forwards(
+    async fn begin_port_forward_stream<S>(
         &self,
+        mut stream: BufReader<S>,
+        id: u64,
         value: Value,
-    ) -> Result<Vec<Rc<dyn crate::sandbox::RunningPortForward>>, Error> {
-        let params = serde_json::from_value::<PortForwardStartParams>(value)
-            .map_err(|_| Error::Invalid("agent and port-forward specs are required".into()))?;
-        self.port_forwards.start(&params.agent, params.specs).await
+        caller: Caller,
+    ) -> Result<(), Error>
+    where
+        S: AsyncRead + AsyncWrite + Unpin,
+    {
+        let Ok(params) = serde_json::from_value::<PortForwardStartParams>(value) else {
+            write_response(
+                stream.get_mut(),
+                &result_response::<PortForwardStartResult>(
+                    id,
+                    Err(Error::Invalid("agent and port-forward specs are required".into())),
+                ),
+            )
+            .await?;
+            return Ok(());
+        };
+        if caller == Caller::RemoteUnauthenticated && params.specs.iter().any(|spec| !spec.address().is_loopback()) {
+            write_response(
+                stream.get_mut(),
+                &error_response(id, CODE_CALLER_NOT_PERMITTED, MESSAGE_CALLER_NOT_PERMITTED),
+            )
+            .await?;
+            return Ok(());
+        }
+        let forwards = self.port_forwards.start(&params.agent, params.specs).await;
+        begin_port_forward_stream(stream, id, forwards).await
     }
 }
 
