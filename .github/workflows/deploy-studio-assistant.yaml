@@ -1,12 +1,12 @@
-name: Deploy AI agents
+name: Deploy Studio assistant
 
 on:
   push:
     branches:
       - main
     paths:
-      - src/AI/agents/**
-      - .github/workflows/deploy-studio-ai-agents.yaml
+      - src/Designer/assistant/**
+      - .github/workflows/deploy-studio-assistant.yaml
   workflow_dispatch:
     inputs:
       environments:
@@ -26,7 +26,7 @@ jobs:
       inputs: ${{ toJSON(github.event.inputs) }}
 
   push-artifact:
-    name: Push AI agents as OCI artifact
+    name: Push studio assistant as OCI artifact
     runs-on: ubuntu-latest
     environment: dev
     env:
@@ -35,7 +35,7 @@ jobs:
       CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
-        working-directory: src/AI/agents
+        working-directory: src/Designer/assistant
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -46,8 +46,8 @@ jobs:
         run: |
           SHA="${GITHUB_SHA::10}"
           echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-altinity-agents:${SHA}" >> "$GITHUB_OUTPUT"
-          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/configs/altinn-altinity-agents-repo:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio-assistant:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/configs/altinn-studio-assistant-repo:${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
@@ -69,7 +69,7 @@ jobs:
         run: docker push ${{ steps.vars.outputs.image-repo }}
 
       - name: patch base with image tag
-        working-directory: src/AI/agents/infra/kustomize
+        working-directory: src/Designer/assistant/infra/kustomize
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
@@ -77,7 +77,7 @@ jobs:
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
-        working-directory: src/AI/agents/infra/kustomize
+        working-directory: src/Designer/assistant/infra/kustomize
         run: |
           flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \
