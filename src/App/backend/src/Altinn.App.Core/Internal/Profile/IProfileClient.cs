@@ -1,5 +1,5 @@
 using Altinn.App.Core.Features;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Internal.Profile;
 

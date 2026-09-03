@@ -8,7 +8,6 @@ using Altinn.App.Models;
 using Altinn.App.Models.modell1;
 using Altinn.App.Models.modell2;
 using Altinn.App.Models.sharedperson;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.logic.DataProcessing

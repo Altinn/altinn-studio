@@ -1,9 +1,6 @@
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Moq;
 
@@ -18,6 +15,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.SelfIdentified,
             Name = "epost:test@example.com",
         };
@@ -49,6 +47,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.SelfIdentified,
             Name = "testuser",
         };
@@ -78,6 +77,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.SelfIdentified,
             Name = "epost:test@example.com",
         };
@@ -105,6 +105,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.SelfIdentified,
             Name = "jensjensen",
         };
@@ -132,7 +133,9 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Person,
+            Name = "Test Person",
             SSN = "12345678901",
         };
 
@@ -158,7 +161,9 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Organisation,
+            Name = "Test Org",
             OrgNumber = "991825827",
         };
 
@@ -181,7 +186,13 @@ public class InstantiationHelperTests
     public async Task GetExternalIdentityForSelfIdentifiedParty_WhenPartySelfIdentified_ReturnsExternalIdentity()
     {
         // Arrange
-        var party = new Party { PartyId = 12345, PartyTypeName = PartyType.SelfIdentified };
+        var party = new Party
+        {
+            PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
+            PartyTypeName = PartyType.SelfIdentified,
+            Name = "Test Party",
+        };
 
         var authenticationContextMock = new Mock<IAuthenticationContext>();
         var authenticatedUser = CreateAuthenticatedUser(
@@ -205,7 +216,13 @@ public class InstantiationHelperTests
     public async Task GetExternalIdentityForSelfIdentifiedParty_WhenPartySelfIdentified_ButNoExternalIdentity_ReturnsNull()
     {
         // Arrange
-        var party = new Party { PartyId = 12345, PartyTypeName = PartyType.SelfIdentified };
+        var party = new Party
+        {
+            PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
+            PartyTypeName = PartyType.SelfIdentified,
+            Name = "Test Party",
+        };
 
         var authenticationContextMock = new Mock<IAuthenticationContext>();
         var authenticatedUser = CreateAuthenticatedUser(userId: 1337, partyId: 12345, externalIdentity: null);
@@ -225,7 +242,13 @@ public class InstantiationHelperTests
     public async Task GetExternalIdentityForSelfIdentifiedParty_WhenPartyNotSelfIdentified_ReturnsNull()
     {
         // Arrange
-        var party = new Party { PartyId = 12345, PartyTypeName = PartyType.Person };
+        var party = new Party
+        {
+            PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
+            PartyTypeName = PartyType.Person,
+            Name = "Test Person",
+        };
 
         var authenticationContextMock = new Mock<IAuthenticationContext>();
 
@@ -243,7 +266,13 @@ public class InstantiationHelperTests
     public async Task GetExternalIdentityForSelfIdentifiedParty_WhenNotAuthenticatedAsUser_ReturnsNull()
     {
         // Arrange
-        var party = new Party { PartyId = 12345, PartyTypeName = PartyType.SelfIdentified };
+        var party = new Party
+        {
+            PartyId = 12345,
+            PartyUuid = Guid.NewGuid(),
+            PartyTypeName = PartyType.SelfIdentified,
+            Name = "Test Party",
+        };
 
         var authenticationContextMock = new Mock<IAuthenticationContext>();
         var authenticatedOrg = CreateAuthenticatedOrg(orgNo: "991825827");
@@ -264,6 +293,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = partyId,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.SelfIdentified,
             Name = "Test User",
         };
@@ -286,7 +316,15 @@ public class InstantiationHelperTests
             getSelectedParty: () => partyId.ToString(),
             getUserProfile: (id) => Task.FromResult<UserProfile?>(userProfile),
             lookupUserParty: (id) => Task.FromResult<Party?>(party),
-            lookupOrgParty: (orgNo) => Task.FromResult(new Party()),
+            lookupOrgParty: (orgNo) =>
+                Task.FromResult(
+                    new Party
+                    {
+                        PartyId = 5001337,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Test Org",
+                    }
+                ),
             getPartyList: (id) => Task.FromResult<List<Party>?>(new List<Party>()),
             validateSelectedParty: (uid, pid) => Task.FromResult<bool?>(true)
         );
@@ -299,6 +337,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 5001337,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Organisation,
             OrgNumber = orgNo,
             Name = "Test Org",

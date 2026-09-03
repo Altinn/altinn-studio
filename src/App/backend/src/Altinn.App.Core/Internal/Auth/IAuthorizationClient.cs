@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Auth;

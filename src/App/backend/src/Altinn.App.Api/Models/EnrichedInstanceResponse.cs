@@ -1,5 +1,5 @@
 #nullable disable
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using CoreAppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;

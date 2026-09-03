@@ -42,6 +42,16 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    // Party/Person/Organization/PartyType and UserProfile/UserType/ProfileSettingPreference moved
+    // from the frozen Altinn.Platform.Models package to being vendored directly in Altinn.App.Core,
+    // since apps get them from the App SDK itself now rather than a separate NuGet package. The old
+    // package split Party/Person/Organization and the PartyType enum across two namespaces; the new
+    // one puts everything in one, so all three old namespaces migrate to the same new one.
+    private const string PartyModelsOldNamespace = "Altinn.Platform.Register.Models";
+    private const string PartyEnumsOldNamespace = "Altinn.Platform.Register.Enums";
+    private const string UserProfileOldNamespace = "Altinn.Platform.Profile.Models";
+    private const string AppCoreModelsNamespace = "Altinn.App.Core.Models";
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
@@ -126,6 +136,12 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigratePartyModelNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateUserProfileNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
@@ -410,6 +426,48 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating IServiceTask namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the app-facing Party/Person/Organization/PartyType namespace to
+    /// <c>Altinn.App.Core.Models</c>, where the App SDK now vendors them directly. Both old namespaces
+    /// map to the same new one; a file that used to import both ends up with a single deduplicated
+    /// <c>using</c>. There is no accompanying shape change to migrate - the vendored <c>Party</c> keeps
+    /// <c>ChildParties</c> as <c>List&lt;Party&gt;</c>, exactly as it always was.
+    /// </summary>
+    static async Task<int> MigratePartyModelNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Party model namespace");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            migration.Migrate(PartyModelsOldNamespace, AppCoreModelsNamespace, _allCSharpFilesMatcher);
+            migration.Migrate(PartyEnumsOldNamespace, AppCoreModelsNamespace, _allCSharpFilesMatcher);
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the Party model namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the app-facing <c>UserProfile</c>/<c>UserType</c>/<c>ProfileSettingPreference</c>
+    /// namespace to <c>Altinn.App.Core.Models</c>, where the App SDK now vendors them directly.
+    /// </summary>
+    static async Task<int> MigrateUserProfileNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("UserProfile namespace");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            migration.Migrate(UserProfileOldNamespace, AppCoreModelsNamespace, _allCSharpFilesMatcher);
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the UserProfile namespace", ex);
         }
     }
 

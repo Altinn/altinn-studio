@@ -6,7 +6,9 @@
   "PartyId": 501337,
   "Party": {
     "partyId": "501337",
-    "ssn": "01039012345"
+    "ssn": "01039012345",
+    "partyUuid": "00000000-0000-0000-0000-000000501337",
+    "name": "Sophie Salt"
   },
   "UserType": 1,
   "ProfileSettingPreference": {

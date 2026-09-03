@@ -1,4 +1,4 @@
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace LocalTest.Services.Register.Interface
 {

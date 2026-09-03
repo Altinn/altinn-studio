@@ -3,7 +3,7 @@
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Filters;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using LocalTest.Services.Register.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

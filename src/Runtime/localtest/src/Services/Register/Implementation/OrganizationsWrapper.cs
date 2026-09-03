@@ -1,4 +1,4 @@
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.TestData;

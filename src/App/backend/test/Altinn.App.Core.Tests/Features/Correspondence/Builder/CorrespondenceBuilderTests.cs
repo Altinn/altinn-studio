@@ -2,7 +2,6 @@ using System.Text;
 using Altinn.App.Core.Features.Correspondence.Builder;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Features.Correspondence.Builder;
@@ -298,8 +297,20 @@ public class CorrespondenceBuilderTests
     public void Builder_UpdatesAndOverwritesValuesCorrectly()
     {
         // Arrange
-        var orgParty = new Party { OrgNumber = TestHelpers.GetOrganizationNumber(4).ToString() };
-        var personParty = new Party { SSN = TestHelpers.GetNationalIdentityNumber(5).ToString() };
+        var orgParty = new Party
+        {
+            PartyId = 4,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Org Party",
+            OrgNumber = TestHelpers.GetOrganizationNumber(4).ToString(),
+        };
+        var personParty = new Party
+        {
+            PartyId = 5,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Person Party",
+            SSN = TestHelpers.GetNationalIdentityNumber(5).ToString(),
+        };
 
         var builder = CorrespondenceRequestBuilder
             .Create()

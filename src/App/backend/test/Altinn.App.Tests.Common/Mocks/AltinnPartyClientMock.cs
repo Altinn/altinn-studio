@@ -2,8 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Data;
-using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Tests.Common.Mocks;
 

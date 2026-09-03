@@ -4,7 +4,11 @@
   "PhoneNumber": "12345678",
   "Email": "test@test.com",
   "PartyId": 510003,
-  "Party": {},
+  "Party": {
+    "partyId": 510003,
+    "partyUuid": "00000000-0000-0000-0000-000000510003",
+    "name": "Rik Forelder"
+  },
   "UserType": 0,
   "ProfileSettingPreference": {
     "Language": "nb",

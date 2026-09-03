@@ -17,7 +17,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -725,7 +724,12 @@ public class SigningUserActionHandleOnBehalfOfTests
                 {
                     OrgNumber = "111111111",
                     OrgName = "TestOrg",
-                    OrgParty = new Party { PartyId = 123 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 123,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000730"),
+                        Name = "Party 123",
+                    },
                 },
             ]);
 
@@ -771,7 +775,12 @@ public class SigningUserActionHandleOnBehalfOfTests
                 {
                     OrgNumber = onBehalfOrg,
                     OrgName = "TestOrg",
-                    OrgParty = new Party { PartyId = 123 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 123,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000781"),
+                        Name = "Party 123",
+                    },
                 },
             ]);
 

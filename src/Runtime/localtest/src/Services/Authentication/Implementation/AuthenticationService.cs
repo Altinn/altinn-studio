@@ -157,14 +157,12 @@ public class AuthenticationService : IAuthentication
                 issuer
             )
         );
-        claims.Add(
-            new Claim(
-                AltinnCoreClaimTypes.UserName,
-                profile.UserName,
-                ClaimValueTypes.String,
-                issuer
-            )
-        );
+        if (!string.IsNullOrEmpty(profile.UserName))
+        {
+            claims.Add(
+                new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer)
+            );
+        }
         claims.Add(
             new Claim(
                 AltinnCoreClaimTypes.PartyID,

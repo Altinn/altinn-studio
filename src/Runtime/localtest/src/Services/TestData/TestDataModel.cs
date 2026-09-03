@@ -1,6 +1,6 @@
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Authorization.Interface.Models;
 
 namespace LocalTest.Services.TestData;

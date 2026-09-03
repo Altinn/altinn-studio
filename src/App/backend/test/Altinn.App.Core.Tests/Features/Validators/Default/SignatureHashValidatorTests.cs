@@ -12,7 +12,6 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -243,7 +242,12 @@ public class SignatureHashValidatorTests
             {
                 SocialSecurityNumber = "12345678901",
                 FullName = "Test Person",
-                Party = new Party(),
+                Party = new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000248"),
+                    Name = "Test Person",
+                },
             },
             SigneeState = new SigneeContextState { IsAccessDelegated = false },
             SignDocument = null,
@@ -363,7 +367,12 @@ public class SignatureHashValidatorTests
             {
                 SocialSecurityNumber = "12345678901",
                 FullName = "Test Person",
-                Party = new Party(),
+                Party = new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000373"),
+                    Name = "Test Person",
+                },
             },
             SigneeState = new SigneeContextState { IsAccessDelegated = false },
             SignDocument = new SignDocument

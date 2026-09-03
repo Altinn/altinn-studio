@@ -336,9 +336,9 @@ namespace Altinn.App.Core.Features.Auth
             public System.Threading.Tasks.Task<Altinn.App.Core.Features.Auth.Authenticated.Org.Details> LoadDetails() { }
             public sealed class Details : System.IEquatable<Altinn.App.Core.Features.Auth.Authenticated.Org.Details>
             {
-                public Details(Altinn.Platform.Register.Models.Party Party, bool CanInstantiate) { }
+                public Details(Altinn.App.Core.Models.Party Party, bool CanInstantiate) { }
                 public bool CanInstantiate { get; init; }
-                public Altinn.Platform.Register.Models.Party Party { get; init; }
+                public Altinn.App.Core.Models.Party Party { get; init; }
             }
         }
         public sealed class ServiceOwner : Altinn.App.Core.Features.Auth.Authenticated
@@ -350,8 +350,8 @@ namespace Altinn.App.Core.Features.Auth
             public System.Threading.Tasks.Task<Altinn.App.Core.Features.Auth.Authenticated.ServiceOwner.Details> LoadDetails() { }
             public sealed class Details : System.IEquatable<Altinn.App.Core.Features.Auth.Authenticated.ServiceOwner.Details>
             {
-                public Details(Altinn.Platform.Register.Models.Party Party) { }
-                public Altinn.Platform.Register.Models.Party Party { get; init; }
+                public Details(Altinn.App.Core.Models.Party Party) { }
+                public Altinn.App.Core.Models.Party Party { get; init; }
             }
         }
         public sealed class SystemUser : Altinn.App.Core.Features.Auth.Authenticated
@@ -365,9 +365,9 @@ namespace Altinn.App.Core.Features.Auth
             public System.Threading.Tasks.Task<Altinn.App.Core.Features.Auth.Authenticated.SystemUser.Details> LoadDetails() { }
             public sealed class Details : System.IEquatable<Altinn.App.Core.Features.Auth.Authenticated.SystemUser.Details>
             {
-                public Details(Altinn.Platform.Register.Models.Party Party, bool CanInstantiate) { }
+                public Details(Altinn.App.Core.Models.Party Party, bool CanInstantiate) { }
                 public bool CanInstantiate { get; init; }
-                public Altinn.Platform.Register.Models.Party Party { get; init; }
+                public Altinn.App.Core.Models.Party Party { get; init; }
             }
         }
         public sealed class Unknown : Altinn.App.Core.Features.Auth.Authenticated { }
@@ -382,18 +382,18 @@ namespace Altinn.App.Core.Features.Auth
             public int UserPartyId { get; }
             public string? Username { get; }
             public System.Threading.Tasks.Task<Altinn.App.Core.Features.Auth.Authenticated.User.Details> LoadDetails(bool validateSelectedParty = false) { }
-            public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile> LookupProfile() { }
-            public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupSelectedParty() { }
+            public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile> LookupProfile() { }
+            public System.Threading.Tasks.Task<Altinn.App.Core.Models.Party> LookupSelectedParty() { }
             public sealed class Details : System.IEquatable<Altinn.App.Core.Features.Auth.Authenticated.User.Details>
             {
-                public Details(Altinn.Platform.Register.Models.Party UserParty, Altinn.Platform.Register.Models.Party SelectedParty, Altinn.Platform.Profile.Models.UserProfile Profile, bool RepresentsSelf, System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party> Parties, System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party> PartiesAllowedToInstantiate, bool? CanRepresent = default) { }
+                public Details(Altinn.App.Core.Models.Party UserParty, Altinn.App.Core.Models.Party SelectedParty, Altinn.App.Core.Models.UserProfile Profile, bool RepresentsSelf, System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Party> Parties, System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Party> PartiesAllowedToInstantiate, bool? CanRepresent = default) { }
                 public bool? CanRepresent { get; init; }
-                public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party> Parties { get; init; }
-                public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party> PartiesAllowedToInstantiate { get; init; }
-                public Altinn.Platform.Profile.Models.UserProfile Profile { get; init; }
+                public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Party> Parties { get; init; }
+                public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Party> PartiesAllowedToInstantiate { get; init; }
+                public Altinn.App.Core.Models.UserProfile Profile { get; init; }
                 public bool RepresentsSelf { get; init; }
-                public Altinn.Platform.Register.Models.Party SelectedParty { get; init; }
-                public Altinn.Platform.Register.Models.Party UserParty { get; init; }
+                public Altinn.App.Core.Models.Party SelectedParty { get; init; }
+                public Altinn.App.Core.Models.Party UserParty { get; init; }
                 public bool CanInstantiateAsParty(int partyId) { }
                 public bool CanRepresentParty(int partyId) { }
             }
@@ -1617,7 +1617,7 @@ namespace Altinn.App.Core.Features.Notifications
 {
     public interface INotificationService
     {
-        System.Threading.Tasks.Task NotifyInstanceOwnerOnInstantiation(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Register.Models.Party party, Altinn.App.Core.Models.Notifications.Future.InstantiationNotification instantiationNotification, System.Threading.CancellationToken ct);
+        System.Threading.Tasks.Task NotifyInstanceOwnerOnInstantiation(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Models.Party party, Altinn.App.Core.Models.Notifications.Future.InstantiationNotification instantiationNotification, System.Threading.CancellationToken ct);
     }
 }
 namespace Altinn.App.Core.Features.Notifications.SecretProvider
@@ -2442,11 +2442,11 @@ namespace Altinn.App.Core.Helpers
     }
     public static class InstantiationHelper
     {
-        public static System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> FilterPartiesByAllowedPartyTypes(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party>? parties, Altinn.Platform.Storage.Interface.Models.PartyTypesAllowed? partyTypesAllowed) { }
-        public static Altinn.Platform.Register.Models.Party? GetPartyByPartyId(System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>? partyList, int partyId) { }
-        public static bool IsPartyAllowedToInstantiate(Altinn.Platform.Register.Models.Party? party, Altinn.Platform.Storage.Interface.Models.PartyTypesAllowed? partyTypesAllowed) { }
-        public static Altinn.Platform.Storage.Interface.Models.InstanceOwner PartyToInstanceOwner(Altinn.Platform.Register.Models.Party party) { }
-        public static System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.InstanceOwner> PartyToInstanceOwner(Altinn.Platform.Register.Models.Party party, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
+        public static System.Collections.Generic.List<Altinn.App.Core.Models.Party> FilterPartiesByAllowedPartyTypes(System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Party>? parties, Altinn.Platform.Storage.Interface.Models.PartyTypesAllowed? partyTypesAllowed) { }
+        public static Altinn.App.Core.Models.Party? GetPartyByPartyId(System.Collections.Generic.List<Altinn.App.Core.Models.Party>? partyList, int partyId) { }
+        public static bool IsPartyAllowedToInstantiate(Altinn.App.Core.Models.Party? party, Altinn.Platform.Storage.Interface.Models.PartyTypesAllowed? partyTypesAllowed) { }
+        public static Altinn.Platform.Storage.Interface.Models.InstanceOwner PartyToInstanceOwner(Altinn.App.Core.Models.Party party) { }
+        public static System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.InstanceOwner> PartyToInstanceOwner(Altinn.App.Core.Models.Party party, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
     }
     public static class JsonHelper
     {
@@ -2459,7 +2459,7 @@ namespace Altinn.App.Core.Helpers
         public static readonly System.Text.Json.JsonSerializerOptions JsonSerializerOptionsDefaults;
         public static T Deserialize<T>(string content) { }
         public static System.Threading.Tasks.Task<T> DeserializeAsync<T>(System.Net.Http.HttpContent content, System.Threading.CancellationToken cancellationToken = default) { }
-        public static string Serialize(Altinn.Platform.Register.Models.PartyLookup partyLookup) { }
+        public static string Serialize(Altinn.App.Core.Models.PartyLookup partyLookup) { }
     }
     public static class LinqExpressionHelpers
     {
@@ -2689,7 +2689,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         public System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<string> actions) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetKeyRoleOrganizationParties(int userId, System.Collections.Generic.List<string> orgNumbers) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
         public System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
     }
 }
@@ -2725,16 +2725,16 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
     public class ProfileClient : Altinn.App.Core.Internal.Profile.IProfileClient
     {
         public ProfileClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(System.Guid userUuid) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(string ssn, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(System.Guid userUuid) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(string ssn, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
     }
     public class ProfileClientCachingDecorator : Altinn.App.Core.Internal.Profile.IProfileClient
     {
         public ProfileClientCachingDecorator(Altinn.App.Core.Internal.Profile.IProfileClient decoratedService, Microsoft.Extensions.Caching.Memory.IMemoryCache memoryCache, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.CacheSettings> settings) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(System.Guid userUuid) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(string ssn, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(System.Guid userUuid) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(string ssn, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
     }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.Register
@@ -2742,20 +2742,20 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     public class AltinnPartyClient : Altinn.App.Core.Internal.Registers.IAltinnPartyClient
     {
         public AltinnPartyClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party?> GetParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Party?> GetParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
         public System.Threading.Tasks.Task<int?> GetPartyIdByUrn(string urn) { }
         public System.Threading.Tasks.Task<System.Guid?> GetPartyUuidByUrn(string urn) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupParty(Altinn.Platform.Register.Models.PartyLookup partyLookup, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Party> LookupParty(Altinn.App.Core.Models.PartyLookup partyLookup, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
     }
     public class PersonClient : Altinn.App.Core.Internal.Registers.IPersonClient
     {
         public PersonClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken ct = default) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken ct = default) { }
     }
     public class RegisterERClient : Altinn.App.Core.Internal.Registers.IOrganizationClient
     {
         public RegisterERClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Organization?> GetOrganization(string OrgNr, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Organization?> GetOrganization(string OrgNr, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
     }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.Storage
@@ -2842,19 +2842,19 @@ namespace Altinn.App.Core.Interface
     public interface IAuthorization
     {
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Party>?> GetPartyList(int userId);
         System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId);
     }
     [System.Obsolete("Upstream API changed. Use Altinn.App.Core.Internal.Registers.IPersonClient instea" +
         "d", true)]
     public interface IDSF
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string SSN);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Person?> GetPerson(string SSN);
     }
     [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IOrganizationClient instead", true)]
     public interface IER
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Organization?> GetOrganization(string OrgNr);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Organization?> GetOrganization(string OrgNr);
     }
     [System.Obsolete("Use Altinn.App.Core.Internal.Events.IEventsClient instead", true)]
     public interface IEvents
@@ -2887,12 +2887,12 @@ namespace Altinn.App.Core.Interface
     [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IPersonClient instead", true)]
     public interface IPersonLookup
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, System.Threading.CancellationToken ct);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, System.Threading.CancellationToken ct);
     }
     [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IPersonClient instead", true)]
     public interface IPersonRetriever
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, System.Threading.CancellationToken ct);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, System.Threading.CancellationToken ct);
     }
     [System.Obsolete("Use Altinn.App.Core.Internal.Prefill.IPrefill instead", true)]
     public interface IPrefill
@@ -2909,13 +2909,13 @@ namespace Altinn.App.Core.Interface
     [System.Obsolete("Use Altinn.App.Core.Internal.Profile.IProfileClient instead", true)]
     public interface IProfile
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile> GetUserProfile(int userId);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile> GetUserProfile(int userId);
     }
     [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IAltinnPartyClient instead", true)]
     public interface IRegister
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> GetParty(int partyId);
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupParty(Altinn.Platform.Register.Models.PartyLookup partyLookup);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Party> GetParty(int partyId);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Party> LookupParty(Altinn.App.Core.Models.PartyLookup partyLookup);
     }
     [System.Obsolete("Use Altinn.App.Core.Internal.Secrets.ISecretsClient instead", true)]
     public interface ISecrets
@@ -3160,7 +3160,7 @@ namespace Altinn.App.Core.Internal.Auth
         public AuthorizationService(Altinn.App.Core.Internal.Auth.IAuthorizationClient authorizationClient, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction> actions) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Party>?> GetPartyList(int userId) { }
         public System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId) { }
     }
     public interface IAuthenticationClient
@@ -3172,14 +3172,14 @@ namespace Altinn.App.Core.Internal.Auth
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null);
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<string> actions);
         System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetKeyRoleOrganizationParties(int userId, System.Collections.Generic.List<string> orgNumbers);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
         System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
     }
     public interface IAuthorizationService
     {
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction> actions);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Party>?> GetPartyList(int userId);
         System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId);
     }
     public interface IUserTokenProvider
@@ -4061,27 +4061,27 @@ namespace Altinn.App.Core.Internal.Profile
 {
     public interface IProfileClient
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(System.Guid userUuid);
-        System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
-        System.Threading.Tasks.Task<Altinn.Platform.Profile.Models.UserProfile?> GetUserProfile(string ssn, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(System.Guid userUuid);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.UserProfile?> GetUserProfile(string ssn, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
     }
 }
 namespace Altinn.App.Core.Internal.Registers
 {
     public interface IAltinnPartyClient
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party?> GetParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Party?> GetParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
         System.Threading.Tasks.Task<int?> GetPartyIdByUrn(string urn);
         System.Threading.Tasks.Task<System.Guid?> GetPartyUuidByUrn(string urn);
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupParty(Altinn.Platform.Register.Models.PartyLookup partyLookup, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Party> LookupParty(Altinn.App.Core.Models.PartyLookup partyLookup, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
     }
     public interface IOrganizationClient
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Organization?> GetOrganization(string OrgNr, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Organization?> GetOrganization(string OrgNr, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
     }
     public interface IPersonClient
     {
-        System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken ct = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Person?> GetPerson(string nationalIdentityNumber, string lastName, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken ct = default);
     }
 }
 namespace Altinn.App.Core.Internal.Secrets
@@ -4667,6 +4667,40 @@ namespace Altinn.App.Core.Models
         [Newtonsoft.Json.JsonProperty(PropertyName="instanceSelection")]
         public Altinn.App.Core.Models.InstanceSelection? InstanceSelection { get; set; }
     }
+    public class Organization : System.IEquatable<Altinn.App.Core.Models.Organization>
+    {
+        public Organization() { }
+        [System.Text.Json.Serialization.JsonPropertyName("businessAddress")]
+        public string? BusinessAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("businessPostalCity")]
+        public string? BusinessPostalCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("businessPostalCode")]
+        public string? BusinessPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("eMailAddress")]
+        public string? EMailAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("faxNumber")]
+        public string? FaxNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("internetAddress")]
+        public string? InternetAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingAddress")]
+        public string? MailingAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCity")]
+        public string? MailingPostalCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCode")]
+        public string? MailingPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
+        public string? MobileNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public required string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("orgNumber")]
+        public required string OrgNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("telephoneNumber")]
+        public string? TelephoneNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unitStatus")]
+        public string? UnitStatus { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unitType")]
+        public string? UnitType { get; set; }
+    }
     public readonly struct OrganizationNumber : System.IEquatable<Altinn.App.Core.Models.OrganizationNumber>
     {
         public bool Equals(Altinn.App.Core.Models.OrganizationNumber other) { }
@@ -4697,7 +4731,7 @@ namespace Altinn.App.Core.Models
         public abstract string ToUrnFormattedString();
         public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Person Create(Altinn.App.Core.Models.NationalIdentityNumber value) { }
         public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier.Organization Create(Altinn.App.Core.Models.OrganizationNumber value) { }
-        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier Parse(Altinn.Platform.Register.Models.Party party) { }
+        public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier Parse(Altinn.App.Core.Models.Party party) { }
         public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier Parse(string value) { }
         public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.NationalIdentityNumber person) { }
         public static Altinn.App.Core.Models.OrganizationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.OrganizationNumber org) { }
@@ -4769,6 +4803,116 @@ namespace Altinn.App.Core.Models
         public bool? ShowProgress { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
     }
+    public class Party : System.IEquatable<Altinn.App.Core.Models.Party>
+    {
+        public Party() { }
+        [System.Text.Json.Serialization.JsonPropertyName("childParties")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Party>? ChildParties { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("externalUrn")]
+        public string? ExternalUrn { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("isDeleted")]
+        public bool IsDeleted { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastChangedInAltinn")]
+        public System.DateTimeOffset? LastChangedInAltinn { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastChangedInExternalRegister")]
+        public System.DateTimeOffset? LastChangedInExternalRegister { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public required string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("onlyHierarchyElementWithNoAccess")]
+        public bool OnlyHierarchyElementWithNoAccess { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("orgNumber")]
+        public string? OrgNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organization")]
+        public Altinn.App.Core.Models.Organization? Organization { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyId")]
+        public required int PartyId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyTypeName")]
+        public Altinn.App.Core.Models.PartyType PartyTypeName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyUuid")]
+        public required System.Guid PartyUuid { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("person")]
+        public Altinn.App.Core.Models.Person? Person { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ssn")]
+        public string? SSN { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unitType")]
+        public string? UnitType { get; set; }
+    }
+    public class PartyLookup : System.IEquatable<Altinn.App.Core.Models.PartyLookup>
+    {
+        public PartyLookup() { }
+        [System.Text.Json.Serialization.JsonPropertyName("orgNo")]
+        public string? OrgNo { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ssn")]
+        public string? Ssn { get; set; }
+    }
+    public enum PartyType
+    {
+        Person = 1,
+        Organisation = 2,
+        SelfIdentified = 3,
+        SubUnit = 4,
+        BankruptcyEstate = 5,
+    }
+    public class Person : System.IEquatable<Altinn.App.Core.Models.Person>
+    {
+        public Person() { }
+        [System.Text.Json.Serialization.JsonPropertyName("addressCity")]
+        public string? AddressCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressHouseLetter")]
+        public string? AddressHouseLetter { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressHouseNumber")]
+        public string? AddressHouseNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressMunicipalName")]
+        public string? AddressMunicipalName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressMunicipalNumber")]
+        public string? AddressMunicipalNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressPostalCode")]
+        public string? AddressPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressStreetName")]
+        public string? AddressStreetName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("dateOfDeath")]
+        public System.DateTime? DateOfDeath { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        public string? FirstName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        public string? LastName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingAddress")]
+        public string? MailingAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCity")]
+        public string? MailingPostalCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCode")]
+        public string? MailingPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("middleName")]
+        public string? MiddleName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
+        public string? MobileNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public required string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ssn")]
+        public required string SSN { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("telephoneNumber")]
+        public string? TelephoneNumber { get; set; }
+    }
+    public class ProfileSettingPreference
+    {
+        public ProfileSettingPreference() { }
+        [System.Text.Json.Serialization.JsonPropertyName("doNotPromptForParty")]
+        public bool DoNotPromptForParty { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("language")]
+        public string? Language { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("languageType")]
+        public string? LanguageType { set; }
+        [System.Text.Json.Serialization.JsonPropertyName("preSelectedPartyId")]
+        public int PreSelectedPartyId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("preselectedPartyUuid")]
+        public System.Guid? PreselectedPartyUuid { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("shouldShowDeletedEntities")]
+        public bool ShouldShowDeletedEntities { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("shouldShowSubEntities")]
+        public bool ShouldShowSubEntities { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("showClientUnits")]
+        public bool ShowClientUnits { get; set; }
+    }
     public class QueryResponse<T>
     {
         public QueryResponse() { }
@@ -4812,13 +4956,49 @@ namespace Altinn.App.Core.Models
     {
         public UserContext() { }
         public int AuthenticationLevel { get; set; }
-        public Altinn.Platform.Register.Models.Party Party { get; set; }
+        public Altinn.App.Core.Models.Party Party { get; set; }
         public int PartyId { get; set; }
         public string SocialSecurityNumber { get; set; }
         public System.Security.Claims.ClaimsPrincipal User { get; set; }
         public int UserId { get; set; }
         public string UserName { get; set; }
-        public Altinn.Platform.Register.Models.Party UserParty { get; set; }
+        public Altinn.App.Core.Models.Party UserParty { get; set; }
+    }
+    public class UserProfile
+    {
+        public UserProfile() { }
+        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        public string? Email { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("externalIdentity")]
+        public string? ExternalIdentity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("isReserved")]
+        public bool IsReserved { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("party")]
+        public Altinn.App.Core.Models.Party? Party { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyId")]
+        public int PartyId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("phoneNumber")]
+        public string? PhoneNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("profileSettingPreference")]
+        public Altinn.App.Core.Models.ProfileSettingPreference? ProfileSettingPreference { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userId")]
+        public int UserId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userName")]
+        public string? UserName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userType")]
+        public Altinn.App.Core.Models.UserType UserType { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userUuid")]
+        public System.Guid? UserUuid { get; set; }
+    }
+    public enum UserType
+    {
+        None = 0,
+        SSNIdentified = 1,
+        SelfIdentified = 2,
+        EnterpriseIdentified = 3,
+        AgencyUser = 4,
+        PSAN = 5,
+        PSA = 6,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Core.Models.ValidationMask>))]
     public enum ValidationMask
@@ -5707,7 +5887,7 @@ namespace Altinn.App.Core.Models.Validation
         public System.Collections.Generic.Dictionary<string, string>? CustomTextParameters { get; set; }
         public string Message { get; set; }
         public bool Valid { get; set; }
-        public System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> ValidParties { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Party> ValidParties { get; set; }
     }
     public class RawExpressionValidation
     {

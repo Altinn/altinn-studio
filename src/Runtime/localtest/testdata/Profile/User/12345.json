@@ -1,5 +1,6 @@
 {
   "UserId": 12345,
+  "UserUuid": "00000000-0000-0000-0000-000000512345",
   "UserName": "OlaNordmann",
   "PhoneNumber": "12345678",
   "Email": "test@test.com",

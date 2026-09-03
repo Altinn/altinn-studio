@@ -39,7 +39,7 @@
     },
     profile: {
       userId: 1004,
-      userUuid: null,
+      userUuid: Guid_2,
       userName: SelvRegistrert,
       phoneNumber: null,
       email: test@test.com,

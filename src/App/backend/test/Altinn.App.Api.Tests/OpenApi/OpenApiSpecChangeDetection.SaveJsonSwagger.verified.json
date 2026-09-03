@@ -10378,6 +10378,10 @@
         "additionalProperties": false
       },
       "Organization": {
+        "required": [
+          "name",
+          "orgNumber"
+        ],
         "type": "object",
         "properties": {
           "orgNumber": {
@@ -10465,6 +10469,11 @@
         "description": "Contains details about an organization"
       },
       "Party": {
+        "required": [
+          "name",
+          "partyId",
+          "partyUuid"
+        ],
         "type": "object",
         "properties": {
           "partyId": {
@@ -10473,7 +10482,10 @@
           },
           "partyUuid": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid"
+          },
+          "externalUrn": {
+            "type": "string",
             "nullable": true
           },
           "partyTypeName": {
@@ -10512,6 +10524,16 @@
             "items": {
               "$ref": "#/components/schemas/Party"
             },
+            "nullable": true
+          },
+          "lastChangedInAltinn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastChangedInExternalRegister": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
@@ -10843,6 +10865,10 @@
         "type": "string"
       },
       "Person": {
+        "required": [
+          "name",
+          "ssn"
+        ],
         "type": "object",
         "properties": {
           "ssn": {
@@ -11146,6 +11172,20 @@
             "format": "int32"
           },
           "doNotPromptForParty": {
+            "type": "boolean"
+          },
+          "preselectedPartyUuid": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "showClientUnits": {
+            "type": "boolean"
+          },
+          "shouldShowSubEntities": {
+            "type": "boolean"
+          },
+          "shouldShowDeletedEntities": {
             "type": "boolean"
           }
         },

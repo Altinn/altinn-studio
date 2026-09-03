@@ -1,8 +1,9 @@
 using System.Text.Json.Serialization;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Authorization.Interface.Models;
+using LocalTest.Services.Register.Implementation;
 
 namespace LocalTest.Services.TestData;
 
@@ -33,9 +34,9 @@ public class AppTestDataModel
     }
     public TestDataRegister GetTestDataRegister()
     {
-        var org = Orgs.Select(o => (Organization)o).ToDictionary(o => o.OrgNumber);
+        var org = Orgs.Select(o => (Organization)o).ToDictionary(o => o.OrgNumber!);
         var party = GetParties();
-        var person = Persons.Select(p => (Person)p).Where(p=>!string.IsNullOrEmpty(p.SSN)).ToDictionary(p => p.SSN);
+        var person = Persons.Select(p => (Person)p).Where(p=>!string.IsNullOrEmpty(p.SSN)).ToDictionary(p => p.SSN!);
         return new TestDataRegister()
         {
             Org = org,
@@ -140,7 +141,7 @@ public class AppTestDataModel
                     MailingPostalCode = org.MailingPostalCode,
                     MobileNumber = org.MobileNumber,
                     Name = org.Name,
-                    OrgNumber = org.OrgNumber,
+                    OrgNumber = org.OrgNumber!,
                 };
             }).ToList(),
             Persons = localData.Register.Person.Values.Select(p =>
@@ -167,11 +168,11 @@ public class AppTestDataModel
                     Email = profile.Email,
                     FirstName = p.FirstName,
                     MiddleName = p.MiddleName,
-                    LastName = p.LastName,
+                    LastName = p.LastName!,
                     MailingAddress = p.MailingAddress,
                     MailingPostalCity = p.MailingPostalCity,
                     MailingPostalCode = p.MailingPostalCode,
-                    SSN = p.SSN,
+                    SSN = p.SSN!,
                     TelephoneNumber = p.TelephoneNumber,
                     MobileNumber = p.MobileNumber,
                     PartyRoles = userRoles?.ToDictionary(r => int.Parse(r.Key), r => r.Value) ?? new(),
@@ -245,7 +246,7 @@ public class AppTestOrg
             PartyUuid = PartyUuid,
             OrgNumber = OrgNumber,
             IsDeleted = false,
-            PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Organisation, // TODO: consider supporting bankrupt or subUnit
+            PartyTypeName = Altinn.Register.Contracts.V1.PartyType.Organisation, // TODO: consider supporting bankrupt or subUnit
             Name = Name,
             ChildParties = childParties,
             //HelperFieldsSetLater
@@ -349,7 +350,7 @@ public class AppTestPerson
             IsDeleted = false,
             SSN = string.IsNullOrEmpty(SSN) ? null : SSN,
             Name = GetFullName(),
-            PartyTypeName = string.IsNullOrEmpty(SSN) ? Altinn.Platform.Register.Enums.PartyType.SelfIdentified : Altinn.Platform.Register.Enums.PartyType.Person,
+            PartyTypeName = string.IsNullOrEmpty(SSN) ? Altinn.Register.Contracts.V1.PartyType.SelfIdentified : Altinn.Register.Contracts.V1.PartyType.Person,
             ChildParties = childParties,
             //HelperFieldsSetLater
             // OnlyHierarchyElementWithNoAccess =

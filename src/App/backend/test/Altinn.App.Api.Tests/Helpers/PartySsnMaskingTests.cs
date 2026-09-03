@@ -1,7 +1,5 @@
 using Altinn.App.Api.Helpers;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Api.Tests.Helpers;
 
@@ -13,6 +11,7 @@ public class PartySsnMaskingTests
         var party = new Party
         {
             PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Person,
             Name = "Ola Nordmann",
             SSN = "12345678901",
@@ -22,6 +21,7 @@ public class PartySsnMaskingTests
                 new()
                 {
                     PartyId = 2,
+                    PartyUuid = Guid.NewGuid(),
                     Name = "Kari Nordmann",
                     SSN = "10987654321",
                 },
@@ -31,8 +31,8 @@ public class PartySsnMaskingTests
         Party masked = PartySsnMasking.MaskParty(party);
 
         Assert.Equal("123456*****", masked.SSN);
-        Assert.Equal("123456*****", masked.Person.SSN);
-        Assert.Equal("109876*****", masked.ChildParties[0].SSN);
+        Assert.Equal("123456*****", masked.Person!.SSN);
+        Assert.Equal("109876*****", masked.ChildParties![0].SSN);
 
         // Non-SSN fields are copied unchanged.
         Assert.Equal("Ola Nordmann", masked.Name);
@@ -46,8 +46,11 @@ public class PartySsnMaskingTests
     {
         var party = new Party
         {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Ola Nordmann",
             SSN = "12345678901",
-            Person = new Person { SSN = "12345678901" },
+            Person = new Person { SSN = "12345678901", Name = "Ola Nordmann" },
         };
 
         Party masked = PartySsnMasking.MaskParty(party);
@@ -64,6 +67,8 @@ public class PartySsnMaskingTests
     {
         var party = new Party
         {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Organisation,
             Name = "Acme AS",
             OrgNumber = "987654321",
@@ -82,8 +87,20 @@ public class PartySsnMaskingTests
     {
         var parties = new List<Party>
         {
-            new() { PartyId = 1, SSN = "12345678901" },
-            new() { PartyId = 2, SSN = "10987654321" },
+            new()
+            {
+                PartyId = 1,
+                PartyUuid = Guid.NewGuid(),
+                Name = "Party 1",
+                SSN = "12345678901",
+            },
+            new()
+            {
+                PartyId = 2,
+                PartyUuid = Guid.NewGuid(),
+                Name = "Party 2",
+                SSN = "10987654321",
+            },
         };
 
         List<Party> masked = PartySsnMasking.MaskParties(parties);
@@ -103,6 +120,7 @@ public class PartySsnMaskingTests
             Party = new Party
             {
                 PartyId = 51005394,
+                PartyUuid = Guid.NewGuid(),
                 PartyTypeName = PartyType.Person,
                 Name = "GRENSE TROVERDIG",
                 SSN = "26917699894",
@@ -112,6 +130,8 @@ public class PartySsnMaskingTests
 
         UserProfile masked = PartySsnMasking.MaskUserProfile(profile);
 
+        Assert.NotNull(masked.Party);
+        Assert.NotNull(masked.Party.Person);
         Assert.Equal("269176*****", masked.Party.SSN);
         Assert.Equal("269176*****", masked.Party.Person.SSN);
 

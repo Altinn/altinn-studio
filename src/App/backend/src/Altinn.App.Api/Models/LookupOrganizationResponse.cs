@@ -1,4 +1,4 @@
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Api.Models;
 
@@ -12,13 +12,8 @@ public class LookupOrganizationResponse
     /// </summary>
     public static LookupOrganizationResponse CreateFromOrganization(Organization? organization)
     {
-        return new LookupOrganizationResponse
-        {
-            Success = organization is not null,
-            OrganizationDetails = organization is not null
-                ? OrganizationDetails.MapFromOrganization(organization)
-                : null,
-        };
+        var details = OrganizationDetails.MapFromOrganization(organization);
+        return new LookupOrganizationResponse { Success = details is not null, OrganizationDetails = details };
     }
 
     /// <summary>
@@ -49,10 +44,18 @@ public class OrganizationDetails
     public required string Name { get; init; }
 
     /// <summary>
-    /// Maps a person to person details
+    /// Maps an organization to organizationDetails
     /// </summary>
-    public static OrganizationDetails MapFromOrganization(Organization organization)
+    public static OrganizationDetails? MapFromOrganization(Organization? organization)
     {
+        if (
+            organization is null
+            || string.IsNullOrEmpty(organization.OrgNumber)
+            || string.IsNullOrEmpty(organization.Name)
+        )
+        {
+            return null;
+        }
         return new OrganizationDetails { OrgNr = organization.OrgNumber, Name = organization.Name };
     }
 }

@@ -11,7 +11,6 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
-using Altinn.Platform.Profile.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

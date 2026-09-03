@@ -3,7 +3,6 @@ using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 
 namespace Altinn.App.Clients.Fiks.Factories;
@@ -16,15 +15,14 @@ internal static class KlassifikasjonFactory
     public static async Task<Klassifikasjon> CreateUser(Authenticated.User user)
     {
         UserProfile userProfile = await user.LookupProfile();
+        Party? party = userProfile.Party;
 
-        return !string.IsNullOrWhiteSpace(userProfile.Party.SSN)
+        return party is not null && !string.IsNullOrWhiteSpace(party.SSN)
             ? new Klassifikasjon
             {
                 KlassifikasjonssystemID = FiksArkivConstants.ClassificationId.NationalIdentityNumber,
-                KlasseID = userProfile
-                    .Party.SSN.ToString(CultureInfo.InvariantCulture)
-                    .EnsureNotNullOrEmpty("Classification.Id"),
-                Tittel = userProfile.Party.Name.EnsureNotEmpty("Classification.Title"),
+                KlasseID = party.SSN.ToString(CultureInfo.InvariantCulture).EnsureNotNullOrEmpty("Classification.Id"),
+                Tittel = party.Name.EnsureNotEmpty("Classification.Title"),
             }
             : new Klassifikasjon
             {

@@ -4,8 +4,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -238,7 +237,17 @@ public class InstancesController_ActiveInstancesTest
         fixture
             .Mock<IProfileClient>()
             .Setup(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new UserProfile() { Party = new() { Name = "Ola Olsen" } });
+            .ReturnsAsync(
+                new UserProfile()
+                {
+                    Party = new()
+                    {
+                        PartyId = 12345,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000246"),
+                        Name = "Ola Olsen",
+                    },
+                }
+            );
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
@@ -373,7 +382,7 @@ public class InstancesController_ActiveInstancesTest
         fixture
             .Mock<IOrganizationClient>()
             .Setup(er => er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Organization { Name = "Testdepartementet" });
+            .ReturnsAsync(new Organization { OrgNumber = "123456789", Name = "Testdepartementet" });
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();

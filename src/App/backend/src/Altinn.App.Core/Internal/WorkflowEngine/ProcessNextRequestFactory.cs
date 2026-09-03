@@ -440,7 +440,7 @@ internal sealed class ProcessNextRequestFactory
             {
                 UserId = user.UserId,
                 AuthenticationLevel = user.AuthenticationLevel,
-                NationalIdentityNumber = details.Profile.Party.SSN,
+                NationalIdentityNumber = details.Profile.Party?.SSN,
                 Language = userLanguage,
             };
         }

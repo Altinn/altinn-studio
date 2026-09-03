@@ -78,7 +78,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/authorization/parties/current")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Register.Models.Party), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.Party), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(int), 200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetCurrentParty(bool returnPartyObject = false) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -440,7 +440,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/v1/parties")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party>), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Party>), 200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
@@ -546,7 +546,7 @@ namespace Altinn.App.Api.Controllers
         public ProfileController(Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("user")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Profile.Models.UserProfile), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.UserProfile), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetUser() { }
     }
@@ -1087,7 +1087,7 @@ namespace Altinn.App.Api.Models
         [System.Text.Json.Serialization.JsonPropertyName("organisationDetails")]
         public Altinn.App.Api.Models.OrganizationDetails? OrganizationDetails { get; init; }
         public bool Success { get; init; }
-        public static Altinn.App.Api.Models.LookupOrganizationResponse CreateFromOrganization(Altinn.Platform.Register.Models.Organization? organization) { }
+        public static Altinn.App.Api.Models.LookupOrganizationResponse CreateFromOrganization(Altinn.App.Core.Models.Organization? organization) { }
     }
     public class LookupPersonRequest
     {
@@ -1100,7 +1100,7 @@ namespace Altinn.App.Api.Models
         public LookupPersonResponse() { }
         public Altinn.App.Api.Models.PersonDetails? PersonDetails { get; init; }
         public bool Success { get; init; }
-        public static Altinn.App.Api.Models.LookupPersonResponse CreateFromPerson(Altinn.Platform.Register.Models.Person? person) { }
+        public static Altinn.App.Api.Models.LookupPersonResponse CreateFromPerson(Altinn.App.Core.Models.Person? person) { }
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Api.Models.NotificationStatus>))]
     public enum NotificationStatus
@@ -1114,7 +1114,7 @@ namespace Altinn.App.Api.Models
         public OrganizationDetails() { }
         public required string Name { get; init; }
         public required string OrgNr { get; init; }
-        public static Altinn.App.Api.Models.OrganizationDetails MapFromOrganization(Altinn.Platform.Register.Models.Organization organization) { }
+        public static Altinn.App.Api.Models.OrganizationDetails? MapFromOrganization(Altinn.App.Core.Models.Organization? organization) { }
     }
     public sealed class PartyResponse
     {
@@ -1123,7 +1123,7 @@ namespace Altinn.App.Api.Models
         public required string Name { get; init; }
         public required string OrgNumber { get; init; }
         public required int PartyId { get; init; }
-        public required Altinn.Platform.Register.Enums.PartyType PartyTypeName { get; init; }
+        public required Altinn.App.Core.Models.PartyType PartyTypeName { get; init; }
         public required System.Guid? PartyUuid { get; init; }
         public required string SSN { get; init; }
         public required string UnitType { get; init; }
@@ -1136,7 +1136,7 @@ namespace Altinn.App.Api.Models
         public string? MiddleName { get; init; }
         public required string Name { get; init; }
         public required string Ssn { get; init; }
-        public static Altinn.App.Api.Models.PersonDetails MapFromPerson(Altinn.Platform.Register.Models.Person person) { }
+        public static Altinn.App.Api.Models.PersonDetails? MapFromPerson(Altinn.App.Core.Models.Person? person) { }
     }
     public class ProcessNext
     {

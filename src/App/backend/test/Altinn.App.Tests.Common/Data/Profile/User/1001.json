@@ -4,7 +4,11 @@
   "PhoneNumber": "12345678",
   "Email": "test@test.com",
   "PartyId": 510001,
-  "Party": {},
+  "Party": {
+    "partyId": 510001,
+    "partyUuid": "00000000-0000-0000-0000-000000510001",
+    "name": "Pengelens Partner"
+  },
   "UserType": 0,
   "ProfileSettingPreference": {
     "Language": "nb",

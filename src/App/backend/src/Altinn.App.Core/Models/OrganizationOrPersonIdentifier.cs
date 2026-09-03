@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
-using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Core.Models;
 
@@ -94,7 +93,11 @@ public abstract record OrganizationOrPersonIdentifier
     /// <exception cref="FormatException">The supplied <see cref="Party"/> object does not contain a valid <see cref="Party.OrgNumber"/> nor <see cref="Party.SSN"/></exception>
     public static OrganizationOrPersonIdentifier Parse(Party party)
     {
-        string value = !string.IsNullOrWhiteSpace(party.OrgNumber) ? party.OrgNumber : party.SSN;
+        string? value = !string.IsNullOrWhiteSpace(party.OrgNumber) ? party.OrgNumber : party.SSN;
+        if (value is null)
+        {
+            throw new FormatException($"Party {party.PartyId} does not contain a valid OrgNumber nor SSN");
+        }
         return Parse(value);
     }
 

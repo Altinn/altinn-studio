@@ -71,7 +71,7 @@
     },
     profile: {
       userId: 1337,
-      userUuid: null,
+      userUuid: Guid_2,
       userName: SophieDDG,
       phoneNumber: 90001337,
       email: 1337@altinnstudiotestusers.com,
@@ -131,7 +131,7 @@
       {
         partyId: 500000,
         partyTypeName: Organisation,
-        partyUuid: Guid_2,
+        partyUuid: Guid_3,
         ssn: null,
         orgNumber: 897069650,
         unitType: AS,
@@ -144,7 +144,7 @@
           {
             partyId: 500001,
             partyTypeName: Organisation,
-            partyUuid: Guid_3,
+            partyUuid: Guid_4,
             ssn: null,
             orgNumber: 897069651,
             unitType: BEDR,
@@ -158,7 +158,7 @@
           {
             partyId: 500002,
             partyTypeName: Organisation,
-            partyUuid: Guid_4,
+            partyUuid: Guid_5,
             ssn: null,
             orgNumber: 897069652,
             unitType: BEDR,
@@ -172,7 +172,7 @@
           {
             partyId: 500003,
             partyTypeName: Organisation,
-            partyUuid: Guid_5,
+            partyUuid: Guid_6,
             ssn: null,
             orgNumber: 897069653,
             unitType: BEDR,
@@ -188,7 +188,7 @@
       {
         partyId: 500600,
         partyTypeName: Organisation,
-        partyUuid: Guid_6,
+        partyUuid: Guid_7,
         ssn: null,
         orgNumber: 897069631,
         unitType: AS,
@@ -201,7 +201,7 @@
       {
         partyId: 500700,
         partyTypeName: Organisation,
-        partyUuid: Guid_7,
+        partyUuid: Guid_8,
         ssn: null,
         orgNumber: 950474084,
         unitType: BRL,
@@ -214,7 +214,7 @@
       {
         partyId: 500800,
         partyTypeName: Organisation,
-        partyUuid: Guid_8,
+        partyUuid: Guid_9,
         ssn: null,
         orgNumber: 910457292,
         unitType: AS,
@@ -227,7 +227,7 @@
       {
         partyId: 500801,
         partyTypeName: Organisation,
-        partyUuid: Guid_9,
+        partyUuid: Guid_10,
         ssn: null,
         orgNumber: 910471120,
         unitType: AS,
@@ -240,7 +240,7 @@
       {
         partyId: 500802,
         partyTypeName: Organisation,
-        partyUuid: Guid_10,
+        partyUuid: Guid_11,
         ssn: null,
         orgNumber: 910423495,
         unitType: AS,
@@ -253,7 +253,7 @@
       {
         partyId: 500004,
         partyTypeName: Organisation,
-        partyUuid: Guid_11,
+        partyUuid: Guid_12,
         ssn: ,
         orgNumber: 043871668,
         unitType: BEDR,
@@ -281,7 +281,7 @@
       {
         partyId: 500000,
         partyTypeName: Organisation,
-        partyUuid: Guid_2,
+        partyUuid: Guid_3,
         ssn: null,
         orgNumber: 897069650,
         unitType: AS,
@@ -294,7 +294,7 @@
           {
             partyId: 500001,
             partyTypeName: Organisation,
-            partyUuid: Guid_3,
+            partyUuid: Guid_4,
             ssn: null,
             orgNumber: 897069651,
             unitType: BEDR,
@@ -308,7 +308,7 @@
           {
             partyId: 500002,
             partyTypeName: Organisation,
-            partyUuid: Guid_4,
+            partyUuid: Guid_5,
             ssn: null,
             orgNumber: 897069652,
             unitType: BEDR,
@@ -322,7 +322,7 @@
           {
             partyId: 500003,
             partyTypeName: Organisation,
-            partyUuid: Guid_5,
+            partyUuid: Guid_6,
             ssn: null,
             orgNumber: 897069653,
             unitType: BEDR,
@@ -338,7 +338,7 @@
       {
         partyId: 500600,
         partyTypeName: Organisation,
-        partyUuid: Guid_6,
+        partyUuid: Guid_7,
         ssn: null,
         orgNumber: 897069631,
         unitType: AS,
@@ -351,7 +351,7 @@
       {
         partyId: 500700,
         partyTypeName: Organisation,
-        partyUuid: Guid_7,
+        partyUuid: Guid_8,
         ssn: null,
         orgNumber: 950474084,
         unitType: BRL,
@@ -364,7 +364,7 @@
       {
         partyId: 500800,
         partyTypeName: Organisation,
-        partyUuid: Guid_8,
+        partyUuid: Guid_9,
         ssn: null,
         orgNumber: 910457292,
         unitType: AS,
@@ -377,7 +377,7 @@
       {
         partyId: 500801,
         partyTypeName: Organisation,
-        partyUuid: Guid_9,
+        partyUuid: Guid_10,
         ssn: null,
         orgNumber: 910471120,
         unitType: AS,
@@ -390,7 +390,7 @@
       {
         partyId: 500802,
         partyTypeName: Organisation,
-        partyUuid: Guid_10,
+        partyUuid: Guid_11,
         ssn: null,
         orgNumber: 910423495,
         unitType: AS,
@@ -403,7 +403,7 @@
       {
         partyId: 500004,
         partyTypeName: Organisation,
-        partyUuid: Guid_11,
+        partyUuid: Guid_12,
         ssn: ,
         orgNumber: 043871668,
         unitType: BEDR,

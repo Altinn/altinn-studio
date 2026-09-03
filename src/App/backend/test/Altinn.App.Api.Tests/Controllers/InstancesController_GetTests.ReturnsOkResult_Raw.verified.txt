@@ -9,7 +9,7 @@
       externalIdentifier: null,
       party: {
         partyId: 501337,
-        partyUuid: null,
+        partyUuid: Guid_1,
         partyTypeName: 1,
         ssn: 01039012345,
         orgNumber: null,
@@ -55,8 +55,8 @@
     completeConfirmations: null,
     data: [
       {
-        id: Guid_1,
-        instanceGuid: Guid_2,
+        id: Guid_2,
+        instanceGuid: Guid_3,
         dataType: default,
         filename: null,
         contentType: application/xml,
@@ -96,7 +96,7 @@
       externalIdentifier: null,
       party: {
         partyId: 501337,
-        partyUuid: null,
+        partyUuid: Guid_1,
         partyTypeName: 1,
         ssn: 01039012345,
         orgNumber: null,
@@ -142,8 +142,8 @@
     completeConfirmations: null,
     data: [
       {
-        id: Guid_1,
-        instanceGuid: Guid_2,
+        id: Guid_2,
+        instanceGuid: Guid_3,
         dataType: default,
         filename: null,
         contentType: application/xml,
