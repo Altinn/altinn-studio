@@ -1,9 +1,11 @@
+using System.Net;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -488,6 +490,177 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(FailureKind.Permanent, failed.Kind);
     }
 
+    /// <summary>
+    /// The shape of the integrasjonspunkt's refusal: a JSON body naming the Java exception and
+    /// explaining the problem in <c>message</c>.
+    /// </summary>
+    private const string RejectionBody =
+        "{\n"
+        + "  \"timestamp\" : \"2026-09-03T14:40:16.928+02:00\",\n"
+        + "  \"exception\" : \"no.difi.meldingsutveksling.exceptions.ReceiverDoNotAcceptDocumentStandard\",\n"
+        + "  \"message\" : \"Receiver 0192:910075918 does not accept document standard urn:no:difi:arkivmelding:xsd::arkivmelding\",\n"
+        + "  \"status\" : 400,\n"
+        + "  \"error\" : \"Bad Request\",\n"
+        + "  \"path\" : \"/api/messages/out\"\n"
+        + "}";
+
+    private const string RejectionReason =
+        "Receiver 0192:910075918 does not accept document standard urn:no:difi:arkivmelding:xsd::arkivmelding";
+
+    /// <summary>
+    /// What the client throws when the integrasjonspunkt answers with <paramref name="statusCode"/>:
+    /// the status and captured body on the exception, the operation in its message.
+    /// </summary>
+    private static PlatformHttpException IntegrasjonspunktAnswered(
+        HttpStatusCode statusCode,
+        string body = "",
+        string operation = "create eFormidling message"
+    ) =>
+        new(
+            new PlatformHttpResponse(statusCode) { Content = body },
+            $"The eFormidling integrasjonspunkt returned {(int)statusCode} {statusCode} for: {operation}."
+        );
+
+    private void SetupSendThrows(Exception exception) =>
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
+            )
+            .ThrowsAsync(exception);
+
+    private void SetupStatusThrows(Exception exception) =>
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.GetEFormidlingShipmentStatus(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
+            )
+            .ThrowsAsync(exception);
+
+    private Mock<IInstanceDataMutator> SetupEnabledTask(Instance instance)
+    {
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        return instanceMutatorMock;
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    public async Task SendShipment_Should_FailPermanently_When_TheIntegrasjonspunktRejectsTheRequest(
+        HttpStatusCode statusCode
+    )
+    {
+        // A 4xx is the integrasjonspunkt's verdict on the request itself. Repeating the request
+        // unchanged gets the same answer, so a retry can only hammer it for the engine's whole retry
+        // budget - which is what happened while this surfaced as a retryable 500.
+        Instance instance = GetInstance();
+        Mock<IInstanceDataMutator> instanceMutatorMock = SetupEnabledTask(instance);
+        SetupSendThrows(IntegrasjonspunktAnswered(statusCode, RejectionBody));
+
+        var result = await SendShipment(_serviceTask, CreateContext(instanceMutatorMock.Object));
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains($"{(int)statusCode} {statusCode}", failed.ErrorMessage);
+        Assert.Contains("create eFormidling message", failed.ErrorMessage);
+        Assert.Contains("Manual follow-up is required", failed.ErrorMessage);
+
+        // Nothing was sent, so nothing is claimed.
+        _instanceClientMock.Verify(
+            x =>
+                x.UpdateDataValue(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Theory]
+    // The integrasjonspunkt's own JSON: the explanation is its message field, not the whole body.
+    [InlineData(RejectionBody, RejectionReason)]
+    // The gateway's JSON uses the same field name.
+    [InlineData(
+        "{ \"statusCode\": 401, \"message\": \"Access denied due to missing subscription key.\" }",
+        "Access denied due to missing subscription key."
+    )]
+    // Not JSON at all - a proxy's error page. Still the best explanation there is.
+    [InlineData("<html>Forbidden</html>", "<html>Forbidden</html>")]
+    public async Task SendShipment_Should_ExplainTheRejection_InTheIntegrasjonspunktsOwnWords(
+        string body,
+        string expectedReason
+    )
+    {
+        Instance instance = GetInstance();
+        Mock<IInstanceDataMutator> instanceMutatorMock = SetupEnabledTask(instance);
+        SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest, body));
+
+        var result = await SendShipment(_serviceTask, CreateContext(instanceMutatorMock.Object));
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Contains($"The integrasjonspunkt said: {expectedReason}", failed.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SendShipment_Should_KeepTheRejectionMessage_OnOneLine_AndWithoutAnEmptyExplanation()
+    {
+        Instance instance = GetInstance();
+        Mock<IInstanceDataMutator> instanceMutatorMock = SetupEnabledTask(instance);
+
+        // The message becomes a log line and an error-history entry, so a multi-line body is flattened.
+        SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest, "first line\r\nsecond line"));
+        var flattened = Assert.IsType<FailedServiceTaskStageResult>(
+            await SendShipment(_serviceTask, CreateContext(instanceMutatorMock.Object))
+        );
+        Assert.Contains("first line", flattened.ErrorMessage);
+        Assert.Contains("second line", flattened.ErrorMessage);
+        Assert.DoesNotContain('\n', flattened.ErrorMessage);
+        Assert.DoesNotContain('\r', flattened.ErrorMessage);
+
+        // No body, no "said" clause: the status line and the consequence stand on their own.
+        SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest));
+        var bare = Assert.IsType<FailedServiceTaskStageResult>(
+            await SendShipment(_serviceTask, CreateContext(instanceMutatorMock.Object))
+        );
+        Assert.DoesNotContain("The integrasjonspunkt said", bare.ErrorMessage);
+        Assert.Contains("400 BadRequest", bare.ErrorMessage);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.BadGateway)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task SendShipment_Should_StayRetryable_When_TheAnswerMayChange(HttpStatusCode statusCode)
+    {
+        // Pressure, timing and server faults are about the moment, not the request: the exception
+        // propagates, and the engine retries with backoff as before.
+        Instance instance = GetInstance();
+        Mock<IInstanceDataMutator> instanceMutatorMock = SetupEnabledTask(instance);
+        SetupSendThrows(IntegrasjonspunktAnswered(statusCode));
+
+        var exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            SendShipment(_serviceTask, CreateContext(instanceMutatorMock.Object))
+        );
+        Assert.Equal(statusCode, exception.StatusCode);
+    }
+
     // ===== DELIVERY WAIT =====
 
     [Fact]
@@ -702,6 +875,50 @@ public class EFormidlingServiceTaskTests
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task AwaitDelivery_Should_FailPermanently_When_TheIntegrasjonspunktRejectsTheStatusRequest()
+    {
+        // The same verdict on the poll as on the send: a 4xx from the status endpoint will not change
+        // on the next check, so the wait ends now with the reason, rather than after the engine has
+        // spent a day of retries on it.
+        Instance instance = GetInstance();
+        Mock<IInstanceDataMutator> instanceMutatorMock = SetupEnabledTask(instance);
+        SetupStatusThrows(
+            IntegrasjonspunktAnswered(
+                HttpStatusCode.Forbidden,
+                "{ \"statusCode\": 403, \"message\": \"Access denied due to invalid subscription key.\" }",
+                operation: "read eFormidling message status"
+            )
+        );
+
+        var result = await AwaitDelivery(_serviceTask, CreateContext(instanceMutatorMock.Object));
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("403 Forbidden", failed.ErrorMessage);
+        Assert.Contains("read eFormidling message status", failed.ErrorMessage);
+        Assert.Contains("Access denied due to invalid subscription key.", failed.ErrorMessage);
+        Assert.Contains("may still be delivered", failed.ErrorMessage);
+
+        // No verdict was read, so none is recorded and nothing is confirmed.
+        _instanceClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task AwaitDelivery_Should_StayRetryable_When_TheStatusRequestFailsTransiently()
+    {
+        Instance instance = GetInstance();
+        Mock<IInstanceDataMutator> instanceMutatorMock = SetupEnabledTask(instance);
+        SetupStatusThrows(
+            IntegrasjonspunktAnswered(HttpStatusCode.ServiceUnavailable, operation: "read eFormidling message status")
+        );
+
+        await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            AwaitDelivery(_serviceTask, CreateContext(instanceMutatorMock.Object))
+        );
+        _instanceClientMock.VerifyNoOtherCalls();
     }
 
     [Fact]

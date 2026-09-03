@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
@@ -130,6 +131,16 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         {
             return ServiceTaskStageResult.FailedPermanent(e.Message);
         }
+        catch (PlatformHttpException e) when (IsRejection(e))
+        {
+            return ServiceTaskStageResult.FailedPermanent(
+                DescribeRejection(
+                    e,
+                    "Repeating the request would get the same answer, so the shipment was not retried. "
+                        + "Manual follow-up is required."
+                )
+            );
+        }
         _logger.LogDebug(
             "Successfully called eFormidlingService for eFormidling Service Task {TaskId}.",
             LogSanitizer.Sanitize(taskId)
@@ -164,11 +175,25 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         }
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
-        EFormidlingShipmentStatus status = await eFormidlingService.GetEFormidlingShipmentStatus(
-            context.InstanceDataMutator,
-            configuration,
-            context.CancellationToken
-        );
+        EFormidlingShipmentStatus status;
+        try
+        {
+            status = await eFormidlingService.GetEFormidlingShipmentStatus(
+                context.InstanceDataMutator,
+                configuration,
+                context.CancellationToken
+            );
+        }
+        catch (PlatformHttpException e) when (IsRejection(e))
+        {
+            return ServiceTaskResult.FailedPermanent(
+                DescribeRejection(
+                    e,
+                    "Repeating the request would get the same answer, so the delivery wait was ended. The "
+                        + "shipment may still be delivered; manual follow-up is required."
+                )
+            );
+        }
 
         switch (status.State)
         {
@@ -222,6 +247,80 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                         : "Waiting for eFormidling to confirm delivery"
                 );
         }
+    }
+
+    /// <summary>
+    /// Whether the integrasjonspunkt's answer is a verdict on the request rather than on the moment.
+    /// A 4xx says the request itself is unacceptable — the SBD is malformed, the receiver unknown,
+    /// the credentials refused — and repeating it unchanged cannot change the answer. Left to the
+    /// engine's default retry strategy, such a request would be re-sent every few minutes for a day,
+    /// each attempt another call against the gateway's quota that fails the same way. The exceptions
+    /// are the two 4xx codes that describe pressure and timing rather than the request: 408 Request
+    /// Timeout and 429 Too Many Requests. Same rule the engine applies to its own callbacks to the
+    /// app. Anything else — 5xx, a connection failure — propagates and is retried.
+    /// </summary>
+    private static bool IsRejection(PlatformHttpException exception) =>
+        (int)exception.StatusCode is >= 400 and < 500 and not 408 and not 429;
+
+    /// <summary>
+    /// Composes the permanent failure's message: what was asked and what came back (the exception's
+    /// own message names the operation and the status), the integrasjonspunkt's explanation, and
+    /// what that means for the instance. The explanation is included because the message is what an
+    /// operator has to decide from — it lands in the engine's error history, never in a client
+    /// response — and the status line alone says only that something about the request was wrong.
+    /// </summary>
+    private static string DescribeRejection(PlatformHttpException exception, string consequence)
+    {
+        string? reason = ReadRejectionReason(exception.Response);
+        return reason is null
+            ? $"{exception.Message} {consequence}"
+            : $"{exception.Message} The integrasjonspunkt said: {reason} {consequence}";
+    }
+
+    /// <summary>
+    /// The integrasjonspunkt explains a rejection in the <c>message</c> field of a JSON error body,
+    /// alongside the Java exception name (see <see cref="DefaultEFormidlingService.IsMessageAlreadyExistsError"/>,
+    /// which reads the other field). A body of any other shape — the gateway's own JSON uses the same
+    /// field name, a proxy's error page does not — is passed through as it is, since it is still the
+    /// best explanation there is. Bounded and flattened to one line either way: the body is external
+    /// input on its way into a log line and an error history entry.
+    /// </summary>
+    private static string? ReadRejectionReason(PlatformHttpResponse response)
+    {
+        const int maxLength = 500;
+
+        string body = response.Content;
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return null;
+        }
+
+        string reason = body;
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(body);
+            if (
+                document.RootElement.ValueKind is JsonValueKind.Object
+                && document.RootElement.TryGetProperty("message", out JsonElement message)
+                && message.ValueKind is JsonValueKind.String
+                && message.GetString() is { Length: > 0 } text
+            )
+            {
+                reason = text;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not a JSON body - the raw text is the explanation.
+        }
+
+        reason = LogSanitizer.Sanitize(reason);
+        if (reason.Length == 0)
+        {
+            return null;
+        }
+
+        return reason.Length <= maxLength ? reason : reason[..maxLength] + "…";
     }
 
     /// <summary>
