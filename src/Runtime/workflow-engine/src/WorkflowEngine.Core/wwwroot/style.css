@@ -1072,6 +1072,9 @@ body {
     align-items: center;
     position: relative;
     min-width: 120px;
+    /* Never shrink below content: a narrow card scrolls the pipeline instead of squeezing the
+       nodes together until their labels overlap. */
+    flex-shrink: 0;
 }
 .step-circle {
     width: 34px;
@@ -1163,7 +1166,10 @@ body {
     color: var(--text-dim);
     opacity: 0.6;
     text-align: center;
-    width: 100%;
+    /* Zero intrinsic width: a long reason takes the node's width and ellipsises, rather than
+       widening the node to fit. */
+    width: 0;
+    min-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

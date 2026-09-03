@@ -84,7 +84,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const sub = stepSubLabel(step);
     html += `<div class="step-label-wrap">`;
     html += `<div class="step-label" title="${escAttr(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
-    if (sub) html += `<div class="step-sublabel">${esc(sub)}</div>`;
+    if (sub) html += `<div class="step-sublabel" title="${escAttr(sub)}">${esc(sub)}</div>`;
     html += `</div>`;
 
     html += `<div class="step-meta">`;

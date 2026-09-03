@@ -206,6 +206,10 @@ const buildDetailsContent = (data) => {
     html += timeRow('Execution Started', /** @type {string} */ (data.executionStartedAt));
     html += timeRow('Last Updated', /** @type {string} */ (data.updatedAt));
     html += timeRow('Backoff Until', /** @type {string} */ (data.backoffUntil));
+    if (data.deferCount) html += row('Deferrals', data.deferCount);
+    html += timeRow('First Deferred', /** @type {string} */ (data.firstDeferredAt));
+    html += timeRow('Last Deferred', /** @type {string} */ (data.lastDeferredAt));
+    html += row('Defer Reason', data.lastDeferReason);
 
     const rs = /** @type {Record<string, unknown>|null} */ (data.retryStrategy);
     if (rs) {
