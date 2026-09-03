@@ -8,7 +8,7 @@ import {
     createWorkflowCard,
     setCardFilterData,
 } from '../shared/cards.js';
-import { scrollPipelineToActive } from '../shared/pipeline.js';
+import { scrollPipelineToActive, setCardHTMLKeepingPipelineScroll } from '../shared/pipeline.js';
 import { notifyStepChanged } from './modal.js';
 import { notifyWorkflowChanged } from './state-modal.js';
 import { notifyChainChanged } from './chain-modal.js';
@@ -38,6 +38,12 @@ const fingerprint = (wf) => {
 
 /** Index of the currently-processing step (for scroll-on-change). */
 const _processingIdx = /** @type {Record<string, number>} */ ({});
+
+/** @param {import('../core/state.js').Workflow} wf */
+const activeStepIndex = (wf) =>
+    wf.steps.findIndex(
+        (s) => s.status === 'Processing' || s.status === 'Requeued' || s.status === 'Waiting',
+    );
 
 /**
  * @param {import('../core/state.js').Workflow[]} workflows
@@ -100,13 +106,19 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
                 startedAt: wf.executionStartedAt || wf.createdAt,
             };
             state.workflowFingerprints[wf.databaseId] = fp;
+            // createWorkflowCard centers the active step itself; record which one so the first
+            // rebuild does not re-center a pipeline the operator has since scrolled.
+            _processingIdx[wf.databaseId] = activeStepIndex(wf);
             // New workflows can extend an open chain view (a fresh transition's Main +
             // side chains are new ids — nothing already rendered changes when they land).
             notifyChainChanged(wf.databaseId);
             notifyRecentChainsChanged(wf.databaseId);
         } else if (state.workflowFingerprints[wf.databaseId] !== fp) {
             const isCompact = card.classList.contains('compact');
-            card.innerHTML = isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
+            setCardHTMLKeepingPipelineScroll(
+                card,
+                isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf),
+            );
             setCardFilterData(card, wf);
 
             // Sync pulse animations so they don't restart from frame 0 on every innerHTML rebuild
@@ -117,14 +129,10 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
                 },
             );
 
-            // Only scroll the pipeline when the active step actually changes
+            // The rebuild kept the operator's sideways scroll; only re-center when the active step
+            // actually changes
             if (!isCompact) {
-                const curIdx = wf.steps.findIndex(
-                    (s) =>
-                        s.status === 'Processing' ||
-                        s.status === 'Requeued' ||
-                        s.status === 'Waiting',
-                );
+                const curIdx = activeStepIndex(wf);
                 if (curIdx !== _processingIdx[wf.databaseId]) {
                     _processingIdx[wf.databaseId] = curIdx;
                     scrollPipelineToActive(card);
