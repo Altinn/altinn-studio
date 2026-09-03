@@ -1578,6 +1578,7 @@ namespace Altinn.App.Core.Features
     }
     public interface IInstantiationProcessor
     {
+        System.Threading.Tasks.Task DataCreation(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
         System.Threading.Tasks.Task DataCreation(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
     }
     public interface IInstantiationValidator
