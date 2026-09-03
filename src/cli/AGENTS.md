@@ -31,6 +31,10 @@ make test      # 6. Unit tests
 Libraries shared between the .NET projects in this area live under [`common/`](common/AGENTS.md) and are
 part of `studioctl.slnx`, so `make test` covers them.
 
+### Language server
+
+`studioctl app lsp` and its VS Code and JetBrains clients live in [`studioctl-lsp/`](studioctl-lsp/AGENTS.md).
+
 ### Changelog & releases
 
 - **Every PR with a user-visible studioctl change** (new commands/flags, behavior changes,
@@ -45,6 +49,9 @@ part of `studioctl.slnx`, so `make test` covers them.
   `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`
   (`go run . prepare -component studioctl -version vX.Y.Z-preview.N`) or promote manually,
   and validate with `go run . validate-changelog` / `resolve-version`.
+- The editor extensions are separate release components (`studioctl-vscode`, `studioctl-rider`) with
+  their own changelogs and `release/<component>` labels; see
+  [`studioctl-lsp/AGENTS.md`](studioctl-lsp/AGENTS.md).
 
 ### Local dev flows (build/serve from source)
 

@@ -9,6 +9,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Add `studioctl app vet`, which validates an app's configuration files (application metadata, layouts, layout settings, process definition, policy, text resources, options and data model references) against the app's frontend version and reports findings with file positions. Returns a non-zero exit code when validation fails.
+- Add `studioctl app lsp` running a language server over stdio (diagnostics, hover, go-to-definition, find-references, rename, completion, quick-fixes, code lenses). Editor extensions for VS Code and JetBrains IDEs are distributed via their marketplaces; `studioctl app lsp --help` describes editor setup.
+
 ### Changed
 
 - Report a TODO in `studioctl app upgrade v9` when a layout set in `layout-sets.json` has no `dataType`, so `defaultDataType` is not migrated into `Settings.json` without notice. Connect the datamodel in the process editor after upgrade.
