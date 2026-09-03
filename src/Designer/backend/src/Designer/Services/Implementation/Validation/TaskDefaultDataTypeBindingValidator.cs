@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -43,7 +44,7 @@ public class TaskDefaultDataTypeBindingValidator(
             dataTypeIds =
                 applicationMetadata.DataTypes?.Select(dataType => dataType.Id).ToHashSet(StringComparer.Ordinal) ?? [];
         }
-        catch (Exception)
+        catch (Exception exception) when (exception is IOException or JsonException)
         {
             return new Dictionary<string, string[]>();
         }

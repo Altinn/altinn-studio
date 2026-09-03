@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -19,7 +20,11 @@ public class ValidationController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult> ValidateAltinnAppResource(string org, string app)
+    public async Task<ActionResult> ValidateAltinnAppResource(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
@@ -33,7 +38,7 @@ public class ValidationController(
             altinnAppServiceResourceService.ValidateServiceResource(serviceResource);
 
         IReadOnlyDictionary<string, string[]> taskBindingErrors =
-            await taskDefaultDataTypeBindingValidator.ValidateAsync(editingContext);
+            await taskDefaultDataTypeBindingValidator.ValidateAsync(editingContext, cancellationToken);
 
         Dictionary<string, string[]> mergedErrors = MergeValidationErrors(
             serviceResourceErrors?.Errors,
