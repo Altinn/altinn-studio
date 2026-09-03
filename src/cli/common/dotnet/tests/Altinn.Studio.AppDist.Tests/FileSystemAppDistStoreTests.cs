@@ -1,5 +1,4 @@
 using System.Text;
-using Xunit;
 
 namespace Altinn.Studio.AppDist.Tests;
 
@@ -35,7 +34,7 @@ public sealed class FileSystemAppDistStoreTests : IDisposable
         );
         Assert.NotNull(stream);
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        Assert.Equal("""{"a":1}""", await reader.ReadToEndAsync());
+        Assert.Equal("""{"a":1}""", await reader.ReadToEndAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Altinn.Studio.AppDist.Tests;
 
 public sealed class CompositionTests : IDisposable
@@ -40,11 +38,14 @@ public sealed class CompositionTests : IDisposable
             new FileSystemAppDistStore(_root)
         );
 
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         Assert.NotNull(schemas);
-        Assert.Equal("""{"type":"object"}""", await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout));
-        var byRelativePath = await schemas.GetFilesAsync("schemas/json");
+        Assert.Equal(
+            """{"type":"object"}""",
+            await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+        );
+        var byRelativePath = await schemas.GetFilesAsync("schemas/json", TestContext.Current.CancellationToken);
         string[] expected = ["layout/expression.schema.v1.json", "layout/layout.schema.v1.json"];
         Assert.Equal(expected, byRelativePath.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(1, handler.BlobRequests);
@@ -60,16 +61,28 @@ public sealed class CompositionTests : IDisposable
             $"{FakeRegistry.Host}/{FakeRegistry.Repository}"
         );
 
-        var dist = await provider.GetVersionAsync("4");
+        var dist = await provider.GetVersionAsync("4", TestContext.Current.CancellationToken);
 
         Assert.NotNull(dist);
-        Assert.Equal("js", await dist.GetFileTextAsync(AppDist.Frontend.AltinnAppFrontendJavascript));
-        Assert.Equal("""{"type":"object"}""", await dist.GetFileTextAsync(AppDist.JsonSchemas.Layout));
+        Assert.Equal(
+            "js",
+            await dist.GetFileTextAsync(
+                AppDist.Frontend.AltinnAppFrontendJavascript,
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(
+            """{"type":"object"}""",
+            await dist.GetFileTextAsync(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+        );
         Assert.Equal(1, handler.BlobRequests);
 
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
-        Assert.Equal("""{"type":"object"}""", await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout));
+        Assert.Equal(
+            """{"type":"object"}""",
+            await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+        );
         Assert.Equal(2, handler.BlobRequests);
     }
 }

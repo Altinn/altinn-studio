@@ -1,5 +1,4 @@
 using System.Text;
-using Xunit;
 
 namespace Altinn.Studio.AppDist.Tests;
 
