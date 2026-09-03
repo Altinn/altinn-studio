@@ -4,7 +4,6 @@ namespace Altinn.Studio.AppConfig.Documents.Text;
 
 /// <summary>The app-frontend's built-in default text keys (<c>general.*</c>, <c>navigation.*</c>, …),
 /// bundled as a version-coupled snapshot.</summary>
-/// TODO: add values for different languages?
 internal static class BuiltinTextKeys
 {
     private const string ResourceName = "builtin-text-keys.json";

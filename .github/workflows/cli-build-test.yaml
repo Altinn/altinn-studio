@@ -6,7 +6,6 @@ on:
     paths:
       - "src/cli/**"
       - "src/Runtime/common/dotnet/**"
-      - "src/libs/dotnet/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
       - "!**/*.md"

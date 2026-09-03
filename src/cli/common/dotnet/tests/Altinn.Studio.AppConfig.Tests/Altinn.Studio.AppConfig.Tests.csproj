@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
+    <ProjectReference Include="../../Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
   </ItemGroup>
 </Project>
