@@ -1,15 +1,14 @@
+using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -30,7 +29,6 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IInstanceClient _instanceClient;
     private readonly IEFormidlingService? _eFormidlingService;
 
     /// <summary>
@@ -40,14 +38,12 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         ILogger<EFormidlingServiceTask> logger,
         IProcessReader processReader,
         IHostEnvironment hostEnvironment,
-        IInstanceClient instanceClient,
         IEFormidlingService? eFormidlingService = null
     )
     {
         _logger = logger;
         _processReader = processReader;
         _hostEnvironment = hostEnvironment;
-        _instanceClient = instanceClient;
         _eFormidlingService = eFormidlingService;
     }
 
@@ -92,6 +88,13 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
 
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to record shipment ownership."
+            );
+        }
+
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
         // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
         // the pass that sent it is recorded on the instance: a matching (or absent) owner means this
@@ -130,18 +133,27 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         {
             return ServiceTaskStageResult.FailedPermanent(e.Message);
         }
+        catch (PlatformHttpException e) when (IsRejection(e))
+        {
+            return ServiceTaskStageResult.FailedPermanent(
+                DescribeRejection(
+                    e,
+                    "Repeating the request would get the same answer, so the shipment was not retried. "
+                        + "Manual follow-up is required."
+                )
+            );
+        }
         _logger.LogDebug(
             "Successfully called eFormidlingService for eFormidling Service Task {TaskId}.",
             LogSanitizer.Sanitize(taskId)
         );
 
-        // Record ownership after the send: if this write fails the stage retries, and the retry
-        // resumes/no-ops the already-sent message before writing the owner again.
-        await UpdateDataValue(
-            instance,
+        // Record ownership after the send: the value is staged on the unit of work and commits with
+        // this callback's version-fenced workflow-owned save. If that save fails the stage retries,
+        // and the retry resumes/no-ops the already-sent message before staging the owner again.
+        unitOfWork.UpdateInstanceDataValue(
             EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
-            context.WorkflowId.ToString(),
-            context.CancellationToken
+            context.WorkflowId.ToString()
         );
 
         return ServiceTaskStageResult.Completed();
@@ -164,27 +176,37 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         }
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
-        EFormidlingShipmentStatus status = await eFormidlingService.GetEFormidlingShipmentStatus(
-            context.InstanceDataMutator,
-            configuration,
-            context.CancellationToken
-        );
+        EFormidlingShipmentStatus status;
+        try
+        {
+            status = await eFormidlingService.GetEFormidlingShipmentStatus(
+                context.InstanceDataMutator,
+                configuration,
+                context.CancellationToken
+            );
+        }
+        catch (PlatformHttpException e) when (IsRejection(e))
+        {
+            return ServiceTaskResult.FailedPermanent(
+                DescribeRejection(
+                    e,
+                    "Repeating the request would get the same answer, so the delivery wait was ended. The "
+                        + "shipment may still be delivered; manual follow-up is required."
+                )
+            );
+        }
 
         switch (status.State)
         {
             case EFormidlingDeliveryState.Delivered:
-                await RecordShipmentStatus(instance, status, context.CancellationToken);
+                RecordShipmentStatus(context, status);
 
-                // The service owner has what it needed from this instance. Idempotent per
-                // stakeholder, and done before concluding: the conclusion may end the process, and an
-                // ended process can take the instance with it.
-                InstanceIdentifier instanceIdentifier = new(instance);
-                await _instanceClient.AddCompleteConfirmation(
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    StorageAuthenticationMethod.ServiceOwner(),
-                    context.CancellationToken
-                );
+                // The service owner has what it needed from this instance. Staged on the unit of work
+                // so it commits with this callback's version-fenced save, ahead of the conclusion: the
+                // conclusion may end the process, and an ended process can take the instance with it.
+                // Storage keeps this idempotent per stakeholder, so a retried conclusion cannot
+                // confirm twice.
+                ConfirmComplete(context);
 
                 _logger.LogInformation(
                     "eFormidling shipment for task {TaskId} confirmed delivered with status '{Status}'.",
@@ -194,7 +216,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                 return ServiceTaskResult.Success();
 
             case EFormidlingDeliveryState.Failed:
-                await RecordShipmentStatus(instance, status, context.CancellationToken);
+                RecordShipmentStatus(context, status);
                 return ServiceTaskResult.FailedPermanent(
                     $"The eFormidling shipment for this instance failed with status '{status.Status}' "
                         + $"({status.Description}). eFormidling message ids are bound to the instance id, so the "
@@ -206,7 +228,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                 {
                     // Ending the wait ourselves, so the failure says what never arrived instead of
                     // the engine's generic wait-expiry.
-                    await RecordShipmentStatus(instance, status, context.CancellationToken);
+                    RecordShipmentStatus(context, status);
                     return ServiceTaskResult.FailedPermanent(
                         $"eFormidling did not confirm delivery of this instance's shipment. The wait began at "
                             + $"{context.Wait.StartedAt:u} and its allowance is now spent. The last status reported "
@@ -222,6 +244,80 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                         : "Waiting for eFormidling to confirm delivery"
                 );
         }
+    }
+
+    /// <summary>
+    /// Whether the integrasjonspunkt's answer is a verdict on the request rather than on the moment.
+    /// A 4xx says the request itself is unacceptable — the SBD is malformed, the receiver unknown,
+    /// the credentials refused — and repeating it unchanged cannot change the answer. Left to the
+    /// engine's default retry strategy, such a request would be re-sent every few minutes for a day,
+    /// each attempt another call against the gateway's quota that fails the same way. The exceptions
+    /// are the two 4xx codes that describe pressure and timing rather than the request: 408 Request
+    /// Timeout and 429 Too Many Requests. Same rule the engine applies to its own callbacks to the
+    /// app. Anything else — 5xx, a connection failure — propagates and is retried.
+    /// </summary>
+    private static bool IsRejection(PlatformHttpException exception) =>
+        (int)exception.StatusCode is >= 400 and < 500 and not 408 and not 429;
+
+    /// <summary>
+    /// Composes the permanent failure's message: what was asked and what came back (the exception's
+    /// own message names the operation and the status), the integrasjonspunkt's explanation, and
+    /// what that means for the instance. The explanation is included because the message is what an
+    /// operator has to decide from — it lands in the engine's error history, never in a client
+    /// response — and the status line alone says only that something about the request was wrong.
+    /// </summary>
+    private static string DescribeRejection(PlatformHttpException exception, string consequence)
+    {
+        string? reason = ReadRejectionReason(exception.Response);
+        return reason is null
+            ? $"{exception.Message} {consequence}"
+            : $"{exception.Message} The integrasjonspunkt said: {reason} {consequence}";
+    }
+
+    /// <summary>
+    /// The integrasjonspunkt explains a rejection in the <c>message</c> field of a JSON error body,
+    /// alongside the Java exception name (see <see cref="DefaultEFormidlingService.IsMessageAlreadyExistsError"/>,
+    /// which reads the other field). A body of any other shape — the gateway's own JSON uses the same
+    /// field name, a proxy's error page does not — is passed through as it is, since it is still the
+    /// best explanation there is. Bounded and flattened to one line either way: the body is external
+    /// input on its way into a log line and an error history entry.
+    /// </summary>
+    private static string? ReadRejectionReason(PlatformHttpResponse response)
+    {
+        const int maxLength = 500;
+
+        string body = response.Content;
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return null;
+        }
+
+        string reason = body;
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(body);
+            if (
+                document.RootElement.ValueKind is JsonValueKind.Object
+                && document.RootElement.TryGetProperty("message", out JsonElement message)
+                && message.ValueKind is JsonValueKind.String
+                && message.GetString() is { Length: > 0 } text
+            )
+            {
+                reason = text;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not a JSON body - the raw text is the explanation.
+        }
+
+        reason = LogSanitizer.Sanitize(reason);
+        if (reason.Length == 0)
+        {
+            return null;
+        }
+
+        return reason.Length <= maxLength ? reason : reason[..maxLength] + "…";
     }
 
     /// <summary>
@@ -247,32 +343,47 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// Records the shipment's last known status on the instance, so what became of a delivery is
     /// still legible after the process has moved on.
     /// </summary>
-    private Task RecordShipmentStatus(
-        Instance instance,
-        EFormidlingShipmentStatus status,
-        CancellationToken cancellationToken
-    ) =>
-        UpdateDataValue(
-            instance,
+    /// <remarks>
+    /// The value is staged on the unit of work, so it only reaches Storage when the callback concludes
+    /// successfully — the controller saves in the successful-result branch alone. The two failing
+    /// conclusions in <see cref="AwaitDelivery"/> (a reported delivery failure, and the final check
+    /// giving up) stage a status that is then dropped, so a failed shipment leaves no status on the
+    /// instance. Writing it straight to Storage instead is not the fix: that bumps the instance
+    /// version behind the unit of work's back and breaks the next callback's version fence. Making
+    /// the failure status durable needs the save path to cover it, not a write outside the unit of
+    /// work.
+    /// </remarks>
+    private static void RecordShipmentStatus(ServiceTaskContext context, EFormidlingShipmentStatus status)
+    {
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to record the shipment status."
+            );
+        }
+
+        unitOfWork.UpdateInstanceDataValue(
             EformidlingConstants.ShipmentStatusDataValueKey,
-            status.Status ?? status.State.ToString(),
-            cancellationToken
+            status.Status ?? status.State.ToString()
         );
+    }
 
     /// <summary>
-    /// Writes an instance data value directly to Storage. The deliberate exception to reading and
-    /// writing through the unit of work: this is cross-workflow, cross-visit bookkeeping, and a
-    /// per-transition state blob cannot carry it (nor does the unit of work have a data-values
-    /// concept).
+    /// Stages the service owner's complete confirmation, which commits with this callback's
+    /// version-fenced save. Writing it straight to Storage instead bumps the instance version behind
+    /// the unit of work's back and breaks that save's version fence.
     /// </summary>
-    private Task UpdateDataValue(Instance instance, string key, string value, CancellationToken cancellationToken) =>
-        _instanceClient.UpdateDataValue(
-            instance,
-            key,
-            value,
-            StorageAuthenticationMethod.ServiceOwner(),
-            cancellationToken
-        );
+    private static void ConfirmComplete(ServiceTaskContext context)
+    {
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to confirm completion."
+            );
+        }
+
+        unitOfWork.AddCompleteConfirmation();
+    }
 
     private IEFormidlingService RequireEFormidlingService() =>
         _eFormidlingService

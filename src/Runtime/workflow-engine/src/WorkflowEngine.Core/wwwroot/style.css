@@ -1160,6 +1160,9 @@ body {
     align-items: center;
     position: relative;
     min-width: 120px;
+    /* Never shrink below content: a narrow card scrolls the pipeline instead of squeezing the
+       nodes together until their labels overlap. */
+    flex-shrink: 0;
 }
 .step-circle {
     width: 34px;
@@ -1251,7 +1254,10 @@ body {
     color: var(--text-dim);
     opacity: 0.6;
     text-align: center;
-    width: 100%;
+    /* Zero intrinsic width: a long reason takes the node's width and ellipsises, rather than
+       widening the node to fit. */
+    width: 0;
+    min-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1516,6 +1522,42 @@ body {
 }
 .nudge-btn.skip-failed {
     color: var(--red);
+    border-color: var(--red);
+}
+
+/* ── Fail button (on step pipeline) ─────────────────────── */
+.fail-btn {
+    background: none;
+    color: var(--red);
+    border: 1px solid rgba(var(--red-rgb), 0.3);
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+}
+.fail-btn:hover {
+    background: rgba(var(--red-rgb), 0.1);
+    border-color: var(--red);
+}
+.fail-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Fail badge (modal status row) ──────────────────────── */
+.step-retry-badge.fail {
+    color: var(--red);
+    background: rgba(var(--red-rgb), 0.1);
+    border-color: rgba(var(--red-rgb), 0.3);
+}
+.step-retry-badge.fail:hover {
+    background: rgba(var(--red-rgb), 0.2);
     border-color: var(--red);
 }
 

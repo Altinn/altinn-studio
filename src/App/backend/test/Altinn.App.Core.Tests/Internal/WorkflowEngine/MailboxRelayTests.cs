@@ -165,7 +165,6 @@ public class MailboxRelayTests
                 x.EnqueueProcessNext(
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
-                    It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -174,8 +173,8 @@ public class MailboxRelayTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, Actor, string, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, dependsOn, collectionKey, state, action, idempotencyKey, _) =>
+            .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
+                (_, _, dependsOn, collectionKey, state, action, idempotencyKey, _) =>
                 {
                     recorder.Calls.Add("enqueue-after-workflow");
                     recorder.AfterWorkflows.Add((dependsOn, collectionKey, state, action, idempotencyKey));
@@ -330,7 +329,6 @@ public class MailboxRelayTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 WorkflowId = workflowId ?? Guid.NewGuid(),
                 StepId = stepId,
@@ -703,7 +701,7 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public async Task SuccessorReceiver_CarriesAFreshCallbackTokenAndTheTransitionsLockToken()
+    public async Task SuccessorReceiver_CarriesAFreshCallbackToken()
     {
         var recorder = new RelayRecorder();
 
@@ -718,7 +716,6 @@ public class MailboxRelayTests
             .Single(recorder.Enqueues)
             .Request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal("callback-token", context.CallbackToken);
-        Assert.Equal("lock-token", context.LockToken);
         Assert.Equal(_instanceGuid, context.InstanceGuid);
     }
 
@@ -784,7 +781,6 @@ public class MailboxRelayTests
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal("callback-token", context.CallbackToken);
-        Assert.Equal("lock-token", context.LockToken);
     }
 
     /// <summary>
@@ -1450,7 +1446,6 @@ public class MailboxRelayTests
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal("callback-token", context.CallbackToken);
-        Assert.Equal("lock-token", context.LockToken);
         Assert.Equal(_instanceGuid, context.InstanceGuid);
     }
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
@@ -138,6 +139,31 @@ internal static class EngineEndpoints
                 """
             );
 
+        workflowGroup
+            .MapPost("/{workflowId:guid}/fail", EngineRequestHandlers.FailWorkflow)
+            .WithName("FailWorkflow")
+            .WithSummary("Fail workflow")
+            .WithDescription(
+                """
+                Fails a parked workflow (Requeued or Waiting) by caller decision — the way to give up on a
+                step instead of waiting for its retries or wait budget to run out. The workflow moves to
+                Failed with its backoff cleared, and the parked step is marked Failed with the optional
+                body's reason recorded as its final, non-retryable error entry (a default text when the body
+                is omitted), so the failure reads exactly like an exhausted retry: consumers surface it
+                through their normal failure path, dependents settle as DependencyFailed, and resume brings
+                it back.
+
+                Fail is not cancel. Cancel withdraws the work and leaves a parked step where it was under a
+                Canceled workflow; fail rules on the step's outcome so that everyone reads it as a failure.
+                An in-flight step is never failed out from under its worker — cancel it instead.
+
+                202 Accepted when this call failed the workflow. 409 Conflict when it is not parked,
+                including when it is already Failed: a manual failure is indistinguishable from one the
+                engine produced, so there is no idempotent replay. 404 Not Found when it does not exist,
+                400 Bad Request when the reason is blank or longer than 500 characters.
+                """
+            );
+
         app.MapGet("/api/v1/throttles", EngineRequestHandlers.ListThrottles)
             .WithTags("Throttling")
             .WithName("ListNamespaceThrottles")
@@ -145,7 +171,7 @@ internal static class EngineEndpoints
             .WithDescription(
                 """
                 Lists the failure-storm circuit breaker state of every namespace that currently has one
-                (open, recovering, or recently closed — closed rows linger for a short grace period).
+                (tripped, recovering, or recently cleared — cleared rows linger for a short grace period).
 
                 Purely observational: works whether or not throttling is enabled.
                 Returns 204 No Content when no breaker state exists.
@@ -536,7 +562,7 @@ internal static class EngineRequestHandlers
     > ResumeWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
-        [FromQuery] bool cascade,
+        [FromQuery] bool? cascade,
         [FromServices] IEngine engine,
         CancellationToken cancellationToken
     )
@@ -544,7 +570,7 @@ internal static class EngineRequestHandlers
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
         var ns = NormalizeNamespace(@namespace);
-        var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
+        var result = await engine.ResumeWorkflow(workflowId, ns, cascade ?? false, cancellationToken);
 
         return result switch
         {
@@ -632,6 +658,54 @@ internal static class EngineRequestHandlers
                     Detail =
                         $"Workflow {workflowId} is in {r.CurrentStatus} state and holds no pending backoff to skip.",
                     Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>
+    /// The error entry recorded when a fail request carries no reason of its own.
+    /// </summary>
+    internal const string DefaultFailReason = "Failed by the caller through the workflow engine API";
+
+    public static async Task<
+        Results<Accepted<FailWorkflowResponse>, NotFound, Conflict<ProblemDetails>, BadRequest<ProblemDetails>>
+    > FailWorkflow(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] FailWorkflowRequest? request,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "fail"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await engine.FailWorkflow(workflowId, ns, request?.Reason ?? DefaultFailReason, cancellationToken);
+
+        return result switch
+        {
+            FailWorkflowResult.Failed r => TypedResults.Accepted(
+                (string?)null,
+                new FailWorkflowResponse(r.WorkflowId, r.FailedAt)
+            ),
+            FailWorkflowResult.NotFound => TypedResults.NotFound(),
+            FailWorkflowResult.NotParked r => TypedResults.Conflict(
+                new ProblemDetails
+                {
+                    Title = "Workflow cannot be failed",
+                    Detail =
+                        $"Workflow {workflowId} is in {r.CurrentStatus} state; only a parked (Requeued or Waiting) workflow can be failed.",
+                    Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            FailWorkflowResult.Invalid r => TypedResults.BadRequest(
+                new ProblemDetails
+                {
+                    Title = "Invalid fail request",
+                    Detail = r.Message,
+                    Status = StatusCodes.Status400BadRequest,
                 }
             ),
             _ => throw new UnreachableException(),

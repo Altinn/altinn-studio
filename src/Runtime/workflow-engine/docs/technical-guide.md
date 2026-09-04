@@ -20,8 +20,8 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Resume](#resume)
     - [Abandon](#abandon)
     - [Nudge](#nudge)
+    - [Fail](#fail)
     - [Failure-Storm Throttling](#failure-storm-throttling)
-
     - [Mailboxes](#mailboxes)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
@@ -344,7 +344,8 @@ engine.workflows.execution.failed{reason="wait_expired"}
 ```
 
 Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
-not that the engine or the command broke. Route it to the team that owns the integration. A
+not that the engine or the command broke. Route it to the team that owns the integration. The same goes
+for `manual`, which a caller produces on purpose by [failing a parked workflow](#fail). A
 non-positive delay, by contrast, is a command bug and fails the step under the ordinary `execution`
 reason. A _positive but negligible_ delay is the same class of mistake handled gently: it is clamped
 up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
@@ -507,7 +508,7 @@ configuration and state-machine behavior under
 
 **Observability.**
 
-- `GET /api/v1/throttles` lists every namespace breaker (open, recovering, or lingering closed);
+- `GET /api/v1/throttles` lists every namespace breaker (tripped, recovering, or lingering cleared);
   `GET /api/v1/{namespace}/throttle` fetches one. Both work whether or not throttling is enabled.
 - The dashboard shows a **Throttled Namespaces** panel (Live tab, above Scheduled) whenever any
   breaker state exists, with force-trip/force-clear actions behind a two-click confirm.
@@ -548,8 +549,53 @@ always wins over the breaker, without touching the namespace's breaker state.
 
 Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
 the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
-does not exist. The dashboard's _Retry now_ / _Check now_ buttons drive the same operation through
-`POST /dashboard/nudge`.
+does not exist. The dashboard's _Retry now_ / _Check now_ buttons call this endpoint directly.
+
+## Fail
+
+A parked workflow — `Requeued` between retry attempts, or `Waiting` on a [deferral](#deferral-durable-yield) —
+can be **failed** by a caller who has decided not to wait for its retries or wait budget to run out:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/fail
+```
+
+**Request (optional body):**
+
+```json
+{
+    "reason": "Upstream registry confirmed the shipment was never created"
+}
+```
+
+The transition is a compare-and-set from `Requeued` or `Waiting` to `Failed`: the backoff is cleared and the
+parked step is marked `Failed` with `reason` appended to its error history as a non-retryable entry (a default
+text is recorded when the body is omitted; at most 500 characters), so consumers see exactly what an exhausted
+retry would have produced — the app side surfaces it through its normal failure path, dependents settle as
+`DependencyFailed`, and [resume](#resume) brings it back. A workflow the processor claimed first is left alone:
+an in-flight step is never failed out from under its worker — [cancel](#cancellation) it instead.
+
+Fail is not cancel. Cancelling a parked workflow withdraws the work and leaves the step in its parked state under
+a `Canceled` workflow; failing it rules on the step's outcome, and the step reads as failed everywhere. Use fail
+when the outcome is known to be bad and people should see it as a failure, cancel when the work is simply no
+longer wanted.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "failedAt": "2026-03-19T10:04:00+00:00"
+}
+```
+
+Returns `409 Conflict` when the workflow is not parked — including when it is already `Failed`: a manual failure
+is indistinguishable from one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay,
+and a client that must retry the call reads the workflow's status first. `404 Not Found` when it does not exist,
+`400 Bad Request` when `reason` is blank or over-long. The failure is counted as
+`engine.workflows.execution.failed{reason="manual"}` (and `engine.steps.execution.failed{reason="manual"}` for
+the step) — keep that reason out of the default ops alert alongside
+`wait_expired`. The dashboard's _Fail_ button calls this endpoint with a fixed reason naming the dashboard.
 
 ## Mailboxes
 
@@ -1150,6 +1196,9 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 - SSE streams for engine health and active workflows
 - Visual step pipeline with status colors
 - Step detail modal (command, retry strategy, trace ID, errors)
+- Operator actions on a step: _Retry_ a failed one, _Retry now_ / _Check now_ a parked one ([nudge](#nudge)),
+  or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
+  exercises the same contract external callers use
 - State evolution viewer
 - Grafana Tempo click-through links
 - Paginated query interface with namespace/status/label filters
@@ -1176,7 +1225,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
     },
     "context": {
         "actor": { "orgId": "12345678901" },
-        "lockToken": "lock-token-from-app",
+        "callbackToken": "opaque-callback-token",
         "org": "ttd",
         "app": "my-app",
         "instanceOwnerPartyId": 50001234,
@@ -1419,6 +1468,29 @@ Clears the pending backoff of a parked (`Requeued` or `Waiting`) workflow so it 
 cycle — see [Nudge](#nudge). Returns `200 OK` with a null `nudgedAt` when it was already due,
 `409 Conflict` when the workflow is not parked, and `404 Not Found` when it doesn't exist.
 
+### Fail Workflow
+
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/fail
+Content-Type: application/json
+
+{ "reason": "Upstream registry confirmed the shipment was never created" }
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "failedAt": "2026-03-19T10:04:00+00:00"
+}
+```
+
+Fails a parked (`Requeued` or `Waiting`) workflow by caller decision, recording the optional `reason` as the
+parked step's final error entry — see [Fail](#fail). Returns `409 Conflict` when the workflow is not parked
+(including when it is already `Failed`), `404 Not Found` when it doesn't exist, and `400 Bad Request` for a
+blank or over-long reason.
+
 ### List Namespace Throttles
 
 Lists the [failure-storm circuit breaker](#failure-storm-throttling) state of every namespace that currently has one. Purely observational — works whether or not throttling is enabled. Returns `204 No Content` when no breaker state exists.
@@ -1433,7 +1505,7 @@ GET /api/v1/throttles
 [
     {
         "namespace": "ttd/broken-app",
-        "state": "Open",
+        "state": "Tripped",
         "trippedAt": "2026-03-19T10:00:00+00:00",
         "currentWindow": "00:10:00",
         "canaryCount": 3,
@@ -1864,7 +1936,7 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 
 - **Type string**: `"app"`
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
-- **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid }`
+- **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
 - **Execution**: HTTP POST to a templated URL expanded from the workflow context
 
 ### Error Classification

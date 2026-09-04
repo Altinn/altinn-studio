@@ -276,6 +276,22 @@ internal interface IEngineRepository
     Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Fails a parked workflow (<c>Requeued</c> or <c>Waiting</c>) by operator decision. The workflow moves
+    /// to <c>Failed</c> with its backoff cleared, and the parked step moves to <c>Failed</c> with
+    /// <paramref name="reason"/> appended to its error history as a non-retryable entry, so the failure
+    /// reads exactly like one the engine produced by giving up itself. Compare-and-set: returns the failed
+    /// workflow when this call performed the transition, and <c>null</c> when it was not found or not parked
+    /// (including a fetch that claimed it first) — a no-op, not an error.
+    /// </summary>
+    Task<WorkflowFailureInfo?> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset failedAt,
+        string reason,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets all workflow collections in a namespace.
     /// </summary>
     Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(

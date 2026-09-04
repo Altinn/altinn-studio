@@ -18,6 +18,7 @@
       Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
     },
     Process: {
+      Status: idle,
       Started: DateTime_1,
       StartEvent: StartEvent_1,
       CurrentTask: {
@@ -45,12 +46,13 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
+        BlobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         Locked: false,
-        IsRead: true
+        IsRead: true,
+        LastChanged: DateTime_3
       }
     ],
-    LastChanged: DateTime_3,
-    LastChangedBy: 
+    LastChanged: DateTime_4
   },
   ReadInstance: {
     Id: <instancOwnerPartyId>/<instanceGuid>,
@@ -71,6 +73,7 @@
       Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
     },
     Process: {
+      Status: idle,
       Started: DateTime_1,
       StartEvent: StartEvent_1,
       CurrentTask: {
@@ -98,11 +101,12 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
+        BlobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         Locked: false,
-        IsRead: true
+        IsRead: true,
+        LastChanged: DateTime_3
       }
     ],
-    LastChanged: DateTime_3,
-    LastChangedBy: 
+    LastChanged: DateTime_4
   }
 }

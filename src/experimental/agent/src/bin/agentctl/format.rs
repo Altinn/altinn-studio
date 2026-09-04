@@ -59,7 +59,12 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
             } else {
                 ""
             };
-            format!("{} {}{suffix}", harness.kind.as_str(), harness.version)
+            let version = harness
+                .version
+                .as_deref()
+                .map(|version| format!(" {version}"))
+                .unwrap_or_default();
+            format!("{}{version}{suffix}", harness.kind.as_str())
         })
         .collect::<Vec<_>>()
         .join(", ")

@@ -229,7 +229,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     record.agent.spec.harnesses[0].default = true;
     record.agent.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
-        version: "0.149.1".into(),
+        version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
     });

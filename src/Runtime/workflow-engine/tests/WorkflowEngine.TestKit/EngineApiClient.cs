@@ -225,10 +225,33 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Fails a parked workflow and returns the raw <see cref="HttpResponseMessage"/>. Sends no body when
+    /// <paramref name="reason"/> is null, so the engine records its default reason.
+    /// </summary>
+    public Task<HttpResponseMessage> FailWorkflowRaw(Guid workflowId, string? reason = null, string? ns = null) =>
+        reason is null
+            ? _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/fail", content: null)
+            : _client.PostAsJsonAsync(
+                $"{GetBasePath(ns)}/{workflowId}/fail",
+                new FailWorkflowRequest { Reason = reason }
+            );
+
+    /// <summary>
+    /// Fails a parked workflow and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<FailWorkflowResponse> FailWorkflow(Guid workflowId, string? reason = null, string? ns = null)
+    {
+        using var response = await FailWorkflowRaw(workflowId, reason, ns);
+        return await AssertSuccessAndDeserialize<FailWorkflowResponse>(response);
+    }
+
+    /// <summary>
     /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false, string? ns = null) =>
-        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/resume?cascade={cascade}", content: null);
+        // The query string is only sent when it carries information, so the default path — the one the
+        // dashboard and most callers take — is what every plain resume in the suite exercises.
+        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/resume{(cascade ? "?cascade=true" : "")}", content: null);
 
     /// <summary>
     /// Requests resume of a workflow and asserts a 2xx response. Throws on failure.
