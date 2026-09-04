@@ -34,6 +34,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
 - `studioctl app upgrade v9` no longer adds a byte order mark to layout files that did not have one, and keeps Norwegian characters as they are instead of rewriting every "æ", "ø" and "å" as an escape sequence. Both turned a two-line migration into a diff across the whole file. Layout files containing comments are now left untouched and reported, rather than silently losing the comments to the rewrite.
 
+### Security
+
+- Update gRPC-Go to 1.83.1, fixing a denial-of-service advisory (GHSA-vp52-pcj8-j9qc) in a transitive dependency.
+
 ## [0.1.0-preview.22] - 2026-08-18
 
 ### Added
