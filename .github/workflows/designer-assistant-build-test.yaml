@@ -1,11 +1,11 @@
-name: Altinity-agent
+name: Studio assistant build and test
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/AI/agents/**'
-      - '.github/workflows/altinity-build-test.yaml'
+      - 'src/Designer/assistant/**'
+      - '.github/workflows/designer-assistant-build-test.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
 
@@ -34,15 +34,15 @@ jobs:
         python-version: '3.12'
 
     - name: Install dependencies
-      working-directory: src/AI/agents
+      working-directory: src/Designer/assistant
       run: pip install -r requirements.txt -r requirements-dev.txt
 
-    - name: Run Altinity unit tests
-      working-directory: src/AI/agents
+    - name: Run assistant unit tests
+      working-directory: src/Designer/assistant
       run: python -m pytest
 
-    - name: Start Altinity server
-      working-directory: src/AI/agents
+    - name: Start assistant server
+      working-directory: src/Designer/assistant
       run: |
         uvicorn api.main:app --host 0.0.0.0 --port 8071 > server.log 2>&1 &
         sleep 5
@@ -50,5 +50,5 @@ jobs:
 
     - name: Output server logs on failure
       if: failure()
-      working-directory: src/AI/agents
+      working-directory: src/Designer/assistant
       run: cat server.log

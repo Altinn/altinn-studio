@@ -61,9 +61,14 @@ const GROUPS = [
     ],
   },
   {
-    title: 'AI',
+    title: 'Studio assistant',
     owner: '@ErlingHauan',
-    roots: ['src/AI/agents', 'src/AI/augmenter-agent'],
+    roots: ['src/Designer/assistant'],
+  },
+  {
+    title: 'AI augmenter agent',
+    owner: '@olebhansen',
+    roots: ['src/AI/augmenter-agent'],
   },
   {
     title: 'Squad Kjøring',

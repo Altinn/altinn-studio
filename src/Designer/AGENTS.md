@@ -7,16 +7,18 @@ deploy them. Repositories are stored in a self-hosted Gitea ("Repositories").
 See the root [`/AGENTS.md`](../../AGENTS.md) for how this fits into Altinn 3. Product docs:
 https://docs.altinn.studio/
 
-## Two halves
+## Three parts
 
-| Folder     | What it is                                                                                                                                                                                                                                                                                                 | Stack                                                                                         | Docs                                     |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `backend`  | ASP.NET Core Web API. Three projects: `src/Designer` (the API — Controllers/Services/Repository/Hubs/Migrations), `src/DataModeling` (JSON Schema ↔ XSD ↔ C#), `PolicyAdmin` (XACML policy).                                                                                                               | .NET (ASP.NET Core), EF Core + Postgres, SignalR, MediatR, Redis, Quartz, LibGit2Sharp | [backend/AGENTS.md](backend/AGENTS.md)   |
-| `frontend` | React/TS SPA. Multiple packages: feature apps (`app-development`, `dashboard`, `app-preview`, `admin`, `resourceadm`), editors under `packages/` (`ux-editor`, `schema-editor`, `process-editor`, `policy-editor`, `text-editor`), and shared libs under `libs/` (`studio-components`, `studio-hooks`, …). | Yarn, Vite, TypeScript, React, Tanstack Query, Jest + Playwright, Designsystemet              | [frontend/AGENTS.md](frontend/AGENTS.md) |
+| Folder      | What it is                                                                                                                                                                                                                                                                                                 | Stack                                                                                  | Docs                                       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `backend`   | ASP.NET Core Web API. Three projects: `src/Designer` (the API — Controllers/Services/Repository/Hubs/Migrations), `src/DataModeling` (JSON Schema ↔ XSD ↔ C#), `PolicyAdmin` (XACML policy).                                                                                                               | .NET (ASP.NET Core), EF Core + Postgres, SignalR, MediatR, Redis, Quartz, LibGit2Sharp | [backend/AGENTS.md](backend/AGENTS.md)     |
+| `frontend`  | React/TS SPA. Multiple packages: feature apps (`app-development`, `dashboard`, `app-preview`, `admin`, `resourceadm`), editors under `packages/` (`ux-editor`, `schema-editor`, `process-editor`, `policy-editor`, `text-editor`), and shared libs under `libs/` (`studio-components`, `studio-hooks`, …). | Yarn, Vite, TypeScript, React, Tanstack Query, Jest + Playwright, Designsystemet       | [frontend/AGENTS.md](frontend/AGENTS.md)   |
+| `assistant` | The natural-language app-building agent behind the Studio assistant panel in `frontend`: a FastAPI/WebSocket service that plans and applies changes to a user's app repository via an LLM agent loop.                                                                                                      | Python, FastAPI, LangGraph, uv                                                         | [assistant/AGENTS.md](assistant/AGENTS.md) |
 
 Supporting dirs: `development/` (local setup: `setup.js`, Gitea provisioning, mock services — DB,
 `fake-ansattporten`, `azure-devops-mock`), `testdata/` (fixtures for backend/data-modeling tests), and
-`compose.yaml` (the local dev stack).
+`compose.yaml` (the local dev stack — `backend` and `frontend` only; `assistant` builds, tests, and
+deploys independently, see its own `AGENTS.md`).
 
 ## Running Designer locally
 
@@ -39,13 +41,15 @@ the Designer backend directly (`DEVELOP_BACKEND=1`), wwwroot comes from the sour
 bundle, so run `yarn build-app-frontend-bundle` from the repo root once (rerun after app-frontend
 changes) to build and copy it in. The full docker stack already includes it via the Dockerfile.
 
-## Build, run & test (per half)
+## Build, run & test (per part)
 
 - **Backend** (`src/Designer/backend`): `dotnet build`, `dotnet run --project src/Designer` (or
   `dotnet watch`), `dotnet test`. Details + testing guidelines in [backend/AGENTS.md](backend/AGENTS.md).
 - **Frontend** (`src/Designer/frontend`): `yarn build`, `yarn test` (Jest), `yarn lint`, `yarn typecheck`,
   and `yarn start-<package>` dev servers (`start-app-development`, `start-dashboard`, …). Details +
   API/query and testing patterns in [frontend/AGENTS.md](frontend/AGENTS.md).
+- **Assistant** (`src/Designer/assistant`): `uv sync --extra dev`, `uv run pytest`. Details in
+  [assistant/AGENTS.md](assistant/AGENTS.md).
 
 ## Coding conventions
 
