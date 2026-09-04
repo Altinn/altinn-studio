@@ -3775,9 +3775,9 @@ __metadata:
   linkType: hard
 
 "@oddbird/popover-polyfill@npm:^0.7.0":
-  version: 0.7.1
-  resolution: "@oddbird/popover-polyfill@npm:0.7.1"
-  checksum: 10/aa0017797c70f8a748920855cf5d6db7026a0f140e4738f8776b187649e21c8f3df8ce2bf346907ad715a91aa0e762004cccdaf60135115b5e0c5843cba4345e
+  version: 0.7.2
+  resolution: "@oddbird/popover-polyfill@npm:0.7.2"
+  checksum: 10/87d807d3d2525b2f2bb069d505dcc9408d9d571abf8cd639760fe091786535e9f2ea9d5026c6446f0de22d01beae3ea4e57b80721801ad0014e89ef3fa97bc94
   languageName: node
   linkType: hard
 
