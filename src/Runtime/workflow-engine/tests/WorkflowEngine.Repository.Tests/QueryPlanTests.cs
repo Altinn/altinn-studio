@@ -550,11 +550,11 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
-    // The two throttle plans below assert the index and deliberately do not snapshot: this query's
+    // The two throttle plans below assert their index and deliberately do not snapshot: the counts
     // plan is not stable across environments — it has been seen to alternate between a bitmap scan
     // and an index-only scan of the same index on one machine minutes apart, which is the same
     // instability GetScheduledWorkflows' snapshot suffers from. The assertions state the invariant
-    // the index exists for; the full plan text states only which shape the planner chose today.
+    // each index exists for; the full plan text states only which shape the planner chose today.
 
     [Fact]
     public async Task NamespaceWorkflowCounts_IsServedByTheNamespaceStatusIndex()
@@ -578,11 +578,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ParkCandidates_IsServedByTheNamespaceStatusIndex()
+    public async Task ParkCandidates_TakesItsPageBoundaryFromTheRequeuedIndex()
     {
-        // One keyset page of the park pass: filtered by (namespace, status), ordered by id. A park
-        // pass walks the whole Requeued population of a namespace one page at a time, so a plan
-        // that scans the table here scans it once per page.
+        // One keyset page of the park pass. The page boundary has to be part of the index
+        // condition rather than a filter over what the scan already read: a park pass walks a
+        // namespace's whole Requeued population a page at a time, so an id that only narrows
+        // afterwards makes every page re-read every row the earlier pages walked. Measured on a
+        // 400k-row table with a 150k-requeued namespace, one page cost 50361 buffers off the
+        // primary key before ix_workflows_namespace_id_requeued existed and 138 after it.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -600,7 +603,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
-        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_status_incomplete");
+        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_id_requeued");
+        QueryPlanHelper.AssertIndexCondContains(plan, "ix_workflows_namespace_id_requeued", "namespace", "id");
     }
 
     // --- Seed data ---

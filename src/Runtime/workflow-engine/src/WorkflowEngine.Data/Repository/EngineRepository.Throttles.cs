@@ -45,7 +45,10 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// One GROUP BY over the <c>ix_workflows_namespace_status_incomplete</c> partial index:
-    /// per-namespace Requeued and active counts, resolved from the index alone.
+    /// per-namespace Requeued and active counts, reading no column the index does not carry.
+    /// Whether the planner spends that as an index-only scan or a bitmap scan with a heap
+    /// recheck is its own call — it varies with visibility-map state, and has been seen to
+    /// differ between two runs on one machine — so the plan test pins the index, not the node.
     /// Hoisted for <c>QueryPlanTests</c>.
     /// </summary>
     internal const string NamespaceWorkflowCountsSql = $"""
