@@ -4,7 +4,7 @@ using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.TestUtils;
 
-public class FileNamesInFolderDataAttribute(string folderName, string? disabledProperty = null) : DataAttribute
+public class FileNamesInFolderDataAttribute(string folderName) : DataAttribute
 {
     public FileNamesInFolderDataAttribute(string[] folderParts)
         : this(Path.Join(folderParts)) { }
@@ -19,7 +19,7 @@ public class FileNamesInFolderDataAttribute(string folderName, string? disabledP
         }
         return Directory
             .GetFiles(folder)
-            .Where(fullPath => !IsDisabled(fullPath))
+            .Where(fullPath => !IsDisabledInBackend(fullPath))
             .Select(fullPath =>
                 new object[]
                 {
@@ -29,14 +29,14 @@ public class FileNamesInFolderDataAttribute(string folderName, string? disabledP
             );
     }
 
-    private bool IsDisabled(string fullPath)
+    private static bool IsDisabledInBackend(string fullPath)
     {
-        if (disabledProperty is null || Path.GetExtension(fullPath) != ".json")
+        if (Path.GetExtension(fullPath) != ".json")
         {
             return false;
         }
 
         using var document = JsonDocument.Parse(File.ReadAllText(fullPath));
-        return document.RootElement.TryGetProperty(disabledProperty, out var disabled) && disabled.GetBoolean();
+        return document.RootElement.TryGetProperty("disabledBackend", out var disabled) && disabled.GetBoolean();
     }
 }

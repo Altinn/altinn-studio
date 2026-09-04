@@ -142,7 +142,7 @@ public class ExpressionValidatorTests
 }
 
 public class CommonExpressionValidationTestFilesAttribute()
-    : FileNamesInFolderDataAttribute(TestAttributeHelper.CommonExpressionTestsPath("validation"), "disabledBackend") { }
+    : FileNamesInFolderDataAttribute(TestAttributeHelper.CommonExpressionTestsPath("validation")) { }
 
 public record ExpressionValidationTestModel
 {

@@ -18,16 +18,15 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestFunctions
 {
-    private static readonly string[] _unsupportedFunctionFolders =
+    private static readonly string[] _functionFoldersNotYetImplemented = ["authContext", "externalApi", "value"];
+
+    private static readonly string[] _frontendOnlyFunctionFolders =
     [
         "_experimentalSelectAndMap",
-        "authContext",
         "displayValue",
-        "externalApi",
         "linkToComponent",
         "linkToPage",
         "optionLabel",
-        "value",
     ];
 
     private readonly ITestOutputHelper _output;
@@ -547,7 +546,8 @@ public class TestFunctions
             )
             .OrderBy(s => s)
             .OfType<string>()
-            .Concat(_unsupportedFunctionFolders)
+            .Concat(_functionFoldersNotYetImplemented)
+            .Concat(_frontendOnlyFunctionFolders)
             .OrderBy(d => d)
             .ToArray();
         testedOrUnsupportedFolders
@@ -558,8 +558,7 @@ public class TestFunctions
 
 public class SharedTestAttribute(string folder)
     : FileNamesInFolderDataAttribute(
-        TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions", folder),
-        "disabledBackend"
+        TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions", folder)
     ) { }
 
 // Can be used when you only want to run the tests listed in the testCases array in the json file

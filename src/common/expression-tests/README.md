@@ -31,7 +31,7 @@ The exceptions below record the observed incompatible result. Remove the marker 
 | `evaluation/functions/instanceContext/instanceOwnerNamePerson.json`       | Instance owner name is `"Firstname Lastname"`.                                | Throws `Unknown Instance context property instanceOwnerName`.                                                      |
 | `validation/value-function.json`                                          | One `hello world` issue for `form.name`.                                      | Throws `Function "value" not implemented in backend ["value"]`.                                                    |
 
-## Function folders not implemented in the backend
+## Function folders not yet implemented in the backend
 
 The backend runner excludes these complete folders. Its coverage check fails if this list and the folders get out of sync.
 For every file in these folders, the expected value is the file's `expects` value; the backend instead throws
@@ -39,11 +39,20 @@ For every file in these folders, the expected value is the file's `expects` valu
 
 | Folder                                           | Missing backend function    |
 |--------------------------------------------------|-----------------------------|
-| `evaluation/functions/_experimentalSelectAndMap` | `_experimentalSelectAndMap` |
 | `evaluation/functions/authContext`               | `authContext`               |
-| `evaluation/functions/displayValue`              | `displayValue`              |
 | `evaluation/functions/externalApi`               | `externalApi`               |
+| `evaluation/functions/value`                     | `value`                     |
+
+## Frontend-only function folders
+
+The backend runner also excludes functions intended to remain frontend-only. They depend on frontend state, produce
+frontend navigation links, or are explicitly experimental frontend functionality. The expected and observed results
+are the same as for the folders above.
+
+| Folder                                           | Frontend-only function      |
+|--------------------------------------------------|-----------------------------|
+| `evaluation/functions/_experimentalSelectAndMap` | `_experimentalSelectAndMap` |
+| `evaluation/functions/displayValue`              | `displayValue`              |
 | `evaluation/functions/linkToComponent`           | `linkToComponent`           |
 | `evaluation/functions/linkToPage`                | `linkToPage`                |
 | `evaluation/functions/optionLabel`               | `optionLabel`               |
-| `evaluation/functions/value`                     | `value`                     |
