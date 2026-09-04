@@ -408,10 +408,8 @@ public class PdfService : IPdfService
             fileName = "Altinn PDF.pdf";
         }
 
-        string escapedFileName = Uri.EscapeDataString(fileName.AsFileName(false));
-        return escapedFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
-            ? escapedFileName
-            : $"{escapedFileName}.pdf";
+        fileName = fileName.AsFileName(false);
+        return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? fileName : $"{fileName}.pdf";
     }
 
     private async Task<string> GetPreviewFooter(string language)
