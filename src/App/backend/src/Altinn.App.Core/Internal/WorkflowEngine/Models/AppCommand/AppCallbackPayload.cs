@@ -21,12 +21,6 @@ public sealed record AppCallbackPayload
     public required Actor Actor { get; init; }
 
     /// <summary>
-    /// The lock token for the current workflow execution.
-    /// </summary>
-    [JsonPropertyName("lockToken")]
-    public required string LockToken { get; init; }
-
-    /// <summary>
     /// Optional command-specific payload.
     /// </summary>
     [JsonPropertyName("payload")]
@@ -48,11 +42,12 @@ public sealed record AppCallbackPayload
     /// <summary>
     /// The engine's identity for the step being executed. Stable across every attempt of the step —
     /// retries and deferral re-executions alike — which makes it a ready-made idempotency key for
-    /// outbound calls the command must not repeat. Deliberately not <c>required</c>: an engine that
-    /// predates the field leaves it <see cref="Guid.Empty"/> rather than failing the callback.
+    /// outbound calls the command must not repeat, and the one this app sends to Storage as the
+    /// aggregate mutation's key. A callback without it is rejected rather than silently defaulted:
+    /// <see cref="Guid.Empty"/> would be one key shared by every step of every instance.
     /// </summary>
     [JsonPropertyName("stepId")]
-    public Guid StepId { get; init; }
+    public required Guid StepId { get; init; }
 
     /// <summary>
     /// Stable reference time for this execution: the explicit workflow schedule when present,

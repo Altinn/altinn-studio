@@ -42,6 +42,21 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    /// <summary>
+    /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
+    /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
+    /// mapping - notably <c>Altinn.EFormidlingClient.Extensions</c> is deliberately absent, having no
+    /// destination; <see cref="CSharpApiMigration.RemovedEFormidlingClientApiDetector"/> reports it
+    /// instead.
+    /// </summary>
+    internal static readonly (string Old, string New)[] EFormidlingNamespaces =
+    [
+        ("Altinn.Common.EFormidlingClient", "Altinn.App.Core.EFormidling.Interface"),
+        ("Altinn.Common.EFormidlingClient.Configuration", "Altinn.App.Core.EFormidling.Configuration"),
+        ("Altinn.Common.EFormidlingClient.Models", "Altinn.App.Core.EFormidling.Models"),
+        ("Altinn.Common.EFormidlingClient.Models.SBD", "Altinn.App.Core.EFormidling.Models.SBD"),
+    ];
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
@@ -126,6 +141,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingClientNamespaces(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
@@ -397,6 +415,26 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>Rewrites the eFormidling client namespace usings across all app C# files.</summary>
+    static async Task<int> MigrateEFormidlingClientNamespaces(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("eFormidling client namespaces");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            foreach (var (oldNamespace, newNamespace) in EFormidlingNamespaces)
+            {
+                migration.Migrate(oldNamespace, newNamespace, _allCSharpFilesMatcher);
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating eFormidling client namespaces", ex);
+        }
+    }
+
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
     static async Task<int> MigrateServiceTaskNamespace(CSharpSourceScanner scanner)
     {
@@ -581,6 +619,7 @@ internal static class V8Tov9Upgrade
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
+                new RemovedEFormidlingClientApiDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
                 new LegacyCorrespondenceCodeDetector(scanner).Detect(),
                 new PlatformHttpExceptionApiDetector(scanner).Detect(),

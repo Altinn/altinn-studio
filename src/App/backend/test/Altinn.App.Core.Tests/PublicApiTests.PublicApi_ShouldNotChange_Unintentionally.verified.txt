@@ -119,9 +119,14 @@ namespace Altinn.App.Core.Constants
 }
 namespace Altinn.App.Core.EFormidling.Configuration
 {
+    public class EFormidlingClientSettings
+    {
+        public EFormidlingClientSettings() { }
+        public string? BaseUrl { get; set; }
+    }
     public interface IEFormidlingBuilder
     {
-        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(System.Action<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings> configure);
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(System.Action<Altinn.App.Core.EFormidling.Configuration.EFormidlingClientSettings> configure);
         Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(string configSectionPath);
         Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithReceivers<TReceivers>()
             where TReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers;
@@ -152,7 +157,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
     public class DefaultEFormidlingReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers
     {
         public DefaultEFormidlingReceivers() { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig) { }
     }
     public class EformidlingDeliveryException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -163,6 +168,13 @@ namespace Altinn.App.Core.EFormidling.Implementation
 }
 namespace Altinn.App.Core.EFormidling.Interface
 {
+    public interface IEFormidlingClient
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocument> CreateMessage(Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocument sbd, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.Statuses> GetMessageStatusById(string messageId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task SendMessage(string messageId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task UploadAttachment(System.IO.Stream attachment, string messageId, string filename, System.Threading.CancellationToken cancellationToken = default);
+    }
     public interface IEFormidlingMetadata
     {
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
@@ -172,7 +184,7 @@ namespace Altinn.App.Core.EFormidling.Interface
     }
     public interface IEFormidlingReceivers
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig);
     }
     public interface IEFormidlingService
     {
@@ -182,6 +194,114 @@ namespace Altinn.App.Core.EFormidling.Interface
 }
 namespace Altinn.App.Core.EFormidling.Models
 {
+    [System.Xml.Serialization.XmlRoot(ElementName="arkivmelding", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+    public sealed class Arkivmelding
+    {
+        public Arkivmelding() { }
+        [System.Xml.Serialization.XmlElement(ElementName="antallFiler", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public int AntallFiler { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="mappe")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Mappe>? Mappe { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="meldingId", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? MeldingId { get; set; }
+        [System.Xml.Serialization.XmlAttribute(AttributeName="schemaLocation", Namespace="http://www.w3.org/2001/XMLSchema-instance")]
+        public string? SchemaLocation { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="system", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? System { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tidspunkt", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Tidspunkt { get; set; }
+        [System.Xml.Serialization.XmlAttribute(AttributeName="xmlns", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Xmlns { get; set; }
+        [System.Xml.Serialization.XmlAttribute(AttributeName="xsi", Namespace="http://www.w3.org/2000/xmlns/")]
+        public string? Xsi { get; set; }
+    }
+    public static class ArkivmeldingNamespaces
+    {
+        public const string Noark5 = "http://www.arkivverket.no/standarder/noark5/arkivmelding";
+        public const string XmlNamespaceDeclaration = "http://www.w3.org/2000/xmlns/";
+        public const string XmlSchemaInstance = "http://www.w3.org/2001/XMLSchema-instance";
+    }
+    [System.Xml.Serialization.XmlType(TypeName="journalpost")]
+    public sealed class Basisregistrering
+    {
+        public Basisregistrering() { }
+        [System.Xml.Serialization.XmlElement(ElementName="arkivertAv")]
+        public string? ArkivertAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="arkivertDato")]
+        public System.DateTime? ArkivertDato { get; set; }
+        [System.Xml.Serialization.XmlIgnore]
+        public bool ArkivertDatoSpecified { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="dokumentbeskrivelse")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Dokumentbeskrivelse>? Dokumentbeskrivelse { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="dokumentobjekt")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Dokumentobjekt>? Dokumentobjekt { get; set; }
+        [System.Xml.Serialization.XmlElement(DataType="date", ElementName="journaldato")]
+        public System.DateTime Journaldato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="journalposttype")]
+        public string? Journalposttype { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="journalstatus")]
+        public string? Journalstatus { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="korrespondansepart")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Korrespondansepart>? Korrespondansepart { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="offentligTittel")]
+        public string? OffentligTittel { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetAv")]
+        public string? OpprettetAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetDato")]
+        public System.DateTime OpprettetDato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="referanseForelderMappe")]
+        public string? ReferanseForelderMappe { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="systemID")]
+        public string? SystemID { get; set; }
+        [System.Xml.Serialization.XmlText]
+        public string? Text { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tittel")]
+        public string? Tittel { get; set; }
+        [System.Xml.Serialization.XmlAttribute(AttributeName="type", Namespace="http://www.w3.org/2001/XMLSchema-instance")]
+        public string? Type { get; set; }
+    }
+    [System.Xml.Serialization.XmlRoot(ElementName="dokumentbeskrivelse")]
+    public sealed class Dokumentbeskrivelse
+    {
+        public Dokumentbeskrivelse() { }
+        [System.Xml.Serialization.XmlElement(ElementName="dokumentnummer")]
+        public int Dokumentnummer { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="dokumentobjekt")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Dokumentobjekt>? Dokumentobjekt { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="dokumentstatus")]
+        public string? Dokumentstatus { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="dokumenttype")]
+        public string? Dokumenttype { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetAv")]
+        public string? OpprettetAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetDato")]
+        public System.DateTime OpprettetDato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="systemID")]
+        public string? SystemID { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tilknyttetAv")]
+        public string? TilknyttetAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tilknyttetDato")]
+        public System.DateTime TilknyttetDato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tilknyttetRegistreringSom")]
+        public string? TilknyttetRegistreringSom { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tittel")]
+        public string? Tittel { get; set; }
+    }
+    [System.Xml.Serialization.XmlRoot(ElementName="dokumentobjekt")]
+    public sealed class Dokumentobjekt
+    {
+        public Dokumentobjekt() { }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetAv")]
+        public string? OpprettetAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetDato")]
+        public System.DateTime OpprettetDato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="referanseDokumentfil")]
+        public string? ReferanseDokumentfil { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="variantformat")]
+        public string? Variantformat { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="versjonsnummer")]
+        public int Versjonsnummer { get; set; }
+    }
     public enum EFormidlingDeliveryState
     {
         Pending = 0,
@@ -194,6 +314,228 @@ namespace Altinn.App.Core.EFormidling.Models
         public string? Description { get; init; }
         public required Altinn.App.Core.EFormidling.Models.EFormidlingDeliveryState State { get; init; }
         public string? Status { get; init; }
+    }
+    [System.Xml.Serialization.XmlRoot(ElementName="klassifikasjon", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+    public sealed class Klassifikasjon
+    {
+        public Klassifikasjon() { }
+        [System.Xml.Serialization.XmlElement(ElementName="klasseID", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? KlasseID { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetAv", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? OpprettetAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetDato", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? OpprettetDato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="referanseKlassifikasjonssystem", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? ReferanseKlassifikasjonssystem { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tittel", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Tittel { get; set; }
+    }
+    [System.Xml.Serialization.XmlRoot(ElementName="korrespondansepart")]
+    public sealed class Korrespondansepart
+    {
+        public Korrespondansepart() { }
+        [System.Xml.Serialization.XmlElement(ElementName="korrespondansepartNavn")]
+        public string? KorrespondansepartNavn { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="korrespondanseparttype")]
+        public string? Korrespondanseparttype { get; set; }
+    }
+    [System.Xml.Serialization.XmlType(TypeName="saksmappe")]
+    public sealed class Mappe
+    {
+        public Mappe() { }
+        [System.Xml.Serialization.XmlElement(ElementName="administrativEnhet", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? AdministrativEnhet { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="basisregistrering", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Basisregistrering>? Basisregistrering { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="klassifikasjon", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Klassifikasjon>? Klassifikasjon { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetAv", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? OpprettetAv { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="opprettetDato", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? OpprettetDato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="saksansvarlig", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Saksansvarlig { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="saksdato", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Saksdato { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="saksstatus", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Saksstatus { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="systemID", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? SystemID { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="tittel", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
+        public string? Tittel { get; set; }
+        [System.Xml.Serialization.XmlAttribute(AttributeName="type", Namespace="http://www.w3.org/2001/XMLSchema-instance")]
+        public string? Type { get; set; }
+    }
+    public sealed class Statuses
+    {
+        public Statuses() { }
+        [System.Text.Json.Serialization.JsonPropertyName("content")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Statuses.Entry>? Content { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("empty")]
+        public bool Empty { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("first")]
+        public bool First { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("last")]
+        public bool Last { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("number")]
+        public int Number { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("numberOfElements")]
+        public int NumberOfElements { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("pageable")]
+        public Altinn.App.Core.EFormidling.Models.Statuses.PageInfo? Pageable { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("size")]
+        public int Size { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sort")]
+        public Altinn.App.Core.EFormidling.Models.Statuses.SortInfo? Sort { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("totalElements")]
+        public int TotalElements { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("totalPages")]
+        public int TotalPages { get; set; }
+        public sealed class Entry
+        {
+            public Entry() { }
+            [System.Text.Json.Serialization.JsonPropertyName("convId")]
+            public int ConvId { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("conversationId")]
+            public string? ConversationId { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("description")]
+            public string? Description { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("id")]
+            public int Id { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("lastUpdate")]
+            public System.DateTime LastUpdate { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("messageId")]
+            public string? MessageId { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("status")]
+            public string? Status { get; set; }
+        }
+        public sealed class PageInfo
+        {
+            public PageInfo() { }
+            [System.Text.Json.Serialization.JsonPropertyName("offset")]
+            public int Offset { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
+            public int PageNumber { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("pageSize")]
+            public int PageSize { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("paged")]
+            public bool Paged { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("sort")]
+            public Altinn.App.Core.EFormidling.Models.Statuses.SortInfo? Sort { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("unpaged")]
+            public bool Unpaged { get; set; }
+        }
+        public sealed class SortInfo
+        {
+            public SortInfo() { }
+            [System.Text.Json.Serialization.JsonPropertyName("empty")]
+            public bool Empty { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("sorted")]
+            public bool Sorted { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("unsorted")]
+            public bool Unsorted { get; set; }
+        }
+    }
+}
+namespace Altinn.App.Core.EFormidling.Models.SBD
+{
+    public sealed class ArkivmeldingMetadata
+    {
+        public ArkivmeldingMetadata() { }
+        [System.Text.Json.Serialization.JsonPropertyName("dpf")]
+        public Altinn.App.Core.EFormidling.Models.SBD.Dpf? Dpf { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sikkerhetsnivaa")]
+        public int Sikkerhetsnivaa { get; set; }
+    }
+    public sealed class BusinessScope
+    {
+        public BusinessScope() { }
+        [System.Text.Json.Serialization.JsonPropertyName("scope")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Scope>? Scope { get; set; }
+    }
+    public sealed class DocumentIdentification
+    {
+        public DocumentIdentification() { }
+        [System.Text.Json.Serialization.JsonPropertyName("creationDateAndTime")]
+        public System.DateTime CreationDateAndTime { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("instanceIdentifier")]
+        public string? InstanceIdentifier { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("standard")]
+        public string? Standard { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string? Type { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("typeVersion")]
+        public string? TypeVersion { get; set; }
+    }
+    public sealed class Dpf
+    {
+        public Dpf() { }
+        [System.Text.Json.Serialization.JsonPropertyName("forsendelseType")]
+        public string? ForsendelsesType { get; set; }
+    }
+    public sealed class Identifier
+    {
+        public Identifier() { }
+        [System.Text.Json.Serialization.JsonPropertyName("authority")]
+        public string? Authority { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public string? Value { get; set; }
+    }
+    public sealed class Receiver
+    {
+        public Receiver() { }
+        [System.Text.Json.Serialization.JsonPropertyName("contactInformation")]
+        public System.Collections.Generic.List<object>? ContactInformation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("identifier")]
+        public Altinn.App.Core.EFormidling.Models.SBD.Identifier? Identifier { get; set; }
+    }
+    public sealed class Scope
+    {
+        public Scope() { }
+        [System.Text.Json.Serialization.JsonPropertyName("identifier")]
+        public string? Identifier { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("instanceIdentifier")]
+        public string? InstanceIdentifier { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("scopeInformation")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.ScopeInformation>? ScopeInformation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string? Type { get; set; }
+    }
+    public sealed class ScopeInformation
+    {
+        public ScopeInformation() { }
+        [System.Text.Json.Serialization.JsonPropertyName("expectedResponseDateTime")]
+        public System.DateTime ExpectedResponseDateTime { get; set; }
+    }
+    public sealed class Sender
+    {
+        public Sender() { }
+        [System.Text.Json.Serialization.JsonPropertyName("contactInformation")]
+        public System.Collections.Generic.List<object>? ContactInformation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("identifier")]
+        public Altinn.App.Core.EFormidling.Models.SBD.Identifier? Identifier { get; set; }
+    }
+    public sealed class StandardBusinessDocument
+    {
+        public StandardBusinessDocument() { }
+        [System.Text.Json.Serialization.JsonPropertyName("arkivmelding")]
+        public Altinn.App.Core.EFormidling.Models.SBD.ArkivmeldingMetadata? Arkivmelding { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("standardBusinessDocumentHeader")]
+        public Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocumentHeader? StandardBusinessDocumentHeader { get; set; }
+    }
+    public sealed class StandardBusinessDocumentHeader
+    {
+        public StandardBusinessDocumentHeader() { }
+        [System.Text.Json.Serialization.JsonPropertyName("businessScope")]
+        public Altinn.App.Core.EFormidling.Models.SBD.BusinessScope? BusinessScope { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("documentIdentification")]
+        public Altinn.App.Core.EFormidling.Models.SBD.DocumentIdentification? DocumentIdentification { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("headerVersion")]
+        public string? HeaderVersion { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("receiver")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Receiver>? Receiver { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sender")]
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Sender>? Sender { get; set; }
     }
 }
 namespace Altinn.App.Core.Exceptions
@@ -236,12 +578,12 @@ namespace Altinn.App.Core.Extensions
     }
     public static class HttpClientExtension
     {
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, string? lockToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetStreamingAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PatchAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, string? lockToken = null, System.Threading.CancellationToken cancellationToken = default) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, string? lockToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class HttpContextExtensions
     {
@@ -1236,6 +1578,7 @@ namespace Altinn.App.Core.Features
     }
     public interface IInstantiationProcessor
     {
+        System.Threading.Tasks.Task DataCreation(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
         System.Threading.Tasks.Task DataCreation(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
     }
     public interface IInstantiationValidator
@@ -2788,8 +3131,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UnlockDataElement(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Guid dataGuid, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string? filename, System.Guid dataGuid, System.IO.Stream stream, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
-        [System.Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes " +
-            "a Stream instead")]
+        [System.Obsolete("Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, " +
+            "Stream) instead", false)]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         [System.Obsolete("Use the UpdateFormData method with Instance parameter instead")]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default)
@@ -4259,8 +4602,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required System.DateTimeOffset ExecutionReferenceTime { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
         public System.DateTimeOffset? FirstDeferredAt { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("lockToken")]
-        public required string LockToken { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
@@ -4270,7 +4611,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string? State { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("stepId")]
-        public System.Guid StepId { get; init; }
+        public required System.Guid StepId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("waitDeadline")]
         public System.DateTimeOffset? WaitDeadline { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
@@ -5598,6 +5939,7 @@ namespace Altinn.App.Core.Models.Process
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
+        AcquireConflict = 4,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowSubmissionFailureKind

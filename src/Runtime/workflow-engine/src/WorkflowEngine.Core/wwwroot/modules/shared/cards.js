@@ -10,7 +10,11 @@ import {
     fmtNamespace,
     abbrevGuids,
 } from '../core/helpers.js';
-import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
+import {
+    buildPipelineHTML,
+    scrollPipelineToActive,
+    setCardHTMLKeepingPipelineScroll,
+} from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
 export const copyIconHTML = (text, title) =>
@@ -305,7 +309,10 @@ const rerenderCards = (wfKey) => {
         if (card.closest('#scheduled-workflows')) continue;
         const isStatic = !card.closest('#live-workflows');
         const compact = card.classList.contains('compact');
-        card.innerHTML = compact ? buildCompactCardHTML(wf, isStatic) : buildCardHTML(wf, isStatic);
+        setCardHTMLKeepingPipelineScroll(
+            card,
+            compact ? buildCompactCardHTML(wf, isStatic) : buildCardHTML(wf, isStatic),
+        );
         setCardFilterData(card, wf);
     }
 };

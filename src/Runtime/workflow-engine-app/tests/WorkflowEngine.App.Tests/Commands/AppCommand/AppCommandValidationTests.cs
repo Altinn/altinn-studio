@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -20,7 +21,6 @@ public class AppCommandValidationTests
         new()
         {
             Actor = new Actor { OrgId = "test-user-123" },
-            LockToken = "test-lock-key",
             Org = "ttd",
             App = "test-app",
             InstanceOwnerPartyId = 12345,
@@ -34,6 +34,30 @@ public class AppCommandValidationTests
     public void Validate_ValidDataAndContext_Accepts()
     {
         var result = Command.Validate(ValidData, ValidContext);
+
+        Assert.IsType<CommandValidationResult.Valid>(result);
+    }
+
+    [Fact]
+    public void Validate_ContextWithUnknownLegacyLockToken_Accepts()
+    {
+        const string json = """
+            {
+              "actor": { "orgId": "test-user-123" },
+              "lockToken": "legacy-lock-token",
+              "org": "ttd",
+              "app": "test-app",
+              "instanceOwnerPartyId": 12345,
+              "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+              "callbackToken": "test-callback-token"
+            }
+            """;
+        AppWorkflowContext? context = JsonSerializer.Deserialize<AppWorkflowContext>(
+            json,
+            CommandDefinition.SerializerOptions
+        );
+
+        var result = Command.Validate(ValidData, context);
 
         Assert.IsType<CommandValidationResult.Valid>(result);
     }
@@ -131,20 +155,6 @@ public class AppCommandValidationTests
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("instanceGuid", invalid.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_MissingLockToken_Rejects(string? lockToken)
-    {
-        var context = ValidContext with { LockToken = lockToken! };
-
-        var result = Command.Validate(ValidData, context);
-
-        var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
-        Assert.Contains("lockToken", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]

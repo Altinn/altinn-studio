@@ -266,7 +266,7 @@ describe('Live workflow status (real engine)', () => {
 
     // The details expander exposes only safe structured facts: the kind label plus the two
     // references the user relays to support (the form/instance id and the workflow id).
-    cy.findByRole('button', { name: 'Vis detaljer om feilen' }).click();
+    cy.findByText('Vis detaljer om feilen').click();
     cy.contains('Et steg i behandlingen feilet').should('be.visible');
     cy.contains('Skjemareferanse').should('be.visible');
     cy.contains('Behandlingsreferanse').should('be.visible');
