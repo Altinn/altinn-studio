@@ -459,6 +459,8 @@
   "app_validation.app_metadata.warnings": "Appen mangler metadata og beskrivelser.",
   "app_validation.app_metadata.warnings_description": "Standard-verdier vil bli brukt for de manglende feltene. Gå til \"Om appen\"-fanen under innstillinger eller klikk på lenke i den enkelte feilmelding under for å legge til informasjonen.",
   "app_validation.heading": "Valideringsfeil",
+  "app_validation.task_settings.default_data_type.missing": "Oppgaven {{taskId}} mangler datamodell. Koble til en datamodell i Arbeidsflyt.",
+  "app_validation.task_settings.default_data_type.not_found": "Oppgaven {{taskId}} er fortsatt koblet til datamodellen «{{dataTypeId}}», men den finnes ikke lenger. Opprett datamodellen på nytt, eller velg en annen datamodell i Arbeidsflyt.",
   "branching.actions_heading": "Valg",
   "branching.delete_branch_dialog.description": "Bekreft at du vil slette grenen <strong>{{branchName}}</strong>. Du kan ikke gjenopprette den.",
   "branching.delete_branch_dialog.textfield_description": "Skriv inn navnet på grenen for å bekrefte.",

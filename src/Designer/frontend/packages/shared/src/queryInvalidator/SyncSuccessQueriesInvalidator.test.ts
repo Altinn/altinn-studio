@@ -30,7 +30,10 @@ describe('SyncSuccessQueriesInvalidator', () => {
         queryKey: [QueryKey.AppMetadata, org, app],
       }),
     );
-    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppValidation, org, app],
+    });
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(2);
   });
 
   it('should not invalidate query cache when invalidateQueriesByFileLocation is called with an unknown file name', async () => {
@@ -55,7 +58,10 @@ describe('SyncSuccessQueriesInvalidator', () => {
         queryKey: [QueryKey.FormLayoutSettings, org, app, selectedLayoutSet],
       });
     });
-    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppValidation, org, app],
+    });
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(2);
   });
 
   it('should invalidate layouts query cache with layoutSetName identifier when invalidateQueriesByFileLocation is called and layoutSetName has been set', async () => {

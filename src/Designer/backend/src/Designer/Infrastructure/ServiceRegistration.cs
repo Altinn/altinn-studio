@@ -136,6 +136,7 @@ public static class ServiceRegistration
         services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
+        services.AddTransient<ITaskDefaultDataTypeBindingValidator, TaskDefaultDataTypeBindingValidator>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();
         services.AddSingleton<IAppTemplateCatalog, AppTemplateCatalog>();
         services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
