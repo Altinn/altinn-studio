@@ -310,19 +310,20 @@ All workflows with future `startAt`. Response: `Workflow[]`
 
 Distinct values for a label key. Response: `string[]`
 
-### `POST /dashboard/retry`
+### Workflow actions
 
-Reset a failed workflow back to Enqueued.
+The dashboard has no mutation endpoints of its own. The Retry, Retry now / Check now and Fail buttons call the
+engine's public API directly, so the same contract that external callers use is what the UI exercises:
 
-Body: `{ "workflowId": "<guid>" }`
+| Button                        | Request                                                              |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Retry** (Failed step)       | `POST /api/v1/{namespace}/workflows/{id}/resume`                     |
+| **Retry now** / **Check now** | `POST /api/v1/{namespace}/workflows/{id}/nudge`                      |
+| **Fail** (parked step)        | `POST /api/v1/{namespace}/workflows/{id}/fail` with a fixed `reason` naming the dashboard |
 
-### `POST /dashboard/nudge`
-
-Clear the pending backoff of a parked workflow (Requeued or Waiting), making it immediately eligible for
-processing. The dashboard face of `POST /api/v1/{namespace}/workflows/{id}/nudge` — same primitive, and
-the workflow is re-executed rather than skipped.
-
-Body: `{ "workflowId": "<guid>" }`
+The namespace and workflow id are URL-encoded route segments. Both 200 and 202 count as success; a refusal
+(409 for the wrong state, 400 for a bad request) carries problem details, whose `detail` becomes the button's
+tooltip. The contracts are documented in the technical guide's [API reference](../../../docs/technical-guide.md#api-reference).
 
 ---
 
@@ -437,7 +438,7 @@ The modal has four distinct DOM zones:
 ### Tabs
 
 1. **Details** (default) — Rows top to bottom:
-    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued / Check now for Waiting, with >5s backoff remaining). All elements flex-aligned in a single row.
+    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action buttons (Retry for Failed; Retry now for Requeued / Check now for Waiting, with >5s backoff remaining; Fail for Requeued or Waiting, always). All elements flex-aligned in a single row.
     - Idempotency Key
     - Created (formatted time + relative age)
     - Execution Started (if set)
@@ -463,11 +464,12 @@ The modal has four distinct DOM zones:
 
 ### Action Buttons
 
-- **Retry** — Shown for Failed steps in the status row. Calls `POST /dashboard/retry`.
-- **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/nudge`.
+- **Retry** — Shown for Failed steps in the status row. Calls the public `resume` endpoint.
+- **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls the public `nudge` endpoint.
 - **Check now** (nudge) — The same control on a Waiting step, relabelled: the step is polling, not retrying. Same endpoint; only the wording changes, because "retry" misdescribes a step that never failed.
+- **Fail** — Shown for Requeued and Waiting steps in the status row (and as a `fail` button on parked pipeline steps, next to the nudge button when one is shown). Calls the public `fail` endpoint with a fixed reason naming the dashboard: the step is marked Failed with that reason as its final error entry, after which the Retry button applies. Red, to mark it as the give-up action.
 
-**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped" with success CSS class (stays disabled). On failure, text changes to "Failed" with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
+**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped"/"Marked failed" with success CSS class (stays disabled). On failure, text changes to "Failed" ("Rejected" for the Fail action, whose success outcome _is_ a failed step) with error CSS class and the response's problem-details `detail` as the tooltip, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
 
 ### SSE-Driven Refresh
 

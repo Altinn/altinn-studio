@@ -1437,6 +1437,42 @@ body {
     border-color: var(--red);
 }
 
+/* ── Fail button (on step pipeline) ─────────────────────── */
+.fail-btn {
+    background: none;
+    color: var(--red);
+    border: 1px solid rgba(var(--red-rgb), 0.3);
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+}
+.fail-btn:hover {
+    background: rgba(var(--red-rgb), 0.1);
+    border-color: var(--red);
+}
+.fail-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Fail badge (modal status row) ──────────────────────── */
+.step-retry-badge.fail {
+    color: var(--red);
+    background: rgba(var(--red-rgb), 0.1);
+    border-color: rgba(var(--red-rgb), 0.3);
+}
+.step-retry-badge.fail:hover {
+    background: rgba(var(--red-rgb), 0.2);
+    border-color: var(--red);
+}
+
 /* ── Step command-type badges ─────────────────────────────── */
 .step-type {
     font-size: 10px;

@@ -199,6 +199,10 @@ const buildDetailsContent = (data) => {
         const skipLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${skipLabel}</a>`;
     }
+    if (status === 'Requeued' || status === 'Waiting') {
+        const failTitle = status === 'Waiting' ? 'Stop waiting and mark the step Failed' : 'Stop retrying and mark the step Failed';
+        statusParts += `<a class="step-retry-badge fail" style="${showNudge ? '' : 'margin-left:auto'}" title="${failTitle}" onclick="failWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">&#10005; Fail</a>`;
+    }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
 
@@ -467,77 +471,119 @@ window.closeModal = () => {
     dom.modalSubtabs.style.display = 'none';
 };
 
-/** Retry a failed workflow — called from status row retry button */
+/** Public-API URL for a workflow action; namespace and id are route segments there. */
+const workflowActionUrl = (ns, workflowId, action) =>
+    `/api/v1/${encodeURIComponent(ns)}/workflows/${encodeURIComponent(workflowId)}/${action}`;
+
+/** The text an operator's Fail records as the parked step's final error entry. */
+const DASHBOARD_FAIL_REASON = 'Failed manually by an operator from the workflow engine dashboard';
+
+/**
+ * The problem-details text the engine returns when it refuses an action (409/400), for the button tooltip.
+ * @param {Response} res
+ */
+const problemDetail = async (res) => {
+    const data = await res.json().catch(() => null);
+    return (data && (data.detail || data.title)) || `HTTP ${res.status}`;
+};
+
+/** Retry a failed workflow (public API `resume`) — called from the status row / pipeline retry button */
 window.retryWorkflow = async (e, workflowId, ns) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
     if (btn.hasAttribute('disabled')) return;
     btn.setAttribute('disabled', '');
     btn.textContent = '...';
-    try {
-        const res = await fetch('/dashboard/retry', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workflowId, namespace: ns }),
-        });
-        if (res.ok) {
-            btn.textContent = 'Retried';
-            btn.classList.add('retry-success');
-        } else {
-            const data = await res.json().catch(() => ({}));
-            btn.textContent = 'Failed';
-            btn.title = data.message || 'Retry failed';
-            btn.classList.add('retry-failed');
-            setTimeout(() => {
-                btn.removeAttribute('disabled');
-                btn.innerHTML = '&#8635; Retry';
-                btn.classList.remove('retry-failed');
-            }, 3000);
-        }
-    } catch {
-        btn.textContent = 'Error';
-        btn.classList.add('retry-failed');
+    const restore = () =>
         setTimeout(() => {
             btn.removeAttribute('disabled');
             btn.innerHTML = '&#8635; Retry';
             btn.classList.remove('retry-failed');
         }, 3000);
+    try {
+        const res = await fetch(workflowActionUrl(ns, workflowId, 'resume'), { method: 'POST' });
+        if (res.ok) {
+            btn.textContent = 'Retried';
+            btn.classList.add('retry-success');
+        } else {
+            btn.textContent = 'Failed';
+            btn.title = await problemDetail(res);
+            btn.classList.add('retry-failed');
+            restore();
+        }
+    } catch {
+        btn.textContent = 'Error';
+        btn.classList.add('retry-failed');
+        restore();
     }
 };
 
-/** Skip backoff timer — called from status row skip button */
+/** Skip a parked step's backoff timer (public API `nudge`) — called from the status row / pipeline nudge button */
 window.nudgeWorkflow = async (e, workflowId, ns) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
     if (btn.hasAttribute('disabled')) return;
+    const original = btn.innerHTML;
     btn.setAttribute('disabled', '');
     btn.textContent = '...';
+    const restore = () =>
+        setTimeout(() => {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = original;
+            btn.classList.remove('skip-failed');
+        }, 3000);
     try {
-        const res = await fetch('/dashboard/nudge', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workflowId, namespace: ns }),
-        });
+        const res = await fetch(workflowActionUrl(ns, workflowId, 'nudge'), { method: 'POST' });
         if (res.ok) {
             btn.textContent = 'Skipped';
             btn.classList.add('skip-success');
         } else {
             btn.textContent = 'Failed';
+            btn.title = await problemDetail(res);
             btn.classList.add('skip-failed');
-            setTimeout(() => {
-                btn.removeAttribute('disabled');
-                btn.textContent = 'retry now';
-                btn.classList.remove('skip-failed');
-            }, 3000);
+            restore();
         }
     } catch {
         btn.textContent = 'Error';
         btn.classList.add('skip-failed');
+        restore();
+    }
+};
+
+/** Fail a parked (Requeued/Waiting) workflow by hand (public API `fail`) — called from the status row / pipeline fail button */
+window.failWorkflow = async (e, workflowId, ns) => {
+    e.stopPropagation();
+    const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
+    if (btn.hasAttribute('disabled')) return;
+    const original = btn.innerHTML;
+    btn.setAttribute('disabled', '');
+    btn.textContent = '...';
+    const restore = () =>
         setTimeout(() => {
             btn.removeAttribute('disabled');
-            btn.textContent = 'retry now';
+            btn.innerHTML = original;
             btn.classList.remove('skip-failed');
         }, 3000);
+    try {
+        const res = await fetch(workflowActionUrl(ns, workflowId, 'fail'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: DASHBOARD_FAIL_REASON }),
+        });
+        if (res.ok) {
+            btn.textContent = 'Marked failed';
+            btn.classList.remove('fail');
+            btn.classList.add('skip-success');
+        } else {
+            btn.textContent = 'Rejected';
+            btn.title = await problemDetail(res);
+            btn.classList.add('skip-failed');
+            restore();
+        }
+    } catch {
+        btn.textContent = 'Error';
+        btn.classList.add('skip-failed');
+        restore();
     }
 };
 
