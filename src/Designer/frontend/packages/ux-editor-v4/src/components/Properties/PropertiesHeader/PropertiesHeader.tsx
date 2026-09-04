@@ -14,7 +14,7 @@ import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
 import { StudioAlert } from '@studio/components';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
-import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
+import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;

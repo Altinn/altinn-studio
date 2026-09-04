@@ -20,7 +20,7 @@ import { changeGroupName } from '../../../utils/pageGroupUtils';
 import { EditName } from '../../config/EditName';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
-import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
+import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;

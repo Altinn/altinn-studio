@@ -22,6 +22,7 @@ import { EditLayoutSetName } from './EditLayoutSetName';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
 import { TaskUtils } from '../../../utils/taskUtils';
+import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -57,9 +58,17 @@ export const ConfigContent = (): React.ReactElement => {
   }
 
   return (
-    <ConfigContentContainer>
+    <ConfigContentContainer className={classes.sectionHeader}>
       <div className={classes.configContent}>
+        <MainSettingsHeader />
         <EditTaskId />
+        {taskHasConnectedLayoutSet && (
+          <EditDataTypes
+            connectedTaskId={getTaskIdForLayoutSet(layoutSet)}
+            dataModelIds={availableDataModelIds}
+            existingDataTypeForTask={existingDataTypeForTask}
+          />
+        )}
         <StudioDisplayTile
           label={t('process_editor.configuration_panel_name_label')}
           value={bpmnDetails.name}
