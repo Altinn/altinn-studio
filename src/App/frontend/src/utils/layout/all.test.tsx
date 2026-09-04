@@ -19,6 +19,9 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
 vi.mock('src/queries/queries');
+vi.mock('src/features/options/useSourceOptions', () => ({
+  useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
+}));
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
@@ -125,7 +128,7 @@ describe('All known UI folders should render successfully', () => {
     vi.restoreAllMocks();
   });
 
-  const dir = ensureAppsDirIsSet(true, path.resolve(process.cwd(), '../../test/apps'));
+  const dir = ensureAppsDirIsSet(true, path.resolve(import.meta.dirname, '../../../../../test/apps'));
   if (!dir) {
     return;
   }
@@ -142,7 +145,7 @@ describe('All known UI folders should render successfully', () => {
   allSets.sort(() => Math.random() - 0.5);
 
   async function testSet(uiFolder: ExternalAppUiFolder) {
-    const { pathname, mainFolder, subformComponent } = uiFolder.initialize();
+    const { pathname, initialPage, mainFolder, subformComponent } = uiFolder.initialize();
     window.history.replaceState({}, '', pathname);
     const [org, app] = uiFolder.app.getOrgApp();
     window.org = org;
@@ -154,12 +157,14 @@ describe('All known UI folders should render successfully', () => {
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),
       initialPath: pathname,
+      initialPage,
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
         fetchFormBootstrapForInstance: async (options) =>
           getFormBootstrapMock((obj) => {
             obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+            obj.staticOptions = uiFolder.app.getStaticOptions();
             const models = uiFolder.app.getDataModelsFromMetaData();
             obj.dataModels = Object.fromEntries(
               models.map((model) => [

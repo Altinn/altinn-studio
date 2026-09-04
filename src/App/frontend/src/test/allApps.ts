@@ -11,10 +11,19 @@ import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { GlobalPageSettings, UiConfig } from 'src/features/form/ui/types';
+import type { StaticOptionSet } from 'src/features/formBootstrap/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
+
+export function getProcessTaskType(process: string, taskId: string): string | undefined {
+  const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const task = process.match(
+    new RegExp(`<bpmn:([A-Za-z]*Task|task)\\b(?=[^>]*\\bid="${escapedTaskId}")[^>]*(?<!/)>([\\s\\S]*?)<\\/bpmn:\\1>`),
+  );
+  return task?.[2].match(/<altinn:taskType>([^<]+)<\/altinn:taskType>/)?.[1];
+}
 
 export class ExternalApp {
   private compat = false;
@@ -70,6 +79,22 @@ export class ExternalApp {
     return fs.readdirSync(this.rootDir + path);
   }
 
+  getStaticOptions(): Record<string, StaticOptionSet> {
+    const optionsPath = '/App/options';
+    if (!this.dirExists(optionsPath)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      this.readDir(optionsPath)
+        .filter((fileName) => fileName.endsWith('.json'))
+        .map((fileName) => [
+          path.basename(fileName, '.json'),
+          { options: this.readJson(`${optionsPath}/${fileName}`) },
+        ]),
+    );
+  }
+
   getBackendVersion(): string | undefined {
     let appFile: string;
     try {
@@ -113,11 +138,7 @@ export class ExternalApp {
       return undefined;
     }
 
-    const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const task = this.readFile(processPath).match(
-      new RegExp(`<bpmn:([A-Za-z]*Task|task)\\b[^>]*\\bid="${escapedTaskId}"[^>]*>([\\s\\S]*?)<\\/bpmn:\\1>`),
-    );
-    return task?.[2].match(/<altinn:taskType>([^<]+)<\/altinn:taskType>/)?.[1];
+    return getProcessTaskType(this.readFile(processPath), taskId);
   }
 
   isValid(): boolean {
@@ -392,7 +413,12 @@ export class ExternalAppUiFolder {
     return this.getName();
   }
 
-  initialize(): { pathname: string; mainFolder: ExternalAppUiFolder; subformComponent?: CompExternal<'Subform'> } {
+  initialize(): {
+    pathname: string;
+    initialPage: string;
+    mainFolder: ExternalAppUiFolder;
+    subformComponent?: CompExternal<'Subform'>;
+  } {
     const instance = getInstanceDataMock();
     const pageSettings = this.getSettings().pages;
     const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
@@ -419,7 +445,7 @@ export class ExternalAppUiFolder {
     if (!mainSet || !subformComponent) {
       // No other layout set includes us as a subform, we must be the main form.
       pathname += `/${this.getTaskId()}/${firstPage}`;
-      return { pathname, mainFolder: this };
+      return { pathname, initialPage: firstPage, mainFolder: this };
     }
 
     // From here on out, we're in a subform
@@ -428,7 +454,7 @@ export class ExternalAppUiFolder {
     const elementId = `fakeUuid:${this.config.defaultDataType}:end`;
     pathname += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
 
-    return { pathname, mainFolder: mainSet, subformComponent };
+    return { pathname, initialPage: firstPage, mainFolder: mainSet, subformComponent };
   }
 
   simulateProcessData(): IProcess {
