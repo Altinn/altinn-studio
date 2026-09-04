@@ -1,0 +1,29 @@
+{
+  "name": "@app/layout-contract",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./generated/*": "./src/generated/*.ts",
+    "./schemas/*": "./schemas/*"
+  },
+  "scripts": {
+    "format": "prettier --write \"src/**/*.ts\" eslint.config.mjs vitest.config.ts package.json tsconfig.json",
+    "format:check": "prettier --check \"src/**/*.ts\" eslint.config.mjs vitest.config.ts package.json tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "8.66.0",
+    "@typescript-eslint/parser": "8.66.0",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "eslint": "10.8.1",
+    "globals": "17.9.0",
+    "prettier": "3.9.6",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vitest": "4.1.10"
+  }
+}
