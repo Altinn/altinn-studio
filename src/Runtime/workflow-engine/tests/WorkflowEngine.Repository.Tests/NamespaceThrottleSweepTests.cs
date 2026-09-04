@@ -490,11 +490,24 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         AssertReleased(stamps, parkedByAge[2..6], secondSweep);
         AssertStillParked(stamps, parkedByAge[6..], secondSweep);
 
-        // Sweep 3: only 1 of the requested 8 remains — population exhausted, breaker closes.
+        // Sweep 3: only 1 of the requested 8 remains, so it goes — but the breaker stays
+        // Recovering. A short cohort is not evidence the population is spent: the cohort is
+        // claimed FOR UPDATE SKIP LOCKED, so a row a concurrent cancellation or fetch happens to
+        // hold is skipped while still parked, and clearing on that reading would throw away the
+        // grown window a re-trip out of Clear cannot get back.
         var thirdSweep = secondSweep + _sweepInterval;
         await service.RunSweepCycle(thirdSweep, TestContext.Current.CancellationToken);
         stamps = await GetThrottledUntil();
         AssertReleased(stamps, parkedByAge[6..], thirdSweep);
+
+        var recovering = await GetThrottle();
+        Assert.NotNull(recovering);
+        Assert.Equal(NamespaceThrottleState.Recovering, recovering.State);
+
+        // Sweep 4: the cohort comes back empty — nothing was left to release, and now the
+        // breaker clears. The cost of the stricter signal is this one extra sweep per recovery.
+        var fourthSweep = thirdSweep + _sweepInterval;
+        await service.RunSweepCycle(fourthSweep, TestContext.Current.CancellationToken);
 
         var throttle = await GetThrottle();
         Assert.NotNull(throttle);
@@ -725,6 +738,48 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
         await competingLock.DisposeAsync();
         await service.RunSweepCycle(now, TestContext.Current.CancellationToken);
         Assert.NotNull(await GetThrottle());
+    }
+
+    [Fact]
+    public async Task Sweep_LockHeldByAnotherSession_StillPublishesAFreshSnapshot()
+    {
+        // Arrange — a namespace already tripped by whichever replica holds the lock, and this
+        // replica has never seen it. The state read and the lock are ordered read-after-acquire
+        // so the lock holder cannot drive the state machine from a pre-lock snapshot; that puts
+        // the read behind a branch that returns early, and the handler-facing snapshot must not
+        // be a casualty of it. A replica skipping its cycle still has workflows to park.
+        var settings = Settings();
+        var repo = fixture.CreateRepository(settings);
+        var (service, view) = fixture.CreateThrottleService(settings);
+        var now = DateTimeOffset.UtcNow;
+
+        await repo.UpsertNamespaceThrottle(
+            new NamespaceThrottle
+            {
+                Namespace = Ns,
+                State = NamespaceThrottleState.Tripped,
+                TrippedAt = now,
+                CurrentWindow = TimeSpan.FromMinutes(20),
+                UpdatedAt = now,
+            },
+            TestContext.Current.CancellationToken
+        );
+
+        await using var competingConnection = new NpgsqlConnection(fixture.ConnectionString);
+        var competingLock = await AdvisoryLockScope.TryAcquire(
+            AdvisoryLockIds.ThrottleSweep,
+            competingConnection,
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(competingLock);
+
+        // Act
+        await service.RunSweepCycle(now, TestContext.Current.CancellationToken);
+
+        // Assert — the cycle advanced nothing, but the breaker is visible to this replica's
+        // handlers all the same.
+        Assert.Equal(TimeSpan.FromMinutes(20), Assert.Contains(Ns, view.TrippedBreakers));
+        await competingLock.DisposeAsync();
     }
 
     [Fact]

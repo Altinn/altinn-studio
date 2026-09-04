@@ -137,10 +137,6 @@ internal sealed class NamespaceThrottleService(
     /// </summary>
     internal async Task RunSweepCycle(DateTimeOffset now, CancellationToken ct)
     {
-        // Every replica refreshes its handler-facing snapshot each cycle, lock holder or not.
-        var throttles = await repository.GetNamespaceThrottles(ct);
-        PublishSnapshot(throttles);
-
         // The advisory lock is session-scoped, so this connection stays open for the whole cycle.
         // The state-machine queries below run on their own pooled connections — the lock is pure
         // mutual exclusion, not a transaction boundary.
@@ -150,6 +146,15 @@ internal sealed class NamespaceThrottleService(
             lockConnection,
             ct
         );
+
+        // Read after the acquisition attempt, never before it: TryAcquire only tells this replica
+        // the lock is free *now*, so a row read earlier can already have been advanced by the
+        // replica that just released it — and the state machine would then Upsert its stale state
+        // (window, canaries) over the newer one. Reading here also serves the non-holder, since
+        // every replica refreshes its handler-facing snapshot each cycle, lock holder or not.
+        var throttles = await repository.GetNamespaceThrottles(ct);
+        PublishSnapshot(throttles);
+
         if (sweepLock is null)
         {
             logger.SweepSkippedLockHeld();
@@ -416,7 +421,7 @@ internal sealed class NamespaceThrottleService(
     /// population (parked rows are still <c>Requeued</c>; counting them would re-trip instantly
     /// and recovery could never proceed) and re-trips keeping the grown window if it fires.
     /// Otherwise it releases the next cohort oldest-first with a jittered smear, doubling the
-    /// cohort each sweep, and closes once the parked population is exhausted.
+    /// cohort each sweep, and closes once a cohort comes back empty.
     /// </summary>
     private async Task EvaluateRecovering(
         NamespaceThrottle throttle,
@@ -476,9 +481,14 @@ internal sealed class NamespaceThrottleService(
         _releaseCohortSizes[throttle.Namespace] = (int)
             Math.Min(int.MaxValue, cohortSize * ThrottlingSettings.ReleaseCohortGrowthFactor);
 
-        if (released < cohortSize)
+        if (released == 0)
         {
-            // Parked population exhausted and the trip condition is quiet: the incident is over.
+            // Nothing left to release and the trip condition is quiet: the incident is over.
+            // An empty cohort, not merely a short one: the cohort is claimed FOR UPDATE SKIP
+            // LOCKED, so a single row held by a concurrent cancellation or fetch shortens it
+            // while parked rows remain — and clearing early is not free, because a re-trip out
+            // of Clear starts over at InitialWindow and loses the grown window. The cost is one
+            // extra sweep at the tail of every recovery, releasing nothing.
             // The row lingers Clear for a grace period so stragglers parked by stale handler
             // snapshots still get cleared — deleting it here would orphan them.
             throttle.State = NamespaceThrottleState.Clear;

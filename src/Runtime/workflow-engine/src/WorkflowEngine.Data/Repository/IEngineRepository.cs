@@ -295,7 +295,8 @@ internal interface IEngineRepository
     /// <summary>
     /// Counts <c>Requeued</c> and active (incomplete) workflows per namespace in one
     /// <c>GROUP BY</c> served by the <c>ix_workflows_namespace_status_incomplete</c> partial
-    /// index. The input to the throttle sweep's trip detection.
+    /// index, whose leading columns are exactly what the query reads. The input to the throttle
+    /// sweep's trip detection.
     /// </summary>
     Task<IReadOnlyList<NamespaceWorkflowCounts>> GetNamespaceWorkflowCounts(CancellationToken cancellationToken);
 
@@ -521,8 +522,10 @@ internal interface IEngineRepository
     /// oldest-created workflows still parked (<c>Requeued</c> with <c>throttled_until</c> in the
     /// future) get <c>throttled_until = now + random() * smear</c> — a jittered smear rather than
     /// a NULL-clear, so a released horde spreads across the poll window instead of hitting one
-    /// fetch cycle. Returns the number of workflows released; fewer than
-    /// <paramref name="cohortSize"/> means the parked population is exhausted.
+    /// fetch cycle. Returns the number of workflows released — a lower bound, not a census: the
+    /// cohort is claimed <c>FOR UPDATE SKIP LOCKED</c>, so a parked row locked by a concurrent
+    /// writer is skipped and left parked. A short cohort therefore proves nothing about the
+    /// parked population; only an empty one means there was nothing left to release.
     /// </summary>
     Task<int> ReleaseThrottledCohort(
         string ns,
