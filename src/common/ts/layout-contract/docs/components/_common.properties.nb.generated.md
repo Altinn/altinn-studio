@@ -1,0 +1,6 @@
+| Egenskap                      | Type                             | Påkrevd | Standardverdi | Beskrivelse                                                                                                                        |
+| ----------------------------- | -------------------------------- | ------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                          | `string`                         | Ja      |               | Komponent-ID-en. Den må være unik på tvers av alle sider i et layout-sett og kan ikke slutte med bindestrek etterfulgt av et tall. |
+| `hidden`                      | `boolean \| expression<boolean>` | Nei     | `false`       | Boolsk verdi eller uttrykk som angir om komponenten skal skjules.                                                                  |
+| [`grid`](../grid/)            | `object`                         | Nei     |               | Rutenettinnstillinger som styrer komponentens horisontale plassering og bredde.                                                    |
+| [`pageBreak`](../page-break/) | `object`                         | Nei     |               | Innstillinger for valgfrie sideskift før eller etter komponenten når den vises i PDF.                                              |

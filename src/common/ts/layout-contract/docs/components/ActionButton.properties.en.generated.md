@@ -1,0 +1,9 @@
+The component also supports the common properties [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/), and [`pageBreak`](../page-break/).
+
+| Property                     | Type                                               | Required | Default | Description                                                                                                   |
+| ---------------------------- | -------------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `type`                       | `"ActionButton"`                                   | Yes      |         | Identifies which component type this configuration represents.                                                |
+| `textResourceBindings`       | `object`                                           | No       |         | Connects component texts to text resources or expressions.                                                    |
+| `textResourceBindings.title` | `string \| expression<string>`                     | No       |         | The text to display on the button.                                                                            |
+| `action`                     | `"instantiate" \| "confirm" \| "sign" \| "reject"` | Yes      |         | The action to perform when the button is clicked. Allowed values: "instantiate", "confirm", "sign", "reject". |
+| `buttonStyle`                | `"primary" \| "secondary"`                         | Yes      |         | The style/color scheme of the button. Allowed values: "primary", "secondary".                                 |
