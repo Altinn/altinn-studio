@@ -51,6 +51,9 @@ describe('useUpdateProcessDataTypeMutation', () => {
       queryKey: [QueryKey.LayoutSets, org, app],
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.LayoutSetsExtended, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.FormLayoutSettings, org, app],
     });
   });
