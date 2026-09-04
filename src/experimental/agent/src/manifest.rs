@@ -483,8 +483,12 @@ fn valid_environment_variable(value: &str) -> bool {
 }
 
 /// Most recently observed Agent state.
+///
+/// Unlike the rest of the manifest, unknown fields are tolerated so an older
+/// client can read responses from a newer control plane; status is
+/// API-managed and never authored by hand.
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct Status {
     /// Desired generation observed by the reconciler.
     #[serde(default, skip_serializing_if = "is_zero")]
@@ -495,11 +499,58 @@ pub struct Status {
     /// Normalized readiness conditions.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub conditions: Vec<Condition>,
+    /// Local origin of the desired state. Projected onto API responses from
+    /// the stored Agent record; stores scrub it, so it is never persisted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
 }
 
 impl Status {
+    /// Creates reconciler-observed state; provenance stays API-projected.
+    #[must_use]
+    pub const fn observed(
+        observed_generation: u64,
+        sandbox: Option<crate::sandbox::Assignment>,
+        conditions: Vec<Condition>,
+    ) -> Self {
+        Self {
+            observed_generation,
+            sandbox,
+            conditions,
+            provenance: None,
+        }
+    }
+
     const fn is_empty(&self) -> bool {
-        self.observed_generation == 0 && self.sandbox.is_none() && self.conditions.is_empty()
+        self.observed_generation == 0
+            && self.sandbox.is_none()
+            && self.conditions.is_empty()
+            && self.provenance.is_none()
+    }
+}
+
+/// Conventional Agent manifest filename, used when a record predates path recording.
+pub const MANIFEST_FILE: &str = "agent.yaml";
+
+/// Local origin of an Agent's desired state.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct Provenance {
+    /// Absolute directory against which manifest-relative sources are resolved.
+    pub source_directory: std::path::PathBuf,
+    /// Absolute path of the manifest last applied, when the client reported it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest_path: Option<std::path::PathBuf>,
+}
+
+impl Provenance {
+    /// Returns the recorded manifest path, falling back to [`MANIFEST_FILE`]
+    /// in the source directory for records that predate path recording.
+    #[must_use]
+    pub fn manifest_or_default(&self) -> std::path::PathBuf {
+        self.manifest_path
+            .clone()
+            .unwrap_or_else(|| self.source_directory.join(MANIFEST_FILE))
     }
 }
 

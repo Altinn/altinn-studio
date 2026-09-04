@@ -28,6 +28,15 @@ impl SandboxName {
         Ok(Self(value))
     }
 
+    /// Returns whether `character` may appear anywhere in a Sandbox name.
+    ///
+    /// This is the per-keystroke filter for interactive input; the positional
+    /// rules (alphanumeric first and last byte) still apply at validation.
+    #[must_use]
+    pub const fn accepts(character: char) -> bool {
+        character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+    }
+
     /// Returns the name as text.
     #[must_use]
     pub fn as_str(&self) -> &str {

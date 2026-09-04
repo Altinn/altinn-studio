@@ -53,21 +53,21 @@ impl Reconcile<AgentId> for BlockingAgentReady {
                 .update_status(
                     id,
                     record.agent.metadata.generation,
-                    Status {
-                        observed_generation: record.agent.metadata.generation,
-                        sandbox: Some(SandboxAssignment::Materialized {
+                    Status::observed(
+                        record.agent.metadata.generation,
+                        Some(SandboxAssignment::Materialized {
                             provider: ProviderId::new("memory")?,
                             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af"
                                 .parse()
                                 .map_err(|error| Error::Database(format!("test Sandbox ID: {error}")))?,
                         }),
-                        conditions: vec![Condition {
+                        vec![Condition {
                             kind: "Ready".into(),
                             status: ConditionStatus::True,
                             reason: "SandboxReady".into(),
                             message: String::new(),
                         }],
-                    },
+                    ),
                 )
                 .await
         })
@@ -200,22 +200,23 @@ impl Reconcile<SessionId> for BlockingReconcile {
 fn ready_record(name: &str, id: AgentId) -> AgentRecord {
     let mut resource = support::agent(name);
     resource.metadata.generation = 1;
-    resource.status = Status {
-        observed_generation: 1,
-        sandbox: Some(SandboxAssignment::Materialized {
+    resource.status = Status::observed(
+        1,
+        Some(SandboxAssignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
         }),
-        conditions: vec![Condition {
+        vec![Condition {
             kind: "Ready".into(),
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
         }],
-    };
+    );
     AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
+        manifest_path: None,
         agent: resource,
     }
 }
@@ -546,6 +547,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             AgentRecord {
                 id: agent_id,
                 source_directory: PathBuf::from("/source"),
+                manifest_path: None,
                 agent: resource,
             },
             0,
