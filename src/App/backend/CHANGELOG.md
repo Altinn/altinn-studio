@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.5] - 2026-09-04
+
 ### Added
 
 - New build-time check `ALTINNAPP0800`: your app's `config/authorization/policy.xml` must grant the app owner (your org) the rights the app uses on its own behalf, since it writes process transitions and instance data to Storage as the service owner rather than as the end user. A policy missing them now fails the build and names the actions to add, instead of surfacing as an unexplained authorization failure at runtime; `studioctl app upgrade` adds them for you. Where the policy cannot be evaluated with certainty you get the warning `ALTINNAPP0801` instead.
