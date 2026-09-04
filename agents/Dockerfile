@@ -91,7 +91,7 @@ RUN case "${TARGETARCH}" in \
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
     && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-ARG CODEX_VERSION=0.149.1
+ARG CODEX_VERSION=0.152.0
 ARG CLAUDE_CODE_VERSION=2.1.260
 
 RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
