@@ -1,7 +1,8 @@
+import type { IGrid } from '@app/layout-contract/generated/common.generated';
+
 import type { PropsFromGenericComponent } from '.';
 
 import { createContext } from 'src/core/contexts/context';
-import type { IGrid } from 'src/layout/common.generated';
 
 export interface GenericComponentOverrideDisplay {
   directRender?: true;

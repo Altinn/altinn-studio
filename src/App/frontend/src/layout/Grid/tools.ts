@@ -1,7 +1,3 @@
-import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { typedBoolean } from 'src/utils/typing';
 import type {
   GridCell,
   GridCellLabelFrom,
@@ -9,7 +5,12 @@ import type {
   GridComponentRef,
   GridRow,
   GridRows,
-} from 'src/layout/common.generated';
+} from '@app/layout-contract/generated/common.generated';
+
+import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useIsHiddenMulti } from 'src/utils/layout/hidden';
+import { useExternalItem } from 'src/utils/layout/hooks';
+import { typedBoolean } from 'src/utils/typing';
 
 const emptyArray: never[] = [];
 

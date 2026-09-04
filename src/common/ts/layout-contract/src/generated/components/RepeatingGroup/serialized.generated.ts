@@ -40,6 +40,7 @@ export type CompRepeatingGroupSerialized = {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
     addButtonFull?: ExprValToActualOrExpr<ExprVal.String>;
     addButton?: ExprValToActualOrExpr<ExprVal.String>;
     saveButton?: ExprValToActualOrExpr<ExprVal.String>;
@@ -71,4 +72,4 @@ export type CompRepeatingGroupSerialized = {
 } & ComponentBase &
   SummarizableComponentProps;
 
-// Source hash: 47c534cfe8c12f36cf76c77f45d05ac19ce4e67a05228427d3c4b4f191e3b0af
+// Source hash: 6c4fc9be8161c33f3e4dc194219b2ddec75607652dc4a1607b62ab0f00179169

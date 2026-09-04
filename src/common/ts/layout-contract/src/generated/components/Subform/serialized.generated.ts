@@ -16,6 +16,7 @@ export type CompSubformSerialized = {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
     addButton?: ExprValToActualOrExpr<ExprVal.String>;
     tableEditButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
@@ -31,4 +32,4 @@ export type CompSubformSerialized = {
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: bcd4073a08897b19da99b889536ea202fd09fafaac5f650a3d853be6fa5ab3be
+// Source hash: d28719d5c428fea8937e81377cd7497f6afc0e837c0733e3d3133572ad4f0238

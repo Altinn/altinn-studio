@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, ComponentLayoutValidationProps } from 'src/layout/layout';
 
 export function FileUploadLayoutValidator({

@@ -46,7 +46,9 @@ extend-exclude = [
     # in src/bin/. The presentation HTML embeds minified reveal.js.
     "**/bin/[Dd]ebug/**", "**/bin/[Rr]elease/**", "**/obj/**", "**/dist/**",
     "**/node_modules/**", "**/.yarn/**",
-    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
+    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.generated.ts", "*.generated.tsx",
+    "*.verified.*", "**/Migrations/**",
+    "src/common/ts/layout-contract/docs/**/*.generated.md",
     "src/Runtime/workflow-engine/docs/presentation/**",
 
     # The spell-check harness itself: fixtures with deliberately planted

@@ -4,6 +4,7 @@ import { useIsMobile } from '@app/form-component';
 import { Table, ValidationMessage } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
+import type { GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -27,7 +28,6 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { GridRows, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {

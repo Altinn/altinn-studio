@@ -10,3 +10,4 @@ The component also supports the common properties [`id`](../common-properties/#i
 | `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>`   | No       |         | Title used for aria-label on the edit button in the summary view (overrides the default and summary title)  |
 | `textResourceBindings.title`                  | `string \| expression<string>`   | No       |         | The title of the paragraph                                                                                  |
 | `textResourceBindings.description`            | `string \| expression<string>`   | No       |         | Description, optionally shown below the title                                                               |
+| `textResourceBindings.help`                   | `string \| expression<string>`   | No       |         | Help text shown in a tooltip when clicking the help button                                                  |

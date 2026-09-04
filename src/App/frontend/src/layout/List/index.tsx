@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -21,7 +22,6 @@ import type {
   DataModelBindingValidationContext,
   PropsFromGenericComponent,
 } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';

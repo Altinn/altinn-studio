@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { IImage } from '@app/layout-contract/generated/components/Image/config.generated';
 
 import { ImageComponent } from 'src/layout/Image/ImageComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IImage } from 'src/layout/Image/config.generated';
 
 describe('ImageComponent', () => {
   it('renders a plain <img> with the resolved source', async () => {

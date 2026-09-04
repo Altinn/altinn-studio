@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PropsWithChildren } from 'react';
 
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
@@ -12,7 +13,6 @@ import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 type ReaderMap = { [name: string]: DataModelReader };
 

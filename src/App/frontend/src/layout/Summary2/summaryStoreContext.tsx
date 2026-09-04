@@ -1,11 +1,12 @@
 import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import type { ISummaryOverridesCommon } from '@app/layout-contract/generated/common.generated';
+import type { CompSummary2External } from '@app/layout-contract/generated/components/Summary2/config.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { ISummaryOverridesCommon } from 'src/layout/common.generated';
 import type { CompSummaryOverrides, CompTypes } from 'src/layout/layout';
-import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 type Summary2State = Pick<
   CompSummary2External,

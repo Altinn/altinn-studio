@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 
+import type { PageValidation } from '@app/layout-contract/generated/common.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
-import type { PageValidation } from 'src/layout/common.generated';
 
 export function useEffectivePageValidation(pageKey: string): {
   getPageValidation: () => PageValidation | undefined;

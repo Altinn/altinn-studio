@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
+import type { IDataModelBindingsList, IDataModelBindingsSimple } from '@app/layout-contract/generated/common.generated';
+
 import { AttachmentMutations } from 'src/features/attachments/hooks/attachmentMutations';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { UploadedAttachment } from 'src/features/attachments';
-import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 
 export interface AttachmentActionRemove {
   nodeId: string;
