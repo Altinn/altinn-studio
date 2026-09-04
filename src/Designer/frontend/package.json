@@ -34,7 +34,7 @@
     "@types/css-modules": "1.0.5",
     "@types/jest": "30.0.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.5",
     "@typescript-eslint/eslint-plugin": "8.66.0",
     "@typescript-eslint/parser": "8.66.0",
     "@typescript/native": "npm:typescript@7.0.2",
