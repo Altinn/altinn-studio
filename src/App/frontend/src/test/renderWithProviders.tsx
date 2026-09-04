@@ -60,6 +60,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 interface InstanceRouterProps {
   routerRef?: RouterRef;
+  initialPath?: string;
   initialPage?: string;
   taskId?: string;
   instanceId?: string;
@@ -241,13 +242,14 @@ function DefaultRouter({ children }: PropsWithChildren) {
 export function InstanceRouter({
   children,
   routerRef,
+  initialPath,
   instanceId = exampleInstanceId,
   taskId = 'Task_1',
   initialPage = 'FormLayout',
   alwaysRouteToChildren = false,
   query,
 }: PropsWithChildren<InstanceRouterProps>) {
-  const path = `/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`;
+  const path = initialPath ?? `/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`;
   const router = createMemoryRouter(
     [
       {
@@ -283,7 +285,7 @@ export function StatelessRouter({
   initialPage = 'FormLayout',
   alwaysRouteToChildren = false,
   query,
-}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId'>>) {
+}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId' | 'initialPath'>>) {
   const path = `/ttd/test/${initialPage}`;
   const router = createMemoryRouter(
     [
@@ -590,6 +592,7 @@ export const renderWithInstanceAndLayout = async ({
   renderer,
   instanceId,
   taskId,
+  initialPath,
   alwaysRouteToChildren,
   initialPage = 'FormLayout',
   query,
@@ -629,6 +632,7 @@ export const renderWithInstanceAndLayout = async ({
           routerRef={routerRef}
           instanceId={instanceId}
           taskId={taskId}
+          initialPath={initialPath}
           initialPage={initialPage}
           alwaysRouteToChildren={alwaysRouteToChildren}
           query={query}
