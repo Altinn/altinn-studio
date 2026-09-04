@@ -687,8 +687,8 @@ internal static class DashboardEndpoints
                 "/dashboard/retry",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (TryParseWorkflowTarget(doc.RootElement, out Guid workflowId, out string ns) is { } invalid)
+                    var (invalid, workflowId, ns) = await ReadWorkflowTarget(ctx.Request, ct);
+                    if (invalid is not null)
                         return invalid;
 
                     var engine = sp.GetRequiredService<IEngine>();
@@ -711,8 +711,8 @@ internal static class DashboardEndpoints
                 "/dashboard/nudge",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (TryParseWorkflowTarget(doc.RootElement, out Guid workflowId, out string ns) is { } invalid)
+                    var (invalid, workflowId, ns) = await ReadWorkflowTarget(ctx.Request, ct);
+                    if (invalid is not null)
                         return invalid;
 
                     using IServiceScope scope = sp.CreateScope();
@@ -738,8 +738,8 @@ internal static class DashboardEndpoints
                 "/dashboard/fail",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (TryParseWorkflowTarget(doc.RootElement, out Guid workflowId, out string ns) is { } invalid)
+                    var (invalid, workflowId, ns) = await ReadWorkflowTarget(ctx.Request, ct);
+                    if (invalid is not null)
                         return invalid;
 
                     using IServiceScope scope = sp.CreateScope();
@@ -765,26 +765,47 @@ internal static class DashboardEndpoints
     }
 
     /// <summary>
-    /// Reads the <c>workflowId</c> + <c>namespace</c> body shared by the dashboard's workflow actions.
-    /// Returns the 400 to answer with when the body does not name a valid target, <c>null</c> when it does.
+    /// Reads the <c>{ workflowId, namespace }</c> body shared by the dashboard's workflow actions. Answers a
+    /// 400 for anything that is not a JSON object naming a valid target — malformed JSON, a non-object root,
+    /// a non-string or non-GUID <c>workflowId</c> — rather than letting <see cref="JsonElement"/> throw.
     /// </summary>
-    private static IResult? TryParseWorkflowTarget(JsonElement root, out Guid workflowId, out string ns)
+    private static async Task<(IResult? Invalid, Guid WorkflowId, string Namespace)> ReadWorkflowTarget(
+        HttpRequest request,
+        CancellationToken ct
+    )
     {
-        workflowId = Guid.Empty;
-        ns = string.Empty;
+        JsonDocument doc;
+        try
+        {
+            doc = await JsonDocument.ParseAsync(request.Body, cancellationToken: ct);
+        }
+        catch (JsonException)
+        {
+            return (Results.BadRequest("Malformed JSON body"), Guid.Empty, string.Empty);
+        }
 
-        if (!root.TryGetProperty("workflowId", out var wfProp) || !Guid.TryParse(wfProp.GetString(), out workflowId))
-            return Results.BadRequest("Missing or invalid workflowId");
+        using (doc)
+        {
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+                return (Results.BadRequest("Body must be a JSON object"), Guid.Empty, string.Empty);
 
-        if (
-            !root.TryGetProperty("namespace", out var nsProp)
-            || nsProp.ValueKind != JsonValueKind.String
-            || string.IsNullOrWhiteSpace(nsProp.GetString())
-        )
-            return Results.BadRequest("Missing namespace");
+            if (
+                !root.TryGetProperty("workflowId", out var wfProp)
+                || wfProp.ValueKind != JsonValueKind.String
+                || !Guid.TryParse(wfProp.GetString(), out var workflowId)
+            )
+                return (Results.BadRequest("Missing or invalid workflowId"), Guid.Empty, string.Empty);
 
-        ns = nsProp.GetString() ?? throw new UnreachableException();
-        return null;
+            if (
+                !root.TryGetProperty("namespace", out var nsProp)
+                || nsProp.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(nsProp.GetString())
+            )
+                return (Results.BadRequest("Missing namespace"), Guid.Empty, string.Empty);
+
+            return (null, workflowId, nsProp.GetString() ?? throw new UnreachableException());
+        }
     }
 
     private static Dictionary<string, string>? ParseLabelFilters(string? labels)

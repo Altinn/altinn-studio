@@ -282,6 +282,24 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("/dashboard/retry")]
+    [InlineData("/dashboard/nudge")]
+    [InlineData("/dashboard/fail")]
+    public async Task WorkflowAction_MalformedBody_Returns400(string path)
+    {
+        // Valid JSON that is not an object naming a target, plus a body that is not JSON at all — each
+        // used to surface as a 500 out of JsonElement rather than the intended 400.
+        string[] bodies = ["[]", "\"just a string\"", "{\"workflowId\":1,\"namespace\":\"ops\"}", "{not json"];
+        using var client = fixture.CreateEngineClient();
+        foreach (var body in bodies)
+        {
+            using var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(path, content, TestContext.Current.CancellationToken);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+    }
+
     [Fact]
     public async Task Fail_InvalidPayload_Returns400()
     {

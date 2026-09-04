@@ -552,7 +552,8 @@ Returns `409 Conflict` when the workflow is not parked — including when it is 
 is indistinguishable from one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay,
 and a client that must retry the call reads the workflow's status first. `404 Not Found` when it does not exist,
 `400 Bad Request` when `reason` is blank or over-long. The failure is counted as
-`engine.workflows.execution.failed{reason="manual"}` — keep that reason out of the default ops alert alongside
+`engine.workflows.execution.failed{reason="manual"}` (and `engine.steps.execution.failed{reason="manual"}` for
+the step) — keep that reason out of the default ops alert alongside
 `wait_expired`. The dashboard's _Fail_ button drives the same operation through `POST /dashboard/fail`.
 
 ## Mailboxes

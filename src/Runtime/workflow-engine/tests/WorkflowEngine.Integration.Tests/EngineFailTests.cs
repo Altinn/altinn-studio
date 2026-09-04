@@ -115,7 +115,7 @@ public sealed class EngineFailTests(EngineAppFixture<Program> fixture) : IAsyncL
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         var workflow = await _client.GetWorkflow(workflowId);
         Assert.NotNull(workflow);
-        Assert.Single(Assert.Single(workflow.Steps).ErrorHistory!.Where(e => e.Message == Reason));
+        Assert.Single(Assert.Single(workflow.Steps).ErrorHistory!, e => e.Message == Reason);
     }
 
     [Fact]
