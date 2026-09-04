@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { loadESLint } from 'eslint';
 import fs from 'node:fs/promises';
+import { format, resolveConfig } from 'prettier';
 import type { ESLint } from 'eslint';
 
 const writtenPaths = new Set<string>();
@@ -58,7 +59,9 @@ type TsResult = { result: string };
 export async function saveTsFile(targetPath: string, content: TsResult | Promise<TsResult>) {
   writtenPaths.add(targetPath);
   const { result } = await content;
-  const contentHash = crypto.createHash('sha256').update(result).digest('hex');
+  const prettierConfig = await resolveConfig(targetPath);
+  const formattedResult = await format(result, { ...prettierConfig, filepath: targetPath });
+  const contentHash = crypto.createHash('sha256').update(formattedResult).digest('hex');
   const _fileExists = await fileExists(targetPath);
   if (_fileExists) {
     const existingContent = await fs.readFile(targetPath, 'utf-8');
@@ -70,11 +73,11 @@ export async function saveTsFile(targetPath: string, content: TsResult | Promise
   } else {
     // For some reason eslint needs the file to exist before it can fix it, even if we're passing
     // the content directly to it.
-    await fs.writeFile(targetPath, result, 'utf-8');
+    await fs.writeFile(targetPath, formattedResult, 'utf-8');
   }
 
   const eslint = await getESLint();
-  const results = await eslint.lintText(result, { filePath: targetPath });
+  const results = await eslint.lintText(formattedResult, { filePath: targetPath });
   const output = results[0].output;
 
   if (!output && results[0].errorCount > 0) {
@@ -82,7 +85,7 @@ export async function saveTsFile(targetPath: string, content: TsResult | Promise
     console.error(results[0].messages);
   }
 
-  const contentMain = output || result;
+  const contentMain = output || formattedResult;
   const regexToIgnore = /\/\/ Source hash: [a-f0-9]+/;
   await saveFile(targetPath, `${contentMain.trim()}\n\n// Source hash: ${contentHash}`, regexToIgnore, _fileExists);
 }

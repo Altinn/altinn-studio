@@ -1,3 +1,4 @@
+import type { PropertyDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -85,6 +86,11 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
 
   toJsonSchema(): JSONSchema7 {
     throw new Error('Do not call this directly, generate JsonSchema for the object (or property type) instead');
+  }
+
+  toComponentCatalog(): PropertyDefinition {
+    const optional = this.type instanceof MaybeOptionalCodeGenerator && this.type.isOptional();
+    return { ...this.type.toComponentCatalog(), required: !optional };
   }
 
   setAsAdded() {

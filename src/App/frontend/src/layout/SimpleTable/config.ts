@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'SimpleTable', en: 'SimpleTable' },
+    lifecycle: { status: 'beta' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -24,7 +30,9 @@ export const Config = new CG.component({
     new CG.obj(
       new CG.prop(
         'tableData',
-        new CG.dataModelBinding().setTitle('TableData').setDescription('Array of objects where the data is stored'),
+        new CG.dataModelBinding()
+          .setTitle('TableData', 'Tabelldata')
+          .setDescription('Array of objects where the data is stored', 'Liste over objektene der dataene lagres.'),
       ),
     )
       .optional()
@@ -39,8 +47,11 @@ export const Config = new CG.component({
           new CG.prop(
             'accessors',
             new CG.arr(new CG.str())
-              .setTitle('Accessors')
-              .setDescription('List of fields that should be included in the cell'),
+              .setTitle('Accessors', 'Tilgangsfunksjoner')
+              .setDescription(
+                'List of fields that should be included in the cell',
+                'Liste over feltene som skal tas med i cellen.',
+              ),
           ),
 
           new CG.prop(
@@ -57,8 +68,11 @@ export const Config = new CG.component({
                 new CG.prop(
                   'format',
                   new CG.str()
-                    .setTitle('Date format')
-                    .setDescription('Date format used when displaying the date to the user')
+                    .setTitle('Date format', 'Datoformat')
+                    .setDescription(
+                      'Date format used when displaying the date to the user',
+                      'Datoformatet som brukes når datoen vises til brukeren.',
+                    )
                     .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd')
                     .optional(),
                 ),
@@ -83,23 +97,38 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'zebra',
-      new CG.bool().setTitle('Size').setDescription('If true, the table will have zebra striping').optional(),
+      new CG.bool()
+        .setTitle('Size', 'Størrelse')
+        .setDescription('If true, the table will have zebra striping', 'Viser tabellen med stripete rader.')
+        .optional(),
     ),
   )
   .addProperty(
     new CG.prop(
       'enableDelete',
-      new CG.bool().setTitle('Enable delete').setDescription('If true, will allow user to delete row').optional(),
+      new CG.bool()
+        .setTitle('Enable delete', 'Tillat sletting')
+        .setDescription('If true, will allow user to delete row', 'Lar brukeren slette raden.')
+        .optional(),
     ),
   )
   .addProperty(
     new CG.prop(
       'enableEdit',
-      new CG.bool().setTitle('Enable delete').setDescription('If true, will allow user to edit row').optional(),
+      new CG.bool()
+        .setTitle('Enable delete', 'Tillat sletting')
+        .setDescription('If true, will allow user to edit row', 'Lar brukeren redigere raden.')
+        .optional(),
     ),
   )
   .addProperty(
-    new CG.prop('size', new CG.enum('sm', 'md', 'lg').setTitle('Size').setDescription('Size of table.').optional()),
+    new CG.prop(
+      'size',
+      new CG.enum('sm', 'md', 'lg')
+        .setTitle('Size', 'Størrelse')
+        .setDescription('Size of table.', 'Tabellens størrelse.')
+        .optional(),
+    ),
   )
   .addProperty(
     new CG.prop(

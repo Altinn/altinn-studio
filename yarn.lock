@@ -232,7 +232,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/layout-contract@workspace:src/common/ts/layout-contract":
+"@app/layout-contract@workspace:*, @app/layout-contract@workspace:src/common/ts/layout-contract":
   version: 0.0.0-use.local
   resolution: "@app/layout-contract@workspace:src/common/ts/layout-contract"
   dependencies:
@@ -7494,6 +7494,7 @@ __metadata:
     "@app/form-component": "workspace:*"
     "@app/form-engine": "workspace:*"
     "@app/language": "workspace:*"
+    "@app/layout-contract": "workspace:*"
     "@babel/core": "npm:7.29.7"
     "@babel/plugin-transform-runtime": "npm:7.29.7"
     "@babel/preset-env": "npm:7.29.7"

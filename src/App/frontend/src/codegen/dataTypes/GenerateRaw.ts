@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -79,5 +80,9 @@ export class GenerateRaw extends MaybeOptionalCodeGenerator<any> {
 
   toTypeScriptDefinition(_symbol: string | undefined): string {
     throw new Error('Method not implemented.');
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    throw new Error('GenerateRaw must provide a component catalogue representation');
   }
 }

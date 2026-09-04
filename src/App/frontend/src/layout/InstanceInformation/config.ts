@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Informasjon om eksemplaret', en: 'InstanceInformation' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -26,8 +32,11 @@ export const Config = new CG.component({
         new CG.prop('referenceNumber', new CG.bool().optional()),
       )
         .optional()
-        .setTitle('Elements')
-        .setDescription('Which elements to show in the instance information'),
+        .setTitle('Elements', 'Elementer')
+        .setDescription(
+          'Which elements to show in the instance information',
+          'Angir hvilke elementer som skal vises i instansinformasjonen.',
+        ),
     ),
   )
   .extends(CG.common('LabeledComponentProps'))
