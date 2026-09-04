@@ -10,14 +10,13 @@ namespace WorkflowEngine.App.Tests.Commands.AppCommand;
 
 /// <summary>
 /// Security regression guard: <see cref="App.Commands.AppCommand.AppCommand"/> must never log the
-/// callback payload. The payload carries actor identifiers (incl. national identity number), the lock
-/// token, the command payload body, and the unencrypted state envelope (instance + form data). Logging
+/// callback payload. The payload carries actor identifiers (incl. national identity number), the
+/// command payload body, and the unencrypted state envelope (instance + form data). Logging
 /// would leak PII and secrets into workflow-engine logs.
 /// </summary>
 public class AppCommandLoggingTests
 {
     private const string SecretNationalIdentityNumber = "01017012345";
-    private const string SecretLockToken = "SENSITIVE_LOCK_TOKEN";
     private const string SecretPayloadBody = "SENSITIVE_PAYLOAD_BODY";
     private const string SecretStateBlob = "SENSITIVE_STATE_BLOB";
 
@@ -39,7 +38,6 @@ public class AppCommandLoggingTests
                 NationalIdentityNumber = SecretNationalIdentityNumber,
                 SystemUserId = Guid.Parse("11111111-2222-3333-4444-555555555555"),
             },
-            LockToken = SecretLockToken,
             Org = "ttd",
             App = "test-app",
             InstanceOwnerPartyId = 12345,
@@ -66,7 +64,6 @@ public class AppCommandLoggingTests
 
         // Negative: no sensitive field may appear in any log line.
         Assert.DoesNotContain(SecretNationalIdentityNumber, logs, StringComparison.Ordinal);
-        Assert.DoesNotContain(SecretLockToken, logs, StringComparison.Ordinal);
         Assert.DoesNotContain(SecretPayloadBody, logs, StringComparison.Ordinal);
         Assert.DoesNotContain(SecretStateBlob, logs, StringComparison.Ordinal);
 

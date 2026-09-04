@@ -8,7 +8,6 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -25,8 +24,6 @@ public class InstanceEventClient : IInstanceEventClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly HttpClient _client;
-    private readonly IInstanceLocker _instanceLocker;
-
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
@@ -37,8 +34,6 @@ public class InstanceEventClient : IInstanceEventClient
     public InstanceEventClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
         _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
-        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
-
         var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
         httpClient.BaseAddress = new Uri(platformSettings.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
@@ -115,8 +110,7 @@ public class InstanceEventClient : IInstanceEventClient
         using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
-            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"),
-            lockToken: _instanceLocker.CurrentLockToken
+            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json")
         );
 
         if (response.IsSuccessStatusCode)

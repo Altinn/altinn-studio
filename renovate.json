@@ -16,6 +16,22 @@
       "depNameTemplate": "grafana/k6",
       "versioningTemplate": "docker",
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Claude Code release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CLAUDE_CODE_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@anthropic-ai/claude-code"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Codex release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@openai/codex"
     }
   ],
   "separateMultipleMajor": true,
@@ -104,7 +120,7 @@
       "description": "Skip @percy/cypress 3.1.9: it depends on a beta @percy/sdk-utils (1.32.3-beta.1) whose waitForReady DOM-readiness step hangs, timing out all Cypress Percy snapshots. Allow again once a fixed release (>3.1.9) ships.",
       "matchManagers": ["npm"],
       "matchPackageNames": ["@percy/cypress"],
-      "allowedVersions": "!=3.1.9"
+      "allowedVersions": "<3.1.9 || >3.1.9"
     },
     {
       "description": "Automerge non-major Altinn app template package updates (v8)",
@@ -125,6 +141,15 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Altinn app template NuGet packages (v9)",
       "groupSlug": "app-template-nuget-v9",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["@anthropic-ai/claude-code", "@openai/codex"],
+      "matchUpdateTypes": ["minor", "patch"],
       "addLabels": ["approve"],
       "automerge": true
     },

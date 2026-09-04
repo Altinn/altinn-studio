@@ -41,13 +41,17 @@ public class PersistentItemStatusMapTests
             PersistentItemStatusMap.FetchableSqlList,
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Fetchable)
         );
+        Assert.Equal(
+            PersistentItemStatusMap.ProcessingSqlLiteral,
+            PersistentItemStatusMap.ToSqlList([PersistentItemStatus.Processing])
+        );
     }
 
     [Fact]
     public void Fetchable_IsASubsetOfIncomplete_AndExcludesTheStatusesNoWorkerClaims()
     {
-        // This cannot check the set against FetchAndLockWorkflows, whose SQL spells its statuses out itself:
-        // the drift caught here is index-versus-set, not gate-versus-set.
+        // Both the partial index and FetchAndLockWorkflows interpolate FetchableSqlList, so this
+        // pin covers the fetch gate as well as the index.
         Assert.All(PersistentItemStatusMap.Fetchable, s => Assert.Contains(s, PersistentItemStatusMap.Incomplete));
 
         Assert.DoesNotContain(PersistentItemStatus.Processing, PersistentItemStatusMap.Fetchable);

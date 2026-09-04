@@ -123,7 +123,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     resource.spec.harnesses[0].default = true;
     resource.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
-        version: "0.149.1".into(),
+        version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
     });
@@ -317,6 +317,62 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
     );
 
     assert_podman_setup_commands(&backend.execution_specs());
+}
+
+#[tokio::test(flavor = "local")]
+async fn linux_setup_accepts_any_installed_version_when_none_is_declared() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    resource.spec.harnesses[0].version = None;
+    let record = AgentRecord {
+        id: agent_id,
+        source_directory: PathBuf::from(directory.path()),
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.258 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("Sandbox");
+
+    Linux
+        .setup(&record, &sandbox)
+        .await
+        .expect("setup without a declared version");
+
+    assert_eq!(
+        backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_claude_version(spec))
+            .count(),
+        1,
+        "the installation is still checked for presence"
+    );
 }
 
 #[tokio::test(flavor = "local")]

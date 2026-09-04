@@ -157,6 +157,51 @@ describe('CheckboxesContainerComponent', () => {
     });
   });
 
+  it('should select an option with help text when clicking its label', async () => {
+    const { formDataMethods } = await render({
+      options: [
+        {
+          label: 'Norway',
+          value: 'norway',
+          helpText: 'Help text',
+        },
+      ],
+    });
+    const checkbox = getCheckbox({ name: /Norway/ });
+    const label = document.querySelector(`label[for="${checkbox.id}"]`);
+
+    expect(label).toBeInTheDocument();
+
+    await userEvent.click(label as HTMLLabelElement);
+
+    expect(checkbox).toBeChecked();
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
+    expect(formDataMethods.setLeafValue).toHaveBeenLastCalledWith({
+      reference: { field: 'selectedValues', dataType: defaultDataTypeMock },
+      newValue: 'norway',
+    });
+  });
+
+  it('should not select an option when clicking its help text button', async () => {
+    const { formDataMethods } = await render({
+      options: [
+        {
+          label: 'Norway',
+          value: 'norway',
+          helpText: 'Help text',
+        },
+      ],
+    });
+    const checkbox = getCheckbox({ name: /Norway/ });
+    const helpTextButton = screen.getByRole('button', { name: 'Help text' });
+
+    await userEvent.click(helpTextButton);
+
+    expect(helpTextButton).toHaveAttribute('aria-expanded', 'true');
+    expect(checkbox).not.toBeChecked();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
+  });
+
   it('should call setLeafValue with updated values when deselecting item', async () => {
     const { formDataMethods } = await render({
       options: threeOptions,

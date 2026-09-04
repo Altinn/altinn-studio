@@ -190,12 +190,13 @@ public sealed class DeferralTests(EngineAppFixture<Program> fixture) : IAsyncLif
     }
 
     [Fact]
-    public async Task WaitingWorkflow_DashboardNudge_TriggersImmediateReExecution()
+    public async Task WaitingWorkflow_Fail_RecordsReasonAndStaysResumable()
     {
+        const string reason = "Operator confirmed the receipt will never arrive";
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
-                "wf-dashboard-nudge",
-                [CreateDeferStep("poll-dashboard-nudge", succeedOnAttempt: 2, deferDelayMs: 600_000)]
+                "wf-api-fail",
+                [CreateDeferStep("poll-api-fail", succeedOnAttempt: 2, deferDelayMs: 600_000)]
             )
         );
         var enqueueResponse = await _client.Enqueue(request);
@@ -203,15 +204,28 @@ public sealed class DeferralTests(EngineAppFixture<Program> fixture) : IAsyncLif
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
 
-        using var client = fixture.CreateEngineClient();
-        using var response = await client.PostAsJsonAsync(
-            "/dashboard/nudge",
-            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
-            TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var response = await _client.FailWorkflow(workflowId, reason);
+        Assert.Equal(workflowId, response.WorkflowId);
 
+        // A deferral records no error history, so the caller's reason is the step's only entry
+        var failed = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Failed,
+            TimeSpan.FromSeconds(30)
+        );
+        var step = Assert.Single(failed.Steps);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Equal(1, step.DeferCount);
+        Assert.NotNull(step.ErrorHistory);
+        var entry = Assert.Single(step.ErrorHistory);
+        Assert.Equal(reason, entry.Message);
+        Assert.False(entry.WasRetryable);
+        Assert.Equal(1, DeferringCommand.InvocationCount("poll-api-fail"));
+
+        // Resume re-executes the step, which succeeds on its second attempt
+        await _client.ResumeWorkflow(workflowId);
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+        Assert.Equal(2, DeferringCommand.InvocationCount("poll-api-fail"));
     }
 
     [Fact]

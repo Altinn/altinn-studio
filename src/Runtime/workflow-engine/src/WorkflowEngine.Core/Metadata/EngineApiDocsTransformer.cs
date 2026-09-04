@@ -38,6 +38,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["ResumeWorkflow"] = "resume",
         ["AbandonWorkflow"] = "abandon",
         ["NudgeWorkflow"] = "nudge",
+        ["FailWorkflow"] = "fail",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
         ["MintMailbox"] = "mint-mailbox",

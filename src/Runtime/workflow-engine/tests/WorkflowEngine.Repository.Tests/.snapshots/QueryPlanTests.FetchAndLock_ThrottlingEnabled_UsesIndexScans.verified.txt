@@ -1,0 +1,185 @@
+﻿[
+  {
+    Plan: {
+      Node Type: CTE Scan,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      CTE Name: updated,
+      Alias: updated,
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Plans: [
+        {
+          Node Type: Limit,
+          Parent Relationship: InitPlan,
+          Subplan Name: CTE ready,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Plans: [
+            {
+              Node Type: LockRows,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Plans: [
+                {
+                  Node Type: Nested Loop,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Join Type: Anti,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Inner Unique: false,
+                  Plans: [
+                    {
+                      Node Type: Index Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Scan Direction: Forward,
+                      Index Name: ix_workflows_backoff_until_created_at,
+                      Relation Name: workflows,
+                      Alias: w,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Filter: (((backoff_until IS NULL) OR (backoff_until <= '2026-03-19 12:00:00+00'::timestamp with time zone) OR (cancellation_requested_at IS NOT NULL)) AND ((throttled_until IS NULL) OR (throttled_until <= '2026-03-19 12:00:00+00'::timestamp with time zone) OR (cancellation_requested_at IS NOT NULL)) AND (status = ANY ('{0,2,8}'::integer[])))
+                    },
+                    {
+                      Node Type: Nested Loop,
+                      Parent Relationship: Inner,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Join Type: Inner,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Inner Unique: true,
+                      Plans: [
+                        {
+                          Node Type: Index Scan,
+                          Parent Relationship: Outer,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Scan Direction: Forward,
+                          Index Name: pk_workflow_dependency,
+                          Relation Name: workflow_dependency,
+                          Alias: wd,
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Index Cond: (workflow_id = w.id)
+                        },
+                        {
+                          Node Type: Index Scan,
+                          Parent Relationship: Inner,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Scan Direction: Forward,
+                          Index Name: pk_workflows,
+                          Relation Name: workflows,
+                          Alias: dep,
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Index Cond: (id = wd.depends_on_workflow_id),
+                          Filter: (status <> ALL ('{3,4,5,6,7}'::integer[]))
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          Node Type: ModifyTable,
+          Operation: Update,
+          Parent Relationship: InitPlan,
+          Subplan Name: CTE updated,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Relation Name: workflows,
+          Alias: w_1,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Plans: [
+            {
+              Node Type: Nested Loop,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Join Type: Inner,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Inner Unique: true,
+              Plans: [
+                {
+                  Node Type: CTE Scan,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  CTE Name: ready,
+                  Alias: r,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false
+                },
+                {
+                  Node Type: Index Scan,
+                  Parent Relationship: Inner,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: pk_workflows,
+                  Relation Name: workflows,
+                  Alias: w_1,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Index Cond: (id = r.id)
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -221,6 +221,51 @@ namespace WorkflowEngine.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.NamespaceThrottleEntity", b =>
+                {
+                    b.Property<string>("Namespace")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("namespace");
+
+                    b.Property<string>("Canaries")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("canaries");
+
+                    b.Property<TimeSpan>("CurrentWindow")
+                        .HasColumnType("interval")
+                        .HasColumnName("current_window");
+
+                    b.Property<int>("LastActiveCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("last_active_count");
+
+                    b.Property<DateTimeOffset?>("LastEvaluatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_evaluated_at");
+
+                    b.Property<int>("LastRequeuedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("last_requeued_count");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer")
+                        .HasColumnName("state");
+
+                    b.Property<DateTimeOffset>("TrippedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("tripped_at");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Namespace")
+                        .HasName("pk_namespace_throttles");
+
+                    b.ToTable("namespace_throttles", "engine");
+                });
+
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -438,6 +483,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
+                    b.Property<DateTimeOffset?>("ThrottledUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("throttled_until");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -471,10 +520,15 @@ namespace WorkflowEngine.Data.Migrations
                         .HasDatabaseName("ix_workflows_backoff_until_created_at")
                         .HasFilter("status IN (0, 2, 8)");
 
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { "ThrottledUntil" });
                     NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
                     b.HasIndex("Namespace", "Status")
                         .HasDatabaseName("ix_workflows_namespace_status");
+
+                    b.HasIndex(new[] { "Namespace", "Status" }, "ix_workflows_namespace_status_incomplete")
+                        .HasDatabaseName("ix_workflows_namespace_status_incomplete")
+                        .HasFilter("status IN (0, 1, 2, 8, 9)");
 
                     b.ToTable("workflows", "engine");
                 });
