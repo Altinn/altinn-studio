@@ -415,6 +415,7 @@ public sealed class HostBridgeClient
         {
             if (_pending.TryRemove(requestId, out var pending))
             {
+                pending.Cancel();
                 pending.TrySetException(new OperationCanceledException());
                 try
                 {
