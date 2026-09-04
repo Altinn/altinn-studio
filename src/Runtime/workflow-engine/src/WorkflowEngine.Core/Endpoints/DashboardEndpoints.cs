@@ -32,12 +32,6 @@ internal static class DashboardEndpoints
     };
 
     /// <summary>
-    /// The error-history entry a manual failure leaves on the parked step. Read by anyone inspecting the
-    /// step afterwards — the dashboard's error history, the app side's failure view — so it says who did it.
-    /// </summary>
-    private const string ManualFailureReason = "Failed manually by an operator from the workflow engine dashboard";
-
-    /// <summary>
     /// Maps the dashboard UI: static files (embedded or physical), <c>/api/config</c>,
     /// and the <c>/api/hot-reload</c> dev endpoint.
     /// </summary>
@@ -683,129 +677,7 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
-        app.MapPost(
-                "/dashboard/retry",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    var (invalid, workflowId, ns) = await ReadWorkflowTarget(ctx.Request, ct);
-                    if (invalid is not null)
-                        return invalid;
-
-                    var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
-
-                    return result switch
-                    {
-                        ResumeWorkflowResult.Resumed => Results.Ok(),
-                        ResumeWorkflowResult.NotFound => Results.NotFound(),
-                        ResumeWorkflowResult.NotResumable r => Results.Conflict(
-                            $"Workflow is in {r.CurrentStatus} state"
-                        ),
-                        _ => throw new UnreachableException(),
-                    };
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapPost(
-                "/dashboard/nudge",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    var (invalid, workflowId, ns) = await ReadWorkflowTarget(ctx.Request, ct);
-                    if (invalid is not null)
-                        return invalid;
-
-                    using IServiceScope scope = sp.CreateScope();
-                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
-
-                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/nudge — routed through the
-                    // engine rather than the repository so the dashboard button also wakes the
-                    // processor immediately instead of waiting for its next poll tick.
-                    var result = await engine.NudgeWorkflow(workflowId, ns, ct);
-
-                    return result switch
-                    {
-                        NudgeWorkflowResult.Nudged or NudgeWorkflowResult.AlreadyRunnable => Results.Ok(),
-                        NudgeWorkflowResult.NotFound => Results.NotFound(),
-                        NudgeWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
-                        _ => throw new UnreachableException(),
-                    };
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapPost(
-                "/dashboard/fail",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    var (invalid, workflowId, ns) = await ReadWorkflowTarget(ctx.Request, ct);
-                    if (invalid is not null)
-                        return invalid;
-
-                    using IServiceScope scope = sp.CreateScope();
-                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
-
-                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/fail, with a fixed reason that
-                    // names the dashboard as the place the operator gave up from.
-                    var result = await engine.FailWorkflow(workflowId, ns, ManualFailureReason, ct);
-
-                    return result switch
-                    {
-                        FailWorkflowResult.Failed => Results.Ok(),
-                        FailWorkflowResult.NotFound => Results.NotFound(),
-                        FailWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
-                        FailWorkflowResult.Invalid r => Results.BadRequest(r.Message),
-                        _ => throw new UnreachableException(),
-                    };
-                }
-            )
-            .ExcludeFromDescription();
-
         return app;
-    }
-
-    /// <summary>
-    /// Reads the <c>{ workflowId, namespace }</c> body shared by the dashboard's workflow actions. Answers a
-    /// 400 for anything that is not a JSON object naming a valid target — malformed JSON, a non-object root,
-    /// a non-string or non-GUID <c>workflowId</c> — rather than letting <see cref="JsonElement"/> throw.
-    /// </summary>
-    private static async Task<(IResult? Invalid, Guid WorkflowId, string Namespace)> ReadWorkflowTarget(
-        HttpRequest request,
-        CancellationToken ct
-    )
-    {
-        JsonDocument doc;
-        try
-        {
-            doc = await JsonDocument.ParseAsync(request.Body, cancellationToken: ct);
-        }
-        catch (JsonException)
-        {
-            return (Results.BadRequest("Malformed JSON body"), Guid.Empty, string.Empty);
-        }
-
-        using (doc)
-        {
-            var root = doc.RootElement;
-            if (root.ValueKind != JsonValueKind.Object)
-                return (Results.BadRequest("Body must be a JSON object"), Guid.Empty, string.Empty);
-
-            if (
-                !root.TryGetProperty("workflowId", out var wfProp)
-                || wfProp.ValueKind != JsonValueKind.String
-                || !Guid.TryParse(wfProp.GetString(), out var workflowId)
-            )
-                return (Results.BadRequest("Missing or invalid workflowId"), Guid.Empty, string.Empty);
-
-            if (
-                !root.TryGetProperty("namespace", out var nsProp)
-                || nsProp.ValueKind != JsonValueKind.String
-                || string.IsNullOrWhiteSpace(nsProp.GetString())
-            )
-                return (Results.BadRequest("Missing namespace"), Guid.Empty, string.Empty);
-
-            return (null, workflowId, nsProp.GetString() ?? throw new UnreachableException());
-        }
     }
 
     private static Dictionary<string, string>? ParseLabelFilters(string? labels)

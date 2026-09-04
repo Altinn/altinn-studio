@@ -507,8 +507,7 @@ depends on the nudge arriving.
 
 Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
 the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
-does not exist. The dashboard's _Retry now_ / _Check now_ buttons drive the same operation through
-`POST /dashboard/nudge`.
+does not exist. The dashboard's _Retry now_ / _Check now_ buttons call this endpoint directly.
 
 ## Fail
 
@@ -554,7 +553,7 @@ and a client that must retry the call reads the workflow's status first. `404 No
 `400 Bad Request` when `reason` is blank or over-long. The failure is counted as
 `engine.workflows.execution.failed{reason="manual"}` (and `engine.steps.execution.failed{reason="manual"}` for
 the step) — keep that reason out of the default ops alert alongside
-`wait_expired`. The dashboard's _Fail_ button drives the same operation through `POST /dashboard/fail`.
+`wait_expired`. The dashboard's _Fail_ button calls this endpoint with a fixed reason naming the dashboard.
 
 ## Mailboxes
 
@@ -1156,7 +1155,8 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 - Visual step pipeline with status colors
 - Step detail modal (command, retry strategy, trace ID, errors)
 - Operator actions on a step: _Retry_ a failed one, _Retry now_ / _Check now_ a parked one ([nudge](#nudge)),
-  or _Fail_ a parked one by hand ([fail](#fail))
+  or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
+  exercises the same contract external callers use
 - State evolution viewer
 - Grafana Tempo click-through links
 - Paginated query interface with namespace/status/label filters

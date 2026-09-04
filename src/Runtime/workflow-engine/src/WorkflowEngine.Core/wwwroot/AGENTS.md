@@ -73,10 +73,9 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
 | `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
 | `/dashboard/mailboxes`    | GET    | Mailbox blocks under the collection groups (chains views) |
-| `/dashboard/retry`        | POST   | Retry a failed workflow                              |
-| `/dashboard/nudge`        | POST   | Clear the pending backoff of a parked (requeued or waiting) workflow |
-| `/dashboard/fail`         | POST   | Fail a parked (requeued or waiting) workflow by hand — Failed, with a manual error entry on the step |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
+
+The dashboard's workflow actions (Retry, Retry now / Check now, Fail) are not dashboard endpoints: `modal.js` calls the engine's public API — `POST /api/v1/{namespace}/workflows/{id}/resume`, `/nudge` and `/fail` — so the UI exercises the same contract external callers use, and a refusal's problem-details `detail` becomes the button tooltip.
 
 ## Patterns
 

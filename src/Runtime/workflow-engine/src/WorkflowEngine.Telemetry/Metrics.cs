@@ -127,8 +127,8 @@ public static class Metrics
     /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
     /// the default alert: a step's wait budget running out means the awaited external outcome
     /// never arrived, not that the engine or command failed — route it to the owning team instead.
-    /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose, through the fail
-    /// endpoint or the dashboard's button.
+    /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose through the fail
+    /// endpoint (the dashboard's Fail button included).
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"

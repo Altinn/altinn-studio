@@ -485,7 +485,7 @@ internal static class EngineRequestHandlers
     > ResumeWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
-        [FromQuery] bool cascade,
+        [FromQuery] bool? cascade,
         [FromServices] IEngine engine,
         CancellationToken cancellationToken
     )
@@ -493,7 +493,7 @@ internal static class EngineRequestHandlers
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
         var ns = NormalizeNamespace(@namespace);
-        var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
+        var result = await engine.ResumeWorkflow(workflowId, ns, cascade ?? false, cancellationToken);
 
         return result switch
         {

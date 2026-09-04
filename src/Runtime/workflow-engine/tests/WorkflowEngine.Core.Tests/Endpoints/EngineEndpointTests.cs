@@ -1046,6 +1046,30 @@ public class EngineEndpointTests
     // -- Resume Workflow --
 
     [Fact]
+    public async Task ResumeWorkflow_NoCascadeQuery_DefaultsToNoCascade()
+    {
+        // Arrange — the query parameter is optional; a bare POST must resume without cascading
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.ResumeWorkflow(workflowId, It.IsAny<string>(), false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResult.Resumed(workflowId, DateTimeOffset.UtcNow, []));
+
+        // Act
+        var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
+            workflowId,
+            cascade: null,
+            engine.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<Accepted<ResumeWorkflowResponse>>(result.Result);
+        engine.VerifyAll();
+    }
+
+    [Fact]
     public async Task ResumeWorkflow_Succeeded_Returns202()
     {
         // Arrange
