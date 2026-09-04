@@ -1,9 +1,7 @@
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.DeprecatedLayoutPropertiesMigration;
 
@@ -55,16 +53,6 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        WriteIndented = true,
-        // The default encoder escapes everything outside ASCII, which in a Norwegian app means every
-        // "æ", "ø" and "å" in the file - and a "+" in a number format - comes back as "æ". That is
-        // a content change, not a whitespace one, so the restoration below cannot undo it, and it would
-        // bury the actual migration in a file-wide diff.
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    };
-
     private readonly string _projectFolder;
     private readonly List<string> _warnings = [];
 
@@ -75,27 +63,26 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
 
     public async Task<DeprecatedLayoutPropertiesMigrationResult> Migrate()
     {
-        var uiPath = ResolveUiPath();
-        if (uiPath is null)
+        var workspace = await LayoutMigrationWorkspace.Load(_projectFolder);
+        if (workspace is null)
             return new DeprecatedLayoutPropertiesMigrationResult(0, 0, 0, false, []);
 
+        var result = Apply(workspace);
+        await workspace.Save();
+        return result;
+    }
+
+    internal DeprecatedLayoutPropertiesMigrationResult Apply(LayoutMigrationWorkspace workspace)
+    {
+        _warnings.Clear();
         var filesChanged = 0;
         var queryParametersConverted = 0;
         var summaryBindingsConverted = 0;
         var manualActionRequired = false;
-        var changedFiles = new List<string>();
-
-        foreach (var path in FindLayoutFiles(uiPath))
+        foreach (var document in workspace.Documents)
         {
-            var (text, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(path));
-            var root = JsonNode.Parse(
-                text,
-                new JsonNodeOptions { PropertyNameCaseInsensitive = false },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
-            );
-            if (root is null)
-                continue;
-
+            var root = document.Root.DeepClone();
+            var path = document.FilePath;
             var fileName = Path.GetFileName(path);
             var changes = MigrateComponents(root, fileName);
             manualActionRequired |= changes.ManualActionRequired;
@@ -104,7 +91,7 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
 
             // Comments never make it into the node tree, so rewriting the file from it would delete
             // them without a trace. Leave the file as it is and say so instead.
-            if (ContainsComments(text))
+            if (ContainsComments(document.OriginalText))
             {
                 _warnings.Add(
                     $"{fileName}: left untouched because it has comments, which a rewrite would delete. "
@@ -115,28 +102,10 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
                 continue;
             }
 
-            var hadTrailingNewline = text.EndsWith('\n');
-            var updated = root.ToJsonString(_jsonOptions);
-            if (hadTrailingNewline)
-                updated += Environment.NewLine;
-
-            await Utf8TextFile.Write(path, updated, withBom: hadBom);
-            changedFiles.Add(path);
+            document.ReplaceRoot(root);
             filesChanged++;
             queryParametersConverted += changes.QueryParameters;
             summaryBindingsConverted += changes.SummaryBindings;
-        }
-
-        if (filesChanged > 0)
-        {
-            try
-            {
-                new WhitespaceRestorationProcessor(uiPath).RestoreWhitespaceOnlyChanges(changedFiles);
-            }
-            catch
-            {
-                // Formatting restoration is best-effort, for example when upgrading outside a Git repository.
-            }
         }
 
         return new DeprecatedLayoutPropertiesMigrationResult(
@@ -176,23 +145,6 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
 
         return false;
     }
-
-    private string? ResolveUiPath()
-    {
-        var appUiPath = Path.Combine(_projectFolder, "App", "ui");
-        if (Directory.Exists(appUiPath))
-            return appUiPath;
-
-        var uiPath = Path.Combine(_projectFolder, "ui");
-        return Directory.Exists(uiPath) ? uiPath : null;
-    }
-
-    private static IEnumerable<string> FindLayoutFiles(string uiPath) =>
-        Directory
-            .EnumerateFiles(uiPath, "*.json", SearchOption.AllDirectories)
-            .Where(path =>
-                string.Equals(Path.GetFileName(Path.GetDirectoryName(path)), "layouts", StringComparison.Ordinal)
-            );
 
     private ComponentChanges MigrateComponents(JsonNode node, string fileName)
     {

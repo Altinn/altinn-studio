@@ -1,62 +1,19 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 
 /// <summary>
-/// Manages reading, modifying, and writing layout JSON files
+/// Locates and modifies components in layout documents owned by a migration workspace.
 /// </summary>
 internal sealed class LayoutFileManager
 {
-    private readonly string _layoutsDirectory;
-    private readonly Dictionary<string, (string FilePath, JsonNode RootNode)> _layoutFiles;
-    private readonly HashSet<string> _modifiedFiles;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly Dictionary<string, LayoutMigrationWorkspace.LayoutDocument> _layoutFiles;
 
-    public LayoutFileManager(string layoutsDirectory)
+    public LayoutFileManager(LayoutMigrationWorkspace workspace, string layoutsDirectory)
     {
-        _layoutsDirectory = layoutsDirectory;
-        _layoutFiles = new Dictionary<string, (string, JsonNode)>();
-        _modifiedFiles = new HashSet<string>();
-        _jsonOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
-    }
-
-    /// <summary>
-    /// Load all layout JSON files from the directory
-    /// </summary>
-    public void LoadLayouts()
-    {
-        if (!Directory.Exists(_layoutsDirectory))
-        {
-            throw new DirectoryNotFoundException($"Layouts directory not found: {_layoutsDirectory}");
-        }
-
-        var jsonFiles = Directory.GetFiles(_layoutsDirectory, "*.json");
-        foreach (var filePath in jsonFiles)
-        {
-            try
-            {
-                var jsonText = File.ReadAllText(filePath);
-                var jsonNode = JsonNode.Parse(
-                    jsonText,
-                    new JsonNodeOptions { PropertyNameCaseInsensitive = false },
-                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
-                );
-                if (jsonNode != null)
-                {
-                    var fileName = Path.GetFileName(filePath);
-                    _layoutFiles[fileName] = (filePath, jsonNode);
-                }
-            }
-            catch (JsonException ex)
-            {
-                throw new InvalidOperationException($"Failed to parse layout file {filePath}: {ex.Message}", ex);
-            }
-        }
+        _layoutFiles = workspace
+            .DocumentsIn(layoutsDirectory)
+            .ToDictionary(document => Path.GetFileName(document.FilePath), StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -67,8 +24,7 @@ internal sealed class LayoutFileManager
     {
         foreach (var layoutEntry in _layoutFiles)
         {
-            var layoutFile = layoutEntry.Key;
-            var (_, rootNode) = layoutEntry.Value;
+            var rootNode = layoutEntry.Value.Root;
 
             // Navigate to data.layout array
             var dataNode = rootNode["data"];
@@ -92,7 +48,7 @@ internal sealed class LayoutFileManager
                 var id = idNode.GetValue<string>();
                 if (id == componentId)
                 {
-                    return (layoutFile, component);
+                    return (layoutEntry.Key, component);
                 }
             }
         }
@@ -118,8 +74,7 @@ internal sealed class LayoutFileManager
     {
         foreach (var layoutEntry in _layoutFiles)
         {
-            var layoutFile = layoutEntry.Key;
-            var (_, rootNode) = layoutEntry.Value;
+            var rootNode = layoutEntry.Value.Root;
 
             // Navigate to data.layout array
             var dataNode = rootNode["data"];
@@ -135,7 +90,7 @@ internal sealed class LayoutFileManager
             {
                 if (comp == component)
                 {
-                    _modifiedFiles.Add(layoutFile);
+                    layoutEntry.Value.MarkModified();
                     return;
                 }
             }
@@ -148,24 +103,5 @@ internal sealed class LayoutFileManager
     public bool HasProperty(JsonNode component, string propertyName)
     {
         return component[propertyName] != null;
-    }
-
-    /// <summary>
-    /// Save all modified layouts back to disk
-    /// </summary>
-    public void SaveLayouts()
-    {
-        foreach (var layoutEntry in _layoutFiles)
-        {
-            var layoutFile = layoutEntry.Key;
-
-            // Only save files that were actually modified
-            if (!_modifiedFiles.Contains(layoutFile))
-                continue;
-
-            var (filePath, rootNode) = layoutEntry.Value;
-            var jsonText = rootNode.ToJsonString(_jsonOptions);
-            File.WriteAllText(filePath, jsonText);
-        }
     }
 }

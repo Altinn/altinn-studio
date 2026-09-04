@@ -9,6 +9,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
+
+### Fixed
+
+- `studioctl app upgrade v9` can be safely run again after the project has moved to v9. Layout and legacy-rule migrations no longer duplicate successful changes.
+- When a legacy conditional-rendering rule cannot be converted, all other layout changes are completed first. The affected layout gets a detailed manual-conversion marker, the upgrade reports a `TODO`, and its `RuleConfiguration.json` and `RuleHandler.js` are kept for reference. A later run recognises the marker instead of failing on the intentionally invalid JSON.
+- When multiple legacy layout sets map to the same task folder, the upgrade now leaves `layout-sets.json` and the source folders untouched and reports how to resolve the collision instead of starting a partial migration.
+
 ## [0.1.0-preview.23] - 2026-09-04
 
 ### Added
