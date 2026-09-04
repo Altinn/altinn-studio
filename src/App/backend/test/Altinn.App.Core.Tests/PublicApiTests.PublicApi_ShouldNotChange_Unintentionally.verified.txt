@@ -578,12 +578,12 @@ namespace Altinn.App.Core.Extensions
     }
     public static class HttpClientExtension
     {
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, string? lockToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetStreamingAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PatchAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, string? lockToken = null, System.Threading.CancellationToken cancellationToken = default) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, string? lockToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class HttpContextExtensions
     {
@@ -1578,6 +1578,7 @@ namespace Altinn.App.Core.Features
     }
     public interface IInstantiationProcessor
     {
+        System.Threading.Tasks.Task DataCreation(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
         System.Threading.Tasks.Task DataCreation(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
     }
     public interface IInstantiationValidator
@@ -3130,8 +3131,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UnlockDataElement(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Guid dataGuid, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string? filename, System.Guid dataGuid, System.IO.Stream stream, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
-        [System.Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes " +
-            "a Stream instead")]
+        [System.Obsolete("Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, " +
+            "Stream) instead", false)]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         [System.Obsolete("Use the UpdateFormData method with Instance parameter instead")]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default)
@@ -4601,8 +4602,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required System.DateTimeOffset ExecutionReferenceTime { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
         public System.DateTimeOffset? FirstDeferredAt { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("lockToken")]
-        public required string LockToken { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
@@ -4612,7 +4611,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string? State { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("stepId")]
-        public System.Guid StepId { get; init; }
+        public required System.Guid StepId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("waitDeadline")]
         public System.DateTimeOffset? WaitDeadline { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
@@ -5940,6 +5939,7 @@ namespace Altinn.App.Core.Models.Process
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
+        AcquireConflict = 4,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowSubmissionFailureKind

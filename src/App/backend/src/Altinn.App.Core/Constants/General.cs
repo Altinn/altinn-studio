@@ -39,9 +39,4 @@ public static class General
     /// Header name for platform access token
     /// </summary>
     internal const string PlatformAccessTokenHeaderName = "PlatformAccessToken";
-
-    /// <summary>
-    /// Header name for instance lock token
-    /// </summary>
-    internal const string LockTokenHeaderName = "Altinn-Storage-Lock-Token";
 }

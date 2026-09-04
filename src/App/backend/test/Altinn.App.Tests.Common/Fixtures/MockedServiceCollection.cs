@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
@@ -11,8 +12,8 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -97,11 +98,24 @@ public sealed class MockedServiceCollection
 
         // Adding Data infrastructure
         Services.AddSingleton(Storage);
-        // There is no TryAddHttpClient, but these are the core of the mocked service collection
-        Services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
-        Services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        if (!Services.IsAdded(typeof(IDataClient)))
+        {
+            Services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        }
+        Services.TryAddTransient<IDataClientWithStorageMetadata>(sp =>
+            (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+        );
+        Services.TryAddTransient<IInstanceMutationClient>(sp =>
+            (IInstanceMutationClient)sp.GetRequiredService<IDataClient>()
+        );
+        if (!Services.IsAdded(typeof(IInstanceClient)))
+        {
+            Services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        }
+        Services.TryAddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+        );
         Services.TryAddTransient<IDataService, DataService>();
-        Services.TryAddSingleton<IInstanceLocker>(Moq.Mock.Of<IInstanceLocker>());
         Services.TryAddSingleton<Telemetry>();
 
         // Add standard mocks
@@ -372,7 +386,7 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
         var instanceCopy = JsonSerializer.Deserialize<Instance>(JsonSerializer.SerializeToUtf8Bytes(instance))!;
 
         var initializer = _serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
-        return await initializer.Init(instanceCopy, dataType.TaskId, language);
+        return await initializer.Init(instanceCopy, StorageVersionMetadata.Empty, dataType.TaskId, language);
     }
 
     internal async Task<InstanceDataUnitOfWork> CreateInstanceDataMutatorWithDataAndLayout<T>(

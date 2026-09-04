@@ -11,7 +11,6 @@ public class InstanceInformationTests
         var context = new AppWorkflowContext
         {
             Actor = new Actor { OrgId = "user-1" },
-            LockToken = "lock-1",
             Org = "ttd",
             App = "my-app",
             InstanceOwnerPartyId = 50001,
