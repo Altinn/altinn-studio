@@ -18,6 +18,10 @@ The main goals are:
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
 installs `agentctl` and `agentd` for the current user.
 
+For Apple Silicon testing without a local Rust toolchain, the `experimental - Build` workflow publishes an
+`agent-macos-aarch64` artifact with debug binaries and an archive checksum. Download it from the workflow run,
+verify the checksum, and extract the archive to run `agentd` and `agentctl` directly. These are test builds, not releases.
+
 The Agent database and local protocol are intentionally clean-slate while this code is experimental. Breaking schema
 changes require stopping `agentd` and removing the configured Agent home rather than migrating old state.
 

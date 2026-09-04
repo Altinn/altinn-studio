@@ -154,3 +154,21 @@ jobs:
           -p agent
           -p sandbox-microsandbox
           --all-targets --all-features --locked
+
+      - name: Package macOS test binaries
+        if: runner.os == 'macOS'
+        env:
+          AGENT_VERSION: test-${{ github.sha }}
+        run: |
+          cargo build --locked -p agent --bins
+          ./agent/package.sh build/agent-macos-aarch64.tar.gz ../../target/debug
+
+      - name: Upload macOS test binaries
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: agent-macos-aarch64
+          path: src/experimental/build/agent-macos-aarch64.tar.gz*
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
