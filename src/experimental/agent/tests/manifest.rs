@@ -53,6 +53,43 @@ spec:
 }
 
 #[test]
+fn decodes_a_harness_without_a_declared_version() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: example.invalid/agent:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "1Gi"
+      rootFilesystem:
+        capacity: "4Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest without a harness version should decode");
+    assert_eq!(agent.spec.harnesses[0].version, None);
+
+    let value = serde_json::to_value(agent).expect("Agent JSON");
+    assert!(value["spec"]["harnesses"][0].get("version").is_none());
+}
+
+#[test]
 fn decodes_the_minimal_manifest() {
     let bytes = include_bytes!("../examples/minimal/agent.yaml");
     let agent = manifest::decode(bytes).expect("minimal manifest should decode");
@@ -199,7 +236,7 @@ fn validates_harness_installation_cardinality_and_defaults() {
 
     let mut codex = installation.clone();
     codex.kind = Harness::Codex;
-    codex.version = "0.149.1".into();
+    codex.version = Some("0.149.1".into());
 
     let mut no_default = support::agent("worker");
     no_default.spec.harnesses = vec![installation.clone(), codex.clone()];
@@ -225,7 +262,7 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
     let mut agent = support::agent("worker");
     let mut codex = agent.spec.harnesses[0].clone();
     codex.kind = Harness::Codex;
-    codex.version = "0.149.1".into();
+    codex.version = Some("0.149.1".into());
     codex.default = false;
     agent.spec.harnesses[0].default = true;
     agent.spec.harnesses.push(codex);

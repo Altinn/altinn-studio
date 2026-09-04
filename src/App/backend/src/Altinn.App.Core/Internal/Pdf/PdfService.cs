@@ -7,6 +7,7 @@ using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -407,10 +408,8 @@ public class PdfService : IPdfService
             fileName = "Altinn PDF.pdf";
         }
 
-        string escapedFileName = Uri.EscapeDataString(fileName.AsFileName(false));
-        return escapedFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
-            ? escapedFileName
-            : $"{escapedFileName}.pdf";
+        fileName = fileName.AsFileName(false);
+        return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? fileName : $"{fileName}.pdf";
     }
 
     private async Task<string> GetPreviewFooter(string language)
@@ -502,7 +501,12 @@ public class PdfService : IPdfService
                     return false;
                 }
 
-                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                    instance,
+                    StorageVersionMetadata.Empty,
+                    taskId,
+                    language
+                );
             }
 
             var state = dataAccessor.GetLayoutEvaluatorState();

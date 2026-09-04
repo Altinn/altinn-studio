@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -9,13 +10,13 @@ internal interface IWorkflowEngineService
 {
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
         Instance instance,
+        StorageVersionMetadata instanceVersions,
         ProcessStateChange processStateChange,
-        string resolvedAction,
-        string lockToken,
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false,
         CancellationToken ct = default
     );
 
@@ -57,7 +58,6 @@ internal interface IWorkflowEngineService
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,

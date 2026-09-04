@@ -1,0 +1,359 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="http://www.arkivverket.no/standarder/noark5/arkivmelding"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:n5mdk="http://www.arkivverket.no/standarder/noark5/metadatakatalog"
+	targetNamespace="http://www.arkivverket.no/standarder/noark5/arkivmelding"
+	elementFormDefault="qualified">
+	<xs:import namespace="http://www.arkivverket.no/standarder/noark5/metadatakatalog"
+		schemaLocation="metadatakatalog.xsd"/>
+
+	<xs:element name="arkivmelding" type="arkivmelding"/>
+	<xs:complexType name="arkivmelding" mixed="true">
+		<xs:sequence>
+			<xs:element name="system" type="xs:string"/>
+			<xs:element name="meldingId" type="xs:string"/>
+			<xs:element name="tidspunkt" type="xs:dateTime"/>
+			<xs:element name="antallFiler" type="xs:int"/>
+			<xs:choice minOccurs="1" maxOccurs="1">
+				<xs:element name="mappe" type="mappe" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="basisregistrering" type="basisregistrering" minOccurs="0"
+					maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="mappe">
+		<xs:sequence>
+			<xs:element name="systemID" type="GUID"/>
+			<xs:element name="mappeID" type="n5mdk:mappeID" minOccurs="0"/>
+			<xs:element minOccurs="0" name="ReferanseForeldermappe" nillable="true" type="GUID"/>
+			<xs:element name="tittel" type="n5mdk:tittel"/>
+			<xs:element name="offentligTittel" type="n5mdk:offentligTittel" minOccurs="0"/>
+			<xs:element name="beskrivelse" type="n5mdk:beskrivelse" minOccurs="0"/>
+			<xs:element name="noekkelord" type="n5mdk:noekkelord" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="dokumentmedium" type="n5mdk:dokumentmedium" minOccurs="0"/>
+			<xs:element name="oppbevaringssted" type="n5mdk:oppbevaringssted" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element name="opprettetAv" type="n5mdk:opprettetAv"/>
+			<xs:element name="avsluttetDato" type="n5mdk:avsluttetDato" minOccurs="0"/>
+			<xs:element name="avsluttetAv" type="n5mdk:avsluttetAv" minOccurs="0"/>
+			<xs:element name="referanseArkivdel" type="n5mdk:referanseArkivdel" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="virksomhetsspesifikkeMetadata" type="xs:anyType" minOccurs="0"/>
+			<xs:element name="kryssreferanse" type="kryssreferanse" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="merknad" type="merknad" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="skjerming" type="skjerming" minOccurs="0"/>
+			<xs:element name="gradering" type="gradering" minOccurs="0"/>
+
+			<xs:element name="klassifikasjon" type="klassifikasjon" minOccurs="0"
+				maxOccurs="unbounded"/>
+
+			<!-- Tillater mapper uten forekomster av (under)mappe og registrering -->
+			<xs:choice minOccurs="0">
+				<xs:element name="mappe" type="mappe" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="basisregistrering" type="basisregistrering" minOccurs="0"
+					maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="saksmappe">
+		<xs:complexContent>
+			<xs:extension base="mappe">
+				<xs:sequence>
+					<xs:element name="saksaar" type="n5mdk:saksaar" minOccurs="0"/>
+					<xs:element name="sakssekvensnummer" type="n5mdk:sakssekvensnummer"
+						minOccurs="0"/>
+					<xs:element name="saksdato" type="n5mdk:saksdato"/>
+					<xs:element name="administrativEnhet" type="n5mdk:administrativEnhet"/> 
+					<xs:element name="saksansvarlig" type="n5mdk:saksansvarlig"/>
+					<xs:element name="journalenhet" type="n5mdk:journalenhet" minOccurs="0"/>
+					<xs:element name="saksstatus" type="n5mdk:saksstatus"/>
+					<xs:element name="referanseSekundaerKlassifikasjon"
+						type="n5mdk:referanseSekundaerKlassifikasjon" minOccurs="0"
+						maxOccurs="unbounded"/>
+					<xs:element name="sakspart" type="sakspart" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="presedens" type="presedens" minOccurs="0"
+						maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="sakspart">
+		<xs:sequence>
+			<xs:element name="sakspartID" type="n5mdk:sakspartID" minOccurs="0"/>
+			<xs:element name="sakspartNavn" type="n5mdk:sakspartNavn"/>
+			<xs:element name="sakspartRolle" type="n5mdk:sakspartRolle"/>
+			<xs:element name="postadresse" type="n5mdk:postadresse" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="postnummer" type="n5mdk:postnummer" minOccurs="0"/>
+			<xs:element name="poststed" type="n5mdk:poststed" minOccurs="0"/>
+			<xs:element name="land" type="n5mdk:land" minOccurs="0"/>
+			<xs:element name="epostadresse" type="n5mdk:epostadresse" minOccurs="0"/>
+			<xs:element name="telefonnummer" type="n5mdk:telefonnummer" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="kontaktperson" type="n5mdk:kontaktperson" minOccurs="0"/>
+			<xs:element name="virksomhetsspesifikkeMetadata" type="xs:anyType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="registrering">
+		<xs:sequence>
+			<xs:element name="systemID" type="GUID"/>
+			<xs:element name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element name="opprettetAv" type="n5mdk:opprettetAv"/>
+			<xs:element name="arkivertDato" type="n5mdk:arkivertDato" minOccurs="0"/>
+			<xs:element name="arkivertAv" type="n5mdk:arkivertAv" minOccurs="0"/>
+			<xs:element name="registreringsID" type="n5mdk:registreringsID" minOccurs="0"/>
+			<xs:choice minOccurs="1" maxOccurs="1">
+				<xs:element name="referanseForelderMappe" type="GUID"/>
+				<xs:element name="referanseArkivdel" type="n5mdk:referanseArkivdel"/>
+				<xs:element name="referanseKlasse" type="GUID"/>
+			</xs:choice>
+			<xs:element name="skjerming" type="skjerming" minOccurs="0"/>
+			<xs:element name="gradering" type="gradering" minOccurs="0"/>
+
+			<!-- Tillater registreringer uten forekomster av dokumentbeskrivelse og dokumentobjekt -->
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="dokumentbeskrivelse" type="dokumentbeskrivelse" minOccurs="0"
+					maxOccurs="unbounded"/>
+				<xs:element name="dokumentobjekt" type="dokumentobjekt" minOccurs="0"
+					maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="basisregistrering">
+		<xs:complexContent>
+			<xs:extension base="registrering">
+				<xs:sequence>
+					<xs:element name="tittel" type="n5mdk:tittel"/>
+					<xs:element name="offentligTittel" type="n5mdk:offentligTittel" minOccurs="0"/>
+					<xs:element name="beskrivelse" type="n5mdk:beskrivelse" minOccurs="0"/>
+					<xs:element name="noekkelord" type="n5mdk:noekkelord" minOccurs="0"
+						maxOccurs="unbounded"/>
+					<xs:element name="forfatter" type="n5mdk:forfatter" minOccurs="0"
+						maxOccurs="unbounded"/>
+					<xs:element name="dokumentmedium" type="n5mdk:dokumentmedium" minOccurs="0"/>
+					<xs:element name="oppbevaringssted" type="n5mdk:oppbevaringssted" minOccurs="0"
+						maxOccurs="unbounded"/>
+					<xs:element name="virksomhetsspesifikkeMetadata" type="xs:anyType" minOccurs="0"/>
+
+					<xs:element name="merknad" type="merknad" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="kryssreferanse" type="kryssreferanse" minOccurs="0"
+						maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<xs:complexType name="journalpost">
+		<xs:complexContent>
+			<xs:extension base="basisregistrering">
+				<xs:sequence>
+					<xs:element name="journalaar" type="n5mdk:journalaar" minOccurs="0"/>
+					<xs:element name="journalsekvensnummer" type="n5mdk:journalsekvensnummer"
+						minOccurs="0"/>
+					<xs:element name="journalpostnummer" type="n5mdk:journalpostnummer"
+						minOccurs="0"/>
+					<xs:element name="journalposttype" type="n5mdk:journalposttype"/>
+					<xs:element name="journalstatus" type="n5mdk:journalstatus"/>
+					<xs:element name="journaldato" type="n5mdk:journaldato"/>
+					<xs:element name="dokumentetsDato" type="n5mdk:dokumentetsDato" minOccurs="0"/>
+					<xs:element name="mottattDato" type="n5mdk:mottattDato" minOccurs="0"/>
+					<xs:element name="sendtDato" type="n5mdk:sendtDato" minOccurs="0"/>
+					<xs:element name="forfallsdato" type="n5mdk:forfallsdato" minOccurs="0"/>
+					<xs:element name="offentlighetsvurdertDato"
+						type="n5mdk:offentlighetsvurdertDato" minOccurs="0"/>
+					<xs:element name="antallVedlegg" type="n5mdk:antallVedlegg" minOccurs="0"/>
+					<xs:element name="utlaantDato" type="n5mdk:utlaantDato" minOccurs="0"/>
+					<xs:element name="utlaantTil" type="n5mdk:utlaantTil" minOccurs="0"/>
+					<xs:element name="journalenhet" type="n5mdk:journalenhet" minOccurs="0"/>
+
+					<xs:element name="korrespondansepart" type="korrespondansepart"
+						minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="avskrivning" type="avskrivning" minOccurs="0"
+						maxOccurs="unbounded"/>
+					<xs:element name="dokumentflyt" type="dokumentflyt" minOccurs="0"
+						maxOccurs="unbounded"/>
+					<xs:element name="presedens" type="presedens" minOccurs="0"
+						maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<xs:complexType name="korrespondansepart">
+		<xs:sequence>
+			<xs:element name="korrespondanseparttype" type="n5mdk:korrespondanseparttype"/>
+			<xs:element name="korrespondansepartNavn" type="n5mdk:korrespondansepartNavn"/>
+			<xs:element name="postadresse" type="n5mdk:postadresse" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="postnummer" type="n5mdk:postnummer" minOccurs="0"/>
+			<xs:element name="poststed" type="n5mdk:poststed" minOccurs="0"/>
+			<xs:element name="land" type="n5mdk:land" minOccurs="0"/>
+			<xs:element name="epostadresse" type="n5mdk:epostadresse" minOccurs="0"/>
+			<xs:element name="telefonnummer" type="n5mdk:telefonnummer" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="kontaktperson" type="n5mdk:kontaktperson" minOccurs="0"/>
+			<xs:element name="administrativEnhet" type="n5mdk:administrativEnhet" minOccurs="0"/>
+			<xs:element name="saksbehandler" type="n5mdk:saksbehandler" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="avskrivning">
+		<xs:sequence>
+			<xs:element name="avskrivningsdato" type="n5mdk:avskrivningsdato"/>
+			<xs:element name="avskrevetAv" type="n5mdk:avskrevetAv"/>
+			<xs:element name="avskrivningsmaate" type="n5mdk:avskrivningsmaate"/>
+			<xs:element name="referanseAvskrivesAvJournalpost"
+				type="n5mdk:referanseAvskrivesAvJournalpost" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="dokumentflyt">
+		<xs:sequence>
+			<xs:element name="flytTil" type="n5mdk:flytTil"/>
+			<xs:element name="flytFra" type="n5mdk:flytFra"/>
+			<xs:element name="flytMottattDato" type="n5mdk:flytMottattDato"/>
+			<xs:element name="flytSendtDato" type="n5mdk:flytSendtDato"/>
+			<xs:element name="flytStatus" type="n5mdk:flytStatus"/>
+			<xs:element name="flytMerknad" type="n5mdk:flytMerknad" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="dokumentbeskrivelse">
+		<xs:sequence>
+			<xs:element name="systemID" type="GUID"/>
+			<xs:element name="dokumenttype" type="n5mdk:dokumenttype"/>
+			<xs:element name="dokumentstatus" type="n5mdk:dokumentstatus"/>
+			<xs:element name="tittel" type="n5mdk:tittel"/>
+			<xs:element name="beskrivelse" type="n5mdk:beskrivelse" minOccurs="0"/>
+			<xs:element name="forfatter" type="n5mdk:forfatter" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element name="opprettetAv" type="n5mdk:opprettetAv"/>
+			<xs:element name="dokumentmedium" type="n5mdk:dokumentmedium" minOccurs="0"/>
+			<xs:element name="oppbevaringssted" type="n5mdk:oppbevaringssted" minOccurs="0"/>
+			<xs:element name="referanseArkivdel" type="n5mdk:referanseArkivdel" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="tilknyttetRegistreringSom" type="n5mdk:tilknyttetRegistreringSom"/>
+			<xs:element name="dokumentnummer" type="n5mdk:dokumentnummer"/>
+			<xs:element name="tilknyttetDato" type="n5mdk:tilknyttetDato"/>
+			<xs:element name="tilknyttetAv" type="n5mdk:tilknyttetAv"/>
+
+			<xs:element name="merknad" type="merknad" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="skjerming" type="skjerming" minOccurs="0"/>
+			<xs:element name="gradering" type="gradering" minOccurs="0"/>
+			<xs:element name="dokumentobjekt" type="dokumentobjekt" minOccurs="0"
+				maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="dokumentobjekt">
+		<xs:sequence>
+			<xs:element name="versjonsnummer" type="n5mdk:versjonsnummer"/>
+			<xs:element name="variantformat" type="n5mdk:variantformat"/>
+			<xs:element name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element name="opprettetAv" type="n5mdk:opprettetAv"/>
+			<xs:element name="referanseDokumentfil" type="n5mdk:referanseDokumentfil"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="kryssreferanse">
+		<xs:sequence>
+			<xs:element name="referanseTilKlasse" type="n5mdk:referanseTilKlasse" minOccurs="0"/>
+			<xs:element name="referanseTilMappe" type="n5mdk:referanseTilMappe" minOccurs="0"/>
+			<xs:element name="referanseTilRegistrering" type="n5mdk:referanseTilRegistrering"
+				minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:complexType name="merknad">
+		<xs:sequence>
+			<xs:element name="merknadstekst" type="n5mdk:merknadstekst"/>
+			<xs:element name="merknadstype" type="n5mdk:merknadstype" minOccurs="0"/>
+			<xs:element name="merknadsdato" type="n5mdk:merknadsdato"/>
+			<xs:element name="merknadRegistrertAv" type="n5mdk:merknadRegistrertAv"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="klassifikasjon">
+		<xs:sequence>
+			<xs:element name="referanseKlassifikasjonssystem" type="n5mdk:systemID" minOccurs="1"
+				maxOccurs="1"/>
+			<xs:element name="klasseID" type="n5mdk:klasseID"/>
+			<xs:element name="tittel" type="n5mdk:tittel"/>
+			<xs:element minOccurs="0" name="beskrivelse" type="n5mdk:beskrivelse"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="noekkelord"
+				type="n5mdk:noekkelord"/>
+			<xs:element minOccurs="0" name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element minOccurs="0" name="opprettetAv" type="n5mdk:opprettetAv"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="skjerming">
+		<xs:sequence>
+			<xs:element name="tilgangsrestriksjon" type="n5mdk:tilgangsrestriksjon"/>
+			<xs:element name="skjermingshjemmel" type="n5mdk:skjermingshjemmel"/>
+			<xs:element name="skjermingMetadata" type="n5mdk:skjermingMetadata"
+				maxOccurs="unbounded"/>
+			<xs:element name="skjermingDokument" type="n5mdk:skjermingDokument" minOccurs="0"/>
+			<xs:element name="skjermingsvarighet" type="n5mdk:skjermingsvarighet" minOccurs="0"/>
+			<xs:element name="skjermingOpphoererDato" type="n5mdk:skjermingOpphoererDato"
+				minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="gradering">
+		<xs:sequence>
+			<xs:element name="gradering" type="n5mdk:gradering"/>
+			<xs:element name="graderingsdato" type="n5mdk:graderingsdato"/>
+			<xs:element name="gradertAv" type="n5mdk:gradertAv"/>
+			<xs:element name="nedgraderingsdato" type="n5mdk:nedgraderingsdato" minOccurs="0"/>
+			<xs:element name="nedgradertAv" type="n5mdk:nedgradertAv" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="presedens">
+		<xs:sequence>
+			<xs:element name="presedensDato" type="n5mdk:presedensDato"/>
+			<xs:element name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element name="opprettetAv" type="n5mdk:opprettetAv"/>
+			<xs:element name="tittel" type="n5mdk:tittel"/>
+			<xs:element name="beskrivelse" type="n5mdk:beskrivelse" minOccurs="0"/>
+			<xs:element name="presedensHjemmel" type="n5mdk:presedensHjemmel" minOccurs="0"/>
+			<xs:element name="rettskildefaktor" type="n5mdk:rettskildefaktor"/>
+			<xs:element name="presedensGodkjentDato" type="n5mdk:presedensGodkjentDato"
+				minOccurs="0"/>
+			<xs:element name="presedensGodkjentAv" type="n5mdk:presedensGodkjentAv" minOccurs="0"/>
+			<xs:element name="avsluttetDato" type="n5mdk:avsluttetDato" minOccurs="0"/>
+			<xs:element name="avsluttetAv" type="n5mdk:avsluttetAv" minOccurs="0"/>
+			<xs:element name="presedensStatus" type="n5mdk:presedensstatus" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="klasse">
+		<xs:sequence>
+			<xs:element name="systemID" type="GUID"/>
+			<xs:element name="klasseID" type="n5mdk:klasseID"/>
+			<xs:element name="tittel" type="n5mdk:tittel"/>
+			<xs:element minOccurs="0" name="beskrivelse" type="n5mdk:beskrivelse"/>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="noekkelord"
+				type="n5mdk:noekkelord"/>
+			<xs:element name="opprettetDato" type="n5mdk:opprettetDato"/>
+			<xs:element name="opprettetAv" type="n5mdk:opprettetAv"/>
+
+			<!-- Tillater klasser uten forekomster av (under)klasse, mappe og registering -->
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="GUID">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})|(\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\})"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -22,7 +23,19 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
 
     Task<ProcessEngineCommandResult> IWorkflowEngineCommand.Execute(ProcessEngineCommandContext context)
     {
-        TRequestPayload? payload = CommandPayloadSerializer.Deserialize<TRequestPayload>(context.Payload.Payload);
+        TRequestPayload? payload;
+        try
+        {
+            payload = ResolvePayload(context);
+        }
+        catch (JsonException)
+        {
+            payload = null;
+        }
+        catch (NotSupportedException)
+        {
+            payload = null;
+        }
 
         if (payload is null)
         {
@@ -37,6 +50,11 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
 
         return Execute(context, payload);
     }
+
+    protected virtual TRequestPayload? ResolvePayload(ProcessEngineCommandContext context) =>
+        CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.Payload.Payload) is TRequestPayload payload
+            ? payload
+            : null;
 
     public abstract Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
