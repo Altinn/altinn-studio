@@ -92,7 +92,7 @@ RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh
     && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
 
 ARG CODEX_VERSION=0.149.1
-ARG CLAUDE_CODE_VERSION=2.1.259
+ARG CLAUDE_CODE_VERSION=2.1.260
 
 RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
