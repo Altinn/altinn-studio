@@ -220,6 +220,24 @@ export const buildPipelineHTML = (wf, isStatic) => {
     return html;
 };
 
+/**
+ * Replaces a card's inner HTML while keeping its pipeline scrolled where the operator left it.
+ * A rebuild swaps the `.pipeline` element, and a fresh element starts at scrollLeft 0 — so without
+ * this every retry or deferral write-back snapped a sideways-scrolled pipeline back to its start.
+ * Callers that want the active step centered instead call {@link scrollPipelineToActive} afterwards.
+ * @param {HTMLElement} card
+ * @param {string} html
+ */
+export const setCardHTMLKeepingPipelineScroll = (card, html) => {
+    const before = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+    const scrollLeft = before ? before.scrollLeft : 0;
+    card.innerHTML = html;
+    if (scrollLeft > 0) {
+        const after = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+        if (after) after.scrollLeft = scrollLeft;
+    }
+};
+
 /** @param {HTMLElement} card */
 export const scrollPipelineToActive = (card) => {
     const p = card.querySelector('.pipeline');

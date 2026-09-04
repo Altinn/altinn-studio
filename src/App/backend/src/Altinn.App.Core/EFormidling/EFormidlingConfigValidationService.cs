@@ -1,4 +1,5 @@
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
@@ -10,6 +11,7 @@ using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.EFormidling;
 
@@ -145,6 +147,22 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
                     $"eFormidling is enabled for this environment ({environment}), but no "
                         + $"{nameof(IEFormidlingMetadata)} is registered. Complete the registration with "
                         + "AddEFormidling().WithMetadata<T>(), or disable the task with <altinn:disabled>."
+                );
+            }
+
+            // Only the built-in service ships through the built-in client, so only it needs a base
+            // address. Checked here rather than left to the first shipment, where an unset value used
+            // to surface as an ArgumentNullException from inside the service provider.
+            if (
+                eFormidlingService is DefaultEFormidlingService
+                && string.IsNullOrWhiteSpace(services.GetService<IOptions<EFormidlingClientSettings>>()?.Value.BaseUrl)
+            )
+            {
+                errors.Add(
+                    $"eFormidling is enabled for this environment ({environment}), but "
+                        + $"{nameof(EFormidlingClientSettings)}.{nameof(EFormidlingClientSettings.BaseUrl)} is not "
+                        + "set. Add it to the EFormidlingClientSettings configuration section, or supply it with "
+                        + "AddEFormidling().WithMetadata<T>().WithConfig(...)."
                 );
             }
         }

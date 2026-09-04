@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -252,6 +253,7 @@ public class TestCleanDataAccessor
         var dataUnitOfWorkInitializer = sp.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         var dataMutator = await dataUnitOfWorkInitializer.Init(
             fixture.Instance,
+            StorageVersionMetadata.Empty,
             DataAccessorFixture.TaskId,
             "test-language"
         );

@@ -413,9 +413,10 @@ internal static class CSharpSyntaxQueries
                 continue;
             }
 
+            var comparable = WithoutGlobalAlias(name);
             var isPrefixMatch =
-                name.Equals(namespacePrefix, StringComparison.Ordinal)
-                || name.StartsWith(namespacePrefix + ".", StringComparison.Ordinal);
+                comparable.Equals(namespacePrefix, StringComparison.Ordinal)
+                || comparable.StartsWith(namespacePrefix + ".", StringComparison.Ordinal);
 
             if (isPrefixMatch)
             {
@@ -423,6 +424,102 @@ internal static class CSharpSyntaxQueries
             }
         }
     }
+
+    /// <summary>
+    /// <c>using</c> directives naming <paramref name="namespacePrefix"/> that the namespace rewrite
+    /// leaves alone, so a human still has to change them. Two forms qualify: an aliased directive
+    /// (<c>using X = A.B;</c>), which the rewrite skips outright, and one written with
+    /// <c>global::</c>, which its exact-name comparison never matches.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> UnrewritableUsingNamespaces(
+        ScannedCSharpFile file,
+        string namespacePrefix
+    )
+    {
+        foreach (var directive in file.Root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            if (directive.Name?.ToString() is not { } name)
+            {
+                continue;
+            }
+
+            var isGlobalQualified = name.StartsWith("global::", StringComparison.Ordinal);
+            if (directive.Alias is null && !isGlobalQualified)
+            {
+                continue;
+            }
+
+            var comparable = WithoutGlobalAlias(name);
+            if (
+                comparable.Equals(namespacePrefix, StringComparison.Ordinal)
+                || comparable.StartsWith(namespacePrefix + ".", StringComparison.Ordinal)
+            )
+            {
+                var symbol = directive.Alias is null ? $"using {name}" : $"using {directive.Alias.Name} = {name}";
+
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(directive), symbol);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fully-qualified references to <paramref name="namespacePrefix"/> written out in code rather than
+    /// imported (<c>Altinn.Common.EFormidlingClient.IEFormidlingClient</c>). The namespace rewrite only
+    /// touches <c>using</c> directives, so these survive it untouched and must be changed by hand.
+    /// </summary>
+    /// <remarks>
+    /// Covers both positions a qualified name can appear in, because they parse differently: a type
+    /// (<c>QualifiedNameSyntax</c>, e.g. a field's declared type) and an expression
+    /// (<c>MemberAccessExpressionSyntax</c>, e.g. a static call). Matching only the first would miss
+    /// <c>Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(...)</c> entirely.
+    /// <para>
+    /// Only the outermost name is reported in each case: <see cref="SyntaxNode.DescendantNodes"/> also
+    /// yields the nested left-hand names, which would report the same reference several times over.
+    /// Names inside <c>using</c> directives are skipped - those are already covered by
+    /// <see cref="UsingNamespaces"/> and <see cref="UnrewritableUsingNamespaces"/>.
+    /// </para>
+    /// </remarks>
+    public static IEnumerable<CSharpApiMatch> QualifiedNameReferences(ScannedCSharpFile file, string namespacePrefix)
+    {
+        foreach (var qualified in file.Root.DescendantNodes().OfType<QualifiedNameSyntax>())
+        {
+            if (
+                qualified.Parent is QualifiedNameSyntax
+                || qualified.FirstAncestorOrSelf<UsingDirectiveSyntax>() is not null
+            )
+            {
+                continue;
+            }
+
+            var name = qualified.ToString();
+            if (WithoutGlobalAlias(name).StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(qualified), name);
+            }
+        }
+
+        foreach (var access in file.Root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        {
+            if (access.Parent is MemberAccessExpressionSyntax outer && outer.Expression == access)
+            {
+                continue;
+            }
+
+            var name = access.ToString();
+            if (WithoutGlobalAlias(name).StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(access), name);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Strips a leading <c>global::</c> so a name can be compared against a plain namespace. Both
+    /// forms mean the same namespace and the rewrite misses both alike, so both must be reported. The
+    /// original spelling is what gets reported back, since that is what the reader has to find.
+    /// </summary>
+    private static string WithoutGlobalAlias(string name) =>
+        name.StartsWith("global::", StringComparison.Ordinal) ? name["global::".Length..] : name;
 
     /// <summary>
     /// Whether <paramref name="name"/> is the name that identifies a base-list entry itself - the
