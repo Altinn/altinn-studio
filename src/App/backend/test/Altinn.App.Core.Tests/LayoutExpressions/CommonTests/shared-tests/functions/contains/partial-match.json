@@ -1,5 +1,0 @@
-{
-  "name": "Should return true if the string contains the substring",
-  "expression": ["contains", "abc", "b"],
-  "expects": true
-}

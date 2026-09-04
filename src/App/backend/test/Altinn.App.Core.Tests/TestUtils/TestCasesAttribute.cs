@@ -16,7 +16,7 @@ public class TestCasesAttribute(string folderName) : DataAttribute
     public override IEnumerable<object[]> GetData(MethodInfo testMethod)
     {
         var basePath = TestAttributeHelper.AltinnAppTestsBasePath();
-        var folder = Path.Join(basePath, folderName);
+        var folder = Path.IsPathRooted(folderName) ? folderName : Path.Join(basePath, folderName);
         if (!Directory.Exists(folder))
         {
             throw new DirectoryNotFoundException($"Folder not found: {folder}");
