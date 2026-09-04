@@ -26,13 +26,6 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartUpdateInstanceData(DataElementChanges instance)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateInstanceData");
-        activity?.AddTag("numberOfChangedDataElements", instance.AllChanges.Count);
-        return activity;
-    }
-
     internal static class InstanceDataAccessor
     {
         internal const string Prefix = "InstanceDataAccessor";

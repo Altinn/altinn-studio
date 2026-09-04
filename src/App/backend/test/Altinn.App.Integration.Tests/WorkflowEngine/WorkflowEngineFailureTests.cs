@@ -95,7 +95,12 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         );
 
         await verifier.Verify(readProblem, snapshotName: "ProcessNextFailure", scrubbers: scrubbers);
-        await verifier.Verify(refreshedInstance, snapshotName: "InstanceAfterFailure", scrubbers: scrubbers);
+        // The patch above minted a new blob version, so the instantiation-time scrubber cannot scrub it.
+        await verifier.Verify(
+            refreshedInstance,
+            snapshotName: "InstanceAfterFailure",
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(refreshedInstance))
+        );
         await verifier
             .Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs")
             .AddScrubber(sb =>

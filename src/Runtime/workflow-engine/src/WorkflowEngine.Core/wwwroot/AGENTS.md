@@ -24,7 +24,7 @@ wwwroot/
       cards.js                       — all card renderers (full, compact, scheduled), filter data, label segments
       chain.js                       — chain rows: spine layout (edge-based + creation-order), inline row expansion
       chain-groups.js                — collection group chrome + history and mailbox caches, shared by recent & query chains modes
-      pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/skip buttons
+      pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/skip/fail buttons
       section.js                     — collapse/expand, compact/full toggle, card expand
       timers.js                      — requestAnimationFrame timer loop for elapsed counters, backoff countdowns, mailbox deadline/park counters
     features/                        — one file per visible UI section (imports from core/ and shared/)
@@ -35,7 +35,7 @@ wwwroot/
       filters.js                     — label filters, status chips, text filter, tabs
       url.js                         — syncUrl(), restoreUrl(), time range state
       query.js                       — query tab with pagination, time range, auto-refresh; chains/compact/full view modes
-      modal.js                       — step detail modal (SSE-driven refresh, retry/skip actions)
+      modal.js                       — step detail modal (SSE-driven refresh, retry/skip/fail actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)
       chain-modal.js                 — chain modal: fetches /dashboard/graph, renders via shared/chain.js
@@ -73,21 +73,21 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
 | `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
 | `/dashboard/mailboxes`    | GET    | Mailbox blocks under the collection groups (chains views) |
-| `/dashboard/retry`        | POST   | Retry a failed workflow                              |
-| `/dashboard/nudge`        | POST   | Clear the pending backoff of a parked (requeued or waiting) workflow |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
+
+The dashboard's workflow actions (Retry, Retry now / Check now, Fail) are not dashboard endpoints: `modal.js` calls the engine's public API — `POST /api/v1/{namespace}/workflows/{id}/resume`, `/nudge` and `/fail` — so the UI exercises the same contract external callers use, and a refusal's problem-details `detail` becomes the button tooltip.
 
 ## Patterns
 
 - Cards use `data-*` attributes for filter matching (avoids reparsing): `data-namespace`, `data-collectionkey`, `data-labels`, `data-status`, `data-filter`
-- Workflow fingerprinting (`status + step statuses + retry counts`) to skip unchanged DOM updates
+- Workflow fingerprinting (`status + step statuses + retry counts + defer counts`) to skip unchanged DOM updates
 - Pulse animation sync after card re-render prevents CSS animation flicker
-- Pipeline scroll-on-change: only scrolls to active step when the processing step index changes
+- Pipeline scroll-on-change: a card rebuild keeps the operator's sideways pipeline scroll (`setCardHTMLKeepingPipelineScroll`); the pipeline only scrolls to the active step when the processing step index changes
 - Inline `onclick` handlers exposed via `window.*` for cards generated as HTML strings
 - URL state sync via `syncUrl()`/`restoreUrl()` — shareable URLs capture full dashboard state
 - Grafana trace links built from workflow `traceId` for Tempo integration
 - Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, collectionKey, labels)
-- Retry button on failed pipeline steps, nudge button on parked steps with a backoff timer
+- Retry button on failed pipeline steps; nudge and fail buttons on parked steps (nudge only while a backoff timer is pending)
 - **Escaping in generated markup — three helpers, and they are not interchangeable.** `esc()` is for element _content_ only: it escapes `&`, `<` and `>` and leaves quotes intact. A value interpolated into an attribute needs `escAttr()`, and one interpolated into a single-quoted JS argument of an inline `onclick` needs `escJsArg()` — with `esc()` there, a quote in a caller-supplied value (a collection key, an operationId, a label) closes the attribute and the remainder parses as attributes of its own, which is a working event handler on a value the engine stores and replays to every operator. Re-run both of these and expect no hits; the first is deliberately wider than an anchored match, because an `esc()` later in an attribute value is the same bug:
     ```sh
     grep -rnE '[a-zA-Z-]+="[^"]*\$\{esc\(' modules/     # esc() anywhere inside an attribute

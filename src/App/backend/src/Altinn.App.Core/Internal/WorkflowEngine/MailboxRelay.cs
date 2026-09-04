@@ -534,12 +534,10 @@ internal sealed class MailboxRelay
 
         List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)];
 
-        // Token minted at this hop; with the re-signed blob this binds each hop to current app code. The lock
-        // token is carried verbatim by design.
+        // Token minted at this hop; with the re-signed blob this binds each hop to current app code.
         var receiveContext = new AppWorkflowContext
         {
             Actor = request.Payload.Actor,
-            LockToken = request.Payload.LockToken,
             Org = request.AppId.Org,
             App = request.AppId.App,
             InstanceOwnerPartyId = request.InstanceId.InstanceOwnerPartyId,
@@ -601,7 +599,6 @@ internal sealed class MailboxRelay
         var continuationContext = new AppWorkflowContext
         {
             Actor = request.Payload.Actor,
-            LockToken = request.Payload.LockToken,
             Org = request.AppId.Org,
             App = request.AppId.App,
             InstanceOwnerPartyId = request.InstanceId.InstanceOwnerPartyId,
@@ -686,7 +683,6 @@ internal sealed class MailboxRelay
         _processEngine.EnqueueProcessNext(
             request.Instance,
             request.Payload.Actor,
-            request.Payload.LockToken,
             request.Payload.WorkflowId,
             // Derived, not read from the Collection-Key header: a header the engine forgot must not decide
             // whether the process advances.

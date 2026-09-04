@@ -1,0 +1,53 @@
+﻿<arkivmelding xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.arkivverket.no/standarder/noark5/arkivmelding">
+  <system>Altinn</system>
+  <meldingId>00000000-0000-0000-0000-000000000001</meldingId>
+  <tidspunkt>2026-08-13T10:30:00.0000000Z</tidspunkt>
+  <antallFiler>1</antallFiler>
+  <mappe xsi:type="saksmappe">
+    <systemID>11111111-1111-1111-1111-111111111111</systemID>
+    <tittel>Sak</tittel>
+    <opprettetDato>2026-08-13T10:30:00.0000000Z</opprettetDato>
+    <opprettetAv>Altinn</opprettetAv>
+    <basisregistrering xsi:type="journalpost">
+      <systemID>22222222-2222-2222-2222-222222222222</systemID>
+      <opprettetDato>2026-08-13T10:30:00Z</opprettetDato>
+      <opprettetAv>Altinn</opprettetAv>
+      <referanseForelderMappe>11111111-1111-1111-1111-111111111111</referanseForelderMappe>
+      <dokumentbeskrivelse>
+        <systemID>33333333-3333-3333-3333-333333333333</systemID>
+        <dokumenttype>Bestilling</dokumenttype>
+        <dokumentstatus>Dokumentet er ferdigstilt</dokumentstatus>
+        <tittel>Hoveddokument</tittel>
+        <opprettetDato>2026-08-13T10:30:00Z</opprettetDato>
+        <opprettetAv>Altinn</opprettetAv>
+        <tilknyttetRegistreringSom>Hoveddokument</tilknyttetRegistreringSom>
+        <dokumentnummer>1</dokumentnummer>
+        <tilknyttetDato>2026-08-13T10:30:00Z</tilknyttetDato>
+        <tilknyttetAv>Altinn</tilknyttetAv>
+        <dokumentobjekt>
+          <versjonsnummer>1</versjonsnummer>
+          <variantformat>Produksjonsformat</variantformat>
+          <opprettetDato>2026-08-13T10:30:00Z</opprettetDato>
+          <opprettetAv>Altinn</opprettetAv>
+          <referanseDokumentfil>model.xml</referanseDokumentfil>
+        </dokumentobjekt>
+      </dokumentbeskrivelse>
+      <tittel>Journalpost</tittel>
+      <journalposttype>Utgående dokument</journalposttype>
+      <journalstatus>Journalført</journalstatus>
+      <journaldato>2026-08-13</journaldato>
+      <korrespondansepart>
+        <korrespondanseparttype>Avsender</korrespondanseparttype>
+        <korrespondansepartNavn>Digitaliseringsdirektoratet</korrespondansepartNavn>
+      </korrespondansepart>
+      <korrespondansepart>
+        <korrespondanseparttype>Mottaker</korrespondanseparttype>
+        <korrespondansepartNavn>Oslo kommune</korrespondansepartNavn>
+      </korrespondansepart>
+    </basisregistrering>
+    <saksdato>2026-08-13</saksdato>
+    <administrativEnhet>Digitaliseringsdirektoratet</administrativEnhet>
+    <saksansvarlig>Altinn</saksansvarlig>
+    <saksstatus>Under behandling</saksstatus>
+  </mappe>
+</arkivmelding>

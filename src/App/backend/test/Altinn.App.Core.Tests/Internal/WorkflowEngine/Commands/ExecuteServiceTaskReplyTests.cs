@@ -253,7 +253,6 @@ public class ExecuteServiceTaskReplyTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),

@@ -1,7 +1,9 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -10,6 +12,8 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+var errKubeconfigParentNotDirectory = errors.New("kubeconfig parent path is not a directory")
+
 // ContextInfo represents a kubectl context with its associated user.
 type ContextInfo struct {
 	Name    string // Context name (e.g., "ttd-tt02-aks")
@@ -17,14 +21,41 @@ type ContextInfo struct {
 	Cluster string // Cluster name (e.g., "ttd-tt02-aks")
 }
 
-// loadKubeConfig loads the kubeconfig from the default location.
+// loadKubeConfig loads the selected kubeconfig. An empty path uses the default location.
 //
 //nolint:ireturn // client-go exposes the deferred config as an interface.
-func loadKubeConfig() (*api.Config, clientcmd.ClientConfig, error) {
-	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
+func loadKubeConfig(kubeconfigPath string) (*api.Config, clientcmd.ClientConfig, error) {
+	kubeconfig := kubeconfigPath
+	if kubeconfig == "" {
+		kubeconfig = filepath.Join(homedir.HomeDir(), ".kube", "config")
+	}
+
 	config, err := clientcmd.LoadFromFile(kubeconfig)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load kubeconfig from %s: %w", kubeconfig, err)
+		if kubeconfigPath == "" || !errors.Is(err, os.ErrNotExist) {
+			return nil, nil, fmt.Errorf("failed to load kubeconfig from %s: %w", kubeconfig, err)
+		}
+
+		parent := filepath.Dir(kubeconfig)
+		info, parentErr := os.Stat(parent)
+		if parentErr != nil {
+			return nil, nil, fmt.Errorf(
+				"cannot use kubeconfig path %s: parent directory %s: %w",
+				kubeconfig,
+				parent,
+				parentErr,
+			)
+		}
+		if !info.IsDir() {
+			return nil, nil, fmt.Errorf(
+				"cannot use kubeconfig path %s: %w: %s",
+				kubeconfig,
+				errKubeconfigParentNotDirectory,
+				parent,
+			)
+		}
+
+		config = api.NewConfig()
 	}
 	clientConfig := clientcmd.NewDefaultClientConfig(*config, nil)
 	return config, clientConfig, nil
@@ -32,8 +63,8 @@ func loadKubeConfig() (*api.Config, clientcmd.ClientConfig, error) {
 
 // ListContexts retrieves all kubectl contexts with their associated user/authinfo
 // using the client-go library instead of executing kubectl commands.
-func ListContexts() ([]ContextInfo, error) {
-	config, _, err := loadKubeConfig()
+func ListContexts(kubeconfigPath string) ([]ContextInfo, error) {
+	config, _, err := loadKubeConfig(kubeconfigPath)
 	if err != nil {
 		return nil, err
 	}

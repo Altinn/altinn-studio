@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -78,7 +79,9 @@ public sealed class ValidationServiceTests : IDisposable
 
     private readonly Mock<ILogger<ValidationService>> _loggerMock = new();
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataClientWithStorageMetadata> _dataClientWithStorageMetadataMock;
+    private readonly Mock<IInstanceMutationClient> _mutationClientMock;
+    private readonly Mock<IInstanceClientWithStorageMetadata> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
 
@@ -135,6 +138,8 @@ public sealed class ValidationServiceTests : IDisposable
 
     public ValidationServiceTests()
     {
+        _dataClientWithStorageMetadataMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
+        _mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
         _dataElementAccessCheckerMock
             .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
             .ReturnsAsync(true);
@@ -143,7 +148,9 @@ public sealed class ValidationServiceTests : IDisposable
         _modelSerialization = new ModelSerializationService(_appModelMock.Object);
         _dataAccessor = new InstanceDataUnitOfWork(
             _defaultInstance,
-            _dataClientMock.Object,
+            StorageVersionMetadata.Empty,
+            _dataClientWithStorageMetadataMock.Object,
+            _mutationClientMock.Object,
             _instanceClientMock.Object,
             _defaultAppMetadata,
             _translationServiceMock.Object,
@@ -156,7 +163,7 @@ public sealed class ValidationServiceTests : IDisposable
         );
         _serviceCollection.AddAppImplementationFactory();
         _serviceCollection.AddSingleton(_loggerMock.Object);
-        _serviceCollection.AddSingleton(_dataClientMock.Object);
+        _serviceCollection.AddSingleton<IDataClient>(_dataClientMock.Object);
         _serviceCollection.AddSingleton<IValidationService, ValidationService>();
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _appModelMock.Setup(a => a.GetModelType(typeof(MyModel).FullName!)).Returns(typeof(MyModel));
@@ -296,13 +303,14 @@ public sealed class ValidationServiceTests : IDisposable
 
     private void SetupDataClient(MyModel data)
     {
-        _dataClientMock
+        _dataClientWithStorageMetadataMock
             .Setup(d =>
-                d.GetDataBytes(
+                d.GetDataBytesWithExpectedBlobVersionId(
                     DefaultPartyId,
                     _defaultInstanceId,
                     _defaultDataElementId,
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -433,7 +441,9 @@ public sealed class ValidationServiceTests : IDisposable
         SetupDataClient(data);
         var dataAccessor = new InstanceDataUnitOfWork(
             _defaultInstance,
-            _dataClientMock.Object,
+            StorageVersionMetadata.Empty,
+            _dataClientWithStorageMetadataMock.Object,
+            _mutationClientMock.Object,
             _instanceClientMock.Object,
             _defaultAppMetadata,
             _translationServiceMock.Object,
@@ -517,7 +527,9 @@ public sealed class ValidationServiceTests : IDisposable
 
         var dataAccessor = new InstanceDataUnitOfWork(
             _defaultInstance,
-            _dataClientMock.Object,
+            StorageVersionMetadata.Empty,
+            _dataClientWithStorageMetadataMock.Object,
+            _mutationClientMock.Object,
             _instanceClientMock.Object,
             _defaultAppMetadata,
             _translationServiceMock.Object,
@@ -617,11 +629,11 @@ public sealed class ValidationServiceTests : IDisposable
         _dataElementValidatorAlwaysMock.Verify();
         _formDataValidatorAlwaysMock.Verify();
 
-        _dataClientMock.Verify();
+        _dataClientWithStorageMetadataMock.Verify();
         _appMetadataMock.Verify();
         _appModelMock.Verify();
         _loggerMock.Verify();
 
-        _dataClientMock.Verify();
+        _dataClientWithStorageMetadataMock.Verify();
     }
 }

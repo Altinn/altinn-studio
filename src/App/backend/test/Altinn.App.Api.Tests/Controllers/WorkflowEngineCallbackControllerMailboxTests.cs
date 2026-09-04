@@ -281,7 +281,6 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                         x.EnqueueProcessNext(
                             It.IsAny<Instance>(),
                             It.IsAny<Actor>(),
-                            It.IsAny<string>(),
                             It.IsAny<Guid>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
@@ -290,8 +289,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                             It.IsAny<CancellationToken>()
                         )
                     )
-                    .Callback<Instance, Actor, string, Guid, string, string, string?, string?, CancellationToken>(
-                        (_, _, _, _, _, state, action, idempotencyKey, _) =>
+                    .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
+                        (_, _, _, _, state, action, idempotencyKey, _) =>
                         {
                             recorder.Calls.Add("after-workflow");
                             recorder.EnqueueKeys.Add(idempotencyKey!);
@@ -312,6 +311,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         var incoming = new WorkflowCallbackState
         {
             Instance = CreateInstance(instanceGuid),
+            InstanceVersion = 9,
+            ProcessStateVersion = 4,
             FormData = [],
             Mailboxes = new Dictionary<string, CarriedMailbox>
             {
@@ -326,7 +327,6 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         {
             CommandKey = ExecuteServiceTask.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             StepId = stepId,

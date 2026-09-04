@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -35,8 +36,9 @@ public sealed class DataAccessorFixture
     public Mock<IAppMetadata> AppMetadataMock { get; } = new(MockBehavior.Strict);
     public Mock<IAppModel> AppModelMock { get; } = new(MockBehavior.Strict);
 
-    public Mock<IDataClient> DataClientMock { get; } = new(MockBehavior.Strict);
-    public Mock<IInstanceClient> InstanceClientMock { get; } = new(MockBehavior.Strict);
+    internal Mock<IDataClientWithStorageMetadata> DataClientMock { get; } = new(MockBehavior.Strict);
+    internal Mock<IInstanceMutationClient> MutationClientMock { get; }
+    internal Mock<IInstanceClientWithStorageMetadata> InstanceClientMock { get; } = new(MockBehavior.Strict);
 
     internal Mock<IDataElementAccessChecker> DataElementAccessCheckerMock { get; } = new(MockBehavior.Strict);
     public Mock<IHostEnvironment> HostEnvironmentMock { get; } = new(MockBehavior.Strict);
@@ -59,6 +61,7 @@ public sealed class DataAccessorFixture
 
     private DataAccessorFixture(ITestOutputHelper outputHelper)
     {
+        MutationClientMock = DataClientMock.As<IInstanceMutationClient>();
         AppMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(ApplicationMetadata);
         ServiceCollection.AddSingleton(AppResourcesMock.Object);
         ServiceCollection.AddSingleton(AppMetadataMock.Object);
@@ -67,6 +70,7 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddSingleton(Options.Create(AppSettings));
         ServiceCollection.AddSingleton(AppModelMock.Object);
         ServiceCollection.AddSingleton(DataClientMock.Object);
+        ServiceCollection.AddSingleton(MutationClientMock.Object);
         ServiceCollection.AddSingleton<ITranslationService, TranslationService>();
         ServiceCollection.AddSingleton(InstanceClientMock.Object);
         ServiceCollection.AddSingleton(DataElementAccessCheckerMock.Object);
@@ -224,11 +228,12 @@ public sealed class DataAccessorFixture
         var serializationService = new ModelSerializationService(AppModelMock.Object);
         DataClientMock
             .Setup(dc =>
-                dc.GetDataBytes(
+                dc.GetDataBytesWithExpectedBlobVersionId(
                     InstanceOwnerPartyId,
                     InstanceGuid,
                     dataGuid,
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

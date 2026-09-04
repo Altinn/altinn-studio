@@ -318,7 +318,6 @@ public class MailboxRelayFrontierTests
                 x.EnqueueProcessNext(
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
-                    It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -327,8 +326,8 @@ public class MailboxRelayFrontierTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns<Instance, Actor, string, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, _, collectionKey, _, _, idempotencyKey, ct) =>
+            .Returns<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
+                (_, _, _, collectionKey, _, _, idempotencyKey, ct) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,
@@ -353,7 +352,12 @@ public class MailboxRelayFrontierTests
     }
 
     private static WorkflowEngineService CreateReader(CollectionModel collection) =>
-        new(processNextRequestFactory: null!, collection, Mock.Of<IInstanceClient>(), new AppIdentifier(Org, App));
+        new(
+            processNextRequestFactory: null!,
+            collection,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            new AppIdentifier(Org, App)
+        );
 
     private static MailboxRelayRequest CreateRequest(Guid receiverWorkflowId, Guid stepId) =>
         new()
@@ -364,7 +368,6 @@ public class MailboxRelayFrontierTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 WorkflowId = receiverWorkflowId,
                 StepId = stepId,

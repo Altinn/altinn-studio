@@ -1,5 +1,6 @@
 #nullable disable
 using Altinn.App.Core.Extensions;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 
@@ -20,6 +21,7 @@ public class ProcessStateExtensionTests
     {
         ProcessState original = new ProcessState()
         {
+            Status = ProcessStatus.Processing,
             Ended = DateTime.Now,
             Started = DateTime.Now,
             StartEvent = "StartEvent",
