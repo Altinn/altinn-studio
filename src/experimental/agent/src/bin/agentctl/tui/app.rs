@@ -2,11 +2,12 @@ use std::collections::HashSet;
 
 use agent::{
     Agent, ConditionStatus, Harness,
+    sandbox::PortForwardSpec,
     sessions::{Session, SessionName, State},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::{format, forward::ForwardSpec};
+use crate::{format, forward::parse_spec};
 
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
@@ -88,16 +89,16 @@ pub(crate) struct ForwardForm {
 
 impl ForwardForm {
     /// Reopens the form for a mapping the runtime rejected, keeping its values.
-    pub(crate) fn rejected(agent: String, spec: &ForwardSpec, replace: Option<u64>, error: String) -> Self {
+    pub(crate) fn rejected(agent: String, spec: &PortForwardSpec, replace: Option<u64>, error: String) -> Self {
         Self {
             agent,
-            address: spec.address.to_string(),
-            local: if spec.local_port == 0 {
+            address: spec.address().to_string(),
+            local: if spec.local_port() == 0 {
                 String::new()
             } else {
-                spec.local_port.to_string()
+                spec.local_port().to_string()
             },
-            guest: spec.guest_port.to_string(),
+            guest: spec.guest_port().to_string(),
             field: ForwardField::Address,
             error: Some(bind_hint(spec, error)),
             replace,
@@ -114,7 +115,7 @@ impl ForwardForm {
                 } else {
                     &self.local
                 };
-                match ForwardSpec::parse(&format!("{}:{local}:{}", self.address, self.guest)) {
+                match parse_spec(&format!("{}:{local}:{}", self.address, self.guest)) {
                     Ok(spec) => {
                         return Some(Action::CreateForward {
                             agent: self.agent.clone(),
@@ -203,7 +204,7 @@ pub(crate) enum Action {
     },
     CreateForward {
         agent: String,
-        spec: ForwardSpec,
+        spec: PortForwardSpec,
         replace: Option<u64>,
     },
     DeleteForward {
@@ -761,8 +762,9 @@ const fn session_tone(state: State) -> Tone {
     }
 }
 
-fn bind_hint(spec: &ForwardSpec, error: String) -> String {
-    let low_port_on_specific_address = spec.local_port != 0 && spec.local_port < 1024 && !spec.address.is_unspecified();
+fn bind_hint(spec: &PortForwardSpec, error: String) -> String {
+    let low_port_on_specific_address =
+        spec.local_port() != 0 && spec.local_port() < 1024 && !spec.address().is_unspecified();
     if cfg!(target_os = "macos") && low_port_on_specific_address && error.contains("Permission denied") {
         format!("{error} — macOS allows ports below 1024 only on 0.0.0.0")
     } else {
@@ -1057,11 +1059,7 @@ mod tests {
             action,
             Action::CreateForward {
                 agent: "builder".into(),
-                spec: ForwardSpec {
-                    address: std::net::IpAddr::from([127, 0, 0, 1]),
-                    local_port: 80,
-                    guest_port: 80,
-                },
+                spec: PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 80, 80).expect("valid port mapping"),
                 replace: None,
             }
         );
@@ -1092,11 +1090,7 @@ mod tests {
             action,
             Action::CreateForward {
                 agent: "builder".into(),
-                spec: ForwardSpec {
-                    address: std::net::IpAddr::from([127, 0, 0, 1]),
-                    local_port: 9,
-                    guest_port: 80,
-                },
+                spec: PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 9, 80).expect("valid port mapping"),
                 replace: None,
             }
         );
@@ -1146,11 +1140,7 @@ mod tests {
 
     #[test]
     fn rejected_forwards_reopen_the_form_with_their_values() {
-        let spec = ForwardSpec {
-            address: std::net::IpAddr::from([127, 0, 0, 1]),
-            local_port: 0,
-            guest_port: 5432,
-        };
+        let spec = PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 0, 5432).expect("valid port mapping");
         let form = ForwardForm::rejected("worker".into(), &spec, Some(3), "boom".into());
         assert_eq!(form.agent, "worker");
         assert_eq!(form.address, "127.0.0.1");
@@ -1164,11 +1154,7 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn low_loopback_ports_get_the_wildcard_bind_hint() {
-        let spec = ForwardSpec {
-            address: std::net::IpAddr::from([127, 0, 0, 1]),
-            local_port: 80,
-            guest_port: 80,
-        };
+        let spec = PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 80, 80).expect("valid port mapping");
         let form = ForwardForm::rejected(
             "worker".into(),
             &spec,
@@ -1178,10 +1164,8 @@ mod tests {
         let error = form.error.expect("rejected form should keep its error");
         assert!(error.contains("macOS allows ports below 1024 only on 0.0.0.0"));
 
-        let wildcard = ForwardSpec {
-            address: std::net::IpAddr::from([0, 0, 0, 0]),
-            ..spec
-        };
+        let wildcard =
+            PortForwardSpec::new([0, 0, 0, 0].into(), spec.local_port(), spec.guest_port()).expect("wildcard spec");
         let form = ForwardForm::rejected("worker".into(), &wildcard, None, "Permission denied".into());
         assert_eq!(form.error.as_deref(), Some("Permission denied"));
     }

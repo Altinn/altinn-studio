@@ -8,12 +8,11 @@
 use ::sandbox::{
     SandboxHandle, SandboxPath,
     execution::{ExecutionSpec, ExitStatus},
-    terminal::{AttachTerminalRequest, TerminalAttachOutcome},
 };
 
 use crate::{Error, harness};
 
-use super::{AttachTarget, LaunchToken, Session, State};
+use super::{LaunchToken, Session};
 
 const UTF8_LOCALE: &str = "C.UTF-8";
 const PORTABLE_TERMINAL: &str = "xterm-256color";
@@ -161,34 +160,7 @@ pub(super) async fn create(
     )))
 }
 
-/// Attaches a local terminal to an existing tmux-backed Session.
-///
-/// This client capability is separate from daemon-owned lifecycle
-/// convergence. It never creates or resumes a Session.
-///
-/// # Errors
-///
-/// Returns an error unless the Session is ready and the Sandbox Provider
-/// supports direct terminal attachment.
-pub(super) async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(), Error> {
-    if target.session.status.state != State::Running {
-        return Err(Error::Invalid(format!("Session {} is not ready", target.session.id)));
-    }
-    let spec = attach_spec(&target.session);
-    match crate::sandbox::attach_terminal(home, &target.sandbox, AttachTerminalRequest::new(spec)).await? {
-        TerminalAttachOutcome::Exited(status) if status.success() => Ok(()),
-        TerminalAttachOutcome::Detached => Ok(()),
-        TerminalAttachOutcome::Exited(status) => Err(Error::Session(format!(
-            "tmux attachment exited with code {}",
-            status.code
-        ))),
-        _ => Err(Error::Session(
-            "terminal attachment returned an unsupported outcome".into(),
-        )),
-    }
-}
-
-fn attach_spec(session: &Session) -> ExecutionSpec {
+pub(super) fn attach_spec(session: &Session) -> ExecutionSpec {
     ExecutionSpec::command(
         SandboxPath::new("/usr/bin/tmux"),
         ["attach-session".into(), "-t".into(), exact_target(session)],
@@ -206,9 +178,9 @@ mod tests {
     use sandbox::execution::ExitStatus;
     use time::OffsetDateTime;
 
-    use crate::sessions::Status;
+    use crate::sessions::{State, Status};
 
-    use super::{Observation, Session, State};
+    use super::{Observation, Session};
 
     #[test]
     fn parses_guest_calculated_idle_age() {

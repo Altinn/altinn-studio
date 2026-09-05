@@ -37,6 +37,7 @@ microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox
 ratatui = "0.30.2"
 reqwest = { version = "0.13.4", features = ["json"] }
 rusqlite = "0.39.0"
+rustix = { version = "1.1.4", features = ["fs", "termios"] }
 sandbox = { path = "src/experimental/sandbox" }
 sandbox-microsandbox = { path = "src/experimental/sandbox-microsandbox" }
 serde = { version = "1.0.229", features = ["derive"] }

@@ -2,25 +2,249 @@
 
 mod support;
 
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    pin::Pin,
+    rc::Rc,
+    task::{Context, Poll},
+    time::Duration,
+};
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
+    control_api::{
+        AttachmentApi, AuthenticationApi, Caller, Client, Connection, Connector, ExecutionApi, PortForwardApi, Server,
+        SessionApi, TcpEndpoint,
+    },
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
 };
-use sandbox::LocalFuture;
+use sandbox::{LocalFuture, terminal::TerminalControl};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 use support::agent;
 
 struct IgnoreNotifications;
 
-struct FakeAuthentication;
+struct FakeAuthentication {
+    login_count: Rc<Cell<usize>>,
+}
 struct FakeExecutions;
+struct FakeAttachments;
+struct FakePortForwards;
+struct DropObservedExecutions {
+    dropped: Rc<Cell<bool>>,
+}
+struct DropObservedPortForwards {
+    dropped: Rc<Cell<bool>>,
+}
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+}
+
+struct NoopTerminalControl;
+
+struct FinishedPortForward {
+    spec: agent::sandbox::PortForwardSpec,
+    local_address: std::net::SocketAddr,
+}
+
+struct DropObservedExecutionStream {
+    dropped: Rc<Cell<bool>>,
+}
+
+impl futures_util::Stream for DropObservedExecutionStream {
+    type Item = Result<sandbox::execution::ExecutionEvent, sandbox::Error>;
+
+    fn poll_next(self: Pin<&mut Self>, _context: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Poll::Pending
+    }
+}
+
+impl Drop for DropObservedExecutionStream {
+    fn drop(&mut self) {
+        self.dropped.set(true);
+    }
+}
+
+struct DropObservedPortForward {
+    spec: agent::sandbox::PortForwardSpec,
+    dropped: Rc<Cell<bool>>,
+}
+
+impl Drop for DropObservedPortForward {
+    fn drop(&mut self) {
+        self.dropped.set(true);
+    }
+}
+
+impl agent::sandbox::RunningPortForward for DropObservedPortForward {
+    fn spec(&self) -> &agent::sandbox::PortForwardSpec {
+        &self.spec
+    }
+
+    fn local_address(&self) -> std::net::SocketAddr {
+        std::net::SocketAddr::from(([127, 0, 0, 1], 54_321))
+    }
+
+    fn status(&self) -> Option<String> {
+        None
+    }
+
+    fn finished(&self) -> bool {
+        false
+    }
+}
+
+impl agent::sandbox::RunningPortForward for FinishedPortForward {
+    fn spec(&self) -> &agent::sandbox::PortForwardSpec {
+        &self.spec
+    }
+
+    fn local_address(&self) -> std::net::SocketAddr {
+        self.local_address
+    }
+
+    fn status(&self) -> Option<String> {
+        Some("listener stopped for test".into())
+    }
+
+    fn finished(&self) -> bool {
+        true
+    }
+}
+
+impl PortForwardApi for FakePortForwards {
+    fn start<'a>(
+        &'a self,
+        _agent: &'a str,
+        specs: Vec<agent::sandbox::PortForwardSpec>,
+    ) -> LocalFuture<'a, Result<Vec<Rc<dyn agent::sandbox::RunningPortForward>>, Error>> {
+        Box::pin(async move {
+            specs
+                .into_iter()
+                .enumerate()
+                .map(|(index, spec)| {
+                    let offset = u16::try_from(index).map_err(|_| Error::Invalid("too many test forwards".into()))?;
+                    let port = 54_321_u16
+                        .checked_add(offset)
+                        .ok_or_else(|| Error::Invalid("too many test forwards".into()))?;
+                    Ok(Rc::new(FinishedPortForward {
+                        spec,
+                        local_address: std::net::SocketAddr::from(([127, 0, 0, 1], port)),
+                    }) as Rc<dyn agent::sandbox::RunningPortForward>)
+                })
+                .collect()
+        })
+    }
+}
+
+impl PortForwardApi for DropObservedPortForwards {
+    fn start<'a>(
+        &'a self,
+        _agent: &'a str,
+        specs: Vec<agent::sandbox::PortForwardSpec>,
+    ) -> LocalFuture<'a, Result<Vec<Rc<dyn agent::sandbox::RunningPortForward>>, Error>> {
+        let dropped = self.dropped.clone();
+        Box::pin(async move {
+            specs
+                .into_iter()
+                .map(|spec| {
+                    Ok(Rc::new(DropObservedPortForward {
+                        spec,
+                        dropped: dropped.clone(),
+                    }) as Rc<dyn agent::sandbox::RunningPortForward>)
+                })
+                .collect()
+        })
+    }
+}
+
+impl TerminalControl for NoopTerminalControl {
+    fn write_input(&self, _bytes: bytes::Bytes) -> LocalFuture<'_, Result<(), sandbox::Error>> {
+        Box::pin(async { Ok(()) })
+    }
+
+    fn close_input(&self) -> LocalFuture<'_, Result<(), sandbox::Error>> {
+        Box::pin(async { Ok(()) })
+    }
+
+    fn resize(&self, _size: sandbox::terminal::TerminalSize) -> LocalFuture<'_, Result<(), sandbox::Error>> {
+        Box::pin(async { Ok(()) })
+    }
+}
+
+struct EchoAttachments {
+    requests: Rc<RefCell<Vec<(String, agent::sessions::SessionName, sandbox::terminal::TerminalSize)>>>,
+    resizes: Rc<RefCell<Vec<sandbox::terminal::TerminalSize>>>,
+}
+
+struct EchoTerminalControl {
+    events: tokio::sync::mpsc::UnboundedSender<Result<sandbox::terminal::TerminalEvent, sandbox::Error>>,
+    resizes: Rc<RefCell<Vec<sandbox::terminal::TerminalSize>>>,
+}
+
+impl TerminalControl for EchoTerminalControl {
+    fn write_input(&self, bytes: bytes::Bytes) -> LocalFuture<'_, Result<(), sandbox::Error>> {
+        Box::pin(async move {
+            self.events
+                .send(Ok(sandbox::terminal::TerminalEvent::Output(bytes)))
+                .map_err(|_| sandbox::Error::Backend("test terminal event receiver closed".into()))
+        })
+    }
+
+    fn close_input(&self) -> LocalFuture<'_, Result<(), sandbox::Error>> {
+        Box::pin(async move {
+            self.events
+                .send(Ok(sandbox::terminal::TerminalEvent::Exited(
+                    sandbox::execution::ExitStatus { code: 0 },
+                )))
+                .map_err(|_| sandbox::Error::Backend("test terminal event receiver closed".into()))
+        })
+    }
+
+    fn resize(&self, size: sandbox::terminal::TerminalSize) -> LocalFuture<'_, Result<(), sandbox::Error>> {
+        self.resizes.borrow_mut().push(size);
+        Box::pin(async { Ok(()) })
+    }
+}
+
+impl AttachmentApi for EchoAttachments {
+    fn attach<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+        initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        self.requests
+            .borrow_mut()
+            .push((agent.into(), name.clone(), initial_size));
+        let resizes = self.resizes.clone();
+        Box::pin(async move {
+            let (events, receiver) = tokio::sync::mpsc::unbounded_channel();
+            let stream = futures_util::stream::unfold(receiver, |mut receiver| async move {
+                receiver.recv().await.map(|event| (event, receiver))
+            });
+            Ok(sandbox::terminal::StartedTerminalExecution {
+                id: "8203fc76-986b-4b53-a953-14cbc80f84e9"
+                    .parse()
+                    .map_err(|error| Error::Invalid(format!("invalid test Execution ID: {error}")))?,
+                control: Rc::new(EchoTerminalControl { events, resizes }),
+                events: Box::pin(stream),
+            })
+        })
+    }
+}
+
+impl AttachmentApi for FakeAttachments {
+    fn attach<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        _initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
 }
 
 impl Notifier for IgnoreNotifications {
@@ -33,6 +257,7 @@ impl AuthenticationApi for FakeAuthentication {
         _harness: agent::Harness,
         _token: &'a str,
     ) -> LocalFuture<'a, Result<ImportedAuthentication, Error>> {
+        self.login_count.set(self.login_count.get() + 1);
         Box::pin(async {
             Ok(ImportedAuthentication {
                 provider: "claude".into(),
@@ -48,7 +273,7 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         harness: Option<agent::Harness>,
-    ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
+    ) -> LocalFuture<'a, Result<agent::sessions::Session, Error>> {
         self.ensured_harnesses.borrow_mut().push(harness);
         Box::pin(async { Err(Error::NotFound) })
     }
@@ -67,32 +292,108 @@ impl SessionApi for FakeSessions {
 }
 
 impl ExecutionApi for FakeExecutions {
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+    fn start<'a>(
+        &'a self,
+        name: &'a str,
+        command: Vec<String>,
+    ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
         Box::pin(async move {
+            assert_eq!(
+                command,
+                test_command(),
+                "command arguments must cross the API unchanged"
+            );
             if name != "worker" {
                 return Err(Error::NotFound);
             }
-            Ok(agent::sandbox::ExecutionTarget {
-                sandbox: agent::sandbox::Assignment::Materialized {
-                    provider: agent::sandbox::ProviderId::new("memory")?,
-                    id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
-                        .parse()
-                        .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
-                },
-                operating_system: "linux".into(),
+            Ok(sandbox::execution::StartedExecution {
+                id: "4bb35a5a-0d9d-4614-a8ad-8c847594e606"
+                    .parse()
+                    .map_err(|error| Error::Invalid(format!("invalid test Execution ID: {error}")))?,
+                events: Box::pin(futures_util::stream::iter([
+                    Ok(sandbox::execution::ExecutionEvent::Stdout(bytes::Bytes::from_static(
+                        b"out\n",
+                    ))),
+                    Ok(sandbox::execution::ExecutionEvent::Stderr(bytes::Bytes::from_static(
+                        b"err\n",
+                    ))),
+                    Ok(sandbox::execution::ExecutionEvent::Exited(
+                        sandbox::execution::ExitStatus { code: 7 },
+                    )),
+                ])),
+            })
+        })
+    }
+
+    fn start_terminal<'a>(
+        &'a self,
+        name: &'a str,
+        command: Vec<String>,
+        _initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        Box::pin(async move {
+            assert_eq!(
+                command,
+                test_command(),
+                "command arguments must cross the API unchanged"
+            );
+            if name != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(sandbox::terminal::StartedTerminalExecution {
+                id: "5ace9a78-aec8-488f-a48e-5e38b0a211da"
+                    .parse()
+                    .map_err(|error| Error::Invalid(format!("invalid test Execution ID: {error}")))?,
+                control: Rc::new(NoopTerminalControl),
+                events: Box::pin(futures_util::stream::iter([Ok(
+                    sandbox::terminal::TerminalEvent::Exited(sandbox::execution::ExitStatus { code: 0 }),
+                )])),
             })
         })
     }
 }
 
+impl ExecutionApi for DropObservedExecutions {
+    fn start<'a>(
+        &'a self,
+        _name: &'a str,
+        _command: Vec<String>,
+    ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
+        let dropped = self.dropped.clone();
+        Box::pin(async move {
+            Ok(sandbox::execution::StartedExecution {
+                id: "4bb35a5a-0d9d-4614-a8ad-8c847594e606"
+                    .parse()
+                    .map_err(|error| Error::Invalid(format!("invalid test Execution ID: {error}")))?,
+                events: Box::pin(DropObservedExecutionStream { dropped }),
+            })
+        })
+    }
+
+    fn start_terminal<'a>(
+        &'a self,
+        _name: &'a str,
+        _command: Vec<String>,
+        _initial_size: sandbox::terminal::TerminalSize,
+    ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+}
+
 struct InProcessConnector {
     server: Rc<Server>,
+    caller: Caller,
+}
+
+struct VersionConnector {
+    protocol_version: &'static str,
 }
 
 struct ApiFixture {
     server: Rc<Server>,
     client: Client,
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    login_count: Rc<Cell<usize>>,
 }
 
 impl Connector for InProcessConnector {
@@ -100,8 +401,35 @@ impl Connector for InProcessConnector {
         Box::pin(async move {
             let (client, server) = tokio::io::duplex(64 * 1024);
             let api = self.server.clone();
+            let caller = self.caller;
             tokio::task::spawn_local(async move {
-                let _ignored = api.serve_connection(server).await;
+                let _ignored = api.serve_connection(server, caller).await;
+            });
+            Ok(Box::new(client) as Box<dyn Connection>)
+        })
+    }
+}
+
+impl Connector for VersionConnector {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            let (client, server) = tokio::io::duplex(4096);
+            let protocol_version = self.protocol_version;
+            tokio::task::spawn_local(async move {
+                let mut server = BufReader::new(server);
+                let mut request = String::new();
+                server.read_line(&mut request).await.expect("read health request");
+                let request: serde_json::Value = serde_json::from_str(&request).expect("decode health request");
+                let response = serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "id": request["id"],
+                    "result": { "protocolVersion": protocol_version }
+                });
+                server
+                    .get_mut()
+                    .write_all(format!("{response}\n").as_bytes())
+                    .await
+                    .expect("write health response");
             });
             Ok(Box::new(client) as Box<dyn Connection>)
         })
@@ -109,27 +437,97 @@ impl Connector for InProcessConnector {
 }
 
 fn api() -> ApiFixture {
+    api_with_attachments(Rc::new(FakeAttachments))
+}
+
+fn api_with_attachments(attachments: Rc<dyn AttachmentApi>) -> ApiFixture {
+    api_with_runtime(attachments, Rc::new(FakeExecutions), Rc::new(FakePortForwards))
+}
+
+fn api_with_runtime(
+    attachments: Rc<dyn AttachmentApi>,
+    executions: Rc<dyn ExecutionApi>,
+    port_forwards: Rc<dyn PortForwardApi>,
+) -> ApiFixture {
     let control_plane = Rc::new(ControlPlane::new(
         Rc::new(InMemoryAgentStore::new()),
         Rc::new(IgnoreNotifications),
     ));
     let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
+    let login_count = Rc::new(Cell::new(0));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let server = Rc::new(Server::new(
         control_plane,
-        Rc::new(FakeAuthentication),
-        Rc::new(FakeExecutions),
+        Rc::new(FakeAuthentication {
+            login_count: login_count.clone(),
+        }),
+        attachments,
+        executions,
+        port_forwards,
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
         }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
-    let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: server.clone(),
+        caller: Caller::Local,
+    }));
     ApiFixture {
         server,
         client,
         ensured_harnesses,
+        login_count,
     }
+}
+
+#[tokio::test(flavor = "local")]
+async fn terminal_attachment_streams_input_output_completion_and_resizes() {
+    let requests = Rc::new(RefCell::new(Vec::new()));
+    let captured_sizes = Rc::new(RefCell::new(Vec::new()));
+    let fixture = api_with_attachments(Rc::new(EchoAttachments {
+        requests: requests.clone(),
+        resizes: captured_sizes.clone(),
+    }));
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server,
+        caller: Caller::RemoteUnauthenticated,
+    }));
+    let initial_size = sandbox::terminal::TerminalSize::new(42, 120).expect("initial terminal size");
+    let mut terminal = client
+        .attach_session(
+            "worker",
+            agent::sessions::SessionName::new("main").expect("Session name"),
+            initial_size,
+        )
+        .await
+        .expect("attach terminal");
+
+    terminal.input.write(b"hello\n").await.expect("write input");
+    assert_eq!(
+        terminal.events.next().await.expect("output event"),
+        Some(sandbox::terminal::TerminalEvent::Output(bytes::Bytes::from_static(
+            b"hello\n"
+        )))
+    );
+    let requested_size = sandbox::terminal::TerminalSize::new(50, 160).expect("resized terminal size");
+    terminal.input.resize(requested_size).await.expect("resize terminal");
+    terminal.input.close().await.expect("close terminal input");
+    assert_eq!(
+        terminal.events.next().await.expect("exit event"),
+        Some(sandbox::terminal::TerminalEvent::Exited(
+            sandbox::execution::ExitStatus { code: 0 }
+        ))
+    );
+    assert_eq!(
+        requests.borrow().as_slice(),
+        &[(
+            "worker".into(),
+            agent::sessions::SessionName::new("main").expect("Session name"),
+            initial_size,
+        )]
+    );
+    assert_eq!(captured_sizes.borrow().as_slice(), &[requested_size]);
 }
 
 #[tokio::test(flavor = "local")]
@@ -142,13 +540,69 @@ async fn login_returns_only_non_secret_readiness() {
         .expect("login");
     assert_eq!(imported.provider, "claude");
     assert!(imported.ready);
+    assert_eq!(fixture.login_count.get(), 1);
+}
+
+#[tokio::test(flavor = "local")]
+async fn unauthenticated_remote_callers_cannot_store_credentials() {
+    let fixture = api();
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+        caller: Caller::RemoteUnauthenticated,
+    }));
+
+    let error = client
+        .auth_login(agent::Harness::ClaudeCode, "must-not-be-imported".into())
+        .await
+        .expect_err("remote login should fail");
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+    assert_eq!(fixture.login_count.get(), 0);
+}
+
+#[tokio::test(flavor = "local")]
+async fn tcp_clients_reject_credentials_before_connecting() {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("bind TCP listener");
+    let address = listener.local_addr().expect("TCP listener address").to_string();
+    let client = Client::for_tcp(TcpEndpoint::from_address(&address).expect("TCP endpoint"));
+
+    let error = client
+        .auth_login(agent::Harness::ClaudeCode, "must-not-be-transmitted".into())
+        .await
+        .expect_err("TCP credential transfer should fail");
+
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), listener.accept())
+            .await
+            .is_err(),
+        "the TCP client must reject credentials before opening a connection"
+    );
 }
 
 #[tokio::test(flavor = "local")]
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     fixture.client.health().await.expect("health check");
-    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v1");
+    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v3");
+}
+
+#[tokio::test(flavor = "local")]
+async fn health_reports_a_distinct_protocol_version_error() {
+    for version in ["v1", "v2"] {
+        let client = Client::new(Rc::new(VersionConnector {
+            protocol_version: version,
+        }));
+        assert!(matches!(
+            client.health().await.expect_err("version mismatch should fail"),
+            Error::ControlApiVersion { expected: "v3", actual } if actual == version
+        ));
+    }
+}
+
+fn test_command() -> Vec<String> {
+    ["/bin/true", "argument with spaces", "λ"].map(str::to_owned).to_vec()
 }
 
 fn request(name: &str) -> ApplyRequest {
@@ -173,9 +627,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             .expect("resolve source"),
         applied
     );
-    let execution = client.ensure_execution("worker").await.expect("execution target");
-    assert_eq!(execution.operating_system, "linux");
-    assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
     let ensure_error = client
         .ensure_session(
@@ -199,6 +650,177 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     client.delete("worker").await.expect("delete request");
     let deleting = client.get("worker").await.expect("marked resource");
     assert!(deleting.metadata.deletion_timestamp.is_some());
+}
+
+#[tokio::test(flavor = "local")]
+async fn failed_stream_start_preserves_application_errors() {
+    let fixture = api();
+    let client = &fixture.client;
+    let size = sandbox::terminal::TerminalSize::new(24, 80).expect("terminal size");
+    let execution = client.start_execution("missing", test_command()).await;
+    let terminal = client.start_terminal_execution("missing", test_command(), size).await;
+    let attachment = client
+        .attach_session(
+            "missing",
+            agent::sessions::SessionName::new("main").expect("Session name"),
+            size,
+        )
+        .await;
+    for result in [execution.map(|_| ()), terminal.map(|_| ()), attachment.map(|_| ())] {
+        assert!(matches!(result, Err(Error::Rpc(error)) if error.code == -32004));
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn execution_streams_are_connector_independent() {
+    let fixture = api();
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server,
+        caller: Caller::RemoteUnauthenticated,
+    }));
+    let command = test_command();
+    let mut execution = client
+        .start_execution("worker", command.clone())
+        .await
+        .expect("start Execution");
+    assert_eq!(
+        execution.events.next().await.expect("stdout event"),
+        Some(sandbox::execution::ExecutionEvent::Stdout(bytes::Bytes::from_static(
+            b"out\n"
+        )))
+    );
+    assert_eq!(
+        execution.events.next().await.expect("stderr event"),
+        Some(sandbox::execution::ExecutionEvent::Stderr(bytes::Bytes::from_static(
+            b"err\n"
+        )))
+    );
+    assert_eq!(
+        execution.events.next().await.expect("exit event"),
+        Some(sandbox::execution::ExecutionEvent::Exited(
+            sandbox::execution::ExitStatus { code: 7 }
+        ))
+    );
+
+    let size = sandbox::terminal::TerminalSize::new(24, 80).expect("terminal size");
+    let mut terminal = client
+        .start_terminal_execution("worker", command, size)
+        .await
+        .expect("start terminal Execution");
+    assert_eq!(
+        terminal.events.next().await.expect("terminal exit"),
+        Some(sandbox::terminal::TerminalEvent::Exited(
+            sandbox::execution::ExitStatus { code: 0 }
+        ))
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn port_forwards_are_connector_independent_and_daemon_owned() {
+    let fixture = api();
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server,
+        caller: Caller::RemoteUnauthenticated,
+    }));
+    let specs = vec![
+        agent::sandbox::PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 0, 3000)
+            .expect("port-forward spec"),
+    ];
+    let mut forwards = client
+        .start_port_forwards("worker", specs)
+        .await
+        .expect("start port forward");
+
+    assert_eq!(forwards.bindings().len(), 1);
+    assert_eq!(
+        forwards.bindings()[0],
+        agent::control_api::PortForwardBinding {
+            local_address: std::net::SocketAddr::from(([127, 0, 0, 1], 54_321)),
+            guest_port: 3000,
+        }
+    );
+    assert_eq!(
+        forwards.next().await.expect("stopped event"),
+        Some(agent::control_api::PortForwardEvent {
+            binding: forwards.bindings()[0].clone(),
+            stopped: true,
+            message: Some("listener stopped for test".into()),
+        })
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn unauthenticated_remote_callers_can_only_bind_loopback_forwards() {
+    let fixture = api();
+    let wildcard = agent::sandbox::PortForwardSpec::new(std::net::IpAddr::from([0, 0, 0, 0]), 0, 3000)
+        .expect("wildcard port-forward spec");
+
+    let local = fixture
+        .client
+        .start_port_forwards("worker", vec![wildcard.clone()])
+        .await
+        .expect("local callers may explicitly bind a non-loopback address");
+    drop(local);
+
+    let remote = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server,
+        caller: Caller::RemoteUnauthenticated,
+    }));
+    let Err(error) = remote.start_port_forwards("worker", vec![wildcard]).await else {
+        panic!("unauthenticated remote wildcard bind should fail");
+    };
+
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+}
+
+#[tokio::test(flavor = "local")]
+async fn client_disconnect_releases_daemon_owned_stream_operations() {
+    let execution_dropped = Rc::new(Cell::new(false));
+    let forward_dropped = Rc::new(Cell::new(false));
+    let fixture = api_with_runtime(
+        Rc::new(FakeAttachments),
+        Rc::new(DropObservedExecutions {
+            dropped: execution_dropped.clone(),
+        }),
+        Rc::new(DropObservedPortForwards {
+            dropped: forward_dropped.clone(),
+        }),
+    );
+    let command = test_command();
+
+    let execution = fixture
+        .client
+        .start_execution("worker", command)
+        .await
+        .expect("start tracked Execution");
+    assert!(!execution_dropped.get());
+    drop(execution);
+    wait_for_drop(&execution_dropped, "server should release disconnected Execution").await;
+
+    let forward = fixture
+        .client
+        .start_port_forwards(
+            "worker",
+            vec![
+                agent::sandbox::PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 0, 3000)
+                    .expect("port-forward spec"),
+            ],
+        )
+        .await
+        .expect("start tracked port forward");
+    assert!(!forward_dropped.get());
+    drop(forward);
+    wait_for_drop(&forward_dropped, "server should release disconnected port forward").await;
+}
+
+async fn wait_for_drop(dropped: &Cell<bool>, message: &str) {
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while !dropped.get() {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect(message);
 }
 
 #[tokio::test(flavor = "local")]
@@ -226,7 +848,7 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
     let (mut malformed_client, malformed_server) = tokio::io::duplex(1024);
     let malformed_api = server.clone();
     tokio::task::spawn_local(async move {
-        let _ignored = malformed_api.serve_connection(malformed_server).await;
+        let _ignored = malformed_api.serve_connection(malformed_server, Caller::Local).await;
     });
     malformed_client
         .write_all(b"{not-json}\n")
@@ -242,7 +864,7 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
     let (_idle_client, idle_server) = tokio::io::duplex(1024);
     let idle_api = server;
     tokio::task::spawn_local(async move {
-        let _ignored = idle_api.serve_connection(idle_server).await;
+        let _ignored = idle_api.serve_connection(idle_server, Caller::Local).await;
     });
     let fetched = tokio::time::timeout(Duration::from_secs(1), client.get("worker"))
         .await
@@ -292,4 +914,100 @@ async fn unix_socket_transport_is_private_and_usable() {
     assert_eq!(directory_mode, 0o700);
     assert_eq!(socket_mode, 0o600);
     server_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn tcp_transport_is_usable() {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("bind TCP listener");
+    let address = listener.local_addr().expect("TCP listener address").to_string();
+    let fixture = api_with_attachments(Rc::new(EchoAttachments {
+        requests: Rc::new(RefCell::new(Vec::new())),
+        resizes: Rc::new(RefCell::new(Vec::new())),
+    }));
+    let server = fixture.server;
+    let server_task = tokio::task::spawn_local(async move { server.serve_tcp(listener).await });
+    let client = Client::for_tcp(TcpEndpoint::from_address(&address).expect("TCP endpoint"));
+
+    client.health().await.expect("health over TCP");
+    let applied = client.apply(request("worker")).await.expect("apply over TCP");
+    assert_eq!(applied.metadata.name, "worker");
+    let size = sandbox::terminal::TerminalSize::new(24, 80).expect("terminal size");
+    let mut attachment = client
+        .attach_session(
+            "worker",
+            agent::sessions::SessionName::new("main").expect("Session name"),
+            size,
+        )
+        .await
+        .expect("attach Session over TCP");
+    attachment
+        .input
+        .write(b"over TCP")
+        .await
+        .expect("terminal input over TCP");
+    assert_eq!(
+        attachment.events.next().await.expect("terminal output over TCP"),
+        Some(sandbox::terminal::TerminalEvent::Output(bytes::Bytes::from_static(
+            b"over TCP"
+        )))
+    );
+    attachment.input.close().await.expect("close terminal input over TCP");
+    assert!(matches!(
+        attachment.events.next().await.expect("terminal exit over TCP"),
+        Some(sandbox::terminal::TerminalEvent::Exited(_))
+    ));
+    let command = test_command();
+    let mut execution = client
+        .start_execution("worker", command.clone())
+        .await
+        .expect("start Execution over TCP");
+    assert!(matches!(
+        execution.events.next().await.expect("Execution event over TCP"),
+        Some(sandbox::execution::ExecutionEvent::Stdout(_))
+    ));
+    let mut terminal = client
+        .start_terminal_execution("worker", command, size)
+        .await
+        .expect("start terminal over TCP");
+    assert!(matches!(
+        terminal.events.next().await.expect("terminal event over TCP"),
+        Some(sandbox::terminal::TerminalEvent::Exited(_))
+    ));
+    let mut forwards = client
+        .start_port_forwards(
+            "worker",
+            vec![
+                agent::sandbox::PortForwardSpec::new(std::net::IpAddr::from([127, 0, 0, 1]), 0, 8080)
+                    .expect("port-forward spec"),
+            ],
+        )
+        .await
+        .expect("start port forward over TCP");
+    assert!(matches!(
+        forwards.next().await.expect("port-forward event over TCP"),
+        Some(agent::control_api::PortForwardEvent { stopped: true, .. })
+    ));
+    let error = client
+        .auth_login(agent::Harness::ClaudeCode, "must-not-be-imported".into())
+        .await
+        .expect_err("remote login should fail");
+    assert!(matches!(error, Error::Rpc(error) if error.code == -32010));
+
+    server_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn unavailable_local_socket_has_a_distinct_error() {
+    let temporary = tempfile::Builder::new()
+        .prefix("agent-api-missing-")
+        .tempdir()
+        .expect("temporary API directory");
+    let client = Client::for_path(temporary.path().join("missing.sock"));
+
+    assert!(matches!(
+        client.health().await.expect_err("missing socket should fail"),
+        Error::ControlApiUnavailable { .. }
+    ));
 }

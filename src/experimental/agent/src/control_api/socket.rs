@@ -26,7 +26,9 @@ impl PathConnector {
 impl Connector for PathConnector {
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
         Box::pin(async move {
-            let stream = tokio::net::UnixStream::connect(&self.path).await?;
+            let stream = tokio::net::UnixStream::connect(&self.path)
+                .await
+                .map_err(|source| unavailable(&self.path, source))?;
             Ok(Box::new(stream) as Box<dyn Connection>)
         })
     }
@@ -38,7 +40,10 @@ impl Connector for PathConnector {
         Box::pin(async move {
             use tokio_util::compat::FuturesAsyncReadCompatExt as _;
 
-            let stream = win_uds::net::AsyncStream::connect(&self.path).await?.compat();
+            let stream = win_uds::net::AsyncStream::connect(&self.path)
+                .await
+                .map_err(|source| unavailable(&self.path, source))?
+                .compat();
             Ok(Box::new(stream) as Box<dyn Connection>)
         })
     }
@@ -69,7 +74,10 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 let (stream, _) = accepted?;
                 let connection_server = server.clone();
                 connections.push(async move {
-                    if let Err(error) = connection_server.serve_connection(stream).await {
+                    if let Err(error) = connection_server
+                        .serve_connection(stream, super::Caller::Local)
+                        .await
+                    {
                         connection_server.report(&error);
                     }
                 }.boxed_local());
@@ -122,13 +130,23 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 let (stream, _) = accepted?;
                 let connection_server = server.clone();
                 connections.push(async move {
-                    if let Err(error) = connection_server.serve_connection(stream.compat()).await {
+                    if let Err(error) = connection_server
+                        .serve_connection(stream.compat(), super::Caller::Local)
+                        .await
+                    {
                         connection_server.report(&error);
                     }
                 }.boxed_local());
             }
             Some(()) = connections.next(), if !connections.is_empty() => {}
         }
+    }
+}
+
+fn unavailable(path: &std::path::Path, source: std::io::Error) -> Error {
+    Error::ControlApiUnavailable {
+        endpoint: path.display().to_string(),
+        source,
     }
 }
 

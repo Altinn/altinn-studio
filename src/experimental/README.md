@@ -18,6 +18,10 @@ The main goals are:
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
 installs `agentctl` and `agentd` for the current user.
 
+For Apple Silicon testing without a local Rust toolchain, the `experimental - Build` workflow publishes an
+`agent-macos-aarch64` artifact with debug binaries and an archive checksum. Download it from the workflow run,
+verify the checksum, and extract the archive to run `agentd` and `agentctl` directly. These are test builds, not releases.
+
 The Agent database and local protocol are intentionally clean-slate while this code is experimental. Breaking schema
 changes require stopping `agentd` and removing the configured Agent home rather than migrating old state.
 
@@ -25,8 +29,8 @@ changes require stopping `agentd` and removing the configured Agent home rather 
 
 ```text
 Host
-├── agentctl             local CLI, transient execution and Session attachment
-└── agentd               control plane, reconciliation, policy and SecretStore
+├── agentctl             CLI, terminal input/output and interactive UI
+└── agentd               control plane, runtime operations, policy and SecretStore
     └── Agent            declarative durable resource
         └── Sandbox      isolated execution environment
             ├── Session  durable tmux-backed harness process
@@ -50,11 +54,18 @@ The Sandbox crates do not depend on Agent automation.
 
 ### Agent layer
 
-`agentd` owns the durable desired state and all lifecycle effects. `agentctl` starts the adjacent daemon on demand and
-communicates through the versioned local control API. Its resource-oriented commands follow `verb resource [name]`;
-Session scope is explicit through `--agent` or inferred from the closest unique persisted Agent source directory.
-Transient `exec` commands similarly converge the Agent first, then target its exact materialized Sandbox without
-creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
+`agentd` owns the durable desired state and all lifecycle effects. `agentctl` communicates through the versioned Agent
+Control API. Its built-in `local` context uses the protected platform-local socket and starts the adjacent daemon on
+demand. Named TCP contexts connect to an already-running daemon and never start or fall back to a local process. The
+resource-oriented commands follow `verb resource [name]`; Session scope is explicit through `--agent` or inferred from
+the closest unique persisted Agent source directory. `agentd` owns all Sandbox access, including transient executions,
+terminal attachments and host listeners for port forwarding. `agentctl` carries their transport-neutral streams and
+owns only local terminal input/output and UI state.
+
+Execution requests carry command arguments, not Sandbox assignments or platform-specific process environments;
+the daemon prepares and starts each command after convergence. Client and daemon binaries must speak the same
+Control API version. After updating test builds, update both binaries and restart the daemon; a protocol-only
+change does not require resetting its database.
 
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized
@@ -72,6 +83,32 @@ its native state still exists. Repeated unexpected harness exits use bounded bac
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
+
+### Client contexts and host-native daemons
+
+Contexts allow `agentctl` to run in a container while `agentd` runs natively on a host with the required virtualization
+support. With no client configuration, behavior is unchanged and the implicit `local` context is used. Named endpoints
+are managed with `agentctl config get-contexts`, `set-context`, `use-context` and `delete-context`; `--context` selects
+one endpoint for a command. Configuration is stored in `$HOME/.agentctl/config.yaml` on Unix and
+`%USERPROFILE%\.agentctl\config.yaml` on Windows, with `AGENT_CONFIG` as an override.
+
+For trusted local development, `agentd --insecure-tcp-port PORT` additionally listens on `127.0.0.1`. This listener is
+deliberately unauthenticated and unencrypted. Docker Desktop may make it reachable to containers, so any process that
+can reach the port can manage Agents, execute commands inside their Sandboxes, attach to Sessions, create listeners on
+the daemon host and potentially cause the daemon to access host paths. It is disabled by default and must not be exposed
+on a wildcard address. Authentication will be provided by a separate TLS endpoint later.
+
+Resource commands, `exec`, `attach`, `port-forward` and the TUI use the same Control API over every Connector. Streaming
+operations upgrade their request connection and end when the operation completes or `agentctl` disconnects. Harness
+login remains disabled for insecure TCP because it would expose a bearer credential. A future SSH Connector can proxy
+the remote Unix socket without changing the Control API or command implementations. Port-forward addresses are bound
+on the `agentd` host; unauthenticated TCP callers may only bind loopback addresses. Therefore a forward requested from
+a container is available to host applications at `127.0.0.1`, not at the container's own loopback address. Host paths
+sent by `apply` or current-directory inference must exist at the same absolute path on the daemon host.
+
+Interactive terminal input is forwarded byte-for-byte on Unix. `Ctrl-]` ends the attachment: a Session remains alive in
+tmux, while a transient interactive `exec` process is stopped when its Control API stream closes. End-of-file on the
+local terminal closes the remote process input and continues receiving output until the process exits.
 
 ## Images, home and harnesses
 
@@ -125,7 +162,7 @@ Important current limitations are:
 
 - Codex uses a separate ChatGPT subscription login owned and refreshed by `agentd`;
 - Sessions share one Sandbox user and tmux server and therefore one trust boundary;
-- attachment is still a client-side Provider operation rather than a daemon-owned terminal capability;
+- the optional development TCP listener has no authentication or encryption and must remain inside a trusted development boundary;
 - Session content, prompt steering, archive/delete and plugin APIs are not implemented; and
 - global scheduling and Kubernetes orchestration are future work.
 

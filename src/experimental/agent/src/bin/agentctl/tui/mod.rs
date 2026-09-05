@@ -4,15 +4,13 @@ mod view;
 
 use std::{io::IsTerminal as _, process::ExitCode, time::Duration};
 
-use agent::{
-    Agent, Error, Harness, control_api::Client, local::home::ControlPlaneHome, sessions::Session, sessions::SessionName,
-};
+use agent::{Agent, Error, control_api::Client, sandbox::PortForwardSpec, sessions::Session};
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
 use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
-use crate::forward::{ForwardSpec, PortForward};
+use crate::forward::PortForward;
 use app::{Action, App, ForwardEntry, ForwardForm, Modal};
 use terminal::Tui;
 
@@ -25,9 +23,9 @@ enum Input {
 }
 
 /// Completion of one background forward creation.
-type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Error>);
+type CreateOutcome = (String, PortForwardSpec, Option<u64>, Result<PortForward, Error>);
 
-pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
+pub(crate) async fn run(client: &Client) -> CommandResult<ExitCode> {
     if !std::io::stdin().is_terminal() || !std::io::stdout().is_terminal() {
         return Err(Error::Invalid("tui requires an interactive local terminal".into()).into());
     }
@@ -98,12 +96,12 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                             forwards.remove(id);
                         }
                         app.creating += 1;
-                        spawn_create(home, created_tx.clone(), agent, spec, replace);
+                        spawn_create(client, created_tx.clone(), agent, spec, replace);
                     }
                     Action::DeleteForward { id } => forwards.remove(id),
                     action => {
                         drop(events);
-                        suspended(&mut app, &mut tui, home, client, action).await?;
+                        suspended(&mut app, &mut tui, client, action).await?;
                         events = EventStream::new();
                         refresh(&mut app, &mut tui, client).await?;
                     }
@@ -114,7 +112,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     }
 }
 
-/// Process-owned port forwards keyed by a stable per-run identity.
+/// UI-owned port-forward handles keyed by a stable per-run identity.
 #[derive(Default)]
 struct ActiveForwards {
     next_id: u64,
@@ -139,7 +137,7 @@ impl ActiveForwards {
                 id: *id,
                 agent: agent.clone(),
                 local: forward.local_address().to_string(),
-                guest_port: forward.spec().guest_port,
+                guest_port: forward.spec().guest_port(),
                 status: forward.status(),
             })
             .collect()
@@ -148,21 +146,15 @@ impl ActiveForwards {
 
 /// Creates a forward off the event loop so provisioning never freezes the UI.
 fn spawn_create(
-    home: &ControlPlaneHome,
+    client: &Client,
     outcomes: tokio::sync::mpsc::UnboundedSender<CreateOutcome>,
     agent: String,
-    spec: ForwardSpec,
+    spec: PortForwardSpec,
     replace: Option<u64>,
 ) {
-    let home_path = home.path().to_path_buf();
-    let socket_path = home.socket_path();
+    let client = client.clone();
     tokio::task::spawn_local(async move {
-        let client = Client::for_path(socket_path);
-        let result = async {
-            let target = client.ensure_execution(&agent).await?;
-            PortForward::start(home_path, target.sandbox, spec.clone()).await
-        }
-        .await;
+        let result = PortForward::start(&client, &agent, spec.clone()).await;
         let _ = outcomes.send((agent, spec, replace, result));
     });
 }
@@ -186,22 +178,16 @@ async fn fetch(client: &Client) -> Result<(Vec<Agent>, Vec<Session>), Error> {
     Ok((client.list_agents().await?, client.list_sessions(None).await?))
 }
 
-async fn suspended(
-    app: &mut App,
-    tui: &mut Tui,
-    home: &ControlPlaneHome,
-    client: &Client,
-    action: Action,
-) -> CommandResult<()> {
+async fn suspended(app: &mut App, tui: &mut Tui, client: &Client, action: Action) -> CommandResult<()> {
     tui.suspend()?;
     let result = match action {
-        Action::Attach { agent, session } => attach(home, client, &agent, session, None).await,
+        Action::Attach { agent, session } => crate::terminal::attach_session(client, &agent, session, None).await,
         Action::CreateSession {
             agent,
             session,
             harness,
-        } => attach(home, client, &agent, session, Some(harness)).await,
-        Action::Exec { agent } => exec(home, client, &agent).await,
+        } => crate::terminal::attach_session(client, &agent, session, Some(harness)).await,
+        Action::Exec { agent } => exec(client, &agent).await,
         _ => Ok(()),
     };
     tui.resume()?;
@@ -211,33 +197,12 @@ async fn suspended(
     Ok(())
 }
 
-async fn attach(
-    home: &ControlPlaneHome,
-    client: &Client,
-    agent: &str,
-    session: SessionName,
-    harness: Option<Harness>,
-) -> Result<(), Error> {
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {name:?}; initial provisioning can take several minutes...",
-        name = session.as_str()
-    );
-    let target = client.ensure_session(agent, session, harness).await?;
-    agent::sessions::attach(home.path(), &target).await
-}
-
-async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
+async fn exec(client: &Client, agent: &str) -> Result<(), Error> {
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(agent).await?;
-    let command = ["bash".to_owned(), "-l".to_owned()];
-    let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
-    match agent::sandbox::attach_terminal(
-        home.path(),
-        &target.sandbox,
-        sandbox::terminal::AttachTerminalRequest::new(spec),
-    )
-    .await?
-    {
+    let command = vec!["bash".to_owned(), "-l".to_owned()];
+    let initial_size = crate::terminal::current_size()?;
+    let terminal = client.start_terminal_execution(agent, command, initial_size).await?;
+    match crate::terminal::run(terminal).await? {
         TerminalAttachOutcome::Exited(_) | TerminalAttachOutcome::Detached => Ok(()),
         _ => Err(Error::Session(
             "terminal execution returned an unsupported outcome".into(),

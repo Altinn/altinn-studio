@@ -7,20 +7,24 @@ use std::{
 
 use agent::{
     Agent, ConditionStatus, Error,
-    control_api::Client,
+    control_api::{AttachedExecution, Client},
     control_plane::ApplyRequest,
-    local::home::ControlPlaneHome,
+    local::{
+        contexts::{CONTEXT_ENVIRONMENT_VARIABLE, Contexts, Endpoint},
+        home::ControlPlaneHome,
+    },
     manifest,
     sessions::{Session, SessionName},
 };
 use clap::{Parser, Subcommand};
 
+mod config;
 mod format;
 mod forward;
+mod terminal;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
-use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
@@ -31,6 +35,9 @@ struct Arguments {
     /// Agent control-plane home.
     #[arg(long, global = true)]
     home: Option<PathBuf>,
+    /// Context used to reach the Agent control plane.
+    #[arg(long, global = true)]
+    context: Option<String>,
     #[command(subcommand)]
     command: Command,
 }
@@ -44,6 +51,11 @@ const fn agent_version() -> &'static str {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Manage Agent control-plane contexts.
+    Config {
+        #[command(subcommand)]
+        command: config::ConfigCommand,
+    },
     /// Manage Claude Code harness authentication.
     Claude {
         #[command(subcommand)]
@@ -188,20 +200,89 @@ fn main() -> ExitCode {
 }
 
 fn run() -> CommandResult<ExitCode> {
-    let arguments = Arguments::parse();
-    let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
-    let client = Client::for_path(home.socket_path());
-    LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        ensure_daemon(&home, &client).await?;
-        execute(arguments.command, &home, &client).await
-    })
+    let Arguments { home, context, command } = Arguments::parse();
+    let config_path = Contexts::resolve_path()?;
+    let mut contexts = Contexts::load(&config_path)?;
+    let environment_context = environment_context()?;
+    let command = match command {
+        Command::Config { command } => {
+            config::execute(
+                command,
+                &mut contexts,
+                &config_path,
+                home.as_deref(),
+                context.as_deref(),
+                environment_context.as_deref(),
+            )?;
+            return Ok(ExitCode::SUCCESS);
+        }
+        command => command,
+    };
+
+    let selected = contexts.select(context.as_deref(), environment_context.as_deref())?;
+    reject_insecure_tcp(&command, selected.endpoint())?;
+    let runtime = LocalRuntime::new().map_err(Error::from)?;
+    match selected.endpoint() {
+        Endpoint::Local => {
+            let home = ControlPlaneHome::resolve(home.as_deref())?;
+            let client = Client::for_path(home.socket_path());
+            runtime.block_on(async move {
+                ensure_daemon(&home, &client).await?;
+                execute(command, Some(&home), &client).await
+            })
+        }
+        Endpoint::Tcp(endpoint) => {
+            config::warn_insecure_tcp(endpoint);
+            let client = Client::for_tcp(endpoint.clone());
+            runtime.block_on(async move {
+                client.health().await?;
+                execute(command, None, &client).await
+            })
+        }
+    }
 }
 
-async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
+fn environment_context() -> Result<Option<String>, Error> {
+    let Some(value) = std::env::var_os(CONTEXT_ENVIRONMENT_VARIABLE).filter(|value| !value.is_empty()) else {
+        return Ok(None);
+    };
+    value
+        .into_string()
+        .map(Some)
+        .map_err(|_| Error::Configuration(format!("{CONTEXT_ENVIRONMENT_VARIABLE} is not valid UTF-8")))
+}
+
+fn reject_insecure_tcp(command: &Command, endpoint: &Endpoint) -> CommandResult<()> {
+    if !matches!(endpoint, Endpoint::Tcp(_)) {
+        return Ok(());
+    }
+    let message = match command {
+        Command::Claude { .. } | Command::Codex { .. } => {
+            "authentication login is not permitted through an unauthenticated TCP context"
+        }
+        Command::Config { .. }
+        | Command::Attach { .. }
+        | Command::Exec { .. }
+        | Command::PortForward { .. }
+        | Command::Tui
+        | Command::Apply { .. }
+        | Command::Get { .. }
+        | Command::Describe { .. }
+        | Command::Delete { .. }
+        | Command::Wait { .. } => return Ok(()),
+    };
+    Err(CommandError::Message(message.into()))
+}
+
+async fn execute(command: Command, home: Option<&ControlPlaneHome>, client: &Client) -> CommandResult<ExitCode> {
     match command {
+        Command::Config { .. } => {
+            return Err(Error::Configuration("config command reached daemon execution".into()).into());
+        }
         Command::Claude {
             command: ClaudeCommand::Login,
         } => {
+            let home = require_local_home(home)?;
             let token = agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?;
             let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
             println!("{} authentication stored", imported.provider);
@@ -209,6 +290,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::Codex {
             command: CodexCommand::Login,
         } => {
+            let home = require_local_home(home)?;
             let credential = agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?;
             let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
             println!("{} authentication stored", imported.provider);
@@ -242,18 +324,18 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             name,
             agent,
             harness,
-        } => attach(home, client, &resource, name, agent, harness).await?,
+        } => attach(client, &resource, name, agent, harness).await?,
         Command::Exec {
             stdin,
             tty,
             resource,
             agent,
             command,
-        } => return exec_command(home, client, resource, agent, &command, stdin, tty).await,
+        } => return exec_command(client, resource, agent, &command, stdin, tty).await,
         Command::PortForward { agent, arguments } => {
-            return port_forward(home, client, agent, &arguments).await;
+            return port_forward(client, agent, &arguments).await;
         }
-        Command::Tui => return tui::run(home, client).await,
+        Command::Tui => return tui::run(client).await,
         Command::Wait {
             condition,
             timeout,
@@ -262,6 +344,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         } => wait(client, &condition, timeout, &resource, name).await?,
     }
     Ok(ExitCode::SUCCESS)
+}
+
+fn require_local_home(home: Option<&ControlPlaneHome>) -> CommandResult<&ControlPlaneHome> {
+    home.ok_or_else(|| CommandError::Message("command requires the built-in local context".into()))
 }
 
 async fn get_resources(
@@ -304,7 +390,6 @@ async fn get_resources(
 }
 
 async fn attach(
-    home: &ControlPlaneHome,
     client: &Client,
     resource: &str,
     name: Option<String>,
@@ -317,17 +402,11 @@ async fn attach(
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
-        session = session.as_str()
-    );
-    let target = client.ensure_session(&agent, session, harness).await?;
-    agent::sessions::attach(home.path(), &target).await?;
+    terminal::attach_session(client, &agent, session, harness).await?;
     Ok(())
 }
 
 async fn exec_command(
-    home: &ControlPlaneHome,
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
@@ -339,31 +418,19 @@ async fn exec_command(
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
-    let current = client.get(&agent).await?;
-    if !current
-        .status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True)
-    {
-        eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    }
-    let target = client.ensure_execution(&agent).await?;
-    let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
+    eprintln!("Starting command in Agent {agent:?}; initial provisioning can take several minutes...");
     let status = if stdin && tty {
-        match agent::sandbox::attach_terminal(
-            home.path(),
-            &target.sandbox,
-            ::sandbox::terminal::AttachTerminalRequest::new(spec),
-        )
-        .await?
-        {
+        let initial_size = terminal::current_size()?;
+        let attached = client
+            .start_terminal_execution(&agent, command.to_vec(), initial_size)
+            .await?;
+        match terminal::run(attached).await? {
             TerminalAttachOutcome::Exited(status) => status,
             TerminalAttachOutcome::Detached => return Ok(ExitCode::SUCCESS),
             _ => return Err(Error::Session("terminal execution returned an unsupported outcome".into()).into()),
         }
     } else {
-        let execution = agent::sandbox::start_execution(home.path(), &target, spec).await?;
+        let execution = client.start_execution(&agent, command.to_vec()).await?;
         stream_execution(execution).await?
     };
     Ok(exit_code(status.code))
@@ -383,12 +450,7 @@ fn split_forward_arguments(arguments: &[String]) -> (Option<String>, &[String]) 
     }
 }
 
-async fn port_forward(
-    home: &ControlPlaneHome,
-    client: &Client,
-    agent: Option<String>,
-    arguments: &[String],
-) -> CommandResult<ExitCode> {
+async fn port_forward(client: &Client, agent: Option<String>, arguments: &[String]) -> CommandResult<ExitCode> {
     let (resource, ports) = split_forward_arguments(arguments);
     if agent.is_some() && resource.is_some() {
         return Err(Error::Invalid("the Agent was supplied both as an argument and with --agent".into()).into());
@@ -398,43 +460,32 @@ async fn port_forward(
     }
     let specs = ports
         .iter()
-        .map(|port| forward::ForwardSpec::parse(port))
+        .map(|port| forward::parse_spec(port))
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(&agent).await?;
-    let mut forwards = Vec::new();
-    for spec in specs {
-        let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
+    let mut forwards = client.start_port_forwards(&agent, specs).await?;
+    for binding in forwards.bindings() {
         println!(
             "Forwarding from {} -> {} (agent {agent:?})",
-            forward.local_address(),
-            forward.spec().guest_port
+            binding.local_address, binding.guest_port
         );
-        forwards.push(forward);
     }
-    let mut reported = vec![None; forwards.len()];
-    let mut poll = tokio::time::interval(Duration::from_secs(1));
     loop {
         tokio::select! {
             result = tokio::signal::ctrl_c() => {
                 result.map_err(Error::from)?;
                 return Ok(ExitCode::SUCCESS);
             }
-            _ = poll.tick() => {
-                for (forward, reported) in forwards.iter().zip(reported.iter_mut()) {
-                    let status = forward.status();
-                    if status != *reported {
-                        if let Some(message) = &status {
-                            eprintln!("{} -> {}: {message}", forward.local_address(), forward.spec().guest_port);
-                        }
-                        *reported = status;
-                    }
-                }
-                if forwards.iter().all(forward::PortForward::finished) {
+            event = forwards.next() => {
+                let Some(event) = event? else {
                     eprintln!("every port forward has stopped");
                     return Ok(ExitCode::FAILURE);
+                };
+                let binding = event.binding;
+                if let Some(message) = event.message {
+                    eprintln!("{} -> {}: {message}", binding.local_address, binding.guest_port);
                 }
             }
         }
@@ -462,14 +513,12 @@ async fn resolve_execution_agent(
     require_name(name, "Agent").map_err(CommandError::from)
 }
 
-async fn stream_execution(
-    mut execution: ::sandbox::execution::StartedExecution,
-) -> Result<::sandbox::execution::ExitStatus, Error> {
+async fn stream_execution(mut execution: AttachedExecution) -> Result<::sandbox::execution::ExitStatus, Error> {
     let id = execution.id.clone();
     let mut stdout = tokio::io::stdout();
     let mut stderr = tokio::io::stderr();
-    while let Some(event) = execution.events.next().await {
-        match event? {
+    while let Some(event) = execution.events.next().await? {
+        match event {
             ExecutionEvent::Started { .. } => {}
             ExecutionEvent::Stdout(bytes) => stdout.write_all(&bytes).await?,
             ExecutionEvent::Stderr(bytes) => stderr.write_all(&bytes).await?,
@@ -719,14 +768,18 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    if client.health().await.is_ok() {
-        return Ok(());
+    match client.health().await {
+        Ok(()) => return Ok(()),
+        Err(error) if daemon_needs_start(&error) => {}
+        Err(error) => return Err(error),
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if client.health().await.is_ok() {
-            return Ok(());
+        match client.health().await {
+            Ok(()) => return Ok(()),
+            Err(error) if daemon_needs_start(&error) => {}
+            Err(error) => return Err(error),
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
@@ -739,6 +792,10 @@ async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), E
         "automatic startup did not become ready within 10 seconds; see {}",
         home.daemon_log_path().display()
     )))
+}
+
+const fn daemon_needs_start(error: &Error) -> bool {
+    matches!(error, Error::ControlApiUnavailable { .. })
 }
 
 fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
@@ -958,5 +1015,81 @@ mod tests {
         let agentctl = directory.join(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
         let agentd = directory.join(format!("agentd{}", std::env::consts::EXE_SUFFIX));
         assert_eq!(daemon_executable(&agentctl), agentd);
+    }
+
+    #[test]
+    fn contexts_follow_the_expected_cli_shapes() {
+        let get = Arguments::try_parse_from(["agentctl", "--context", "local", "config", "get-contexts"])
+            .expect("get contexts arguments");
+        assert_eq!(get.context.as_deref(), Some("local"));
+        assert!(matches!(
+            get.command,
+            Command::Config {
+                command: config::ConfigCommand::GetContexts
+            }
+        ));
+
+        let set = Arguments::try_parse_from([
+            "agentctl",
+            "config",
+            "set-context",
+            "mac-host",
+            "--endpoint",
+            "tcp://host.docker.internal:7463",
+        ])
+        .expect("set context arguments");
+        assert!(matches!(
+            set.command,
+            Command::Config {
+                command: config::ConfigCommand::SetContext { name, endpoint }
+            } if name == "mac-host" && endpoint.address() == "host.docker.internal:7463"
+        ));
+        assert!(
+            Arguments::try_parse_from([
+                "agentctl",
+                "config",
+                "set-context",
+                "bad",
+                "--endpoint",
+                "http://host:7463",
+            ])
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn insecure_tcp_rejects_credentials_but_supports_runtime_commands() {
+        let endpoint = Endpoint::Tcp("tcp://host.docker.internal:7463".parse().expect("valid TCP endpoint"));
+        for arguments in [vec!["agentctl", "claude", "login"], vec!["agentctl", "codex", "login"]] {
+            let parsed = Arguments::try_parse_from(arguments).expect("command should parse");
+            assert!(reject_insecure_tcp(&parsed.command, &endpoint).is_err());
+        }
+
+        for arguments in [
+            vec!["agentctl", "attach", "session/s1", "--agent", "worker"],
+            vec!["agentctl", "exec", "worker", "--", "true"],
+            vec!["agentctl", "port-forward", "worker", "8080"],
+            vec!["agentctl", "tui"],
+            vec!["agentctl", "get", "agents"],
+        ] {
+            let parsed = Arguments::try_parse_from(arguments).expect("command should parse");
+            assert!(reject_insecure_tcp(&parsed.command, &endpoint).is_ok());
+        }
+    }
+
+    #[test]
+    fn automatic_start_is_limited_to_an_unavailable_local_endpoint() {
+        let unavailable = Error::ControlApiUnavailable {
+            endpoint: "missing.sock".into(),
+            source: std::io::ErrorKind::NotFound.into(),
+        };
+        let mismatch = Error::ControlApiVersion {
+            expected: "v1",
+            actual: "v0".into(),
+        };
+
+        assert!(daemon_needs_start(&unavailable));
+        assert!(!daemon_needs_start(&mismatch));
+        assert!(!daemon_needs_start(&Error::Invalid("malformed response".into())));
     }
 }

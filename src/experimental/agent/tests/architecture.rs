@@ -93,6 +93,55 @@ fn microsandbox_internals_are_contained_by_the_microsandbox_adapter() {
 }
 
 #[test]
+fn microsandbox_provider_is_opened_once_by_its_adapter() {
+    let adapter = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("sandbox")
+        .join("microsandbox");
+    let mut files = Vec::new();
+    rust_files(&adapter, &mut files);
+    let opens = files
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path)
+                .expect("Microsandbox adapter source should be readable")
+                .matches("MicrosandboxProvider::open(")
+                .count()
+        })
+        .sum::<usize>();
+
+    assert_eq!(opens, 1, "the daemon must reuse its one Microsandbox Provider");
+}
+
+#[test]
+fn agentctl_never_opens_sandbox_runtime_operations_directly() {
+    let client = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("bin")
+        .join("agentctl");
+    let mut files = Vec::new();
+    rust_files(&client, &mut files);
+
+    for path in files {
+        let contents = std::fs::read_to_string(&path).expect("agentctl source should be readable");
+        for direct_runtime_access in [
+            "MicrosandboxProvider::open",
+            "sandbox::attach_terminal",
+            "sandbox::guest_tcp_dialer",
+            "sandbox::start_execution",
+            "sandbox::platform::execution_spec",
+            "ensure_execution",
+        ] {
+            assert!(
+                !contents.contains(direct_runtime_access),
+                "direct Sandbox runtime access {direct_runtime_access:?} leaked into {}",
+                path.display()
+            );
+        }
+    }
+}
+
+#[test]
 fn sandbox_operating_system_details_are_contained_by_platform_and_harness_adapters() {
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut files = Vec::new();
