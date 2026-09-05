@@ -1,4 +1,3 @@
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,10 +38,6 @@ public static class AppBuilder
             builder.Configuration,
             builder.Environment
         );
-        builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
-            options.RequestCollectionOptions.InjectResponseHeaders = false
-        );
-
         // 4. OverrideAltinnAppServices
         overrideAltinnAppServices?.Invoke(builder.Services);
 

@@ -8,7 +8,6 @@ using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Middleware;
-using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -23,7 +22,6 @@ using Altinn.Common.PEP.Clients;
 using Altinn.Studio.Common;
 using AltinnCore.Authentication.JwtCookie;
 using Azure.Monitor.OpenTelemetry.Exporter;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -100,20 +98,8 @@ public static class ServiceCollectionExtensions
         services.AddAppServices(config, env);
         services.ConfigureDataProtection();
 
-        var useOpenTelemetrySetting = config.GetValue<bool?>("AppSettings:UseOpenTelemetry");
+        AddOpenTelemetry(services, config, env);
 
-        // Use Application Insights as default, opt in to use Open Telemetry
-        if (useOpenTelemetrySetting is true)
-        {
-            AddOpenTelemetry(services, config, env);
-        }
-        else
-        {
-            AddApplicationInsights(services, config, env);
-        }
-
-        // AddMaskinportenClient adds a keyed service. This needs to happen after AddApplicationInsights,
-        // due to a bug in app insights: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2828
         services.AddMaskinportenClient();
         services.AddCorrespondenceClient();
 
@@ -180,44 +166,6 @@ public static class ServiceCollectionExtensions
             services,
             configSectionPath
         );
-
-    /// <summary>
-    /// Adds Application Insights to the service collection.
-    /// </summary>
-    /// <param name="services">Services</param>
-    /// <param name="config">Config</param>
-    /// <param name="env">Environment</param>
-    internal static void AddApplicationInsights(
-        IServiceCollection services,
-        IConfiguration config,
-        IWebHostEnvironment env
-    )
-    {
-        var (applicationInsightsKey, applicationInsightsConnectionString) = GetAppInsightsConfig(config, env);
-
-        if (!string.IsNullOrEmpty(applicationInsightsKey) || !string.IsNullOrEmpty(applicationInsightsConnectionString))
-        {
-            services.AddApplicationInsightsTelemetry(
-                (options) =>
-                {
-                    if (string.IsNullOrEmpty(applicationInsightsConnectionString))
-                    {
-#pragma warning disable CS0618 // Type or member is obsolete
-                        // Set instrumentationKey for compatibility if connectionString does not exist.
-                        options.InstrumentationKey = applicationInsightsKey;
-#pragma warning restore CS0618 // Type or member is obsolete
-                    }
-                    else
-                    {
-                        options.ConnectionString = applicationInsightsConnectionString;
-                    }
-                }
-            );
-            services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
-            services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
-            services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-        }
-    }
 
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
