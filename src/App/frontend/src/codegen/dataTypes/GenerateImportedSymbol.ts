@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -28,5 +29,9 @@ export class GenerateImportedSymbol<T> extends MaybeOptionalCodeGenerator<T> {
 
   toJsonSchemaDefinition(): JSONSchema7 {
     throw new Error(`Cannot generate JsonSchema for imported '${this.val.import}'`);
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    throw new Error(`Cannot generate component catalogue data for imported '${this.val.import}'`);
   }
 }
