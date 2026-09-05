@@ -550,6 +550,63 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    // The two throttle plans below assert their index and deliberately do not snapshot: the counts
+    // plan is not stable across environments — it has been seen to alternate between a bitmap scan
+    // and an index-only scan of the same index on one machine minutes apart, which is the same
+    // instability GetScheduledWorkflows' snapshot suffers from. The assertions state the invariant
+    // each index exists for; the full plan text states only which shape the planner chose today.
+
+    [Fact]
+    public async Task NamespaceWorkflowCounts_IsServedByTheNamespaceStatusIndex()
+    {
+        // The sweep's trip detection runs this every cycle over every incomplete workflow in the
+        // fleet, and ix_workflows_namespace_status_incomplete exists for it alone — its doc claims
+        // the counts resolve from the index without touching the heap. Nothing verified that
+        // claim, which is exactly how a partial filter drifts out of step with its query.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.NamespaceWorkflowCountsSql,
+            null,
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_status_incomplete");
+    }
+
+    [Fact]
+    public async Task ParkCandidates_TakesItsPageBoundaryFromTheRequeuedIndex()
+    {
+        // One keyset page of the park pass. The page boundary has to be part of the index
+        // condition rather than a filter over what the scan already read: a park pass walks a
+        // namespace's whole Requeued population a page at a time, so an id that only narrows
+        // afterwards makes every page re-read every row the earlier pages walked. Measured on a
+        // 400k-row table with a 150k-requeued namespace, one page cost 50361 buffers off the
+        // primary key before ix_workflows_namespace_id_requeued existed and 138 after it.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.ParkCandidatesSql,
+            [
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<Guid[]>("excluded", []),
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now),
+                new NpgsqlParameter<Guid>("afterId", Guid.Empty),
+                new NpgsqlParameter<int>("limit", 500),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_id_requeued");
+        QueryPlanHelper.AssertIndexCondContains(plan, "ix_workflows_namespace_id_requeued", "namespace", "id");
+    }
+
     // --- Seed data ---
 
     /// <summary>
