@@ -37,13 +37,20 @@ internal static class EngineRepositoryQueryExtensions
         /// and cannot become runnable on its own until the timer elapses. A pending cancellation
         /// makes a parked workflow runnable regardless of its timer, mirroring the fetch gate's
         /// cancellation bypass.
+        /// <para>
+        /// <paramref name="throttleGate"/> mirrors the fetch gate variant selected at startup from
+        /// <c>EngineSettings.Throttling.Enabled</c>: when the throttle gate is active, a workflow
+        /// parked behind a future <c>ThrottledUntil</c> is not claimable either. Pass the process's
+        /// actual setting — with throttling disabled the fetch ignores the column, so a stale stamp
+        /// must not hide a claimable workflow.
+        /// </para>
         /// </summary>
         /// <remarks>
         /// Mirrors the fetch gate's own conditions — <see cref="PersistentItemStatusMap.Fetchable"/>, the timer
-        /// gate, and the dependency gate. Getting any of them wrong turns the harness's "wait until nothing can
-        /// start" into a wait that never ends.
+        /// gate (including the throttle gate and its cancellation bypass), and the dependency gate. Getting any
+        /// of them wrong turns the harness's "wait until nothing can start" into a wait that never ends.
         /// </remarks>
-        public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
+        public IQueryable<WorkflowEntity> GetRunnableWorkflows(bool throttleGate = false) =>
             dbContext.Workflows.Where(wf =>
                 wf.Status == PersistentItemStatus.Processing
                 || (
@@ -53,6 +60,7 @@ internal static class EngineRepositoryQueryExtensions
                         || (
                             (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                             && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+                            && (!throttleGate || wf.ThrottledUntil == null || wf.ThrottledUntil <= DateTime.UtcNow)
                         )
                     )
                     && !wf.Dependencies.Any(dep => !PersistentItemStatusMap.Finished.Contains(dep.Status))

@@ -75,7 +75,9 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Gets the number of workflows the fetch gate could claim right now — active workflows minus
-    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c>. Unlike
+    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c> (or, when throttling is
+    /// enabled, a future <c>ThrottledUntil</c> — the count mirrors the fetch gate variant the
+    /// process selected at startup). Unlike
     /// <see cref="CountActiveWorkflows"/> this reaching zero means the engine is quiescent: a parked
     /// workflow holds no lease and no transaction, and will not wake on its own before its timer.
     /// </summary>
@@ -231,7 +233,8 @@ internal interface IEngineRepository
     /// <summary>
     /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) or a Requeued workflow
     /// by resetting it and its non-completed steps back to Enqueued. Clears CancellationRequestedAt,
-    /// BackoffUntil, HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
+    /// BackoffUntil, ThrottledUntil (an operator's explicit resume wins over the namespace circuit
+    /// breaker), HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
     /// any transitively dependent workflows that are in DependencyFailed state.
     /// Returns the list of all resumed workflow IDs (primary + cascaded), or empty if
     /// the target workflow was not in a resumable state.
@@ -263,10 +266,12 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Clears BackoffUntil on a parked workflow so it becomes claimable by the fetch gate at once —
-    /// resuming retries for <c>Requeued</c>, or re-checking the awaited outcome for <c>Waiting</c>.
-    /// Returns true only if the workflow was found, is in one of those two states, and had a non-null
-    /// BackoffUntil; false is a no-op, not an error.
+    /// Clears BackoffUntil and ThrottledUntil on a parked workflow so it becomes claimable by the
+    /// fetch gate at once — resuming retries for <c>Requeued</c>, or re-checking the awaited
+    /// outcome for <c>Waiting</c>. Clearing the throttle stamp means an operator's explicit nudge
+    /// always wins over the namespace circuit breaker. Returns true only if the workflow was
+    /// found, is in one of those two states, and had a non-null BackoffUntil or ThrottledUntil;
+    /// false is a no-op, not an error.
     /// </summary>
     Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
@@ -324,13 +329,15 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all namespace throttle state rows.
+    /// Gets all namespace throttle state rows. Read by the sweep's snapshot refresh and by the
+    /// throttle observability endpoints.
     /// </summary>
     Task<IReadOnlyList<NamespaceThrottle>> GetNamespaceThrottles(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Inserts or fully replaces a namespace throttle state row. Only the throttle sweep — the
-    /// table's sole writer, serialized by an advisory lock — may call this.
+    /// Inserts or fully replaces a namespace throttle state row. Only
+    /// <c>NamespaceThrottleService</c> — the table's sole writer (sweep cycles and operator
+    /// overrides alike), serialized by an advisory lock — may call this.
     /// </summary>
     Task UpsertNamespaceThrottle(NamespaceThrottle throttle, CancellationToken cancellationToken);
 

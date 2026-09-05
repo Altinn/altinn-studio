@@ -10,7 +10,9 @@ The dashboard has two tabs: **Live** and **Query**.
 
 ### Live Tab (default)
 
-Three collapsible sections, top to bottom:
+Three collapsible sections, top to bottom (plus a conditional **Throttled Namespaces** panel above them, see below):
+
+0. **Throttled Namespaces** — Failure-storm circuit breakers (see the failure-throttling ADR). Hidden entirely while no breaker state exists — the common case. Polls `GET /api/v1/throttles` every 10 s (no SSE stream; breakers change on sweep cadence). One row per namespace breaker: state pill (Tripped red / Recovering orange / Clear green), namespace, tripped-at (relative), current window, canary count, last observed requeued/active counts. Row actions call the manual override endpoints with a **two-click confirm** (first click arms the button as "Confirm?", reverting after 3 s): **Force trip** (`POST /api/v1/{ns}/throttle/trip`, shown unless already Tripped) and **Force clear** (`POST /api/v1/{ns}/throttle/clear`, shown unless already Clear). Overrides are one-shot: a force-clear does not stop the next sweep from re-tripping, and a force-trip does not stop canary-driven recovery. A 409 (throttling disabled) renders as the standard "Failed" button feedback.
 
 1. **Scheduled** — Workflows with a future `startAt`. Collapsed by default, fetched lazily on expand via `GET /dashboard/scheduled`. Badge in section header shows count from SSE. Cards are categorized by time-to-start: ≤10s, ≤1m, ≤5m, later.
 
@@ -324,6 +326,22 @@ engine's public API directly, so the same contract that external callers use is 
 The namespace and workflow id are URL-encoded route segments. Both 200 and 202 count as success; a refusal
 (409 for the wrong state, 400 for a bad request) carries problem details, whose `detail` becomes the button's
 tooltip. The contracts are documented in the technical guide's [API reference](../../../docs/technical-guide.md#api-reference).
+
+**Retry now** / **Check now** also clears the workflow's `throttled_until` stamp: an explicit poke wins over
+the namespace circuit breaker, so the workflow gets its re-check even while its namespace is throttled.
+
+### Throttle endpoints (shared with the public API)
+
+The Throttled Namespaces panel uses the engine's public throttle endpoints directly rather than
+dashboard-prefixed wrappers:
+
+| Endpoint                       | Method | Used for                                              |
+| ------------------------------ | ------ | ----------------------------------------------------- |
+| `/api/v1/throttles`            | GET    | Breaker list (200 array / 204 when none — panel hides) |
+| `/api/v1/{ns}/throttle/trip`   | POST   | Force-trip override (202; 409 when throttling disabled) |
+| `/api/v1/{ns}/throttle/clear`  | POST   | Force-clear override (202; 200 already clear; 404; 409 disabled) |
+
+Breaker shape: `{ namespace, state: "Tripped"|"Recovering"|"Clear", trippedAt, currentWindow, canaryCount, lastEvaluatedAt?, lastRequeuedCount, lastActiveCount, updatedAt? }`
 
 ---
 
