@@ -234,7 +234,7 @@ pub(crate) struct PortForwardStartResult {
 /// A change observed for one running port forward.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase", tag = "type")]
-pub enum PortForwardEvent {
+pub(crate) enum PortForwardServerMessage {
     /// The most recent relay error changed; `None` means it recovered.
     Status { index: u32, message: Option<String> },
     /// The daemon listener stopped serving.

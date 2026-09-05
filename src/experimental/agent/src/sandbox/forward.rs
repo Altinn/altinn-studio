@@ -1,6 +1,6 @@
 //! Daemon-owned host listeners forwarding TCP connections into Agent Sandboxes.
 
-use std::{cell::RefCell, net::IpAddr, rc::Rc};
+use std::{cell::RefCell, net::IpAddr, num::NonZeroU16, rc::Rc};
 
 use ::sandbox::LocalFuture;
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ pub trait GuestTcpConnection {
 pub struct PortForwardSpec {
     address: IpAddr,
     local_port: u16,
-    guest_port: u16,
+    guest_port: NonZeroU16,
 }
 
 impl PortForwardSpec {
@@ -38,9 +38,8 @@ impl PortForwardSpec {
     ///
     /// Returns an error when the guest port is zero.
     pub fn new(address: IpAddr, local_port: u16, guest_port: u16) -> Result<Self, Error> {
-        if guest_port == 0 {
-            return Err(Error::Invalid("guest port must not be zero".into()));
-        }
+        let guest_port =
+            NonZeroU16::new(guest_port).ok_or_else(|| Error::Invalid("guest port must not be zero".into()))?;
         Ok(Self {
             address,
             local_port,
@@ -63,7 +62,7 @@ impl PortForwardSpec {
     /// Returns the guest port receiving forwarded connections.
     #[must_use]
     pub const fn guest_port(&self) -> u16 {
-        self.guest_port
+        self.guest_port.get()
     }
 }
 
@@ -98,7 +97,7 @@ impl PortForward {
         let task = tokio::task::spawn_local(accept_loop(
             sandboxes,
             assignment,
-            spec.guest_port,
+            spec.guest_port(),
             listener,
             Rc::clone(&status),
         ));
@@ -195,9 +194,6 @@ impl PortForwardService {
             .ok_or_else(|| Error::Invalid("Agent has no materialized Sandbox assignment".into()))?;
         let mut forwards = Vec::with_capacity(specs.len());
         for spec in specs {
-            if spec.guest_port == 0 {
-                return Err(Error::Invalid("guest port must not be zero".into()));
-            }
             let forward = PortForward::start(self.sandboxes.clone(), assignment.clone(), spec).await?;
             forwards.push(Rc::new(forward) as Rc<dyn RunningPortForward>);
         }
@@ -247,6 +243,34 @@ async fn accept_loop(
                 *status.borrow_mut() = Some(error.to_string());
                 dialer = None;
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn port_mapping_validation_preserves_the_wire_format() {
+        let value = json!({"address": "127.0.0.1", "localPort": 0, "guestPort": 3000});
+        let spec = PortForwardSpec::new([127, 0, 0, 1].into(), 0, 3000).expect("valid spec");
+        assert_eq!(serde_json::to_value(&spec).expect("serialize spec"), value);
+        assert_eq!(
+            serde_json::from_value::<PortForwardSpec>(value).expect("parse spec"),
+            spec
+        );
+        assert!(PortForwardSpec::new([127, 0, 0, 1].into(), 0, 0).is_err());
+        for invalid in [
+            json!({"address": "127.0.0.1", "localPort": 0, "guestPort": 0}),
+            json!({"address": "127.0.0.1", "localPort": 0, "guestPort": 65536}),
+            json!({"address": "127.0.0.1", "localPort": 0, "guestPort": 3000, "unknown": true}),
+        ] {
+            assert!(serde_json::from_value::<PortForwardSpec>(invalid).is_err());
         }
     }
 }

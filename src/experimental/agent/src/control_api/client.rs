@@ -1,3 +1,7 @@
+mod forward;
+
+pub use forward::{PortForwardEvent, PortForwardSession};
+
 use std::{cell::Cell, rc::Rc};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
@@ -12,10 +16,9 @@ use super::protocol::{
     JSON_RPC_VERSION, LoginParams, MESSAGE_CALLER_NOT_PERMITTED, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE,
     METHOD_EXECUTION_START, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PORT_FORWARD_START,
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ATTACH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_TERMINAL_EXECUTION_START, MessageReader, NameParams, PortForwardBinding, PortForwardEvent,
-    PortForwardStartParams, PortForwardStartResult, ReadMessage, Request, Response, ResponseError, SessionAttachParams,
-    SessionListParams, SessionParams, TerminalClientMessage, TerminalExecutionStartParams, TerminalServerMessage,
-    read_message, write_stream_message,
+    METHOD_TERMINAL_EXECUTION_START, MessageReader, NameParams, PortForwardStartParams, PortForwardStartResult,
+    ReadMessage, Request, Response, ResponseError, SessionAttachParams, SessionListParams, SessionParams,
+    TerminalClientMessage, TerminalExecutionStartParams, TerminalServerMessage, read_message, write_stream_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -50,14 +53,6 @@ pub struct AttachedExecution {
     pub events: ExecutionEvents,
 }
 
-/// Daemon-owned port forwards tied to one live Control API connection.
-pub struct PortForwardSession {
-    /// Host listeners created in request order.
-    pub bindings: Vec<PortForwardBinding>,
-    /// Status and terminal listener events.
-    pub events: PortForwardEvents,
-}
-
 /// One daemon-owned terminal attachment split into independent input and event halves.
 pub struct AttachedTerminal {
     /// Backend-neutral Execution identity assigned by the daemon.
@@ -81,22 +76,6 @@ pub struct TerminalInput {
 /// Events from a daemon-owned non-interactive Execution.
 pub struct ExecutionEvents {
     reader: MessageReader<BufferedConnection>,
-}
-
-/// Events from daemon-owned port forwards.
-pub struct PortForwardEvents {
-    reader: MessageReader<BufferedConnection>,
-}
-
-impl PortForwardEvents {
-    /// Reads the next port-forward event, or `None` after the daemon closes it.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when a stream message is missing, oversized, or invalid.
-    pub async fn next(&mut self) -> Result<Option<PortForwardEvent>, Error> {
-        self.reader.next_json().await
-    }
 }
 
 impl ExecutionEvents {
@@ -348,6 +327,7 @@ impl Client {
         agent: &str,
         specs: Vec<crate::sandbox::PortForwardSpec>,
     ) -> Result<PortForwardSession, Error> {
+        let expected_bindings = specs.len();
         let (result, stream): (PortForwardStartResult, _) = self
             .open_call(
                 METHOD_PORT_FORWARD_START,
@@ -357,12 +337,7 @@ impl Client {
                 },
             )
             .await?;
-        Ok(PortForwardSession {
-            bindings: result.bindings,
-            events: PortForwardEvents {
-                reader: MessageReader::new(stream),
-            },
-        })
+        PortForwardSession::new(result.bindings, expected_bindings, stream)
     }
 
     /// Requests deletion of an Agent and its owned sandbox.

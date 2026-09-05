@@ -7,7 +7,7 @@ use std::{
 
 use agent::{
     Agent, ConditionStatus, Error,
-    control_api::{AttachedExecution, Client, PortForwardEvent},
+    control_api::{AttachedExecution, Client},
     control_plane::ApplyRequest,
     local::{
         contexts::{CONTEXT_ENVIRONMENT_VARIABLE, Contexts, Endpoint},
@@ -460,56 +460,34 @@ async fn port_forward(client: &Client, agent: Option<String>, arguments: &[Strin
     }
     let specs = ports
         .iter()
-        .map(|port| forward::ForwardSpec::parse(port))
+        .map(|port| forward::parse_spec(port))
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let specs = specs
-        .into_iter()
-        .map(forward::ForwardSpec::into_runtime)
-        .collect::<Result<Vec<_>, Error>>()?;
     let mut forwards = client.start_port_forwards(&agent, specs).await?;
-    for binding in &forwards.bindings {
+    for binding in forwards.bindings() {
         println!(
             "Forwarding from {} -> {} (agent {agent:?})",
             binding.local_address, binding.guest_port
         );
     }
-    let mut stopped = vec![false; forwards.bindings.len()];
     loop {
         tokio::select! {
             result = tokio::signal::ctrl_c() => {
                 result.map_err(Error::from)?;
                 return Ok(ExitCode::SUCCESS);
             }
-            event = forwards.events.next() => match event? {
-                Some(PortForwardEvent::Status { index, message }) => {
-                    let binding = forwards.bindings.get(index as usize)
-                        .ok_or_else(|| Error::Invalid("port-forward event has an invalid index".into()))?;
-                    if let Some(message) = message {
-                        eprintln!("{} -> {}: {message}", binding.local_address, binding.guest_port);
-                    }
-                }
-                Some(PortForwardEvent::Stopped { index, message }) => {
-                    let binding = forwards.bindings.get(index as usize)
-                        .ok_or_else(|| Error::Invalid("port-forward event has an invalid index".into()))?;
-                    if let Some(message) = message {
-                        eprintln!("{} -> {}: {message}", binding.local_address, binding.guest_port);
-                    }
-                    let entry = stopped.get_mut(index as usize)
-                        .ok_or_else(|| Error::Invalid("port-forward event has an invalid index".into()))?;
-                    *entry = true;
-                }
-                None => {
+            event = forwards.next() => {
+                let Some(event) = event? else {
                     eprintln!("every port forward has stopped");
                     return Ok(ExitCode::FAILURE);
+                };
+                let binding = event.binding;
+                if let Some(message) = event.message {
+                    eprintln!("{} -> {}: {message}", binding.local_address, binding.guest_port);
                 }
             }
-        }
-        if stopped.iter().all(|stopped| *stopped) {
-            eprintln!("every port forward has stopped");
-            return Ok(ExitCode::FAILURE);
         }
     }
 }

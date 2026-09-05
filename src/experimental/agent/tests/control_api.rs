@@ -731,18 +731,19 @@ async fn port_forwards_are_connector_independent_and_daemon_owned() {
         .await
         .expect("start port forward");
 
-    assert_eq!(forwards.bindings.len(), 1);
+    assert_eq!(forwards.bindings().len(), 1);
     assert_eq!(
-        forwards.bindings[0],
+        forwards.bindings()[0],
         agent::control_api::PortForwardBinding {
             local_address: std::net::SocketAddr::from(([127, 0, 0, 1], 54_321)),
             guest_port: 3000,
         }
     );
     assert_eq!(
-        forwards.events.next().await.expect("stopped event"),
-        Some(agent::control_api::PortForwardEvent::Stopped {
-            index: 0,
+        forwards.next().await.expect("stopped event"),
+        Some(agent::control_api::PortForwardEvent {
+            binding: forwards.bindings()[0].clone(),
+            stopped: true,
             message: Some("listener stopped for test".into()),
         })
     );
@@ -985,8 +986,8 @@ async fn tcp_transport_is_usable() {
         .await
         .expect("start port forward over TCP");
     assert!(matches!(
-        forwards.events.next().await.expect("port-forward event over TCP"),
-        Some(agent::control_api::PortForwardEvent::Stopped { index: 0, .. })
+        forwards.next().await.expect("port-forward event over TCP"),
+        Some(agent::control_api::PortForwardEvent { stopped: true, .. })
     ));
     let error = client
         .auth_login(agent::Harness::ClaudeCode, "must-not-be-imported".into())

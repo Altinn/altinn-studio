@@ -4,13 +4,13 @@ mod view;
 
 use std::{io::IsTerminal as _, process::ExitCode, time::Duration};
 
-use agent::{Agent, Error, control_api::Client, sessions::Session};
+use agent::{Agent, Error, control_api::Client, sandbox::PortForwardSpec, sessions::Session};
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
 use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
-use crate::forward::{ForwardSpec, PortForward};
+use crate::forward::PortForward;
 use app::{Action, App, ForwardEntry, ForwardForm, Modal};
 use terminal::Tui;
 
@@ -23,7 +23,7 @@ enum Input {
 }
 
 /// Completion of one background forward creation.
-type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Error>);
+type CreateOutcome = (String, PortForwardSpec, Option<u64>, Result<PortForward, Error>);
 
 pub(crate) async fn run(client: &Client) -> CommandResult<ExitCode> {
     if !std::io::stdin().is_terminal() || !std::io::stdout().is_terminal() {
@@ -137,7 +137,7 @@ impl ActiveForwards {
                 id: *id,
                 agent: agent.clone(),
                 local: forward.local_address().to_string(),
-                guest_port: forward.spec().guest_port,
+                guest_port: forward.spec().guest_port(),
                 status: forward.status(),
             })
             .collect()
@@ -149,7 +149,7 @@ fn spawn_create(
     client: &Client,
     outcomes: tokio::sync::mpsc::UnboundedSender<CreateOutcome>,
     agent: String,
-    spec: ForwardSpec,
+    spec: PortForwardSpec,
     replace: Option<u64>,
 ) {
     let client = client.clone();
