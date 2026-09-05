@@ -8,6 +8,18 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Update the shared Gitea version ARG using published rootless Docker tags",
+      "managerFilePatterns": ["/^src/gitea/Dockerfile$/"],
+      "matchStrings": [
+        "(?:^|\\r?\\n)ARG GITEA_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:\\r?\\n|$)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "docker.io/gitea/gitea",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)-rootless$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
       "managerFilePatterns": [
         "//\\.github/workflows/app-frontend-k6-browser\\.yml$//"
       ],
@@ -84,9 +96,28 @@
       "matchPackageNames": ["LibGit2Sharp"]
     },
     {
+      "description": "Let the custom manager update GITEA_VERSION without rewriting the ARG-based FROM instructions",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/gitea/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
+      "enabled": false
+    },
+    {
+      "description": "Keep Gitea server updates in their own PR",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
-      "matchPackageNames": ["gitea/gitea"]
+      "pinDigests": false
+    },
+    {
+      "description": "Keep Gitea runner image updates together, including digests for the rolling runner base image",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner", "docker.io/gitea/runner-images"],
+      "groupName": "gitea runner dependencies",
+      "groupSlug": "gitea-runner",
+      "pinDigests": true
     },
     {
       "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
