@@ -28,6 +28,8 @@ internal sealed record V8Tov9UpgradeOptions(
 
 internal static class V8Tov9Upgrade
 {
+    private sealed record RuleMigrationOutcome(int ExitCode, IReadOnlySet<string> LayoutSetsToKeep);
+
     private static readonly Regex _programCsPathMatcher = new(
         @"^Program\.cs$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant
@@ -73,11 +75,12 @@ internal static class V8Tov9Upgrade
             return WriteError($"Project file does not exist: {projectFile}");
 
         var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
-        if (!projectChecks.SupportedSourceVersion())
+        var alreadyTargetsV9 = projectChecks.IsTargetVersion();
+        if (!projectChecks.SupportedSourceVersion() && !alreadyTargetsV9)
             return WriteError(
                 $"Version(s) in project file {projectFile} are not supported for the 'v8Tov9' upgrade. "
-                    + "This upgrade is for apps on version 8.x.x. "
-                    + "Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
+                    + "This upgrade starts with apps on version 8.x.x and can resume apps already moved to 9.x.x. "
+                    + "Please ensure Altinn.App.Api and any explicit Altinn.App.Core reference use the same supported major version.",
                 exitCode: ExitUnsupportedVersion
             );
 
@@ -86,39 +89,43 @@ internal static class V8Tov9Upgrade
         // (v8) dependency graph resolves them. The one scanner is shared by every C# step below;
         // rewriters keep it (and its semantic models) current through CSharpSourceScanner.Update.
         options.CancellationToken.ThrowIfCancellationRequested();
-        var scanner = await CreateSourceScanner(projectFolder, projectFile, options);
+        var scanner = alreadyTargetsV9
+            ? CSharpSourceScanner.ForProject(projectFile)
+            : await CreateSourceScanner(projectFolder, projectFile, options);
 
         var returnCode = 0;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
         {
-            if (options.ConvertPackageReferences)
+            if (!alreadyTargetsV9)
             {
-                returnCode = await ConvertToProjectReferences(
-                    projectFolder,
-                    projectFile,
-                    options.TargetFramework,
-                    options.StudioRoot
-                );
-            }
-            else
-            {
-                var targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
-                    projectFolder,
-                    options.TargetMajorVersion,
-                    options.CancellationToken
-                );
-                returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
+                if (options.ConvertPackageReferences)
+                {
+                    returnCode = await ConvertToProjectReferences(
+                        projectFolder,
+                        projectFile,
+                        options.TargetFramework,
+                        options.StudioRoot
+                    );
+                }
+                else
+                {
+                    var targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
+                        projectFolder,
+                        options.TargetMajorVersion,
+                        options.CancellationToken
+                    );
+                    returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
+                }
             }
 
             if (returnCode == 0)
                 returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
         }
 
-        // The migration jobs below are independent of each other: one failing must not silently
-        // skip the rest (e.g. a malformed process.bpmn failing the PDF service task migration must
-        // not deprive the app of the service-owner policy check). Run them all and report the worst
-        // return code.
+        // Run every remaining migration and report the worst result. Their order is deliberate:
+        // C# rewriting precedes removed-API checks; layout edits share one parse/write lifecycle;
+        // layout-set relocation happens only after all legacy paths have been consumed.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
@@ -173,46 +180,24 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCamelCaseLayoutProperties(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
+        var layoutOutcome = await MigrateLayouts(projectFolder);
+        returnCode = CombineExitCodes(returnCode, layoutOutcome.ExitCode);
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
+        var dataProcessorOutcome = await GenerateDataProcessors(projectFolder);
+        returnCode = CombineExitCodes(returnCode, dataProcessorOutcome.ExitCode);
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await GenerateDataProcessors(projectFolder));
+        var layoutSetsToKeep = layoutOutcome
+            .LayoutSetsToKeep.Concat(dataProcessorOutcome.LayoutSetsToKeep)
+            .ToHashSet(StringComparer.Ordinal);
+        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder, layoutSetsToKeep));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDeprecatedLayoutProperties(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder, layoutSetsToKeep));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -685,57 +670,6 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> MigrateOrganizationLookupLayouts(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("OrganisationLookup components");
-        try
-        {
-            return await OrganizationLookupLayoutMigration.Migrate(projectFolder);
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating OrganisationLookup components", ex);
-        }
-    }
-
-    static async Task<int> MigrateCamelCaseLayoutProperties(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("CamelCase layout properties");
-        try
-        {
-            return await CamelCaseLayoutPropertyMigration.Migrate(projectFolder);
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating camelCase layout properties", ex);
-        }
-    }
-
-    static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("Datepicker timeStamp");
-        try
-        {
-            var result = await new DatepickerTimeStampMigrator(projectFolder).Migrate();
-            if (result.PropertiesAdded == 0)
-            {
-                UpgradeConsole.Skip("No Datepicker components omit timeStamp");
-            }
-            else
-            {
-                UpgradeConsole.Ok(
-                    $"Added {result.PropertiesAdded} timeStamp flag(s) across {result.FilesChanged} layout file(s)"
-                );
-            }
-
-            return ExitSuccess;
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating Datepicker timeStamp defaults", ex);
-        }
-    }
-
     /// <summary>
     /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
     /// so a customized validation message keeps applying after the v9 key rename.
@@ -750,69 +684,6 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Datepicker text-resource keys", ex);
-        }
-    }
-
-    static async Task<int> MigrateHeadingLayouts(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("Header components");
-        try
-        {
-            return await HeadingLayoutMigration.Migrate(projectFolder);
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating Header components to Heading", ex);
-        }
-    }
-
-    static async Task<int> MigrateFileUploadWithTagLayouts(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("FileUploadWithTag components");
-        try
-        {
-            return await FileUploadWithTagLayoutMigration.Migrate(projectFolder);
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
-        }
-    }
-
-    static async Task<int> MigrateDatepickerFormats(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("Datepicker formats");
-        try
-        {
-            return await DatepickerFormatMigration.Migrate(projectFolder);
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating legacy Datepicker format values", ex);
-        }
-    }
-
-    static async Task<int> MigrateGridXlSettings(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("Component grid xl settings");
-        try
-        {
-            var result = await GridXlMigration.Migrate(projectFolder);
-            if (result.PropertiesRemoved == 0)
-            {
-                UpgradeConsole.Skip("No component grid xl settings found");
-                return ExitSuccess;
-            }
-
-            UpgradeConsole.Ok(
-                $"Removed {result.PropertiesRemoved} unsupported xl grid setting(s) from {result.FilesChanged} layout file(s)"
-            );
-
-            return ExitSuccess;
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error removing component grid xl settings", ex);
         }
     }
 
@@ -857,36 +728,114 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 3: Convert conditional rendering rules to layout hidden expressions
+    /// Applies every layout migration to one in-memory view, converts conditional rules last, and
+    /// writes each changed layout once. Failed rule placeholders therefore cannot block another
+    /// structured layout migration.
     /// </summary>
-    static async Task<int> ConvertConditionalRenderingRules(string projectFolder)
+    static async Task<RuleMigrationOutcome> MigrateLayouts(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Conditional rendering rules");
+        UpgradeConsole.BeginStep("Layout files");
         try
         {
-            var converter = new ConditionalRenderingConverter(projectFolder);
-            var stats = converter.ConvertAllLayoutSets();
-            if (stats.TotalRules == 0)
+            var workspace = await LayoutMigrationWorkspace.Load(projectFolder);
+            if (workspace is null)
             {
-                UpgradeConsole.Skip("No conditional rendering rules found to convert");
-            }
-            else
-            {
-                UpgradeConsole.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
+                UpgradeConsole.Skip("No UI directory found");
+                return new RuleMigrationOutcome(ExitSuccess, new HashSet<string>(StringComparer.Ordinal));
             }
 
-            return ExitSuccess;
+            var mutationResults = new[]
+            {
+                OrganizationLookupLayoutMigration.Apply(workspace),
+                CamelCaseLayoutPropertyMigration.Apply(workspace),
+                DatepickerTimeStampMigrator.Apply(workspace),
+                HeadingLayoutMigration.Apply(workspace),
+                FileUploadWithTagLayoutMigration.Apply(workspace),
+                DatepickerFormatMigration.Apply(workspace),
+                GridXlMigration.Apply(workspace),
+                ShowBackButtonMigrator.Apply(workspace),
+            };
+
+            var messages = new List<UpgradeMessage>();
+            var deprecatedResult = new DeprecatedLayoutPropertiesMigrator(projectFolder).Apply(workspace);
+            messages.WarnRange(deprecatedResult.Warnings);
+            if (deprecatedResult.ManualActionRequired)
+            {
+                messages.Todo(
+                    "Some layout properties removed in v9 could not be converted automatically. Review the warnings above."
+                );
+            }
+
+            var converter = new ConditionalRenderingConverter(projectFolder, workspace);
+            var stats = converter.ConvertAllLayoutSets();
+            messages.AddRange(converter.MigrationResult.Messages);
+
+            var layoutSetsToKeep = converter.LayoutSetsRequiringManualWork.ToHashSet(StringComparer.Ordinal);
+            foreach (var path in workspace.ManualConversionFiles)
+            {
+                var layoutsDirectory = Path.GetDirectoryName(path);
+                var layoutSet = layoutsDirectory is null
+                    ? "<unknown>"
+                    : Directory.GetParent(layoutsDirectory)?.Name ?? "<unknown>";
+                layoutSetsToKeep.Add(layoutSet);
+                messages.Todo(
+                    $"{path} still contains a MANUAL CONVERSION REQUIRED marker. Replace it with a valid hidden "
+                        + "expression and remove the corresponding rule from RuleConfiguration.json before rerunning."
+                );
+            }
+
+            foreach (var issue in workspace.UnreadableFiles)
+            {
+                layoutSetsToKeep.Add(LayoutSetNameFor(issue.FilePath));
+                messages.Todo($"{issue.FilePath} is not valid JSON and was left untouched: {issue.Reason}");
+            }
+
+            await workspace.Save();
+
+            var structuralChanges =
+                mutationResults.Sum(static result => result.Changes)
+                + deprecatedResult.QueryParametersConverted
+                + deprecatedResult.SummaryBindingsConverted;
+            var changedFiles = workspace.Documents.Count(static document => document.IsModified);
+            if (changedFiles > 0)
+            {
+                UpgradeConsole.Ok($"Applied v9 layout changes across {changedFiles} layout file(s)");
+            }
+            if (stats.TotalRules > 0)
+                UpgradeConsole.Ok(
+                    $"Converted {stats.SuccessfulConversions} of {stats.TotalRules} conditional rendering rule(s)"
+                );
+
+            foreach (var message in messages)
+                UpgradeConsole.Message(message.Status, message.Text);
+
+            if (structuralChanges == 0 && stats.TotalRules == 0 && messages.Count == 0)
+                UpgradeConsole.Skip("No v9 layout changes found");
+
+            var exitCode = messages.Any(static message => message.Status == UpgradeMessageStatus.Todo)
+                ? ExitManualActionRequired
+                : ExitSuccess;
+            return new RuleMigrationOutcome(exitCode, layoutSetsToKeep);
         }
         catch (Exception ex)
         {
-            return Fail("Error converting conditional rendering rules", ex);
+            return new RuleMigrationOutcome(
+                Fail("Error migrating layout files", ex),
+                FindLegacyRuleLayoutSets(projectFolder)
+            );
         }
+    }
+
+    private static string LayoutSetNameFor(string layoutFile)
+    {
+        var layoutsDirectory = Path.GetDirectoryName(layoutFile);
+        return layoutsDirectory is null ? "<unknown>" : Directory.GetParent(layoutsDirectory)?.Name ?? "<unknown>";
     }
 
     /// <summary>
     /// Job 4: Generate data processors for data processing rules
     /// </summary>
-    static async Task<int> GenerateDataProcessors(string projectFolder)
+    static async Task<RuleMigrationOutcome> GenerateDataProcessors(string projectFolder)
     {
         UpgradeConsole.BeginStep("Data processors");
         try
@@ -898,13 +847,15 @@ internal static class V8Tov9Upgrade
                 if (!Directory.Exists(uiPath))
                 {
                     UpgradeConsole.Skip("No UI directory found, skipping data processor generation");
-                    return ExitSuccess;
+                    return new RuleMigrationOutcome(ExitSuccess, new HashSet<string>(StringComparer.Ordinal));
                 }
             }
 
             var layoutSetDirectories = Directory.GetDirectories(uiPath);
             var totalProcessed = 0;
             var generationFailed = false;
+            var messages = new List<UpgradeMessage>();
+            var layoutSetsToKeep = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var layoutSetPath in layoutSetDirectories)
             {
@@ -930,9 +881,11 @@ internal static class V8Tov9Upgrade
                 var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
                 if (!File.Exists(ruleHandlerPath))
                 {
-                    UpgradeConsole.Warning(
-                        $"RuleHandler.js not found for layout set '{layoutSetName}', skipping data processor generation"
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': RuleHandler.js was not found, so data processing rules "
+                            + "could not be converted. Restore the handler or migrate the rules manually."
                     );
+                    layoutSetsToKeep.Add(layoutSetName);
                     continue;
                 }
 
@@ -946,9 +899,11 @@ internal static class V8Tov9Upgrade
 
                 if (dataModelInfo == null)
                 {
-                    UpgradeConsole.Warning(
-                        $"Could not resolve data model for layout set '{layoutSetName}', skipping data processor generation"
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': the data model could not be resolved, so data processing "
+                            + "rules were kept for manual migration."
                     );
+                    layoutSetsToKeep.Add(layoutSetName);
                     continue;
                 }
 
@@ -979,6 +934,7 @@ internal static class V8Tov9Upgrade
                     }
 
                     generationFailed = true;
+                    layoutSetsToKeep.Add(layoutSetName);
                     continue;
                 }
 
@@ -992,13 +948,22 @@ internal static class V8Tov9Upgrade
 
                 // Register in Program.cs
                 var programUpdater = new ProgramCsUpdater(projectFolder);
-                programUpdater.RegisterDataProcessor(generationResult.ClassName);
+                if (!programUpdater.RegisterDataProcessor(generationResult.ClassName))
+                {
+                    layoutSetsToKeep.Add(layoutSetName);
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': register {generationResult.ClassName} as an "
+                            + "IDataWriteProcessor in Program.cs."
+                    );
+                }
 
                 if (generationResult.FailedConversions > 0)
                 {
-                    UpgradeConsole.Warning(
-                        $"{generationResult.FailedConversions} of {generationResult.TotalRules} rules failed to convert to C# code"
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': {generationResult.FailedConversions} of "
+                            + $"{generationResult.TotalRules} data processing rule(s) need manual conversion in the generated C# file."
                     );
+                    layoutSetsToKeep.Add(layoutSetName);
                 }
 
                 totalProcessed++;
@@ -1009,35 +974,80 @@ internal static class V8Tov9Upgrade
                 UpgradeConsole.Skip("No data processing rules found to convert");
             }
 
-            return generationFailed ? ExitError : ExitSuccess;
+            foreach (var message in messages)
+                UpgradeConsole.Message(message.Status, message.Text);
+
+            var exitCode = ExitSuccess;
+            if (generationFailed)
+                exitCode = ExitError;
+            else if (messages.Any(static message => message.Status == UpgradeMessageStatus.Todo))
+                exitCode = ExitManualActionRequired;
+            return new RuleMigrationOutcome(exitCode, layoutSetsToKeep);
         }
         catch (Exception ex)
         {
-            return Fail("Error generating data processors", ex);
+            return new RuleMigrationOutcome(
+                Fail("Error generating data processors", ex),
+                FindLegacyRuleLayoutSets(projectFolder)
+            );
         }
+    }
+
+    private static HashSet<string> FindLegacyRuleLayoutSets(string projectFolder)
+    {
+        var uiDirectory = Path.Combine(projectFolder, "App", "ui");
+        if (!Directory.Exists(uiDirectory))
+            uiDirectory = Path.Combine(projectFolder, "ui");
+        if (!Directory.Exists(uiDirectory))
+            return new HashSet<string>(StringComparer.Ordinal);
+
+        return Directory
+            .EnumerateDirectories(uiDirectory)
+            .Where(directory =>
+                File.Exists(Path.Combine(directory, "RuleConfiguration.json"))
+                || File.Exists(Path.Combine(directory, "RuleHandler.js"))
+            )
+            .Select(Path.GetFileName)
+            .OfType<string>()
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     /// <summary>
     /// Job 5: Cleanup legacy rule files after conversion
     /// </summary>
-    static async Task<int> CleanupLegacyRuleFiles(string projectFolder)
+    static async Task<int> CleanupLegacyRuleFiles(string projectFolder, IReadOnlySet<string> layoutSetsToKeep)
     {
         UpgradeConsole.BeginStep("Legacy rule files");
         try
         {
             var cleanup = new LegacyRuleFileCleanup(projectFolder);
-            var stats = cleanup.CleanupAllLayoutSets();
+            var stats = cleanup.CleanupAllLayoutSets(layoutSetsToKeep);
+
+            if (stats.Errors > 0)
+                return Fail($"Failed to delete {stats.Errors} legacy rule file(s)");
 
             if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
             {
-                UpgradeConsole.Skip("No legacy rule files found to cleanup");
-                return ExitSuccess;
+                if (stats.LayoutSetsKept == 0)
+                {
+                    UpgradeConsole.Skip("No legacy rule files found to cleanup");
+                    return ExitSuccess;
+                }
+
+                UpgradeConsole.Todo(
+                    $"Kept legacy rule files in {stats.LayoutSetsKept} layout set(s) that still need manual work."
+                );
+                return ExitManualActionRequired;
             }
 
             UpgradeConsole.Ok($"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json files");
             UpgradeConsole.Ok($"Deleted {stats.RuleHandlerFilesDeleted} RuleHandler.js files");
+            if (stats.LayoutSetsKept > 0)
+                UpgradeConsole.Todo(
+                    $"Kept legacy rule files in {stats.LayoutSetsKept} layout set(s) that still need manual work."
+                );
 
-            return ExitSuccess;
+            return stats.LayoutSetsKept > 0 ? ExitManualActionRequired : ExitSuccess;
         }
         catch (Exception ex)
         {
@@ -1048,16 +1058,37 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Job 6: Migrate layout-sets.json to task-folder based UI settings
     /// </summary>
-    static async Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
+    static async Task<int> MigrateLayoutSetsToTaskUi(
+        string projectFolder,
+        IReadOnlySet<string> layoutSetsRequiringManualWork
+    )
     {
         UpgradeConsole.BeginStep("Task-folder UI settings");
         try
         {
+            var uiPath = Path.Combine(projectFolder, "App", "ui");
+            if (!Directory.Exists(uiPath))
+                uiPath = Path.Combine(projectFolder, "ui");
+            if (layoutSetsRequiringManualWork.Count > 0 && File.Exists(Path.Combine(uiPath, "layout-sets.json")))
+            {
+                UpgradeConsole.Todo(
+                    "Kept layout-sets.json and its folders because legacy rules still need manual work in: "
+                        + string.Join(", ", layoutSetsRequiringManualWork.Order(StringComparer.Ordinal))
+                        + ". Finish those rules before rerunning the upgrade."
+                );
+                return ExitManualActionRequired;
+            }
+
             var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
             var result = migrator.Migrate();
 
             if (!result.LayoutSetsDeleted)
             {
+                foreach (var todo in result.Todos)
+                    UpgradeConsole.Todo(todo);
+                if (result.Todos.Count > 0)
+                    return ExitManualActionRequired;
+
                 UpgradeConsole.Skip("No layout-sets.json found, skipping migration");
                 return ExitSuccess;
             }
@@ -1081,81 +1112,6 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout-sets.json", ex);
-        }
-    }
-
-    static async Task<int> MigrateNavigationButtons(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("NavigationButtons showBackButton");
-        try
-        {
-            var result = await new ShowBackButtonMigrator(projectFolder).Migrate();
-            if (result.PropertiesRemoved == 0)
-            {
-                UpgradeConsole.Skip("No redundant showBackButton flags found");
-            }
-            else
-            {
-                UpgradeConsole.Ok(
-                    $"Removed {result.PropertiesRemoved} showBackButton flag(s) from {result.FilesChanged} layout file(s)"
-                );
-            }
-
-            return ExitSuccess;
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating NavigationButtons showBackButton flags", ex);
-        }
-    }
-
-    /// <summary>
-    /// Converts the option/data list layout properties v9 removed - <c>mapping</c> and
-    /// <c>bindingToShowInSummary</c> - to <c>queryParameters</c> and <c>summaryBinding</c>.
-    /// </summary>
-    static async Task<int> MigrateDeprecatedLayoutProperties(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("Removed layout properties");
-        try
-        {
-            var result = await new DeprecatedLayoutPropertiesMigrator(projectFolder).Migrate();
-            foreach (var warning in result.Warnings)
-            {
-                UpgradeConsole.Warning(warning);
-            }
-
-            if (result.QueryParametersConverted > 0)
-            {
-                UpgradeConsole.Ok(
-                    $"Converted {result.QueryParametersConverted} mapping entry/entries to queryParameters"
-                );
-            }
-
-            if (result.SummaryBindingsConverted > 0)
-            {
-                UpgradeConsole.Ok(
-                    $"Replaced {result.SummaryBindingsConverted} bindingToShowInSummary property/properties with summaryBinding"
-                );
-            }
-
-            if (result.FilesChanged == 0 && result.Warnings.Count == 0)
-            {
-                UpgradeConsole.Skip("No mapping or bindingToShowInSummary properties found");
-            }
-
-            if (result.ManualActionRequired)
-            {
-                UpgradeConsole.Todo(
-                    "Some layout properties removed in v9 could not be converted automatically. Review the messages above."
-                );
-                return ExitManualActionRequired;
-            }
-
-            return ExitSuccess;
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating layout properties removed in v9", ex);
         }
     }
 

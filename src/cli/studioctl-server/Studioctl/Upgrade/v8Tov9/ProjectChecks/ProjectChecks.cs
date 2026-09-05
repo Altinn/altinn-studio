@@ -69,6 +69,26 @@ internal sealed class ProjectChecks
     }
 
     /// <summary>
+    /// Returns whether all declared Altinn.App package versions already target v9. This lets an
+    /// interrupted or completed upgrade resume without treating its own project-file change as an
+    /// unsupported source version.
+    /// </summary>
+    public bool IsTargetVersion()
+    {
+        if (HasAltinnProjectReferences())
+            return false;
+
+        var apiElements = GetAltinnAppApiElement();
+        if (apiElements is null || apiElements.Count == 0)
+            return false;
+
+        var packageElements = apiElements.Concat(GetAltinnAppCoreElement() ?? []).ToList();
+        return packageElements
+            .Select(element => element.Attribute("Version")?.Value)
+            .All(version => HasMajorVersion(version, 9));
+    }
+
+    /// <summary>
     /// Checks if the project uses ProjectReference for Altinn.App.Core or Altinn.App.Api
     /// instead of PackageReference (typical for local development setups).
     /// </summary>
@@ -157,5 +177,21 @@ internal sealed class ProjectChecks
         }
 
         return range.MaxVersion < _nineZero || (range.MaxVersion == _nineZero && !range.IsMaxInclusive);
+    }
+
+    private static bool HasMajorVersion(string? version, int major)
+    {
+        if (version is null || !VersionRange.TryParse(version, out var range))
+            return false;
+
+        if (range.MinVersion?.Major != major)
+            return false;
+
+        if (range.IsFloating || (!version.StartsWith('[') && !version.StartsWith('(')))
+            return true;
+
+        var nextMajor = new NuGetVersion(major + 1, 0, 0);
+        return range.MaxVersion is not null
+            && (range.MaxVersion < nextMajor || (range.MaxVersion == nextMajor && !range.IsMaxInclusive));
     }
 }

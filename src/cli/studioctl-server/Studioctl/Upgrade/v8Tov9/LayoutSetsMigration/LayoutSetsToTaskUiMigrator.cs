@@ -25,9 +25,6 @@ internal sealed class LayoutSetsToTaskUiMigrator
             }
         }
 
-        // Clean up empty folders from previous botched runs before proceeding
-        DeleteEmptyDirectoriesRecursively(uiPath);
-
         var layoutSetsPath = Path.Combine(uiPath, "layout-sets.json");
         if (!File.Exists(layoutSetsPath))
         {
@@ -47,7 +44,13 @@ internal sealed class LayoutSetsToTaskUiMigrator
         }
 
         var plans = BuildPlans(uiPath, sets);
-        ValidateCollisions(uiPath, plans);
+        var collisionTodos = FindCollisionTodos(uiPath, plans);
+        if (collisionTodos.Count > 0)
+            return new MigrationResult { Todos = collisionTodos };
+
+        // Clean up empty folders from previous botched runs only after the complete plan has passed
+        // preflight. A migration that needs manual input must leave the UI tree untouched.
+        DeleteEmptyDirectoriesRecursively(uiPath);
 
         var todos = new List<string>();
         var touchedFolders = new HashSet<string>(StringComparer.Ordinal);
@@ -67,25 +70,31 @@ internal sealed class LayoutSetsToTaskUiMigrator
             foreach (var destinationId in plan.DestinationIds)
             {
                 var destinationPath = Path.Combine(uiPath, destinationId);
-                if (!plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal))
+                if (
+                    !plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal)
+                    && Directory.Exists(plan.SourcePath)
+                )
                 {
+                    CopyDirectory(plan.SourcePath, destinationPath);
                     if (plan.DestinationIds.Count == 1)
-                    {
-                        Directory.Move(plan.SourcePath, destinationPath);
                         renamedFolderCount++;
-                    }
                     else
-                    {
-                        CopyDirectory(plan.SourcePath, destinationPath);
                         copiedFolderCount++;
-                    }
                 }
 
                 touchedFolders.Add(destinationId);
                 UpsertLayoutSetMetadata(destinationPath, plan.DataType, plan.Type);
             }
+        }
 
-            if (plan.DestinationIds.Count > 1 && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal))
+        // Delete sources only after every destination is complete. If the process stops before this
+        // point, a rerun can safely continue copying into the compatible destination folders.
+        foreach (var plan in plans)
+        {
+            if (
+                Directory.Exists(plan.SourcePath)
+                && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal)
+            )
             {
                 Directory.Delete(plan.SourcePath, recursive: true);
                 deletedSourceFolderCount++;
@@ -165,17 +174,18 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 continue;
             }
 
+            var destinationIds = ResolveDestinationFolderIds(sourceId, setObject["tasks"] as JsonArray);
             var sourcePath = Path.Combine(uiPath, sourceId);
-            if (!Directory.Exists(sourcePath))
-            {
-                throw new InvalidOperationException($"Missing UI folder for layout set '{sourceId}' ({sourcePath}).");
-            }
+            if (!Directory.Exists(sourcePath) && destinationIds.Any(id => !Directory.Exists(Path.Combine(uiPath, id))))
+                throw new InvalidOperationException(
+                    $"Missing UI folder for layout set '{sourceId}', and its task folders are incomplete."
+                );
 
             plans.Add(
                 new LayoutSetMigrationPlan(
                     sourceId,
                     sourcePath,
-                    ResolveDestinationFolderIds(sourceId, setObject["tasks"] as JsonArray),
+                    destinationIds,
                     setObject["dataType"]?.GetValue<string>(),
                     setObject["type"]?.GetValue<string>()
                 )
@@ -185,8 +195,9 @@ internal sealed class LayoutSetsToTaskUiMigrator
         return plans;
     }
 
-    private static void ValidateCollisions(string uiPath, List<LayoutSetMigrationPlan> plans)
+    private static List<string> FindCollisionTodos(string uiPath, List<LayoutSetMigrationPlan> plans)
     {
+        var todos = new List<string>();
         var claimedDestinations = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var plan in plans)
         {
@@ -196,20 +207,25 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 if (
                     !plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal)
                     && Directory.Exists(destinationPath)
+                    && Directory.Exists(plan.SourcePath)
+                    && !CanResumeCopy(plan.SourcePath, destinationPath)
                 )
                 {
-                    throw new InvalidOperationException(
-                        $"Cannot migrate layout set '{plan.SourceId}' to '{destinationId}'. Destination folder already exists."
+                    todos.Add(
+                        $"Layout set '{plan.SourceId}' maps to task folder '{destinationId}', but that folder already exists. "
+                            + "Resolve the folder collision, then run the upgrade again; layout-sets.json was kept."
                     );
+                    continue;
                 }
 
                 if (claimedDestinations.TryGetValue(destinationId, out var previousSourceId))
                 {
                     if (!string.Equals(previousSourceId, plan.SourceId, StringComparison.Ordinal))
                     {
-                        throw new InvalidOperationException(
-                            $"Cannot migrate layout sets '{previousSourceId}' and '{plan.SourceId}' to '{destinationId}'. "
-                                + "Multiple layout sets target the same destination folder."
+                        todos.Add(
+                            $"Layout sets '{previousSourceId}' and '{plan.SourceId}' both map to task folder "
+                                + $"'{destinationId}'. Consolidate or rename them manually, then run the upgrade again; "
+                                + "layout-sets.json and all source folders were kept."
                         );
                     }
                 }
@@ -219,6 +235,8 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 }
             }
         }
+
+        return todos.Distinct(StringComparer.Ordinal).ToList();
     }
 
     private static List<string> ResolveDestinationFolderIds(string sourceId, JsonArray? tasks)
@@ -280,7 +298,21 @@ internal sealed class LayoutSetsToTaskUiMigrator
         foreach (var file in Directory.GetFiles(sourceDir))
         {
             var destinationFile = Path.Combine(destinationDir, Path.GetFileName(file));
-            File.Copy(file, destinationFile, overwrite: false);
+            if (!File.Exists(destinationFile))
+            {
+                File.Copy(file, destinationFile);
+                continue;
+            }
+
+            if (
+                !Path.GetFileName(file).Equals("Settings.json", StringComparison.Ordinal)
+                && !File.ReadAllBytes(file).AsSpan().SequenceEqual(File.ReadAllBytes(destinationFile))
+            )
+            {
+                throw new InvalidOperationException(
+                    $"Cannot resume task-folder migration because {destinationFile} differs from its source."
+                );
+            }
         }
 
         foreach (var subDirectory in Directory.GetDirectories(sourceDir))
@@ -288,6 +320,32 @@ internal sealed class LayoutSetsToTaskUiMigrator
             var destinationSubDirectory = Path.Combine(destinationDir, Path.GetFileName(subDirectory));
             CopyDirectory(subDirectory, destinationSubDirectory);
         }
+    }
+
+    private static bool CanResumeCopy(string sourceDir, string destinationDir)
+    {
+        foreach (var destinationFile in Directory.EnumerateFiles(destinationDir))
+        {
+            var fileName = Path.GetFileName(destinationFile);
+            if (fileName.Equals("Settings.json", StringComparison.Ordinal))
+                continue;
+
+            var sourceFile = Path.Combine(sourceDir, fileName);
+            if (
+                !File.Exists(sourceFile)
+                || !File.ReadAllBytes(sourceFile).AsSpan().SequenceEqual(File.ReadAllBytes(destinationFile))
+            )
+                return false;
+        }
+
+        foreach (var destinationSubDirectory in Directory.EnumerateDirectories(destinationDir))
+        {
+            var sourceSubDirectory = Path.Combine(sourceDir, Path.GetFileName(destinationSubDirectory));
+            if (!Directory.Exists(sourceSubDirectory) || !CanResumeCopy(sourceSubDirectory, destinationSubDirectory))
+                return false;
+        }
+
+        return true;
     }
 }
 
