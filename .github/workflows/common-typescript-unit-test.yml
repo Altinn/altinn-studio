@@ -47,6 +47,9 @@ jobs:
       - name: run eslint
         run: yarn lint
 
+      - name: check formatting
+        run: yarn format:check
+
       - name: run tests
         run: yarn test:ci
         # TODO : Run with coverage (yarn test:ci --coverage ?)
