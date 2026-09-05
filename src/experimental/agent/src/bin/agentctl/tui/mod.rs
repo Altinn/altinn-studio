@@ -4,7 +4,7 @@ mod view;
 
 use std::{io::IsTerminal as _, process::ExitCode, time::Duration};
 
-use agent::{Agent, Error, Harness, control_api::Client, sessions::Session, sessions::SessionName};
+use agent::{Agent, Error, control_api::Client, sessions::Session};
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
 use sandbox::terminal::TerminalAttachOutcome;
@@ -181,12 +181,12 @@ async fn fetch(client: &Client) -> Result<(Vec<Agent>, Vec<Session>), Error> {
 async fn suspended(app: &mut App, tui: &mut Tui, client: &Client, action: Action) -> CommandResult<()> {
     tui.suspend()?;
     let result = match action {
-        Action::Attach { agent, session } => attach(client, &agent, session, None).await,
+        Action::Attach { agent, session } => crate::terminal::attach_session(client, &agent, session, None).await,
         Action::CreateSession {
             agent,
             session,
             harness,
-        } => attach(client, &agent, session, Some(harness)).await,
+        } => crate::terminal::attach_session(client, &agent, session, Some(harness)).await,
         Action::Exec { agent } => exec(client, &agent).await,
         _ => Ok(()),
     };
@@ -197,34 +197,11 @@ async fn suspended(app: &mut App, tui: &mut Tui, client: &Client, action: Action
     Ok(())
 }
 
-async fn attach(client: &Client, agent: &str, session: SessionName, harness: Option<Harness>) -> Result<(), Error> {
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {name:?}; initial provisioning can take several minutes...",
-        name = session.as_str()
-    );
-    client.ensure_session(agent, session.clone(), harness).await?;
-    let initial_size = crate::terminal::current_size()?;
-    let terminal = client.attach_session(agent, session, initial_size).await?;
-    match crate::terminal::run(terminal).await? {
-        TerminalAttachOutcome::Exited(status) if status.success() => Ok(()),
-        TerminalAttachOutcome::Detached => Ok(()),
-        TerminalAttachOutcome::Exited(status) => Err(Error::Session(format!(
-            "tmux attachment exited with code {}",
-            status.code
-        ))),
-        _ => Err(Error::Session(
-            "terminal attachment returned an unsupported outcome".into(),
-        )),
-    }
-}
-
 async fn exec(client: &Client, agent: &str) -> Result<(), Error> {
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(agent).await?;
-    let command = ["bash".to_owned(), "-l".to_owned()];
-    let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
+    let command = vec!["bash".to_owned(), "-l".to_owned()];
     let initial_size = crate::terminal::current_size()?;
-    let terminal = client.start_terminal_execution(agent, spec, initial_size).await?;
+    let terminal = client.start_terminal_execution(agent, command, initial_size).await?;
     match crate::terminal::run(terminal).await? {
         TerminalAttachOutcome::Exited(_) | TerminalAttachOutcome::Detached => Ok(()),
         _ => Err(Error::Session(

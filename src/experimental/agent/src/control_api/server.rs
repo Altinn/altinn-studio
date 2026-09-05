@@ -5,7 +5,7 @@ use futures_util::StreamExt as _;
 use sandbox::LocalFuture;
 use serde::Serialize;
 use serde_json::Value;
-use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncRead, AsyncWrite, BufReader};
 
 use crate::{Agent, Error, control_plane, harness, sessions};
 
@@ -13,13 +13,12 @@ use super::protocol::{
     CODE_AGENT_NOT_FOUND, CODE_CALLER_NOT_PERMITTED, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS,
     CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, ExecutionServerMessage,
     ExecutionStartParams, ExecutionStreamResult, JSON_RPC_VERSION, LoginParams, MESSAGE_CALLER_NOT_PERMITTED,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_START, METHOD_GET,
-    METHOD_HEALTH, METHOD_LIST, METHOD_PORT_FORWARD_START, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ATTACH,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_TERMINAL_EXECUTION_START, MessageReader,
-    NameParams, PROTOCOL_VERSION, PortForwardBinding, PortForwardServerMessage, PortForwardStartParams,
-    PortForwardStartResult, ReadMessage, Request, Response, SessionAttachParams, SessionListParams, SessionParams,
-    TerminalClientMessage, TerminalExecutionStartParams, TerminalServerMessage, TerminalStreamResult, error_response,
-    read_message, write_stream_message,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_START, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    METHOD_PORT_FORWARD_START, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ATTACH, METHOD_SESSION_ENSURE,
+    METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_TERMINAL_EXECUTION_START, MessageReader, NameParams,
+    PROTOCOL_VERSION, PortForwardBinding, PortForwardEvent, PortForwardStartParams, PortForwardStartResult,
+    ReadMessage, Request, Response, SessionAttachParams, SessionListParams, SessionParams, TerminalClientMessage,
+    TerminalExecutionStartParams, TerminalServerMessage, error_response, read_message, write_stream_message,
 };
 
 const REMOTE_REQUEST_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
@@ -159,45 +158,38 @@ impl SessionApi for sessions::Service {
 
 /// Transient Agent Execution operations exposed through the Agent Control API.
 pub trait ExecutionApi {
-    /// Converges an Agent and returns its exact ready Sandbox assignment.
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
-
     /// Starts one non-interactive Execution and returns its event stream.
     fn start<'a>(
         &'a self,
         name: &'a str,
-        spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
     ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>>;
 
     /// Starts one interactive terminal Execution and returns its stream.
     fn start_terminal<'a>(
         &'a self,
         name: &'a str,
-        spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
         initial_size: sandbox::terminal::TerminalSize,
     ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>>;
 }
 
-impl ExecutionApi for crate::sandbox::RuntimeService {
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, name).await })
-    }
-
+impl ExecutionApi for crate::sandbox::ExecutionService {
     fn start<'a>(
         &'a self,
         name: &'a str,
-        spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
     ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
-        Box::pin(async move { Self::start(self, name, spec).await })
+        Box::pin(async move { Self::start(self, name, &command).await })
     }
 
     fn start_terminal<'a>(
         &'a self,
         name: &'a str,
-        spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
         initial_size: sandbox::terminal::TerminalSize,
     ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
-        Box::pin(async move { Self::start_terminal(self, name, spec, initial_size).await })
+        Box::pin(async move { Self::start_terminal(self, name, &command, initial_size).await })
     }
 }
 
@@ -309,7 +301,7 @@ impl Server {
                 ReadMessage::EndOfStream => return Ok(()),
                 ReadMessage::Complete(line) => line,
                 ReadMessage::TooLarge => {
-                    write_response(
+                    write_stream_message(
                         stream.get_mut(),
                         &error_response(0, CODE_PARSE_ERROR, "JSON-RPC request exceeds 4 MiB"),
                     )
@@ -321,7 +313,7 @@ impl Server {
             let request = match serde_json::from_slice::<Request>(&line) {
                 Ok(request) => request,
                 Err(error) => {
-                    write_response(
+                    write_stream_message(
                         stream.get_mut(),
                         &error_response(0, CODE_PARSE_ERROR, "invalid JSON-RPC request"),
                     )
@@ -333,7 +325,7 @@ impl Server {
                 return self.serve_stream_request(stream, request, caller).await;
             }
             let response = self.handle(request, caller).await;
-            write_response(stream.get_mut(), &response).await?;
+            write_stream_message(stream.get_mut(), &response).await?;
         }
     }
 
@@ -374,7 +366,6 @@ impl Server {
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
-            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_AUTH_LOGIN if caller == Caller::RemoteUnauthenticated => {
                 error_response(request.id, CODE_CALLER_NOT_PERMITTED, MESSAGE_CALLER_NOT_PERMITTED)
@@ -418,14 +409,6 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
-    }
-
-    async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
-        let params = match name_params(value) {
-            Ok(params) => params,
-            Err(response) => return response_with_id(id, response),
-        };
-        result_response(id, self.executions.ensure(&params.name).await)
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
@@ -472,8 +455,8 @@ impl Server {
 
     async fn start_execution(&self, value: Value) -> Result<sandbox::execution::StartedExecution, Error> {
         let params = serde_json::from_value::<ExecutionStartParams>(value)
-            .map_err(|_| Error::Invalid("agent and execution spec are required".into()))?;
-        self.executions.start(&params.agent, params.spec).await
+            .map_err(|_| Error::Invalid("agent and command are required".into()))?;
+        self.executions.start(&params.agent, params.command).await
     }
 
     async fn start_terminal_execution(
@@ -481,10 +464,12 @@ impl Server {
         value: Value,
     ) -> Result<sandbox::terminal::StartedTerminalExecution, Error> {
         let params = serde_json::from_value::<TerminalExecutionStartParams>(value)
-            .map_err(|_| Error::Invalid("agent, execution spec, rows, and columns are required".into()))?;
+            .map_err(|_| Error::Invalid("agent, command, rows, and columns are required".into()))?;
         let size = sandbox::terminal::TerminalSize::new(params.rows, params.columns)
             .map_err(|error| Error::Invalid(error.to_string()))?;
-        self.executions.start_terminal(&params.agent, params.spec, size).await
+        self.executions
+            .start_terminal(&params.agent, params.command, size)
+            .await
     }
 
     async fn begin_port_forward_stream<S>(
@@ -498,7 +483,7 @@ impl Server {
         S: AsyncRead + AsyncWrite + Unpin,
     {
         let Ok(params) = serde_json::from_value::<PortForwardStartParams>(value) else {
-            write_response(
+            write_stream_message(
                 stream.get_mut(),
                 &result_response::<PortForwardStartResult>(
                     id,
@@ -509,7 +494,7 @@ impl Server {
             return Ok(());
         };
         if caller == Caller::RemoteUnauthenticated && params.specs.iter().any(|spec| !spec.address().is_loopback()) {
-            write_response(
+            write_stream_message(
                 stream.get_mut(),
                 &error_response(id, CODE_CALLER_NOT_PERMITTED, MESSAGE_CALLER_NOT_PERMITTED),
             )
@@ -528,6 +513,22 @@ fn is_streaming_method(method: &str) -> bool {
     )
 }
 
+/// Replies before handing a connection to an operation's event loop. Keeping the
+/// operation here also releases it if the startup response cannot be delivered.
+async fn acknowledge_start<W: AsyncWrite + Unpin, T, R: Serialize>(
+    writer: &mut W,
+    id: u64,
+    started: Result<T, Error>,
+    metadata: impl FnOnce(&T) -> R,
+) -> Result<Option<T>, Error> {
+    let (result, operation) = match started {
+        Ok(operation) => (Ok(metadata(&operation)), Some(operation)),
+        Err(error) => (Err(error), None),
+    };
+    write_stream_message(writer, &result_response(id, result)).await?;
+    Ok(operation)
+}
+
 async fn begin_terminal_stream<S>(
     mut stream: BufReader<S>,
     id: u64,
@@ -536,28 +537,14 @@ async fn begin_terminal_stream<S>(
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
-    let terminal = match terminal {
-        Ok(terminal) => terminal,
-        Err(error) => {
-            write_response(
-                stream.get_mut(),
-                &result_response::<TerminalStreamResult>(id, Err(error)),
-            )
-            .await?;
-            return Ok(());
-        }
-    };
-    write_response(
-        stream.get_mut(),
-        &result_response(
-            id,
-            Ok(TerminalStreamResult {
-                execution_id: terminal.id.clone(),
-            }),
-        ),
-    )
-    .await?;
-    serve_terminal(stream, terminal).await
+    if let Some(terminal) = acknowledge_start(stream.get_mut(), id, terminal, |terminal| ExecutionStreamResult {
+        execution_id: terminal.id.clone(),
+    })
+    .await?
+    {
+        serve_terminal(stream, terminal).await?;
+    }
+    Ok(())
 }
 
 async fn begin_execution_stream<S>(
@@ -568,28 +555,14 @@ async fn begin_execution_stream<S>(
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
-    let execution = match execution {
-        Ok(execution) => execution,
-        Err(error) => {
-            write_response(
-                stream.get_mut(),
-                &result_response::<ExecutionStreamResult>(id, Err(error)),
-            )
-            .await?;
-            return Ok(());
-        }
-    };
-    write_response(
-        stream.get_mut(),
-        &result_response(
-            id,
-            Ok(ExecutionStreamResult {
-                execution_id: execution.id.clone(),
-            }),
-        ),
-    )
-    .await?;
-    serve_execution(stream, execution).await
+    if let Some(execution) = acknowledge_start(stream.get_mut(), id, execution, |execution| ExecutionStreamResult {
+        execution_id: execution.id.clone(),
+    })
+    .await?
+    {
+        serve_execution(stream, execution).await?;
+    }
+    Ok(())
 }
 
 async fn begin_port_forward_stream<S>(
@@ -600,30 +573,20 @@ async fn begin_port_forward_stream<S>(
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
-    let forwards = match forwards {
-        Ok(forwards) => forwards,
-        Err(error) => {
-            write_response(
-                stream.get_mut(),
-                &result_response::<PortForwardStartResult>(id, Err(error)),
-            )
-            .await?;
-            return Ok(());
-        }
-    };
-    let bindings = forwards
-        .iter()
-        .map(|forward| PortForwardBinding {
-            local_address: forward.local_address(),
-            guest_port: forward.spec().guest_port(),
-        })
-        .collect();
-    write_response(
-        stream.get_mut(),
-        &result_response(id, Ok(PortForwardStartResult { bindings })),
-    )
-    .await?;
-    serve_port_forwards(stream, forwards).await
+    if let Some(forwards) = acknowledge_start(stream.get_mut(), id, forwards, |forwards| PortForwardStartResult {
+        bindings: forwards
+            .iter()
+            .map(|forward| PortForwardBinding {
+                local_address: forward.local_address(),
+                guest_port: forward.spec().guest_port(),
+            })
+            .collect(),
+    })
+    .await?
+    {
+        serve_port_forwards(stream, forwards).await?;
+    }
+    Ok(())
 }
 
 async fn serve_port_forwards<S>(
@@ -655,14 +618,14 @@ where
                     if status != reported[index] {
                         write_stream_message(
                             &mut writer,
-                            &PortForwardServerMessage::Status { index: wire_index, message: status.clone() },
+                            &PortForwardEvent::Status { index: wire_index, message: status.clone() },
                         ).await?;
                         reported[index] = status;
                     }
                     if forward.finished() && !stopped[index] {
                         write_stream_message(
                             &mut writer,
-                            &PortForwardServerMessage::Stopped { index: wire_index, message: forward.status() },
+                            &PortForwardEvent::Stopped { index: wire_index, message: forward.status() },
                         ).await?;
                         stopped[index] = true;
                     }
@@ -830,19 +793,30 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
     }
 }
 
-async fn write_response<W: AsyncWrite + Unpin>(writer: &mut W, response: &Response) -> Result<(), Error> {
-    let mut bytes = serde_json::to_vec(response)?;
-    bytes.push(b'\n');
-    writer.write_all(&bytes).await?;
-    writer.flush().await?;
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
 
     use super::*;
+    use tokio::io::AsyncWriteExt as _;
+
+    #[tokio::test(flavor = "local")]
+    async fn failed_startup_response_releases_the_operation() {
+        struct DropFlag(Rc<std::cell::Cell<bool>>);
+        impl Drop for DropFlag {
+            fn drop(&mut self) {
+                self.0.set(true);
+            }
+        }
+
+        let dropped = Rc::new(std::cell::Cell::new(false));
+        let (client, mut server) = tokio::io::duplex(64);
+        drop(client);
+        let result = acknowledge_start(&mut server, 1, Ok(DropFlag(dropped.clone())), |_| serde_json::json!({})).await;
+
+        assert!(matches!(result, Err(Error::Io(_))));
+        assert!(dropped.get(), "a failed handshake must not retain the operation");
+    }
 
     #[tokio::test(flavor = "local")]
     async fn incomplete_request_reads_have_a_configurable_idle_deadline() {

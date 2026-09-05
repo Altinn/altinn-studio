@@ -788,27 +788,64 @@ async fn controller_reconciles_after_a_wakeup() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn execution_target_waits_for_agent_convergence() {
+async fn execution_start_converges_and_prepares_the_command_in_the_daemon() {
     let store = Rc::new(memory::InMemoryAgentStore::new());
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
     control_plane.apply(apply_request("worker")).await.expect("apply");
 
     let backend = Rc::new(sandbox_memory::Provider::new());
     let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
-    let reconciler = Rc::new(reconciler(store.clone(), provider));
+    let sandboxes = sandbox_service(provider);
+    let reconciler = Rc::new(Reconciler::new(store.clone(), sandboxes.clone()));
     let (controller, wakeup) = Controller::new(store.clone(), reconciler, Duration::from_mins(1), Rc::new(|_, _| {}));
-    let execution = ExecutionService::new(store, wakeup);
+    let execution = ExecutionService::new(store.clone(), wakeup, sandboxes);
     let task = tokio::task::spawn_local(controller.run());
 
-    let target = tokio::time::timeout(Duration::from_secs(1), execution.ensure("worker"))
+    let command = vec!["printf".into(), "argument with spaces".into(), "λ".into()];
+    let started = tokio::time::timeout(Duration::from_secs(1), execution.start("worker", &command))
         .await
-        .expect("execution target should not wait for the periodic scan")
-        .expect("ready execution target");
+        .expect("execution should not wait for the periodic scan")
+        .expect("started execution");
+    let outcome = started.collect().await.expect("execution outcome");
+    assert!(outcome.status.success());
 
-    assert_eq!(target.operating_system, "linux");
-    assert_eq!(target.sandbox.provider().as_str(), "memory");
-    assert!(target.sandbox.id().is_some());
+    let record = store.get_by_name("worker").await.expect("converged Agent");
+    let assignment = record.agent.status.sandbox.expect("Sandbox assignment");
+    assert_eq!(assignment.provider().as_str(), "memory");
+    assert!(assignment.id().is_some());
     assert_eq!(backend.count(), 1);
+    assert_eq!(
+        backend.execution_specs(),
+        vec![
+            sandbox::execution::ExecutionSpec::command(SandboxPath::new("printf"), command[1..].iter().cloned())
+                .with_working_directory(SandboxPath::new("/home/agent/code"))
+                .with_environment([
+                    ("HOME".into(), "/home/agent".into()),
+                    ("LANG".into(), "C.UTF-8".into()),
+                    ("CONTAINER_HOST".into(), "unix:///run/podman/podman.sock".into()),
+                ])
+        ],
+    );
+
+    let size = sandbox::terminal::TerminalSize::new(24, 80).expect("terminal size");
+    let _terminal = execution
+        .start_terminal("worker", &command, size)
+        .await
+        .expect("terminal execution");
+    assert!(matches!(
+        execution.start("missing", &command).await,
+        Err(Error::NotFound)
+    ));
+    assert!(matches!(execution.start("worker", &[]).await, Err(Error::Invalid(_))));
+    assert!(matches!(
+        execution.start_terminal("worker", &[], size).await,
+        Err(Error::Invalid(_))
+    ));
+    store.mark_deleting("worker").await.expect("mark Agent deleting");
+    assert!(matches!(
+        execution.start("worker", &command).await,
+        Err(Error::Conflict)
+    ));
     task.abort();
 }
 

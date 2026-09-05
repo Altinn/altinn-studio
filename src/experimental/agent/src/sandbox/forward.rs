@@ -186,13 +186,19 @@ impl PortForwardService {
         if specs.is_empty() {
             return Err(Error::Invalid("at least one port mapping is required".into()));
         }
-        let target = self.executions.ensure(agent).await?;
+        let record = self.executions.ensure(agent).await?;
+        let assignment = record
+            .agent
+            .status
+            .sandbox
+            .filter(|assignment| assignment.id().is_some())
+            .ok_or_else(|| Error::Invalid("Agent has no materialized Sandbox assignment".into()))?;
         let mut forwards = Vec::with_capacity(specs.len());
         for spec in specs {
             if spec.guest_port == 0 {
                 return Err(Error::Invalid("guest port must not be zero".into()));
             }
-            let forward = PortForward::start(self.sandboxes.clone(), target.sandbox.clone(), spec).await?;
+            let forward = PortForward::start(self.sandboxes.clone(), assignment.clone(), spec).await?;
             forwards.push(Rc::new(forward) as Rc<dyn RunningPortForward>);
         }
         Ok(forwards)

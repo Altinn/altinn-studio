@@ -2,7 +2,11 @@
 
 use std::io::IsTerminal as _;
 
-use agent::{Error, control_api::AttachedTerminal};
+use agent::{
+    Error, Harness,
+    control_api::{AttachedTerminal, Client},
+    sessions::SessionName,
+};
 #[cfg(windows)]
 use crossterm::event::EventStream;
 #[cfg(any(windows, test))]
@@ -27,6 +31,33 @@ pub(super) fn current_size() -> Result<TerminalSize, Error> {
     }
     let (columns, rows) = crossterm::terminal::size()?;
     TerminalSize::new(rows, columns).map_err(|error| Error::Invalid(error.to_string()))
+}
+
+/// Shared CLI/TUI workflow for preparing and attaching to a Session.
+pub(super) async fn attach_session(
+    client: &Client,
+    agent: &str,
+    session: SessionName,
+    harness: Option<Harness>,
+) -> Result<(), Error> {
+    eprintln!(
+        "Ensuring Agent {agent:?} and Session {name:?}; initial provisioning can take several minutes...",
+        name = session.as_str()
+    );
+    client.ensure_session(agent, session.clone(), harness).await?;
+    let initial_size = current_size()?;
+    let terminal = client.attach_session(agent, session, initial_size).await?;
+    match run(terminal).await? {
+        TerminalAttachOutcome::Exited(status) if status.success() => Ok(()),
+        TerminalAttachOutcome::Detached => Ok(()),
+        TerminalAttachOutcome::Exited(status) => Err(Error::Session(format!(
+            "tmux attachment exited with code {}",
+            status.code
+        ))),
+        _ => Err(Error::Session(
+            "terminal attachment returned an unsupported outcome".into(),
+        )),
+    }
 }
 
 /// Pumps raw input, output, and resizes until the remote terminal ends.

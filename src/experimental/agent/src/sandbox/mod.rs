@@ -11,13 +11,11 @@ mod execution;
 mod forward;
 pub mod microsandbox;
 pub mod platform;
-mod runtime;
 
-pub use execution::{ExecutionService, ExecutionTarget};
+pub use execution::ExecutionService;
 pub use forward::{
     GuestTcpConnection, GuestTcpDialer, PortForward, PortForwardService, PortForwardSpec, RunningPortForward,
 };
-pub use runtime::RuntimeService;
 
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

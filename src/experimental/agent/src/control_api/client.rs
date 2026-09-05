@@ -3,18 +3,18 @@ use std::{cell::Cell, rc::Rc};
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
-use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncRead, AsyncWrite, BufReader};
 
 use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
     CODE_CALLER_NOT_PERMITTED, DirectoryParams, ExecutionServerMessage, ExecutionStartParams, ExecutionStreamResult,
     JSON_RPC_VERSION, LoginParams, MESSAGE_CALLER_NOT_PERMITTED, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE,
-    METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_START, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PORT_FORWARD_START,
+    METHOD_EXECUTION_START, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PORT_FORWARD_START,
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ATTACH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_TERMINAL_EXECUTION_START, MessageReader, NameParams, PortForwardServerMessage, PortForwardStartParams,
-    PortForwardStartResult, ReadMessage, Request, Response, ResponseError, SessionAttachParams, SessionListParams,
-    SessionParams, TerminalClientMessage, TerminalExecutionStartParams, TerminalServerMessage, TerminalStreamResult,
+    METHOD_TERMINAL_EXECUTION_START, MessageReader, NameParams, PortForwardBinding, PortForwardEvent,
+    PortForwardStartParams, PortForwardStartResult, ReadMessage, Request, Response, ResponseError, SessionAttachParams,
+    SessionListParams, SessionParams, TerminalClientMessage, TerminalExecutionStartParams, TerminalServerMessage,
     read_message, write_stream_message,
 };
 
@@ -50,24 +50,6 @@ pub struct AttachedExecution {
     pub events: ExecutionEvents,
 }
 
-/// One host listener bound by the daemon for a port-forward session.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PortForwardBinding {
-    /// Bound host address, including the resolved ephemeral port.
-    pub local_address: std::net::SocketAddr,
-    /// Guest port receiving forwarded connections.
-    pub guest_port: u16,
-}
-
-/// A change observed for one running port forward.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum PortForwardEvent {
-    /// The most recent relay error changed; `None` means it recovered.
-    Status { index: u32, message: Option<String> },
-    /// The daemon listener stopped serving.
-    Stopped { index: u32, message: Option<String> },
-}
-
 /// Daemon-owned port forwards tied to one live Control API connection.
 pub struct PortForwardSession {
     /// Host listeners created in request order.
@@ -86,8 +68,9 @@ pub struct AttachedTerminal {
     pub events: TerminalEvents,
 }
 
-type TerminalWriter = tokio::io::WriteHalf<BufReader<Box<dyn Connection>>>;
-type TerminalReader = BufReader<tokio::io::ReadHalf<BufReader<Box<dyn Connection>>>>;
+type BufferedConnection = BufReader<Box<dyn Connection>>;
+type TerminalWriter = tokio::io::WriteHalf<BufferedConnection>;
+type TerminalReader = BufReader<tokio::io::ReadHalf<BufferedConnection>>;
 
 /// Input and resize controls for an attached terminal.
 pub struct TerminalInput {
@@ -97,14 +80,12 @@ pub struct TerminalInput {
 
 /// Events from a daemon-owned non-interactive Execution.
 pub struct ExecutionEvents {
-    reader: MessageReader<TerminalReader>,
-    _writer: TerminalWriter,
+    reader: MessageReader<BufferedConnection>,
 }
 
 /// Events from daemon-owned port forwards.
 pub struct PortForwardEvents {
-    reader: MessageReader<TerminalReader>,
-    _writer: TerminalWriter,
+    reader: MessageReader<BufferedConnection>,
 }
 
 impl PortForwardEvents {
@@ -114,15 +95,7 @@ impl PortForwardEvents {
     ///
     /// Returns an error when a stream message is missing, oversized, or invalid.
     pub async fn next(&mut self) -> Result<Option<PortForwardEvent>, Error> {
-        let message = match self.reader.next().await? {
-            ReadMessage::EndOfStream => return Ok(None),
-            ReadMessage::TooLarge => return Err(Error::Invalid("port-forward message exceeds 4 MiB".into())),
-            ReadMessage::Complete(message) => serde_json::from_slice::<PortForwardServerMessage>(&message)?,
-        };
-        Ok(Some(match message {
-            PortForwardServerMessage::Status { index, message } => PortForwardEvent::Status { index, message },
-            PortForwardServerMessage::Stopped { index, message } => PortForwardEvent::Stopped { index, message },
-        }))
+        self.reader.next_json().await
     }
 }
 
@@ -133,10 +106,8 @@ impl ExecutionEvents {
     ///
     /// Returns an error when a stream message is missing, oversized, or invalid.
     pub async fn next(&mut self) -> Result<Option<sandbox::execution::ExecutionEvent>, Error> {
-        let message = match self.reader.next().await? {
-            ReadMessage::EndOfStream => return Ok(None),
-            ReadMessage::TooLarge => return Err(Error::Invalid("Execution output message exceeds 4 MiB".into())),
-            ReadMessage::Complete(message) => serde_json::from_slice::<ExecutionServerMessage>(&message)?,
+        let Some(message) = self.reader.next_json::<ExecutionServerMessage>().await? else {
+            return Ok(None);
         };
         Ok(Some(match message {
             ExecutionServerMessage::Stdout { data } => {
@@ -220,10 +191,8 @@ impl TerminalEvents {
     ///
     /// Returns an error when a stream message is missing, oversized, or invalid.
     pub async fn next(&mut self) -> Result<Option<sandbox::terminal::TerminalEvent>, Error> {
-        let message = match self.reader.next().await? {
-            ReadMessage::EndOfStream => return Ok(None),
-            ReadMessage::TooLarge => return Err(Error::Invalid("terminal output message exceeds 4 MiB".into())),
-            ReadMessage::Complete(message) => serde_json::from_slice::<TerminalServerMessage>(&message)?,
+        let Some(message) = self.reader.next_json::<TerminalServerMessage>().await? else {
+            return Ok(None);
         };
         Ok(Some(match message {
             TerminalServerMessage::Output { data } => {
@@ -315,43 +284,26 @@ impl Client {
         self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }).await
     }
 
-    /// Converges an Agent and resolves its exact transient Execution target.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the Agent is missing, deleting, or fails to reach
-    /// a ready materialized Sandbox.
-    pub async fn ensure_execution(&self, name: &str) -> Result<crate::sandbox::ExecutionTarget, Error> {
-        self.call(METHOD_EXECUTION_ENSURE, NameParams { name: name.into() })
-            .await
-    }
-
     /// Starts a daemon-owned non-interactive Execution stream.
     ///
     /// # Errors
     ///
     /// Returns an error when the Agent cannot converge, its Sandbox rejects
     /// the Execution, or the streaming protocol cannot be established.
-    pub async fn start_execution(
-        &self,
-        agent: &str,
-        spec: sandbox::execution::ExecutionSpec,
-    ) -> Result<AttachedExecution, Error> {
+    pub async fn start_execution(&self, agent: &str, command: Vec<String>) -> Result<AttachedExecution, Error> {
         let (result, stream): (ExecutionStreamResult, _) = self
             .open_call(
                 METHOD_EXECUTION_START,
                 ExecutionStartParams {
                     agent: agent.into(),
-                    spec,
+                    command,
                 },
             )
             .await?;
-        let (reader, writer) = tokio::io::split(stream);
         Ok(AttachedExecution {
             id: result.execution_id,
             events: ExecutionEvents {
-                reader: MessageReader::new(BufReader::new(reader)),
-                _writer: writer,
+                reader: MessageReader::new(stream),
             },
         })
     }
@@ -365,15 +317,15 @@ impl Client {
     pub async fn start_terminal_execution(
         &self,
         agent: &str,
-        spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
         initial_size: sandbox::terminal::TerminalSize,
     ) -> Result<AttachedTerminal, Error> {
-        let (result, stream): (TerminalStreamResult, _) = self
+        let (result, stream): (ExecutionStreamResult, _) = self
             .open_call(
                 METHOD_TERMINAL_EXECUTION_START,
                 TerminalExecutionStartParams {
                     agent: agent.into(),
-                    spec,
+                    command,
                     rows: initial_size.rows(),
                     columns: initial_size.columns(),
                 },
@@ -405,19 +357,10 @@ impl Client {
                 },
             )
             .await?;
-        let (reader, writer) = tokio::io::split(stream);
         Ok(PortForwardSession {
-            bindings: result
-                .bindings
-                .into_iter()
-                .map(|binding| PortForwardBinding {
-                    local_address: binding.local_address,
-                    guest_port: binding.guest_port,
-                })
-                .collect(),
+            bindings: result.bindings,
             events: PortForwardEvents {
-                reader: MessageReader::new(BufReader::new(reader)),
-                _writer: writer,
+                reader: MessageReader::new(stream),
             },
         })
     }
@@ -485,7 +428,7 @@ impl Client {
         name: sessions::SessionName,
         initial_size: sandbox::terminal::TerminalSize,
     ) -> Result<AttachedTerminal, Error> {
-        let (result, stream): (TerminalStreamResult, _) = self
+        let (result, stream): (ExecutionStreamResult, _) = self
             .open_call(
                 METHOD_SESSION_ATTACH,
                 SessionAttachParams {
@@ -549,10 +492,7 @@ impl Client {
             id,
         };
         let mut stream = self.connector.connect().await?;
-        let mut bytes = serde_json::to_vec(&request)?;
-        bytes.push(b'\n');
-        stream.write_all(&bytes).await?;
-        stream.flush().await?;
+        write_stream_message(&mut stream, &request).await?;
 
         let mut stream = BufReader::new(stream);
         let line = match read_message(&mut stream).await? {
@@ -578,7 +518,7 @@ impl Client {
     }
 }
 
-fn attached_terminal(result: TerminalStreamResult, stream: BufReader<Box<dyn Connection>>) -> AttachedTerminal {
+fn attached_terminal(result: ExecutionStreamResult, stream: BufReader<Box<dyn Connection>>) -> AttachedTerminal {
     let (reader, writer) = tokio::io::split(stream);
     AttachedTerminal {
         id: result.execution_id,

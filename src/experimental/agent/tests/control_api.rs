@@ -292,29 +292,17 @@ impl SessionApi for FakeSessions {
 }
 
 impl ExecutionApi for FakeExecutions {
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move {
-            if name != "worker" {
-                return Err(Error::NotFound);
-            }
-            Ok(agent::sandbox::ExecutionTarget {
-                sandbox: agent::sandbox::Assignment::Materialized {
-                    provider: agent::sandbox::ProviderId::new("memory")?,
-                    id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
-                        .parse()
-                        .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
-                },
-                operating_system: "linux".into(),
-            })
-        })
-    }
-
     fn start<'a>(
         &'a self,
         name: &'a str,
-        _spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
     ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
         Box::pin(async move {
+            assert_eq!(
+                command,
+                test_command(),
+                "command arguments must cross the API unchanged"
+            );
             if name != "worker" {
                 return Err(Error::NotFound);
             }
@@ -340,10 +328,15 @@ impl ExecutionApi for FakeExecutions {
     fn start_terminal<'a>(
         &'a self,
         name: &'a str,
-        _spec: sandbox::execution::ExecutionSpec,
+        command: Vec<String>,
         _initial_size: sandbox::terminal::TerminalSize,
     ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
         Box::pin(async move {
+            assert_eq!(
+                command,
+                test_command(),
+                "command arguments must cross the API unchanged"
+            );
             if name != "worker" {
                 return Err(Error::NotFound);
             }
@@ -361,14 +354,10 @@ impl ExecutionApi for FakeExecutions {
 }
 
 impl ExecutionApi for DropObservedExecutions {
-    fn ensure<'a>(&'a self, _name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async { Err(Error::NotFound) })
-    }
-
     fn start<'a>(
         &'a self,
         _name: &'a str,
-        _spec: sandbox::execution::ExecutionSpec,
+        _command: Vec<String>,
     ) -> LocalFuture<'a, Result<sandbox::execution::StartedExecution, Error>> {
         let dropped = self.dropped.clone();
         Box::pin(async move {
@@ -384,7 +373,7 @@ impl ExecutionApi for DropObservedExecutions {
     fn start_terminal<'a>(
         &'a self,
         _name: &'a str,
-        _spec: sandbox::execution::ExecutionSpec,
+        _command: Vec<String>,
         _initial_size: sandbox::terminal::TerminalSize,
     ) -> LocalFuture<'a, Result<sandbox::terminal::StartedTerminalExecution, Error>> {
         Box::pin(async { Err(Error::NotFound) })
@@ -596,17 +585,24 @@ async fn tcp_clients_reject_credentials_before_connecting() {
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     fixture.client.health().await.expect("health check");
-    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v2");
+    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v3");
 }
 
 #[tokio::test(flavor = "local")]
 async fn health_reports_a_distinct_protocol_version_error() {
-    let client = Client::new(Rc::new(VersionConnector { protocol_version: "v1" }));
+    for version in ["v1", "v2"] {
+        let client = Client::new(Rc::new(VersionConnector {
+            protocol_version: version,
+        }));
+        assert!(matches!(
+            client.health().await.expect_err("version mismatch should fail"),
+            Error::ControlApiVersion { expected: "v3", actual } if actual == version
+        ));
+    }
+}
 
-    assert!(matches!(
-        client.health().await.expect_err("version mismatch should fail"),
-        Error::ControlApiVersion { expected: "v2", actual } if actual == "v1"
-    ));
+fn test_command() -> Vec<String> {
+    ["/bin/true", "argument with spaces", "λ"].map(str::to_owned).to_vec()
 }
 
 fn request(name: &str) -> ApplyRequest {
@@ -631,9 +627,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             .expect("resolve source"),
         applied
     );
-    let execution = client.ensure_execution("worker").await.expect("execution target");
-    assert_eq!(execution.operating_system, "linux");
-    assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
     let ensure_error = client
         .ensure_session(
@@ -660,15 +653,34 @@ async fn client_and_server_exchange_versioned_agent_operations() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn failed_stream_start_preserves_application_errors() {
+    let fixture = api();
+    let client = &fixture.client;
+    let size = sandbox::terminal::TerminalSize::new(24, 80).expect("terminal size");
+    let execution = client.start_execution("missing", test_command()).await;
+    let terminal = client.start_terminal_execution("missing", test_command(), size).await;
+    let attachment = client
+        .attach_session(
+            "missing",
+            agent::sessions::SessionName::new("main").expect("Session name"),
+            size,
+        )
+        .await;
+    for result in [execution.map(|_| ()), terminal.map(|_| ()), attachment.map(|_| ())] {
+        assert!(matches!(result, Err(Error::Rpc(error)) if error.code == -32004));
+    }
+}
+
+#[tokio::test(flavor = "local")]
 async fn execution_streams_are_connector_independent() {
     let fixture = api();
     let client = Client::new(Rc::new(InProcessConnector {
         server: fixture.server,
         caller: Caller::RemoteUnauthenticated,
     }));
-    let spec = sandbox::execution::ExecutionSpec::command(sandbox::SandboxPath::new("/bin/true"), Vec::<String>::new());
+    let command = test_command();
     let mut execution = client
-        .start_execution("worker", spec.clone())
+        .start_execution("worker", command.clone())
         .await
         .expect("start Execution");
     assert_eq!(
@@ -692,7 +704,7 @@ async fn execution_streams_are_connector_independent() {
 
     let size = sandbox::terminal::TerminalSize::new(24, 80).expect("terminal size");
     let mut terminal = client
-        .start_terminal_execution("worker", spec, size)
+        .start_terminal_execution("worker", command, size)
         .await
         .expect("start terminal Execution");
     assert_eq!(
@@ -773,11 +785,11 @@ async fn client_disconnect_releases_daemon_owned_stream_operations() {
             dropped: forward_dropped.clone(),
         }),
     );
-    let spec = sandbox::execution::ExecutionSpec::command(sandbox::SandboxPath::new("/bin/true"), Vec::<String>::new());
+    let command = test_command();
 
     let execution = fixture
         .client
-        .start_execution("worker", spec)
+        .start_execution("worker", command)
         .await
         .expect("start tracked Execution");
     assert!(!execution_dropped.get());
@@ -945,9 +957,9 @@ async fn tcp_transport_is_usable() {
         attachment.events.next().await.expect("terminal exit over TCP"),
         Some(sandbox::terminal::TerminalEvent::Exited(_))
     ));
-    let spec = sandbox::execution::ExecutionSpec::command(sandbox::SandboxPath::new("/bin/true"), Vec::<String>::new());
+    let command = test_command();
     let mut execution = client
-        .start_execution("worker", spec.clone())
+        .start_execution("worker", command.clone())
         .await
         .expect("start Execution over TCP");
     assert!(matches!(
@@ -955,7 +967,7 @@ async fn tcp_transport_is_usable() {
         Some(sandbox::execution::ExecutionEvent::Stdout(_))
     ));
     let mut terminal = client
-        .start_terminal_execution("worker", spec, size)
+        .start_terminal_execution("worker", command, size)
         .await
         .expect("start terminal over TCP");
     assert!(matches!(

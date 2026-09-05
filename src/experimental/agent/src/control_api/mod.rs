@@ -8,11 +8,11 @@ mod socket;
 mod tcp;
 
 pub use client::{
-    AttachedExecution, AttachedTerminal, Client, Connection, Connector, ExecutionEvents, PortForwardBinding,
-    PortForwardEvent, PortForwardEvents, PortForwardSession, TerminalEvents, TerminalInput,
+    AttachedExecution, AttachedTerminal, Client, Connection, Connector, ExecutionEvents, PortForwardEvents,
+    PortForwardSession, TerminalEvents, TerminalInput,
 };
 pub use endpoint::TcpEndpoint;
-pub use protocol::{PROTOCOL_VERSION, ResponseError};
+pub use protocol::{PROTOCOL_VERSION, PortForwardBinding, PortForwardEvent, ResponseError};
 pub use server::{
     AgentApi, AttachmentApi, AuthenticationApi, Caller, ErrorHandler, ExecutionApi, PortForwardApi, Server, SessionApi,
 };

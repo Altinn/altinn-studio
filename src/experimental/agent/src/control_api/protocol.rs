@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _, AsyncWrite, AsyncWriteExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v2";
+pub const PROTOCOL_VERSION: &str = "v3";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
@@ -10,7 +10,6 @@ pub(crate) const METHOD_HEALTH: &str = "control.v1.health";
 pub(crate) const METHOD_GET: &str = "agents.v1.get";
 pub(crate) const METHOD_LIST: &str = "agents.v1.list";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
-pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_EXECUTION_START: &str = "executions.v1.start";
 pub(crate) const METHOD_TERMINAL_EXECUTION_START: &str = "executions.v1.startTerminal";
 pub(crate) const METHOD_PORT_FORWARD_START: &str = "portForwards.v1.start";
@@ -54,6 +53,15 @@ impl<R> MessageReader<R> {
 }
 
 impl<R: AsyncBufRead + Unpin> MessageReader<R> {
+    /// Decodes one bounded stream message without losing partial reads on cancellation.
+    pub(crate) async fn next_json<T: serde::de::DeserializeOwned>(&mut self) -> Result<Option<T>, crate::Error> {
+        match self.next().await? {
+            ReadMessage::EndOfStream => Ok(None),
+            ReadMessage::TooLarge => Err(crate::Error::Invalid("Control API stream message exceeds 4 MiB".into())),
+            ReadMessage::Complete(message) => Ok(Some(serde_json::from_slice(&message)?)),
+        }
+    }
+
     /// Reads one bounded newline-delimited message.
     ///
     /// Keeping the partial message on `self` makes this method cancellation
@@ -154,23 +162,17 @@ pub(crate) struct SessionAttachParams {
 }
 
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
-pub(crate) struct TerminalStreamResult {
-    pub execution_id: sandbox::execution::ExecutionId,
-}
-
-#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ExecutionStartParams {
     pub agent: String,
-    pub spec: sandbox::execution::ExecutionSpec,
+    pub command: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub(crate) struct TerminalExecutionStartParams {
     pub agent: String,
-    pub spec: sandbox::execution::ExecutionSpec,
+    pub command: Vec<String>,
     pub rows: u16,
     pub columns: u16,
 }
@@ -213,10 +215,13 @@ pub(crate) struct PortForwardStartParams {
     pub specs: Vec<crate::sandbox::PortForwardSpec>,
 }
 
-#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+/// One host listener bound by the daemon for a port-forward session.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
-pub(crate) struct PortForwardBinding {
+pub struct PortForwardBinding {
+    /// Bound host address, including the resolved ephemeral port.
     pub local_address: std::net::SocketAddr,
+    /// Guest port receiving forwarded connections.
     pub guest_port: u16,
 }
 
@@ -226,10 +231,13 @@ pub(crate) struct PortForwardStartResult {
     pub bindings: Vec<PortForwardBinding>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+/// A change observed for one running port forward.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase", tag = "type")]
-pub(crate) enum PortForwardServerMessage {
+pub enum PortForwardEvent {
+    /// The most recent relay error changed; `None` means it recovered.
     Status { index: u32, message: Option<String> },
+    /// The daemon listener stopped serving.
     Stopped { index: u32, message: Option<String> },
 }
 
@@ -275,7 +283,7 @@ mod tests {
     use futures_util::poll;
     use tokio::io::{AsyncWriteExt as _, BufReader};
 
-    use super::{MessageReader, ReadMessage};
+    use super::{MAX_MESSAGE_BYTES, MessageReader};
 
     #[tokio::test]
     async fn streaming_reader_preserves_a_partial_message_across_cancellation() {
@@ -283,14 +291,37 @@ mod tests {
         let mut reader = MessageReader::new(BufReader::new(reader));
         writer.write_all(b"{\"value\":").await.unwrap();
 
-        let mut pending_read = Box::pin(reader.next());
+        let mut pending_read = Box::pin(reader.next_json::<serde_json::Value>());
         assert!(poll!(pending_read.as_mut()).is_pending());
         drop(pending_read);
 
         writer.write_all(b"true}\n").await.unwrap();
-        let ReadMessage::Complete(message) = reader.next().await.unwrap() else {
-            panic!("expected a complete message");
-        };
-        assert_eq!(message, b"{\"value\":true}\n");
+        assert_eq!(
+            reader.next_json::<serde_json::Value>().await.unwrap(),
+            Some(serde_json::json!({"value": true}))
+        );
+    }
+
+    #[tokio::test]
+    async fn typed_stream_reader_keeps_buffered_messages_and_reports_eof() {
+        let mut reader = MessageReader::new(BufReader::new(b"1\n2\n".as_slice()));
+        assert_eq!(reader.next_json::<u32>().await.unwrap(), Some(1));
+        assert_eq!(reader.next_json::<u32>().await.unwrap(), Some(2));
+        assert_eq!(reader.next_json::<u32>().await.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn typed_stream_reader_rejects_invalid_and_oversized_messages() {
+        let mut invalid = MessageReader::new(BufReader::new(b"invalid\n".as_slice()));
+        assert!(matches!(
+            invalid.next_json::<serde_json::Value>().await,
+            Err(crate::Error::Json(_))
+        ));
+        let oversized = vec![b'x'; MAX_MESSAGE_BYTES + 1];
+        let mut oversized = MessageReader::new(BufReader::new(oversized.as_slice()));
+        assert!(matches!(
+            oversized.next_json::<serde_json::Value>().await,
+            Err(crate::Error::Invalid(_))
+        ));
     }
 }

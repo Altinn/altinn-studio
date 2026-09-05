@@ -62,6 +62,11 @@ the closest unique persisted Agent source directory. `agentd` owns all Sandbox a
 terminal attachments and host listeners for port forwarding. `agentctl` carries their transport-neutral streams and
 owns only local terminal input/output and UI state.
 
+Execution requests carry command arguments, not Sandbox assignments or platform-specific process environments;
+the daemon prepares and starts each command after convergence. Client and daemon binaries must speak the same
+Control API version. After updating test builds, update both binaries and restart the daemon; a protocol-only
+change does not require resetting its database.
+
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized
 Sandbox and owns the in-Sandbox tmux and harness effects for that Session. Both use the same keyed reconciliation

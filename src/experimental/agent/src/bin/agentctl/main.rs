@@ -402,21 +402,7 @@ async fn attach(
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
-        session = session.as_str()
-    );
-    client.ensure_session(&agent, session.clone(), harness).await?;
-    let initial_size = terminal::current_size()?;
-    let attached = client.attach_session(&agent, session, initial_size).await?;
-    match terminal::run(attached).await? {
-        TerminalAttachOutcome::Exited(status) if status.success() => {}
-        TerminalAttachOutcome::Detached => {}
-        TerminalAttachOutcome::Exited(status) => {
-            return Err(Error::Session(format!("tmux attachment exited with code {}", status.code)).into());
-        }
-        _ => return Err(Error::Session("terminal attachment returned an unsupported outcome".into()).into()),
-    }
+    terminal::attach_session(client, &agent, session, harness).await?;
     Ok(())
 }
 
@@ -432,27 +418,19 @@ async fn exec_command(
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
-    let current = client.get(&agent).await?;
-    if !current
-        .status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True)
-    {
-        eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    }
-    let target = client.ensure_execution(&agent).await?;
-    let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
+    eprintln!("Starting command in Agent {agent:?}; initial provisioning can take several minutes...");
     let status = if stdin && tty {
         let initial_size = terminal::current_size()?;
-        let attached = client.start_terminal_execution(&agent, spec, initial_size).await?;
+        let attached = client
+            .start_terminal_execution(&agent, command.to_vec(), initial_size)
+            .await?;
         match terminal::run(attached).await? {
             TerminalAttachOutcome::Exited(status) => status,
             TerminalAttachOutcome::Detached => return Ok(ExitCode::SUCCESS),
             _ => return Err(Error::Session("terminal execution returned an unsupported outcome".into()).into()),
         }
     } else {
-        let execution = client.start_execution(&agent, spec).await?;
+        let execution = client.start_execution(&agent, command.to_vec()).await?;
         stream_execution(execution).await?
     };
     Ok(exit_code(status.code))

@@ -129,6 +129,8 @@ fn agentctl_never_opens_sandbox_runtime_operations_directly() {
             "sandbox::attach_terminal",
             "sandbox::guest_tcp_dialer",
             "sandbox::start_execution",
+            "sandbox::platform::execution_spec",
+            "ensure_execution",
         ] {
             assert!(
                 !contents.contains(direct_runtime_access),

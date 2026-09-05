@@ -121,7 +121,15 @@ async fn run_control_plane(
         }),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
-    let (executions, port_forwards) = runtime_services(store.clone(), wakeup.clone(), sandboxes.clone());
+    let executions = Rc::new(agent::sandbox::ExecutionService::new(
+        store.clone(),
+        wakeup.clone(),
+        sandboxes.clone(),
+    ));
+    let port_forwards = Rc::new(agent::sandbox::PortForwardService::new(
+        sandboxes.clone(),
+        executions.clone(),
+    ));
     let sessions = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
         store.clone(),
@@ -186,24 +194,6 @@ async fn supervise(
     session_task.abort();
     platform_task.abort();
     result
-}
-
-fn runtime_services(
-    store: Rc<persistence::Database>,
-    wakeup: agent::control_plane::Wakeup,
-    sandboxes: Rc<agent::sandbox::Service>,
-) -> (
-    Rc<agent::sandbox::RuntimeService>,
-    Rc<agent::sandbox::PortForwardService>,
-) {
-    let targets = Rc::new(agent::sandbox::ExecutionService::new(store.clone(), wakeup));
-    let runtime = Rc::new(agent::sandbox::RuntimeService::new(
-        targets.clone(),
-        store,
-        sandboxes.clone(),
-    ));
-    let forwards = Rc::new(agent::sandbox::PortForwardService::new(sandboxes, targets));
-    (runtime, forwards)
 }
 
 async fn bind_insecure_tcp(port: Option<u16>) -> Result<Option<tokio::net::TcpListener>, Error> {
