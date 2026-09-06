@@ -49,4 +49,12 @@ internal sealed record StepRequest
     /// options of the stage it precedes.
     /// </summary>
     internal int? ServiceTaskItemIndex { get; init; }
+
+    /// <summary>
+    /// For a process-task command step: the key of the <c>IProcessTaskCommand</c> the step runs, carried so the
+    /// per-step options resolution (see <c>ProcessStepOptionsResolver</c>) can find that command's own
+    /// <c>StepOptions</c>. Internal and never serialized — the engine sees the key only inside the command
+    /// payload. Set on every <c>ExecuteProcessTaskCommand</c> step and on nothing else.
+    /// </summary>
+    internal string? TaskCommandKey { get; init; }
 }

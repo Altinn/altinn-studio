@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,10 +16,8 @@ public sealed class WaitForReleaseProcessTaskEnd : IProcessTask
     private static TaskCompletionSource _signal = new();
     public string Type => AltinnTaskTypes.Data;
 
-    public Task End(ProcessTaskContext context)
-    {
-        return _signal.Task;
-    }
+    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
+        [new ProcessTaskCommandRef(WaitForReleaseCommand.Key)];
 
     public static void Release()
     {
@@ -29,6 +28,19 @@ public sealed class WaitForReleaseProcessTaskEnd : IProcessTask
     {
         _signal.TrySetResult();
         _signal = new TaskCompletionSource();
+    }
+
+    public sealed class WaitForReleaseCommand : IProcessTaskCommand
+    {
+        public static string Key => "WaitForRelease";
+
+        string IProcessTaskCommand.Key => Key;
+
+        public async Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+        {
+            await _signal.Task;
+            return ProcessTaskCommandResult.Completed();
+        }
     }
 }
 
@@ -61,6 +73,7 @@ public static class ServiceRegistration
     public static void RegisterServices(IServiceCollection services)
     {
         services.AddTransient<IProcessTask, WaitForReleaseProcessTaskEnd>();
+        services.AddTransient<IProcessTaskCommand, WaitForReleaseProcessTaskEnd.WaitForReleaseCommand>();
         services.AddSingleton<IEndpointConfigurator, WaitForReleaseProcessTaskEndEndpoints>();
     }
 }

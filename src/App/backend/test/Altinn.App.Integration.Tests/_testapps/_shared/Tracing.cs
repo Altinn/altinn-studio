@@ -11,6 +11,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -54,6 +55,9 @@ public static class TracingDI
         services.AddSingleton<IProcessEnd, ProcessEnd>();
         services.AddSingleton<IProcessTask, TracingDataProcessTask>();
         services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
+        services.AddSingleton<IProcessTaskCommand, TracingStartCommand>();
+        services.AddSingleton<IProcessTaskCommand, TracingEndCommand>();
+        services.AddSingleton<IProcessTaskCommand, TracingAbandonCommand>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
         services.AddSingleton<IUserAction, UserAction>();
         services.AddSingleton<IUserActionAuthorizer, UserActionAuthorizer>();
@@ -274,45 +278,66 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public Task Start(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
-    }
+    public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) =>
+        [new ProcessTaskCommandRef(TracingStartCommand.Key)];
 
-    public Task End(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
-    }
+    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
+        [new ProcessTaskCommandRef(TracingEndCommand.Key)];
 
-    public Task Abandon(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
-    }
+    public IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) =>
+        [new ProcessTaskCommandRef(TracingAbandonCommand.Key)];
 }
 
 internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public Task Start(ProcessTaskContext context)
+    public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) =>
+        [new ProcessTaskCommandRef(TracingStartCommand.Key)];
+
+    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
+        [new ProcessTaskCommandRef(TracingEndCommand.Key)];
+
+    public IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) =>
+        [new ProcessTaskCommandRef(TracingAbandonCommand.Key)];
+}
+
+internal sealed class TracingStartCommand : IProcessTaskCommand
+{
+    public static string Key => "TracingStart";
+
+    string IProcessTaskCommand.Key => Key;
+
+    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
+        return Task.FromResult(ProcessTaskCommandResult.Completed());
     }
+}
 
-    public Task End(ProcessTaskContext context)
+internal sealed class TracingEndCommand : IProcessTaskCommand
+{
+    public static string Key => "TracingEnd";
+
+    string IProcessTaskCommand.Key => Key;
+
+    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
+        return Task.FromResult(ProcessTaskCommandResult.Completed());
     }
+}
 
-    public Task Abandon(ProcessTaskContext context)
+internal sealed class TracingAbandonCommand : IProcessTaskCommand
+{
+    public static string Key => "TracingAbandon";
+
+    string IProcessTaskCommand.Key => Key;
+
+    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
+        return Task.FromResult(ProcessTaskCommandResult.Completed());
     }
 }
 

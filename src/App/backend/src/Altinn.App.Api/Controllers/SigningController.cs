@@ -156,6 +156,8 @@ public class SigningController : ControllerBase
                             SignedTime = signeeContext.SignDocument?.SignedTime,
                             DelegationSuccessful = signeeContext.SigneeState.IsAccessDelegated,
                             NotificationStatus = GetNotificationState(signeeContext),
+                            DelegationFailure = GetDelegationFailure(signeeContext.SigneeState),
+                            NotificationFailure = GetNotificationFailure(signeeContext.SigneeState),
                             PartyId = signeeContext.Signee.GetParty().PartyId,
                         };
                     })
@@ -347,5 +349,46 @@ public class SigningController : ControllerBase
         }
 
         return NotificationStatus.NotSent;
+    }
+
+    /// <summary>
+    /// The persisted failure code when the app that initialised the signee wrote one; a state written by an older
+    /// version carries only a reason, reported as <see cref="SigneeDelegationFailure.Unknown"/>.
+    /// </summary>
+    private static SigneeDelegationFailure? GetDelegationFailure(SigneeContextState signeeState)
+    {
+        if (signeeState.IsAccessDelegated)
+        {
+            return null;
+        }
+
+        return signeeState.DelegationFailure switch
+        {
+            DelegationFailureCode.InvalidParty => SigneeDelegationFailure.InvalidParty,
+            DelegationFailureCode.Rejected => SigneeDelegationFailure.Rejected,
+            DelegationFailureCode.Unknown => SigneeDelegationFailure.Unknown,
+            null when signeeState.DelegationFailedReason is not null => SigneeDelegationFailure.Unknown,
+            null => null,
+            _ => SigneeDelegationFailure.Unknown,
+        };
+    }
+
+    private static SigneeNotificationFailure? GetNotificationFailure(SigneeContextState signeeState)
+    {
+        if (signeeState.HasBeenMessagedForCallToSign)
+        {
+            return null;
+        }
+
+        return signeeState.NotificationFailure switch
+        {
+            NotificationFailureCode.Configuration => SigneeNotificationFailure.Configuration,
+            NotificationFailureCode.ServiceOwnerUnavailable => SigneeNotificationFailure.ServiceOwnerUnavailable,
+            NotificationFailureCode.Rejected => SigneeNotificationFailure.Rejected,
+            NotificationFailureCode.Unknown => SigneeNotificationFailure.Unknown,
+            null when signeeState.CallToSignFailedReason is not null => SigneeNotificationFailure.Unknown,
+            null => null,
+            _ => SigneeNotificationFailure.Unknown,
+        };
     }
 }

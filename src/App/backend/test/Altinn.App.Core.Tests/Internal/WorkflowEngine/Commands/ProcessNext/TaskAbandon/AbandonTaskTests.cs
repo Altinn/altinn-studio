@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
@@ -11,6 +12,10 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 
+/// <summary>
+/// The legacy task-abandon step: for a workflow enqueued before task commands existed, it runs the task's
+/// declared abandon commands inline, in order, in the one callback.
+/// </summary>
 public class AbandonTaskTests
 {
     private static ProcessEngineCommandContext CreateContext(Instance instance)
@@ -24,7 +29,7 @@ public class AbandonTaskTests
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
-            CancellationToken = new CancellationToken(canceled: true),
+            CancellationToken = CancellationToken.None,
             Payload = new AppCallbackPayload
             {
                 CommandKey = AbandonTask.Key,
@@ -50,61 +55,59 @@ public class AbandonTaskTests
         };
     }
 
-    private static AbandonTask CreateCommand(IProcessTask processTask)
+    private static AbandonTask CreateCommand(IProcessTask processTask, params IProcessTaskCommand[] commands)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
         services.AddSingleton(processTask);
-        var sp = services.BuildServiceProvider();
-        var resolver = new ProcessTaskResolver(sp.GetRequiredService<AppImplementationFactory>());
-        return new AbandonTask(resolver);
+        foreach (IProcessTaskCommand command in commands)
+        {
+            services.AddSingleton(command);
+        }
+
+        ServiceProvider sp = services.BuildServiceProvider();
+        AppImplementationFactory factory = sp.GetRequiredService<AppImplementationFactory>();
+        return new AbandonTask(new ProcessTaskResolver(factory), new ProcessTaskCommandExecutor(factory));
     }
 
     [Fact]
-    public async Task Execute_ResolvesProcessTaskAndCallsAbandon_ReturnsSuccess()
+    public async Task Execute_RunsDeclaredAbandonCommands_ReturnsSuccess()
     {
-        // Arrange
+        var log = new List<string>();
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
-        processTask.Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
-        var command = CreateCommand(processTask.Object);
-        var context = CreateContext(CreateInstance());
+        processTask.Setup(x => x.GetAbandonCommands("Task_1")).Returns([new ProcessTaskCommandRef("Abort")]);
+        AbandonTask command = CreateCommand(processTask.Object, new RecordingCommand("Abort", log));
 
-        // Act
-        var result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(CreateInstance()));
 
-        // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        processTask.Verify(
-            x =>
-                x.Abandon(
-                    It.Is<ProcessTaskContext>(c =>
-                        c.InstanceDataMutator == context.InstanceDataMutator
-                        && c.CancellationToken.Equals(context.CancellationToken)
-                    )
-                ),
-            Times.Once
-        );
+        Assert.Equal(["Abort"], log);
     }
 
     [Fact]
-    public async Task Execute_WhenAbandonThrows_ReturnsFailedResult()
+    public async Task Execute_WhenDeclaringThrows_ReturnsRetryableFailure()
     {
-        // Arrange
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
-        processTask
-            .Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>()))
-            .ThrowsAsync(new InvalidOperationException("Abandon failed"));
-        var command = CreateCommand(processTask.Object);
-        var context = CreateContext(CreateInstance());
+        processTask.Setup(x => x.GetAbandonCommands("Task_1")).Throws(new InvalidOperationException("Abandon failed"));
+        AbandonTask command = CreateCommand(processTask.Object);
 
-        // Act
-        var result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(CreateInstance()));
 
-        // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal("Abandon failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
+    }
+
+    private sealed class RecordingCommand(string key, List<string> log) : IProcessTaskCommand
+    {
+        public string Key => key;
+
+        public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+        {
+            log.Add(key);
+            return Task.FromResult(ProcessTaskCommandResult.Completed());
+        }
     }
 }

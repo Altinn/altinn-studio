@@ -1,6 +1,7 @@
 # How we handle transactions for signing
 
 - Status: Accepted
+- Note (2026-09-03): the stored transaction state described here is now committed per step by the workflow engine, and the retry that skips completed steps is the engine's retry and resume of the `ResolveSignees`, `DelegateSigneeRights` and `NotifySignees` commands. Notification uses a Correspondence idempotency key, which makes that step effectively idempotent too. See `src/App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md`, section "Process task commands".
 - Deciders: Johannes Haukland, Bjørn Tore on behalf of Team Apps
 - Date: 02.10.2024
 

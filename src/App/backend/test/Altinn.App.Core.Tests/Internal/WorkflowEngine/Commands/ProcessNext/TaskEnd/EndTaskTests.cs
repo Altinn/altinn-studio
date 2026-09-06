@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
@@ -11,6 +12,10 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 
+/// <summary>
+/// The legacy task-end step: for a workflow enqueued before task commands existed, it runs the task's declared
+/// end commands inline, in order, in the one callback.
+/// </summary>
 public class EndTaskTests
 {
     private static ProcessEngineCommandContext CreateContext(Instance instance)
@@ -24,7 +29,7 @@ public class EndTaskTests
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
-            CancellationToken = new CancellationToken(canceled: true),
+            CancellationToken = CancellationToken.None,
             Payload = new AppCallbackPayload
             {
                 CommandKey = EndTask.Key,
@@ -50,61 +55,85 @@ public class EndTaskTests
         };
     }
 
-    private static EndTask CreateCommand(IProcessTask processTask)
+    private static EndTask CreateCommand(IProcessTask processTask, params IProcessTaskCommand[] commands)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
         services.AddSingleton(processTask);
-        var sp = services.BuildServiceProvider();
-        var resolver = new ProcessTaskResolver(sp.GetRequiredService<AppImplementationFactory>());
-        return new EndTask(resolver);
+        foreach (IProcessTaskCommand command in commands)
+        {
+            services.AddSingleton(command);
+        }
+
+        ServiceProvider sp = services.BuildServiceProvider();
+        AppImplementationFactory factory = sp.GetRequiredService<AppImplementationFactory>();
+        return new EndTask(new ProcessTaskResolver(factory), new ProcessTaskCommandExecutor(factory));
     }
 
     [Fact]
-    public async Task Execute_ResolvesProcessTaskAndCallsEnd_ReturnsSuccess()
+    public async Task Execute_RunsDeclaredEndCommandsInOrder_ReturnsSuccess()
     {
-        // Arrange
-        var processTask = new Mock<IProcessTask>();
-        processTask.Setup(x => x.Type).Returns("data");
-        processTask.Setup(x => x.End(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
-        var command = CreateCommand(processTask.Object);
-        var context = CreateContext(CreateInstance());
-
-        // Act
-        var result = await command.Execute(context);
-
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        processTask.Verify(
-            x =>
-                x.End(
-                    It.Is<ProcessTaskContext>(c =>
-                        c.InstanceDataMutator == context.InstanceDataMutator
-                        && c.CancellationToken.Equals(context.CancellationToken)
-                    )
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task Execute_WhenEndThrows_ReturnsFailedResult()
-    {
-        // Arrange
+        var log = new List<string>();
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
         processTask
-            .Setup(x => x.End(It.IsAny<ProcessTaskContext>()))
-            .ThrowsAsync(new InvalidOperationException("End failed"));
-        var command = CreateCommand(processTask.Object);
-        var context = CreateContext(CreateInstance());
+            .Setup(x => x.GetEndCommands("Task_1"))
+            .Returns([new ProcessTaskCommandRef("First"), new ProcessTaskCommandRef("Second")]);
+        EndTask command = CreateCommand(
+            processTask.Object,
+            new RecordingCommand("First", log),
+            new RecordingCommand("Second", log)
+        );
 
-        // Act
-        var result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(CreateInstance()));
 
-        // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Equal(["First", "Second"], log);
+    }
+
+    [Fact]
+    public async Task Execute_CommandFailsPermanently_ReturnsPermanentFailure()
+    {
+        var log = new List<string>();
+        var processTask = new Mock<IProcessTask>();
+        processTask.Setup(x => x.Type).Returns("data");
+        processTask.Setup(x => x.GetEndCommands("Task_1")).Returns([new ProcessTaskCommandRef("First")]);
+        EndTask command = CreateCommand(
+            processTask.Object,
+            new RecordingCommand("First", log, ProcessTaskCommandResult.FailedPermanent("not paid"))
+        );
+
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(CreateInstance()));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Contains("not paid", failed.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task Execute_WhenDeclaringThrows_ReturnsRetryableFailure()
+    {
+        var processTask = new Mock<IProcessTask>();
+        processTask.Setup(x => x.Type).Returns("data");
+        processTask.Setup(x => x.GetEndCommands("Task_1")).Throws(new InvalidOperationException("End failed"));
+        EndTask command = CreateCommand(processTask.Object);
+
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(CreateInstance()));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal("End failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
+    }
+
+    private sealed class RecordingCommand(string key, List<string> log, ProcessTaskCommandResult? result = null)
+        : IProcessTaskCommand
+    {
+        public string Key => key;
+
+        public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+        {
+            log.Add(key);
+            return Task.FromResult(result ?? ProcessTaskCommandResult.Completed());
+        }
     }
 }

@@ -148,6 +148,8 @@ public class SigningControllerTests
                     IsAccessDelegated = false,
                     HasBeenMessagedForCallToSign = false,
                     CallToSignFailedReason = "callToSignFailedReason",
+                    DelegationFailure = DelegationFailureCode.Rejected,
+                    NotificationFailure = NotificationFailureCode.ServiceOwnerUnavailable,
                 },
                 SignDocument = null,
             },
@@ -265,6 +267,8 @@ public class SigningControllerTests
                     NotificationStatus = NotificationStatus.Failed,
                     SignedTime = null,
                     PartyId = 1,
+                    DelegationFailure = SigneeDelegationFailure.Rejected,
+                    NotificationFailure = SigneeNotificationFailure.ServiceOwnerUnavailable,
                 },
                 new SigneeState
                 {
@@ -283,6 +287,7 @@ public class SigningControllerTests
                     NotificationStatus = NotificationStatus.Failed,
                     SignedTime = signedTime,
                     PartyId = 2,
+                    NotificationFailure = SigneeNotificationFailure.Unknown,
                 },
                 new SigneeState
                 {
@@ -366,6 +371,8 @@ public class SigningControllerTests
                     Organization = null,
                     DelegationSuccessful = false,
                     NotificationStatus = NotificationStatus.Failed,
+                    DelegationFailure = SigneeDelegationFailure.Unknown,
+                    NotificationFailure = SigneeNotificationFailure.Unknown,
                     SignedTime = null,
                     PartyId = 1,
                 },

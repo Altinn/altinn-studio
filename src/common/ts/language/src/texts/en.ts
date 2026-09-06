@@ -532,6 +532,8 @@ export function en() {
     'signing.delegation_error_panel_title': 'Could not grant access to form',
     'signing.delegation_error_panel_description':
       'One or more of the signees are invalid and have not been granted access to the form. Go back to try to correct the issue or contact the form owner.',
+    'signing.delegation_error_panel_description_rejected':
+      'The platform could not grant one or more signees access to sign. Try again later, or contact the form owner or support.',
     'signing.reject_modal_title': 'Cancel signing',
     'signing.reject_modal_description':
       'All signatures will be deleted. Everyone you have delegated to will lose access. This cannot be undone.',
@@ -555,6 +557,10 @@ export function en() {
     'signee_list.signee_status_waiting': 'Waiting for signing',
     'signee_list.signee_status_delegation_failed': 'Delegation failed',
     'signee_list.signee_status_notification_failed': 'Notification failed',
+    'signee_list.notification_failed_hint_configuration':
+      'The notification could not be sent because the app is not set up for sending messages in this environment. Contact the form owner.',
+    'signee_list.notification_failed_hint_rejected':
+      'The notification could not be sent. Contact the form owner or support.',
     'signee_list.header_name': 'Name',
     'signee_list.header_on_behalf_of': 'On behalf of',
     'signee_list.header_status': 'Status',

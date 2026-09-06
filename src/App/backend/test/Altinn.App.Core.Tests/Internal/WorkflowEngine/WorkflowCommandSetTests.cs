@@ -37,13 +37,7 @@ public class WorkflowCommandSetTests
         );
 
         Assert.Equal(
-            [
-                UnlockTaskData.Key,
-                CleanupGeneratedFromTask.Key,
-                OnTaskStartingHook.Key,
-                CommonTaskInitialization.Key,
-                StartTask.Key,
-            ],
+            [UnlockTaskData.Key, CleanupGeneratedFromTask.Key, OnTaskStartingHook.Key, CommonTaskInitialization.Key],
             Keys(commandSet.Commands)
         );
 
@@ -99,12 +93,9 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps();
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps([]);
 
-        Assert.Equal(
-            [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(commandSet.Commands)
-        );
+        Assert.Equal([CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
         Assert.Empty(commandSet.SideEffectCommands);
     }
@@ -112,9 +103,9 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskAbandonSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps();
+        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps([]);
 
-        Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
+        Assert.Equal([OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
         Assert.Empty(commandSet.SideEffectCommands);
     }

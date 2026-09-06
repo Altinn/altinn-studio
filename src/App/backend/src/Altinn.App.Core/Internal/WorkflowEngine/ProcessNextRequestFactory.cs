@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -98,6 +99,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
     private readonly ProcessStepOptionsResolver _stepOptionsResolver;
+    private readonly ProcessTaskResolver _processTaskResolver;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -106,7 +108,8 @@ internal sealed class ProcessNextRequestFactory
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        ProcessStepOptionsResolver stepOptionsResolver
+        ProcessStepOptionsResolver stepOptionsResolver,
+        ProcessTaskResolver processTaskResolver
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -116,6 +119,7 @@ internal sealed class ProcessNextRequestFactory
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
         _stepOptionsResolver = stepOptionsResolver;
+        _processTaskResolver = processTaskResolver;
     }
 
     /// <summary>
@@ -297,9 +301,16 @@ internal sealed class ProcessNextRequestFactory
 
             string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
 
+            // The task this event's commands run against (start hooks/service task/the task type's own
+            // commands read the entering task; end/abandon hooks and commands read the leaving task). This
+            // is the same id each hook feeds into ShouldRunForTask at execute time, and the id the task
+            // type declares its commands for, so resolving either here yields the same match.
+            string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
+
             WorkflowCommandSet? workflowCommands = await GetWorkflowStepsForInstanceEvent(
                 instanceEventType,
                 altinnTaskType,
+                eventTaskId,
                 isInitialTaskStart,
                 isInstantiation,
                 prefill,
@@ -307,10 +318,6 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
-                // The task this event's commands run against (start hooks/service task read the entering
-                // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
-                // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
-                string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
                 string? serviceTaskType = GetServiceTaskType(altinnTaskType);
 
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
@@ -361,6 +368,7 @@ internal sealed class ProcessNextRequestFactory
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
         InstanceEventType eventType,
         string? altinnTaskType,
+        string? eventTaskId,
         bool isInitialTaskStart,
         bool isInstantiation,
         Dictionary<string, string>? prefill,
@@ -378,6 +386,11 @@ internal sealed class ProcessNextRequestFactory
                     new TaskStartContext
                     {
                         ServiceTask = ResolveServiceTask(serviceTaskType),
+                        StartCommands = ResolveTaskCommands(
+                            altinnTaskType,
+                            eventTaskId,
+                            (task, taskId) => task.GetStartCommands(taskId)
+                        ),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -387,9 +400,13 @@ internal sealed class ProcessNextRequestFactory
                 );
             }
             case InstanceEventType.process_EndTask:
-                return WorkflowCommandSet.GetTaskEndSteps();
+                return WorkflowCommandSet.GetTaskEndSteps(
+                    ResolveTaskCommands(altinnTaskType, eventTaskId, (task, taskId) => task.GetEndCommands(taskId))
+                );
             case InstanceEventType.process_AbandonTask:
-                return WorkflowCommandSet.GetTaskAbandonSteps();
+                return WorkflowCommandSet.GetTaskAbandonSteps(
+                    ResolveTaskCommands(altinnTaskType, eventTaskId, (task, taskId) => task.GetAbandonCommands(taskId))
+                );
             case InstanceEventType.process_EndEvent:
             {
                 ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
@@ -415,6 +432,25 @@ internal sealed class ProcessNextRequestFactory
             return null;
 
         return _appImplementationFactory.FindServiceTask(altinnTaskType) is not null ? altinnTaskType : null;
+    }
+
+    /// <summary>
+    /// The commands the task type declares for one lifecycle phase of the given BPMN task. Read at enqueue time,
+    /// which fixes the step list for the workflow's lifetime; the executing step resolves the same
+    /// implementation through the same <see cref="ProcessTaskResolver"/>, so build-time and run-time agree.
+    /// A task type with no registered implementation fails here, at enqueue, rather than at its first step.
+    /// </summary>
+    private IReadOnlyList<ProcessTaskCommandRef> ResolveTaskCommands(
+        string? altinnTaskType,
+        string? taskId,
+        Func<IProcessTask, string, IReadOnlyList<ProcessTaskCommandRef>> declare
+    )
+    {
+        if (taskId is null)
+            return [];
+
+        IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
+        return declare(processTask, taskId);
     }
 
     /// <summary>

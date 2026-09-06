@@ -17,7 +17,9 @@ describe('SigneeStateTag', () => {
           organization: null,
           hasSigned: true,
           delegationSuccessful: true,
+          delegationFailure: undefined,
           notificationStatus: NotificationStatus.Sent,
+          notificationFailure: undefined,
           partyId: 123,
           signedTime: new Date().toISOString(),
         }}
@@ -35,7 +37,9 @@ describe('SigneeStateTag', () => {
           organization: null,
           hasSigned: false,
           delegationSuccessful: false,
+          delegationFailure: undefined,
           notificationStatus: NotificationStatus.NotSent,
+          notificationFailure: undefined,
           partyId: 123,
           signedTime: null,
         }}
@@ -53,7 +57,9 @@ describe('SigneeStateTag', () => {
           organization: null,
           hasSigned: false,
           delegationSuccessful: true,
+          delegationFailure: undefined,
           notificationStatus: NotificationStatus.Failed,
+          notificationFailure: undefined,
           partyId: 123,
           signedTime: null,
         }}
@@ -71,7 +77,9 @@ describe('SigneeStateTag', () => {
           organization: null,
           hasSigned: false,
           delegationSuccessful: true,
+          delegationFailure: undefined,
           notificationStatus: NotificationStatus.Sent,
+          notificationFailure: undefined,
           partyId: 123,
           signedTime: null,
         }}
@@ -80,4 +88,73 @@ describe('SigneeStateTag', () => {
 
     screen.getByText(SIGNEE_STATUS.waiting);
   });
+
+  it('should not display a hint when notification failed but no failure code is present', () => {
+    render(
+      <SigneeStateTag
+        state={{
+          name: null,
+          organization: null,
+          hasSigned: false,
+          delegationSuccessful: true,
+          delegationFailure: undefined,
+          notificationStatus: NotificationStatus.Failed,
+          notificationFailure: undefined,
+          partyId: 123,
+          signedTime: null,
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('signee_list.notification_failed_hint_configuration')).not.toBeInTheDocument();
+    expect(screen.queryByText('signee_list.notification_failed_hint_rejected')).not.toBeInTheDocument();
+  });
+
+  it.each(['Configuration', 'ServiceOwnerUnavailable'] as const)(
+    'should display the configuration hint when notificationFailure is %s',
+    (notificationFailure) => {
+      render(
+        <SigneeStateTag
+          state={{
+            name: null,
+            organization: null,
+            hasSigned: false,
+            delegationSuccessful: true,
+            delegationFailure: undefined,
+            notificationStatus: NotificationStatus.Failed,
+            notificationFailure,
+            partyId: 123,
+            signedTime: null,
+          }}
+        />,
+      );
+
+      screen.getByText('signee_list.notification_failed_hint_configuration');
+      expect(screen.queryByText('signee_list.notification_failed_hint_rejected')).not.toBeInTheDocument();
+    },
+  );
+
+  it.each(['Rejected', 'Unknown'] as const)(
+    'should display the rejected hint when notificationFailure is %s',
+    (notificationFailure) => {
+      render(
+        <SigneeStateTag
+          state={{
+            name: null,
+            organization: null,
+            hasSigned: false,
+            delegationSuccessful: true,
+            delegationFailure: undefined,
+            notificationStatus: NotificationStatus.Failed,
+            notificationFailure,
+            partyId: 123,
+            signedTime: null,
+          }}
+        />,
+      );
+
+      screen.getByText('signee_list.notification_failed_hint_rejected');
+      expect(screen.queryByText('signee_list.notification_failed_hint_configuration')).not.toBeInTheDocument();
+    },
+  );
 });

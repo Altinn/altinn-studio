@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -324,16 +325,14 @@ public sealed class ProcessEngineTest
         commandKeys
             .Should()
             .ContainInOrder(
-                // EndTask commands
-                "EndTask",
+                // Task end commands (the built-in data/confirmation tasks declare none)
                 "CommonTaskFinalization",
                 "OnTaskEndingHook",
                 "LockTaskData",
-                // StartTask commands
+                // Task start commands (the built-in data/confirmation tasks declare none)
                 "UnlockTaskData",
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
-                "StartTask",
                 "SaveProcessStateToStorage"
             );
 
@@ -524,14 +523,12 @@ public sealed class ProcessEngineTest
         commandKeys
             .Should()
             .ContainInOrder(
-                // AbandonTask commands
-                "AbandonTask",
+                // Abandon commands (the built-in data/confirmation tasks declare none)
                 "OnTaskAbandonHook",
-                // StartTask commands
+                // Task start commands (the built-in data/confirmation tasks declare none)
                 "UnlockTaskData",
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
-                "StartTask",
                 "SaveProcessStateToStorage"
             );
 
@@ -694,8 +691,7 @@ public sealed class ProcessEngineTest
         commandKeys
             .Should()
             .ContainInOrder(
-                // EndTask commands (see OLD CurrentTask)
-                "EndTask",
+                // Task end commands (see OLD CurrentTask; the built-in data/confirmation tasks declare none)
                 "CommonTaskFinalization",
                 "OnTaskEndingHook",
                 "LockTaskData",
@@ -796,7 +792,12 @@ public sealed class ProcessEngineTest
             .Setup(u => u.HandleAction(It.IsAny<UserActionContext>()))
             .ReturnsAsync(UserActionResult.SuccessResult());
 
-        await using var fixture = Fixture.Create(userActions: [userActionMock.Object]);
+        // The instance below leaves a task of AltinnTaskType "signing", so the transition's end commands are
+        // resolved against a "signing" IProcessTask - register a minimal one for it.
+        var services = new ServiceCollection();
+        services.AddSingleton<IProcessTask, FakeSigningProcessTask>();
+
+        await using var fixture = Fixture.Create(services, userActions: [userActionMock.Object]);
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.GetApplicationMetadata())
@@ -1068,6 +1069,16 @@ public sealed class ProcessEngineTest
 
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
+    /// <summary>
+    /// A minimal "signing" task type that declares no commands, used by the one test that drives a
+    /// transition off a task whose AltinnTaskType is "signing" without needing the real signing feature's
+    /// dependencies.
+    /// </summary>
+    private sealed class FakeSigningProcessTask : IProcessTask
+    {
+        public string Type => "signing";
     }
 
     [Fact]
@@ -3361,6 +3372,13 @@ public sealed class ProcessEngineTest
             services.TryAddSingleton<IWorkflowCallbackSecretProvider>(_ => secretProviderMock.Object);
 
             services.TryAddTransient<ProcessNextRequestFactory>();
+            services.TryAddTransient<ProcessTaskResolver>();
+            // The built-in task types the fixture's ProcessNavigator hands out ("data"/"confirmation" per
+            // task, see the GetNextTask setups above). ProcessTaskResolver.GetProcessTaskInstance throws when
+            // no IProcessTask is registered for a task's AltinnTaskType, so every type an individual test
+            // drives a transition through must be registered here or by that test itself.
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IProcessTask, DataProcessTask>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IProcessTask, ConfirmationProcessTask>());
             services.TryAddSingleton<ProcessStepOptionsResolver>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();

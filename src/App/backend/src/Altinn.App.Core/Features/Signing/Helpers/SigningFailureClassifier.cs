@@ -1,0 +1,201 @@
+using System.Net;
+using System.Net.Sockets;
+using Altinn.App.Core.Exceptions;
+using Altinn.App.Core.Features.Correspondence.Exceptions;
+using Altinn.App.Core.Features.Signing.Exceptions;
+using Altinn.App.Core.Features.Signing.Models;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.AccessManagement.Exceptions;
+using Altinn.App.Core.Internal.App;
+
+namespace Altinn.App.Core.Features.Signing.Helpers;
+
+/// <summary>
+/// How a failure during signee initialisation should be treated.
+/// </summary>
+internal enum SigningFailureKind
+{
+    /// <summary>May heal: throw so the engine retries the step.</summary>
+    Transient,
+
+    /// <summary>Cannot heal for this signee; record it on the signee and continue with the others.</summary>
+    PermanentPerSignee,
+
+    /// <summary>Cannot heal for any signee: configuration, or a dependency every signee needs.</summary>
+    PermanentAppWide,
+}
+
+/// <summary>
+/// A classified failure: what to do about it, and a short diagnostic safe to persist and to show the engine.
+/// </summary>
+internal sealed record SigningFailureClassification(SigningFailureKind Kind, HttpStatusCode? Status, string Reason)
+{
+    public bool IsTransient => Kind == SigningFailureKind.Transient;
+}
+
+/// <summary>
+/// Decides, for the exceptions the signing clients throw, whether a failure is worth retrying and what to record
+/// when it is not. One definition, so the code persisted on a signee and the reason text are assigned together.
+/// </summary>
+/// <remarks>
+/// A received status decides on its own: 408, 429 and 5xx are transient, every other 4xx is permanent. A missing
+/// status is transient only when a transport failure caused it. The Correspondence client also throws with no
+/// status after a response was received (a 200 with an empty body, an attachment that never published), so a
+/// missing status must never be read as "no response" by itself.
+/// </remarks>
+internal static class SigningFailureClassifier
+{
+    /// <summary>
+    /// Correspondence answers a reused idempotency key with 409 Conflict: the message exists, and the send that
+    /// produced this exception can be recorded as done.
+    /// </summary>
+    public static bool IsAlreadySent(Exception exception) =>
+        exception is CorrespondenceRequestException { HttpStatusCode: HttpStatusCode.Conflict };
+
+    /// <summary>
+    /// Classifies a failure to delegate rights to one signee. Never app-wide: the app-wide cases (an instance
+    /// owner that cannot be resolved) are decided before delegation starts.
+    /// </summary>
+    public static SigningFailureClassification ClassifyDelegation(Exception exception, CancellationToken ct) =>
+        Classify(exception, ct);
+
+    /// <summary>
+    /// The code to record for a permanent delegation failure classified by <see cref="ClassifyDelegation"/>.
+    /// </summary>
+    public static DelegationFailureCode DelegationCode(SigningFailureClassification classification) =>
+        classification.Status is not null ? DelegationFailureCode.Rejected : DelegationFailureCode.Unknown;
+
+    /// <summary>
+    /// Classifies a failure to send the call to action to one signee. A missing correspondence resource and other
+    /// configuration errors are app-wide: no signee can be notified until the app is fixed.
+    /// </summary>
+    public static SigningFailureClassification ClassifyNotification(Exception exception, CancellationToken ct)
+    {
+        if (exception is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
+        {
+            return new SigningFailureClassification(SigningFailureKind.PermanentAppWide, null, ShortReason(exception));
+        }
+
+        return Classify(exception, ct);
+    }
+
+    /// <summary>
+    /// The code to record for a permanent notification failure classified by <see cref="ClassifyNotification"/>.
+    /// </summary>
+    public static NotificationFailureCode NotificationCode(
+        Exception exception,
+        SigningFailureClassification classification
+    )
+    {
+        if (exception is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
+        {
+            return NotificationFailureCode.Configuration;
+        }
+
+        return classification.Status is not null ? NotificationFailureCode.Rejected : NotificationFailureCode.Unknown;
+    }
+
+    /// <summary>
+    /// Classifies a failure to look up a party (the instance owner, the service owner) in Register or the CDN.
+    /// Transient failures are retried; anything else is app-wide, since every signee needs the party.
+    /// </summary>
+    public static SigningFailureClassification ClassifyPartyLookup(Exception exception, CancellationToken ct)
+    {
+        SigningFailureClassification classification = Classify(exception, ct);
+        return classification.IsTransient
+            ? classification
+            : classification with
+            {
+                Kind = SigningFailureKind.PermanentAppWide,
+            };
+    }
+
+    /// <summary>
+    /// A short diagnostic for logs, the signee state and the engine's step record: the exception type, the HTTP
+    /// status and the problem title when there is one. Never a response body or a validation detail, which can
+    /// echo the recipient's identifier.
+    /// </summary>
+    public static string ShortReason(Exception exception)
+    {
+        HttpStatusCode? status = StatusOf(exception);
+        string? title = exception switch
+        {
+            CorrespondenceRequestException correspondence => correspondence.ProblemDetails?.Title,
+            AccessManagementRequestException accessManagement => accessManagement.ProblemDetails?.Title,
+            _ => null,
+        };
+
+        string reason = exception.GetType().Name;
+        if (status is { } statusCode)
+        {
+            reason += $" ({(int)statusCode} {statusCode})";
+        }
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            reason += $": {title}";
+        }
+        else if (exception is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
+        {
+            reason += $": {exception.Message}";
+        }
+
+        return reason;
+    }
+
+    private static SigningFailureClassification Classify(Exception exception, CancellationToken ct)
+    {
+        HttpStatusCode? status = StatusOf(exception);
+        string reason = ShortReason(exception);
+
+        if (status is { } statusCode)
+        {
+            return new SigningFailureClassification(
+                IsTransientStatus(statusCode) ? SigningFailureKind.Transient : SigningFailureKind.PermanentPerSignee,
+                statusCode,
+                reason
+            );
+        }
+
+        return new SigningFailureClassification(
+            HasTransportCause(exception, ct) ? SigningFailureKind.Transient : SigningFailureKind.PermanentPerSignee,
+            null,
+            reason
+        );
+    }
+
+    private static HttpStatusCode? StatusOf(Exception exception) =>
+        exception switch
+        {
+            AccessManagementRequestException accessManagement => accessManagement.StatusCode,
+            CorrespondenceRequestException correspondence => correspondence.HttpStatusCode,
+            PlatformHttpException platform => platform.Response.StatusCode,
+            HttpRequestException http => http.StatusCode,
+            _ => null,
+        };
+
+    private static bool IsTransientStatus(HttpStatusCode status) =>
+        status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests || (int)status >= 500;
+
+    /// <summary>
+    /// Whether the exception, or anything in its inner chain, is a transport failure: the request never got an
+    /// answer. A cancellation that is the command's own is not one, and is rethrown by the caller before this is
+    /// consulted.
+    /// </summary>
+    private static bool HasTransportCause(Exception exception, CancellationToken ct)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            switch (current)
+            {
+                case HttpRequestException { StatusCode: null }:
+                case TimeoutException:
+                case SocketException:
+                case OperationCanceledException when !ct.IsCancellationRequested:
+                    return true;
+            }
+        }
+
+        return false;
+    }
+}

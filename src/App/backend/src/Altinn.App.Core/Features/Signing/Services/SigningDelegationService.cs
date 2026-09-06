@@ -1,8 +1,10 @@
 using Altinn.App.Core.Features.AccessManagement;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Internal.AccessManagement.Models.Shared;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Register.Models;
 using Microsoft.Extensions.Logging;
 using static Altinn.App.Core.Features.Telemetry.DelegationConst;
 
@@ -14,79 +16,105 @@ internal sealed class SigningDelegationService(
     Telemetry? telemetry = null
 ) : ISigningDelegationService
 {
-    public async Task<(List<SigneeContext>, bool success)> DelegateSigneeRights(
+    /// <inheritdoc />
+    public async Task DelegateRights(
         string taskId,
         string instanceIdCombo,
-        Guid? instanceOwnerPartyUuid,
+        Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
+        Guid workflowId,
         CancellationToken ct
     )
     {
         using var activity = telemetry?.StartDelegateSigneeRightsActivity(taskId);
-        if (instanceOwnerPartyUuid is null)
-        {
-            signeeContexts.ForEach(signeeContext =>
-            {
-                signeeContext.SigneeState.DelegationFailedReason =
-                    "Failed to delegate signee rights: Instance owner party UUID is null and cannot be used for delegating access.";
-                signeeContext.SigneeState.IsAccessDelegated = false;
-            });
-
-            return (signeeContexts, false);
-        }
-
         Guid instanceGuid = ParseInstanceGuid(instanceIdCombo);
-
         var appResourceId = AppResourceId.FromAppIdentifier(appIdentifier);
-        bool success = true;
 
         foreach (SigneeContext signeeContext in signeeContexts)
         {
             SigneeContextState state = signeeContext.SigneeState;
+            if (state.IsAccessDelegated)
+            {
+                continue;
+            }
+
+            Party party = signeeContext.Signee.GetParty();
+            Guid? partyUuid = party.PartyUuid;
+            if (partyUuid is null)
+            {
+                RecordPermanentFailure(
+                    state,
+                    DelegationFailureCode.InvalidParty,
+                    "The signee's party has no party uuid, so rights cannot be delegated to it.",
+                    partyUuid,
+                    instanceIdCombo,
+                    taskId,
+                    workflowId,
+                    null
+                );
+                continue;
+            }
+
+            // Every grant is logged with what an out-of-band revoke needs, since a transition written off after a
+            // failure leaves no other record of the rights it granted.
+            logger.LogInformation(
+                "Delegating signee rights to {PartyUuid} from {InstanceOwnerPartyUuid} for {AppResourceIdValue} on instance {InstanceId}, task {TaskId} (workflow {WorkflowId})",
+                partyUuid,
+                instanceOwnerPartyUuid,
+                appResourceId.Value,
+                instanceIdCombo,
+                taskId,
+                workflowId
+            );
+
+            DelegationRequest delegationRequest = new()
+            {
+                ResourceId = appResourceId.Value,
+                InstanceId = instanceGuid.ToString(),
+                From = new DelegationParty { Value = instanceOwnerPartyUuid.ToString() },
+                To = new DelegationParty { Value = partyUuid.Value.ToString() },
+                Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
+            };
 
             try
             {
-                if (state.IsAccessDelegated is false)
-                {
-                    Guid? partyUuid = signeeContext.Signee.GetParty().PartyUuid;
-                    logger.LogInformation(
-                        "Delegating signee rights to {PartyUuid} from {InstanceOwnerPartyUuid} for {AppResourceIdValue}",
-                        partyUuid,
-                        instanceOwnerPartyUuid,
-                        appResourceId.Value
-                    );
-
-                    DelegationRequest delegationRequest = new()
-                    {
-                        ResourceId = appResourceId.Value,
-                        InstanceId = instanceGuid.ToString(),
-                        From = new DelegationParty { Value = instanceOwnerPartyUuid.Value.ToString() },
-                        To = new DelegationParty
-                        {
-                            Value =
-                                partyUuid.ToString()
-                                ?? throw new InvalidOperationException("Delegatee: PartyUuid is null"),
-                        },
-                        Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
-                    };
-                    await accessManagementClient.DelegateRights(delegationRequest, ct);
-                    state.IsAccessDelegated = true;
-                    telemetry?.RecordDelegation(DelegationResult.Success);
-                }
+                await accessManagementClient.DelegateRights(delegationRequest, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to delegate signee rights");
-                state.DelegationFailedReason = "Failed to delegate signee rights: " + ex.Message;
-                telemetry?.RecordDelegation(DelegationResult.Error);
-                success = false;
-            }
-        }
+                SigningFailureClassification classification = SigningFailureClassifier.ClassifyDelegation(ex, ct);
+                if (classification.IsTransient)
+                {
+                    telemetry?.RecordDelegation(DelegationResult.Error);
+                    throw;
+                }
 
-        return (signeeContexts, success);
+                RecordPermanentFailure(
+                    state,
+                    SigningFailureClassifier.DelegationCode(classification),
+                    classification.Reason,
+                    partyUuid,
+                    instanceIdCombo,
+                    taskId,
+                    workflowId,
+                    ex
+                );
+                continue;
+            }
+
+            state.IsAccessDelegated = true;
+            state.DelegationFailure = null;
+            state.DelegationFailedReason = null;
+            telemetry?.RecordDelegation(DelegationResult.Success);
+        }
     }
 
+    /// <inheritdoc />
     public async Task<(List<SigneeContext>, bool success)> RevokeSigneeRights(
         string taskId,
         string instanceIdCombo,
@@ -107,10 +135,12 @@ internal sealed class SigningDelegationService(
             {
                 Guid? partyUuid = signeeContext.Signee.GetParty().PartyUuid;
                 logger.LogInformation(
-                    "Revoking signee rights from {PartyUuid} to {AppResourceId} by {InstanceOwnerPartyUuid}",
+                    "Revoking signee rights from {PartyUuid} to {AppResourceId} by {InstanceOwnerPartyUuid} on instance {InstanceId}, task {TaskId}",
                     partyUuid,
                     appResourceId.Value,
-                    instanceOwnerPartyUuid
+                    instanceOwnerPartyUuid,
+                    instanceIdCombo,
+                    taskId
                 );
                 try
                 {
@@ -141,6 +171,34 @@ internal sealed class SigningDelegationService(
             }
         }
         return (signeeContexts, success);
+    }
+
+    private void RecordPermanentFailure(
+        SigneeContextState state,
+        DelegationFailureCode code,
+        string reason,
+        Guid? partyUuid,
+        string instanceIdCombo,
+        string taskId,
+        Guid workflowId,
+        Exception? exception
+    )
+    {
+        // A permanent per-signee failure never fails the step, so it never appears as an engine error: the log is
+        // where ops sees it.
+        logger.LogError(
+            exception,
+            "Delegation failed permanently for signee {PartyUuid} on instance {InstanceId}, task {TaskId} (workflow {WorkflowId}): {Reason}",
+            partyUuid,
+            instanceIdCombo,
+            taskId,
+            workflowId,
+            reason
+        );
+        state.IsAccessDelegated = false;
+        state.DelegationFailure = code;
+        state.DelegationFailedReason = reason;
+        telemetry?.RecordDelegation(DelegationResult.Error);
     }
 
     private static Guid ParseInstanceGuid(string instanceIdCombo)

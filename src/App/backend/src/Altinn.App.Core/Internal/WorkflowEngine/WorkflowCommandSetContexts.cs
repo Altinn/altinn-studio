@@ -23,6 +23,13 @@ internal sealed record TaskStartContext
     public required ResolvedServiceTask? ServiceTask { get; init; }
 
     /// <summary>
+    /// The commands the entering task's type declares for its start phase, in order — read at enqueue time from
+    /// the task implementation, which fixes the step list for the workflow's lifetime. Each becomes one
+    /// <c>ExecuteProcessTaskCommand</c> step. Empty when the task declares nothing.
+    /// </summary>
+    public IReadOnlyList<ProcessTaskCommandRef> StartCommands { get; init; } = [];
+
+    /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
     /// </summary>
     public required bool IsInitialTaskStart { get; init; }

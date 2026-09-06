@@ -53,7 +53,8 @@
             <altinn:signeeStatesDataTypeId>signeeStates-founders</altinn:signeeStatesDataTypeId>
             <altinn:signeeProviderId>founders</altinn:signeeProviderId>
             <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
-            <altinn:correspondenceResource>apps-correspondence-integrasjon4</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="staging">apps-correspondence-integrasjon4</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="prod">apps-correspondence-integrasjon4</altinn:correspondenceResource>
             <altinn:runDefaultValidator>true</altinn:runDefaultValidator>
           </altinn:signatureConfig>
         </altinn:taskExtension>
@@ -89,7 +90,8 @@
             <altinn:signatureDataType>signeeStates-auditor</altinn:signatureDataType>
             <altinn:signeeProviderId>auditor</altinn:signeeProviderId>
             <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
-            <altinn:correspondenceResource>apps-correspondence-integrasjon2</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="staging">apps-correspondence-integrasjon2</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="prod">apps-correspondence-integrasjon2</altinn:correspondenceResource>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>

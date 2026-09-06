@@ -11258,6 +11258,25 @@
         },
         "additionalProperties": false
       },
+      "SigneeDelegationFailure": {
+        "enum": [
+          "InvalidParty",
+          "Rejected",
+          "Unknown"
+        ],
+        "type": "string",
+        "description": "Why delegating signing rights to a signee failed for good."
+      },
+      "SigneeNotificationFailure": {
+        "enum": [
+          "Configuration",
+          "ServiceOwnerUnavailable",
+          "Rejected",
+          "Unknown"
+        ],
+        "type": "string",
+        "description": "Why notifying a signee failed for good."
+      },
       "SigneeState": {
         "required": [
           "partyId"
@@ -11291,6 +11310,12 @@
             "description": "The time the signee signed.",
             "format": "date-time",
             "nullable": true
+          },
+          "delegationFailure": {
+            "$ref": "#/components/schemas/SigneeDelegationFailure"
+          },
+          "notificationFailure": {
+            "$ref": "#/components/schemas/SigneeNotificationFailure"
           }
         },
         "additionalProperties": false,

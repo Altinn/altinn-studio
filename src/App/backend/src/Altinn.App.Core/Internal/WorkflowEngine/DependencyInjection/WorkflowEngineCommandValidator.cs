@@ -39,12 +39,16 @@ internal static class WorkflowEngineCommandValidator
     {
         var keys = new HashSet<string>();
 
-        // Collect keys from all event types with all features enabled to cover all possible commands
+        // Collect keys from all event types with all features enabled to cover all possible commands. A task
+        // type's own commands all run through ExecuteProcessTaskCommand, so one dummy declaration per phase
+        // is what makes that key required.
+        ProcessTaskCommandRef[] dummyTaskCommands = [new ProcessTaskCommandRef("DummyTaskCommand")];
         CollectCommandKeys(
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     ServiceTask = null,
+                    StartCommands = dummyTaskCommands,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -100,8 +104,8 @@ internal static class WorkflowEngineCommandValidator
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps(), keys);
-        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps(dummyTaskCommands), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(dummyTaskCommands), keys);
         CollectCommandKeys(
             WorkflowCommandSet.GetProcessEndSteps(
                 new ProcessEndContext

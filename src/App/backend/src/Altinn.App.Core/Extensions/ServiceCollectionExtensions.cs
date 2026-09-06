@@ -304,6 +304,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<IPaymentService, PaymentService>();
         services.AddTransient<IProcessTask, PaymentProcessTask>();
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Payment.CleanupPaymentCommand>();
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Payment.CompletePaymentCommand>();
         services.AddTransient<IUserAction, PaymentUserAction>();
 
         // Fake Payment Processor used for automatic frontend tests
@@ -332,6 +334,19 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ISigneeContextsManager, SigneeContextsManager>();
         services.AddTransient<ISignDocumentManager, SignDocumentManager>();
         services.AddTransient<ISigningService, SigningService>();
+
+        services.AddTransient<ISigneeInitializationService, SigneeInitializationService>();
+
+        // The signing task's own lifecycle work, one durable step each
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.ResolveSigneesCommand>();
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.DelegateSigneeRightsCommand>();
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.NotifySigneesCommand>();
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.GenerateSigningPdfCommand>();
+        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.RevokeSigneeRightsCommand>();
+        services.AddTransient<
+            IProcessTaskCommand,
+            Internal.Process.ProcessTasks.Signing.AbortRuntimeDelegatedSigningCommand
+        >();
     }
 
     private static void AddAppOptions(IServiceCollection services)
@@ -386,6 +401,10 @@ public static class ServiceCollectionExtensions
         // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
         // eFormidling task but never called it is told at startup instead of mid-process.
         services.AddHostedService<EFormidlingConfigValidationService>();
+
+        // Every BPMN task has an implementation for its type, that implementation accepts the task's
+        // configuration, and every command it declares is registered: checked at startup, not mid-process.
+        services.AddHostedService<Internal.Process.ProcessTaskConfigurationValidationService>();
     }
 
     private static void AddActionServices(IServiceCollection services)

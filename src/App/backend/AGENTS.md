@@ -89,7 +89,7 @@ The solution follows a **layered architecture** with feature-based organization:
 
 - **Authentication** - OAuth2, JWT, Maskinporten integration
 - **Data** - Form data processing and validation
-- **Signing** - Digital signature workflows
+- **Signing** - Digital signature workflows. Signee initialisation for user-controlled signing runs as three workflow-engine steps declared by `SigningProcessTask`; see the process engine doc below for how they retry, resume and report failures.
 - **Payment** - Payment gateway integrations (Nets, etc.)
 - **Correspondence** - External communications
 - **Validation** - Data validation pipelines

@@ -48,11 +48,16 @@ internal sealed class ProcessStepOptionsResolver
     /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
     /// step, including the mailbox mint, which must not inherit the declaring stage's options.
     /// </param>
+    /// <param name="taskCommandKey">
+    /// For a process-task command step: the key of the <see cref="IProcessTaskCommand"/> the step runs. Tier 3 is
+    /// then that command's own options. Null on every other step.
+    /// </param>
     public ProcessStepOptions? Resolve(
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex = null
+        int? serviceTaskItemIndex = null,
+        string? taskCommandKey = null
     )
     {
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
@@ -60,7 +65,8 @@ internal sealed class ProcessStepOptionsResolver
             commandKey,
             taskId,
             serviceTaskType,
-            serviceTaskItemIndex
+            serviceTaskItemIndex,
+            taskCommandKey
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
@@ -97,9 +103,20 @@ internal sealed class ProcessStepOptionsResolver
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex
+        int? serviceTaskItemIndex,
+        string? taskCommandKey
     )
     {
+        if (commandKey == ExecuteProcessTaskCommand.Key && taskCommandKey is not null)
+        {
+            // By key, as ProcessTaskCommandExecutor selects at execute time. FirstOrDefault is enough here: the
+            // startup validation refuses an app with two commands under one key, so this never sees a duplicate.
+            return _appImplementationFactory
+                .GetAll<IProcessTaskCommand>()
+                .FirstOrDefault(command => string.Equals(command.Key, taskCommandKey, StringComparison.Ordinal))
+                ?.StepOptions;
+        }
+
         if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
             IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);

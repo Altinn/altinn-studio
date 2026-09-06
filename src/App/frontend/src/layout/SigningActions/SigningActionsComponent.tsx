@@ -76,13 +76,25 @@ function SigningActionsPanels({ baseComponentId }: PropsFromGenericComponent<'Si
     );
   }
 
-  const hasDelegationError = signeeList?.some((signee) => !signee.delegationSuccessful && !signee.hasSigned);
-  if (hasDelegationError) {
+  const failedDelegationSignees = signeeList?.filter((signee) => !signee.delegationSuccessful && !signee.hasSigned);
+  if (failedDelegationSignees && failedDelegationSignees.length > 0) {
+    const isRejected = failedDelegationSignees.some(
+      (signee) => signee.delegationFailure === 'Rejected' || signee.delegationFailure === 'Unknown',
+    );
+
     return (
       <SigningPanel
         baseComponentId={baseComponentId}
         heading={<Lang id='signing.delegation_error_panel_title' />}
-        description={<Lang id='signing.delegation_error_panel_description' />}
+        description={
+          <Lang
+            id={
+              isRejected
+                ? 'signing.delegation_error_panel_description_rejected'
+                : 'signing.delegation_error_panel_description'
+            }
+          />
+        }
         variant='error'
       />
     );

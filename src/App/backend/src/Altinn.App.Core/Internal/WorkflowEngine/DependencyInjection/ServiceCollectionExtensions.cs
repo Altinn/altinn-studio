@@ -20,6 +20,7 @@ internal static class ServiceCollectionExtensions
     {
         // Process engine callback helpers
         services.AddTransient<ProcessTaskResolver>();
+        services.AddTransient<ProcessTaskCommandExecutor>();
         services.AddTransient<ProcessNextRequestFactory>();
         services.AddSingleton<ProcessStepOptionsResolver>();
         services.AddTransient<WorkflowStateSigner>();
@@ -47,22 +48,28 @@ internal static class ServiceCollectionExtensions
             ServiceDescriptor.Singleton<IValidateOptions<AppCodesSettings>, WorkflowCallbackAppCodesValidator>()
         );
 
+        // Process engine callback handlers - the task type's own commands, one step per declared command
+        services.AddTransient<IWorkflowEngineCommand, ExecuteProcessTaskCommand>();
+
         // Process engine callback handlers - TaskStart
         services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
-        services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
         services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
 
         // Process engine callback handlers - TaskAbandon
-        services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
 
         // Process engine callback handlers - TaskEnd
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
-        services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
+
+        // Legacy lifecycle hook steps: never emitted for new workflows, kept registered for one release so a
+        // workflow enqueued by the previous version can still run its task's commands inline.
+        services.AddTransient<IWorkflowEngineCommand, StartTask>();
+        services.AddTransient<IWorkflowEngineCommand, EndTask>();
+        services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
 
         // Process engine callback handlers - ServiceTask
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();

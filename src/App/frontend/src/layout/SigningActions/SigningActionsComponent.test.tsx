@@ -50,8 +50,25 @@ const failedDelegationSignee: SigneeState = {
   signedTime: null,
   hasSigned: false,
   delegationSuccessful: false,
+  delegationFailure: undefined,
   notificationStatus: NotificationStatus.NotSent,
+  notificationFailure: undefined,
   partyId: 123,
+};
+
+const failedDelegationSigneeInvalidParty: SigneeState = {
+  ...failedDelegationSignee,
+  delegationFailure: 'InvalidParty',
+};
+
+const failedDelegationSigneeRejected: SigneeState = {
+  ...failedDelegationSignee,
+  delegationFailure: 'Rejected',
+};
+
+const failedDelegationSigneeUnknown: SigneeState = {
+  ...failedDelegationSignee,
+  delegationFailure: 'Unknown',
 };
 
 const failedNotificationSignee: SigneeState = {
@@ -60,7 +77,9 @@ const failedNotificationSignee: SigneeState = {
   signedTime: null,
   hasSigned: false,
   delegationSuccessful: true,
+  delegationFailure: undefined,
   notificationStatus: NotificationStatus.Failed,
+  notificationFailure: undefined,
   partyId: 123,
 };
 
@@ -187,6 +206,78 @@ describe('SigningActionsComponent', () => {
 
     expect(screen.getByText('signing.delegation_error_panel_title')).toBeInTheDocument();
     expect(screen.getByText('signing.delegation_error_panel_description')).toBeInTheDocument();
+  });
+
+  it('should render the default delegation error description when delegationFailure is missing', () => {
+    mockedUseSigneeList.mockReturnValue({
+      data: [failedDelegationSignee],
+      isLoading: false,
+      error: undefined,
+    } as unknown as ReturnType<typeof useSigneeList>);
+
+    render(
+      <SigningActionsComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef()}
+      />,
+    );
+
+    expect(screen.getByText('signing.delegation_error_panel_description')).toBeInTheDocument();
+    expect(screen.queryByText('signing.delegation_error_panel_description_rejected')).not.toBeInTheDocument();
+  });
+
+  it('should render the default delegation error description when every failed signee has delegationFailure "InvalidParty"', () => {
+    mockedUseSigneeList.mockReturnValue({
+      data: [failedDelegationSigneeInvalidParty],
+      isLoading: false,
+      error: undefined,
+    } as unknown as ReturnType<typeof useSigneeList>);
+
+    render(
+      <SigningActionsComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef()}
+      />,
+    );
+
+    expect(screen.getByText('signing.delegation_error_panel_description')).toBeInTheDocument();
+    expect(screen.queryByText('signing.delegation_error_panel_description_rejected')).not.toBeInTheDocument();
+  });
+
+  it('should render the rejected delegation error description when a failed signee has delegationFailure "Rejected"', () => {
+    mockedUseSigneeList.mockReturnValue({
+      data: [failedDelegationSigneeInvalidParty, failedDelegationSigneeRejected],
+      isLoading: false,
+      error: undefined,
+    } as unknown as ReturnType<typeof useSigneeList>);
+
+    render(
+      <SigningActionsComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef()}
+      />,
+    );
+
+    expect(screen.getByText('signing.delegation_error_panel_description_rejected')).toBeInTheDocument();
+    expect(screen.queryByText('signing.delegation_error_panel_description')).not.toBeInTheDocument();
+  });
+
+  it('should render the rejected delegation error description when a failed signee has delegationFailure "Unknown"', () => {
+    mockedUseSigneeList.mockReturnValue({
+      data: [failedDelegationSigneeUnknown],
+      isLoading: false,
+      error: undefined,
+    } as unknown as ReturnType<typeof useSigneeList>);
+
+    render(
+      <SigningActionsComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef()}
+      />,
+    );
+
+    expect(screen.getByText('signing.delegation_error_panel_description_rejected')).toBeInTheDocument();
+    expect(screen.queryByText('signing.delegation_error_panel_description')).not.toBeInTheDocument();
   });
 
   it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are missing signatures', () => {

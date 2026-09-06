@@ -5,6 +5,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -58,6 +59,10 @@ public class ProcessNextRequestFactoryTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        // The default task type every test transition uses unless it names a service task. Registered
+        // first so a test's own configureServices can add another IProcessTask for "data" and win
+        // (ProcessTaskResolver picks the LAST match), e.g. to exercise a task's own declared commands.
+        services.AddSingleton<IProcessTask, DataProcessTask>();
         foreach (IPipelineServiceTask st in serviceTasks)
         {
             services.AddSingleton(st);
@@ -65,6 +70,7 @@ public class ProcessNextRequestFactoryTests
         configureServices?.Invoke(services);
         var sp = services.BuildServiceProvider();
         var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
+        var processTaskResolver = new ProcessTaskResolver(appImplFactory);
 
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
@@ -111,7 +117,8 @@ public class ProcessNextRequestFactoryTests
             appSettings,
             appMetadataMock.Object,
             callbackTokenGeneratorMock.Object,
-            stepOptionsResolver
+            stepOptionsResolver,
+            processTaskResolver
         );
     }
 
@@ -348,19 +355,17 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            // Task end commands
-            EndTask.Key,
+            // Task end commands (the built-in data task declares none)
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
             // MutateProcessState (between end and start)
             MutateProcessState.Key,
-            // Task start commands
+            // Task start commands (the built-in data task declares none)
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             // SaveProcessStateToStorage (commit boundary)
             SaveProcessStateToStorage.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -387,8 +392,7 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            // Task end commands
-            EndTask.Key,
+            // Task end commands (the built-in data task declares none)
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
@@ -436,12 +440,11 @@ public class ProcessNextRequestFactoryTests
 
         var expected = new List<string>
         {
-            // Task start commands only
+            // Task start commands only (the built-in data task declares none)
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             // SaveProcessStateToStorage
             SaveProcessStateToStorage.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -484,17 +487,15 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            // Abandon commands
-            AbandonTask.Key,
+            // Abandon commands (the built-in data task declares none)
             OnTaskAbandonHook.Key,
             // MutateProcessState
             MutateProcessState.Key,
-            // Task start commands
+            // Task start commands (the built-in data task declares none)
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             // SaveProcessStateToStorage
             SaveProcessStateToStorage.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -545,6 +546,44 @@ public class ProcessNextRequestFactoryTests
 
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
+    /// <summary>
+    /// A fake task type that declares whatever start/end/abandon commands a test hands it. Registered as an
+    /// <see cref="IProcessTask"/> for "data" (the type every transition helper in this file uses by default),
+    /// it wins over the built-in <see cref="DataProcessTask"/> that <see cref="CreateFactory"/> registers first
+    /// (<see cref="ProcessTaskResolver"/> picks the LAST match for a type).
+    /// </summary>
+    private sealed class FakeProcessTask(
+        string type,
+        IReadOnlyList<ProcessTaskCommandRef>? startCommands = null,
+        IReadOnlyList<ProcessTaskCommandRef>? endCommands = null,
+        IReadOnlyList<ProcessTaskCommandRef>? abandonCommands = null
+    ) : IProcessTask
+    {
+        public string Type => type;
+
+        public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) => startCommands ?? [];
+
+        public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) => endCommands ?? [];
+
+        public IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) => abandonCommands ?? [];
+    }
+
+    /// <summary>
+    /// A fake <see cref="IProcessTaskCommand"/> with a configurable key and step options, for exercising the
+    /// tier-3 resolution of an <see cref="ExecuteProcessTaskCommand"/> step. Never actually registered against
+    /// <see cref="ProcessTaskCommandExecutor"/> in these tests — the factory only needs it discoverable via
+    /// <see cref="AppImplementationFactory.GetAll{T}"/> for <see cref="ProcessStepOptionsResolver"/> to find.
+    /// </summary>
+    private sealed class FakeProcessTaskCommand(string key, ProcessStepOptions? options = null) : IProcessTaskCommand
+    {
+        public string Key => key;
+
+        public ProcessStepOptions? StepOptions => options;
+
+        public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context) =>
+            Task.FromResult(ProcessTaskCommandResult.Completed());
     }
 
     /// <summary>
@@ -1368,19 +1407,100 @@ public class ProcessNextRequestFactoryTests
     // ---- Step options resolution (execution timeout / retry strategy): tier 1/2/3 ----
 
     [Fact]
-    public async Task StepOptions_OrdinaryCommand_LeavesEngineDefaults()
+    public async Task StepOptions_ProcessTaskCommand_ImplementationOverride_IsApplied()
     {
-        // Arrange - tier 1: a command with no per-command default and no app handler
-        var factory = CreateFactory();
+        // Arrange - tier 3: a task command that asks for its own timeout and retry strategy
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(
+                    new FakeProcessTask("data", startCommands: [new ProcessTaskCommandRef("MyStartCommand")])
+                )
+                .AddSingleton<IProcessTaskCommand>(
+                    new FakeProcessTaskCommand(
+                        "MyStartCommand",
+                        new ProcessStepOptions
+                        {
+                            MaxExecutionTime = TimeSpan.FromMinutes(3),
+                            RetryStrategy = ProcessStepRetryStrategy.Exponential(
+                                TimeSpan.FromSeconds(5),
+                                maxRetries: 3
+                            ),
+                        }
+                    )
+                )
+        );
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
 
-        // Assert - nothing stamped, so the engine applies its own global defaults
-        var startTaskStep = GetStep(bundle, StartTask.Key);
-        Assert.Null(startTaskStep.Command.MaxExecutionTime);
-        Assert.Null(startTaskStep.RetryStrategy);
+        // Assert - the declared command's own options land on its ExecuteProcessTaskCommand step
+        StepRequest step = bundle
+            .Request.Workflows[0]
+            .Steps.Single(s => s.OperationId == $"{ExecuteProcessTaskCommand.Key}: MyStartCommand");
+        Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(BackoffType.Exponential, step.RetryStrategy.BackoffType);
+        Assert.Equal(TimeSpan.FromSeconds(5), step.RetryStrategy.BaseInterval);
+        Assert.Equal(3, step.RetryStrategy.MaxRetries);
+    }
+
+    [Fact]
+    public async Task Create_TaskStartCommands_AddOneExecuteProcessTaskCommandStepEach_InOrder()
+    {
+        // Arrange - a task type declaring two start commands, in order
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(
+                new FakeProcessTask(
+                    "data",
+                    startCommands:
+                    [
+                        new ProcessTaskCommandRef("FirstStartCommand"),
+                        new ProcessTaskCommandRef("SecondStartCommand"),
+                    ]
+                )
+            )
+        );
+        var stateChange = CreateInitialTaskStart();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert - one ExecuteProcessTaskCommand step per declared command, in order, placed after
+        // CommonTaskInitialization and before the SaveProcessStateToStorage commit.
+        List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
+        int commonInitIndex = operationIds.IndexOf(CommonTaskInitialization.Key);
+        int firstCommandIndex = operationIds.IndexOf($"{ExecuteProcessTaskCommand.Key}: FirstStartCommand");
+        int secondCommandIndex = operationIds.IndexOf($"{ExecuteProcessTaskCommand.Key}: SecondStartCommand");
+        int saveIndex = operationIds.IndexOf(SaveProcessStateToStorage.Key);
+
+        Assert.NotEqual(-1, firstCommandIndex);
+        Assert.NotEqual(-1, secondCommandIndex);
+        Assert.Equal(commonInitIndex + 1, firstCommandIndex);
+        Assert.Equal(firstCommandIndex + 1, secondCommandIndex);
+        Assert.True(secondCommandIndex < saveIndex);
+    }
+
+    [Fact]
+    public async Task Create_TaskEndCommand_PrecedesCommonTaskFinalization()
+    {
+        // Arrange - the leaving task's type declares one end command
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(
+                new FakeProcessTask("data", endCommands: [new ProcessTaskCommandRef("MyEndCommand")])
+            )
+        );
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert
+        List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
+        int endCommandIndex = operationIds.IndexOf($"{ExecuteProcessTaskCommand.Key}: MyEndCommand");
+        int commonFinalizationIndex = operationIds.IndexOf(CommonTaskFinalization.Key);
+
+        Assert.NotEqual(-1, endCommandIndex);
+        Assert.True(endCommandIndex < commonFinalizationIndex);
     }
 
     [Fact]

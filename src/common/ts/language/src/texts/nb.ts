@@ -533,6 +533,8 @@ export function nb() {
     'signing.delegation_error_panel_title': 'Kunne ikke gi tilgang til skjema',
     'signing.delegation_error_panel_description':
       'En eller flere av signatarene er ugyldige og har ikke fått tilgang til skjemaet. Gå tilbake for å prøve å rette opp feilen eller kontakt skjemaeier.',
+    'signing.delegation_error_panel_description_rejected':
+      'Plattformen kunne ikke gi en eller flere signatarer tilgang til å signere. Prøv igjen senere, eller kontakt eieren av skjemaet eller brukerstøtte.',
     'signing.reject_modal_title': 'Avbryt signering',
     'signing.reject_modal_description':
       'Alle signaturer blir slettet. Alle personer du har delegert til mister tilgang. Du kan ikke angre dette.',
@@ -557,6 +559,10 @@ export function nb() {
     'signee_list.signee_status_waiting': 'Venter på signering',
     'signee_list.signee_status_delegation_failed': 'Delegering mislyktes',
     'signee_list.signee_status_notification_failed': 'Varsling mislyktes',
+    'signee_list.notification_failed_hint_configuration':
+      'Varselet kunne ikke sendes fordi appen ikke er satt opp for å sende meldinger i dette miljøet. Kontakt eieren av skjemaet.',
+    'signee_list.notification_failed_hint_rejected':
+      'Varselet kunne ikke sendes. Kontakt eieren av skjemaet eller brukerstøtte.',
     'signee_list.header_name': 'Navn',
     'signee_list.header_on_behalf_of': 'På vegne av',
     'signee_list.header_status': 'Status',

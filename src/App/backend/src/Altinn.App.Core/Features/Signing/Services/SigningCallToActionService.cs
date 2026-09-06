@@ -47,7 +47,8 @@ internal sealed class SigningCallToActionService(
         Party signingParty,
         Party serviceOwnerParty,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct
+        CancellationToken ct,
+        Guid? idempotentKey = null
     )
     {
         using var activity = _telemetry?.StartSendSignCallToActionActivity();
@@ -98,15 +99,23 @@ internal sealed class SigningCallToActionService(
             serviceOwnerParty.OrgNumber = "991825827";
         }
 
+        ICorrespondenceRequestBuilder requestBuilder = CorrespondenceRequestBuilder
+            .Create()
+            .WithResourceId(resource)
+            .WithSendersReference(instanceIdentifier.ToString())
+            .WithRecipient(recipient)
+            .WithContent(correspondenceContent)
+            .WithNotificationIfConfigured(SigningNotificationHelper.CreateNotification(contentWrapper));
+
+        if (idempotentKey is { } key)
+        {
+            // Correspondence rejects a reused key with 409 Conflict, so a retried attempt of the same step cannot
+            // notify the same signee twice.
+            requestBuilder = requestBuilder.WithIdempotentKey(key);
+        }
+
         var request = new SendCorrespondencePayload(
-            CorrespondenceRequestBuilder
-                .Create()
-                .WithResourceId(resource)
-                .WithSendersReference(instanceIdentifier.ToString())
-                .WithRecipient(recipient)
-                .WithContent(correspondenceContent)
-                .WithNotificationIfConfigured(SigningNotificationHelper.CreateNotification(contentWrapper))
-                .Build(),
+            requestBuilder.Build(),
             CorrespondenceAuthenticationMethod.Default()
         );
 
