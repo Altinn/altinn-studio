@@ -5,6 +5,8 @@ export type FieldConfig = {
   translationKey: string;
   critical: boolean;
   hrefPath?: string;
+  /** Which alert box this error belongs to. Defaults to app_metadata. */
+  group?: 'app_metadata' | 'task_settings';
   getTranslationParams?: (errorKey: string) => Record<string, string>;
 };
 
@@ -21,13 +23,18 @@ export const mapErrorKeyErrorItems = (
   org: string,
   app: string,
   t: (key: string, params?: Record<string, string>) => string,
+  group: 'app_metadata' | 'task_settings' = 'app_metadata',
 ): ErrorItem[] => {
   return errorKeys
     .filter((errorKey) => {
       const fieldConfig = getFieldConfig(errorKey);
       if (!fieldConfig) {
         // If there's no specific field config, we treat it as a critical error for 'danger'
-        return severity === 'danger';
+        return severity === 'danger' && group === 'app_metadata';
+      }
+      const itemGroup = fieldConfig.group ?? 'app_metadata';
+      if (itemGroup !== group) {
+        return false;
       }
       return fieldConfig.critical === (severity === 'danger');
     })
@@ -158,7 +165,8 @@ export const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
         issue === 'missing'
           ? 'app_validation.task_settings.default_data_type.missing'
           : 'app_validation.task_settings.default_data_type.not_found',
-      critical: false,
+      critical: true,
+      group: 'task_settings',
       hrefPath: 'process-editor',
       getTranslationParams: () =>
         issue === 'missing' ? { taskId } : { taskId, dataTypeId: dataTypeId ?? '' },

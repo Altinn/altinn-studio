@@ -73,7 +73,15 @@ const AltinnAppServiceResourceValidation = ({
 
   const errorKeys = Object.keys(validationResult?.errors || {});
 
-  const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
+  const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t, 'app_metadata');
+  const taskSettingsErrorItems = mapErrorKeyErrorItems(
+    errorKeys,
+    'danger',
+    org,
+    app,
+    t,
+    'task_settings',
+  );
   const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
 
   return (
@@ -85,6 +93,15 @@ const AltinnAppServiceResourceValidation = ({
           handleErrorLinkClick={handleErrorLinkClick}
           title={t('app_validation.app_metadata.errors')}
           description={t('app_validation.app_metadata.errors_description')}
+        />
+      )}
+      {taskSettingsErrorItems.length > 0 && (
+        <AppValidationAlert
+          errorItems={taskSettingsErrorItems}
+          severity='danger'
+          handleErrorLinkClick={handleErrorLinkClick}
+          title={t('app_validation.task_settings.errors')}
+          description={t('app_validation.task_settings.errors_description')}
         />
       )}
       {warningItems.length > 0 && (

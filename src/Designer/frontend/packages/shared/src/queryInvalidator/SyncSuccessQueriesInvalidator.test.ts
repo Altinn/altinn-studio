@@ -64,6 +64,36 @@ describe('SyncSuccessQueriesInvalidator', () => {
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(2);
   });
 
+  it('should invalidate AppValidation when process.bpmn is synced', async () => {
+    const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
+
+    queriesInvalidator.invalidateQueriesByFileLocation('process.bpmn');
+
+    await waitFor(() => {
+      expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [QueryKey.FetchBpmn, org, app],
+      });
+    });
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppValidation, org, app],
+    });
+  });
+
+  it('should invalidate AppValidation when layout-sets.json is synced', async () => {
+    const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
+
+    queriesInvalidator.invalidateQueriesByFileLocation('layout-sets.json');
+
+    await waitFor(() => {
+      expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [QueryKey.LayoutSets, org, app],
+      });
+    });
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppValidation, org, app],
+    });
+  });
+
   it('should invalidate layouts query cache with layoutSetName identifier when invalidateQueriesByFileLocation is called and layoutSetName has been set', async () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
     queriesInvalidator.layoutSetName = selectedLayoutSet;

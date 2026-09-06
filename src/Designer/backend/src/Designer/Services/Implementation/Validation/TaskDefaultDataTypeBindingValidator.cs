@@ -49,10 +49,14 @@ public class TaskDefaultDataTypeBindingValidator(
             return new Dictionary<string, string[]>();
         }
 
-        IEnumerable<string> processTaskIds;
+        IEnumerable<(string Id, string? TaskType)> processTasks;
         try
         {
-            processTaskIds = repository.GetProcessDefinitions()?.Process?.Tasks?.Select(task => task.Id) ?? [];
+            processTasks =
+                repository
+                    .GetProcessDefinitions()
+                    ?.Process?.Tasks?.Select(task => (task.Id, task.ExtensionElements?.TaskExtension?.TaskType))
+                ?? [];
         }
         catch (NotFoundHttpRequestException)
         {
@@ -61,9 +65,14 @@ public class TaskDefaultDataTypeBindingValidator(
 
         var errors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
-        foreach (string taskId in processTaskIds)
+        foreach ((string taskId, string? taskType) in processTasks)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (!RequiresDefaultDataTypeBinding(taskType))
+            {
+                continue;
+            }
 
             LayoutSettings layoutSettings;
             try
@@ -90,6 +99,11 @@ public class TaskDefaultDataTypeBindingValidator(
 
         return errors.ToDictionary(entry => entry.Key, entry => entry.Value.ToArray());
     }
+
+    private static bool RequiresDefaultDataTypeBinding(string? taskType) =>
+        string.Equals(taskType, "data", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(taskType, "payment", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(taskType, "signing", StringComparison.OrdinalIgnoreCase);
 
     private static string MissingBindingKey(string taskId) => $"taskSettings[{taskId}].defaultDataType.missing";
 

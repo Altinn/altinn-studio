@@ -142,19 +142,21 @@ describe('appValidationUtils', () => {
       expect(getFieldConfig('taskSettings[Task_1].defaultDataType.missing')).toEqual({
         anchor: '',
         translationKey: 'app_validation.task_settings.default_data_type.missing',
-        critical: false,
+        critical: true,
+        group: 'task_settings',
         hrefPath: 'process-editor',
         getTranslationParams: expect.any(Function),
       });
     });
 
-    it('maps task settings warning to process editor link', () => {
+    it('maps task settings danger to process editor link', () => {
       const result = mapErrorKeyErrorItems(
         ['taskSettings[Task_1].defaultDataType.notFound.model'],
-        'warning',
+        'danger',
         'testOrg',
         'testApp',
         (key, params) => `${key}:${params?.taskId}:${params?.dataTypeId}`,
+        'task_settings',
       );
 
       expect(result).toEqual([
@@ -165,6 +167,19 @@ describe('appValidationUtils', () => {
           errorMessage: 'app_validation.task_settings.default_data_type.not_found:Task_1:model',
         },
       ]);
+    });
+
+    it('does not include task settings errors in app_metadata danger group', () => {
+      const result = mapErrorKeyErrorItems(
+        ['taskSettings[Task_1].defaultDataType.missing', 'title.nb'],
+        'danger',
+        'testOrg',
+        'testApp',
+        (key) => key,
+        'app_metadata',
+      );
+
+      expect(result.map((item) => item.errorKey)).toEqual(['title.nb']);
     });
   });
 });
