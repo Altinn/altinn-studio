@@ -140,6 +140,7 @@ const defaultQueryMocks: AppQueries = {
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
+  fetchPdfPreviewTasks: async () => ({ tasks: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,

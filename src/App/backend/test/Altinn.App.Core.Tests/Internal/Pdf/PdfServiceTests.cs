@@ -10,6 +10,8 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -1042,6 +1044,396 @@ public class PdfServiceTests
         );
     }
 
+    [Fact]
+    public async Task GeneratePreviewPdf_WithPathTaskIdAndAutoPdfTaskIds_ShouldIncludeBothInUri()
+    {
+        // Arrange
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        var previewTarget = new PdfPreviewTarget("Task_Pdf", "Task_Pdf", ["Task_1"], null);
+
+        // Act
+        await ((IPdfService)target).GeneratePreviewPdf(instance, previewTarget, CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u =>
+                        u.AbsoluteUri.Contains("/Task_Pdf?pdf=1")
+                        && u.AbsoluteUri.Contains("task=Task_1")
+                        && u.AbsoluteUri.Contains("lang=")
+                    ),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GeneratePreviewPdf_WithoutPathTaskId_ShouldNotAddTaskPathSegmentToUri()
+    {
+        // Arrange
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        var previewTarget = new PdfPreviewTarget("Task_1", null, null, null);
+
+        // Act
+        await ((IPdfService)target).GeneratePreviewPdf(instance, previewTarget, CancellationToken.None);
+
+        // Assert: the URL is the plain "current task" preview URL, with no task path segment appended.
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u => u.AbsoluteUri.Contains($"{instance.Id}?pdf=1")),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    private const string LayoutsJsonWithoutSubform = """
+        {"Side1":{"$schema":"x","data":{"layout":[{"id":"other","type":"Input"}]}}}
+        """;
+
+    private static string LayoutsJsonWithSubform(string componentId) =>
+        "{\"Side1\":{\"$schema\":\"x\",\"data\":{\"layout\":[{\"id\":\""
+        + componentId
+        + "\",\"type\":\"Subform\",\"layoutSet\":\"mySubform\"}]}}}";
+
+    [Fact]
+    public async Task GenerateAndStoreSubformPdf_ShouldUseParentDataTaskInUrl_NotCurrentTask()
+    {
+        // Arrange: the subformPdf service task ("Task_SubformPdf") is the current task, but the Subform
+        // component only lives in "Task_1"'s layout, which the process reader lists after "Task_2" — the
+        // resolver must keep looking and land on "Task_1", not just take the first task with a UI folder.
+        var mockAppResources = new Mock<IAppResources>();
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new TextResource()
+                {
+                    Id = "digdir-not-really-an-app-nb",
+                    Language = LanguageConst.Nb,
+                    Org = "digdir",
+                    Resources = [],
+                }
+            );
+        mockAppResources
+            .Setup(s => s.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new Dictionary<string, LayoutSettings> { ["Task_2"] = new(), ["Task_1"] = new() },
+                }
+            );
+        mockAppResources.Setup(s => s.GetLayoutsInFolder("Task_2")).Returns(LayoutsJsonWithoutSubform);
+        mockAppResources.Setup(s => s.GetLayoutsInFolder("Task_1")).Returns(LayoutsJsonWithSubform("subform-x"));
+
+        var processReader = new Mock<IProcessReader>();
+        processReader
+            .Setup(x => x.GetProcessTasks())
+            .Returns([new ProcessTask { Id = "Task_2" }, new ProcessTask { Id = "Task_1" }]);
+
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            appResources: mockAppResources,
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            processReader: processReader
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_SubformPdf" } },
+        };
+        var dataElementId = Guid.NewGuid().ToString();
+
+        var mutatorMock = CreateMutatorMock(instance, mockAppResources);
+
+        // Act
+        await target.GenerateAndStoreSubformPdf(
+            mutatorMock.Object,
+            null,
+            new SubformPdfContext("subform-x", dataElementId),
+            ct: CancellationToken.None
+        );
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u => u.AbsoluteUri.Contains($"/Task_1/subform/subform-x/{dataElementId}/?pdf=1")),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStoreSubformPdf_NoProcessReaderAvailable_FallsBackToUiConfigurationFolderOrder()
+    {
+        // Arrange: without a service provider supplying IProcessReader, the resolver must still find the
+        // component by scanning the folders IAppResources knows about.
+        var mockAppResources = new Mock<IAppResources>();
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new TextResource()
+                {
+                    Id = "digdir-not-really-an-app-nb",
+                    Language = LanguageConst.Nb,
+                    Org = "digdir",
+                    Resources = [],
+                }
+            );
+        mockAppResources
+            .Setup(s => s.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new Dictionary<string, LayoutSettings> { ["Task_1"] = new(), ["Task_2"] = new() },
+                }
+            );
+        mockAppResources.Setup(s => s.GetLayoutsInFolder("Task_1")).Returns(LayoutsJsonWithSubform("subform-x"));
+        mockAppResources.Setup(s => s.GetLayoutsInFolder("Task_2")).Returns(LayoutsJsonWithoutSubform);
+
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            appResources: mockAppResources,
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            processReader: null
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_SubformPdf" } },
+        };
+        var dataElementId = Guid.NewGuid().ToString();
+
+        var mutatorMock = CreateMutatorMock(instance, mockAppResources);
+
+        // Act
+        await target.GenerateAndStoreSubformPdf(
+            mutatorMock.Object,
+            null,
+            new SubformPdfContext("subform-x", dataElementId),
+            ct: CancellationToken.None
+        );
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u => u.AbsoluteUri.Contains($"/Task_1/subform/subform-x/{dataElementId}/?pdf=1")),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GeneratePreviewPdf_ForSubform_ShouldUseParentDataTaskInUrl()
+    {
+        // Arrange
+        var mockAppResources = new Mock<IAppResources>();
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new TextResource()
+                {
+                    Id = "digdir-not-really-an-app-nb",
+                    Language = LanguageConst.Nb,
+                    Org = "digdir",
+                    Resources = [],
+                }
+            );
+        mockAppResources
+            .Setup(s => s.GetUiConfiguration())
+            .Returns(new UiConfiguration { Folders = new Dictionary<string, LayoutSettings> { ["Task_1"] = new() } });
+        mockAppResources.Setup(s => s.GetLayoutsInFolder("Task_1")).Returns(LayoutsJsonWithSubform("subform-x"));
+
+        var processReader = new Mock<IProcessReader>();
+        processReader.Setup(x => x.GetProcessTasks()).Returns([new ProcessTask { Id = "Task_1" }]);
+
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            appResources: mockAppResources,
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            processReader: processReader
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+        var dataElementId = Guid.NewGuid().ToString();
+
+        var previewTarget = new PdfPreviewTarget(
+            "Task_SubformPdf",
+            null,
+            null,
+            new SubformPdfContext("subform-x", dataElementId)
+        );
+
+        // Act
+        await ((IPdfService)target).GeneratePreviewPdf(instance, previewTarget, CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u => u.AbsoluteUri.Contains($"/Task_1/subform/subform-x/{dataElementId}/?pdf=1")),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStoreSubformPdf_ComponentNotFoundInAnyFolder_ShouldThrowApplicationConfigException()
+    {
+        // Arrange
+        var mockAppResources = new Mock<IAppResources>();
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new TextResource()
+                {
+                    Id = "digdir-not-really-an-app-nb",
+                    Language = LanguageConst.Nb,
+                    Org = "digdir",
+                    Resources = [],
+                }
+            );
+        mockAppResources
+            .Setup(s => s.GetUiConfiguration())
+            .Returns(new UiConfiguration { Folders = new Dictionary<string, LayoutSettings> { ["Task_1"] = new() } });
+        mockAppResources.Setup(s => s.GetLayoutsInFolder("Task_1")).Returns(LayoutsJsonWithoutSubform);
+
+        var target = SetupPdfService(appResources: mockAppResources);
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_SubformPdf" } },
+        };
+
+        var mutatorMock = CreateMutatorMock(instance, mockAppResources);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            target.GenerateAndStoreSubformPdf(
+                mutatorMock.Object,
+                null,
+                new SubformPdfContext("missing-component", Guid.NewGuid().ToString()),
+                ct: CancellationToken.None
+            )
+        );
+    }
+
     private PdfService SetupPdfService(
         Mock<IAppResources>? appResources = null,
         Mock<IHttpContextAccessor>? httpContentAccessor = null,
@@ -1049,11 +1441,13 @@ public class PdfServiceTests
         IOptions<PdfGeneratorSettings>? pdfGeneratorSettingsOptions = null,
         IOptions<GeneralSettings>? generalSettingsOptions = null,
         Mock<IAuthenticationContext>? authenticationContext = null,
-        TelemetrySink? telemetrySink = null
+        TelemetrySink? telemetrySink = null,
+        Mock<IProcessReader>? processReader = null
     )
     {
         // Setup a mock service provider with InstanceDataUnitOfWorkInitializer (used by hideAppNameInPdf evaluation)
         var mockServiceProvider = new Mock<IServiceProvider>();
+        mockServiceProvider.Setup(x => x.GetService(typeof(IProcessReader))).Returns(processReader?.Object);
         var mockDataClient = new Mock<IDataClient>();
         var mockInstanceClient = new Mock<IInstanceClient>();
         var mockAppMetadata = new Mock<IAppMetadata>();

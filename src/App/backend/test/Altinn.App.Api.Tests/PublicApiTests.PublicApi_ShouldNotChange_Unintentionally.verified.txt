@@ -478,18 +478,37 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiController]
     public class PdfController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService) { }
+        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
             "id}/pdf/format")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(object), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfFormat([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileStreamResult), 200, "application/pdf", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400, "application/problem+json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404, "application/problem+json", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreview([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreview([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null, [Microsoft.AspNetCore.Mvc.FromQuery] System.Guid? dataElementId = default) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
+        [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
+        [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
+            "id:guid}/pdf/preview")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileStreamResult), 200, "application/pdf", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400, "application/problem+json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404, "application/problem+json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreviewForDataElement([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
+        [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
+        [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview/" +
+            "tasks")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.PdfPreviewTasksResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.PdfPreviewTasksResponse>> GetPdfPreviewTasks([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Authorization.Authorize]
@@ -1127,6 +1146,28 @@ namespace Altinn.App.Api.Models
         public required System.Guid? PartyUuid { get; init; }
         public required string SSN { get; init; }
         public required string UnitType { get; init; }
+    }
+    public sealed class PdfPreviewDataElement
+    {
+        public PdfPreviewDataElement() { }
+        public required string DataType { get; init; }
+        public required string Id { get; init; }
+    }
+    public sealed class PdfPreviewTask
+    {
+        public PdfPreviewTask() { }
+        public System.Collections.Generic.List<string>? AutoPdfTaskIds { get; init; }
+        public System.Collections.Generic.List<Altinn.App.Api.Models.PdfPreviewDataElement>? DataElements { get; init; }
+        public string? Name { get; init; }
+        public string? SubformComponentId { get; init; }
+        public string? SubformDataTypeId { get; init; }
+        public required string TaskId { get; init; }
+        public required string TaskType { get; init; }
+    }
+    public sealed class PdfPreviewTasksResponse
+    {
+        public PdfPreviewTasksResponse() { }
+        public required System.Collections.Generic.List<Altinn.App.Api.Models.PdfPreviewTask> Tasks { get; init; }
     }
     public class PersonDetails
     {

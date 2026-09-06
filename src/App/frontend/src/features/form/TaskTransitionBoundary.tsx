@@ -4,10 +4,19 @@ import type { PropsWithChildren } from 'react';
 import { Loader } from 'src/core/loading/Loader';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { TaskKeys } from 'src/routesBuilder';
 
 export function TaskTransitionBoundary({ children }: PropsWithChildren) {
+  const isPdf = useIsPdf();
   const isInTaskTransition = useIsInTaskTransition();
+
+  // In PDF mode the URL task is chosen by the PDF generator/preview and may legitimately differ from
+  // process.currentTask (PDF service task previews, subform PDFs rendered under the parent data
+  // task), and the transition loader would suppress #readyForPrint.
+  if (isPdf) {
+    return children;
+  }
 
   if (isInTaskTransition) {
     return <Loader reason='task-transition' />;

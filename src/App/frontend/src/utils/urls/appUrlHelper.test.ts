@@ -5,6 +5,8 @@ import {
   getHostname,
   getInstantiateUrl,
   getOptionsUrl,
+  getPdfPreviewTasksUrl,
+  getPdfPreviewUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   redirectToUpgrade,
@@ -344,6 +346,34 @@ describe('Frontend urlHelper.ts', () => {
       expect(result).toEqual(
         'https://local.altinn.cloud/ttd/test/api/datalists/country?language=no&size=10&page=2&sortColumn=id&sortDirection=desc&selectedCountry=Norway',
       );
+    });
+  });
+
+  describe('getPdfPreviewUrl', () => {
+    it('should return correct url when no options are provided', () => {
+      const result = getPdfPreviewUrl('someInstanceId', 'nb');
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/instances/someInstanceId/pdf/preview?language=nb');
+    });
+
+    it('should include taskId and dataElementId when provided', () => {
+      const result = getPdfPreviewUrl('someInstanceId', 'nb', { taskId: 'Task_Pdf', dataElementId: 'elem-1' });
+      expect(result).toEqual(
+        'https://local.altinn.cloud/ttd/test/instances/someInstanceId/pdf/preview?language=nb&taskId=Task_Pdf&dataElementId=elem-1',
+      );
+    });
+
+    it('should omit dataElementId when only taskId is provided', () => {
+      const result = getPdfPreviewUrl('someInstanceId', 'nb', { taskId: 'Task_Pdf' });
+      expect(result).toEqual(
+        'https://local.altinn.cloud/ttd/test/instances/someInstanceId/pdf/preview?language=nb&taskId=Task_Pdf',
+      );
+    });
+  });
+
+  describe('getPdfPreviewTasksUrl', () => {
+    it('should return correct url', () => {
+      const result = getPdfPreviewTasksUrl('someInstanceId');
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/instances/someInstanceId/pdf/preview/tasks');
     });
   });
 });

@@ -10,9 +10,15 @@ import { generatePdfPreview } from 'src/utils/pdfPreview/generatePdfPreview';
 export function PDFGeneratorPreview({
   buttonTitle,
   showErrorDetails,
+  taskId,
+  dataElementId,
+  disabled,
 }: {
   buttonTitle?: string;
   showErrorDetails?: boolean;
+  taskId?: string;
+  dataElementId?: string;
+  disabled?: boolean;
 }) {
   const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();
@@ -23,9 +29,9 @@ export function PDFGeneratorPreview({
       title={buttonTitle ? langAsString(buttonTitle) : langAsString('pdfPreview.defaultButtonText')}
       errorHeading={langAsString('pdfPreview.error')}
       loadingLabel={langAsString('general.loading')}
-      disabled={!instanceId}
+      disabled={!instanceId || disabled}
       showErrorDetails={showErrorDetails}
-      onGenerate={(signal) => generatePdfPreview(instanceId, language, signal)}
+      onGenerate={(signal) => generatePdfPreview(instanceId, language, signal, { taskId, dataElementId })}
     />
   );
 }

@@ -74,10 +74,21 @@ export const getCreateInstancesUrl = (partyId: number, language?: string) => {
 export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
   `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format`;
 
-export const getPdfPreviewUrl = (instanceId: string, language: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export interface IPdfPreviewUrlOptions {
+  taskId?: string;
+  dataElementId?: string;
+}
+
+export const getPdfPreviewUrl = (instanceId: string, language: string, options?: IPdfPreviewUrlOptions) => {
+  const queryString = getQueryStringFromObject({
+    language,
+    taskId: options?.taskId,
+    dataElementId: options?.dataElementId,
+  });
   return `${appPath}/instances/${instanceId}/pdf/preview${queryString}`;
 };
+
+export const getPdfPreviewTasksUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/pdf/preview/tasks`;
 
 export const getProcessNextUrl = (instanceId: string, language?: string, returnInstance?: boolean) => {
   const queryString = getQueryStringFromObject({

@@ -98,4 +98,15 @@ public interface IPdfService
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken ct = default
     ) => GeneratePdf(dataAccessor.Instance, taskId, isPreview, authenticationMethod, ct);
+
+    /// <summary>
+    /// Generate a preview PDF for an arbitrary task of the instance's process, as resolved by
+    /// <see cref="PdfPreviewTaskResolver"/> — including a PDF or subformPdf service task, which may be a
+    /// different task than the instance's current one.
+    /// </summary>
+    /// <param name="instance">The instance details.</param>
+    /// <param name="target">The resolved preview target.</param>
+    /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
+    internal Task<Stream> GeneratePreviewPdf(Instance instance, PdfPreviewTarget target, CancellationToken ct) =>
+        throw new NotImplementedException();
 }

@@ -125,14 +125,14 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
-  const isWrongTask = useIsWrongTask(taskId);
+  const isPdfMode = usePdfModeActive();
+  const isWrongTask = useIsWrongTask(taskId, isPdfMode);
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
-  const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
@@ -290,7 +290,7 @@ function useIsRunningProcessNext() {
   return isMutating;
 }
 
-function useIsWrongTask(taskId: string | undefined) {
+function useIsWrongTask(taskId: string | undefined, isPdfMode: boolean) {
   const isNavigating = useIsNavigating();
   const { data: process } = useProcessQuery();
   const currentTaskId = process?.currentTask?.elementId;
@@ -303,8 +303,14 @@ function useIsWrongTask(taskId: string | undefined) {
   // We intentionally delay this state from being set until after queries/mutations finish, so the navigation error
   // does not show up while we're navigating. Without this, the message will flash over the screen shortly
   // in-between all the <Loader /> components.
+  //
+  // PDF mode never runs this check: a PDF render is a one-shot snapshot whose task is chosen by the
+  // backend (previewing a later PDF service task, or a subform PDF whose URL carries the parent data
+  // task while process.currentTask is the subformPdf service task), so the URL task legitimately
+  // differs from the current one. Resolve immediately - no waitForQueries delay - so PDF mode never
+  // shows the wrong-task NavigationError, and never blocks on the Loader while isWrongTask is null.
   useEffect(() => {
-    if (isCurrentTask) {
+    if (isPdfMode || isCurrentTask) {
       setIsWrongTask(false);
     } else {
       let cancelled = false;
@@ -321,7 +327,11 @@ function useIsWrongTask(taskId: string | undefined) {
         cancelled = true;
       };
     }
-  }, [isCurrentTask, waitForQueries]);
+  }, [isPdfMode, isCurrentTask, waitForQueries]);
+
+  if (isPdfMode) {
+    return false;
+  }
 
   return isWrongTask && !isCurrentTask && !isNavigating;
 }

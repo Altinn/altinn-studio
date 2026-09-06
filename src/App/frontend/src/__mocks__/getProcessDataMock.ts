@@ -20,6 +20,7 @@ export function getProcessDataMock(mutate?: (process: IProcess) => void): IProce
       {
         altinnTaskType: 'data',
         elementId: 'Task_1',
+        elementType: 'Task',
       },
     ],
     ended: null,

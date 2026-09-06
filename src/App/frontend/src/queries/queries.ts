@@ -21,6 +21,7 @@ import {
   getOrderDetailsUrl,
   getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
+  getPdfPreviewTasksUrl,
   getProcessNextUrl,
   getProcessResumeUrl,
   getUpdateFileTagsUrl,
@@ -33,7 +34,7 @@ import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
-import type { IPdfFormat } from 'src/features/pdf/types';
+import type { IPdfFormat, IPdfPreviewTasksResponse } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
@@ -180,6 +181,9 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
+
+export const fetchPdfPreviewTasks = (instanceId: string): Promise<IPdfPreviewTasksResponse> =>
+  httpGet(getPdfPreviewTasksUrl(instanceId));
 
 export const fetchPaymentInformationForTask = (
   instanceId: string,

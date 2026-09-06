@@ -2,6 +2,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { SearchParams } from 'src/core/routing/types';
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 const appFrontend = new AppFrontend();
 
@@ -69,6 +70,47 @@ describe('Service task', () => {
 
         const baseUrl = href.split('?')[0];
         return `${baseUrl}?${queryArgs.toString()}`;
+      },
+      callback: () => {
+        cy.expectPageBreaks(2);
+        cy.findByText('En hilsen fra Task_Utfylling1').should('be.visible');
+        cy.findByText('Lykkeønsker fra et underskjema').should('be.visible');
+        cy.findByText('Himling med øyne og skuldertrekk fra Task_Utfylling2').should('be.visible');
+      },
+    });
+
+    goBackAndAchieveSuccess();
+  });
+
+  it('renders a PDF service task that is not the current task (preview)', { retries: 0 }, () => {
+    // Previewing a later PDF service task from an app developer's point of view: the URL task
+    // (Task_PDF_Auto) is not process.currentTask (still Task_Fail at this point in the flow). This
+    // is the shape of URL the backend's preview-any-task endpoint builds, and the frontend must
+    // render the PDF service task's snapshot instead of getting stuck behind the wrong-task guard
+    // or the default service-task waiting view.
+    interceptAltinnAppGlobalData((globalData) => {
+      delete globalData.ui.folders.Task_Fail;
+    });
+
+    startAppAndFillToFailure();
+
+    cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
+
+    cy.testPdf({
+      snapshotName: 'service-task-preview-non-current-task',
+      returnToForm: true,
+      enableResponseFuzzing: false,
+      buildUrl: (href) => {
+        const instanceId = getInstanceIdRegExp().exec(href)?.[1];
+        const before = href.split(getInstanceIdRegExp())[0];
+
+        const queryArgs = new URLSearchParams();
+        queryArgs.append(SearchParams.Pdf, '1');
+        for (const task of ['Task_Utfylling1', 'Task_Utfylling2']) {
+          queryArgs.append(SearchParams.PdfForTask, task);
+        }
+
+        return `${before}${instanceId}/Task_PDF_Auto?${queryArgs.toString()}`;
       },
       callback: () => {
         cy.expectPageBreaks(2);

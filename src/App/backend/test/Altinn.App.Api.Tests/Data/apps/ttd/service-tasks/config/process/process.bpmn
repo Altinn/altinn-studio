@@ -25,9 +25,9 @@
                 <altinn:taskExtension>
                     <altinn:taskType>pdf</altinn:taskType>
                     <altinn:pdfConfig>
-                        <altinn:tasksToIncludeInPdf>
-                            <altinn:task>Task_1</altinn:task>
-                        </altinn:tasksToIncludeInPdf>
+                        <altinn:autoPdfTaskIds>
+                            <altinn:taskId>Task_1</altinn:taskId>
+                        </altinn:autoPdfTaskIds>
                     </altinn:pdfConfig>
                 </altinn:taskExtension>
             </bpmn:extensionElements>

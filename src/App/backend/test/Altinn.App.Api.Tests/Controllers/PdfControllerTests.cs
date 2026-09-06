@@ -1,4 +1,5 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -10,6 +11,10 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -38,6 +43,7 @@ public class PdfControllerTests
     private readonly Mock<IInstanceClient> _instanceClient = new();
     private readonly Mock<IPdfFormatter> _pdfFormatter = new();
     private readonly Mock<IAppModel> _appModel = new();
+    private readonly Mock<IProcessReader> _processReader = new();
 
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
@@ -74,6 +80,16 @@ public class PdfControllerTests
             );
 
         _authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
+
+        // The current task, "Task_1", is an ordinary data task by default.
+        var dataTask = new ProcessTask
+        {
+            Id = _taskId,
+            ExtensionElements = new ExtensionElements { TaskExtension = new AltinnTaskExtension { TaskType = "data" } },
+        };
+        _processReader.Setup(x => x.GetFlowElement(_taskId)).Returns(dataTask);
+        _processReader.Setup(x => x.GetAltinnTaskExtension(_taskId)).Returns(dataTask.ExtensionElements.TaskExtension);
+        _processReader.Setup(x => x.GetProcessTasks()).Returns([dataTask]);
     }
 
     private PdfService NewPdfService(
@@ -94,6 +110,17 @@ public class PdfControllerTests
         );
         return pdfService;
     }
+
+    private PdfController NewPdfController(IPdfService pdfService) =>
+        new(
+            _instanceClient.Object,
+            _pdfFormatter.Object,
+            _appResources.Object,
+            _appModel.Object,
+            _dataClient.Object,
+            pdfService,
+            _processReader.Object
+        );
 
     [Fact]
     public async Task Request_In_Dev_Should_Generate()
@@ -119,14 +146,7 @@ public class PdfControllerTests
             authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService
-        );
+        var pdfController = NewPdfController(pdfService);
 
         string? requestBody = null;
         using (
@@ -187,14 +207,7 @@ public class PdfControllerTests
             authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService
-        );
+        var pdfController = NewPdfController(pdfService);
 
         string? requestBody = null;
         using (
@@ -229,6 +242,206 @@ public class PdfControllerTests
             .Contain(
                 @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
+    }
+
+    [Fact]
+    public async Task Request_ForPdfServiceTask_WithTaskIdAndAutoPdfTaskIds_ShouldIncludeTaskPathAndAutoPdfQuery()
+    {
+        var pdfTask = new ProcessTask
+        {
+            Id = "Task_Pdf",
+            ExtensionElements = new ExtensionElements
+            {
+                TaskExtension = new AltinnTaskExtension
+                {
+                    TaskType = "pdf",
+                    PdfConfiguration = new AltinnPdfConfiguration { AutoPdfTaskIds = ["Task_1"] },
+                },
+            },
+        };
+        _processReader.Setup(x => x.GetFlowElement("Task_Pdf")).Returns(pdfTask);
+        _processReader
+            .Setup(x => x.GetAltinnTaskExtension("Task_Pdf"))
+            .Returns(pdfTask.ExtensionElements.TaskExtension);
+
+        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
+            new() { HostName = "local.altinn.cloud" }
+        );
+
+        var httpContextAccessor = new Mock<IHttpContextAccessor>();
+        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
+
+        var handler = new Mock<HttpMessageHandler>();
+        var httpClient = new HttpClient(handler.Object);
+
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
+
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authenticationTokenResolver.Object
+        );
+        var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
+        var pdfController = NewPdfController(pdfService);
+
+        string? requestBody = null;
+        using var mockResponse = new HttpResponseMessage()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            Content = new StringContent("PDF"),
+        };
+        handler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                async (m, c) =>
+                {
+                    requestBody = await m.Content!.ReadAsStringAsync();
+                    return mockResponse;
+                }
+            );
+
+        var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId, taskId: "Task_Pdf");
+        result.Should().BeOfType(typeof(FileStreamResult));
+
+        requestBody
+            .Should()
+            .Contain(
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_Pdf?pdf=1"
+            );
+        requestBody.Should().Contain("task=Task_1");
+    }
+
+    [Fact]
+    public async Task Request_ForPdfServiceTask_WithNothingToRender_ShouldReturn400()
+    {
+        var pdfTask = new ProcessTask
+        {
+            Id = "Task_Pdf",
+            ExtensionElements = new ExtensionElements { TaskExtension = new AltinnTaskExtension { TaskType = "pdf" } },
+        };
+        _processReader.Setup(x => x.GetFlowElement("Task_Pdf")).Returns(pdfTask);
+        _processReader
+            .Setup(x => x.GetAltinnTaskExtension("Task_Pdf"))
+            .Returns(pdfTask.ExtensionElements.TaskExtension);
+        // No AutoPdfTaskIds configured, and _appResources.GetLayoutSettingsForFolder is unconfigured (returns
+        // null by default), so there is nothing this task could render a preview from.
+
+        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
+            new() { HostName = "local.altinn.cloud" }
+        );
+        var httpContextAccessor = new Mock<IHttpContextAccessor>();
+        var handler = new Mock<HttpMessageHandler>();
+        var httpClient = new HttpClient(handler.Object);
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authenticationTokenResolver.Object
+        );
+        var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
+        var pdfController = NewPdfController(pdfService);
+
+        var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId, taskId: "Task_Pdf");
+
+        var objectResult = result.Should().BeAssignableTo<ObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task GetPdfPreviewTasks_ReturnsPdfAndSubformPdfTasksWithTheirDataElements()
+    {
+        var pdfTask = new ProcessTask
+        {
+            Id = "Task_Pdf",
+            Name = "PDF",
+            ExtensionElements = new ExtensionElements
+            {
+                TaskExtension = new AltinnTaskExtension
+                {
+                    TaskType = "pdf",
+                    PdfConfiguration = new AltinnPdfConfiguration { AutoPdfTaskIds = ["Task_1"] },
+                },
+            },
+        };
+        var subformPdfTask = new ProcessTask
+        {
+            Id = "Task_SubformPdf",
+            Name = "Subform PDF",
+            ExtensionElements = new ExtensionElements
+            {
+                TaskExtension = new AltinnTaskExtension
+                {
+                    TaskType = "subformPdf",
+                    SubformPdfConfiguration = new AltinnSubformPdfConfiguration
+                    {
+                        SubformComponentId = "subform-x",
+                        SubformDataTypeId = "Sub",
+                    },
+                },
+            },
+        };
+        var dataTask = new ProcessTask
+        {
+            Id = _taskId,
+            ExtensionElements = new ExtensionElements { TaskExtension = new AltinnTaskExtension { TaskType = "data" } },
+        };
+        _processReader.Setup(x => x.GetProcessTasks()).Returns([dataTask, pdfTask, subformPdfTask]);
+
+        _instanceClient
+            .Setup(a =>
+                a.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new Instance()
+                {
+                    Org = _org,
+                    AppId = $"{_org}/{_app}",
+                    Id = $"{_partyId}/{_instanceId}",
+                    Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = _taskId } },
+                    Data =
+                    [
+                        new DataElement { Id = "elem-1", DataType = "Sub" },
+                        new DataElement { Id = "elem-2", DataType = "OtherType" },
+                    ],
+                }
+            );
+
+        var pdfController = NewPdfController(new Mock<IPdfService>().Object);
+
+        var result = await pdfController.GetPdfPreviewTasks(_org, _app, _partyId, _instanceId);
+
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeOfType<PdfPreviewTasksResponse>().Subject;
+
+        response.Tasks.Should().HaveCount(2);
+
+        var returnedPdfTask = response.Tasks.Single(t => t.TaskId == "Task_Pdf");
+        returnedPdfTask.TaskType.Should().Be("pdf");
+        returnedPdfTask.AutoPdfTaskIds.Should().BeEquivalentTo(["Task_1"]);
+
+        var returnedSubformPdfTask = response.Tasks.Single(t => t.TaskId == "Task_SubformPdf");
+        returnedSubformPdfTask.TaskType.Should().Be("subformPdf");
+        returnedSubformPdfTask.SubformComponentId.Should().Be("subform-x");
+        returnedSubformPdfTask.SubformDataTypeId.Should().Be("Sub");
+        returnedSubformPdfTask.DataElements.Should().ContainSingle(d => d.Id == "elem-1" && d.DataType == "Sub");
     }
 
     private static Mock<IAuthenticationTokenResolver> BuildAuthenticationTokenResolver()

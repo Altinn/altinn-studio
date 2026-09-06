@@ -4,6 +4,7 @@ import { getUiConfig } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IProcess, IProcessWorkflow } from 'src/types/shared';
 
@@ -51,8 +52,11 @@ export function useTaskTypeFromBackend() {
 /**
  * Pure classifier: resolves the ProcessTaskType of a given taskId.
  *
- * If the taskId cannot be found in processTasks, it falls back to the currentTask's
- * type when the currentTask matches the taskId provided.
+ * We first look for the taskId in processTasks (the full list of tasks in the process, which may
+ * include tasks other than the current one - e.g. a later PDF service task, or the parent data task
+ * of a subform PDF preview). If it isn't found there, we fall back to currentTask when it matches the
+ * taskId provided. Some backends/mocks only put elementType on currentTask, so as a defensive measure
+ * we also fall back to currentTask's elementType/altinnTaskType when the list entry is missing them.
  *
  * Stateless apps only have data tasks. As soon as they start creating an instance
  * from that stateless step, applicationMetadata.isStatelessApp will return false
@@ -64,10 +68,9 @@ export function getTaskTypeById(
   isStateless: boolean,
   uiFolders: Record<string, unknown>,
 ): ProcessTaskType {
-  const task =
-    (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
-      ? processData?.currentTask
-      : undefined;
+  const fromList = processData?.processTasks?.find((t) => t.elementId === taskId);
+  const fromCurrent = processData?.currentTask?.elementId === taskId ? processData?.currentTask : undefined;
+  const task = fromList ?? fromCurrent;
 
   if (isStateless || taskId === TaskKeys.CustomReceipt || (taskId && taskId in uiFolders)) {
     return ProcessTaskType.Data;
@@ -77,11 +80,12 @@ export function getTaskTypeById(
     return ProcessTaskType.Archived;
   }
 
-  if (task?.elementType === 'ServiceTask') {
+  const elementType = task?.elementType ?? fromCurrent?.elementType;
+  if (elementType === ELEMENT_TYPE.SERVICE_TASK) {
     return ProcessTaskType.Service;
   }
 
-  const altinnTaskType = task?.altinnTaskType;
+  const altinnTaskType = task?.altinnTaskType ?? fromCurrent?.altinnTaskType;
   if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
     return altinnTaskType;
   }
