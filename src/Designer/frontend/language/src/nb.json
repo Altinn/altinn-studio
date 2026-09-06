@@ -461,7 +461,7 @@
   "app_validation.heading": "Valideringsfeil",
   "app_validation.task_settings.default_data_type.missing": "Oppgaven {{taskId}} mangler datamodell. Koble til en datamodell i Arbeidsflyt.",
   "app_validation.task_settings.default_data_type.not_found": "Oppgaven {{taskId}} er fortsatt koblet til datamodellen «{{dataTypeId}}», men den finnes ikke lenger. Opprett datamodellen på nytt, eller velg en annen datamodell i Arbeidsflyt.",
-  "app_validation.task_settings.errors": "Oppgaver mangler datamodellkobling.",
+  "app_validation.task_settings.errors": "Oppgaver mangler datamodellbinding.",
   "app_validation.task_settings.errors_description": "Uten datamodell kan appen krasje. Koble til en datamodell i Arbeidsflyt, eller klikk på lenken i den enkelte feilmeldingen under.",
   "branching.actions_heading": "Valg",
   "branching.delete_branch_dialog.description": "Bekreft at du vil slette grenen <strong>{{branchName}}</strong>. Du kan ikke gjenopprette den.",
