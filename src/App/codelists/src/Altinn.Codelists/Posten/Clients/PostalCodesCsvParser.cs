@@ -1,7 +1,7 @@
 ﻿namespace Altinn.Codelists.Posten.Clients;
 
 /// <summary>
-/// Class for parsing the offical postal codes file in Norway.
+/// Class for parsing the official postal codes file in Norway.
 /// Record description: https://www.bring.no/tjenester/adressetjenester/postnummer/postnummertabeller-veiledning
 /// File used: https://www.bring.no/postnummerregister-ansi.txt
 /// Examample record: 6863	LEIKANGER	4640	SOGNDAL	G

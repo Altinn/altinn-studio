@@ -304,6 +304,15 @@ async def run_loop(
             {"turn": turn, "stop_reason": response.stop_reason, "text": extract_text(response)},
         )
 
+        if is_cancelled and is_cancelled():
+            await _emit(on_event, "terminated", {"reason": "cancelled", "turn": turn})
+            return LoopResult(
+                reason=TerminationReason.CANCELLED,
+                messages=messages,
+                turns=turn,
+                usage=total_usage,
+            )
+
         # A turn cut off at the max_tokens budget must NEVER read as a
         # normal completion: the adapter drops the truncated (malformed)
         # trailing tool_use block, so a giant batched-writes turn can come
@@ -417,7 +426,7 @@ def _accumulate_usage(acc: dict[str, int], delta: dict[str, int]) -> None:
 def _tool_signature(tool_use: ToolUseBlock) -> str:
     """Stable fingerprint of (name, input).
 
-    Used by the anti-thrash check.  We hash the serialised input so a
+    Used by the anti-thrash check.  We hash the serialized input so a
     long argument blob doesn't bloat the recent-signatures buffer, and
     we sort keys so semantically-identical inputs in different field
     orders collapse to the same signature.

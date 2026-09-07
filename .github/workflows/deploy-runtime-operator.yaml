@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clone
+          persist-credentials: false
 
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
@@ -86,7 +86,11 @@ jobs:
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: docker build
-        run: docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-repo }} -f Dockerfile .
+        run: |
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-operator:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-operator:buildcache,mode=max \
+            -t ${{ steps.vars.outputs.ghcr-image-repo }} -f Dockerfile .
 
       - name: push images
         run: docker push ${{ steps.vars.outputs.ghcr-image-repo }}
@@ -122,7 +126,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clone
+          persist-credentials: false
 
       - name: az login
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1

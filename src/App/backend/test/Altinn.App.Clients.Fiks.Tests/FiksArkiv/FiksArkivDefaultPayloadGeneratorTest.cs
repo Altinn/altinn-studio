@@ -351,7 +351,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 )
                 .ReturnsAsync(archiveDocumentMetadata);
             configResolverMock
-                .Setup(x => x.GetCorrelationId(It.IsAny<Instance>()))
+                .Setup(x => x.GetInstanceReference(It.IsAny<Instance>()))
                 .Returns("https://hostname/org/app/instances/instance-owner/instance-id");
             configResolverMock
                 .Setup(x => x.GetRecipientParty(It.IsAny<Instance>(), It.IsAny<FiksArkivRecipient>()))

@@ -153,7 +153,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          add_button: 'person',
+          addButton: 'person',
         },
         ...mockContainer,
       },
@@ -396,7 +396,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          edit_button_open: 'button.open',
+          editButtonOpen: 'button.open',
         },
       },
       numRows: 4,
@@ -410,7 +410,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          edit_button_close: 'button.close',
+          editButtonClose: 'button.close',
         },
       },
       numRows: 4,
@@ -457,7 +457,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          save_button: 'button.save',
+          saveButton: 'button.save',
         },
       },
     });
@@ -467,6 +467,35 @@ describe('RepeatingGroupContainer', () => {
 
     const saveButton = screen.getByText('New save text');
     expect(saveButton).toBeInTheDocument();
+  });
+
+  describe('help text', () => {
+    it('should render the title and a help text button in showAll mode when a help text is set', async () => {
+      await render({
+        container: {
+          edit: { ...mockContainer.edit, mode: 'showAll' },
+          textResourceBindings: { title: 'Group title', help: 'Group help text' },
+        },
+        numRows: 1,
+      });
+
+      expect(screen.getByText('Group title')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+    });
+
+    it('should render the help text button when editing a row in hideTable mode', async () => {
+      await render({
+        container: {
+          edit: { ...mockContainer.edit, mode: 'hideTable' },
+          textResourceBindings: { title: 'Group title', help: 'Group help text' },
+        },
+        numRows: 1,
+      });
+
+      await userEvent.click(screen.getByRole('button', { name: /Rediger/i }));
+
+      expect(await screen.findByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+    });
   });
 });
 

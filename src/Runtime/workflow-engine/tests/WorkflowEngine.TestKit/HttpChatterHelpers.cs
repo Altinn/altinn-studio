@@ -46,6 +46,12 @@ public static class HttpChatterHelpers
     // localhost:{port} — dynamic port numbers from WireMock / test servers
     private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
+    // One entry of a scrubbed JSON map keyed by workflow id; the value pattern is deliberately narrow so a
+    // key whose value spans lines cannot be reordered.
+    private static readonly Regex ScrubbedGuidEntryPattern = new(
+        @"^(?<indent>[ \t]*)""Guid_(?<n>\d+)"": (?<value>""[^""\\]*""|-?\d+(?:\.\d+)?|true|false|null)(?<comma>,?)(?<cr>\r?)$"
+    );
+
     // W3C traceparent / ProblemDetails traceId: version-traceId-spanId-flags (e.g. "00-{32 hex}-{16 hex}-01").
     // Surfaces in 4xx ProblemDetails responses regardless of whether the traceparent header was scrubbed.
     private static readonly Regex TraceParentPattern = new(
@@ -260,7 +266,59 @@ public static class HttpChatterHelpers
         // 4. Replace dynamic port numbers
         result = LocalhostPortPattern.Replace(result, "localhost:{PORT}");
 
+        // 5. Put JSON objects keyed by workflow id in a fixed order
+        result = SortScrubbedGuidMaps(result);
+
         return result;
+    }
+
+    /// <summary>
+    /// Orders the entries of every JSON object whose keys are all scrubbed GUID tokens: the graph's maps
+    /// arrive in join order, which would dirty the snapshot on runs that changed nothing. It must run after
+    /// scrubbing — raw uuidv7 values minted in one millisecond sort by their random bits.
+    /// </summary>
+    private static string SortScrubbedGuidMaps(string text)
+    {
+        var lines = text.Split('\n');
+        var output = new List<string>(lines.Length);
+
+        var i = 0;
+        while (i < lines.Length)
+        {
+            if (!ScrubbedGuidEntryPattern.IsMatch(lines[i]))
+            {
+                output.Add(lines[i]);
+                i++;
+                continue;
+            }
+
+            // Sort the entries by token number but keep each slot's own punctuation, so an object that continues
+            // past the run stays intact.
+            var slots = new List<Match>();
+            while (i < lines.Length && ScrubbedGuidEntryPattern.Match(lines[i]) is { Success: true } match)
+            {
+                slots.Add(match);
+                i++;
+            }
+
+            var entries = slots
+                .Select(slot => (Token: int.Parse(slot.Groups["n"].Value), Value: slot.Groups["value"].Value))
+                .OrderBy(entry => entry.Token)
+                .ToArray();
+
+            for (var slot = 0; slot < slots.Count; slot++)
+            {
+                output.Add(
+                    slots[slot].Groups["indent"].Value
+                        + $"\"Guid_{entries[slot].Token}\": "
+                        + entries[slot].Value
+                        + slots[slot].Groups["comma"].Value
+                        + slots[slot].Groups["cr"].Value
+                );
+            }
+        }
+
+        return string.Join('\n', output);
     }
 
     /// <summary>

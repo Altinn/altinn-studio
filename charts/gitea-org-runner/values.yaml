@@ -57,25 +57,19 @@ shareWorkspace:
   sizeLimit: "10Gi"
 
 # Gitea connection details. Used both for the runner registration env vars
-# inside each Job pod, and for the KEDA scaler's queue-depth polling URL.
+# inside each Job pod, and to construct the KEDA scaler's per-org jobs URL.
 gitea:
   # Base URL of the Gitea instance (no /api/v1 suffix). Injected as
   # GITEA_INSTANCE_URL on the runner container so act_runner registers here.
   instanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
-  # Full API URL including /api/v1. Consumed by the KEDA github-runner scaler
-  # which polls the Actions queue. Gitea's Actions API is GitHub-compatible.
-  apiUrl: "http://altinn-repositories-public.default.svc.cluster.local/api/v1"
   # Labels advertised by the runner via GITEA_RUNNER_LABELS env var. The
   # `:host` suffix is act_runner's runner-type hint (run jobs natively in
   # the pod instead of in docker); only the part BEFORE the colon is the
   # label name workflows match against with `runs-on:`.
   runnerLabels: "ubuntu-latest:host"
-  # The label name (without runner-type suffix) the KEDA scaler filters
-  # workflow runs by. Must match the value workflows put in `runs-on:`.
-  # Derived from runnerLabels by stripping the ":<type>" suffix; expose
-  # separately so a workflow expecting "ubuntu-latest" isn't filtered out
-  # by a scaler looking for the literal "ubuntu-latest:host".
-  scalerLabels: "ubuntu-latest"
+  # The org-level jobs endpoint does not filter by runner labels. This matches
+  # the current single-label fleet. A workflow with an unsupported `runs-on`
+  # label can therefore start up to maxReplicaCount idle runners.
 
 # KEDA / ScaledJob configuration. Per-org caps live below in maxConcurrent*.
 keda:
@@ -83,9 +77,9 @@ keda:
   # ScaledJob, holding the read-only Gitea PAT the scaler uses to poll the
   # queue. Created out-of-band (one per cluster), not by this chart.
   authenticationRef:
-    name: keda-gitea-auth
-  # How often KEDA polls Gitea per ScaledJob. 30s is the KEDA default; raise
-  # if Gitea complains about request rate (1 req per org per pollingInterval).
+    name: keda-gitea-auth-bearer
+  # How often KEDA polls Gitea per ScaledJob. At 30s, 68 organizations produce
+  # approximately 2.3 lightweight requests per second in total.
   pollingInterval: 30
   # KEDA cleans up completed Jobs older than this many seconds.
   ttlSecondsAfterFinished: 300
@@ -97,17 +91,14 @@ keda:
   # K8s keeps the last N successful / failed Job records visible.
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
-  # How many queued workflows each runner is expected to drain. With "1",
-  # KEDA wants one new runner per queued workflow (subject to maxReplicaCount).
-  targetWorkflowQueueLength: "1"
+  # The per-org jobs endpoint's total_count value represented by one runner.
+  targetValue: "1"
 
 # Per-org concurrency caps. The chart applies maxConcurrentDefault to every
 # org unless overridden by an explicit entry in maxConcurrentOverrides.
 # maxConcurrentOverrides is keyed by org code (matching runners[].name).
 maxConcurrentDefault: 2
 maxConcurrentOverrides: {}
-  # brg: 6
-  # ssb: 5
 
 # List of orgs to render a ScaledJob for. Populated by the consumer (typically
 # the gitea-org-runner-config wrapper chart via Flux valuesFrom from the

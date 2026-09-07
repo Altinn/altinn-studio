@@ -9,9 +9,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 public interface IOrgTextsService
 {
     /// <summary>
-    /// Gets texts file in organisation repository according to specified language Code.
+    /// Gets texts file in organization repository according to specified language Code.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="languageCode">LanguageCode</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -26,7 +26,7 @@ public interface IOrgTextsService
     /// <summary>
     /// Saves text resource.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="textResource">The text resource to be saved</param>
     /// <param name="languageCode">LanguageCode</param>
@@ -42,7 +42,7 @@ public interface IOrgTextsService
     /// <summary>
     /// Updates values for specified keys in the text resource.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="keysTexts">KeysTexts</param>
     /// <param name="languageCode">LanguageCode</param>
@@ -58,7 +58,7 @@ public interface IOrgTextsService
     /// <summary>
     /// Gets ids for all text resources.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of text IDs.</returns>
@@ -67,7 +67,7 @@ public interface IOrgTextsService
     /// <summary>
     /// Gets languages based on the text resource file names.
     /// </summary>
-    /// <param name="org">Organisation.</param>
+    /// <param name="org">Organization.</param>
     /// <param name="developer">Username of developer.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of language codes.</returns>

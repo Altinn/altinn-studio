@@ -16,5 +16,5 @@
 
 .requiredIndicator {
   display: inline;
-  padding: var(--fds-spacing-2);
+  padding: var(--ds-size-2);
 }

@@ -11,7 +11,7 @@ internal static class AltinnUrns
 {
     public const string Org = "urn:altinn:org";
     public const string OrgNumber = "urn:altinn:orgno";
-    public const string OrganisationNumber = "urn:altinn:organization:identifier-no";
+    public const string OrganizationNumber = "urn:altinn:organization:identifier-no";
     public const string LegacyOrganizationNumber = "urn:altinn:organizationnumber";
     public const string PersonId = "urn:altinn:person:identifier-no";
     public const string UserId = "urn:altinn:userid";

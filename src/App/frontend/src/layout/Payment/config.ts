@@ -32,4 +32,11 @@ export const Config = new CG.component({
       description: 'Description, optionally shown below the title',
     }),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
+    }),
+  )
   .addSummaryOverrides();

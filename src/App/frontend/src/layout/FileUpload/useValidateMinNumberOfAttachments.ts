@@ -26,14 +26,13 @@ export function validateMinNumberOfAttachments(
   };
 }
 
-export function validateMinNumberOfAttachmentsForNode<T extends 'FileUpload' | 'FileUploadWithTag'>(
-  ctx: ComponentValidationContext<T>,
+export function validateMinNumberOfAttachmentsForNode(
+  ctx: ComponentValidationContext<'FileUpload'>,
 ): ComponentValidation[] {
-  const component = ctx.component as { id: string; minNumberOfAttachments?: unknown };
-  const minNumberOfAttachments = evalExpr(component.minNumberOfAttachments as never, ctx.expressionDataSources, {
+  const minNumberOfAttachments = evalExpr(ctx.component.minNumberOfAttachments, ctx.expressionDataSources, {
     returnType: ExprVal.Number,
     defaultValue: 0,
-  }) as number;
+  });
   const attachments = attachmentSelector(
     makeAttachmentNode(ctx.baseComponentId, ctx.component),
     ctx.formState,

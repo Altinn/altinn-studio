@@ -1,0 +1,15 @@
+ARG COORDINATOR_IMAGE
+FROM ${COORDINATOR_IMAGE} AS tools
+
+FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends libcap-ng0 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=tools \
+  /usr/local/bin/sandbox-image \
+  /usr/local/bin/sandbox-image
+COPY prepared-image /opt/altinn/prepared-image
+
+ENTRYPOINT ["/usr/local/bin/sandbox-image", "import"]

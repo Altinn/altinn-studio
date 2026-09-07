@@ -14,7 +14,6 @@ See the root [`/AGENTS.md`](../../AGENTS.md) for how this fits into Altinn 3 as 
 | `gateway` | Control-plane gateway between Studio/Designer and the runtime cluster; exposes Internal/Local/Public endpoint groups and clients for deploy/alerts/metrics. AOT-friendly. | .NET (C#) + Go tester | [gateway/AGENTS.md](gateway/AGENTS.md) |
 | `operator` | Kubernetes operator for Altinn 3, primarily managing Maskinporten clients via CRDs/reconcilers. | Go (Kubebuilder) | [operator/AGENTS.md](operator/AGENTS.md) |
 | `pdf3` | PDF-generation service: drives headless Chrome via CDP to render pages to PDF, deployed as proxy + worker, with veraPDF PDF/A validation. | Go (+ Node tooling) | [pdf3/AGENTS.md](pdf3/AGENTS.md) |
-| `k8s-kvm-device-plugin` | Minimal Kubernetes device plugin advertising `/dev/kvm` to non-privileged sandbox workloads. | Go | [k8s-kvm-device-plugin/AGENTS.md](k8s-kvm-device-plugin/AGENTS.md) |
 | `localtest` | Emulates the Altinn Platform services apps need, so developers can run/test apps locally without the cloud platform. Driven via Docker/Podman and `studioctl`. | .NET (C#) | [localtest/AGENTS.md](localtest/AGENTS.md) |
 | `devenv` | Container runtime fixture mirroring the real runtime environment for development and tests. | Go | [devenv/AGENTS.md](devenv/AGENTS.md) |
 | `kubernetes-wrapper` | REST API exposing information about Kubernetes deployments to other platform components. | .NET (C#) | [kubernetes-wrapper/AGENTS.md](kubernetes-wrapper/AGENTS.md) |

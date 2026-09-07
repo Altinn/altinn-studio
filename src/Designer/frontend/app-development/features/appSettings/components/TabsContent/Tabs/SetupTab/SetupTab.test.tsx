@@ -21,7 +21,7 @@ describe('SetupTab', () => {
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it('shows an error message if an error occured on the "getAppMetadata" query', async () => {
+  it('shows an error message if an error occurred on the "getAppMetadata" query', async () => {
     const errorMessage = 'error-message-test';
     const getAppMetadata = jest
       .fn()

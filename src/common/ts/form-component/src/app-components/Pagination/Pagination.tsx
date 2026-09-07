@@ -1,9 +1,8 @@
 import React from 'react';
 
 import {
-  useIsMini,
   useIsMobile,
-  useIsTablet,
+  useIsMobileOrTablet,
 } from '@app/form-component/app-components/hooks/useDeviceWidths';
 import {
   Field,
@@ -53,10 +52,9 @@ export const Pagination = ({
   showRowsPerPageDropdown = false,
   pageSize,
 }: PaginationProps) => {
-  const isMini = useIsMini();
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
-  const isCompact = compact || isMini || isTablet;
+  const isMobileOrTablet = useIsMobileOrTablet();
+  const isCompact = compact || isMobileOrTablet;
 
   const totalPages = Math.ceil(numberOfRows / pageSize);
   let showPages = isCompact ? 3 : 5;

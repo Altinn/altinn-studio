@@ -7,7 +7,7 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useLocalStorage } from '@studio/components-legacy';
+import { useLocalStorage } from '@studio/hooks';
 import {
   StudioPageError,
   StudioPageSpinner,
@@ -21,6 +21,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
+import { isSupportedComponentType } from '../data/formItemConfig';
 import {
   addItemOfType,
   getItem,
@@ -97,6 +98,7 @@ export const FormDesigner = (): JSX.Element => {
     const layout = formLayouts[selectedFormLayoutName];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
+      if (!isSupportedComponentType(type)) return;
       const newId = generateComponentId(type, formLayouts);
 
       if (!isComponentTypeValidChild(layout, parentId, type)) {

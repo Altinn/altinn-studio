@@ -20,7 +20,7 @@ export const Config = new CG.component({
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(
-        'organization_lookup_orgnr',
+        'orgnr',
         new CG.dataModelBinding()
           .setTitle('Data binding for organization number')
           .setDescription(
@@ -28,11 +28,11 @@ export const Config = new CG.component({
           ),
       ),
       new CG.prop(
-        'organization_lookup_name',
+        'name',
         new CG.dataModelBinding()
           .setTitle('Data binding for organization name')
           .setDescription(
-            'Describes the location in the data model where the component should store the name of the organisation.',
+            'Describes the location in the data model where the component should store the name of the organization.',
           )
           .optional(),
       ),

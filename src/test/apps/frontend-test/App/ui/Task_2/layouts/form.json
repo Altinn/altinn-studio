@@ -855,8 +855,8 @@
         "grid": {
           "md": 4
         },
-        "mapping": {
-          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        "queryParameters": {
+          "source": ["dataModel", "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"]
         }
       },
       {
@@ -876,8 +876,8 @@
         "grid": {
           "md": 4
         },
-        "mapping": {
-          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        "queryParameters": {
+          "source": ["dataModel", "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"]
         }
       },
       {
@@ -951,7 +951,7 @@
       },
       {
         "id": "fileUploadWithTags-changename",
-        "type": "FileUploadWithTag",
+        "type": "FileUpload",
         "textResourceBindings": {
           "title": "Last opp vedlegg og knytte den mot en tag",
           "tagTitle": "file type"

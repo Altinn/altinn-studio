@@ -13,7 +13,7 @@ public enum PartyType
     Person,
 
     /// <summary>
-    /// Represents an organisation.
+    /// Represents an organization.
     /// </summary>
     Organisation,
 }

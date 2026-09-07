@@ -5,5 +5,7 @@
 }
 
 .componentCellContent {
-  font: var(--fds-typography-label-small);
+  font-size: var(--ds-font-size-3);
+  line-height: var(--ds-line-height-sm);
+  font-weight: var(--ds-font-weight-medium);
 }

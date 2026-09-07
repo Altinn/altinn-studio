@@ -8,11 +8,13 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,6 +30,7 @@ public class ValidateControllerTests
     private static readonly Guid _instanceId = Guid.NewGuid();
 
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClientWithStorageMetadata> _metadataInstanceClientMock;
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IValidationService> _validationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
@@ -38,14 +41,21 @@ public class ValidateControllerTests
 
     public ValidateControllerTests()
     {
+        _metadataInstanceClientMock = _instanceClientMock.As<IInstanceClientWithStorageMetadata>();
+        var metadataDataClientMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
+        var mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
+
         _appMetadataMock
             .Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(new ApplicationMetadata($"{Org}/{App}") { DataTypes = [] });
 
         _services.AddSingleton(_instanceClientMock.Object);
+        _services.AddSingleton(_metadataInstanceClientMock.Object);
         _services.AddSingleton(_appMetadataMock.Object);
         _services.AddSingleton(_validationServiceMock.Object);
         _services.AddSingleton(_dataClientMock.Object);
+        _services.AddSingleton(metadataDataClientMock.Object);
+        _services.AddSingleton(mutationClientMock.Object);
         _services.AddSingleton(_appModelMock.Object);
         _services.AddSingleton(_translationServiceMock.Object);
         _services.AddSingleton(_appResourcesMock.Object);
@@ -61,9 +71,9 @@ public class ValidateControllerTests
         // Arrange
         Instance instance = new Instance { Id = "instanceId", Process = null };
 
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     App,
                     Org,
                     InstanceOwnerPartyId,
@@ -72,7 +82,7 @@ public class ValidateControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
 
         await using var sp = _services.BuildStrictServiceProvider();
         var validateController = sp.GetRequiredService<ValidateController>();
@@ -99,9 +109,9 @@ public class ValidateControllerTests
             Process = new ProcessState { CurrentTask = null },
         };
 
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     App,
                     Org,
                     InstanceOwnerPartyId,
@@ -110,7 +120,7 @@ public class ValidateControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
 
         await using var sp = _services.BuildStrictServiceProvider();
         var validateController = sp.GetRequiredService<ValidateController>();
@@ -153,9 +163,9 @@ public class ValidateControllerTests
             },
         };
 
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     App,
                     Org,
                     InstanceOwnerPartyId,
@@ -164,7 +174,7 @@ public class ValidateControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
 
         _validationServiceMock
             .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
@@ -194,9 +204,9 @@ public class ValidateControllerTests
             AppId = $"{Org}/{App}",
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } },
         };
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     App,
                     Org,
                     InstanceOwnerPartyId,
@@ -205,7 +215,7 @@ public class ValidateControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
 
         List<ValidationIssueWithSource> empty = [];
         _validationServiceMock
@@ -263,9 +273,9 @@ public class ValidateControllerTests
         var updateProcessResult = new HttpResponseMessage(HttpStatusCode.Forbidden);
         PlatformHttpException exception = await PlatformHttpException.Create(updateProcessResult);
 
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     App,
                     Org,
                     InstanceOwnerPartyId,
@@ -274,7 +284,7 @@ public class ValidateControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
 
         _validationServiceMock
             .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
@@ -293,5 +303,50 @@ public class ValidateControllerTests
         Assert.Equal(403, problemDetails.Status);
         Assert.Equal("Something went wrong.", problemDetails.Title);
         Assert.Equal(exception.Message, problemDetails?.Detail);
+    }
+
+    [Fact]
+    public async Task ValidateInstance_propagates_data_element_content_conflict_to_global_filter()
+    {
+        Guid dataElementId = Guid.NewGuid();
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{_instanceId}",
+            InstanceOwner = new() { PartyId = InstanceOwnerPartyId.ToString() },
+            Org = Org,
+            AppId = $"{Org}/{App}",
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } },
+        };
+        _metadataInstanceClientMock
+            .Setup(i =>
+                i.GetInstanceWithStorageMetadata(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+        _validationServiceMock
+            .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
+            .ThrowsAsync(
+                new DataElementContentConflictException(
+                    instance.Id,
+                    dataElementId,
+                    new PlatformHttpException(HttpStatusCode.PreconditionFailed, "stale")
+                )
+            );
+
+        await using var sp = _services.BuildStrictServiceProvider();
+        var controller = sp.GetRequiredService<ValidateController>();
+
+        var exception = await Assert.ThrowsAsync<DataElementContentConflictException>(() =>
+            controller.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
+        );
+
+        Assert.Equal(instance.Id, exception.InstanceId);
+        Assert.Equal(dataElementId, exception.DataElementId);
     }
 }

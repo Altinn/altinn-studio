@@ -185,7 +185,7 @@
           "group": "GoodsAndServicesProperties.Inventory.InventoryProperties"
         },
         "textResourceBindings": {
-          "add_button": "addClassification"
+          "addButton": "addClassification"
         },
         "maxCount": 99,
         "minCount": 1,

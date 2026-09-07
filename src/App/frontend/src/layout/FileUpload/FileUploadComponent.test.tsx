@@ -18,7 +18,7 @@ import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { CompExternalExact } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
@@ -371,7 +371,7 @@ describe('File uploading components', () => {
     await userEvent.click(saveButton);
   }
 
-  describe('FileUploadWithTagComponent', () => {
+  describe('FileUpload with tags', () => {
     function mockDelayedTagUpdate() {
       let resolveTagUpdate: ((value: { tags: string[] }) => void) | undefined;
       const tagUpdatePromise = new Promise<{ tags: string[] }>((resolve) => {
@@ -565,19 +565,17 @@ describe('File uploading components', () => {
     });
   });
 
-  type Types = 'FileUpload' | 'FileUploadWithTag';
-
-  interface Props<T extends Types> extends Partial<RenderGenericComponentTestProps<T>> {
-    type: T;
+  interface Props extends Partial<RenderGenericComponentTestProps<'FileUpload'>> {
     attachments?: (dataType: string) => IData[];
+    withTag: boolean;
   }
 
-  async function renderAbstract<T extends Types>({
-    type,
+  async function renderAbstract({
     component,
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
+    withTag,
     queries,
-  }: Props<T>) {
+  }: Props) {
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
 
@@ -595,18 +593,19 @@ describe('File uploading components', () => {
       description: 'attachment-description',
     };
 
-    const utils = await renderGenericComponentTest<T>({
-      type,
+    const utils = await renderGenericComponentTest<'FileUpload'>({
+      type: 'FileUpload',
       renderer: (props) => <FileUploadComponent {...props} />,
       component: {
         id,
-        displayMode: type === 'FileUpload' ? 'simple' : 'list',
+        type: 'FileUpload',
+        displayMode: withTag ? 'list' : 'simple',
         maxFileSizeInMB: 2,
-        maxNumberOfAttachments: type === 'FileUpload' ? 3 : 7,
+        maxNumberOfAttachments: withTag ? 7 : 3,
         minNumberOfAttachments: 1,
         readOnly: false,
         textResourceBindings,
-        ...(type === 'FileUploadWithTag' && {
+        ...(withTag && {
           optionsId: 'test-options-id',
           textResourceBindings: {
             ...textResourceBindings,
@@ -614,7 +613,7 @@ describe('File uploading components', () => {
           },
         }),
         ...component,
-      } as CompExternalExact<T>,
+      } as CompExternal<'FileUpload'>,
       queries: {
         fetchOptions: () =>
           Promise.resolve({
@@ -642,9 +641,8 @@ describe('File uploading components', () => {
     return { ...utils, id, attachments };
   }
 
-  const render = (props: Omit<Props<'FileUpload'>, 'type'> = {}) => renderAbstract({ type: 'FileUpload', ...props });
-  const renderWithTag = (props: Omit<Props<'FileUploadWithTag'>, 'type'> = {}) =>
-    renderAbstract({ type: 'FileUploadWithTag', ...props });
+  const render = (props: Omit<Props, 'withTag'> = {}) => renderAbstract({ ...props, withTag: false });
+  const renderWithTag = (props: Omit<Props, 'withTag'> = {}) => renderAbstract({ ...props, withTag: true });
 });
 
 function mockUploadResponse(newElement: IData, existingAttachments?: IData[]): DataPostResponse {

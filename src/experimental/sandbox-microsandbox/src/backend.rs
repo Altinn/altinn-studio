@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     path::{Path, PathBuf},
     rc::Rc,
     time::Instant,
@@ -23,7 +23,7 @@ use crate::{
     client::{Client, RuntimeResources},
     error,
     execution::ExecutionControls,
-    image::MicrosandboxImageResolver,
+    image::MicrosandboxImageBackend,
     network_endpoint, platform,
     state::{SandboxRecord, StateStore},
 };
@@ -35,11 +35,12 @@ const MATERIALIZE_DIRECT_ROOT_IMAGE: &str = "Materialize direct root image";
 const CREATE_RUNTIME: &str = "Create Microsandbox VM";
 const START_RUNTIME: &str = "Start Microsandbox VM";
 const UPDATE_RUNTIME_RESOURCES: &str = "Update Microsandbox VM resources";
+const UPDATE_RUNTIME_ENVIRONMENT: &str = "Update Microsandbox environment";
 
-/// Microsandbox Provider pairing its Sandbox Backend with its Image Resolver.
+/// Microsandbox Provider pairing its Sandbox Backend with its Image Backend.
 pub struct MicrosandboxProvider {
     pub(crate) client: Client,
-    image_resolver: MicrosandboxImageResolver,
+    image_backend: MicrosandboxImageBackend,
     pub(crate) state: StateStore,
     pub(crate) executions: ExecutionControls,
 }
@@ -48,6 +49,7 @@ pub struct MicrosandboxProvider {
 pub struct MicrosandboxProviderBuilder {
     home: PathBuf,
     cache_directory: Option<PathBuf>,
+    registry_authentication: Option<sandbox::image::RegistryAuthentication>,
     runtime_bundle: Option<RuntimeBundle>,
 }
 
@@ -64,6 +66,7 @@ impl MicrosandboxProvider {
         MicrosandboxProviderBuilder {
             home: home.into(),
             cache_directory: None,
+            registry_authentication: None,
             runtime_bundle: None,
         }
     }
@@ -78,15 +81,10 @@ impl MicrosandboxProvider {
         Self::builder(home.as_ref().to_path_buf()).open().await
     }
 
-    /// Returns the configured shared Microsandbox cache directory.
-    #[must_use]
-    pub fn cache_directory(&self) -> PathBuf {
-        self.client.cache_directory()
-    }
-
     async fn open_configured(
         home: PathBuf,
         cache_directory: Option<PathBuf>,
+        registry_authentication: Option<sandbox::image::RegistryAuthentication>,
         runtime_bundle: Option<RuntimeBundle>,
     ) -> Result<Self, Error> {
         if home.as_os_str().is_empty() {
@@ -111,10 +109,10 @@ impl MicrosandboxProvider {
         }
         let state = StateStore::open(home.join("state")).await?;
         let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
-        let image_resolver = MicrosandboxImageResolver::new(client.clone());
+        let image_backend = MicrosandboxImageBackend::new(client.clone(), registry_authentication);
         Ok(Self {
             client,
-            image_resolver,
+            image_backend,
             state,
             executions: Rc::new(RefCell::new(HashMap::new())),
         })
@@ -133,17 +131,9 @@ impl MicrosandboxProvider {
             Err(error) if error.is_not_found() => {}
             Err(error) => return Err(error),
         }
-        self.cached_image_reference(&request.image.digest).await?;
+        self.cached_image_reference(&request.image.manifest_digest).await?;
 
-        let record = SandboxRecord::new(
-            request.id,
-            request.name,
-            request.image,
-            request.resources,
-            request.init_system,
-            request.mounts,
-            request.network,
-        );
+        let record = SandboxRecord::new(request);
         self.state.save_sandbox(&record).await?;
         Ok(record.to_sandbox(SandboxState::Stopped))
     }
@@ -216,6 +206,42 @@ impl MicrosandboxProvider {
         }
 
         record.resources = resources;
+        self.state.update_sandbox(&record).await?;
+        self.inspect_record(&record).await
+    }
+
+    async fn update_sandbox_environment(
+        &self,
+        id: &SandboxId,
+        environment: BTreeMap<String, String>,
+        progress: &SandboxProgress,
+    ) -> Result<Sandbox, Error> {
+        let mut record = self.state.sandbox_by_id(id).await?;
+        if record.environment == environment {
+            return self.inspect_record(&record).await;
+        }
+        let sandbox = self.inspect_record(&record).await?;
+        if sandbox.state != SandboxState::Stopped {
+            return Err(Error::invalid("sandbox.state", "must be stopped"));
+        }
+
+        if let Some(handle) = self.runtime_handle(&record.runtime_name).await? {
+            let mut modification = handle.modify().next_start();
+            for name in record.environment.keys() {
+                if !environment.contains_key(name) {
+                    modification = modification.remove_env(name);
+                }
+            }
+            for (name, value) in &environment {
+                modification = modification.env(name, value);
+            }
+            let started = Instant::now();
+            let step = progress.start_step(UPDATE_RUNTIME_ENVIRONMENT).await;
+            modification.apply().await.map_err(error::microsandbox)?;
+            step.complete(started.elapsed()).await;
+        }
+
+        record.environment = environment;
         self.state.update_sandbox(&record).await?;
         self.inspect_record(&record).await
     }
@@ -294,7 +320,7 @@ impl MicrosandboxProvider {
         let started = Instant::now();
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
-        let image = self.cached_image_reference(&record.image.digest).await?;
+        let image = self.cached_image_reference(&record.image.manifest_digest).await?;
         step.complete(started.elapsed()).await;
         if record.resources.root_filesystem().mode() == RootFilesystemMode::Direct {
             let started = Instant::now();
@@ -304,6 +330,7 @@ impl MicrosandboxProvider {
         }
         let mut builder =
             Client::sandbox_builder(&record.runtime_name, image, record.resources)?.pull_policy(PullPolicy::Never);
+        builder = builder.envs(record.environment.clone());
         if record
             .network
             .as_ref()
@@ -327,17 +354,17 @@ impl MicrosandboxProvider {
         Ok(runtime)
     }
 
-    async fn cached_image_reference(&self, digest: &str) -> Result<String, Error> {
+    async fn cached_image_reference(&self, manifest_digest: &str) -> Result<String, Error> {
         let images = microsandbox::Image::list_local(self.client.local())
             .await
             .map_err(error::microsandbox)?;
         images
             .iter()
-            .find(|image| image.manifest_digest() == Some(digest))
+            .find(|image| image.manifest_digest() == Some(manifest_digest))
             .map(|image| image.reference().to_string())
             .ok_or_else(|| {
                 Error::Backend(format!(
-                    "image digest {digest} is not present in this Microsandbox cache"
+                    "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
                 ))
             })
     }
@@ -414,6 +441,13 @@ impl MicrosandboxProviderBuilder {
         self
     }
 
+    /// Supplies transient credentials used to resolve OCI registry references.
+    #[must_use]
+    pub fn registry_authentication(mut self, authentication: sandbox::image::RegistryAuthentication) -> Self {
+        self.registry_authentication = Some(authentication);
+        self
+    }
+
     /// Installs the Microsandbox host runtime from a verified local release bundle.
     ///
     /// The path must identify a platform-compatible Microsandbox `tar.gz`
@@ -434,7 +468,13 @@ impl MicrosandboxProviderBuilder {
     /// Returns an error when a configured path is empty or cannot be
     /// initialized by the Microsandbox runtime.
     pub async fn open(self) -> Result<MicrosandboxProvider, Error> {
-        MicrosandboxProvider::open_configured(self.home, self.cache_directory, self.runtime_bundle).await
+        MicrosandboxProvider::open_configured(
+            self.home,
+            self.cache_directory,
+            self.registry_authentication,
+            self.runtime_bundle,
+        )
+        .await
     }
 }
 
@@ -443,8 +483,8 @@ impl SandboxProvider for MicrosandboxProvider {
         self
     }
 
-    fn image_resolver(&self) -> &dyn sandbox::image::Resolver {
-        &self.image_resolver
+    fn image_backend(&self) -> &dyn sandbox::image::ImageBackend {
+        &self.image_backend
     }
 }
 
@@ -490,6 +530,16 @@ impl SandboxBackend for MicrosandboxProvider {
     fn update_resources<'a>(&'a self, id: &'a SandboxId, resources: SandboxResources) -> PendingOperation<'a, Sandbox> {
         PendingOperation::run(SandboxPhase::SandboxUpdate, move |progress| {
             Box::pin(async move { self.update_sandbox_resources(id, resources, &progress).await })
+        })
+    }
+
+    fn update_environment<'a>(
+        &'a self,
+        id: &'a SandboxId,
+        environment: BTreeMap<String, String>,
+    ) -> PendingOperation<'a, Sandbox> {
+        PendingOperation::run(SandboxPhase::SandboxUpdate, move |progress| {
+            Box::pin(async move { self.update_sandbox_environment(id, environment, &progress).await })
         })
     }
 
@@ -618,6 +668,7 @@ impl SandboxRecord {
             resources: self.resources,
             state,
             mounts: self.mounts.clone(),
+            environment: self.environment.clone(),
             network: self.network.clone(),
         }
     }

@@ -25,8 +25,8 @@ public class TextsController : ControllerBase
     /// <summary>
     /// Method to retrieve text resources
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="language">The text language to use.</param>
     /// <returns>The text resource file content or 404</returns>
     [ProducesResponseType(typeof(TextResource), StatusCodes.Status200OK)]

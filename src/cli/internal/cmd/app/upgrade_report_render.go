@@ -82,18 +82,12 @@ func upgradeStatusStyle(status studioctlserver.AppUpgradeStatus) (string, ui.Cel
 	}
 }
 
-// Upgrade exit codes, mirroring the ExitSuccess/ExitManualActionRequired constants in V8Tov9Upgrade.cs.
-const (
-	upgradeExitSuccess        = 0
-	upgradeExitManualRequired = 3
-)
-
 // printUpgradeVerdict closes every upgrade with what its exit code means.
 func printUpgradeVerdict(out *ui.Output, exitCode int) {
 	switch exitCode {
-	case upgradeExitSuccess:
+	case studioctlserver.AppUpgradeExitSuccess:
 		out.Success("Please verify that the application is still working as expected.")
-	case upgradeExitManualRequired:
+	case studioctlserver.AppUpgradeExitManualRequired:
 		out.Warning("Upgrade completed, but some steps need manual follow-up. Please review the warnings above.")
 	default:
 		out.Warning("Upgrade completed with errors. Please check for errors in the log above.")

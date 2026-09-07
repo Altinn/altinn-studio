@@ -48,9 +48,7 @@ const GROUPS = [
       '.github/workflows/designer-frontend-playwright-staging.yml',
       '.github/workflows/designer-frontend-run-playwright-on-pr.yaml',
       '.github/workflows/designer-frontend-unit-tests.yml',
-      '.github/workflows/storybook-to-github-pages.yaml',
       '.github/workflows/studio-components-deploy.yaml',
-      '.github/workflows/studio-components-legacy-deploy.yaml',
     ],
   },
   {
@@ -73,7 +71,7 @@ const GROUPS = [
     roots: [
       'src/cli',
       'src/gitea',
-      'src/gitea-runner',
+      'src/ci',
       'src/gitea-proxy',
       'src/load-balancer',
       'src/lhci-server',

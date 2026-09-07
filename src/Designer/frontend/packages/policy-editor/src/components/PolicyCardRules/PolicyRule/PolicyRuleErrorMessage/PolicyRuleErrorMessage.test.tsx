@@ -68,6 +68,11 @@ describe('PolicyRuleErrorMessage', () => {
     expect(screen.queryByText(errorText2)).not.toBeInTheDocument();
     expect(screen.queryByText(errorText3)).not.toBeInTheDocument();
   });
+
+  it('renders nothing at all when no errors exist, so no empty error icon is left behind', () => {
+    const { container } = renderPolicyRuleErrorMessage();
+    expect(container).toBeEmptyDOMElement();
+  });
 });
 
 const renderPolicyRuleErrorMessage = (

@@ -23,7 +23,7 @@ internal static class NetsMapper
                 ? new PayerCompany
                 {
                     Name = consumer.Company.Name,
-                    OrganisationNumber = consumer.Company.RegistrationNumber,
+                    OrganizationNumber = consumer.Company.RegistrationNumber,
                     ContactPerson = new PayerPrivatePerson
                     {
                         FirstName = consumer.Company.ContactDetails?.FirstName,

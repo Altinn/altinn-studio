@@ -5,7 +5,7 @@ using Altinn.Notifications.Core.Enums;
 namespace Altinn.Notifications.Core.Models.Address;
 
 /// <summary>
-/// A class represeting an sms address point
+/// A class representing an sms address point
 /// </summary>
 public class SmsAddressPoint : IAddressPoint
 {

@@ -23,7 +23,7 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
 
         using var response = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = partyId } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = partyId } }
         );
 
         using var data = await response.Read<Instance>();

@@ -116,7 +116,7 @@ the Dockerfiles in your working tree instead of pulling release images. It confi
 with a `Building and starting localtest environment (dev mode)...` message, and the first
 run is slower because the images are built locally.
 
-Requirements and behaviour:
+Requirements and behavior:
 
 - The current directory must be within a Studio repo checkout. studioctl detects the repo
   root and expects `src/Runtime/localtest/Dockerfile` to exist.

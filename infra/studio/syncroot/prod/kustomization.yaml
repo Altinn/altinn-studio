@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - ../base
   - ../base/github-runners.yaml
-  - ../base/k8s-kvm-device-plugin.yaml
+  - ../base/sandbox-node.yaml

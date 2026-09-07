@@ -88,7 +88,7 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
     /// Value of created repo path is stored in <see cref="TestRepoPath"/> property.
     /// Limitation is that only one repository can be cloned.
     /// </summary>
-    /// <param name="org">Organisation short name.</param>
+    /// <param name="org">Organization short name.</param>
     /// <param name="repo">Repository name.</param>
     /// <param name="developer">Developer username.</param>
     /// <param name="targetRepository">Test repository name.</param>
@@ -107,7 +107,7 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
     /// Value of created repo path is stored in <see cref="RemoteTestRepoPath"/> property.
     /// Limitation is that only one repository can be cloned.
     /// </summary>
-    /// <param name="org">Organisation short name.</param>
+    /// <param name="org">Organization short name.</param>
     /// <param name="repo">Repository name</param>
     /// <param name="targetRepository">Test repository name.</param>
     protected async Task CopyRemoteRepositoryForTest(string org, string repo, string targetRepository)
@@ -120,15 +120,15 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
     }
 
     /// <summary>
-    /// Copies a organisation and repository from the test repositories to a temporary location for testing.
+    /// Copies a organization and repository from the test repositories to a temporary location for testing.
     /// Ensures that created Folder is deleted after test.
     /// Value of created org path is stored in <see cref="TestOrgPath"/> property.
     /// Limitation is that only one org can be cloned.
     /// </summary>
     /// <param name="developer">Username of developer.</param>
-    /// <param name="org">Organisation short name.</param>
+    /// <param name="org">Organization short name.</param>
     /// <param name="repo">Repository name.</param>
-    /// <param name="targetOrg">Test organisation name.</param>
+    /// <param name="targetOrg">Test organization name.</param>
     /// <param name="targetRepository">test repository name.</param>
     /// <exception cref="InvalidOperationException"></exception>
     protected async Task CopyOrgRepositoryForTest(
@@ -141,7 +141,7 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
     {
         if (TestOrgPath is not null)
         {
-            throw new InvalidOperationException("Organisation already created for test.");
+            throw new InvalidOperationException("Organization already created for test.");
         }
         TestOrgPath = await TestDataHelper.CopyOrgForTest(developer, org, repo, targetOrg, targetRepository);
     }
@@ -150,9 +150,9 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
     /// Copies a repository from the test repositories to a temporary location for testing.
     /// </summary>
     /// <param name="developer">Username of developer.</param>
-    /// <param name="org">Organisation short name.</param>
+    /// <param name="org">Organization short name.</param>
     /// <param name="repo">Repository name.</param>
-    /// <param name="targetOrg">Test organisation name.</param>
+    /// <param name="targetOrg">Test organization name.</param>
     /// <param name="targetRepository">test repository name.</param>
     /// <exception cref="InvalidOperationException"></exception>
     /// <remarks>
@@ -168,7 +168,7 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
     {
         if (TestOrgPath is null)
         {
-            throw new InvalidOperationException("Organisation has not been instantiated for test.");
+            throw new InvalidOperationException("Organization has not been instantiated for test.");
         }
         await TestDataHelper.AddRepositoryToTestOrg(developer, org, repo, targetOrg, targetRepository);
     }

@@ -210,5 +210,13 @@ internal sealed record AppUpgradeResult(
         string output,
         string error,
         IReadOnlyList<UpgradeStep> steps
-    ) => new(true, exitCode, exitCode == 0 ? "upgrade completed" : "upgrade failed", output, error, steps);
+    ) =>
+        new(
+            true,
+            exitCode,
+            V8Tov9Upgrade.IsError(exitCode) ? "upgrade failed" : "upgrade completed",
+            output,
+            error,
+            steps
+        );
 }

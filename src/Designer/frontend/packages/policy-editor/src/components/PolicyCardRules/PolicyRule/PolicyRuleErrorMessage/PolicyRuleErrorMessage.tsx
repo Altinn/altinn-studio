@@ -3,7 +3,7 @@ import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
 import { StudioValidationMessage } from '@studio/components';
 
-export const PolicyRuleErrorMessage = (): React.ReactElement => {
+export const PolicyRuleErrorMessage = (): React.ReactElement | null => {
   const { t } = useTranslation();
   const { policyRule, policyError } = usePolicyRuleContext();
   const { resourceError, actionsError, subjectsError } = policyError;
@@ -38,5 +38,7 @@ export const PolicyRuleErrorMessage = (): React.ReactElement => {
     return '';
   };
 
-  return <StudioValidationMessage data-size='sm'>{getRuleErrorText()}</StudioValidationMessage>;
+  const ruleErrorText: string = getRuleErrorText();
+  if (!ruleErrorText) return null;
+  return <StudioValidationMessage data-size='sm'>{ruleErrorText}</StudioValidationMessage>;
 };

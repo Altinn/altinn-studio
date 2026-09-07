@@ -8,7 +8,7 @@ namespace Altinn.Notifications.Validators
     public static class ValidationConstants
     {
         /// <summary>
-        /// Required lenth for a national identity number
+        /// Required length for a national identity number
         /// </summary>
         public const int NationalIdentityNumberLength = 11;
 

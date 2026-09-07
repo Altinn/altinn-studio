@@ -42,6 +42,8 @@ export const processMetadataPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}/process-metadata`; // Get
 export const instanceDetailsPath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
+export const instanceDeletePath = (org: string, env: string, app: string, instanceId: string) =>
+  `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Delete
 
 /**
  * Returns an encoded query string from a key-value object, or an empty string if the object is empty.

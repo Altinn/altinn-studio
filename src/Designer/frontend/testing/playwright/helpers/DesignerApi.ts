@@ -2,6 +2,14 @@ import type { APIRequestContext, APIResponse } from '@playwright/test';
 import type { Environment } from './StudioEnvironment';
 import { StudioEnvironment } from './StudioEnvironment';
 import type { Cookie, StorageState } from '../types/StorageState';
+import type { AppTemplate } from '../enum/AppTemplate';
+
+export type CreateAppOptions = {
+  org?: string;
+  // App template id of the app scaffold (v8/v9) to create the app from. Omitted requests use the backend default.
+  appTemplate?: AppTemplate;
+};
+
 export class DesignerApi extends StudioEnvironment {
   constructor(environment?: Environment) {
     super(environment);
@@ -10,12 +18,13 @@ export class DesignerApi extends StudioEnvironment {
   public async createApp(
     request: APIRequestContext,
     storageState: StorageState,
-    org = this.org,
+    options: CreateAppOptions = {},
   ): Promise<APIResponse> {
     const headers = this.generateHeaders(storageState);
     const requestBody = {
-      org,
+      org: options.org ?? this.org,
       repository: this.app,
+      appTemplate: options.appTemplate,
     };
     return request.post(`/designer/api/repos/create-app`, { headers, data: requestBody });
   }

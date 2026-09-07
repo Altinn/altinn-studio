@@ -1,6 +1,6 @@
 import { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import type { TextResource } from '@studio/components-legacy';
+import type { TextResource } from '@studio/pure-functions';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { waitFor } from '@testing-library/react';
 

@@ -23,7 +23,7 @@ public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
     /// <summary>
     /// Initializes a new instance of the <see cref="AltinnGitRepositoryFactory"/> class.
     /// </summary>
-    /// <param name="repositoriesRootDirectory">Full path to the root directory wher the repositories recides on-disk.</param>
+    /// <param name="repositoriesRootDirectory">Full path to the root directory where the repositories reside on-disk.</param>
     public AltinnGitRepositoryFactory(string repositoriesRootDirectory)
     {
         _repositoriesRootDirectory = Path.GetFullPath(repositoriesRootDirectory); // We do this to normalize the path according to the OS and avoid slashes in all directions.

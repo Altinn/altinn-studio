@@ -229,6 +229,15 @@ internal class WorkflowWriteBuffer : BackgroundService
                         Assert.That(result.ErrorMessage is not null);
                         item.Completion.TrySetException(new InvalidWorkflowReferenceException(result.ErrorMessage));
                         break;
+
+                    // Outcomes rather than exceptions: ordinary answers, no workflow ids, each its own HTTP status.
+                    case BatchEnqueueResultStatus.MailboxNotFound:
+                    case BatchEnqueueResultStatus.MailboxLogFull:
+                        Assert.That(result.ErrorMessage is not null);
+                        item.Completion.TrySetResult(
+                            new WorkflowEnqueueOutcome([], result.Status, result.ErrorMessage)
+                        );
+                        break;
                 }
             }
 

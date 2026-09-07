@@ -34,17 +34,13 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
                 try
                 {
                     var status = await GetStatus(logger, cancellationToken);
-                    if (!status.Running)
-                    {
-                        _startedByFixture = !status.AnyRunning;
-                        logger.LogInformation("Starting localtest with studioctl env up");
-                        await Run("env up --detach", logger, cancellationToken);
-                    }
-                    else
-                    {
-                        _startedByFixture = false;
-                        logger.LogInformation("Reusing running studioctl localtest environment");
-                    }
+                    _startedByFixture = !status.Running && !status.AnyRunning;
+
+                    // Always reconcile, even when the environment is already up. STUDIOCTL_INTERNAL_DEV
+                    // builds localtest from this checkout, so a running environment may still be serving
+                    // an image built from older sources; env up rebuilds and recreates only what changed.
+                    logger.LogInformation("Reconciling localtest with studioctl env up");
+                    await Run("env up --detach", logger, cancellationToken);
 
                     if (_startedByFixture)
                         HookProcessExitTeardown(logger);

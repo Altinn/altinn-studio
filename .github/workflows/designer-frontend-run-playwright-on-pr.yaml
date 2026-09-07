@@ -11,7 +11,7 @@ on:
       - 'src/Designer/compose.yaml'
       - 'src/Designer/Dockerfile'
       - 'src/gitea/**'
-      - 'src/gitea-runner/**'
+      - 'src/ci/gitea-runner/**'
       - 'src/load-balancer/**'
       - 'package.json'
       - 'src/Designer/development/**'
@@ -30,13 +30,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright
     timeout-minutes: 35
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
 
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Generate .env file
         run: |
@@ -75,13 +75,31 @@ jobs:
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
 
-      - name: Playwright run
+      - name: Playwright setup
         working-directory: src/Designer/frontend/testing/playwright
         env:
           environment: local
         run: |
           yarn setup:local:env
-          yarn playwright:test:all
+
+      # Split per app template so the run log shows which version failed. Shares the
+      # environment above, which costs ~3x more than the tests themselves.
+      - name: Playwright run (v8)
+        working-directory: src/Designer/frontend/testing/playwright
+        env:
+          environment: local
+          PLAYWRIGHT_APP_TEMPLATES: v8
+        run: |
+          yarn playwright:test:all --output=test-results/v8
+
+      - name: Playwright run (v9)
+        if: ${{ !cancelled() }}  # a failing v8 must not hide the state of v9
+        working-directory: src/Designer/frontend/testing/playwright
+        env:
+          environment: local
+          PLAYWRIGHT_APP_TEMPLATES: v9
+        run: |
+          yarn playwright:test:all --output=test-results/v9
 
       - name: Store artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

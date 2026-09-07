@@ -4,6 +4,7 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
+    "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
     "react": "19.2.8",

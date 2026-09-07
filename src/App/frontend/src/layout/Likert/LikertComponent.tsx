@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Description, getDescriptionId, getLabelId } from '@app/form-component';
+import { Description, getDescriptionId, getLabelId, HelpTextContainer, useIsMobileOrTablet } from '@app/form-component';
 import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -9,7 +9,6 @@ import type { PropsFromGenericComponent } from '..';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Lang } from 'src/features/language/Lang';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -19,6 +18,41 @@ import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
+
+interface LikertTitleProps {
+  title: string;
+  description?: string;
+  help?: string;
+  componentId: string;
+  labelId: string;
+}
+
+function LikertTitle({ title, description, help, componentId, labelId }: LikertTitleProps) {
+  return (
+    <>
+      <div className={classes.likertTitleAndHelp}>
+        <Heading
+          id={labelId}
+          level={2}
+          data-size='sm'
+        >
+          <Lang id={title} />
+        </Heading>
+        {help && (
+          <HelpTextContainer
+            id={componentId}
+            title={title}
+            helpText={<Lang id={help} />}
+          />
+        )}
+      </div>
+      <Description
+        description={description && <Lang id={description} />}
+        componentId={componentId}
+      />
+    </>
+  );
+}
 
 export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'Likert'>) => {
   const { id, dataModelBindings, textResourceBindings, columns } = useItemWhenType(baseComponentId, 'Likert');
@@ -30,6 +64,8 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   const indexedId = useIndexedId(baseComponentId);
   const title = textResourceBindings?.title;
   const description = textResourceBindings?.description;
+  const help = textResourceBindings?.help;
+  const labelId = getLabelId(indexedId);
 
   if (mobileView) {
     return (
@@ -39,28 +75,20 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
         data-componentbaseid={baseComponentId}
       >
         {title && (
-          <div
-            className={classes.likertHeading}
-            id={getLabelId(indexedId)}
-          >
-            <Heading
-              level={2}
-              data-size='sm'
-            >
-              <Lang id={title} />
-            </Heading>
-            {description && (
-              <Description
-                description={<Lang id={description} />}
-                componentId={indexedId}
-              />
-            )}
+          <div className={classes.likertHeading}>
+            <LikertTitle
+              title={title}
+              description={description}
+              help={help}
+              componentId={indexedId}
+              labelId={labelId}
+            />
           </div>
         )}
         <div
           role='group'
           className={classes.likertMobileGroup}
-          aria-labelledby={textResourceBindings?.title ? getLabelId(indexedId) : undefined}
+          aria-labelledby={textResourceBindings?.title ? labelId : undefined}
           aria-describedby={textResourceBindings?.description ? getDescriptionId(indexedId) : undefined}
         >
           {rows.map((row) =>
@@ -92,22 +120,17 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
           id={id}
           border
           className={classes.likertTable}
-          aria-describedby={textResourceBindings?.description ? getDescriptionId(id) : undefined}
+          aria-labelledby={title ? labelId : undefined}
+          aria-describedby={textResourceBindings?.description ? getDescriptionId(indexedId) : undefined}
         >
           {title && (
-            <caption
-              id={getLabelId(indexedId)}
-              className={classes.likertHeading}
-            >
-              <Heading
-                level={2}
-                data-size='sm'
-              >
-                <Lang id={title} />
-              </Heading>
-              <Description
-                description={description && <Lang id={description} />}
+            <caption className={classes.likertHeading}>
+              <LikertTitle
+                title={title}
+                description={description}
+                help={help}
                 componentId={indexedId}
+                labelId={labelId}
               />
             </caption>
           )}

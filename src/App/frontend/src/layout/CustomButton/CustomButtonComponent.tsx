@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
-import { Button } from '@app/form-component';
+import { CustomButton } from '@app/form-component';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import type { ButtonColor, ButtonVariant } from '@app/form-component';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -13,14 +13,12 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
@@ -35,7 +33,7 @@ type UpdatedDataModels = {
 };
 
 /**
- * This is the format we get from app-lib, it turns out mapping BackendValidationIssueGroups on a per-dataelement basis is unecessary,
+ * This is the format we get from app-lib, it turns out mapping BackendValidationIssueGroups on a per-dataelement basis is unnecessary,
  * and so this mapping is simply un-done after receiving it. To avoid breaking changes which would require handling multiple
  * formats in app-frontend, we decided to leave it as is for now, as it does not have any practical consequences. In a future
  * major/breaking release which would require a specific backend version, this could be changed to simply return a single BackendValidationIssueGroups object.
@@ -175,30 +173,7 @@ function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
   };
 }
 
-export const buttonStyles: { [style in CBTypes.ButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
-  primary: { variant: 'primary', color: 'success' },
-  secondary: { variant: 'secondary', color: 'first' },
-  tertiary: { variant: 'tertiary', color: 'second' },
-};
-
-function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {
-  switch (size) {
-    case 'sm':
-    case 'small':
-      return 'sm';
-    case 'md':
-    case 'medium':
-      return 'md';
-    case 'lg':
-    case 'large':
-      return 'lg';
-    default:
-      return 'md';
-  }
-}
-
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
-  const { langAsString } = useLanguage();
   const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useItemWhenType(
     baseComponentId,
     'CustomButton',
@@ -291,22 +266,16 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
       }
     });
 
-  const style = buttonStyles[interceptedButtonStyle];
-
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <Button
-        id={`custom-button-${id}`}
-        disabled={disabled}
-        onClick={onClick}
-        size={toShorthandSize(buttonSize)}
-        color={buttonColor ?? style.color}
-        variant={style.variant}
-        isLoading={isThisProcessing}
-        loadingLabel={langAsString('general.loading')}
-      >
-        <Lang id={buttonText} />
-      </Button>
-    </ComponentStructureWrapper>
+    <CustomButton
+      componentId={id}
+      title={buttonText}
+      buttonStyle={interceptedButtonStyle}
+      buttonColor={buttonColor}
+      buttonSize={buttonSize}
+      disabled={disabled}
+      isLoading={isThisProcessing}
+      onClick={onClick}
+    />
   );
 };

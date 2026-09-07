@@ -66,3 +66,9 @@ Altinn, and making sure they are consistent. */
   border-inline-start: 1px solid #dde3e5;
   border-inline-end: 1px solid #dde3e5;
 }
+
+.likertTitleAndHelp {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}

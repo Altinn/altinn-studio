@@ -4,13 +4,30 @@ namespace WorkflowEngine.Data.Constants;
 
 internal static class PersistentItemStatusMap
 {
+    /// <summary>
+    /// Non-terminal states, including <see cref="PersistentItemStatus.Held"/> — wider than
+    /// <see cref="Fetchable"/>. Also enqueue admission control: the active-workflow count derives from it, so
+    /// a held receiver consumes admission budget for as long as its mailbox stays open.
+    /// </summary>
     public static IReadOnlyCollection<PersistentItemStatus> Incomplete =>
         [
             PersistentItemStatus.Enqueued,
             PersistentItemStatus.Processing,
             PersistentItemStatus.Requeued,
             PersistentItemStatus.Waiting,
+            PersistentItemStatus.Held,
         ];
+
+    /// <summary>
+    /// The statuses the fetch gate can claim: excludes <see cref="PersistentItemStatus.Processing"/> (already
+    /// claimed) and <see cref="PersistentItemStatus.Held"/> (released only by the event it waits on).
+    /// </summary>
+    /// <remarks>
+    /// Both the partial index and <c>FetchAndLockWorkflows</c> read this set via
+    /// <see cref="FetchableSqlList"/>, so neither can drift from it.
+    /// </remarks>
+    public static IReadOnlyCollection<PersistentItemStatus> Fetchable =>
+        [PersistentItemStatus.Enqueued, PersistentItemStatus.Requeued, PersistentItemStatus.Waiting];
 
     public static IReadOnlyCollection<PersistentItemStatus> Successful => [PersistentItemStatus.Completed];
 
@@ -37,7 +54,19 @@ internal static class PersistentItemStatusMap
     /// <see cref="Incomplete"/> as a comma-separated list of integer literals.
     /// Same constancy contract as <see cref="FinishedSqlList"/>.
     /// </summary>
-    public const string IncompleteSqlList = "0, 1, 2, 8";
+    public const string IncompleteSqlList = "0, 1, 2, 8, 9";
+
+    /// <summary>
+    /// <see cref="Fetchable"/> as integer literals, interpolated into the partial index filter so the index
+    /// and the set cannot drift. Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string FetchableSqlList = "0, 2, 8";
+
+    /// <summary>
+    /// <see cref="PersistentItemStatus.Processing"/> as an integer literal, for interpolation
+    /// into compile-time-constant SQL. Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string ProcessingSqlLiteral = "1";
 
     /// <summary>
     /// Renders a status set as a comma-separated list of integer literals, in ascending order

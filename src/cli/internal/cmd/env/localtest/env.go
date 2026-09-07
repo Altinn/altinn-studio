@@ -207,6 +207,39 @@ func (e *Env) Reset(ctx context.Context) error {
 	return nil
 }
 
+// ResetWorkflowEngineData stops localtest if needed and deletes the workflow-engine database,
+// keeping the persisted localtest instance data.
+func (e *Env) ResetWorkflowEngineData(ctx context.Context) error {
+	toolchain := e.client.Toolchain()
+	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
+
+	if err := CheckForLegacyLocaltest(ctx, e.client); err != nil {
+		return err
+	}
+
+	hasResources, err := e.hasManagedResources(ctx)
+	if err != nil {
+		return err
+	}
+	if hasResources {
+		destroyManifest := components.NewManifest(e.buildDestroyOptions())
+		if err := e.destroyResources(ctx, destroyManifest.Resources, stoppingEnvironmentMessage); err != nil {
+			return fmt.Errorf("stop environment: %w", err)
+		}
+	}
+
+	e.out.Println("Deleting persisted workflow-engine data...")
+	if err := e.removeLegacyWorkflowEngineDbData(ctx, components.WorkflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
+		e.out.Verbosef("Failed to remove legacy workflow-engine database data: %v", err)
+	}
+	if err := e.removeWorkflowEngineDbVolume(ctx); err != nil {
+		return err
+	}
+
+	e.out.Success("Workflow-engine data reset")
+	return nil
+}
+
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
 	return e.status(ctx, statusOptions{

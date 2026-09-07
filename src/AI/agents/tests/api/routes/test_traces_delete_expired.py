@@ -7,7 +7,7 @@ import httpx
 from fastapi.testclient import TestClient
 
 from api.main import app
-from services.traces.delete_expired_traces import PAGE_SIZE
+from shared.utils.langfuse_public_api import PAGE_SIZE
 
 TRACE_CLEANUP_PATH = "/api/traces/delete-expired"
 LANGFUSE_CONFIG = SimpleNamespace(
@@ -47,8 +47,11 @@ def _stateful_handler(remaining: list[str], deleted_batches: list[list[str]]):
             for trace_id in batch:
                 remaining.remove(trace_id)
             return httpx.Response(200, json={})
-        page = [{"id": trace_id} for trace_id in remaining[:PAGE_SIZE]]
-        return httpx.Response(200, json={"data": page})
+        page = [
+            {"id": f"span-{trace_id}", "traceId": trace_id}
+            for trace_id in remaining[:PAGE_SIZE]
+        ]
+        return httpx.Response(200, json={"data": page, "meta": {}})
 
     return handler
 

@@ -1,93 +1,140 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Composes a service task's pipeline inside <see cref="IPipelineServiceTask.Define"/>: zero or
-/// more <see cref="Stage"/> calls, ended by the one <see cref="Finally"/>. The types enforce the
-/// shape — <see cref="Finally"/> is the only way to obtain the <see cref="ServiceTaskPipeline"/>
-/// that <c>Define</c> must return, so a pipeline always ends with exactly one conclusion.
+/// Composes a service task's pipeline inside <see cref="IPipelineServiceTask.Define"/>: zero or more
+/// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
+/// calls and <see cref="HandleReplies"/> handlers, in any order, ended by exactly one terminal —
+/// <see cref="Finally"/> or <see cref="ConcludeOnReplies"/>, the only sources of the
+/// <see cref="ServiceTaskPipeline"/> that <c>Define</c> must return. Composition mistakes throw from the
+/// composing call and fail app startup. Authoring guidance: <c>docs/service-task-pipelines.md</c> in the
+/// app-lib repository.
 /// </summary>
-/// <remarks>
-/// The builder validates eagerly: an empty or duplicate stage name, a null work delegate, or
-/// invalid <see cref="ProcessStepOptions"/> throw from the composing call itself, which surfaces
-/// as an app startup failure when the pipeline is validated.
-/// </remarks>
 public sealed class ServiceTaskPipelineBuilder
 {
-    private readonly List<ServiceTaskStage> _stages = [];
+    private readonly List<PipelineItem> _items = [];
 
     /// <summary>
-    /// Adds a durable stage, executed in composition order before the pipeline's conclusion. The
-    /// stage runs as its own workflow-engine step and never runs again once it reports
-    /// <see cref="ServiceTaskStageResult.Completed"/>; a retry or resume re-enters the pipeline at
-    /// the failed stage.
+    /// The mailboxes this builder has issued handles for, each carrying what answers it. A fresh builder per
+    /// <c>Define</c> call, so this is one pipeline's whole set.
     /// </summary>
-    /// <param name="name">
-    /// The stage's identity — in the engine's records, and how a callback finds its way back to
-    /// this stage. Printable ASCII only (it travels in HTTP header values). <strong>A
-    /// compatibility surface for in-flight workflows:</strong> a workflow enqueued with this
-    /// stage keeps calling back by name until it settles. Renaming the work method is free; this
-    /// literal is what must not drift.
-    /// </param>
+    private readonly List<IssuedMailbox> _mailboxes = [];
+
+    /// <summary>
+    /// Not constructible by apps: a <c>Define</c> spreading its composition over two builders could lose a
+    /// mailbox declaration made on the one it did not return from.
+    /// </summary>
+    internal ServiceTaskPipelineBuilder() { }
+
+    /// <summary>
+    /// Adds a durable stage, executed in composition order before the pipeline's conclusion. A completed
+    /// stage never runs again; a retry or resume re-enters the pipeline at the failed stage.
+    /// </summary>
     /// <param name="work">
-    /// The stage's work. <strong>MUST be idempotent — it may be retried on failure.</strong> Use
-    /// <see cref="ServiceTaskContext.StepId"/> as the idempotency key for an outbound call the
-    /// stage must not repeat. Data changes via <see cref="ServiceTaskContext.InstanceDataMutator"/>
-    /// are saved when the stage completes; a deferring attempt saves nothing.
+    /// The stage's work. <strong>MUST be idempotent — it may be retried on failure</strong>; use
+    /// <see cref="ServiceTaskContext.StepId"/> as the idempotency key for calls the stage must not repeat.
     /// </param>
     /// <param name="options">
-    /// Optional per-stage execution options (timeout, retry strategy, wait budget) for the engine
-    /// step this stage becomes, winning field-wise over the task's own
+    /// Optional per-stage execution options, winning field-wise over the task's own
     /// <see cref="IProcessStepConfigurable.StepOptions"/>.
     /// </param>
     public ServiceTaskPipelineBuilder Stage(
-        string name,
         Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work,
         ProcessStepOptions? options = null
     )
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(work);
-        if (name.Any(c => c < 0x20 || c > 0x7E))
-        {
-            throw new ArgumentException(
-                $"Stage name '{name}' contains a character outside printable ASCII. Stage names travel in "
-                    + "engine step identities that cross HTTP header boundaries, which reject non-ASCII values.",
-                nameof(name)
-            );
-        }
-        if (_stages.Any(s => string.Equals(s.Name, name, StringComparison.Ordinal)))
-        {
-            throw new ArgumentException(
-                $"Duplicate stage name '{name}'. Names are the stages' identity and must be unique within the pipeline.",
-                nameof(name)
-            );
-        }
         options?.Validate();
-
-        _stages.Add(new ServiceTaskStage(name, work, options));
+        _items.Add(new ServiceTaskStage.Plain(work, options));
         return this;
     }
 
     /// <summary>
-    /// Ends the pipeline with its conclusion — the one step that decides how the task concludes
-    /// (success, auto-advance action, park, defer, failure), executed after every stage has
-    /// completed. For a polling pipeline this is where the wait lives: return
-    /// <see cref="ServiceTaskResult.Defer"/> until the outcome arrives, bounded by the task's
-    /// <see cref="ProcessStepOptions.WaitBudget"/>.
+    /// Adds a durable stage that <strong>opens a mailbox</strong>: a durable inbox whose id the stage
+    /// publishes as its reply address. Every message that comes back runs the handler that answers
+    /// <paramref name="handle"/>. Otherwise an ordinary stage — except that its vocabulary,
+    /// <see cref="ServiceTaskOpeningStageResult"/>, adds
+    /// <see cref="ServiceTaskOpeningStageResult.Conclude"/> for the send whose failure already settles the
+    /// task (see that member's remarks).
+    /// </summary>
+    /// <param name="work">The stage's work, handed the mailbox it opened.</param>
+    /// <param name="mailbox">How long the mailbox accepts messages.</param>
+    /// <param name="handle">
+    /// The opened mailbox, to be passed to <see cref="HandleReplies"/> or <see cref="ConcludeOnReplies"/> —
+    /// exactly once.
+    /// </param>
+    /// <param name="options">Optional per-stage execution options, as above.</param>
+    public ServiceTaskPipelineBuilder Stage(
+        Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
+        MailboxOptions mailbox,
+        out MailboxHandle handle,
+        ProcessStepOptions? options = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(work);
+        ArgumentNullException.ThrowIfNull(mailbox);
+        mailbox.Validate();
+        options?.Validate();
+        int openingIndex = _items.Count;
+        _items.Add(new ServiceTaskStage.MailboxOpening(work, mailbox, options));
+
+        handle = new MailboxHandle(this, openingIndex);
+        _mailboxes.Add(new IssuedMailbox(handle));
+        return this;
+    }
+
+    /// <summary>
+    /// Answers the exchange on the mailbox <paramref name="handle"/> names <strong>without concluding the
+    /// task</strong>: <paramref name="onMessage"/> runs once per message until it says the exchange is over,
+    /// and then the pipeline carries on with whatever is composed after this call.
+    /// </summary>
+    /// <param name="handle">The mailbox this handler answers, from the stage that opened it.</param>
+    /// <param name="onMessage">
+    /// Answers one message: <see cref="ServiceTaskStageExchangeResult.AwaitNextReply"/> to be called again on
+    /// the next one, <see cref="ServiceTaskStageResult.Completed"/> to end the exchange and let the pipeline
+    /// continue.
+    /// </param>
+    /// <param name="onClosed">
+    /// Answers the mailbox closing with the exchange unfinished — fatal
+    /// (<see cref="ServiceTaskStageResult.FailedPermanent"/>), or simply the end of an exchange the task can
+    /// live without (<see cref="ServiceTaskStageResult.Completed"/>).
+    /// </param>
+    /// <param name="options">Optional execution options for the step each execution of these handlers runs as.</param>
+    /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
+    /// <exception cref="InvalidOperationException"><paramref name="handle"/> is already answered.</exception>
+    public ServiceTaskPipelineBuilder HandleReplies(
+        MailboxHandle handle,
+        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage,
+        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed,
+        ProcessStepOptions? options = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(handle);
+        ArgumentNullException.ThrowIfNull(onMessage);
+        ArgumentNullException.ThrowIfNull(onClosed);
+        options?.Validate();
+
+        ClaimMailbox(handle, MailboxAnswer.Segment);
+        _items.Add(new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options));
+        return this;
+    }
+
+    /// <summary>
+    /// Ends the pipeline with its conclusion — the one step that decides how the task concludes, executed
+    /// once everything composed before it has finished. For a polling pipeline this is where the wait lives:
+    /// return <see cref="ServiceTaskResult.Defer"/> until the outcome arrives.
     /// </summary>
     /// <param name="work">
-    /// The concluding work. The idempotency and state-saving rules of
-    /// <see cref="Stage(string, Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
+    /// The concluding work. The idempotency rules of
+    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
     /// apply here too.
     /// </param>
     /// <param name="options">
-    /// Optional execution options (timeout, retry strategy, wait budget) for the concluding step
-    /// alone, winning field-wise over the task's own
-    /// <see cref="IProcessStepConfigurable.StepOptions"/>. Declare a polling pipeline's
-    /// <see cref="ProcessStepOptions.WaitBudget"/> here rather than on the task: the task's options
-    /// are inherited by every stage as well, so a budget declared there is also handed to stages
-    /// that never wait, where it reads as though it might apply.
+    /// Optional execution options for the concluding step alone. Declare a polling pipeline's
+    /// <see cref="ProcessStepOptions.WaitBudget"/> here rather than on the task.
     /// </param>
+    /// <exception cref="InvalidOperationException">
+    /// A mailbox this pipeline opens is left unanswered.
+    /// </exception>
     public ServiceTaskPipeline Finally(
         Func<ServiceTaskContext, Task<ServiceTaskResult>> work,
         ProcessStepOptions? options = null
@@ -95,6 +142,139 @@ public sealed class ServiceTaskPipelineBuilder
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
-        return new ServiceTaskPipeline([.. _stages], work, options);
+
+        RequireEveryMailboxAnswered(nameof(Finally), answeredHere: null);
+
+        return new ServiceTaskPipeline(_items, new PipelineConclusion.FinalStep(work, options));
+    }
+
+    /// <summary>
+    /// Ends the pipeline with the exchange on the mailbox <paramref name="handle"/> names:
+    /// <paramref name="onMessage"/> runs once per message until it concludes the task or the mailbox's
+    /// timeout runs out. Concluding closes the mailbox first, so no later message can land in an exchange
+    /// already answered.
+    /// </summary>
+    /// <param name="handle">The mailbox this terminal answers, from the stage that opened it.</param>
+    /// <param name="onMessage">Answers one message: conclude the task, or await the next.</param>
+    /// <param name="onClosed">
+    /// Answers the mailbox closing with the task still unconcluded. It cannot ask for another message.
+    /// </param>
+    /// <param name="options">
+    /// Optional execution options for the step each execution of these handlers runs as. A
+    /// <see cref="ProcessStepOptions.WaitBudget"/> here bounds the handler's own deferrals per message — not
+    /// the wait for a message, which is <see cref="MailboxOptions.Timeout"/>.
+    /// </param>
+    /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="handle"/> is already answered, or another mailbox this pipeline opens is left
+    /// unanswered.
+    /// </exception>
+    public ServiceTaskPipeline ConcludeOnReplies(
+        MailboxHandle handle,
+        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
+        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
+        ProcessStepOptions? options = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(handle);
+        ArgumentNullException.ThrowIfNull(onMessage);
+        ArgumentNullException.ThrowIfNull(onClosed);
+        options?.Validate();
+
+        ClaimMailbox(handle, MailboxAnswer.Terminal);
+        RequireEveryMailboxAnswered(nameof(ConcludeOnReplies), answeredHere: handle);
+
+        return new ServiceTaskPipeline(
+            _items,
+            new PipelineConclusion.ReplyExchange(handle.OpeningIndex, onMessage, onClosed, options)
+        );
+    }
+
+    /// <summary>
+    /// Claims the mailbox <paramref name="handle"/> names for the handler being composed: the two things the
+    /// type system cannot say — that the handle came from this builder, and that nothing answers it yet.
+    /// </summary>
+    private void ClaimMailbox(MailboxHandle handle, MailboxAnswer answer)
+    {
+        if (!ReferenceEquals(handle.Owner, this))
+        {
+            throw new ArgumentException(
+                $"The mailbox opened at index {handle.OpeningIndex} belongs to another task's pipeline, so "
+                    + "this one cannot answer it. Pass the handle handed out by this pipeline's own mailbox-opening "
+                    + "stage.",
+                nameof(handle)
+            );
+        }
+
+        // Owned by this builder, so this builder issued it, so it is registered.
+        IssuedMailbox mailbox = _mailboxes.Single(m => ReferenceEquals(m.Handle, handle));
+        if (mailbox.Answer is not MailboxAnswer.None)
+        {
+            throw new InvalidOperationException(
+                $"The mailbox opened at index {handle.OpeningIndex} is already answered by an earlier "
+                    + $"handler. Each mailbox is answered exactly once — by {nameof(HandleReplies)} or by "
+                    + $"{nameof(ConcludeOnReplies)}, never by both and never twice — so a second handler for the "
+                    + "same exchange would be dead code."
+            );
+        }
+
+        mailbox.Answer = answer;
+    }
+
+    /// <summary>
+    /// The completeness check both terminals run: a terminal is the end of the composition, so a mailbox
+    /// still waiting for its handler here is waiting for a call that will never be made. An earlier
+    /// terminal's answer does not count — it belongs to the pipeline that terminal returned.
+    /// </summary>
+    private void RequireEveryMailboxAnswered(string terminal, MailboxHandle? answeredHere)
+    {
+        IssuedMailbox? unanswered = _mailboxes.FirstOrDefault(m =>
+            m.Answer is not MailboxAnswer.Segment && !ReferenceEquals(m.Handle, answeredHere)
+        );
+        if (unanswered is null)
+        {
+            return;
+        }
+
+        int openingIndex = unanswered.Handle.OpeningIndex;
+        throw new InvalidOperationException(
+            unanswered.Answer is MailboxAnswer.Terminal
+                ? $"The mailbox opened at index {openingIndex} is answered by an earlier {nameof(ConcludeOnReplies)}, but "
+                    + $"that answer is the conclusion of the pipeline that call returned — and this {terminal} "
+                    + "returns a different pipeline, in which nothing answers it. A Define composes one terminal "
+                    + "and returns it; two terminals on one builder are two pipelines, and the one left behind "
+                    + "takes its exchange's answer with it."
+                : $"A mailbox is opened at index {openingIndex}, but nothing answers it, and this pipeline ends "
+                    + $"here with {terminal}: the messages that come back would have no handler, and nothing in "
+                    + $"this pipeline would ever read them. Answer it before the pipeline ends — with "
+                    + $"{nameof(HandleReplies)} to carry on afterwards, or with {nameof(ConcludeOnReplies)} to end "
+                    + "there — passing the handle the stage handed out."
+        );
+    }
+
+    /// <summary>One mailbox this builder issued a handle for, and what answers it.</summary>
+    private sealed class IssuedMailbox(MailboxHandle handle)
+    {
+        internal MailboxHandle Handle { get; } = handle;
+
+        internal MailboxAnswer Answer { get; set; }
+    }
+
+    /// <summary>What answers a mailbox — and, for a terminal, where that answer lives.</summary>
+    private enum MailboxAnswer
+    {
+        None,
+
+        /// <summary>
+        /// A <see cref="HandleReplies"/> handler answers it — an item, traveling with every pipeline this
+        /// builder can still return.
+        /// </summary>
+        Segment,
+
+        /// <summary>
+        /// A terminal answers it, and that answer is the conclusion of the one pipeline that terminal
+        /// returned.
+        /// </summary>
+        Terminal,
     }
 }

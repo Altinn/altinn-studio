@@ -46,9 +46,7 @@ const renderQueryResults = (workflows) => {
         }
         const frag = document.createDocumentFragment();
         for (const key of order) {
-            const members = /** @type {import('../core/state.js').Workflow[]} */ (
-                groups.get(key)
-            );
+            const members = /** @type {import('../core/state.js').Workflow[]} */ (groups.get(key));
             if (key.startsWith('solo:')) {
                 const wf = members[0];
                 const card = document.createElement('div');
@@ -331,7 +329,16 @@ window.applyCustomTimeRange = () => {
 };
 
 // Query status checkboxes
-const queryStatusIds = ['enqueued', 'processing', 'requeued', 'waiting', 'completed', 'failed', 'canceled'];
+const queryStatusIds = [
+    'enqueued',
+    'processing',
+    'requeued',
+    'waiting',
+    'held',
+    'completed',
+    'failed',
+    'canceled',
+];
 window.toggleQueryStatus = () => {
     const checked = queryStatusIds.filter(
         (s) => /** @type {HTMLInputElement} */ (document.getElementById(`${s}-check`))?.checked,

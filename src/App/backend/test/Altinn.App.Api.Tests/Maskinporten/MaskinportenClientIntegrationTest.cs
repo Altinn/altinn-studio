@@ -164,10 +164,10 @@ public class MaskinportenClientIntegrationTests
         var tokenRequest = new MaskinportenTokenRequest
         {
             Scopes = ["scope1", "scope2"],
-            ConsumerOrg = OrganisationNumber.Parse("991825827"),
+            ConsumerOrg = OrganizationNumber.Parse("991825827"),
             SystemUser = new MaskinportenSystemUser
             {
-                Organisation = OrganisationNumber.Parse("311169963"),
+                Organization = OrganizationNumber.Parse("311169963"),
                 ExternalRef = "systembruker-1",
             },
         };

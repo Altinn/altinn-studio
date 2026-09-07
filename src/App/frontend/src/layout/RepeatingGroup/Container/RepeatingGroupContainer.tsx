@@ -220,7 +220,7 @@ function AddButton() {
 
   const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
   const { textResourceBindings, id, edit, addButton } = item;
-  const { add_button, add_button_full } = textResourceBindings || {};
+  const { addButton: addButtonText, addButtonFull } = textResourceBindings || {};
 
   const numRows = visibleRows.length;
   const tooManyRows = 'maxCount' in item && typeof item.maxCount == 'number' && numRows >= item.maxCount;
@@ -262,7 +262,7 @@ function AddButton() {
         fontSize='1.5rem'
         aria-hidden='true'
       />
-      {add_button_full ? lang(add_button_full) : `${langAsString('general.add_new')} ${langAsString(add_button)}`}
+      {addButtonFull ? lang(addButtonFull) : `${langAsString('general.add_new')} ${langAsString(addButtonText)}`}
     </Button>
   );
 }

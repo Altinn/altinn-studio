@@ -1,96 +1,49 @@
+//! Agent specialization of the generic keyed reconciliation controller.
+
 use std::{rc::Rc, time::Duration};
 
-use tokio::{
-    sync::mpsc,
-    time::{Instant, MissedTickBehavior},
-};
+use crate::{Error, control_plane::AgentId, controller};
 
-use crate::Error;
+use super::SharedAgentStore;
 
-use super::{Notifier, Reconciler, SharedAgentStore};
+/// Observes recoverable Agent reconciliation errors without stopping the controller.
+pub type ErrorHandler = controller::ErrorHandler<AgentId>;
 
-const DEFAULT_RECONCILE_INTERVAL: Duration = Duration::from_secs(30);
+/// A handle for requesting immediate Agent convergence.
+pub type Wakeup = controller::Wakeup<AgentId>;
 
-/// Observes recoverable reconciliation errors without stopping the controller.
-pub type ErrorHandler = Rc<dyn Fn(&Error)>;
+struct Source(SharedAgentStore);
 
-/// A non-blocking handle that coalesces reconcile requests.
-#[derive(Clone)]
-pub struct Wakeup {
-    sender: mpsc::Sender<()>,
-}
-
-impl Notifier for Wakeup {
-    fn notify(&self) {
-        let _ignored = self.sender.try_send(());
+impl controller::Source<AgentId> for Source {
+    fn list_keys(&self) -> ::sandbox::LocalFuture<'_, Result<Vec<AgentId>, Error>> {
+        Box::pin(async move {
+            self.0
+                .list()
+                .await
+                .map(|records| records.into_iter().map(|record| record.id).collect())
+        })
     }
 }
 
-/// Continuously reconciles stored Agents after changes and on a repair interval.
-pub struct Controller {
-    store: SharedAgentStore,
-    reconciler: Rc<Reconciler>,
-    receiver: mpsc::Receiver<()>,
-    interval: Duration,
-    on_error: ErrorHandler,
-}
+/// Generic keyed reconciliation specialized for durable Agents.
+pub struct Controller(controller::Controller<AgentId>);
 
 impl Controller {
-    /// Creates a controller and its independently shareable wake-up handle.
+    /// Creates an Agent controller and its independently shareable wake-up handle.
     #[must_use]
     pub fn new(
         store: SharedAgentStore,
-        reconciler: Rc<Reconciler>,
+        reconciler: Rc<dyn controller::Reconcile<AgentId>>,
         interval: Duration,
         on_error: ErrorHandler,
     ) -> (Self, Wakeup) {
-        let (sender, receiver) = mpsc::channel(1);
-        (
-            Self {
-                store,
-                reconciler,
-                receiver,
-                interval: if interval.is_zero() {
-                    DEFAULT_RECONCILE_INTERVAL
-                } else {
-                    interval
-                },
-                on_error,
-            },
-            Wakeup { sender },
-        )
+        let (controller, wakeup) =
+            controller::Controller::new(Rc::new(Source(store)), reconciler, interval, "Agent", on_error);
+        (Self(controller), wakeup)
     }
 
-    /// Reconciles existing resources immediately and then continuously.
-    pub async fn run(mut self) {
-        let mut ticker = tokio::time::interval_at(Instant::now() + self.interval, self.interval);
-        ticker.set_missed_tick_behavior(MissedTickBehavior::Skip);
-        self.reconcile_all().await;
-        loop {
-            tokio::select! {
-                wake = self.receiver.recv() => {
-                    if wake.is_none() {
-                        return;
-                    }
-                    self.reconcile_all().await;
-                }
-                _ = ticker.tick() => self.reconcile_all().await,
-            }
-        }
-    }
-
-    async fn reconcile_all(&self) {
-        let records = match self.store.list().await {
-            Ok(records) => records,
-            Err(error) => {
-                (self.on_error)(&error);
-                return;
-            }
-        };
-        for record in records {
-            if let Err(error) = self.reconciler.reconcile(&record.agent.metadata.name).await {
-                (self.on_error)(&error);
-            }
-        }
+    /// Reconciles existing Agents immediately and then continuously.
+    pub async fn run(self) {
+        self.0.run().await;
     }
 }

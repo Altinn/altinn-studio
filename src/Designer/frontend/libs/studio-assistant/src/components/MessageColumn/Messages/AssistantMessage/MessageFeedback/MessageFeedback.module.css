@@ -15,3 +15,7 @@
   gap: var(--ds-size-3);
   margin-top: var(--ds-size-2);
 }
+
+.selectedVote {
+  color: var(--ds-color-accent-base-default);
+}

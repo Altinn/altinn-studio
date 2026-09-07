@@ -1,0 +1,182 @@
+name: Cache warm
+
+# Seeds the shared GitHub Actions caches from main. Caches saved on PR merge
+# refs are only restorable by re-runs of the same PR, so PR runs cannot seed
+# anything for each other — only entries created on main (schedule or
+# dispatch runs on the default branch) are visible to every PR. This
+# workflow keeps those main-scoped entries warm so PR jobs restore instead
+# of rebuilding and re-saving.
+#
+# Runs each weekday morning: dependency bumps merged during the day stay
+# cold until the next morning run (or a manual dispatch). Weekends are
+# skipped so the self-hosted runners' AKS nodes can stay scaled down — no
+# PRs consume the caches then, and GH cache entries live 7 days so the
+# Friday entries survive to Monday. Every job is idempotent and cheap when
+# the caches are already warm: exact cache hits skip both the
+# install/build work and the save.
+
+on:
+  schedule:
+    # Weekdays 08:00 Oslo in summer / 07:00 in winter (GitHub cron is UTC-only).
+    - cron: '0 6 * * 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: cache-warm-main
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  yarn:
+    name: Warm yarn cache
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js with yarn cache
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --immutable --inline-builds
+        env:
+          HUSKY: '0'
+          YARN_NM_MODE: 'hardlinks-local'
+
+  app-frontend-dependencies:
+    name: Warm App Frontend test dependency cache
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Populate App Frontend test dependency cache
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          populate-cache: true
+
+  go-modules:
+    name: Warm Go caches (${{ matrix.module }}, ${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # Mirror the (module, runner environment) combinations the PR
+        # workflows' setup-go-cached steps actually run on — cache keys are
+        # scoped per runner environment and image, so each module must be
+        # warmed where its consumers run (releaser runs in both).
+        include:
+          - { module: src/cli, runner: self-hosted-ubuntu }
+          # Fork PRs fall back to ubuntu-latest (e.g. cypress build-studioctl)
+          # and can restore main-scoped caches.
+          - { module: src/cli, runner: ubuntu-latest }
+          - { module: src/cli, runner: macos-latest }
+          - { module: src/cli, runner: windows-latest }
+          - { module: src/tools/releaser, runner: self-hosted-ubuntu }
+          - { module: src/tools/releaser, runner: ubuntu-latest }
+          - { module: src/tools/health, runner: self-hosted-ubuntu }
+          - { module: src/Runtime/devenv, runner: self-hosted-ubuntu }
+          - { module: src/Runtime/gateway, runner: ubuntu-latest }
+          - { module: src/Runtime/operator, runner: ubuntu-latest }
+          - { module: src/Runtime/pdf3, runner: ubuntu-latest }
+          - { module: src/ci/sandbox-node, runner: ubuntu-latest }
+    steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.runner == 'windows-latest'
+        run: git config --system core.longpaths true
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Warm Go caches
+        uses: ./.github/actions/setup-go-cached
+        with:
+          module: ${{ matrix.module }}
+          populate-cache: 'true'
+
+  rust:
+    name: Warm Rust cache
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install native build dependencies
+        run: |
+          if ! pkg-config --exists libcap-ng; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends libcap-ng-dev
+          fi
+
+      - name: Verify Rust toolchain
+        run: |
+          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          test -n "${RUST_VERSION}"
+          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
+            || ! rustfmt --version >/dev/null 2>&1 \
+            || ! cargo clippy --version >/dev/null 2>&1; then
+            rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
+            rustup default "${RUST_VERSION}"
+          fi
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: rust
+
+      - name: Build workspace
+        run: |
+          make -C src/experimental build
+          make -C src/ci/github-runner/coordinator build
+
+  localtest-image-registry-cache:
+    name: Warm LocalTest image registry cache
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    env:
+      # studioctl reads BuildKit layer cache from the ghcr localtest-*-cache
+      # refs on every CI build; this job is the only writer, so the refs
+      # always reflect main and PR jobs never need a packages:write token.
+      STUDIOCTL_REGISTRY_CACHE_WRITE: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set up studioctl dev install
+        uses: ./.github/actions/setup-studioctl
+
+      # Build unconditionally (no image-tar short-circuit) so the layer
+      # cache refreshes even when the GH-cache image tar is warm; with warm
+      # layers a no-change rebuild is cheap.
+      - name: Build LocalTest images and push registry cache
+        run: studioctl env up --detach
+
+      - name: Stop environment
+        if: always()
+        run: studioctl env down || true

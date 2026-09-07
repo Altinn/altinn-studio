@@ -9,11 +9,11 @@ public class MaskinportenTelemetryTest
     private static readonly MaskinportenTokenRequest _fullRequest = new()
     {
         Scopes = ["scope1", "scope2"],
-        ConsumerOrg = OrganisationNumber.Parse("991825827"),
+        ConsumerOrg = OrganizationNumber.Parse("991825827"),
         Resource = "https://api.example.com",
         SystemUser = new MaskinportenSystemUser
         {
-            Organisation = OrganisationNumber.Parse("311169963"),
+            Organization = OrganizationNumber.Parse("311169963"),
             ExternalRef = "systembruker-1",
         },
     };

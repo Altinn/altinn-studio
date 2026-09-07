@@ -5,6 +5,7 @@ import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopove
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
+import { optionFilter } from '@app/form-component/layout-components/common/optionFilter';
 import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
 import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
@@ -14,7 +15,6 @@ import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import classes from './DropdownLayout.module.css';
-import { optionFilter } from './optionFilter';
 
 export interface DropdownOption {
   /** The value stored in the data model when this option is selected. */
@@ -54,7 +54,7 @@ export interface DropdownProps {
   labelGrid?: IGridStyling;
   /**
    * Whether the component is rendered inside a table cell. When true the visible label is suppressed
-   * and a visually-hidden label + `aria-label` are rendered instead (DS Combobox does not honour
+   * and a visually-hidden label + `aria-label` are rendered instead (DS Combobox does not honor
    * `aria-label` on the input directly — see digdir/designsystemet#3893).
    */
   renderedInTable?: boolean;
@@ -97,6 +97,7 @@ export function Dropdown({
   const { lang, langAsString } = useTranslation();
 
   const isPatchingFocus = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((option) => option.value === value);
   const selectedLabels = value
@@ -117,13 +118,31 @@ export function Dropdown({
     return lang('form_filler.dropdown_alert', [label]);
   };
 
+  const shouldAlertOnChange = (newValue: string) => newValue !== value && !!value;
+
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange, alertMessage } =
     useAlertOnChange<(newValue: string) => void>(
       Boolean(alertOnChange),
       onChange,
-      (newValue) => newValue !== value && !!value,
+      shouldAlertOnChange,
       changeMessageGenerator,
     );
+
+  function handleSelectedChange(option?: SuggestionItem | null) {
+    const newValue = option?.value ?? '';
+
+    if (alertOnChange && shouldAlertOnChange(newValue) && inputRef.current) {
+      // Remove this workaround when https://github.com/digdir/designsystemet/pull/5260 is released.
+      // Suggestion updates its internal match before proposing a controlled value. When the proposal
+      // is suspended, restore the accepted value synchronously so a subsequent blur does not propose
+      // the rejected match a second time and reopen the confirmation popover.
+      inputRef.current.value = selectedItem?.label ?? '';
+      // A plain input event refreshes u-combobox's match without selecting it again.
+      inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    handleChange(newValue);
+  }
 
   const showVisibleLabel = !renderedInTable && renderLabel !== false;
 
@@ -162,7 +181,7 @@ export function Dropdown({
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'
           selected={selectedItem}
-          onSelectedChange={(option) => handleChange(option ? option.value : '')}
+          onSelectedChange={handleSelectedChange}
           onBlur={() => onBlur?.()}
           className={cn(comboboxClasses.container, classes.showCaretsWithoutClear, {
             [classes.readOnly]: readOnly,
@@ -170,6 +189,7 @@ export function Dropdown({
           style={{ width: '100%' }}
         >
           <Suggestion.Input
+            ref={inputRef}
             id={componentId}
             aria-invalid={!isValid}
             onFocus={async (e) => {
@@ -208,7 +228,6 @@ export function Dropdown({
                 key={option.value}
                 value={option.value}
                 label={langAsString(option.label)}
-                onClick={() => handleChange(option.value)}
               >
                 <span className={classes.optionContent}>
                   {lang(option.label)}

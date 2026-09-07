@@ -16,7 +16,7 @@ public abstract class JsonTemplate
     /// <summary>
     /// Generic method for replacing av variable in a template string.
     /// Looks for the {{variableName}} in the string and replaces all
-    /// occurences.
+    /// occurrences.
     /// </summary>
     /// <param name="variableName">The name of the variable to replace without the curly braces {{}}.</param>
     /// <param name="value">The value to insert.</param>

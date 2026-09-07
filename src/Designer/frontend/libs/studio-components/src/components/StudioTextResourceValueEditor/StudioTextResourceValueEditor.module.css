@@ -6,5 +6,5 @@
 .id {
   align-items: center;
   display: flex;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
 }

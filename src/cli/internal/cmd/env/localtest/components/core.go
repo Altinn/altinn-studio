@@ -11,7 +11,7 @@ import (
 
 const (
 	devImageTagLocaltest   = "localtest:dev"
-	buildCacheRefLocaltest = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
+	buildCacheRefLocaltest = "ghcr.io/altinn/altinn-studio/localtest-dev-cache:buildcache"
 
 	// LocaltestServicePort is the HTTP port used by the localtest container.
 	LocaltestServicePort = "5101"

@@ -72,8 +72,6 @@ namespace LocalTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAutoMapper(typeof(Program));
-
             services.AddControllers().AddJsonOptions(opt =>
             {
                 opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -101,6 +99,7 @@ namespace LocalTest
             services.AddSingleton<Altinn.Platform.Authorization.Services.Interface.IParties, PartiesService>();
             services.AddSingleton<IClaims, ClaimsService>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
+            services.AddSingleton<IInstanceMutationRepository, InstanceMutationRepository>();
             services.AddSingleton<IInstanceAndEventsRepository, InstanceAndEventsRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IBlobRepository, BlobRepository>();
@@ -242,8 +241,10 @@ namespace LocalTest
                 app.UseHsts();
             }
 
-            app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
+
+            // After the proxy: /health on a proxied component host must reach that component, not us.
+            app.UseHealthChecks("/health");
             app.UseWebSockets();
 
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);

@@ -86,7 +86,7 @@ export const XSDUpload = ({
   return (
     <span ref={uploadButton}>
       {uploading ? (
-        <StudioSpinner spinnerTitle={t('app_data_modelling.uploading_xsd')} aria-hidden />
+        <StudioSpinner spinnerTitle={t('app_data_modeling.uploading_xsd')} aria-hidden />
       ) : (
         <StudioFileUploader
           onSubmit={handleSubmit}

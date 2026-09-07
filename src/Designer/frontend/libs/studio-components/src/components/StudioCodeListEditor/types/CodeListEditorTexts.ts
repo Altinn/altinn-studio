@@ -1,7 +1,7 @@
 import type { ValueError } from './ValueError';
 import type { StudioLanguagePickerTexts } from '../../StudioLanguagePicker';
 
-export type CodeListEditorTexts = Readonly<{
+export type StudioCodeListEditorTexts = Readonly<{
   add: string;
   codeList: string;
   delete: string;

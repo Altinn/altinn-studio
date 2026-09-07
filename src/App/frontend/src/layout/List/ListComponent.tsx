@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import type { AriaAttributes } from 'react';
 
-import { Description, getLabelId, Pagination as CustomPagination, RequiredIndicator } from '@app/form-component';
+import {
+  Description,
+  getLabelId,
+  Pagination as CustomPagination,
+  RequiredIndicator,
+  useIsMobile,
+} from '@app/form-component';
 import {
   Checkbox,
   Fieldset,
@@ -20,7 +26,6 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSaveObjectToGroup } from 'src/features/saveToGroup/useSaveToGroup';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/List/ListComponent.module.css';
 import utilClasses from 'src/styles/utils.module.css';
@@ -52,7 +57,6 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     pagination,
     sortableColumns,
     tableHeadersMobile,
-    mapping,
     queryParameters,
     secure,
     dataListId,
@@ -71,7 +75,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     sortDirection,
   };
 
-  const { data } = useDataListQuery(filter, dataListId, secure, mapping, queryParameters);
+  const { data } = useDataListQuery(filter, dataListId, secure, queryParameters);
   const bindings = item.dataModelBindings ?? ({} as IDataModelBindingsForList);
 
   // Determine selection mode based on bindings

@@ -455,7 +455,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		return fmt.Errorf("upgrade app: %w", err)
 	}
 	appsvc.PrintUpgradeResult(c.out, result)
-	if result.ExitCode != 0 {
+	if result.Failed() {
 		return fmt.Errorf("%w with exit code %d", errAppUpgradeFailed, result.ExitCode)
 	}
 	return nil

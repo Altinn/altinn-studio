@@ -8,7 +8,6 @@ import type { QueryClientConfig } from '@tanstack/react-query';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
-import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { PageRoutes } from './routes/PageRoutes';

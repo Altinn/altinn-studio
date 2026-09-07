@@ -10,10 +10,10 @@ import { UiEditorPage } from '../../pages/UiEditorPage';
 import { ComponentType } from '../../enum/ComponentType';
 import { LanguageCode } from '../../enum/LanguageCode';
 import { GiteaPage } from '../../pages/GiteaPage';
+import { AppTemplate } from '../../enum/AppTemplate';
 
 // Variables and constants shared between tests
 const PAGE_1: string = 'Side1';
-const LAYOUT_SET: string = 'form';
 const COMPONENT_ID: string = 'myId';
 const INPUT_COMPONENT_LABEL: string = 'inputLabel';
 const TEXT_KEY_FIELD_2: string = 'textKeyField2';
@@ -25,11 +25,19 @@ const TEXT_VALUE_IN_TEXTAREA: string = 'textValue';
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
 
+// Skipped at file level because the later tests in this serial chain build on the renamed key
+test.skip(
+  ({ testAppTemplate }) => testAppTemplate === AppTemplate.V9,
+  'Renaming a text key does not update the layout files of a v9 app',
+);
+
 // Before the tests starts, we need to create the text editor app
-test.beforeAll(async ({ testAppName, request, storageState }) => {
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
   // Create a new app
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState);
+  const response = await designerApi.createApp(request, storageState as StorageState, {
+    appTemplate: testAppTemplate,
+  });
   expect(response.ok()).toBeTruthy();
 });
 
@@ -52,12 +60,13 @@ const setupAndVerifyTextEditorPage = async (
 test('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
-  await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
+  await navigateToUiEditorAndVerifyPage(header, uiEditorPage, defaultLayoutSet);
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
 
   await uiEditorPage.deleteOldComponentId();
@@ -85,6 +94,7 @@ test('That it is possible to create a text at the ui-editor page, and that the t
 test('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
@@ -93,10 +103,10 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await textEditorPage.verifyThatTextKeyIsVisible(INITIAL_TEXT_KEY);
   await updateTextKey(textEditorPage, INITIAL_TEXT_KEY, UPDATED_TEXT_KEY);
 
-  // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has updated label
+  // When the button is clicked, it might take some ms for the API call to be executed - It is success when the textarea has updated label
   await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, UPDATED_TEXT_KEY);
 
-  await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
+  await navigateToUiEditorAndVerifyPage(header, uiEditorPage, defaultLayoutSet);
 
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnTitleTextButton();
@@ -141,12 +151,13 @@ test('That it is possible to add a new language', async ({ page, testAppName }) 
 test('That the newly added language with key is updated on ui-editor page', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
   await setupAndVerifyTextEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
-  await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
+  await navigateToUiEditorAndVerifyPage(header, uiEditorPage, defaultLayoutSet);
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
@@ -155,6 +166,7 @@ test('That the newly added language with key is updated on ui-editor page', asyn
 test('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
   await setupAndVerifyTextEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
@@ -170,7 +182,7 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutSetsFolder();
+  await giteaPage.clickOnLayoutSetsFolder(defaultLayoutSet);
   await giteaPage.clickOnLayoutsFilesFolder();
   await giteaPage.clickOnLayoutJsonFile(PAGE_1);
 
@@ -210,6 +222,7 @@ const updateTextKey = async (
 const navigateToUiEditorAndVerifyPage = async (
   header: AppDevelopmentHeader,
   uiEditorPage: UiEditorPage,
+  layoutSet: string,
 ): Promise<void> => {
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
@@ -219,5 +232,5 @@ const navigateToUiEditorAndVerifyPage = async (
   if (currentUrl.searchParams.get('layout') !== PAGE_1) {
     await uiEditorPage.clickOnPageAccordion(PAGE_1);
   }
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(layoutSet, PAGE_1);
 };

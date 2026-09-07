@@ -9,7 +9,7 @@ You can also contribute by:
 - Reporting a bug
 - Discussing the current state of the code
 - Proposing new features
-- Telling us what you want us to prioritise - by adding a :+1: to the issue.
+- Telling us what you want us to prioritize - by adding a :+1: to the issue.
 
 ## We develop with GitHub
 

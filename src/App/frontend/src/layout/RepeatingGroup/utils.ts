@@ -260,10 +260,10 @@ export const RepGroupHooks = {
         hidden: evalBool({ expr: hiddenRow, ...baseProps }) ?? false,
         textResourceBindings: trb
           ? {
-              edit_button_close: evalString({ expr: trb.edit_button_close, ...baseProps }),
-              edit_button_open: evalString({ expr: trb.edit_button_open, ...baseProps }),
-              save_and_next_button: evalString({ expr: trb.save_and_next_button, ...baseProps }),
-              save_button: evalString({ expr: trb.save_button, ...baseProps }),
+              editButtonClose: evalString({ expr: trb.editButtonClose, ...baseProps }),
+              editButtonOpen: evalString({ expr: trb.editButtonOpen, ...baseProps }),
+              saveAndNextButton: evalString({ expr: trb.saveAndNextButton, ...baseProps }),
+              saveButton: evalString({ expr: trb.saveButton, ...baseProps }),
             }
           : undefined,
         edit: edit

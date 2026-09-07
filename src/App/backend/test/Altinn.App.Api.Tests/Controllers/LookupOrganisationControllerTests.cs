@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class LookupOrganizationControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -27,11 +27,11 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public LookupOrganisationControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
+    public LookupOrganizationControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper) { }
 
     [Fact]
-    public async Task Get_LookupOrganisation_WithValidOrgNr_Returns_LookupOrganisationResponse()
+    public async Task Get_LookupOrganization_WithValidOrgNr_Returns_LookupOrganizationResponse()
     {
         HttpClient client = GetHttpClient();
         var orgNr = "123456789";
@@ -46,7 +46,7 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
             OutputHelper.WriteLine("Path: " + message.RequestUri.PathAndQuery);
 
             sendAsyncCalled = true;
-            var organisation = new Organization
+            var organization = new Organization
             {
                 Name = orgName,
                 OrgNumber = orgNr,
@@ -65,7 +65,7 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
                 UnitType = "AS",
             };
 
-            string orgJson = JsonSerializer.Serialize(organisation, _jsonSerializerOptions);
+            string orgJson = JsonSerializer.Serialize(organization, _jsonSerializerOptions);
             var responseContent = new StringContent(orgJson);
 
             var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = responseContent };
@@ -80,20 +80,20 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
 
         string responseContent = await response.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(responseContent);
-        var orgLookupResponse = JsonSerializer.Deserialize<LookupOrganisationResponse>(
+        var orgLookupResponse = JsonSerializer.Deserialize<LookupOrganizationResponse>(
             responseContent,
             _jsonSerializerOptions
         );
 
         orgLookupResponse.Should().NotBeNull();
         orgLookupResponse?.Success.Should().BeTrue();
-        orgLookupResponse?.OrganisationDetails.Should().NotBeNull();
-        orgLookupResponse?.OrganisationDetails?.OrgNr.Should().Be(orgNr);
-        orgLookupResponse?.OrganisationDetails?.Name.Should().Be(orgName);
+        orgLookupResponse?.OrganizationDetails.Should().NotBeNull();
+        orgLookupResponse?.OrganizationDetails?.OrgNr.Should().Be(orgNr);
+        orgLookupResponse?.OrganizationDetails?.Name.Should().Be(orgName);
     }
 
     [Fact]
-    public async Task Get_LookupOrganisation_NotFound_Returned_Correctly()
+    public async Task Get_LookupOrganization_NotFound_Returned_Correctly()
     {
         HttpClient client = GetHttpClient();
 
@@ -115,18 +115,18 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
 
         string responseContent = await response.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(responseContent);
-        var orgLookupResponse = JsonSerializer.Deserialize<LookupOrganisationResponse>(
+        var orgLookupResponse = JsonSerializer.Deserialize<LookupOrganizationResponse>(
             responseContent,
             _jsonSerializerOptions
         );
 
         orgLookupResponse.Should().NotBeNull();
         orgLookupResponse?.Success.Should().BeFalse();
-        orgLookupResponse?.OrganisationDetails.Should().BeNull();
+        orgLookupResponse?.OrganizationDetails.Should().BeNull();
     }
 
     [Fact]
-    public async Task Post_LookupOrganisation_General_Exception_Returned_Correctly()
+    public async Task Post_LookupOrganization_General_Exception_Returned_Correctly()
     {
         HttpClient client = GetHttpClient();
         var orgNr = "123456789";
@@ -153,7 +153,7 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
         personSearchResponse?.Title.Should().BeEquivalentTo("Error when calling register");
         personSearchResponse
             ?.Detail.Should()
-            .BeEquivalentTo("Something went wrong when calling the Organisation Register API.");
+            .BeEquivalentTo("Something went wrong when calling the Organization Register API.");
         personSearchResponse?.Status.Should().Be(StatusCodes.Status500InternalServerError);
     }
 

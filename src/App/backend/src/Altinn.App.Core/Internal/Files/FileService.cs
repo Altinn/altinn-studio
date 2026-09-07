@@ -1,5 +1,4 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
-using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
@@ -8,7 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Files;
 
 /// <inheritdoc />
-internal class FileService(IFileAnalysisService fileAnalyserService, IFileValidationService fileValidationService)
+internal class FileService(IFileAnalysisService fileAnalyzerService, IFileValidationService fileValidationService)
     : IFileService
 {
     /// <inheritdoc />
@@ -22,7 +21,7 @@ internal class FileService(IFileAnalysisService fileAnalyserService, IFileValida
         if (dataTypeFromMetadata.EnabledFileAnalysers is { Count: > 0 })
         {
             fileAnalysisResults = (
-                await fileAnalyserService.Analyse(dataTypeFromMetadata, new MemoryAsStream(bytes), fileName)
+                await fileAnalyzerService.Analyze(dataTypeFromMetadata, new MemoryAsStream(bytes), fileName)
             ).ToList();
         }
 

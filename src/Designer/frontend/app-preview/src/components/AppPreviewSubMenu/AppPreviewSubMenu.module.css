@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   height: var(--subtoolbar-height);
-  padding-inline: var(--fds-spacing-4);
+  padding-inline: var(--ds-size-4);
 }
 
 .link {
@@ -16,6 +16,6 @@
 }
 
 .icon {
-  font-size: var(--fds-sizing-6);
+  font-size: var(--ds-size-6);
   color: var(--ds-color-neutral-background-default);
 }

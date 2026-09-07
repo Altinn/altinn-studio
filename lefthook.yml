@@ -38,6 +38,13 @@ pre-commit:
       glob: 'src/Designer/frontend/language/src/*.json'
       run: yarn sort-texts
       stage_fixed: true
+    spellcheck:
+      # Read-only, so it is safe under `parallel: true`. Goes through the
+      # runner (not bare `typos`) so the suppression registry applies —
+      # typos.toml alone would report accepted wire-contract spellings.
+      # Skipped silently when the tools aren't installed — CI is the real
+      # gate, and `yarn spell:check` runs the full harness.
+      run: if command -v typos >/dev/null && command -v node >/dev/null; then node scripts/spellcheck/run.mjs quick {staged_files}; fi
     prettier:
       glob: '*.{js,jsx,tsx,ts,css,md}'
       # JS/TS inside the eslint roots are already prettier-formatted by their

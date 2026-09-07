@@ -1,5 +1,0 @@
-{
-  "name": "Should always contain en empty string",
-  "expression": ["contains", "Hello", ""],
-  "expects": true
-}

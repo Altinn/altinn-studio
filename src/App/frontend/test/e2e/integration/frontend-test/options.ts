@@ -94,7 +94,7 @@ describe('Options', () => {
     cy.findByRole('radio', { name: /endre fra: 3, endre til: 4 fungerer kalkulatoren din/i }).should('exist');
   });
 
-  it('mapping updates options, but does not always unselect previous options', () => {
+  it('query parameters update options, but do not always unselect previous options', () => {
     for (const optionsId of ['references', 'test']) {
       cy.intercept({ method: 'GET', url: `**/options/${optionsId}**` }, (req) => {
         req.reply((res) => {
@@ -113,7 +113,7 @@ describe('Options', () => {
     // This field uses preselectedOptionIndex to select 'Altinn'
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
-    // At this point our options have new mappings, so requests should have fired again
+    // At this point our options have new query parameters, so requests should have fired again
     cy.get('@interceptOptions(references).all').should('have.length', 2);
     cy.get('@interceptOptions(test).all').should('have.length', 2);
 
@@ -122,7 +122,7 @@ describe('Options', () => {
     cy.dsSelect(appFrontend.changeOfName.reference2, 'My fixed value');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'My fixed value');
 
-    // Selecting a new source now causes requests to fire once more with new mapping,
+    // Selecting a new source now causes requests to fire once more with new query parameters,
     // but the fixed value should stay in place as they were present in both the old and new options responses
     cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');

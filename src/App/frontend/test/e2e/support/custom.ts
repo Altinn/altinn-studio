@@ -1,5 +1,6 @@
 import 'cypress-wait-until';
 
+import { breakpoints } from '@app/form-component';
 import escapeRegex from 'escape-string-regexp';
 import deepEqual from 'fast-deep-equal';
 import type axe from 'axe-core';
@@ -9,7 +10,6 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { getTargetUrl } from 'test/e2e/support/start-app-instance';
 import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 'test/e2e/support/global';
 
-import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
@@ -77,7 +77,7 @@ Cypress.Commands.add('dsClear', (selector) => {
   // Additional step to ensure dropdown is reset
   cy.get(selector).click();
   cy.get(selector).type('{esc}');
-  cy.get('[data-floating-ui-portal]').should('not.exist');
+  cy.get('u-datalist:popover-open').should('not.exist');
 });
 
 Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
@@ -91,7 +91,10 @@ Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
   // It is tempting to just use findByRole('option', { name: value }) here, but that's flakier than using findByText()
   // as it never retries if the element re-renders. More information here:
   // https://github.com/testing-library/cypress-testing-library/issues/205#issuecomment-974688283
-  cy.findByRole('option', { name: value }).click();
+  // Native popovers are rendered in the top layer, but Cypress can still consider them clipped by
+  // an overflow ancestor in the DOM tree. Scope the lookup to the open list before bypassing that
+  // incorrect actionability check.
+  cy.get('u-datalist:popover-open').findByRole('option', { name: value }).click({ force: true });
   if (debounce) {
     cy.get('body').click('bottomRight');
   }
@@ -339,7 +342,7 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
       // change the DOM based on the viewport size, and Percy only understands CSS media queries (not our React logic).
       const viewportSizes: Record<SnapshotViewport, { width: number; height: number }> = {
         desktop: { width: 1280, height: 768 },
-        tablet: { width: breakpoints.tablet - 5, height: 1024 },
+        tablet: { width: breakpoints.md - 5, height: 1024 },
         mobile: { width: 360, height: 768 },
       };
       for (const [_viewport, { width, height }] of Object.entries(viewportSizes)) {
@@ -357,7 +360,7 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
       // Reset to original viewport
       cy.viewport(innerWidth, innerHeight);
       const targetViewport =
-        innerWidth < breakpoints.mobile ? 'mobile' : innerWidth < breakpoints.tablet ? 'tablet' : 'desktop';
+        innerWidth < breakpoints.sm ? 'mobile' : innerWidth < breakpoints.md ? 'tablet' : 'desktop';
       cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
     });
   });
@@ -579,7 +582,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   cy.getCurrentViewportSize().as('directSnapshotViewportSize');
   cy.viewport(width, minHeight);
 
-  // cy.screenshot's blackout property does not ensure that text is monospace which causes unecessary visual changes, so using our own percy css instead
+  // cy.screenshot's blackout property does not ensure that text is monospace which causes unnecessary visual changes, so using our own percy css instead
   cy.readFile('test/percy.css').then((percyCSS) => {
     cy.document().then((doc) => {
       const style = doc.createElement('style');

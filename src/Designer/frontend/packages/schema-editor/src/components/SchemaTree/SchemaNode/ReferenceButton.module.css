@@ -1,8 +1,8 @@
 .root {
   opacity: 0.6;
-  height: var(--fds-sizing-6);
+  height: var(--ds-size-6);
   font-size: 0.9rem;
-  padding: var(--fds-spacing-1);
+  padding: var(--ds-size-1);
 }
 
 .root:hover,

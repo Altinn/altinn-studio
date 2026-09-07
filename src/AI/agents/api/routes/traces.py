@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
 from services.traces import delete_expired_traces
-from shared.utils.langfuse_utils import get_trace_developer, score_validation
+from shared.utils.langfuse_utils import delete_score, get_trace_developer, score_validation
 from shared.utils.logging_utils import get_logger
 
 router = APIRouter(prefix="/api/traces")
@@ -39,24 +39,38 @@ async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
 
     A second PUT for the same trace overwrites the previous score.
     """
-    caller = request.headers.get(DEVELOPER_HEADER)
-    if not caller:
-        raise HTTPException(
-            status_code=400, detail=f"Missing {DEVELOPER_HEADER} header"
-        )
-
-    trace_owner = get_trace_developer(trace_id)
-    if trace_owner != caller:
-        raise HTTPException(status_code=403)
+    _assert_caller_owns_trace(request, trace_id)
 
     score_validation(
         name=FEEDBACK_SCORE_NAME,
         passed=req.thumbs_up,
         trace_id=trace_id,
-        comment=req.comment,
-        score_id=f"{trace_id}:{FEEDBACK_SCORE_NAME}",
+        comment=req.comment or "",
+        score_id=_feedback_score_id(trace_id),
     )
     return Response(status_code=204)
+
+
+@router.delete("/{trace_id}/feedback", status_code=204)
+async def clear_feedback(trace_id: str, request: Request):
+    """Removes the user's feedback score from the given trace."""
+    _assert_caller_owns_trace(request, trace_id)
+    delete_score(_feedback_score_id(trace_id))
+    return Response(status_code=204)
+
+
+def _feedback_score_id(trace_id: str) -> str:
+    return f"{trace_id}:{FEEDBACK_SCORE_NAME}"
+
+
+def _assert_caller_owns_trace(request: Request, trace_id: str) -> None:
+    caller = request.headers.get(DEVELOPER_HEADER)
+    if not caller:
+        raise HTTPException(
+            status_code=400, detail=f"Missing {DEVELOPER_HEADER} header"
+        )
+    if get_trace_developer(trace_id) != caller:
+        raise HTTPException(status_code=403)
 
 
 @router.post("/delete-expired")

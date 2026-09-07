@@ -11,12 +11,13 @@ test.describe.configure({ mode: 'serial' });
 
 const DEFAULT_BRANCH: string = 'master';
 const FEATURE_BRANCH: string = 'playwright-branch';
-const LAYOUT_SET: string = 'form';
 const FIRST_ADDED_PAGE: string = 'Side2';
 
-test.beforeAll(async ({ testAppName, request, storageState }) => {
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState);
+  const response = await designerApi.createApp(request, storageState as StorageState, {
+    appTemplate: testAppTemplate,
+  });
   expect(response.ok()).toBeTruthy();
 });
 
@@ -29,8 +30,9 @@ test.afterAll(async ({ request, testAppName }) => {
 test('That a new branch can be created and becomes the current branch', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
-  await goToUiEditor(page, testAppName);
+  await goToUiEditor(page, testAppName, defaultLayoutSet);
   const branchDropdown = new BranchDropdown(page, { app: testAppName });
 
   await branchDropdown.verifyCurrentBranch(DEFAULT_BRANCH);
@@ -42,8 +44,12 @@ test('That a new branch can be created and becomes the current branch', async ({
   await branchDropdown.verifyCurrentBranch(FEATURE_BRANCH);
 });
 
-test('That it is possible to switch between branches', async ({ page, testAppName }) => {
-  await goToUiEditor(page, testAppName);
+test('That it is possible to switch between branches', async ({
+  page,
+  testAppName,
+  defaultLayoutSet,
+}) => {
+  await goToUiEditor(page, testAppName, defaultLayoutSet);
   const branchDropdown = new BranchDropdown(page, { app: testAppName });
 
   await branchDropdown.verifyCurrentBranch(FEATURE_BRANCH);
@@ -56,8 +62,9 @@ test('That it is possible to switch between branches', async ({ page, testAppNam
 test('That creating a new branch with uncommitted changes triggers dialog', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
-  await goToUiEditor(page, testAppName);
+  await goToUiEditor(page, testAppName, defaultLayoutSet);
   const branchDropdown = new BranchDropdown(page, { app: testAppName });
   await addUncommittedChange(page, testAppName);
 
@@ -73,8 +80,9 @@ test('That creating a new branch with uncommitted changes triggers dialog', asyn
 test('That switching branch with uncommitted changes triggers dialog', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
-  await goToUiEditor(page, testAppName);
+  await goToUiEditor(page, testAppName, defaultLayoutSet);
   const branchDropdown = new BranchDropdown(page, { app: testAppName });
 
   await branchDropdown.verifyCurrentBranch(DEFAULT_BRANCH);
@@ -88,8 +96,9 @@ test('That switching branch with uncommitted changes triggers dialog', async ({
 test('That local changes can be discarded from the uncommitted changes dialog', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }) => {
-  await goToUiEditor(page, testAppName);
+  await goToUiEditor(page, testAppName, defaultLayoutSet);
   const branchDropdown = new BranchDropdown(page, { app: testAppName });
 
   await branchDropdown.clickOnBranchDropdownTrigger();
@@ -101,8 +110,8 @@ test('That local changes can be discarded from the uncommitted changes dialog', 
   await branchDropdown.verifyCurrentBranch(FEATURE_BRANCH);
 });
 
-test('That a branch can be deleted', async ({ page, testAppName }) => {
-  await goToUiEditor(page, testAppName);
+test('That a branch can be deleted', async ({ page, testAppName, defaultLayoutSet }) => {
+  await goToUiEditor(page, testAppName, defaultLayoutSet);
   const branchDropdown = new BranchDropdown(page, { app: testAppName });
 
   await branchDropdown.verifyCurrentBranch(FEATURE_BRANCH);
@@ -116,11 +125,11 @@ test('That a branch can be deleted', async ({ page, testAppName }) => {
   await branchDropdown.verifyBranchIsNotInList(FEATURE_BRANCH);
 });
 
-const goToUiEditor = async (page: Page, testAppName: string): Promise<void> => {
+const goToUiEditor = async (page: Page, testAppName: string, layoutSet: string): Promise<void> => {
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET);
+  await uiEditorPage.verifyUiEditorPage(layoutSet);
 };
 
 const addUncommittedChange = async (page: Page, testAppName: string): Promise<void> => {

@@ -1,10 +1,11 @@
 import React from 'react';
 
+import { useBrowserWidth } from '@app/form-component';
+
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { AppNavigation, AppNavigationHeading, appNavigationHeadingId } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/SidebarNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
-import { useBrowserWidth } from 'src/hooks/useDeviceWidths';
 
 export function SideBarNavigation() {
   const hasGroupedNavigation = useHasGroupedNavigation();

@@ -56,7 +56,7 @@ public class ServiceResource
     public List<ContactPoint>? ContactPoints { get; set; }
 
     /// <summary>
-    /// Linkes to the outcome of a public service
+    /// Links to the outcome of a public service
     /// </summary>
     public List<string>? Produces { get; set; }
 

@@ -46,7 +46,10 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
                 StudioRoot: null,
                 Report: report,
                 Error: error,
-                CancellationToken: TestContext.Current.CancellationToken
+                CancellationToken: TestContext.Current.CancellationToken,
+                // Keeps the run offline: semantic analysis shells out to `dotnet restore` and a
+                // design-time build, neither of which this is testing.
+                SkipSemanticAnalysis: true
             )
         );
 

@@ -72,7 +72,7 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 		t.Fatalf("Status() error = %v", err)
 	}
 
-	if deadlines[upgradePath] < 20*time.Second {
+	if deadlines[upgradePath] < 9*time.Minute {
 		t.Fatalf("upgrade deadline = %s, want near %s", deadlines[upgradePath], studioctlServerUpgradeTimeout)
 	}
 	if deadlines[statusPath] > 3*time.Second {

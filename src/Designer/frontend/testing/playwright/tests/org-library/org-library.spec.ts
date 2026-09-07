@@ -10,9 +10,11 @@ const TEST_ORG: string = 'ttd';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ testAppName, request, storageState }) => {
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
   const designerApi = new DesignerApi({ app: testAppName, org: TEST_ORG });
-  const response = await designerApi.createApp(request, storageState as StorageState);
+  const response = await designerApi.createApp(request, storageState as StorageState, {
+    appTemplate: testAppTemplate,
+  });
   expect(response.ok()).toBeTruthy();
 });
 

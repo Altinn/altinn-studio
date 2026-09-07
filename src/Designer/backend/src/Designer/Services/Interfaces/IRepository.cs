@@ -26,7 +26,7 @@ public interface IRepository
     /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
     /// given <paramref name="serviceConfig"/>
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="serviceConfig">The ServiceConfiguration to save</param>
     /// <param name="templates">List of templates to use in the service creation</param>
     /// <param name="appTemplate">The app scaffold the new application is created from</param>
@@ -39,9 +39,9 @@ public interface IRepository
     );
 
     /// <summary>
-    /// Copies a repository within an organisation
+    /// Copies a repository within an organization
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="sourceRepository">The name of the repository to be copied.</param>
     /// <param name="targetRepository">The name of the new repository.</param>
     /// <param name="developer">Developer's username</param>
@@ -115,7 +115,7 @@ public interface IRepository
     /// <summary>
     /// Gets a specific ServiceResource based on the identifier
     /// </summary>
-    /// <param name="org">The organisation that owns the repository where the resource resides</param>
+    /// <param name="org">The organization that owns the repository where the resource resides</param>
     /// <param name="repository">The repository where the resource resides</param>
     /// <param name="identifier">The identifier of the resource</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -130,7 +130,7 @@ public interface IRepository
     /// <summary>
     /// Update existing ServiceResource in repository
     /// </summary>
-    /// <param name="org">The organisation which owns the repository</param>
+    /// <param name="org">The organization which owns the repository</param>
     /// <param name="id">The id of the resource that should be updated</param>
     /// <param name="updatedResource">The resource that is to be updated</param>
     /// <returns></returns>
@@ -139,7 +139,7 @@ public interface IRepository
     /// <summary>
     /// Add new ServiceResource to repository
     /// </summary>
-    /// <param name="org">The organisation which owns the repository</param>
+    /// <param name="org">The organization which owns the repository</param>
     /// <param name="newResource">The new resource that is to be added to the repository</param>
     /// <returns>Status code result of resource creation request: 201 if success, or 409 or 400 on error</returns>
     StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
@@ -147,7 +147,7 @@ public interface IRepository
     /// <summary>
     /// Publishes a specific resource to the ResourceRegistry
     /// </summary>
-    /// <param name="org">The organisation that owns the repository</param>
+    /// <param name="org">The organization that owns the repository</param>
     /// <param name="repository">The repository where the resource resides</param>
     /// <param name="id">The id of the resource that should be published</param>
     /// <param name="env">The environment the resource will be published to</param>
@@ -165,7 +165,7 @@ public interface IRepository
     /// Returns the path to the app folder
     /// </summary>
     /// <param name="org">The application owner id.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns></returns>
     string GetAppPath(string org, string app);
 

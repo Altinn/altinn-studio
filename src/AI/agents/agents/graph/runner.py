@@ -2,6 +2,7 @@
 import asyncio
 
 from langgraph.graph import StateGraph, END
+from opentelemetry import trace as otel_trace
 
 from .state import AgentState
 from .nodes.agentic_loop_node import handle as agentic_loop_node
@@ -19,6 +20,11 @@ class WorkflowCancelled(Exception):
 def _check_cancelled(state: AgentState):
     """Raise WorkflowCancelled if the session has been cancelled."""
     if sink.is_cancelled(state.session_id):
+        raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
+
+
+def _raise_if_cancelled(state: AgentState, event_sink: EventSink) -> None:
+    if event_sink.is_cancelled(state.session_id):
         raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
 
 
@@ -99,19 +105,41 @@ def build_graph():
 graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
-from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client, flush_langfuse
-from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
+from shared.utils.langfuse_utils import (
+    init_langfuse,
+    is_langfuse_enabled,
+    get_langfuse_client,
+    get_current_trace_id,
+    flush_langfuse,
+)
+from agents.services.llm import (
+    MINIMUM_INTENT_CONFIDENCE,
+    parse_intent_async,
+    suggest_goal_correction,
+    check_scope_async,
+)
 
 import logging as _logging
 _log = _logging.getLogger(__name__)
 
-MINIMUM_INTENT_CONFIDENCE = 0.1
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
+_UNSAFE_GOAL_MESSAGE = (
+    "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
+    "en utrygg eller utilsiktet endring. Du kan gjerne omformulere den."
+)
+_UNCLEAR_GOAL_MESSAGE = (
+    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive "
+    "endringen litt mer konkret?"
+)
 
 
 class GoalRejected(Exception):
     """Raised when the intent parser rejects the user's goal."""
-    pass
+
+    def __init__(self, message: str, suggestions: list[str] | None = None):
+        super().__init__(message)
+        self.message = message
+        self.suggestions = suggestions or []
 
 
 async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
@@ -127,7 +155,10 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
       chat question gets a polite decline delivered as a normal reply.
     - Intent validation (write runs only): see _validate_intent.
     """
+    _raise_if_cancelled(state, event_sink)
     scope_result = await check_scope_async(state.user_goal)
+    # The scope check is an LLM call, so a cancel can land while it runs.
+    _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:
         decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
         _log.info(
@@ -135,11 +166,9 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
             state.session_id, scope_result.reason,
         )
         if state.allow_app_changes:
-            # GoalRejected messages are "reason|suggestions" — strip pipes
-            # from the LLM-written decline so it can't spill into fake
-            # suggestion chips.
-            raise GoalRejected(decline_text.replace("|", "/"))
-        _emit_chat_decline(state, event_sink, decline_text)
+            raise GoalRejected(decline_text)
+        if not _emit_chat_decline(state, event_sink, decline_text):
+            raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
         return decline_text
 
     if state.allow_app_changes:
@@ -147,38 +176,48 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     return None
 
 
-def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> None:
+def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> bool:
     """Deliver an out-of-scope decline as a normal chat turn.
 
     A declined question is not an error: the frontend gets the same
     assistant_message + terminal status pair a real answer produces, and
     the decline lands in conversation history so follow-up turns see it.
+
+    Returns False when the session was cancelled and nothing was delivered.
     """
-    event_sink.send(AgentEvent(
-        type="assistant_message",
-        session_id=state.session_id,
-        data={
-            "author": "assistant",
-            "content": decline_text,
-            "filesChanged": [],
-            "sources": [],
-            "no_branch_operations": True,
-        },
-    ))
-    try:
-        event_sink.add_to_conversation_history(state.session_id, "assistant", decline_text)
-    except Exception:
-        _log.warning("Could not store the decline in conversation history", exc_info=True)
-    event_sink.send(AgentEvent(
-        type="status",
-        session_id=state.session_id,
-        data={
-            "done": True,
-            "success": True,
-            "status": "completed",
-            "message": "Out-of-scope question declined",
-        },
-    ))
+    decline_data = {
+        "author": "assistant",
+        "content": decline_text,
+        "filesChanged": [],
+        "sources": [],
+        "no_branch_operations": True,
+    }
+    # Same event identity as a real answer: lets the frontend dedupe
+    # redelivered events and submit feedback on the decline.
+    trace_id = state.trace_id or get_current_trace_id()
+    if trace_id:
+        decline_data["traceId"] = trace_id
+    return event_sink.deliver_unless_cancelled(
+        state.session_id,
+        [
+            AgentEvent(
+                type="assistant_message",
+                session_id=state.session_id,
+                data=decline_data,
+            ),
+            AgentEvent(
+                type="status",
+                session_id=state.session_id,
+                data={
+                    "done": True,
+                    "success": True,
+                    "status": "completed",
+                    "message": "Out-of-scope question declined",
+                },
+            ),
+        ],
+        history=("assistant", decline_text),
+    )
 
 
 async def _validate_intent(state: AgentState):
@@ -205,22 +244,29 @@ async def _validate_intent(state: AgentState):
 
     if not parsed.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
-        suggestions = suggest_goal_correction(state.user_goal)
-        raise GoalRejected(
-            f"Goal rejected: {parsed.reason}|{','.join(suggestions) if suggestions else ''}"
-        )
+        suggestions = await suggest_goal_correction(state.user_goal, parsed.reason)
+        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
     if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
         _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
-        suggestions = suggest_goal_correction(state.user_goal)
-        raise GoalRejected(
-            f"Goal is too unclear or ambiguous|{','.join(suggestions) if suggestions else ''}"
-        )
+        suggestions = await suggest_goal_correction(state.user_goal)
+        raise GoalRejected(_UNCLEAR_GOAL_MESSAGE, suggestions)
 
     _log.info(
         "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
         state.session_id, parsed.action, parsed.component, parsed.confidence,
     )
+
+def _mark_as_experiment_item(state: AgentState, root_span) -> None:
+    """Declare this trace one item of a dataset run."""
+    if not state.experiment:
+        return
+    span = otel_trace.get_current_span()
+    if not span.is_recording():
+        return
+    for key, value in state.experiment.span_attributes(root_span.id).items():
+        span.set_attribute(key, value)
+
 
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
@@ -255,6 +301,8 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 "app_name": state.app_name,
             },
         ) as root_span:
+            state.trace_id = get_current_trace_id()
+            _mark_as_experiment_item(state, root_span)
             with propagate_attributes(user_id=state.org):
                 try:
                     decline_text = await _gate_goal(state, event_sink)
@@ -352,10 +400,6 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
         except WorkflowCancelled:
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
         except GoalRejected as e:
-            msg = str(e)
-            parts = msg.split("|", 1)
-            reason = parts[0]
-            suggestions = parts[1].split(",") if len(parts) > 1 and parts[1] else []
             event_sink.send(AgentEvent(
                 type="error",
                 session_id=state.session_id,
@@ -363,8 +407,8 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "done": True,
                     "success": False,
                     "status": "rejected",
-                    "message": reason,
-                    "suggestions": suggestions,
+                    "message": e.message,
+                    "suggestions": e.suggestions,
                 }
             ))
         except Exception as e:

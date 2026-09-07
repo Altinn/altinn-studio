@@ -13,11 +13,11 @@ public class CorrespondenceBuilderTests
     public void Build_WithOnlyRequiredProperties_ShouldReturnValidCorrespondence()
     {
         // Arrange
-        OrganisationNumber sender = TestHelpers.GetOrganisationNumber(1);
-        IReadOnlyList<OrganisationOrPersonIdentifier> recipients =
+        OrganizationNumber sender = TestHelpers.GetOrganizationNumber(1);
+        IReadOnlyList<OrganizationOrPersonIdentifier> recipients =
         [
-            OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)),
-            OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(2)),
+            OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)),
+            OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(2)),
         ];
         string resourceId = "resource-id";
         string sendersReference = "sender-reference";
@@ -51,8 +51,8 @@ public class CorrespondenceBuilderTests
     public void Build_WithAllProperties_ShouldReturnValidCorrespondence()
     {
         // Arrange
-        var sender = TestHelpers.GetOrganisationNumber(1);
-        var recipient = OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(2));
+        var sender = TestHelpers.GetOrganizationNumber(1);
+        var recipient = OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(2));
         var data = new
         {
             sender,
@@ -298,14 +298,14 @@ public class CorrespondenceBuilderTests
     public void Builder_UpdatesAndOverwritesValuesCorrectly()
     {
         // Arrange
-        var orgParty = new Party { OrgNumber = TestHelpers.GetOrganisationNumber(4).ToString() };
+        var orgParty = new Party { OrgNumber = TestHelpers.GetOrganizationNumber(4).ToString() };
         var personParty = new Party { SSN = TestHelpers.GetNationalIdentityNumber(5).ToString() };
 
         var builder = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resourceId-1")
             .WithSendersReference("sender-reference-1")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
+            .WithRecipient(OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)))
             .WithContent(
                 CorrespondenceContentBuilder
                     .Create()
@@ -331,14 +331,14 @@ public class CorrespondenceBuilderTests
 
         builder.WithResourceId("resourceId-2");
         builder.WithSendersReference("sender-reference-2");
-        builder.WithRecipient(TestHelpers.GetOrganisationNumber(2).Get(OrganisationNumberFormat.International));
-        builder.WithRecipient(TestHelpers.GetOrganisationNumber(3));
+        builder.WithRecipient(TestHelpers.GetOrganizationNumber(2).Get(OrganizationNumberFormat.International));
+        builder.WithRecipient(TestHelpers.GetOrganizationNumber(3));
         builder.WithRecipients([
-            OrganisationOrPersonIdentifier.Parse(orgParty),
-            OrganisationOrPersonIdentifier.Parse(personParty),
+            OrganizationOrPersonIdentifier.Parse(orgParty),
+            OrganizationOrPersonIdentifier.Parse(personParty),
         ]);
         builder.WithRecipients([
-            TestHelpers.GetOrganisationNumber(6).Get(OrganisationNumberFormat.Local),
+            TestHelpers.GetOrganizationNumber(6).Get(OrganizationNumberFormat.Local),
             TestHelpers.GetNationalIdentityNumber(7).Value,
         ]);
         builder.WithDueDateTime(DateTimeOffset.UtcNow.AddDays(2));
@@ -382,7 +382,7 @@ public class CorrespondenceBuilderTests
         Assert.NotNull(correspondence.Notification);
 
         correspondence.ResourceId.Should().Be("resourceId-2");
-        // correspondence.Sender.Should().Be(TestHelpers.GetOrganisationNumber(2)); Builder mapping removed, sender is now determined from resource registry
+        // correspondence.Sender.Should().Be(TestHelpers.GetOrganizationNumber(2)); Builder mapping removed, sender is now determined from resource registry
         correspondence.SendersReference.Should().Be("sender-reference-2");
         correspondence.DueDateTime.Should().BeSameDateAs(DateTimeOffset.UtcNow.AddDays(2));
         correspondence.Recipients.Should().HaveCount(7);
@@ -390,12 +390,12 @@ public class CorrespondenceBuilderTests
             .Recipients.Select(x => x.ToString())
             .Should()
             .BeEquivalentTo([
-                TestHelpers.GetOrganisationNumber(1).ToString(),
-                TestHelpers.GetOrganisationNumber(2).ToString(),
-                TestHelpers.GetOrganisationNumber(3).ToString(),
-                TestHelpers.GetOrganisationNumber(4).ToString(),
+                TestHelpers.GetOrganizationNumber(1).ToString(),
+                TestHelpers.GetOrganizationNumber(2).ToString(),
+                TestHelpers.GetOrganizationNumber(3).ToString(),
+                TestHelpers.GetOrganizationNumber(4).ToString(),
                 TestHelpers.GetNationalIdentityNumber(5).ToString(),
-                TestHelpers.GetOrganisationNumber(6).ToString(),
+                TestHelpers.GetOrganizationNumber(6).ToString(),
                 TestHelpers.GetNationalIdentityNumber(7).ToString(),
             ]);
         correspondence.Content.Title.Should().Be("content-title-2");
@@ -467,7 +467,7 @@ public class CorrespondenceBuilderTests
             .Create()
             .WithResourceId("resourceId-1")
             .WithSendersReference("sender-reference-1")
-            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithRecipient(TestHelpers.GetOrganizationNumber(1))
             .WithContent(
                 CorrespondenceContentBuilder
                     .Create()
@@ -496,7 +496,7 @@ public class CorrespondenceBuilderTests
     public void NotificationBuilder_RecipientOverrides_AccumulateAcrossChainedCalls()
     {
         // Arrange
-        var org = TestHelpers.GetOrganisationNumber(1);
+        var org = TestHelpers.GetOrganizationNumber(1);
         var nin = TestHelpers.GetNationalIdentityNumber(0);
 
         // Act: mix all four entry points on one builder
@@ -543,7 +543,7 @@ public class CorrespondenceBuilderTests
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithRecipient(TestHelpers.GetOrganizationNumber(1))
             .WithContent(LanguageCode<Iso6391>.Parse("no"), "title", "summary", "body")
             .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-1")
             .WithReplyOption("https://example.com/1", "Link 1")
@@ -576,7 +576,7 @@ public class CorrespondenceBuilderTests
                     .WithSendersReference("late-ref")
                     .WithData(new MemoryStream("late"u8.ToArray()))
             );
-        requestBuilder.WithRecipient(TestHelpers.GetOrganisationNumber(2));
+        requestBuilder.WithRecipient(TestHelpers.GetOrganizationNumber(2));
 
         // Assert: the already-built objects are untouched
         notification.CustomRecipients.Should().ContainSingle();
@@ -629,7 +629,7 @@ public class CorrespondenceBuilderTests
                 .Create()
                 .WithResourceId("resource-id")
                 .WithSendersReference("senders-ref")
-                .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+                .WithRecipient(TestHelpers.GetOrganizationNumber(1))
                 .WithContent(LanguageCode<Iso6391>.Parse("no"), "title", "summary", "body");
             return withKey ? builder.WithIdempotentKey(key).Build() : builder.Build();
         }

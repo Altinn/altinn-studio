@@ -1,7 +1,7 @@
 export {
-  useIsMini,
   useIsMobile,
   useIsTablet,
+  useIsDesktop,
   useIsMobileOrTablet,
   useBrowserWidth,
   breakpoints,

@@ -116,7 +116,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
 
         Assert.DoesNotContain("eFormidling", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
         Assert.DoesNotContain("EnableEFormidling", _app.Read("appsettings.json"), StringComparison.Ordinal);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -134,7 +134,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         Assert.Null(disabled.Attribute("env"));
         Assert.Equal("true", disabled.Value);
         Assert.Contains(result.Warnings, w => w.Contains("not enabled in any appsettings", StringComparison.Ordinal));
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         Assert.DoesNotContain("eFormidling", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
         Assert.Null(ElementById(ProcessAfter(), "EFormidlingTask_Task_1"));
         Assert.Contains(result.Warnings, w => w.Contains("empty legacy eFormidling block", StringComparison.Ordinal));
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -221,8 +221,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
 
         Assert.Null(ElementById(ProcessAfter(), "EFormidlingTask_Task_1"));
         Assert.Contains("eFormidling", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
-        Assert.Contains(result.Warnings, w => w.Contains("no sendAfterTaskId", StringComparison.Ordinal));
-        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Todos, t => t.Contains("no sendAfterTaskId", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -238,7 +237,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
 
         Assert.Contains("eFormidling", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
         Assert.Contains(result.Warnings, w => w.Contains("Task_Ghost", StringComparison.Ordinal));
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
     }
 
     [Fact]
@@ -337,7 +336,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         var result = await MigrateResult();
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Null(ElementById(ProcessAfter(), "EFormidlingTask_Task_1"));
     }
 }

@@ -8,7 +8,7 @@ namespace Altinn.Notifications.Models;
 /// A class representing a set of resource links of a notification order. 
 /// </summary>
 /// <remarks>
-/// External representaion to be used in the API.
+/// External representation to be used in the API.
 /// </remarks>
 public class OrderResourceLinksExt
 {

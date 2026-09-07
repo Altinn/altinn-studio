@@ -1,22 +1,15 @@
 import { useEffect, useState } from 'react';
 
-export const breakpoints = {
-  mini: 600,
-  mobile: 768,
-  tablet: 992,
-};
+import { breakpoints } from '@app/form-component/app-components/Flex/breakpoints';
+
+export { breakpoints } from '@app/form-component/app-components/Flex/breakpoints';
 
 type Condition = (width: number) => boolean;
 
-const conditionIsMini: Condition = (width) => width <= breakpoints.mini;
-const conditionIsMobile: Condition = (width) => width <= breakpoints.mobile;
-const conditionIsTablet: Condition = (width) =>
-  width > breakpoints.mobile && width <= breakpoints.tablet;
-const conditionIsMobileOrTablet: Condition = (width) => width <= breakpoints.tablet;
-
-export function useIsMini() {
-  return useBrowserWidth(conditionIsMini);
-}
+const conditionIsMobile: Condition = (width) => width < breakpoints.sm;
+const conditionIsTablet: Condition = (width) => width >= breakpoints.sm && width < breakpoints.md;
+const conditionIsDesktop: Condition = (width) => width >= breakpoints.md;
+const conditionIsMobileOrTablet: Condition = (width) => width < breakpoints.md;
 
 export function useIsMobile() {
   return useBrowserWidth(conditionIsMobile);
@@ -24,6 +17,10 @@ export function useIsMobile() {
 
 export function useIsTablet() {
   return useBrowserWidth(conditionIsTablet);
+}
+
+export function useIsDesktop() {
+  return useBrowserWidth(conditionIsDesktop);
 }
 
 export function useIsMobileOrTablet() {

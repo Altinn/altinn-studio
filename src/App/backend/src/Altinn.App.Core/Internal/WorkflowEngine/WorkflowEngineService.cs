@@ -1,10 +1,8 @@
-using System.Diagnostics;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -18,9 +16,22 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    private const int InitialWorkflowPollingDelayMs = 100;
+    // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
+    // wait adds to a settled transition and how many collection reads a slow one costs. Poll tightly
+    // for as long as a synchronous completion is still plausible - the same window as the parked
+    // release grace below - then slope off to the 2s cap, which bounds what a genuinely slow
+    // transition costs. Doubling from 100ms was the old shape, and its rungs (100/300/700/1500)
+    // overshot a ~115ms transition by ~190ms; a permanently tight ladder is the opposite mistake,
+    // turning a slow transition into a thousand reads. Change none of these without measuring both.
+    private const int InitialWorkflowPollingDelayMs = 50;
+    private const int WorkflowPollingTightWindowMs = 2_000;
+    private const int WorkflowPollingBackoffPercent = 50;
     private const int MaxWorkflowPollingDelayMs = 2_000;
     private const int AcceptanceProbeAttempts = 3;
+
+    // Not the polling delay above: this grace lets the engine's write buffer make the collection
+    // visible before an unknown enqueue is concluded "not accepted".
+    private const int AcceptanceProbeDelayMs = 100;
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
@@ -28,31 +39,42 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClient;
     private readonly AppIdentifier _appIdentifier;
+    private readonly TimeProvider _timeProvider;
 
     public WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
-        IInstanceClient instanceClient,
+        IInstanceClientWithStorageMetadata instanceClient,
         AppIdentifier appIdentifier
+    )
+        : this(processNextRequestFactory, workflowEngineClient, instanceClient, appIdentifier, TimeProvider.System) { }
+
+    internal WorkflowEngineService(
+        ProcessNextRequestFactory processNextRequestFactory,
+        IWorkflowEngineClient workflowEngineClient,
+        IInstanceClientWithStorageMetadata instanceClient,
+        AppIdentifier appIdentifier,
+        TimeProvider timeProvider
     )
     {
         _processNextRequestFactory = processNextRequestFactory;
         _workflowEngineClient = workflowEngineClient;
         _instanceClient = instanceClient;
         _appIdentifier = appIdentifier;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
         Instance instance,
+        StorageVersionMetadata instanceVersions,
         ProcessStateChange processStateChange,
-        string resolvedAction,
-        string lockToken,
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false,
         CancellationToken ct = default
     )
     {
@@ -62,12 +84,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             bundle = await CreateWorkflowEnqueueEnvelope(
                 instance,
                 processStateChange,
-                CreateProcessNextIdempotencyKey(instance, processStateChange, resolvedAction),
-                lockToken,
+                CreateProcessNextIdempotencyKey(instance, instanceVersions),
                 state,
                 isInstantiation: isInstantiation,
                 prefill: prefill,
-                notification: notification
+                notification: notification,
+                takeOverProcessingStatus: takeOverProcessingStatus
             );
         }
         catch (Exception exception) when (!ct.IsCancellationRequested)
@@ -141,21 +163,21 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     public Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     ) =>
         EnqueueDependentWorkflow(
             instance,
             processStateChange,
-            lockToken,
             dependsOnWorkflowId,
             collectionKey,
             state,
             actor,
+            idempotencyKey,
             ct
         );
 
@@ -333,84 +355,45 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<Guid> EnqueueDependentWorkflow(
         Instance instance,
         ProcessStateChange processStateChange,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey,
         CancellationToken ct
     )
     {
-        (Guid workflowId, _) = await CreateAndEnqueueWorkflow(
+        WorkflowEnqueueEnvelope bundle = await _processNextRequestFactory.CreateDependent(
             instance,
             processStateChange,
-            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
-            lockToken,
             state,
-            actor: actor,
-            dependsOn: [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
-            collectionKey: collectionKey,
-            ct: ct
-        );
-
-        return workflowId;
-    }
-
-    private async Task<(Guid WorkflowId, string? CollectionKey)> CreateAndEnqueueWorkflow(
-        Instance instance,
-        ProcessStateChange processStateChange,
-        string idempotencyKey,
-        string lockToken,
-        string? state = null,
-        bool isInstantiation = false,
-        Actor? actor = null,
-        IEnumerable<WorkflowRef>? dependsOn = null,
-        string? collectionKey = null,
-        Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null,
-        CancellationToken ct = default
-    )
-    {
-        WorkflowEnqueueEnvelope bundle = await CreateWorkflowEnqueueEnvelope(
-            instance,
-            processStateChange,
-            idempotencyKey,
-            lockToken,
-            state,
-            isInstantiation,
             actor,
-            dependsOn,
-            prefill,
-            notification
+            [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
+            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
         );
-        string? effectiveCollectionKey = collectionKey ?? bundle.CollectionKey;
-
-        return await EnqueueWorkflowEnvelope(bundle, effectiveCollectionKey, ct);
+        (Guid workflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, ct);
+        return workflowId;
     }
 
     private Task<WorkflowEnqueueEnvelope> CreateWorkflowEnqueueEnvelope(
         Instance instance,
         ProcessStateChange processStateChange,
         string idempotencyKey,
-        string lockToken,
         string? state = null,
         bool isInstantiation = false,
-        Actor? actor = null,
-        IEnumerable<WorkflowRef>? dependsOn = null,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        bool takeOverProcessingStatus = false
     ) =>
-        _processNextRequestFactory.Create(
+        _processNextRequestFactory.CreateChainInitiating(
             instance,
             processStateChange,
-            lockToken,
+            idempotencyKey,
             state,
             isInstantiation: isInstantiation,
-            actor: actor,
-            dependsOn: dependsOn,
             prefill: prefill,
             notification: notification,
-            idempotencyKey: idempotencyKey
+            takeOverProcessingStatus: takeOverProcessingStatus
         );
 
     private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowEnvelope(
@@ -460,7 +443,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
             if (attempt < AcceptanceProbeAttempts - 1)
             {
-                await Task.Delay(InitialWorkflowPollingDelayMs, ct);
+                await Task.Delay(AcceptanceProbeDelayMs, ct);
             }
         }
 
@@ -470,10 +453,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <summary>
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
-    /// active workflow in it is <c>Waiting</c> because a service task deferred — is released as a
-    /// committed success once <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that
-    /// is neither settled nor parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported
-    /// as a <see cref="WorkflowFailureKind.Timeout"/>.
+    /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
+    /// a mailbox receive workflow is waiting for its message — is released as a committed success once
+    /// <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that is neither settled nor
+    /// parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a
+    /// <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
@@ -482,12 +466,24 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct
     )
     {
-        var stopwatch = Stopwatch.StartNew();
+        long startedAt = _timeProvider.GetTimestamp();
         int currentDelayMs = InitialWorkflowPollingDelayMs;
         IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows = [];
 
-        while (!ct.IsCancellationRequested)
+        while (true)
         {
+            ct.ThrowIfCancellationRequested();
+            if (_timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs))
+            {
+                return await CreatePollingTimeoutResult(
+                    instance,
+                    collectionKey,
+                    sinceWorkflowId,
+                    lastObservedCollectionWorkflows,
+                    ct
+                );
+            }
+
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
                 collectionKey,
@@ -518,25 +514,51 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     if (anchoredChainSettled)
                     {
-                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
                         lastObservedCollectionWorkflows = currentChain;
                         WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
-                        bool processStateChanged = HasCommittedProcessState(currentChain);
-                        return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
+                        bool repollAfterAbandonCasLoss = false;
+                        if (
+                            workflowFailure?.Kind == WorkflowFailureKind.AcquireConflict
+                            && workflowFailure.WorkflowId is { } failedAcquireWorkflowId
+                        )
+                        {
+                            bool abandoned = await _workflowEngineClient.AbandonWorkflow(
+                                GetNamespace(),
+                                failedAcquireWorkflowId,
+                                ct
+                            );
+                            if (!abandoned)
+                            {
+                                // A concurrent resume won the engine compare-and-set. Re-read the
+                                // collection and wait for the permanently stale acquire to settle
+                                // again before retrying the write-off.
+                                repollAfterAbandonCasLoss = true;
+                            }
+                        }
+
+                        if (!repollAfterAbandonCasLoss)
+                        {
+                            InstanceWithStorageMetadata freshInstance =
+                                await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
+                            bool processStateChanged = HasCommittedProcessState(currentChain);
+                            return new ProcessNextWorkflowResult(
+                                freshInstance.Instance,
+                                freshInstance.Metadata,
+                                workflowFailure,
+                                processStateChanged
+                            );
+                        }
                     }
                 }
                 else if (
-                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsWaitingCollectionHeadStatus)
-                    && stopwatch.ElapsedMilliseconds >= WorkflowParkedReleaseGraceMs
+                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus)
+                    && _timeProvider.GetElapsedTime(startedAt)
+                        >= TimeSpan.FromMilliseconds(WorkflowParkedReleaseGraceMs)
                 )
                 {
-                    // The chain is parked on a deferring service task and may stay so for its whole
-                    // wait budget; holding the request would misreport a designed wait as a timeout.
-                    // Deferral is post-commit by construction (only ExecuteServiceTask defers, after
-                    // SaveProcessStateToStorage), so the instance already carries the committed
-                    // target task and the ordinary success shape applies — the read-path workflow
-                    // annotation renders the waiting UI from here. The grace window lets quick polls
-                    // complete synchronously.
+                    // Parked (deferring task, or a Held receiver) may last its whole budget; holding the request would
+                    // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
+                    // success shape applies and the read-path annotation takes over.
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
                         await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
                         sinceWorkflowId
@@ -549,18 +571,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             || currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
                         )
                         && activeWorkflows.Count > 0
-                        && activeWorkflows.TrueForAll(workflow =>
-                            workflow.OverallStatus == PersistentItemStatus.Waiting
-                        );
+                        && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
 
                     // The committed-state guard is defensive: should a pre-commit step ever learn to
                     // defer, fall through to the ordinary wait (and its timeout) rather than returning a
                     // process state that does not exist yet.
                     if (anchoredChainParked && HasCommittedProcessState(currentChain))
                     {
-                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        InstanceWithStorageMetadata freshInstance =
+                            await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
                         return new ProcessNextWorkflowResult(
-                            freshInstance,
+                            freshInstance.Instance,
+                            freshInstance.Metadata,
                             WorkflowFailure: null,
                             ProcessStateChanged: true
                         );
@@ -568,29 +590,42 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 }
             }
 
-            if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
-            {
-                Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                if (lastObservedCollectionWorkflows.Count == 0)
-                {
-                    lastObservedCollectionWorkflows = ScopeToCurrentChain(
-                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
-                        sinceWorkflowId
+            await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, ct);
+            currentDelayMs =
+                _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
+                    ? InitialWorkflowPollingDelayMs
+                    : Math.Min(
+                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
+                        MaxWorkflowPollingDelayMs
                     );
-                }
-                return new ProcessNextWorkflowResult(
-                    freshInstance,
-                    new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-                    HasCommittedProcessState(lastObservedCollectionWorkflows)
-                );
-            }
-
-            await Task.Delay(currentDelayMs, ct);
-            currentDelayMs = Math.Min(currentDelayMs * 2, MaxWorkflowPollingDelayMs);
         }
+    }
 
-        ct.ThrowIfCancellationRequested();
-        throw new InvalidOperationException("Cancellation should have thrown.");
+    private async Task<ProcessNextWorkflowResult> CreatePollingTimeoutResult(
+        Instance instance,
+        string collectionKey,
+        Guid? sinceWorkflowId,
+        IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows,
+        CancellationToken ct
+    )
+    {
+        InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
+            instance,
+            ct: ct
+        );
+        if (lastObservedCollectionWorkflows.Count == 0)
+        {
+            lastObservedCollectionWorkflows = ScopeToCurrentChain(
+                await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                sinceWorkflowId
+            );
+        }
+        return new ProcessNextWorkflowResult(
+            freshInstance.Instance,
+            freshInstance.Metadata,
+            new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
+            HasCommittedProcessState(lastObservedCollectionWorkflows)
+        );
     }
 
     /// <summary>
@@ -686,22 +721,31 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     // Waiting counts as active: a step that deferred while awaiting an external outcome is still
     // mid-transition, holding no lease but owning the process. Reading it as settled would let the
     // wait return success on an uncommitted transition and let the next action start on top of it.
+    // Held counts for the same reason, and is the stronger case: a parked receiver is the whole of what
+    // remains of its transition, so reading it as settled is exactly the early execution the frontier
+    // convention prevents.
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
-                or PersistentItemStatus.Waiting;
+                or PersistentItemStatus.Waiting
+                or PersistentItemStatus.Held;
 
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
-                or PersistentItemStatus.Waiting;
+                or PersistentItemStatus.Waiting
+                or PersistentItemStatus.Held;
 
-    private static bool IsWaitingCollectionHeadStatus(CollectionHeadStatus workflow) =>
-        workflow.Status is PersistentItemStatus.Waiting;
+    // Parked: active with nothing running and nothing scheduled — waiting on the outside world.
+    private static bool IsParkedCollectionHeadStatus(CollectionHeadStatus workflow) =>
+        workflow.Status is PersistentItemStatus.Waiting or PersistentItemStatus.Held;
+
+    private static bool IsParkedWorkflowStatus(WorkflowStatusResponse workflow) =>
+        workflow.OverallStatus is PersistentItemStatus.Waiting or PersistentItemStatus.Held;
 
     private static bool IsResumeRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
@@ -754,7 +798,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>
             workflow.Steps.Any(step =>
-                step.OperationId == SaveProcessStateToStorage.Key && step.Status == PersistentItemStatus.Completed
+                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
             )
         );
 
@@ -794,6 +838,22 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             StepStatusResponse failedStep = stepFailedWorkflow.Steps.First(step =>
                 step.Status == PersistentItemStatus.Failed
             );
+            ErrorEntry? lastErrorEntry = failedStep.ErrorHistory?.LastOrDefault();
+            WorkflowFailureError? lastError = ToWorkflowFailureError(lastErrorEntry);
+            if (IsAcquireConcurrencyFailure(stepFailedWorkflow, failedStep, lastErrorEntry))
+            {
+                return new WorkflowFailure
+                {
+                    Kind = WorkflowFailureKind.AcquireConflict,
+                    WorkflowId = stepFailedWorkflow.DatabaseId,
+                    WorkflowOperationId = stepFailedWorkflow.OperationId,
+                    StepOperationId = failedStep.OperationId,
+                    CommandType = failedStep.Command.Type,
+                    RetryCount = failedStep.RetryCount,
+                    LastError = lastError,
+                };
+            }
+
             return new WorkflowFailure
             {
                 Kind = WorkflowFailureKind.StepFailed,
@@ -802,7 +862,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 StepOperationId = failedStep.OperationId,
                 CommandType = failedStep.Command.Type,
                 RetryCount = failedStep.RetryCount,
-                LastError = ToWorkflowFailureError(failedStep.ErrorHistory?.LastOrDefault()),
+                LastError = lastError,
                 RetryAction = "resumeWorkflow",
                 RetryTargetWorkflowId = stepFailedWorkflow.DatabaseId,
             };
@@ -842,6 +902,41 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         return null;
+    }
+
+    private static bool IsAcquireConcurrencyFailure(
+        WorkflowStatusResponse workflow,
+        StepStatusResponse failedStep,
+        ErrorEntry? lastError
+    ) =>
+        (
+            failedStep.OperationId == AcquireProcessingStatus.Key
+            || failedStep.OperationId == TakeOverProcessingStatus.Key
+        )
+        && failedStep.ProcessingOrder == workflow.Steps.Min(step => step.ProcessingOrder)
+        && lastError is { WasRetryable: false }
+        && HasWorkflowFailureCode(lastError.Message, AcquireProcessingStatus.ConcurrencyFailureCode);
+
+    private static bool HasWorkflowFailureCode(string message, string expectedCode)
+    {
+        int jsonStart = message.IndexOf('{');
+        if (jsonStart < 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(message[jsonStart..]);
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty("workflowFailureCode", out JsonElement code)
+                && code.ValueKind == JsonValueKind.String
+                && string.Equals(code.GetString(), expectedCode, StringComparison.Ordinal);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
     private static WorkflowFailureError? ToWorkflowFailureError(ErrorEntry? errorEntry) =>
@@ -892,29 +987,24 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return message;
     }
 
-    private static string CreateProcessNextIdempotencyKey(
-        Instance instance,
-        ProcessStateChange processStateChange,
-        string resolvedAction
-    )
+    internal static string CreateProcessNextIdempotencyKey(Instance instance, StorageVersionMetadata instanceVersions)
     {
-        ProcessElementInfo? currentTask =
-            processStateChange.OldProcessState?.CurrentTask ?? processStateChange.NewProcessState?.CurrentTask;
-        string taskId = currentTask?.ElementId ?? instance.Process?.StartEvent ?? "process-start";
-        int flow = currentTask?.Flow ?? 0;
+        int instanceVersion =
+            instanceVersions.InstanceVersion
+            ?? throw new InvalidOperationException(
+                "Process-next workflow enqueue requires the authoritative instance version captured in callback state."
+            );
         InstanceIdentifier instanceIdentifier = new(instance);
-        string fingerprint = $"{instanceIdentifier.InstanceGuid:N}|{flow}|{taskId}|{resolvedAction}";
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(fingerprint));
-        return $"process-next-operation-{Convert.ToHexString(hash).ToLowerInvariant()}";
+        return $"process-next-operation-{instanceIdentifier.InstanceGuid:N}-{instanceVersion}";
     }
 
-    private static string CreateDependentWorkflowIdempotencyKey(Guid dependsOnWorkflowId) =>
+    internal static string CreateDependentWorkflowIdempotencyKey(Guid dependsOnWorkflowId) =>
         $"process-next-dependent-{dependsOnWorkflowId:N}";
 
     private static bool IsDefinitiveNotAccepted(Exception exception, out HttpStatusCode? statusCode)
     {
         statusCode = GetStatusCode(exception);
-        return statusCode is not null && (int)statusCode.Value < 500 && statusCode != HttpStatusCode.Conflict;
+        return statusCode is not null && (int)statusCode.Value < 500;
     }
 
     private static HttpStatusCode? GetStatusCode(Exception exception) =>

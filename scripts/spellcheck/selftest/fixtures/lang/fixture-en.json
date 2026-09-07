@@ -1,0 +1,17 @@
+{
+  "planted.colour_key": "A deliberately British key above a clean value",
+  "planted.compound_ok": "The code list is updated",
+  "planted.dictionary_gap_ok": "Someone has seen the form",
+  "planted.duplicate": "Just once",
+  "planted.empty_in_nb": "Not empty",
+  "planted.empty_ok": "Deliberately empty in the nb fixture only",
+  "planted.glossary_ok": "Altinn and Maskinporten are available",
+  "planted.loanword_ok": "See the dashboard",
+  "planted.missing_in_nn": "This key does not exist in nynorsk",
+  "planted.norwegian_typo": "Enter your street address",
+  "planted.nynorsk_ok": "No, I will not answer",
+  "planted.organisation_key_ok": "Choose a colour",
+  "planted.param_mismatch": "Use {{max}} characters",
+  "planted.typo_in_en": "You will recieve a reply soon",
+  "planted.us_spelling": "Choose the color of your organization"
+}

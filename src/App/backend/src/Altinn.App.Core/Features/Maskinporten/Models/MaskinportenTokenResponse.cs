@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 internal sealed record MaskinportenTokenResponse
 {
     /// <summary>
-    /// The JWT access token to be used for authorisation of http requests.
+    /// The JWT access token to be used for authorization of http requests.
     /// </summary>
     [JsonPropertyName("access_token")]
     [JsonConverter(typeof(JwtTokenJsonConverter))]

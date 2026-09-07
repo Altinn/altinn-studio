@@ -26,7 +26,7 @@ jobs:
   require-changelog-entry:
     name: Require studioctl changelog entry
     if: ${{ !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -36,10 +36,9 @@ jobs:
           persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: 'src/tools/releaser/go.mod'
-          cache-dependency-path: src/tools/releaser/go.sum
+          module: src/tools/releaser
 
       - name: Validate studioctl changelog entry
         working-directory: src/tools/releaser

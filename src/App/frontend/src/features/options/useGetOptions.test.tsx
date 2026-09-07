@@ -22,7 +22,6 @@ interface RenderProps {
   type: 'single' | 'multi';
   via: 'layout' | 'api' | 'repeatingGroups';
   options?: (IRawOption & Record<string, unknown>)[];
-  mapping?: Record<string, string>;
   optionFilter?: ExprValToActualOrExpr<ExprVal.Boolean>;
   queryParameters?: IQueryParameters;
   selected?: string;
@@ -57,7 +56,6 @@ async function render(props: RenderProps) {
   const layoutConfig: ISelectionComponentFull = {
     options: props.via === 'layout' ? props.options : undefined,
     optionsId: props.via === 'api' ? 'myOptions' : undefined,
-    mapping: props.via === 'api' ? props.mapping : undefined,
     queryParameters: props.via === 'api' ? props.queryParameters : undefined,
     source:
       props.via === 'repeatingGroups'
@@ -199,7 +197,7 @@ describe('useGetOptions', () => {
     }
   });
 
-  it('should include the mapping in the api request', async () => {
+  it('should include the query parameters in the api request', async () => {
     const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockImplementation(
       async (_url: string) =>
         ({
@@ -211,7 +209,7 @@ describe('useGetOptions', () => {
     await render({
       via: 'api',
       type: 'single',
-      mapping: { someOther: 'someParam', result: 'someEmpty' },
+      queryParameters: { someParam: ['dataModel', 'someOther'], someEmpty: ['dataModel', 'result'] },
       fetchOptions: fetchOptionsMock,
     });
 
@@ -239,28 +237,6 @@ describe('useGetOptions', () => {
       { label: 'Bootstrap', value: 'bootstrap' },
     ]);
     expect(fetchOptionsMock).not.toHaveBeenCalled();
-  });
-
-  it('fetches options from the API when mapping is configured', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
-      data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
-      headers: {},
-    } as AxiosResponse<IRawOption[]>);
-
-    await render({
-      via: 'api',
-      type: 'single',
-      mapping: { someOther: 'someParam' },
-      fetchOptions: fetchOptionsMock,
-      staticOptions: {
-        myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
-      },
-    });
-
-    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
-      { label: 'Fetched', value: 'fetched' },
-    ]);
-    expect(fetchOptionsMock).toHaveBeenCalledTimes(1);
   });
 
   it('fetches options from the API when query parameters are dynamic', async () => {
@@ -307,7 +283,7 @@ describe('useGetOptions', () => {
     expect(fetchOptionsMock).toHaveBeenCalledTimes(1);
   });
 
-  it('uses bootstrap static options when mapping and query parameters are empty', async () => {
+  it('uses bootstrap static options when query parameters are empty', async () => {
     const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
@@ -316,7 +292,6 @@ describe('useGetOptions', () => {
     await render({
       via: 'api',
       type: 'single',
-      mapping: {},
       queryParameters: {},
       fetchOptions: fetchOptionsMock,
       staticOptions: {

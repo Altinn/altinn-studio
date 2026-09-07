@@ -1,0 +1,3 @@
+# Planted: the bracket expression on the next line eats the first letter of a
+# word the checker knows; the tail must be classified as pattern syntax.
+*.[Pp]ublish.xml

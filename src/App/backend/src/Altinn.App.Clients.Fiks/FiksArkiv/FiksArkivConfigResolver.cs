@@ -194,7 +194,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         (data as string).EnsureNotEmpty($"{nameof(FiksArkivReceiptSettings)}.{paramName}");
 
     /// <inheritdoc />
-    public string GetCorrelationId(Instance instance) => instance.GetInstanceUrl(_generalSettings);
+    public string GetInstanceReference(Instance instance) => instance.GetInstanceUrl(_generalSettings);
 
     /// <inheritdoc />
     public Korrespondansepart GetRecipientParty(Instance instance, FiksArkivRecipient recipient) =>
@@ -202,7 +202,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
             partyId: recipient.Identifier,
             partyName: recipient.Name,
             organizationId: recipient.OrgNumber,
-            reference: GetCorrelationId(instance)
+            reference: GetInstanceReference(instance)
         );
 
     /// <inheritdoc />

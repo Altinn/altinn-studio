@@ -5,7 +5,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
-import { previewPage } from 'app-shared/api/paths';
+import { previewPage, previewPageV9 } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -154,6 +154,35 @@ describe('Preview', () => {
     );
 
     expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
+  });
+
+  it('points the iframe at the browser-router url for v9 apps', async () => {
+    render({
+      queries: {
+        getAppVersion: jest
+          .fn()
+          .mockImplementation(() =>
+            Promise.resolve({ backendVersion: '9.0.0', frontendVersion: '4.0.0' }),
+          ),
+      },
+      queryClient: createQueryClientMock(),
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    expect(appContextMock.previewIframeRef.current.src).toBe(
+      'http://localhost' +
+        previewPageV9(
+          org,
+          app,
+          layoutSet,
+          layoutSet,
+          appContextMock.selectedFormLayoutName,
+          mockInstanceId,
+        ),
+    );
+    expect(appContextMock.previewIframeRef.current.src).not.toContain('app-specific-preview');
   });
 });
 

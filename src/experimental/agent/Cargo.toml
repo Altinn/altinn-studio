@@ -7,15 +7,27 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
-agent-runtime-protocol = { path = "../agent-runtime-protocol" }
+base64.workspace = true
 sandbox = { path = "../sandbox" }
+sandbox-authorization = { path = "../sandbox-authorization" }
+sandbox-microsandbox = { path = "../sandbox-microsandbox" }
 clap.workspace = true
+crossterm.workspace = true
+ignore.workspace = true
+futures-util.workspace = true
+reqwest.workspace = true
+ratatui.workspace = true
+rusqlite.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 serde_yaml_ng.workspace = true
+tar.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio.workspace = true
+tempfile.workspace = true
+zeroize.workspace = true
+uuid.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 tokio-util = { workspace = true, features = ["compat"] }

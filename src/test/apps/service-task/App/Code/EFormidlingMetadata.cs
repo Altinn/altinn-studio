@@ -6,8 +6,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
-using Altinn.Common.EFormidlingClient.Models;
 
 namespace Altinn.App.Code;
 
@@ -31,40 +31,79 @@ public class EFormidlingMetadata : IEFormidlingMetadata
                     Tittel = "Dette er en tittel",
                     OpprettetDato = DateTime.Now.ToString(),
                     Type = "saksmappe",
-                    Basisregistrering = new Basisregistrering
+                    Basisregistrering = new List<Basisregistrering>
                     {
-                        Type = "journalpost",
-                        SystemID = Guid.NewGuid().ToString(),
-                        OpprettetDato = DateTime.UtcNow,
-                        OpprettetAv = "LandLord",
-                        ArkivertDato = DateTime.Now,
-                        ArkivertAv = "LandLord",
-                        Dokumentbeskrivelse = new Dokumentbeskrivelse
+                        new Basisregistrering
                         {
+                            Type = "journalpost",
                             SystemID = Guid.NewGuid().ToString(),
-                            Dokumenttype = "Bestilling",
-                            Dokumentstatus = "Dokumentet er ferdigstilt",
-                            Tittel = "Hei",
                             OpprettetDato = DateTime.UtcNow,
                             OpprettetAv = "LandLord",
-                            TilknyttetRegistreringSom = "hoveddokument",
-                            Dokumentnummer = 1,
-                            TilknyttetDato = DateTime.Now,
-                            TilknyttetAv = "Landlord",
-                            Dokumentobjekt = new Dokumentobjekt
+                            ArkivertDato = DateTime.Now,
+                            ArkivertAv = "LandLord",
+                            // A main document and an attachment, which is what AntallFiler claims. The
+                            // model could only describe one of them until dokumentbeskrivelse became
+                            // repeatable, as the schema has always allowed.
+                            Dokumentbeskrivelse = new List<Dokumentbeskrivelse>
                             {
-                                Versjonsnummer = 1,
-                                Variantformat = "Produksjonsformat",
-                                OpprettetDato = DateTime.UtcNow,
-                                OpprettetAv = "LandLord",
-                                ReferanseDokumentfil = "model.xml",
+                                new Dokumentbeskrivelse
+                                {
+                                    SystemID = Guid.NewGuid().ToString(),
+                                    Dokumenttype = "Bestilling",
+                                    Dokumentstatus = "Dokumentet er ferdigstilt",
+                                    Tittel = "Hei",
+                                    OpprettetDato = DateTime.UtcNow,
+                                    OpprettetAv = "LandLord",
+                                    TilknyttetRegistreringSom = "hoveddokument",
+                                    Dokumentnummer = 1,
+                                    TilknyttetDato = DateTime.Now,
+                                    TilknyttetAv = "Landlord",
+                                    Dokumentobjekt = new List<Dokumentobjekt>
+                                    {
+                                        new Dokumentobjekt
+                                        {
+                                            Versjonsnummer = 1,
+                                            Variantformat = "Produksjonsformat",
+                                            OpprettetDato = DateTime.UtcNow,
+                                            OpprettetAv = "LandLord",
+                                            ReferanseDokumentfil = "model.xml",
+                                        },
+                                    },
+                                },
+                                new Dokumentbeskrivelse
+                                {
+                                    SystemID = Guid.NewGuid().ToString(),
+                                    Dokumenttype = "Bestilling",
+                                    Dokumentstatus = "Dokumentet er ferdigstilt",
+                                    Tittel = "Vedlegg",
+                                    OpprettetDato = DateTime.UtcNow,
+                                    OpprettetAv = "LandLord",
+                                    TilknyttetRegistreringSom = "vedlegg",
+                                    Dokumentnummer = 2,
+                                    TilknyttetDato = DateTime.Now,
+                                    TilknyttetAv = "Landlord",
+                                    Dokumentobjekt = new List<Dokumentobjekt>
+                                    {
+                                        new Dokumentobjekt
+                                        {
+                                            Versjonsnummer = 1,
+                                            Variantformat = "Arkivformat",
+                                            OpprettetDato = DateTime.UtcNow,
+                                            OpprettetAv = "LandLord",
+                                            // The task ships two data types, model and ref-data-as-pdf.
+                                            // A PDF data element with no filename is uploaded under its
+                                            // data type id, which is what this refers to.
+                                            ReferanseDokumentfil = "ref-data-as-pdf",
+                                        },
+                                    },
+                                },
                             },
+                            Tittel = "Nye lysrør",
+                            OffentligTittel = "Nye lysrør",
+                            Journalposttype = "Utgående dokument",
+                            Journalstatus = "Journalført",
+                            Journaldato = DateTime.Now,
                         },
-                        Tittel = "Nye lysrør",
-                        OffentligTittel = "Nye lysrør",
-                        Journalposttype = "Utgående dokument",
-                        Journalstatus = "Journalført",
-                        Journaldato = DateTime.Now,
                     },
                 },
             },

@@ -30,14 +30,9 @@ export const ExpandablePolicyElement = ({
   const { usageType } = usePolicyEditorContext();
 
   const [isOpen, setIsOpen] = useState(usageType !== 'app');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [isButtonFocused, setIsButtonFocused] = useState(false);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-
-  const handleClickMoreButton = () => {
-    setIsDropdownOpen((prev) => !prev);
-  };
 
   const getTopWrapperErrorClassName = () => {
     if (isCard && hasError) {
@@ -93,17 +88,8 @@ export const ExpandablePolicyElement = ({
           )}
         </button>
         <PolicyEditorDropdownMenu
-          isOpen={isDropdownOpen}
-          handleClickMoreIcon={handleClickMoreButton}
-          handleCloseMenu={() => setIsDropdownOpen(false)}
-          handleClone={() => {
-            handleCloneElement();
-            setIsDropdownOpen(false);
-          }}
-          handleDelete={() => {
-            handleRemoveElement();
-            setIsDropdownOpen(false);
-          }}
+          handleClone={handleCloneElement}
+          handleDelete={handleRemoveElement}
           isError={hasError}
         />
       </div>

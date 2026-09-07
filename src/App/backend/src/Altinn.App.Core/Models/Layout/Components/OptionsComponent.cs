@@ -177,7 +177,7 @@ public record OptionsSource
     /// </summary>
     /// <remarks>
     /// Notice that the value field must be unique for each element. If the repeating group does not contain a field which is unique for each item
-    /// it is recommended to add a field to the data model that can be used as identificator, for instance a GUID.
+    /// it is recommended to add a field to the data model that can be used as identifier, for instance a GUID.
     /// </remarks>
     public string Value { get; }
 }

@@ -1,4 +1,4 @@
-import type { CodeListItem } from '../types/CodeListItem';
+import type { MultiLanguageCodeListItem } from '../types/CodeListItem';
 import type { CodeList } from '../types/CodeList';
 import type { MultiLanguageText } from '../../../types/MultiLanguageText';
 
@@ -48,21 +48,21 @@ const helpText3: MultiLanguageText = {
   nn: 'Hjelpetekst 3',
 };
 
-const item1: CodeListItem = {
+const item1: MultiLanguageCodeListItem = {
   description: description1,
   helpText: helpText1,
   label: label1,
   value: 'test1',
 };
 
-const item2: CodeListItem = {
+const item2: MultiLanguageCodeListItem = {
   description: description2,
   helpText: helpText2,
   label: label2,
   value: 'test2',
 };
 
-const item3: CodeListItem = {
+const item3: MultiLanguageCodeListItem = {
   description: description3,
   helpText: helpText3,
   label: label3,

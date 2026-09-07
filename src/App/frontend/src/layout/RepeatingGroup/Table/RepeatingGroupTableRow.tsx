@@ -1,7 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
-import { Button, Flex } from '@app/form-component';
+import { Button, Flex, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -13,7 +13,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
@@ -71,11 +70,11 @@ function getEditButtonText(
   textResourceBindings: GroupExpressions['textResourceBindings'] | undefined,
 ) {
   const buttonTextKey = isEditing
-    ? textResourceBindings?.edit_button_close
-      ? textResourceBindings?.edit_button_close
+    ? textResourceBindings?.editButtonClose
+      ? textResourceBindings?.editButtonClose
       : 'general.save_and_close'
-    : textResourceBindings?.edit_button_open
-      ? textResourceBindings?.edit_button_open
+    : textResourceBindings?.editButtonOpen
+      ? textResourceBindings?.editButtonOpen
       : 'general.edit_alt';
   return langTools.langAsString(buttonTextKey);
 }
@@ -124,7 +123,7 @@ export function RepeatingGroupTableRow({
     : getEditButtonText(isEditingRow, langTools, trbForRow);
 
   const deleteButtonText = langAsString('general.delete');
-  const togleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
+  const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
     <Table.Row
@@ -334,7 +333,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : togleDeletebuttonText}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
                 </DeleteElement>
               </>
             )}

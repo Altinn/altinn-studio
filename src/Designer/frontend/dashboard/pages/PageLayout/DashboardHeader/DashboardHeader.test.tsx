@@ -10,7 +10,7 @@ import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { headerContextValueMock } from '../../../testing/headerContextMock';
-import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -31,7 +31,7 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -273,19 +273,19 @@ describe('DashboardHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('Renders the Git header when in the organisation library and no element type is given', () => {
+  it('Renders the Git header when in the organization library and no element type is given', () => {
     renderDashboardHeaderForLibrary();
     const giteaMenuButtonName = textMock('sync_header.gitea_menu');
     expect(screen.getByRole('button', { name: giteaMenuButtonName })).toBeInTheDocument();
   });
 
-  it('Renders the Git header when in the organisation library and an element type is given', () => {
+  it('Renders the Git header when in the organization library and an element type is given', () => {
     renderDashboardHeaderForLibrary(PageName.CodeLists);
     const giteaMenuButtonName = textMock('sync_header.gitea_menu');
     expect(screen.getByRole('button', { name: giteaMenuButtonName })).toBeInTheDocument();
   });
 
-  it('Does not render the Git header when not in the organisation library', () => {
+  it('Does not render the Git header when not in the organization library', () => {
     renderDashboardHeader({ subroute: Subroute.AppDashboard });
     const giteaMenuButtonName = textMock('sync_header.gitea_menu');
     expect(screen.queryByRole('button', { name: giteaMenuButtonName })).not.toBeInTheDocument();

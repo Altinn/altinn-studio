@@ -1,0 +1,250 @@
+﻿[
+  {
+    Plan: {
+      Node Type: ModifyTable,
+      Operation: Insert,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Relation Name: mailboxes,
+      Alias: m,
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Conflict Resolution: NOTHING,
+      Conflict Arbiter Indexes: [
+        ix_mailboxes_namespace_idempotency_key
+      ],
+      Plans: [
+        {
+          Node Type: WindowAgg,
+          Parent Relationship: InitPlan,
+          Subplan Name: CTE fresh,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Window: w1 AS (PARTITION BY t.ns, t.collection_key ORDER BY t.ord ROWS UNBOUNDED PRECEDING),
+          Plans: [
+            {
+              Node Type: Sort,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Sort Key: [
+                t.ns,
+                t.collection_key,
+                t.ord
+              ],
+              Plans: [
+                {
+                  Node Type: Nested Loop,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Join Type: Anti,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Inner Unique: false,
+                  Plans: [
+                    {
+                      Node Type: Function Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Alias: t,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false
+                    },
+                    {
+                      Node Type: Index Only Scan,
+                      Parent Relationship: Inner,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Scan Direction: Forward,
+                      Index Name: ix_mailboxes_namespace_idempotency_key,
+                      Relation Name: mailboxes,
+                      Alias: taken,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Index Cond: ((namespace = t.ns) AND (idempotency_key = t.idempotency_key))
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          Node Type: Subquery Scan,
+          Parent Relationship: InitPlan,
+          Subplan Name: CTE open_counts,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Alias: k,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Plans: [
+            {
+              Node Type: Unique,
+              Parent Relationship: Subquery,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Plans: [
+                {
+                  Node Type: CTE Scan,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  CTE Name: fresh,
+                  Alias: f_1,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Filter: (collection_key IS NOT NULL)
+                }
+              ]
+            },
+            {
+              Node Type: Aggregate,
+              Strategy: Plain,
+              Partial Mode: Simple,
+              Parent Relationship: SubPlan,
+              Subplan Name: SubPlan 2,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Plans: [
+                {
+                  Node Type: Index Only Scan,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: ix_mailboxes_namespace_collection_key,
+                  Relation Name: mailboxes,
+                  Alias: counted,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Index Cond: ((namespace = k.ns) AND (collection_key = k.collection_key) AND (status = 'open'::text))
+                }
+              ]
+            }
+          ]
+        },
+        {
+          Node Type: Subquery Scan,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Alias: *SELECT*,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Plans: [
+            {
+              Node Type: Incremental Sort,
+              Parent Relationship: Subquery,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Sort Key: [
+                f.ns,
+                f.idempotency_key
+              ],
+              Presorted Key: [
+                f.ns
+              ],
+              Plans: [
+                {
+                  Node Type: Nested Loop,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Join Type: Left,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Inner Unique: false,
+                  Join Filter: ((oc.ns = f.ns) AND (oc.collection_key = f.collection_key)),
+                  Filter: ((f.collection_key IS NULL) OR ((COALESCE(oc.n, 0) + f.peers_ahead) < 100)),
+                  Plans: [
+                    {
+                      Node Type: CTE Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      CTE Name: fresh,
+                      Alias: f,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false
+                    },
+                    {
+                      Node Type: CTE Scan,
+                      Parent Relationship: Inner,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      CTE Name: open_counts,
+                      Alias: oc,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -56,14 +56,27 @@ type DataModelBindingsOrganisationLookup = {
 };
 
 type DataModelBindingsOrganizationLookup = {
-  organization_lookup_orgnr: ExplicitDataModelBinding;
-  organization_lookup_name?: ExplicitDataModelBinding;
+  orgnr: ExplicitDataModelBinding;
+  name?: ExplicitDataModelBinding;
 };
 
 type DataModelBindingsPersonLookup = {
+  ssn: ExplicitDataModelBinding;
+  fullName?: ExplicitDataModelBinding;
+  firstName?: ExplicitDataModelBinding;
+  middleName?: ExplicitDataModelBinding;
+  lastName?: ExplicitDataModelBinding;
+};
+
+// PersonLookup has the same component type in the v4 and v9 contracts. Both ux-editor versions
+// consume this shared type, while their schemas decide which contract they may write.
+type DataModelBindingsPersonLookupV4 = {
   person_lookup_ssn: ExplicitDataModelBinding;
   person_lookup_name: ExplicitDataModelBinding;
 };
+
+type DataModelBindingsPersonLookupForEditor =
+  DataModelBindingsPersonLookup | DataModelBindingsPersonLookupV4;
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
@@ -379,7 +392,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.PaymentDetails]: {};
   [ComponentType.PersonLookup]: FormComponentProps &
     SummarizableComponentProps & {
-      dataModelBindings: DataModelBindingsPersonLookup;
+      dataModelBindings: DataModelBindingsPersonLookupForEditor;
     };
   [ComponentType.PrintButton]: {};
   [ComponentType.RadioButtons]: FormComponentProps &

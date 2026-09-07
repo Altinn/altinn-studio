@@ -99,6 +99,22 @@ describe('Likert', () => {
       expect(screen.getByText('Test left column header')).toBeInTheDocument();
     });
 
+    it('should render the help text button when a help text is set', async () => {
+      await render({
+        mockQuestions: defaultMockQuestions,
+        likertProps: {
+          textResourceBindings: {
+            title: 'Test title',
+            help: 'Test help text',
+          },
+        },
+      });
+
+      expect(screen.getByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+      // The help button lives in the caption, so the table must be named from the heading alone
+      expect(screen.getByRole('table')).toHaveAccessibleName('Test title');
+    });
+
     it('should render table with one selected row', async () => {
       const answer = defaultMockOptions[1];
       const mockQuestions = [
@@ -386,6 +402,23 @@ describe('Likert', () => {
       expect(screen.getByRole('group', { name: /Likert test title/i })).toHaveAccessibleDescription(
         'This is a test description',
       );
+    });
+
+    it('should render the help text button when a help text is set', async () => {
+      await render({
+        mockQuestions: defaultMockQuestions,
+        likertProps: {
+          textResourceBindings: {
+            title: 'Likert test title',
+            help: 'Test help text',
+          },
+        },
+        mobileView: true,
+      });
+
+      expect(screen.getByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+      // The help button sits next to the heading, so the group must be named from the heading alone
+      expect(screen.getByRole('group')).toHaveAccessibleName('Likert test title');
     });
 
     it('should prefix leftColumnHeader to each radio group legend', async () => {

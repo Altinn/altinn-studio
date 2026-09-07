@@ -138,11 +138,11 @@ describe('Dynamics', () => {
       // for the last field to be shown in some cases. This is because the component lookup returns null when the
       // field is hidden, and the expression is not run again when the field is shown again.
       if (component.type === 'Dropdown') {
-        // We'll reset these dropdown fields to have basic A, B, C options, removing mapping, so that changing the
-        // first field does not reset the second field to have other options.
+        // We'll reset these dropdown fields to have basic A, B, C options, removing query parameters, so that
+        // changing the first field does not reset the second field to have other options.
         component.source = undefined;
         component.optionsId = undefined;
-        component.mapping = undefined;
+        component.queryParameters = undefined;
         component.preselectedOptionIndex = undefined;
         component.options = [
           { label: 'Value A', value: 'a' },

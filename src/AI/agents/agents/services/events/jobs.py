@@ -3,9 +3,20 @@ from .events import AgentEvent
 import asyncio
 import logging
 import threading
+import time
+import uuid
 from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
+
+# Event types that only narrate an in-flight run. Once a session is cancelled
+# these must not reach clients: the terminal "cancelled" error event has
+# already been sent, and a trailing status/permission event would resurrect
+# the workflow activity indicator in the frontend with nothing left to turn
+# it off. Result-bearing events (assistant_message, error, done) still flow.
+PROGRESS_EVENT_TYPES = frozenset(
+    {"status", "assistant_message_chunk", "permission_request", "plan_proposed"}
+)
 
 
 class _SessionBuffer:
@@ -80,11 +91,16 @@ class EventSink:
         self._buffers: Dict[str, _SessionBuffer] = {}
         self._developer_buffers: Dict[str, _SessionBuffer] = {}
         self._buf_lock = threading.Lock()
-        self._state_lock = threading.Lock()  # Protects _session_status, _cancelled, _conversation_history
+        # Reentrant so a caller can hold it across send()/add_to_conversation_history().
+        self._state_lock = threading.RLock()  # Protects _session_status, _cancelled, _conversation_history
         self._main_loop: Optional[asyncio.AbstractEventLoop] = None
         self._session_status: Dict[str, Dict[str, Any]] = {}
         self._conversation_history: Dict[str, List[Dict[str, Any]]] = {}
         self._cancelled: set = set()
+        # Monotonic run-start timestamps, used to stamp elapsed_ms on status
+        # events so every tab (including ones that adopt an in-flight run
+        # mid-way) can show trail timers relative to the actual run start.
+        self._session_started_monotonic: Dict[str, float] = {}
         self._session_to_developer: Dict[str, str] = {}  # Maps session_id -> developer
 
     # --- lifecycle ------------------------------------------------------------
@@ -122,7 +138,17 @@ class EventSink:
 
         # Update session status cache
         with self._state_lock:
+            if event.type in PROGRESS_EVENT_TYPES and event.session_id in self._cancelled:
+                log.info(
+                    f"🛑 Dropping {event.type} for cancelled session {event.session_id}"
+                )
+                return
+            if event.type == "status":
+                started = self._session_started_monotonic.get(event.session_id)
+                if started is not None:
+                    event.data.setdefault("elapsed_ms", int((time.monotonic() - started) * 1000))
             if event.type == "assistant_message":
+                event.data.setdefault("eventId", uuid.uuid4().hex)
                 self._session_status.setdefault(event.session_id, {"status": "running"})
                 self._session_status[event.session_id]["last_message"] = event.data
             elif event.type == "done":
@@ -135,15 +161,14 @@ class EventSink:
                     "last_message": existing.get("last_message"),
                 }
 
-        buf = self._get_or_create_buffer(event.session_id)
-        buf.append(event)
+            # A cancel landing after the check would order this event last.
+            self._get_or_create_buffer(event.session_id).append(event)
 
-        # Also fan out to the developer-scoped buffer
-        with self._buf_lock:
-            developer = self._session_to_developer.get(event.session_id)
-            dev_buf = self._developer_buffers.get(developer) if developer else None
-        if dev_buf is not None:
-            dev_buf.append(event)
+            with self._buf_lock:
+                developer = self._session_to_developer.get(event.session_id)
+                dev_buf = self._developer_buffers.get(developer) if developer else None
+            if dev_buf is not None:
+                dev_buf.append(event)
 
     # --- event consumption (called from WebSocket handler) --------------------
 
@@ -207,6 +232,7 @@ class EventSink:
         """Mark a session as started/running."""
         with self._state_lock:
             self._cancelled.discard(session_id)
+            self._session_started_monotonic[session_id] = time.monotonic()
             self._session_status[session_id] = {
                 "status": "running",
                 "started_at": datetime.now(timezone.utc).isoformat(),
@@ -235,6 +261,31 @@ class EventSink:
                 "message": "Workflow cancelled by user",
             },
         ))
+
+    def deliver_unless_cancelled(
+        self,
+        session_id: str,
+        events: List[AgentEvent],
+        history: Optional[tuple] = None,
+    ) -> bool:
+        """Deliver events and history as one unit, or nothing at all.
+
+        Holding the state lock for the whole delivery stops a cancel landing
+        between an assistant_message and its terminal status, which would
+        leave the message delivered and the status dropped.
+        """
+        with self._state_lock:
+            if session_id in self._cancelled:
+                log.info(f"🛑 Skipping delivery for cancelled session {session_id}")
+                return False
+            for event in events:
+                self.send(event)
+            if history:
+                try:
+                    self.add_to_conversation_history(session_id, *history)
+                except Exception:
+                    log.warning("Could not store the message in conversation history", exc_info=True)
+        return True
 
     def is_cancelled(self, session_id: str) -> bool:
         """Check if a session has been cancelled."""

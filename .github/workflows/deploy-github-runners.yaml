@@ -3,7 +3,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/github-runner/**'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'src/experimental/sandbox/**'
+      - 'src/experimental/sandbox-authorization/**'
+      - 'src/experimental/sandbox-microsandbox/**'
+      - 'src/ci/github-runner/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
 
@@ -19,27 +24,60 @@ jobs:
     with:
       override-default-studio-environments: prod
 
-  push-artifact:
-    name: Push GitHub runners as OCI artifact
+  build-images:
+    name: Build GitHub runner images
     runs-on: ubuntu-latest
     environment: dev
+    permissions:
+      contents: read
+      id-token: write
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
-      CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
+      config_repo: ${{ steps.vars.outputs.config-repo }}
+      coordinator_digest: ${{ steps.coordinator-image.outputs.digest }}
+      coordinator_repository: ${{ steps.vars.outputs.coordinator-repository }}
+      image_tag: ${{ steps.vars.outputs.short-sha }}
+      prepared_image: ${{ steps.vars.outputs.prepared-image }}
+      prepared_image_latest: ${{ steps.vars.outputs.prepared-image-latest }}
+      prepared_image_repository: ${{ steps.vars.outputs.prepared-image-repository }}
+      runner_digest: ${{ steps.runner-image.outputs.digest }}
+      runner_repository: ${{ steps.vars.outputs.runner-repository }}
     defaults:
       run:
-        working-directory: src/github-runner
+        working-directory: src/ci/github-runner
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The containerd image store lets the default builder export registry
+      # cache (--cache-to type=registry), matching the runtime deploys.
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
 
       - name: Set vars
         id: vars
         run: |
           SHA="${GITHUB_SHA::10}"
           {
-            echo "short-sha=$SHA"
-            echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
+            echo "short-sha=${SHA}"
+            echo "runner-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner"
+            echo "runner-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
+            echo "runner-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest"
+            echo "coordinator-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator"
+            echo "coordinator-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:${SHA}"
+            echo "coordinator-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest"
+            echo "prepared-image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared"
+            echo "prepared-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:${SHA}"
+            echo "prepared-image-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest"
             echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/github-runners-repo:${SHA}"
           } >> "$GITHUB_OUTPUT"
 
@@ -51,38 +89,249 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ env.REGISTRY_NAME }}
-
-      - name: flux install
-        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+        run: az acr login --name "${REGISTRY_NAME}"
 
       - name: Resolve Go version
         id: go-version
         run: |
-          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../tools/releaser/go.mod)"
+          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../../tools/releaser/go.mod)"
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: docker build
-        run: docker build --build-arg GO_VERSION=${{ steps.go-version.outputs.version }} -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
-
-      - name: push image
-        run: docker push ${{ steps.vars.outputs.image-repo }}
-
-      - name: patch base with image tag
-        working-directory: src/github-runner/infra/kustomize/base
+      - name: Resolve Rust version
+        id: rust-version
         run: |
-          export IMAGE="${{ steps.vars.outputs.image-repo }}"
-          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
-          for file in scaledjob.yaml scaledjob-single.yaml; do
-            yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
-            yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
-          done
+          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          test -n "${RUST_VERSION}"
+          echo "version=${RUST_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Cypress version
+        id: cypress-version
+        run: |
+          CYPRESS_VERSION="$(jq -er '.devDependencies.cypress' "${GITHUB_WORKSPACE}/src/App/frontend/package.json")"
+          echo "version=${CYPRESS_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish runner image
+        id: runner-image
+        env:
+          IMAGE: ${{ steps.vars.outputs.runner-image }}
+          LATEST: ${{ steps.vars.outputs.runner-latest }}
+          RUNNER_REPOSITORY: ${{ steps.vars.outputs.runner-repository }}
+          GO_VERSION: ${{ steps.go-version.outputs.version }}
+          RUST_VERSION: ${{ steps.rust-version.outputs.version }}
+          CYPRESS_VERSION: ${{ steps.cypress-version.outputs.version }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --build-arg "GO_VERSION=${GO_VERSION}" \
+            --build-arg "RUST_VERSION=${RUST_VERSION}" \
+            --build-arg "CYPRESS_VERSION=${CYPRESS_VERSION}" \
+            --cache-from "type=registry,ref=${RUNNER_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${RUNNER_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
+            --file Dockerfile \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE}" \
+            --tag "${LATEST}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected base image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish coordinator image
+        id: coordinator-image
+        working-directory: ${{ github.workspace }}
+        env:
+          IMAGE: ${{ steps.vars.outputs.coordinator-image }}
+          LATEST: ${{ steps.vars.outputs.coordinator-latest }}
+          COORDINATOR_REPOSITORY: ${{ steps.vars.outputs.coordinator-repository }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --cache-from "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
+            --file src/ci/github-runner/Dockerfile.coordinator \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE}" \
+            --tag "${LATEST}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected coordinator image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+  build-prepared-image:
+    name: Build prepared runner image
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      digest: ${{ steps.prepared-image.outputs.digest }}
+    defaults:
+      run:
+        working-directory: src/ci/github-runner
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name "${REGISTRY_NAME}"
+
+      - name: Export prepared runner image
+        env:
+          COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
+          COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
+          RUNNER_DIGEST: ${{ needs.build-images.outputs.runner_digest }}
+          RUNNER_REPOSITORY: ${{ needs.build-images.outputs.runner_repository }}
+        run: |
+          REGISTRY_PASSWORD="$(az acr login --name "${REGISTRY_NAME}" --expose-token --query accessToken --output tsv)"
+          test -n "${REGISTRY_PASSWORD}"
+          echo "::add-mask::${REGISTRY_PASSWORD}"
+          export REGISTRY_PASSWORD
+
+          test ! -e prepared-image
+          mkdir prepared-image
+          CACHE_DIRECTORY="$(mktemp -d "${RUNNER_TEMP}/sandbox-cache.XXXXXX")"
+          COORDINATOR_IMAGE="${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}"
+          RUNNER_IMAGE="${RUNNER_REPOSITORY}@${RUNNER_DIGEST}"
+          docker run --rm \
+            --entrypoint /usr/local/bin/sandbox-image \
+            --env SANDBOX_CACHE_HOME=/cache \
+            --env PREPARED_IMAGE_DIRECTORY=/output \
+            --env REGISTRY_PASSWORD \
+            --env REGISTRY_USERNAME=00000000-0000-0000-0000-000000000000 \
+            --env "SANDBOX_IMAGE=${RUNNER_IMAGE}" \
+            --volume "${CACHE_DIRECTORY}:/cache" \
+            --volume "${PWD}/prepared-image:/output" \
+            "${COORDINATOR_IMAGE}" \
+            export
+
+      - name: Build and publish prepared runner image
+        id: prepared-image
+        env:
+          COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
+          COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
+          IMAGE: ${{ needs.build-images.outputs.prepared_image }}
+          LATEST: ${{ needs.build-images.outputs.prepared_image_latest }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-prepared-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --build-arg "COORDINATOR_IMAGE=${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}" \
+            --file Dockerfile.prepared-image \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE}" \
+            --tag "${LATEST}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected prepared image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+  push-artifact:
+    name: Push GitHub runners as OCI artifact
+    needs: [build-images, build-prepared-image]
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name "${REGISTRY_NAME}"
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: Pin runner images by digest
+        working-directory: src/ci/github-runner/infra/kustomize/base
+        env:
+          COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
+          COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
+          PREPARED_IMAGE_DIGEST: ${{ needs.build-prepared-image.outputs.digest }}
+          PREPARED_IMAGE_REPOSITORY: ${{ needs.build-images.outputs.prepared_image_repository }}
+          RUNNER_DIGEST: ${{ needs.build-images.outputs.runner_digest }}
+          RUNNER_REPOSITORY: ${{ needs.build-images.outputs.runner_repository }}
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+        run: |
+          COORDINATOR_IMAGE="${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}"
+          PREPARED_IMAGE="${PREPARED_IMAGE_REPOSITORY}@${PREPARED_IMAGE_DIGEST}"
+          RUNNER_IMAGE="${RUNNER_REPOSITORY}@${RUNNER_DIGEST}"
+          export COORDINATOR_IMAGE IMAGE_TAG PREPARED_IMAGE RUNNER_IMAGE
+
+          yq -i '
+            .metadata.annotations["altinn.studio/image"] = strenv(COORDINATOR_IMAGE) |
+            .metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG) |
+            .metadata.annotations["altinn.studio/runner-image"] = strenv(RUNNER_IMAGE) |
+            .metadata.annotations["altinn.studio/runner-image-tag"] = strenv(IMAGE_TAG) |
+            .metadata.annotations["altinn.studio/prepared-image"] = strenv(PREPARED_IMAGE) |
+            .metadata.annotations["altinn.studio/prepared-image-tag"] = strenv(IMAGE_TAG)
+          ' scaledjob.yaml
+
+          test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob.yaml)" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image"]' scaledjob.yaml)" = "${RUNNER_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image"]' scaledjob.yaml)" = "${PREPARED_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+
+          RENDERED="$(kubectl kustomize .)"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .image' <<< "${RENDERED}")" = "${PREPARED_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
 
       - name: push artifact
-        working-directory: src/github-runner/infra/kustomize
+        working-directory: src/ci/github-runner/infra/kustomize
+        env:
+          CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
         run: |
-          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+          flux push artifact "oci://${CONFIG_REPO}" \
             --provider=azure \
             --reproducible \
             --path="." \
@@ -95,6 +344,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     env:
+      ARTIFACT_TAG: ${{ matrix.environment }}
+      CONFIG_REPO: ${{ needs.push-artifact.outputs.CONFIG_REPO }}
       REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
       matrix:
@@ -108,12 +359,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ env.REGISTRY_NAME }}
+        run: az acr login --name "${REGISTRY_NAME}"
 
       - name: flux install
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: tag artifact
         run: |
-          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
-            --tag ${{ matrix.environment }}
+          flux tag artifact "oci://${CONFIG_REPO}" \
+            --tag "${ARTIFACT_TAG}"

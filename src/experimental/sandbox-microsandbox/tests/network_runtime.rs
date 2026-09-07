@@ -65,7 +65,7 @@ async fn controlled_network_authorizes_dns_tcp_and_http_and_fails_closed() {
         .set_secret_bindings(
             sandbox_name.clone(),
             vec![
-                SecretBinding::new("provider-token", "$MEDIATED_TOKEN", token)
+                SecretBinding::with_placeholder("PROVIDER_TOKEN", "$MEDIATED_TOKEN", token)
                     .expect("integration secret binding should be valid"),
             ],
         )
@@ -162,7 +162,7 @@ async fn assert_mediated_secret_enforcement(sandbox: &SandboxHandle, policy: &Re
             .find(|request| request.action.as_str() == "secret.use")
             .expect("secret use should be authorized independently");
         assert_eq!(secret_use.resource.kind, "secret");
-        assert_eq!(secret_use.resource.id, "provider-token");
+        assert_eq!(secret_use.resource.id, "PROVIDER_TOKEN");
         assert_eq!(
             secret_use.context.attributes["http.authority"].as_str(),
             Some("example.net")

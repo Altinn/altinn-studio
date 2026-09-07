@@ -112,7 +112,7 @@ The platform hosts PDF generation services in over 100 tenant clusters simultane
   - Single set of CI/CD tooling
 - Bad, because resource consumption remains ~5x higher than Go (D1)
   - Baseline memory: ~11Mi (NativeAOT) vs 2Mi (Go) as an absolute lower bound/baseline,
-  - It is doubtful NativeAOT would work in a more complicated app, as there is still varying degrees of support and API comatibility for Native AOT, some risks here
+  - It is doubtful NativeAOT would work in a more complicated app, as there is still varying degrees of support and API compatibility for Native AOT, some risks here
   - Over 100 deployments: differences in memory usage would compound
   - Higher cost and slower deployments
   - Larger images
