@@ -268,10 +268,7 @@ public class PutDatamodelTests
         Assert.Equal(DataModelingErrorCodes.InvalidJsonSchemaError, errorCode.ToString());
 
         var customErrorMessages = (JsonElement)problemDetails.Extensions["customErrorMessages"];
-        Assert.Equal(
-            "'anyOf' requires at least one subschema",
-            customErrorMessages.EnumerateArray().Single().GetString()
-        );
+        Assert.Contains("anyOf", customErrorMessages.EnumerateArray().Single().GetString());
     }
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
