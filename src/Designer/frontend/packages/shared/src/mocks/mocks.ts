@@ -18,6 +18,11 @@ import type { Policy } from '@altinn/policy-editor';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type {
+  AppUpgradePreparation,
+  AppUpgradeResult,
+  AppUpgradeStatus,
+} from 'app-shared/types/AppUpgrade';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import {
@@ -60,6 +65,30 @@ export const appRelease: AppRelease = {
 export const appVersion: AppVersion = {
   backendVersion: '',
   frontendVersion: '',
+};
+
+export const appUpgradeStatus: AppUpgradeStatus = {
+  backendVersion: '8.0.0',
+  frontendVersion: '4',
+  targetMajorVersion: 9,
+  isUpgradeAvailable: true,
+  isAutomaticUpgradeSupported: true,
+  hasCustomCode: false,
+};
+
+export const appUpgradePreparation: AppUpgradePreparation = {
+  status: 'Ready',
+  message: '',
+};
+
+export const appUpgradeResult: AppUpgradeResult = {
+  outcome: 'Completed',
+  message: '',
+  targetMajorVersion: 9,
+  steps: [],
+  manualTasks: [],
+  branchName: null,
+  pullRequestUrl: null,
 };
 
 export const branchStatus: BranchStatus = {

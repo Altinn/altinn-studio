@@ -18,3 +18,11 @@
 .actionIconsHeaderCell {
   font-size: 0;
 }
+
+.notificationsHeaderCell {
+  width: 12rem;
+}
+
+.versionsHeaderCell {
+  width: 10rem;
+}
