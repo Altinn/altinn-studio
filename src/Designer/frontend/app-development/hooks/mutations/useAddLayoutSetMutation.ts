@@ -17,6 +17,7 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] });
     },
   });
 };

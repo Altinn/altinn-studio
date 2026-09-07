@@ -17,6 +17,7 @@ import {
 import { formatDateAndTime } from '../../utils/formatDateAndTime';
 import classes from './AppValidationDialog.module.css';
 import { type ErrorItem, mapErrorKeyErrorItems } from 'app-shared/utils/appValidationUtils';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
 export const AppValidationDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -65,14 +66,22 @@ const AltinnAppServiceResourceValidation = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const handleErrorLinkClick = (search: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleErrorLinkClick = (fullHref: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
+    navigate(fullHref.slice(APP_DEVELOPMENT_BASENAME.length));
   };
 
   const errorKeys = Object.keys(validationResult?.errors || {});
 
-  const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
+  const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t, 'app_metadata');
+  const taskSettingsErrorItems = mapErrorKeyErrorItems(
+    errorKeys,
+    'danger',
+    org,
+    app,
+    t,
+    'task_settings',
+  );
   const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
 
   return (
@@ -84,6 +93,15 @@ const AltinnAppServiceResourceValidation = ({
           handleErrorLinkClick={handleErrorLinkClick}
           title={t('app_validation.app_metadata.errors')}
           description={t('app_validation.app_metadata.errors_description')}
+        />
+      )}
+      {taskSettingsErrorItems.length > 0 && (
+        <AppValidationAlert
+          errorItems={taskSettingsErrorItems}
+          severity='danger'
+          handleErrorLinkClick={handleErrorLinkClick}
+          title={t('app_validation.task_settings.errors')}
+          description={t('app_validation.task_settings.errors_description')}
         />
       )}
       {warningItems.length > 0 && (
@@ -119,12 +137,12 @@ const AppValidationAlert = ({
       <StudioHeading className={classes.validationHeader}>{title}</StudioHeading>
       <StudioParagraph spacing>{description}</StudioParagraph>
       <StudioErrorSummary.List>
-        {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
+        {errorItems.map(({ errorKey, fullHref, errorMessage }) => (
           <StudioErrorSummary.Item key={errorKey}>
             <StudioLink
               className={classes.validationLink}
               href={fullHref}
-              onClick={handleErrorLinkClick(search)}
+              onClick={handleErrorLinkClick(fullHref)}
             >
               {errorMessage}
             </StudioLink>

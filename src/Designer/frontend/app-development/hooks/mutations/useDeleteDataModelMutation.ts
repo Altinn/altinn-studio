@@ -27,15 +27,18 @@ export const useDeleteDataModelMutation = () => {
       await deleteDataModel(org, app, modelPath);
       return { jsonSchemaPath, xsdPath };
     },
-    onSuccess: ({ jsonSchemaPath, xsdPath }) => {
+    onSuccess: async ({ jsonSchemaPath, xsdPath }) => {
       queryClient.removeQueries({
         queryKey: [QueryKey.JsonSchema, org, app, jsonSchemaPath],
       });
       queryClient.removeQueries({
         queryKey: [QueryKey.JsonSchema, org, app, xsdPath],
       });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] }),
+      ]);
     },
   });
 };
