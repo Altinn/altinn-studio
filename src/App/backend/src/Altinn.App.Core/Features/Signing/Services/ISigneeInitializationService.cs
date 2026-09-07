@@ -4,7 +4,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 namespace Altinn.App.Core.Features.Signing.Services;
 
 /// <summary>
-/// The three operations that initialise the signees of a runtime-delegated signing task, each run as a step of
+/// The three operations that initialize the signees of a runtime-delegated signing task, each run as a step of
 /// its own by the signing task's commands: resolve the signees and persist their initial state, delegate rights
 /// to each, and send each the call to action. Every operation resumes from the persisted signee state, so a
 /// retried or resumed step skips what earlier attempts recorded.

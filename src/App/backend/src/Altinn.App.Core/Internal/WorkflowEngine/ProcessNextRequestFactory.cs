@@ -436,8 +436,8 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// The commands the task type declares for one lifecycle phase of the given BPMN task. Read at enqueue time,
-    /// which fixes the step list for the workflow's lifetime; the executing step resolves the same
-    /// implementation through the same <see cref="ProcessTaskResolver"/>, so build-time and run-time agree.
+    /// which fixes the step list for the workflow's lifetime. The same <see cref="ProcessTaskResolver"/>
+    /// selects the implementation during startup validation.
     /// A task type with no registered implementation fails here, at enqueue, rather than at its first step.
     /// </summary>
     private IReadOnlyList<ProcessTaskCommandRef> ResolveTaskCommands(

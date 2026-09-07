@@ -40,7 +40,7 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using IServiceScope scope = _scopeFactory.CreateScope();
+        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
 
         List<ProcessTask> bpmnTasks;
@@ -54,10 +54,7 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
             appMetadata = await services.GetRequiredService<IAppMetadata>().GetApplicationMetadata();
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
             resolver = services.GetRequiredService<ProcessTaskResolver>();
-            registeredCommands = services
-                .GetRequiredService<AppImplementationFactory>()
-                .GetAll<IProcessTaskCommand>()
-                .ToList();
+            registeredCommands = new AppImplementationFactory(services).GetAll<IProcessTaskCommand>().ToList();
         }
         catch (Exception e)
         {
@@ -102,12 +99,6 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
             {
                 findings.Add($"Task '{bpmnTask.Id}': {e.Message}");
                 continue;
-            }
-
-            if (processTask is IPipelineServiceTask)
-            {
-                // Service tasks are validated by ServiceTaskRegistrationValidator; their pipeline is the whole
-                // of what they run. They may still declare task commands, checked below like any other task.
             }
 
             try

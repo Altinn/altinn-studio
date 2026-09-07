@@ -15,9 +15,9 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// transition has no step for it.
 /// </para>
 /// <para>
-/// The lists are read when a transition is enqueued and again when each step executes, so they must depend on
-/// the task's configuration alone: never on instance data, the clock, or anything that can differ between the
-/// two reads. The BPMN task's element id is provided so a task type can declare different commands for
+/// The lists are validated at app startup and fixed when a transition is enqueued, so they must depend on
+/// the task's configuration alone: never on instance data, the clock, or anything that can differ between those
+/// reads. The BPMN task's element id is provided so a task type can declare different commands for
 /// differently configured tasks.
 /// </para>
 /// <para>

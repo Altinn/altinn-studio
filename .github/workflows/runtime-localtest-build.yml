@@ -29,8 +29,11 @@ jobs:
         with:
           global-json-file: src/Runtime/localtest/global.json
       - name: Install dependencies
-        run: dotnet restore
-        working-directory: 'src/Runtime/localtest/src/'
+        run: dotnet restore LocalTest.sln
+        working-directory: 'src/Runtime/localtest/'
       - name: Build LocalTest
-        run: dotnet build --configuration Debug --no-restore
-        working-directory: 'src/Runtime/localtest/src/'
+        run: dotnet build LocalTest.sln --configuration Debug --no-restore
+        working-directory: 'src/Runtime/localtest/'
+      - name: Test LocalTest
+        run: dotnet test tests/LocalTest.Tests/LocalTest.Tests.csproj --configuration Debug --no-build --no-restore
+        working-directory: 'src/Runtime/localtest/'

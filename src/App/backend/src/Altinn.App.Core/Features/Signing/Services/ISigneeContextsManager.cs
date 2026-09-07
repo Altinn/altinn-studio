@@ -36,11 +36,11 @@ internal interface ISigneeContextsManager
     );
 
     /// <summary>
-    /// Looks in Storage for a signee-state element tagged with the task that the callback state does not know
-    /// about — the element a previous attempt of the same step created before its response was lost — and adds
-    /// it to the instance data so it is reused instead of duplicated. Null when Storage has none either.
+    /// Refreshes the signee-state data elements from Storage, including creations and deletions a previous
+    /// callback attempt saved before it failed. Returns the element tagged with the task, or null if no such
+    /// element has been saved. Only called by the resolve command, before staging any data changes.
     /// </summary>
-    Task<DataElement?> AdoptTaskSigneeStateElementFromStorage(
+    Task<DataElement?> RefreshTaskSigneeStateElementFromStorage(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         string taskId,
@@ -49,7 +49,7 @@ internal interface ISigneeContextsManager
 
     /// <summary>
     /// Removes every signee-state element that is not tagged with the given task: elements from before the
-    /// state was tagged, or tagged with another task. Initialisation must start from a clean slate however the
+    /// state was tagged, or tagged with another task. Initialization must start from a clean slate however the
     /// task was reached.
     /// </summary>
     void RemoveOtherSigneeStateElements(

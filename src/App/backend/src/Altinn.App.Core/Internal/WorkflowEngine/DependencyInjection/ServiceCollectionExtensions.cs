@@ -65,12 +65,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
-        // Legacy lifecycle hook steps: never emitted for new workflows, kept registered for one release so a
-        // workflow enqueued by the previous version can still run its task's commands inline.
-        services.AddTransient<IWorkflowEngineCommand, StartTask>();
-        services.AddTransient<IWorkflowEngineCommand, EndTask>();
-        services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
-
         // Process engine callback handlers - ServiceTask
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();

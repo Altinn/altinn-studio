@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Extensions;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
@@ -107,7 +108,7 @@ internal sealed class SigneeContextsManager(
     }
 
     /// <inheritdoc />
-    public async Task<DataElement?> AdoptTaskSigneeStateElementFromStorage(
+    public async Task<DataElement?> RefreshTaskSigneeStateElementFromStorage(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         string taskId,
@@ -121,19 +122,15 @@ internal sealed class SigneeContextsManager(
             ct
         );
 
+        List<DataElement> storedStateElements = (stored.Data ?? [])
+            .Where(dataElement => dataElement.DataType == dataTypeId)
+            .ToList();
         DataElement? persisted = PickOne(
-            (stored.Data ?? [])
-                .Where(dataElement => dataElement.DataType == dataTypeId && IsGeneratedFromTask(dataElement, taskId))
-                .ToList(),
+            storedStateElements.Where(dataElement => IsGeneratedFromTask(dataElement, taskId)).ToList(),
             $"tagged with task '{taskId}' in Storage"
         );
-        if (persisted is null)
-        {
-            return null;
-        }
-
         List<DataElement> instanceData = instanceDataMutator.Instance.Data ??= [];
-        if (instanceData.All(dataElement => dataElement.Id != persisted.Id))
+        if (persisted is not null && instanceData.All(dataElement => dataElement.Id != persisted.Id))
         {
             logger.LogWarning(
                 "Adopting signee state element {DataElementId} for task {TaskId} from Storage: an earlier attempt "
@@ -141,8 +138,10 @@ internal sealed class SigneeContextsManager(
                 persisted.Id,
                 taskId
             );
-            instanceData.Add(persisted);
         }
+
+        instanceData.RemoveAll(dataElement => dataElement.DataType == dataTypeId);
+        instanceData.AddRange(storedStateElements);
 
         return persisted;
     }
@@ -257,7 +256,27 @@ internal sealed class SigneeContextsManager(
         CancellationToken ct
     )
     {
-        Signee signee = await From(providedSignee, (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup));
+        Signee signee;
+        try
+        {
+            signee = await From(providedSignee, (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup));
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            SigningFailureClassification classification = SigningFailureClassifier.ClassifyPartyLookup(exception, ct);
+            if (classification.IsTransient)
+            {
+                throw;
+            }
+
+            throw new SigneeInitializationPermanentException(
+                $"A signee's party could not be resolved: {classification.Reason}. Correct the signee data before resuming the transition."
+            );
+        }
         Party party = signee.GetParty();
 
         Notification? notification = providedSignee.CommunicationConfig?.Notification;

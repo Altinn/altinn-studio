@@ -27,7 +27,7 @@ internal sealed class SigneeInitializationService(
 ) : ISigneeInitializationService
 {
     /// <summary>
-    /// Testdepartementet is often used in test environments; it has no organisation number, so
+    /// Testdepartementet is often used in test environments; it has no organization number, so
     /// Digitaliseringsdirektoratet's is used instead.
     /// </summary>
     private const string TestDepartmentOrg = "ttd";
@@ -43,14 +43,15 @@ internal sealed class SigneeInitializationService(
     {
         using Activity? activity = telemetry?.StartAssignSigneesActivity();
 
-        DataElement? existing =
-            signeeContextsManager.FindTaskSigneeStateElement(instanceDataMutator, signatureConfiguration, taskId)
-            ?? await signeeContextsManager.AdoptTaskSigneeStateElementFromStorage(
-                instanceDataMutator,
-                signatureConfiguration,
-                taskId,
-                ct
-            );
+        // A callback save can partially succeed before its response is lost. Refresh both creations and
+        // deletions so this attempt reuses saved state and does not try to delete an already removed element.
+        DataElement? existing = await signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
+            instanceDataMutator,
+            signatureConfiguration,
+            taskId,
+            ct
+        );
+        signeeContextsManager.RemoveOtherSigneeStateElements(instanceDataMutator, signatureConfiguration, taskId);
         if (existing is not null)
         {
             logger.LogInformation(
@@ -60,8 +61,6 @@ internal sealed class SigneeInitializationService(
             );
             return SigneeInitializationOutcome.Completed.Instance;
         }
-
-        signeeContextsManager.RemoveOtherSigneeStateElements(instanceDataMutator, signatureConfiguration, taskId);
 
         List<SigneeContext> signeeContexts;
         try
@@ -343,7 +342,7 @@ internal sealed class SigneeInitializationService(
             if (string.IsNullOrWhiteSpace(serviceOwnerDetails?.Orgnr))
             {
                 logger.LogError(
-                    "The service owner has no organisation number in the Altinn CDN organisation registry."
+                    "The service owner has no organization number in the Altinn CDN organization registry."
                 );
                 telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Error);
                 return null;

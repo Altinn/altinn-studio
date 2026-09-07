@@ -86,7 +86,6 @@ public class WorkflowCommandSetTaskCommandTests
         );
 
         Assert.DoesNotContain(ExecuteProcessTaskCommand.Key, Keys(commandSet.Commands));
-        Assert.DoesNotContain(StartTask.Key, Keys(commandSet.Commands));
     }
 
     [Fact]
@@ -109,7 +108,6 @@ public class WorkflowCommandSetTaskCommandTests
         );
         Assert.Equal("ExecuteProcessTaskCommand: GenerateSigningPdf", commandSet.Commands[0].OperationId);
         Assert.Equal("ExecuteProcessTaskCommand: RevokeSigneeRights", commandSet.Commands[1].OperationId);
-        Assert.DoesNotContain(EndTask.Key, Keys(commandSet.Commands));
     }
 
     [Fact]
@@ -121,6 +119,5 @@ public class WorkflowCommandSetTaskCommandTests
 
         Assert.Equal([ExecuteProcessTaskCommand.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Equal("AbortRuntimeDelegatedSigning", commandSet.Commands[0].TaskCommandKey);
-        Assert.DoesNotContain(AbandonTask.Key, Keys(commandSet.Commands));
     }
 }

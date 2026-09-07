@@ -1,5 +1,4 @@
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Internal.Process;
@@ -211,7 +210,6 @@ public class SigningProcessTaskTests
     private SigningProcessTask CreateTask(params ISigneeProvider[] signeeProviders)
     {
         var services = new ServiceCollection();
-        services.AddSingleton<AppImplementationFactory>();
         foreach (ISigneeProvider provider in signeeProviders)
         {
             services.AddSingleton(provider);
@@ -221,7 +219,7 @@ public class SigningProcessTaskTests
         return new SigningProcessTask(
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            serviceProvider.GetRequiredService<AppImplementationFactory>(),
+            serviceProvider,
             NullLogger<SigningProcessTask>.Instance
         );
     }

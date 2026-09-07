@@ -14,7 +14,7 @@ using static Altinn.App.Core.Features.Signing.Models.Signee;
 namespace Altinn.App.Core.Features.Signing.Services;
 
 /// <summary>
-/// Reads signee state and revokes or aborts runtime-delegated signing. Signee initialisation lives in
+/// Reads signee state and revokes or aborts runtime-delegated signing. Signee initialization lives in
 /// <see cref="ISigneeInitializationService"/>, run as the signing task's start commands.
 /// </summary>
 internal sealed class SigningService(
@@ -226,7 +226,7 @@ internal sealed class SigningService(
     }
 
     /// <summary>
-    /// Removes the signee state when runtime-delegated signing is aborted. Initialisation never calls this:
+    /// Removes the signee state when runtime-delegated signing is aborted. Initialization never calls this:
     /// <see cref="ISigneeInitializationService"/> resumes from an existing element instead.
     /// </summary>
     private void RemoveSigneeState(IInstanceDataMutator instanceDataMutator, string? signeeStatesDataTypeId)

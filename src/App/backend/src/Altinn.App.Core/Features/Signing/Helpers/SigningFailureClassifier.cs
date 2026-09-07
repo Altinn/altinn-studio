@@ -11,7 +11,7 @@ using Altinn.App.Core.Internal.App;
 namespace Altinn.App.Core.Features.Signing.Helpers;
 
 /// <summary>
-/// How a failure during signee initialisation should be treated.
+/// How a failure during signee initialization should be treated.
 /// </summary>
 internal enum SigningFailureKind
 {
@@ -38,7 +38,8 @@ internal sealed record SigningFailureClassification(SigningFailureKind Kind, Htt
 /// when it is not. One definition, so the code persisted on a signee and the reason text are assigned together.
 /// </summary>
 /// <remarks>
-/// A received status decides on its own: 408, 429 and 5xx are transient, every other 4xx is permanent. A missing
+/// The first received status in the exception chain decides: 408, 429 and 5xx are transient, every other 4xx is
+/// permanent. Wrappers without a status retain the classification of the dependency that failed. A missing
 /// status is transient only when a transport failure caused it. The Correspondence client also throws with no
 /// status after a response was received (a 200 with an empty body, an attachment that never published), so a
 /// missing status must never be read as "no response" by itself.
@@ -71,6 +72,8 @@ internal static class SigningFailureClassifier
     /// </summary>
     public static SigningFailureClassification ClassifyNotification(Exception exception, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         if (exception is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
         {
             return new SigningFailureClassification(SigningFailureKind.PermanentAppWide, null, ShortReason(exception));
@@ -145,6 +148,9 @@ internal static class SigningFailureClassifier
 
     private static SigningFailureClassification Classify(Exception exception, CancellationToken ct)
     {
+        // Both platform clients can wrap cancellation. Never turn an aborted callback into a persisted failure.
+        ct.ThrowIfCancellationRequested();
+
         HttpStatusCode? status = StatusOf(exception);
         string reason = ShortReason(exception);
 
@@ -158,31 +164,43 @@ internal static class SigningFailureClassifier
         }
 
         return new SigningFailureClassification(
-            HasTransportCause(exception, ct) ? SigningFailureKind.Transient : SigningFailureKind.PermanentPerSignee,
+            HasTransportCause(exception) ? SigningFailureKind.Transient : SigningFailureKind.PermanentPerSignee,
             null,
             reason
         );
     }
 
-    private static HttpStatusCode? StatusOf(Exception exception) =>
-        exception switch
+    private static HttpStatusCode? StatusOf(Exception exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
         {
-            AccessManagementRequestException accessManagement => accessManagement.StatusCode,
-            CorrespondenceRequestException correspondence => correspondence.HttpStatusCode,
-            PlatformHttpException platform => platform.Response.StatusCode,
-            HttpRequestException http => http.StatusCode,
-            _ => null,
-        };
+            HttpStatusCode? status = current switch
+            {
+                AccessManagementRequestException accessManagement => accessManagement.StatusCode,
+                CorrespondenceRequestException correspondence => correspondence.HttpStatusCode,
+                PlatformHttpException platform => platform.Response.StatusCode,
+                HttpRequestException http => http.StatusCode,
+                _ => null,
+            };
+            if (status is not null)
+            {
+                // An outer response remains authoritative even if its cause carries a different status.
+                return status;
+            }
+        }
+
+        return null;
+    }
 
     private static bool IsTransientStatus(HttpStatusCode status) =>
         status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests || (int)status >= 500;
 
     /// <summary>
     /// Whether the exception, or anything in its inner chain, is a transport failure: the request never got an
-    /// answer. A cancellation that is the command's own is not one, and is rethrown by the caller before this is
-    /// consulted.
+    /// answer. The classifier propagates the command's own cancellation before consulting this helper; any
+    /// remaining cancellation represents a dependency timeout.
     /// </summary>
-    private static bool HasTransportCause(Exception exception, CancellationToken ct)
+    private static bool HasTransportCause(Exception exception)
     {
         for (Exception? current = exception; current is not null; current = current.InnerException)
         {
@@ -191,7 +209,7 @@ internal static class SigningFailureClassifier
                 case HttpRequestException { StatusCode: null }:
                 case TimeoutException:
                 case SocketException:
-                case OperationCanceledException when !ct.IsCancellationRequested:
+                case OperationCanceledException:
                     return true;
             }
         }

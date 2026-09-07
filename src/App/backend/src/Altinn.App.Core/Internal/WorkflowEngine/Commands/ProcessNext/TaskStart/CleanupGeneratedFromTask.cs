@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart
 ///
 /// This runs as the second task-start command - after <see cref="UnlockTaskData"/> (elements may be
 /// locked from a previous visit) but before <see cref="OnTaskStartingHook"/>,
-/// <see cref="CommonTaskInitialization"/> and <see cref="StartTask"/> - so every piece of task-start
+/// <see cref="CommonTaskInitialization"/> and the task's own commands - so every piece of task-start
 /// logic, including app-supplied hooks, reads a clean slate: any element referencing the entering
 /// task that is still visible at task start was created by this same transition (i.e. a retried
 /// attempt), which is exactly what idempotent task-start logic wants to see.

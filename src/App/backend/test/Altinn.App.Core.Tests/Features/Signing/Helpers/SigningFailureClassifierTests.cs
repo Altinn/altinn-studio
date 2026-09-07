@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Sockets;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
+using Altinn.App.Core.Features.Maskinporten;
+using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
@@ -15,12 +17,7 @@ public class SigningFailureClassifierTests
 {
     private static readonly CancellationToken NotCancelled = CancellationToken.None;
 
-    private static CancellationToken Cancelled()
-    {
-        CancellationTokenSource cts = new();
-        cts.Cancel();
-        return cts.Token;
-    }
+    private static CancellationToken Cancelled() => new(canceled: true);
 
     private static SigningFailureClassification ClassifyByKind(
         string kind,
@@ -142,15 +139,202 @@ public class SigningFailureClassifierTests
     [Theory]
     [InlineData("delegation")]
     [InlineData("notification")]
-    public void Classify_OperationCanceledException_TokenCancelled_IsPermanentPerSignee(string kind)
+    public void Classify_OperationCanceledException_TokenCancelled_PropagatesCancellation(string kind)
     {
         OperationCanceledException exception = new();
+        CancellationToken cancellationToken = Cancelled();
 
-        SigningFailureClassification classification = ClassifyByKind(kind, exception, Cancelled());
+        OperationCanceledException result = Assert.Throws<OperationCanceledException>(() =>
+            ClassifyByKind(kind, exception, cancellationToken)
+        );
+
+        Assert.Equal(cancellationToken, result.CancellationToken);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.RequestTimeout, true)]
+    [InlineData(HttpStatusCode.TooManyRequests, true)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
+    [InlineData(HttpStatusCode.BadRequest, false)]
+    [InlineData(HttpStatusCode.Unauthorized, false)]
+    [InlineData(HttpStatusCode.Forbidden, false)]
+    [InlineData(HttpStatusCode.NotFound, false)]
+    public void ClassifyNotification_AltinnTokenExchangeFailure_UsesDependencyStatus(
+        HttpStatusCode status,
+        bool transient
+    )
+    {
+        CorrespondenceRequestException exception = TokenExchangeFailure(status);
+
+        SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(
+            exception,
+            NotCancelled
+        );
+
+        Assert.Equal(transient, classification.IsTransient);
+        Assert.Equal(status, classification.Status);
+        Assert.Equal($"CorrespondenceRequestException ({(int)status} {status})", classification.Reason);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests, true)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
+    [InlineData(HttpStatusCode.Unauthorized, false)]
+    [InlineData(HttpStatusCode.Forbidden, false)]
+    public async Task ClassifyNotification_MaskinportenTokenResponse_UsesDependencyStatus(
+        HttpStatusCode status,
+        bool transient
+    )
+    {
+        using var response = new HttpResponseMessage(status) { Content = new StringContent("token request failed") };
+        MaskinportenAuthenticationException cause = await Assert.ThrowsAsync<MaskinportenAuthenticationException>(() =>
+            MaskinportenClient.ParseServerResponse(response)
+        );
+        var exception = new CorrespondenceRequestException("Failed to send correspondence", cause);
+
+        SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(
+            exception,
+            NotCancelled
+        );
+
+        Assert.Equal(transient, classification.IsTransient);
+        Assert.Equal(status, classification.Status);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, HttpStatusCode.ServiceUnavailable, false)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, HttpStatusCode.BadRequest, true)]
+    [InlineData(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable, false)]
+    public void ClassifyNotification_OuterResponseStatus_TakesPrecedenceOverDependencyStatus(
+        HttpStatusCode outerStatus,
+        HttpStatusCode innerStatus,
+        bool transient
+    )
+    {
+        CorrespondenceRequestException exception = new(
+            "response failed",
+            null,
+            outerStatus,
+            null,
+            TokenExchangeFailure(innerStatus)
+        );
+
+        SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(
+            exception,
+            NotCancelled
+        );
+
+        Assert.Equal(outerStatus, classification.Status);
+        Assert.Equal(transient, classification.IsTransient);
+    }
+
+    [Fact]
+    public void ClassifyNotification_ResponseStatus_TakesPrecedenceOverInnerTransportFailure()
+    {
+        CorrespondenceRequestException exception = new(
+            "response failed",
+            null,
+            HttpStatusCode.BadRequest,
+            null,
+            new HttpRequestException("transport failure")
+        );
+
+        SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(
+            exception,
+            NotCancelled
+        );
 
         Assert.False(classification.IsTransient);
-        Assert.Equal(SigningFailureKind.PermanentPerSignee, classification.Kind);
+        Assert.Equal(HttpStatusCode.BadRequest, classification.Status);
+    }
+
+    [Theory]
+    [InlineData("delegation")]
+    [InlineData("notification")]
+    public void Classify_WrappedCancellation_PropagatesCallbackCancellation(string kind)
+    {
+        CancellationToken cancellationToken = Cancelled();
+        var cause = new OperationCanceledException(cancellationToken);
+        Exception exception =
+            kind == "delegation"
+                ? new AccessManagementRequestException("request cancelled", cause)
+                : new CorrespondenceRequestException("request cancelled", cause);
+
+        OperationCanceledException result = Assert.Throws<OperationCanceledException>(() =>
+            ClassifyByKind(kind, exception, cancellationToken)
+        );
+
+        Assert.Equal(cancellationToken, result.CancellationToken);
+    }
+
+    [Theory]
+    [InlineData("delegation")]
+    [InlineData("notification")]
+    public void Classify_WrappedDependencyCancellation_WithoutCallbackCancellation_IsTransient(string kind)
+    {
+        var cause = new OperationCanceledException();
+        Exception exception =
+            kind == "delegation"
+                ? new AccessManagementRequestException("request timed out", cause)
+                : new CorrespondenceRequestException("request timed out", cause);
+
+        SigningFailureClassification classification = ClassifyByKind(kind, exception, NotCancelled);
+
+        Assert.True(classification.IsTransient);
         Assert.Null(classification.Status);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public void ClassifyNotification_CallbackCancellation_TakesPrecedenceOverResponseStatus(HttpStatusCode status)
+    {
+        var exception = TokenExchangeFailure(status);
+        CancellationToken cancellationToken = Cancelled();
+
+        Assert.Throws<OperationCanceledException>(() =>
+            SigningFailureClassifier.ClassifyNotification(exception, cancellationToken)
+        );
+    }
+
+    [Fact]
+    public void ClassifyNotification_ConfigurationError_AfterCallbackCancellation_PropagatesCancellation()
+    {
+        CancellationToken cancellationToken = Cancelled();
+
+        Assert.Throws<OperationCanceledException>(() =>
+            SigningFailureClassifier.ClassifyNotification(
+                new ConfigurationException("missing resource"),
+                cancellationToken
+            )
+        );
+    }
+
+    [Fact]
+    public void ClassifyNotification_UnknownFailureWithoutStatus_RemainsPermanent()
+    {
+        var exception = new CorrespondenceRequestException("response was empty");
+
+        SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(
+            exception,
+            NotCancelled
+        );
+
+        Assert.False(classification.IsTransient);
+        Assert.Null(classification.Status);
+    }
+
+    private static CorrespondenceRequestException TokenExchangeFailure(HttpStatusCode status)
+    {
+        using var response = new HttpResponseMessage(status);
+        HttpRequestException httpException = Assert.Throws<HttpRequestException>(() =>
+            response.EnsureSuccessStatusCode()
+        );
+        // The same wrappers added by MaskinportenClient's Altinn exchange and CorrespondenceClient.Send.
+        return new CorrespondenceRequestException(
+            "Failed to send correspondence",
+            new MaskinportenAuthenticationException("Authentication with Altinn failed", httpException)
+        );
     }
 
     [Theory]
@@ -372,6 +556,12 @@ public class SigningFailureClassifierTests
         CorrespondenceRequestException exception = new("boom");
 
         Assert.False(SigningFailureClassifier.IsAlreadySent(exception));
+    }
+
+    [Fact]
+    public void IsAlreadySent_TokenExchangeConflict_DoesNotMeanCorrespondenceWasSent()
+    {
+        Assert.False(SigningFailureClassifier.IsAlreadySent(TokenExchangeFailure(HttpStatusCode.Conflict)));
     }
 
     [Fact]

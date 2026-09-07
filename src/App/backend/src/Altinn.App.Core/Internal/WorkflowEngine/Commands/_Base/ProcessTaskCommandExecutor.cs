@@ -7,8 +7,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// <summary>
 /// Runs one <see cref="IProcessTaskCommand"/> declared by a process task: resolves it by key, hands it the
 /// narrow app-facing context built from the engine callback, and maps its result to the engine's vocabulary.
-/// Shared by <see cref="ExecuteProcessTaskCommand"/> (one command per engine step) and the legacy hook commands
-/// that run a task's whole declared list inline for workflows enqueued before task commands existed.
+/// Each invocation runs one engine step through <see cref="ExecuteProcessTaskCommand"/>.
 /// </summary>
 internal sealed class ProcessTaskCommandExecutor
 {
@@ -105,28 +104,6 @@ internal sealed class ProcessTaskCommandExecutor
                 "ProcessTaskCommandResultUnknown"
             ),
         };
-    }
-
-    /// <summary>
-    /// Runs the commands in order inside one callback, stopping at the first that does not complete. Used by the
-    /// legacy hook commands only: a workflow enqueued before task commands existed has no step per command, so
-    /// the whole list commits together at the end of that one step.
-    /// </summary>
-    public async Task<ProcessEngineCommandResult> ExecuteAll(
-        IReadOnlyList<ProcessTaskCommandRef> commands,
-        ProcessEngineCommandContext context
-    )
-    {
-        foreach (ProcessTaskCommandRef command in commands)
-        {
-            ProcessEngineCommandResult result = await Execute(command, context);
-            if (result is not SuccessfulProcessEngineCommandResult)
-            {
-                return result;
-            }
-        }
-
-        return new SuccessfulProcessEngineCommandResult();
     }
 
     private static string FailedMessage(string commandKey, string errorMessage) =>

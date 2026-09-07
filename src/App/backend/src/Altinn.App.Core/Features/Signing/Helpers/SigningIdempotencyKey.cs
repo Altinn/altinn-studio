@@ -4,7 +4,7 @@ using System.Text;
 namespace Altinn.App.Core.Features.Signing.Helpers;
 
 /// <summary>
-/// Deterministic idempotency keys for the outbound calls signee initialisation makes, so a retried or resumed
+/// Deterministic idempotency keys for the outbound calls signee initialization makes, so a retried or resumed
 /// step repeats a call with the same key and the receiving platform deduplicates it.
 /// </summary>
 internal static class SigningIdempotencyKey

@@ -352,7 +352,7 @@ public class SigningController : ControllerBase
     }
 
     /// <summary>
-    /// The persisted failure code when the app that initialised the signee wrote one; a state written by an older
+    /// The persisted failure code when the app that initialized the signee wrote one; a state written by an older
     /// version carries only a reason, reported as <see cref="SigneeDelegationFailure.Unknown"/>.
     /// </summary>
     private static SigneeDelegationFailure? GetDelegationFailure(SigneeContextState signeeState)

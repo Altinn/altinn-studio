@@ -16,7 +16,7 @@ const DELEGATION_FAILURE_CODES = ['InvalidParty', 'Rejected', 'Unknown'] as cons
 export type DelegationFailure = (typeof DELEGATION_FAILURE_CODES)[number];
 
 // Older backends do not send this field, and a newer backend may send a code this frontend does not
-// know yet. Absent, null and unrecognised values are all treated the same as "no code".
+// know yet. Absent, null and unrecognized values are all treated the same as "no code".
 function toDelegationFailure(value: string | null | undefined): DelegationFailure | undefined {
   return DELEGATION_FAILURE_CODES.includes(value as DelegationFailure) ? (value as DelegationFailure) : undefined;
 }
@@ -26,7 +26,7 @@ const NOTIFICATION_FAILURE_CODES = ['Configuration', 'ServiceOwnerUnavailable', 
 export type NotificationFailure = (typeof NOTIFICATION_FAILURE_CODES)[number];
 
 // Older backends do not send this field, and a newer backend may send a code this frontend does not
-// know yet. Absent, null and unrecognised values are all treated the same as "no code".
+// know yet. Absent, null and unrecognized values are all treated the same as "no code".
 function toNotificationFailure(value: string | null | undefined): NotificationFailure | undefined {
   return NOTIFICATION_FAILURE_CODES.includes(value as NotificationFailure) ? (value as NotificationFailure) : undefined;
 }

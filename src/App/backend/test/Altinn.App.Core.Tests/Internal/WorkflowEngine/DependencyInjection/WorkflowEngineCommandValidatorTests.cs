@@ -47,16 +47,13 @@ public class WorkflowEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
-        services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
         services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
-        services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
-        services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, EndProcessLegacyHook>();

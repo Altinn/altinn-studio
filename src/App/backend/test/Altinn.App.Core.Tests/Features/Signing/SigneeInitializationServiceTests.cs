@@ -114,15 +114,19 @@ public sealed class SigneeInitializationServiceTests
     #region ResolveSignees
 
     [Fact]
-    public async Task ResolveSignees_ExistingTaggedElementFound_ReturnsCompletedWithoutGeneratingOrPersisting()
+    public async Task ResolveSignees_ExistingTaggedElement_RefreshesStorageAndFinishesCleanup()
     {
         AltinnSignatureConfiguration config = CreateSignatureConfiguration();
         Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
         DataElement existing = CreateSigneeStateElement(config);
+        mutator.Object.Instance.Data.Add(existing);
 
         _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(existing);
+            .Setup(x =>
+                x.RefreshTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
+            )
+            .ReturnsAsync(existing);
+        _signeeContextsManager.Setup(x => x.RemoveOtherSigneeStateElements(mutator.Object, config, TaskId));
 
         SigneeInitializationService service = CreateService();
 
@@ -134,7 +138,7 @@ public sealed class SigneeInitializationServiceTests
         );
 
         Assert.IsType<SigneeInitializationOutcome.Completed>(outcome);
-        _signeeContextsManager.Verify(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId), Times.Once);
+        _signeeContextsManager.VerifyAll();
         _signeeContextsManager.VerifyNoOtherCalls();
     }
 
@@ -146,13 +150,11 @@ public sealed class SigneeInitializationServiceTests
         DataElement adopted = CreateSigneeStateElement(config);
 
         _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns((DataElement?)null);
-        _signeeContextsManager
             .Setup(x =>
-                x.AdoptTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
+                x.RefreshTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
             )
             .ReturnsAsync(adopted);
+        _signeeContextsManager.Setup(x => x.RemoveOtherSigneeStateElements(mutator.Object, config, TaskId));
 
         SigneeInitializationService service = CreateService();
 
@@ -176,11 +178,8 @@ public sealed class SigneeInitializationServiceTests
         List<SigneeContext> generated = [CreateSigneeContext(Guid.NewGuid())];
 
         _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns((DataElement?)null);
-        _signeeContextsManager
             .Setup(x =>
-                x.AdoptTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
+                x.RefreshTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
             )
             .ReturnsAsync((DataElement?)null);
         _signeeContextsManager.Setup(x => x.RemoveOtherSigneeStateElements(mutator.Object, config, TaskId));
@@ -213,11 +212,8 @@ public sealed class SigneeInitializationServiceTests
         const string message = "No signee provider registered with id 'missing'.";
 
         _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns((DataElement?)null);
-        _signeeContextsManager
             .Setup(x =>
-                x.AdoptTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
+                x.RefreshTaskSigneeStateElementFromStorage(mutator.Object, config, TaskId, CancellationToken.None)
             )
             .ReturnsAsync((DataElement?)null);
         _signeeContextsManager.Setup(x => x.RemoveOtherSigneeStateElements(mutator.Object, config, TaskId));

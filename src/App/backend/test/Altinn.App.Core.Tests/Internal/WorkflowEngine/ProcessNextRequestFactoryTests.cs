@@ -70,7 +70,7 @@ public class ProcessNextRequestFactoryTests
         configureServices?.Invoke(services);
         var sp = services.BuildServiceProvider();
         var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
-        var processTaskResolver = new ProcessTaskResolver(appImplFactory);
+        var processTaskResolver = new ProcessTaskResolver(sp);
 
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.

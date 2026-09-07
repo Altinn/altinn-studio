@@ -20,7 +20,7 @@ internal sealed class ResolveSigneesCommand : IProcessTaskCommand
     private readonly IProcessReader _processReader;
 
     /// <remarks>
-    /// The initialisation service is resolved when the command runs, not when it is constructed: every registered
+    /// The initialization service is resolved when the command runs, not when it is constructed: every registered
     /// command is constructed on every callback, and the signing client graph must not be built for unrelated ones.
     /// </remarks>
     public ResolveSigneesCommand(IServiceProvider services, IProcessReader processReader)

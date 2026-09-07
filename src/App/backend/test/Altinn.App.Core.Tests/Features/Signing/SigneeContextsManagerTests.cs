@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -457,6 +458,64 @@ public sealed class SigneeContextsManagerTests : IDisposable
         );
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests, true)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
+    [InlineData(HttpStatusCode.BadRequest, false)]
+    [InlineData(HttpStatusCode.NotFound, false)]
+    public async Task GenerateSigneeContexts_PartyLookupFailure_OnlyRetriesTransientErrors(
+        HttpStatusCode status,
+        bool transient
+    )
+    {
+        const string socialSecurityNumber = "12345678901";
+        var exception = new HttpRequestException($"Lookup failed for {socialSecurityNumber}", null, status);
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .ThrowsAsync(exception);
+        _signeeProvider.Setup(x => x.Id).Returns("testProvider");
+        _signeeProvider
+            .Setup(x => x.GetSignees(It.IsAny<GetSigneesParameters>()))
+            .ReturnsAsync(
+                new SigneeProviderResult
+                {
+                    Signees =
+                    [
+                        new ProvidedPerson { SocialSecurityNumber = socialSecurityNumber, FullName = "Test Person" },
+                    ],
+                }
+            );
+        var mutator = new Mock<IInstanceDataMutator>();
+        mutator
+            .Setup(x => x.Instance)
+            .Returns(
+                new Instance
+                {
+                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+                }
+            );
+        var configuration = new AltinnSignatureConfiguration
+        {
+            SigneeProviderId = "testProvider",
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        Exception? actual = await Record.ExceptionAsync(() =>
+            _signeeContextsManager.GenerateSigneeContexts(mutator.Object, configuration, CancellationToken.None)
+        );
+
+        if (transient)
+        {
+            Assert.Same(exception, actual);
+        }
+        else
+        {
+            var permanent = Assert.IsType<SigneeInitializationPermanentException>(actual);
+            Assert.Contains("Correct the signee data", permanent.Message);
+            Assert.DoesNotContain(socialSecurityNumber, permanent.Message);
+        }
+    }
+
     [Fact]
     public async Task GetSigneeContexts_WithNoSigneeStatesDataTypeId_ReturnsEmptyList()
     {
@@ -784,7 +843,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
     }
 
     [Fact]
-    public async Task AdoptTaskSigneeStateElementFromStorage_ElementInStorageNotLocally_AddsAndReturnsIt()
+    public async Task RefreshTaskSigneeStateElementFromStorage_ElementInStorageNotLocally_AddsAndReturnsIt()
     {
         const string taskId = "Task_1";
         var signatureConfiguration = new AltinnSignatureConfiguration
@@ -808,7 +867,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
             .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), CancellationToken.None))
             .ReturnsAsync(storedInstance);
 
-        DataElement? result = await _signeeContextsManager.AdoptTaskSigneeStateElementFromStorage(
+        DataElement? result = await _signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
             instanceDataMutator.Object,
             signatureConfiguration,
             taskId,
@@ -820,7 +879,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
     }
 
     [Fact]
-    public async Task AdoptTaskSigneeStateElementFromStorage_ElementAlreadyLocal_ReturnsWithoutDuplicating()
+    public async Task RefreshTaskSigneeStateElementFromStorage_ElementAlreadyLocal_ReturnsWithoutDuplicating()
     {
         const string taskId = "Task_1";
         var signatureConfiguration = new AltinnSignatureConfiguration
@@ -844,7 +903,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
             .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), CancellationToken.None))
             .ReturnsAsync(storedInstance);
 
-        DataElement? result = await _signeeContextsManager.AdoptTaskSigneeStateElementFromStorage(
+        DataElement? result = await _signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
             instanceDataMutator.Object,
             signatureConfiguration,
             taskId,
@@ -856,7 +915,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
     }
 
     [Fact]
-    public async Task AdoptTaskSigneeStateElementFromStorage_NoneInStorage_ReturnsNull()
+    public async Task RefreshTaskSigneeStateElementFromStorage_NoneInStorage_ReturnsNull()
     {
         const string taskId = "Task_1";
         var signatureConfiguration = new AltinnSignatureConfiguration
@@ -878,7 +937,7 @@ public sealed class SigneeContextsManagerTests : IDisposable
             .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), CancellationToken.None))
             .ReturnsAsync(storedInstance);
 
-        DataElement? result = await _signeeContextsManager.AdoptTaskSigneeStateElementFromStorage(
+        DataElement? result = await _signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
             instanceDataMutator.Object,
             signatureConfiguration,
             taskId,

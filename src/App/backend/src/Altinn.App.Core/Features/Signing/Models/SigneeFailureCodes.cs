@@ -30,7 +30,7 @@ internal enum NotificationFailureCode
     /// <summary>The app has no correspondence resource configured for the environment. App-wide.</summary>
     Configuration,
 
-    /// <summary>The sending organisation could not be resolved. App-wide.</summary>
+    /// <summary>The sending organization could not be resolved. App-wide.</summary>
     ServiceOwnerUnavailable,
 
     /// <summary>Correspondence refused the message.</summary>
@@ -41,7 +41,7 @@ internal enum NotificationFailureCode
 }
 
 /// <summary>
-/// Reads an enum from its camelCase or PascalCase name and maps any value it does not recognise to the member
+/// Reads an enum from its camelCase or PascalCase name and maps any value it does not recognize to the member
 /// named <c>Unknown</c>, so a rollback to an older app-lib after a newer one persisted a member, or a hand-edited
 /// element, degrades to the unknown code instead of failing every read of the signee state.
 /// </summary>
@@ -83,7 +83,7 @@ internal sealed class LenientEnumJsonConverter<TEnum> : JsonConverter<TEnum>
 /// Applies <see cref="LenientEnumJsonConverter{TEnum}"/> to the failure-code enums from
 /// <see cref="SigneeStateSerialization.Options"/>. Registered ahead of the general string-enum converter, because
 /// a converter in the options outranks a converter attribute on the enum type and would otherwise throw on a
-/// value it does not recognise.
+/// value it does not recognize.
 /// </summary>
 internal sealed class LenientFailureCodeJsonConverterFactory : JsonConverterFactory
 {

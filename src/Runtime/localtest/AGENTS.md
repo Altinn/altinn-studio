@@ -19,7 +19,11 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
 
 ```bash
 dotnet build LocalTest.sln    # from src/Runtime/localtest
+dotnet test tests/LocalTest.Tests/LocalTest.Tests.csproj
 ```
+
+The tests exercise emulated platform contracts, including idempotent instance delegation and revocation.
+CI runs them in `.github/workflows/runtime-localtest-build.yml`.
 
 Normally you don't run it by hand — `studioctl env up` starts it (Docker/Podman) alongside the other
 local services. The `Makefile` here only holds helpers (`podman-selinux-bind-hack`, `sync-dashboards`),

@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// </summary>
 /// <remarks>
 /// Declares its work as commands. Runtime-delegated signing (a signee provider plus a signee-state data type
-/// configured on the task) initialises its signees when the task is entered, revokes their access when it is
+/// configured on the task) initializes its signees when the task is entered, revokes their access when it is
 /// ended, and aborts with cleanup when it is abandoned; a task with a signing PDF data type generates that PDF
 /// when it is ended. Configuration is validated once, at app startup.
 /// </remarks>
@@ -30,13 +30,14 @@ internal sealed class SigningProcessTask : IProcessTask
     public SigningProcessTask(
         IProcessReader processReader,
         IHostEnvironment hostEnvironment,
-        AppImplementationFactory appImplementationFactory,
+        IServiceProvider services,
         ILogger<SigningProcessTask> logger
     )
     {
         _processReader = processReader;
         _hostEnvironment = hostEnvironment;
-        _appImplementationFactory = appImplementationFactory;
+        // Startup has no HTTP request: bind the fallback to this scope instead of the root container.
+        _appImplementationFactory = new AppImplementationFactory(services);
         _logger = logger;
     }
 
