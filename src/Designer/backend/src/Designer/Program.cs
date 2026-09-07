@@ -180,6 +180,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
     services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
     services.AddHttpClient<IAltinityAgentClient, AltinityAgentClient>();
+    services.AddAppUpgrade(configuration);
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,
