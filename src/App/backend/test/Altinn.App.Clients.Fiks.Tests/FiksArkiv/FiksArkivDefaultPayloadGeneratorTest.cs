@@ -5,14 +5,13 @@ using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Time.Testing;
 using Moq;
 
 namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
@@ -24,8 +23,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
     private static readonly XsdValidator _xsdValidator = new();
     private static readonly DateTimeOffset _now = DateTimeOffset.Parse("2025-10-24T09:58:00.000000Z");
 
-    // Built fresh per test invocation because the production code mutates DataElement.Filename;
-    // reusing a static instance leaks state across test cases.
+    // Built fresh per test invocation so no test case can leak instance state into another.
     private static Instance NewDefaultInstance() =>
         new()
         {
@@ -262,14 +260,16 @@ public class FiksArkivDefaultPayloadGeneratorTest
     {
         // Arrange
         await using var fixture = CreateFixture(testCase);
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance());
 
         // Act
         var result = (
             await fixture.FiksArkivPayloadGenerator.GeneratePayload(
                 "",
-                NewDefaultInstance(),
                 testCase.Recipient,
-                FiksArkivConstants.MessageTypes.CreateArchiveRecord
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                _now,
+                dataAccessor.Object
             )
         ).ToList();
 
@@ -296,13 +296,80 @@ public class FiksArkivDefaultPayloadGeneratorTest
         var ex = await Assert.ThrowsAsync<FiksArkivException>(() =>
             fixture.FiksArkivPayloadGenerator.GeneratePayload(
                 "",
-                new Instance(),
                 Factories.Recipient("-", "-"),
-                "non-create-type"
+                "non-create-type",
+                _now,
+                Mock.Of<IInstanceDataAccessor>()
             )
         );
 
         Assert.Contains("Unsupported message type", ex.Message);
+    }
+
+    [Fact]
+    internal async Task GeneratePayload_ReadsDocumentBytesFromAccessor()
+    {
+        // Arrange: one primary document and one attachment => exactly two reads, all through the caller's unit of
+        // work. Storage must never be consulted directly, or a retried step could archive different bytes than the
+        // ones staged on the unit of work.
+        var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
+        await using var fixture = CreateFixture(testCase);
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(), "Accessor content");
+
+        // Act
+        var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
+            "",
+            testCase.Recipient,
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            _now,
+            dataAccessor.Object
+        );
+
+        // Assert
+        Assert.NotNull(result);
+        dataAccessor.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Exactly(2));
+        fixture.DataClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    internal async Task GeneratePayload_WithExecutionReferenceTime_UsesOneUtcInstantForEveryGeneratedDate()
+    {
+        // Arrange: the reference time arrives with a non-UTC offset, and its local calendar date is already in the
+        // next year. Every generated date must derive from the same UTC instant, so the case year stays 2025.
+        var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
+        await using var fixture = CreateFixture(testCase);
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance());
+        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2026-01-01T02:15:45+05:45");
+        DateTime expectedUtcTime = new(2025, 12, 31, 20, 30, 45, DateTimeKind.Utc);
+
+        // Act
+        var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
+            "Task_1",
+            testCase.Recipient,
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            executionReferenceTime,
+            dataAccessor.Object
+        );
+
+        // Assert
+        string archiveMessageXml = result
+            .Single(x => x.Filename == FiksArkivConstants.Filenames.ArchiveRecord)
+            .Data.ReadToString();
+        Arkivmelding archiveMessage = archiveMessageXml.DeserializeXml<Arkivmelding>()!;
+        Saksmappe caseFile = Assert.IsType<Saksmappe>(archiveMessage.Mappe);
+        Journalpost journalEntry = Assert.IsType<Journalpost>(archiveMessage.Registrering);
+
+        Assert.Equal(expectedUtcTime.Year, caseFile.Saksaar);
+        Assert.Equal(expectedUtcTime.Date, caseFile.Saksdato);
+        Assert.Equal(expectedUtcTime.Year, journalEntry.Journalaar);
+        Assert.Equal(expectedUtcTime.Date, journalEntry.DokumentetsDato);
+        Assert.Equal(expectedUtcTime, journalEntry.SendtDato);
+        Assert.NotEmpty(journalEntry.Dokumentbeskrivelse);
+        Assert.All(journalEntry.Dokumentbeskrivelse, document => Assert.Equal(expectedUtcTime, document.OpprettetDato));
+
+        // The wire format carries the UTC designator, so the archive never has to guess the offset.
+        Assert.Contains("<sendtDato>2025-12-31T20:30:45Z</sendtDato>", archiveMessageXml);
+        Assert.DoesNotContain("2026", archiveMessageXml);
     }
 
     private static TestFixture CreateFixture(TestCase testCase)
@@ -311,7 +378,6 @@ public class FiksArkivDefaultPayloadGeneratorTest
             services =>
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton<TimeProvider>(new FakeTimeProvider(_now));
                 services.Configure<GeneralSettings>(options =>
                 {
                     options.HostName = "the-hostname";
@@ -335,17 +401,6 @@ public class FiksArkivDefaultPayloadGeneratorTest
         fixture
             .PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>()))
             .Returns(() => ResolveInstanceOwnerParty(testCase.Auth));
-        fixture
-            .DataClientMock.Setup(x =>
-                x.GetDataBytes(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync("Mocked content"u8.ToArray());
 
         return fixture;
     }
@@ -469,5 +524,18 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 Filename = filename,
                 ContentType = contentType,
             };
+
+        // The generator reads every document through the caller's unit of work, never through Storage directly,
+        // so the accessor is the only data source a test has to provide.
+        public static Mock<IInstanceDataAccessor> DataAccessor(Instance instance, string content = "Mocked content")
+        {
+            var dataAccessor = new Mock<IInstanceDataAccessor>();
+            dataAccessor.Setup(x => x.Instance).Returns(instance);
+            dataAccessor
+                .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+                .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(content));
+
+            return dataAccessor;
+        }
     }
 }
