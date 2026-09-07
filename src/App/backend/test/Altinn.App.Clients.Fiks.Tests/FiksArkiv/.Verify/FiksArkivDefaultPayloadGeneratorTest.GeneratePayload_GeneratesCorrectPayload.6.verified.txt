@@ -5,11 +5,6 @@
   <mappe xsi:type="saksmappe">
     <tittel>Test app</tittel>
     <offentligTittel>Test app</offentligTittel>
-    <klassifikasjon>
-      <klassifikasjonssystemID>ORGNR</klassifikasjonssystemID>
-      <klasseID>405003309</klasseID>
-      <tittel>tdd</tittel>
-    </klassifikasjon>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>
       <noekkel xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90</noekkel>
@@ -38,7 +33,7 @@
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">F</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Dokumentet er ferdigstilt</beskrivelse>
       </dokumentstatus>
-      <tittel>Form.xml</tittel>
+      <tittel>model.xml</tittel>
       <opprettetDato>2025-10-24T09:58:00Z</opprettetDato>
       <tilknyttetRegistreringSom>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">H</kode>
@@ -48,8 +43,8 @@
         <format>
           <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">XML</kode>
         </format>
-        <filnavn>Form.xml</filnavn>
-        <referanseDokumentfil>Form.xml</referanseDokumentfil>
+        <filnavn>model.xml</filnavn>
+        <referanseDokumentfil>model.xml</referanseDokumentfil>
       </dokumentobjekt>
     </dokumentbeskrivelse>
     <tittel>Test app</tittel>
@@ -61,22 +56,7 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Mottaker</beskrivelse>
       </korrespondanseparttype>
       <korrespondansepartNavn>Recipient Name</korrespondansepartNavn>
-      <organisasjonid>123456789</organisasjonid>
       <deresReferanse>https://ttd.apps.the-hostname/ttd/test-app/instances/12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90</deresReferanse>
-    </korrespondansepart>
-    <korrespondansepart>
-      <korrespondansepartID>5001337</korrespondansepartID>
-      <korrespondanseparttype>
-        <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
-        <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
-      </korrespondanseparttype>
-      <korrespondansepartNavn>Test AS</korrespondansepartNavn>
-      <organisasjonid>405003309</organisasjonid>
-      <postadresse>Street 1</postadresse>
-      <postnummer>0123</postnummer>
-      <poststed>City</poststed>
-      <telefonnummer>phone-no</telefonnummer>
-      <telefonnummer>mobile-no</telefonnummer>
     </korrespondansepart>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>

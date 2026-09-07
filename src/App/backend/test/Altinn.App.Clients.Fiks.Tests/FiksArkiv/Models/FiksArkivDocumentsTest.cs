@@ -11,7 +11,7 @@ public class FiksArkivDocumentsTest
     private static FiksIOMessagePayload CreatePayload(string filename) => new(filename, Stream.Null);
 
     private MessagePayloadWrapper CreateMessagePayloadWrapper(string filename, Kode? code = null) =>
-        new(CreatePayload(filename), code ?? _dummyCode);
+        new(CreatePayload(filename), code ?? _dummyCode, FileFormat: null, FileVariant: null);
 
     [Fact]
     public void ToPaylods_ContainsAllDocuments_InTheCorrectOrder()
