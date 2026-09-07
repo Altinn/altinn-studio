@@ -28,14 +28,35 @@ export type AppUpgradeManualTask = {
   status: AppUpgradeMessageStatus;
 };
 
+export type AppUpgradeFileChangeKind = 'Added' | 'Modified' | 'Deleted' | 'Renamed';
+
+export type AppUpgradeFileChange = {
+  path: string;
+  kind: AppUpgradeFileChangeKind;
+  diff: string;
+};
+
 export type AppUpgradeResult = {
   outcome: AppUpgradeOutcome;
   message: string;
   targetMajorVersion: number;
   steps: AppUpgradeStep[];
   manualTasks: AppUpgradeManualTask[];
+  fileChanges: AppUpgradeFileChange[];
   branchName: string | null;
   pullRequestUrl: string | null;
+  pullRequestNumber: number | null;
+};
+
+export type AppUpgradeMergeRequest = {
+  pullRequestNumber: number;
+  branchName: string | null;
+};
+
+export type AppUpgradeMergeResult = {
+  isMerged: boolean;
+  message: string;
+  baseBranch: string | null;
 };
 
 export type AppUpgradePreparationStatus = 'Ready' | 'LocalChangesBlocking' | 'UnsupportedVersion';

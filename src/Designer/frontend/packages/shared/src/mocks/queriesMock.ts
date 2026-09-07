@@ -5,6 +5,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type {
+  AppUpgradeMergeResult,
   AppUpgradePreparation,
   AppUpgradeResult,
   AppUpgradeStatus,
@@ -63,6 +64,7 @@ import {
   appConfig,
   deploymentsResponse,
   appVersion,
+  appUpgradeMergeResult,
   appUpgradePreparation,
   appUpgradeResult,
   appUpgradeStatus,
@@ -343,6 +345,9 @@ export const queriesMock: ServicesContextProps = {
   upgradeApp: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeResult>(appUpgradeResult)),
+  mergeAppUpgrade: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeMergeResult>(appUpgradeMergeResult)),
   createBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   deleteBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
