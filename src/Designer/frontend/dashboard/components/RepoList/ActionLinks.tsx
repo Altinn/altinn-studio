@@ -1,5 +1,6 @@
 import { StudioDropdown, StudioButton } from '@studio/components';
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import classes from './ActionLinks.module.css';
 import {
   ArrowCirclepathIcon,
@@ -11,9 +12,11 @@ import {
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { getRepositoryEditUrl } from 'app-shared/utils/repository';
+import { getAppUpgradePath } from '../../utils/urlUtils';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { useSubroute } from '../../hooks/useSubRoute';
 import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
-import { AppUpgradeDialog } from '../AppUpgradeDialog';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { NEXT_V9_VERSION } from 'app-shared/constants';
 
@@ -25,8 +28,10 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const { t } = useTranslation();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
   const copyModalRef = useRef<HTMLDialogElement>(null);
-  const upgradeDialogRef = useRef<HTMLDialogElement>(null);
   const isUpgradeHelperEnabled = useFeatureFlag(FeatureFlag.AppUpgradeHelper);
+  const navigate = useNavigate();
+  const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
 
   const handleOpenCopyModal = (repoFullName: string) => {
     copyModalRef.current?.showModal();
@@ -40,6 +45,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const repoFullName = repo.full_name;
   const [org, repoName] = repoFullName.split('/');
   const editUrl = getRepositoryEditUrl(org, repoName);
+  const upgradePath = getAppUpgradePath({ subroute, selectedContext, org, app: repoName });
 
   const giteaIconWithLink = (
     <a href={repo.html_url}>
@@ -96,7 +102,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
             <StudioDropdown.Item>
               <StudioDropdown.Button
                 icon={<ArrowCirclepathIcon />}
-                onClick={() => upgradeDialogRef.current?.showModal()}
+                onClick={() => navigate(upgradePath)}
               >
                 {t('app_upgrade.menu_item', { version: NEXT_V9_VERSION })}
               </StudioDropdown.Button>
@@ -104,9 +110,6 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
           )}
         </StudioDropdown.List>
       </StudioDropdown>
-      {isUpgradeHelperEnabled && (
-        <AppUpgradeDialog ref={upgradeDialogRef} org={org} app={repoName} />
-      )}
       <MakeCopyModal
         onClose={handleCloseCopyModal}
         ref={copyModalRef}
