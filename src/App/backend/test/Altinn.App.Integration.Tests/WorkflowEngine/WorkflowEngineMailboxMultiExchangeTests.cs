@@ -75,7 +75,9 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
     private static readonly TimeSpan _declaredTimeout = TimeSpan.FromMinutes(20);
 
     // Keep in sync with StudioctlEnvironment.WaitForEngineReady - the engine's host-exposed address.
-    private static readonly Uri _engineBaseAddress = new("http://workflow-engine.local.altinn.cloud:8000");
+    private static readonly Uri _engineBaseAddress = new(
+        $"http://workflow-engine.local.altinn.cloud:{AppFixture.StudioctlLocaltestHostPort}"
+    );
     private static readonly TimeSpan _exchangeTimeout = TimeSpan.FromSeconds(90);
 
     /// <summary>

@@ -8,14 +8,19 @@ using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -61,6 +66,154 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(_formDataValidatorMock.Object);
         };
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+    }
+
+    [Fact]
+    public async Task RunProcessNext_ReturnInstance_WhenReadRightsAreRevoked_ReturnsAuthorizedSnapshotAndFinalProcess()
+    {
+        var instance = new Instance
+        {
+            Id = _instanceId,
+            AppId = $"{Org}/{App}",
+            Org = Org,
+            InstanceOwner = new InstanceOwner
+            {
+                PartyId = InstanceOwnerPartyId.ToString(),
+                PersonNumber = "authorized-owner",
+            },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = _dataGuid.ToString(),
+                    DataType = "model",
+                    Filename = "authorized-name",
+                },
+            ],
+            DataValues = new Dictionary<string, string> { ["value"] = "authorized-value" },
+            PresentationTexts = new Dictionary<string, string> { ["title"] = "authorized-title" },
+        };
+        var finalProcess = new ProcessState { EndEvent = "EndEvent_1" };
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .SetupSequence(c =>
+                c.GetInstance(App, Org, InstanceOwnerPartyId, _instanceGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance)
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Forbidden, "Signing rights were revoked."));
+
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(engine => engine.Next(It.IsAny<ProcessNextRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<ProcessNextRequest, CancellationToken>(
+                (request, _) =>
+                {
+                    // The fallback must not share mutable dictionaries, owner information or data elements with app logic.
+                    request.Instance.DataValues["value"] = "new-inaccessible-value";
+                    request.Instance.PresentationTexts["title"] = "new-inaccessible-title";
+                    request.Instance.InstanceOwner.PersonNumber = "new-inaccessible-owner";
+                    request.Instance.Data[0].Filename = "new-inaccessible-name";
+                }
+            )
+            .ReturnsAsync(
+                new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange { NewProcessState = finalProcess },
+                }
+            );
+
+        var accessChecker = new Mock<IDataElementAccessChecker>(MockBehavior.Strict);
+        accessChecker
+            .Setup(checker => checker.GetReaderProblem(It.IsAny<Instance>(), It.IsAny<DataElement>()))
+            .Callback<Instance, DataElement>(
+                (current, data) =>
+                {
+                    Assert.Equal("EndEvent_1", current.Process.EndEvent);
+                    Assert.Null(current.Process.CurrentTask);
+                    Assert.Equal("authorized-name", data.Filename);
+                }
+            )
+            .ReturnsAsync(new ProblemDetails { Status = (int)HttpStatusCode.Forbidden });
+
+        using var client = GetRootedUserClient(
+            Org,
+            App,
+            1337,
+            InstanceOwnerPartyId,
+            configureServices: services =>
+            {
+                services.RemoveAll<IInstanceClient>();
+                services.AddSingleton(instanceClient.Object);
+                services.RemoveAll<IProcessEngine>();
+                services.AddSingleton(processEngine.Object);
+                services.RemoveAll<IDataElementAccessChecker>();
+                services.AddSingleton(accessChecker.Object);
+            }
+        );
+        using var response = await client.PutAsync(
+            $"/{Org}/{App}/instances/{_instanceId}/process/next?returnInstance=true",
+            null
+        );
+        string body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var document = JsonDocument.Parse(body);
+        var root = document.RootElement;
+        Assert.Equal("EndEvent_1", root.GetProperty("process").GetProperty("endEvent").GetString());
+        Assert.Equal("authorized-value", root.GetProperty("dataValues").GetProperty("value").GetString());
+        Assert.Equal("authorized-title", root.GetProperty("presentationTexts").GetProperty("title").GetString());
+        Assert.Equal("authorized-owner", root.GetProperty("instanceOwner").GetProperty("personNumber").GetString());
+        Assert.Empty(root.GetProperty("data").EnumerateArray());
+        Assert.DoesNotContain("new-inaccessible", body);
+        accessChecker.Verify(
+            checker => checker.GetReaderProblem(It.IsAny<Instance>(), It.IsAny<DataElement>()),
+            Times.Once
+        );
+        instanceClient.Verify(
+            c => c.GetInstance(App, Org, InstanceOwnerPartyId, _instanceGuid, null, It.IsAny<CancellationToken>()),
+            Times.Exactly(2)
+        );
+        instanceClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task RunProcessNext_ReturnInstance_WhenInitialReadIsForbidden_DoesNotExecuteProcessAction()
+    {
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstance(App, Org, InstanceOwnerPartyId, _instanceGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Forbidden, "The caller cannot read this instance."));
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        using var client = GetRootedUserClient(
+            Org,
+            App,
+            1337,
+            InstanceOwnerPartyId,
+            configureServices: services =>
+            {
+                services.RemoveAll<IInstanceClient>();
+                services.AddSingleton(instanceClient.Object);
+                services.RemoveAll<IProcessEngine>();
+                services.AddSingleton(processEngine.Object);
+            }
+        );
+
+        using var response = await client.PutAsync(
+            $"/{Org}/{App}/instances/{_instanceId}/process/next?returnInstance=true",
+            null
+        );
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        processEngine.VerifyNoOtherCalls();
+        instanceClient.Verify(
+            c => c.GetInstance(App, Org, InstanceOwnerPartyId, _instanceGuid, null, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        instanceClient.VerifyNoOtherCalls();
     }
 
     [Fact]

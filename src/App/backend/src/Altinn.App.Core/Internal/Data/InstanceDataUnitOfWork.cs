@@ -12,6 +12,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
@@ -633,14 +634,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (change.DataElement is null)
             throw new InvalidOperationException("ChangeType.Updated sent to SaveChanges must have a DataElement value");
         ReadOnlyMemory<byte> bytes = change.CurrentBinaryData.Value;
-        await _dataClient.UpdateBinaryData(
-            new InstanceIdentifier(Instance),
-            change.DataElement.ContentType,
-            change.DataElement.Filename,
-            Guid.Parse(change.DataElement.Id),
-            new MemoryAsStream(bytes),
-            authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
-        );
+        await UpdateBinaryData(change.DataElement, change.DataElement.ContentType, change.DataElement.Filename, bytes);
     }
 
     private async Task UpdateDataElement(BinaryDataChange change)
@@ -648,13 +642,45 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (change.DataElement is null)
             throw new InvalidOperationException("ChangeType.Updated sent to SaveChanges must have a DataElement value");
 
-        await _dataClient.UpdateBinaryData(
+        await UpdateBinaryData(change.DataElement, change.ContentType, change.FileName, change.CurrentBinaryData);
+    }
+
+    private Task<DataElement> UpdateBinaryData(
+        DataElement dataElement,
+        string contentType,
+        string? filename,
+        ReadOnlyMemory<byte> bytes
+    )
+    {
+        string? generatedFromTask = dataElement
+            .References?.FirstOrDefault(reference =>
+                reference.Relation == RelationType.GeneratedFrom && reference.ValueType == ReferenceType.Task
+            )
+            ?.Value;
+
+        // Storage replaces the task reference along with the bytes. Forward the existing tag in the same
+        // request so a failed callback never leaves persisted data without its task identity.
+        if (!string.IsNullOrEmpty(generatedFromTask))
+        {
+            return _dataClient.UpdateBinaryData(
+                new InstanceIdentifier(Instance),
+                contentType,
+                filename,
+                Guid.Parse(dataElement.Id),
+                new MemoryAsStream(bytes),
+                GetAuthenticationMethod(dataElement),
+                generatedFromTask,
+                CancellationToken.None
+            );
+        }
+
+        return _dataClient.UpdateBinaryData(
             new InstanceIdentifier(Instance),
-            change.ContentType,
-            change.FileName,
-            change.DataElementIdentifier.Guid,
-            new MemoryAsStream(change.CurrentBinaryData),
-            authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
+            contentType,
+            filename,
+            Guid.Parse(dataElement.Id),
+            new MemoryAsStream(bytes),
+            authenticationMethod: GetAuthenticationMethod(dataElement)
         );
     }
 

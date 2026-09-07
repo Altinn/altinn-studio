@@ -26,7 +26,9 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
     private const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 
     // Keep in sync with StudioctlEnvironment.WaitForEngineReady - the engine's host-exposed address.
-    private static readonly Uri _engineBaseAddress = new("http://workflow-engine.local.altinn.cloud:8000");
+    private static readonly Uri _engineBaseAddress = new(
+        $"http://workflow-engine.local.altinn.cloud:{AppFixture.StudioctlLocaltestHostPort}"
+    );
     private static readonly TimeSpan _sideEffectsCompletionTimeout = TimeSpan.FromSeconds(120);
 
     [Fact]

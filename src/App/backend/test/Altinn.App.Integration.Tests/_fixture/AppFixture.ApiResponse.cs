@@ -60,7 +60,7 @@ public sealed partial class AppFixture
             }
         }
 
-        public async Task<ReadApiResponse<T>> Read<T>()
+        public async Task<ReadApiResponse<T>> Read<T>(JsonSerializerOptions? options = null)
         {
             string? body = null;
             T? model = default;
@@ -85,7 +85,7 @@ public sealed partial class AppFixture
                 }
                 else
                 {
-                    model = JsonSerializer.Deserialize<T>(body, _jsonSerializerOptions);
+                    model = JsonSerializer.Deserialize<T>(body, options ?? _jsonSerializerOptions);
                 }
             }
             catch (Exception ex)

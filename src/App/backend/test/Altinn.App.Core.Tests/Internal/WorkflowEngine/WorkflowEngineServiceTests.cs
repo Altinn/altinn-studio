@@ -18,6 +18,87 @@ public class WorkflowEngineServiceTests
     private const string App = "test-app";
     private const string Namespace = $"{Org}/{App}";
 
+    [Theory]
+    [InlineData((int)PersistentItemStatus.Completed)]
+    [InlineData((int)PersistentItemStatus.Waiting)]
+    [InlineData((int)PersistentItemStatus.Processing)]
+    public async Task ResumeAndWaitForWorkflow_AfterInitiatorsRightsAreRevoked_RefreshesOutcomeAsServiceOwner(
+        int workflowStatusValue
+    )
+    {
+        var workflowStatus = (PersistentItemStatus)workflowStatusValue;
+        Guid workflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        Guid instanceGuid = Guid.NewGuid();
+        var instance = CreateInstanceOnTask("Task_Signing", instanceGuid);
+        var committedInstance = CreateInstanceOnTask("Task_Receipt", instanceGuid);
+        var serviceOwner = StorageAuthenticationMethod.ServiceOwner();
+        using var cancellation = new CancellationTokenSource();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, cancellation.Token))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, cancellation.Token))
+            .ReturnsAsync(CreateCollection(collectionKey, workflowId, workflowStatus));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    cancellation.Token
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: workflowStatus,
+                    databaseId: workflowId,
+                    steps: [CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed)]
+                ),
+            ]);
+
+        // Only the app can still read Storage after the workflow revoked the initiating signee's rights.
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c => c.GetInstance(instance, serviceOwner, cancellation.Token))
+            .ReturnsAsync(committedInstance);
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 0,
+            WorkflowPollingTimeoutMs = 0,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            workflowId,
+            collectionKey,
+            cancellation.Token
+        );
+
+        Assert.Same(committedInstance, result.Instance);
+        Assert.True(result.ProcessStateChanged);
+        if (workflowStatus == PersistentItemStatus.Processing)
+        {
+            Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure?.Kind);
+        }
+        else
+        {
+            Assert.Null(result.WorkflowFailure);
+        }
+        instanceClient.Verify(c => c.GetInstance(instance, serviceOwner, cancellation.Token), Times.Once);
+        instanceClient.VerifyNoOtherCalls();
+    }
+
     [Fact]
     public async Task ResumeAndWaitForWorkflow_ResumesWithCascade()
     {

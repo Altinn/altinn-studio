@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -499,6 +500,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct
     )
     {
+        // The process action was authorized before enqueue/resume. Read its outcome as the service owner:
+        // completing a signing task can revoke the initiating user's instance rights during the workflow.
         var stopwatch = Stopwatch.StartNew();
         int currentDelayMs = InitialWorkflowPollingDelayMs;
         IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows = [];
@@ -535,7 +538,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     if (anchoredChainSettled)
                     {
-                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        Instance freshInstance = await _instanceClient.GetInstance(
+                            instance,
+                            StorageAuthenticationMethod.ServiceOwner(),
+                            ct
+                        );
                         lastObservedCollectionWorkflows = currentChain;
                         WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
                         bool processStateChanged = HasCommittedProcessState(currentChain);
@@ -569,7 +576,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     // process state that does not exist yet.
                     if (anchoredChainParked && HasCommittedProcessState(currentChain))
                     {
-                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        Instance freshInstance = await _instanceClient.GetInstance(
+                            instance,
+                            StorageAuthenticationMethod.ServiceOwner(),
+                            ct
+                        );
                         return new ProcessNextWorkflowResult(
                             freshInstance,
                             WorkflowFailure: null,
@@ -581,7 +592,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
             if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
             {
-                Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                Instance freshInstance = await _instanceClient.GetInstance(
+                    instance,
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    ct
+                );
                 if (lastObservedCollectionWorkflows.Count == 0)
                 {
                     lastObservedCollectionWorkflows = ScopeToCurrentChain(

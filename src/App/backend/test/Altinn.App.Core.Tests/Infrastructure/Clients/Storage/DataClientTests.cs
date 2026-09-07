@@ -315,6 +315,57 @@ public class DataClientTests
     }
 
     [Fact]
+    public async Task UpdateBinaryData_ForwardsGeneratedFromTaskAsOneEscapedQueryParameter()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        const string generatedFromTask = "Task_1 & retry=2";
+        const string updatedState = "{\"isAccessDelegated\":true}";
+        HttpRequestMessage? platformRequest = null;
+        string? requestBody = null;
+        int invocations = 0;
+        var dataElement = new DataElement
+        {
+            Id = dataGuid.ToString(),
+            InstanceGuid = instanceIdentifier.InstanceGuid.ToString(),
+        };
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                invocations++;
+                platformRequest = request;
+                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                return new HttpResponseMessage { Content = JsonContent.Create(dataElement) };
+            }
+        );
+
+        var result = await fixture.DataClient.UpdateBinaryData(
+            instanceIdentifier,
+            "application/json",
+            "signee-states.json",
+            dataGuid,
+            new MemoryStream(Encoding.UTF8.GetBytes(updatedState)),
+            StorageAuthenticationMethod.ServiceOwner(),
+            generatedFromTask,
+            CancellationToken.None
+        );
+
+        Assert.Equal(1, invocations);
+        Assert.Equal(updatedState, requestBody);
+        AssertHttpRequest(
+            platformRequest,
+            new Uri(
+                $"{ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}?generatedFromTask=Task_1%20%26%20retry%3D2"
+            ),
+            HttpMethod.Put,
+            "signee-states.json",
+            "application/json",
+            expectedAuth: _testTokens.ServiceOwnerToken
+        );
+        result.Should().BeEquivalentTo(dataElement);
+    }
+
+    [Fact]
     public async Task UpdateBinaryData_returns_exception_when_put_to_storage_result_in_servererror()
     {
         var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");

@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Correspondence;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -15,7 +16,9 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
@@ -32,6 +35,47 @@ namespace Altinn.App.Core.Tests.Features.Signing;
 
 public sealed class SigneeInitializationRetryTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Abort_RetryRefreshesMetadataAfterCompletedOrPartialCleanup(bool failOneDelete)
+    {
+        await using var fixture = new Fixture();
+        fixture.SeedLegacyState();
+        fixture.AddSignature();
+        string incomingState = fixture.Snapshot();
+        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
+        await fixture.Abort(first);
+        fixture.FailNextDelete = failOneDelete;
+        if (failOneDelete)
+        {
+            await Assert.ThrowsAsync<HttpRequestException>(() => Fixture.Commit(first));
+            Assert.Single(fixture.Stored.Data);
+        }
+        else
+        {
+            await Fixture.Commit(first);
+            Assert.Empty(fixture.Stored.Data);
+        }
+
+        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+        await fixture.Abort(retry);
+        await Fixture.Commit(retry);
+
+        Assert.Empty(fixture.Stored.Data);
+        Assert.Empty(retry.Instance.Data);
+        Assert.Equal(failOneDelete ? 3 : 2, fixture.DeleteCalls);
+        Assert.Equal(0, fixture.ProviderCalls);
+        fixture.AccessManagement.Verify(
+            x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+        fixture.Correspondence.Verify(
+            x => x.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
     [Fact]
     public async Task Resolve_ResponseLost_AdoptsSavedStateWithoutCallingProviderAgain()
     {
@@ -109,6 +153,10 @@ public sealed class SigneeInitializationRetryTests
         InstanceDataUnitOfWork first = fixture.Restore(incomingState);
         await fixture.Delegate(first);
         await Fixture.Commit(first);
+        Reference reference = Assert.Single(Assert.Single(fixture.Stored.Data).References);
+        Assert.Equal(RelationType.GeneratedFrom, reference.Relation);
+        Assert.Equal(ReferenceType.Task, reference.ValueType);
+        Assert.Equal("SigningTask", reference.Value);
 
         InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
         await fixture.Delegate(retry);
@@ -179,6 +227,7 @@ public sealed class SigneeInitializationRetryTests
         Assert.NotEqual(attempts[0], attempts[1]);
         Assert.Equal(2, sent.Count);
         Assert.All(await fixture.ReadState(), context => Assert.True(context.SigneeState.HasBeenMessagedForCallToSign));
+        Assert.Equal("SigningTask", Assert.Single(Assert.Single(fixture.Stored.Data).References).Value);
     }
 
     [Fact]
@@ -234,6 +283,7 @@ public sealed class SigneeInitializationRetryTests
         private readonly SigneeContextsManager _manager;
         private readonly SigneeInitializationService _initialization;
         private readonly SigningService _signing;
+        private readonly AbortRuntimeDelegatedSigningCommand _abort;
         private readonly AltinnSignatureConfiguration _config = new()
         {
             SigneeProviderId = "provider",
@@ -369,7 +419,53 @@ public sealed class SigneeInitializationRetryTests
                         using var buffer = new MemoryStream();
                         await stream.CopyToAsync(buffer);
                         _bytes[id.ToString()] = buffer.ToArray();
-                        return Stored.Data.Single(x => x.Id == id.ToString());
+                        DataElement element = Stored.Data.Single(x => x.Id == id.ToString());
+                        // Match Storage: a binary update without generatedFromTask clears the task reference.
+                        element.References = null;
+                        return element;
+                    }
+                );
+            _data
+                .Setup(x =>
+                    x.UpdateBinaryData(
+                        It.IsAny<InstanceIdentifier>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<Stream>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Returns(
+                    async (
+                        InstanceIdentifier _,
+                        string? _,
+                        string? _,
+                        Guid id,
+                        Stream stream,
+                        StorageAuthenticationMethod? _,
+                        string? generatedFromTask,
+                        CancellationToken _
+                    ) =>
+                    {
+                        using var buffer = new MemoryStream();
+                        await stream.CopyToAsync(buffer);
+                        _bytes[id.ToString()] = buffer.ToArray();
+                        DataElement element = Stored.Data.Single(x => x.Id == id.ToString());
+                        element.References = string.IsNullOrEmpty(generatedFromTask)
+                            ? null
+                            :
+                            [
+                                new Reference
+                                {
+                                    Relation = RelationType.GeneratedFrom,
+                                    ValueType = ReferenceType.Task,
+                                    Value = generatedFromTask,
+                                },
+                            ];
+                        return element;
                     }
                 );
             _data
@@ -503,6 +599,11 @@ public sealed class SigneeInitializationRetryTests
                 _manager,
                 new SignDocumentManager(partyClient.Object, metadataClient.Object, NullLogger<SigningService>.Instance)
             );
+            var processReader = new Mock<IProcessReader>();
+            processReader
+                .Setup(x => x.GetAltinnTaskExtension(TaskId))
+                .Returns(new AltinnTaskExtension { SignatureConfiguration = _config });
+            _abort = new AbortRuntimeDelegatedSigningCommand(processReader.Object, _signing, _instances.Object);
             _initialization = new SigneeInitializationService(
                 _manager,
                 new SigningDelegationService(AccessManagement.Object, NullLogger<SigningDelegationService>.Instance),
@@ -541,6 +642,29 @@ public sealed class SigneeInitializationRetryTests
 
         public Task Revoke(InstanceDataUnitOfWork data) =>
             _signing.RevokeSigneeRightsOnTaskEnd(data, _config, CancellationToken.None);
+
+        public Task<ProcessTaskCommandResult> Abort(InstanceDataUnitOfWork data) =>
+            _abort.Execute(
+                new ProcessTaskCommandContext
+                {
+                    InstanceDataMutator = data,
+                    TaskId = TaskId,
+                    WorkflowId = _workflowId,
+                    StepId = _stepId,
+                }
+            );
+
+        public void AddSignature()
+        {
+            var element = new DataElement
+            {
+                Id = Guid.NewGuid().ToString(),
+                DataType = "signatures",
+                ContentType = "application/json",
+            };
+            Stored.Data.Add(element);
+            _bytes[element.Id] = "{}"u8.ToArray();
+        }
 
         public Task<List<SigneeContext>> ReadState() =>
             _manager.GetSigneeContexts(Restore(Snapshot()), _config, CancellationToken.None);

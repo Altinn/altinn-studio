@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -10,8 +11,8 @@ namespace Altinn.App.Integration.Tests;
 
 public sealed partial class AppFixture : IAsyncDisposable
 {
-    private const ushort StudioctlLocaltestHostPort = 8000;
-    private const ushort PdfServiceHostPort = 5300;
+    internal static readonly ushort StudioctlLocaltestHostPort = GetTestPort("TEST_LOCALTEST_HOST_PORT", 8000);
+    private static readonly ushort PdfServiceHostPort = GetTestPort("TEST_PDF_HOST_PORT", 5300);
     private static readonly string _projectDirectory = ModuleInitializer.GetProjectDirectory();
     private static readonly string _repoSourceDirectory = ModuleInitializer.GetRepoSourceDirectory();
     private static readonly string _generatedAppsDirectory = Path.Join(_projectDirectory, "_testapps", "generated");
@@ -28,6 +29,17 @@ public sealed partial class AppFixture : IAsyncDisposable
     );
 
     private static long NextFixtureInstance() => Interlocked.Increment(ref _fixtureInstance);
+
+    private static ushort GetTestPort(string variable, ushort defaultPort)
+    {
+        string? value = Environment.GetEnvironmentVariable(variable);
+        if (string.IsNullOrEmpty(value))
+            return defaultPort;
+
+        return ushort.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out ushort port) && port > 0
+            ? port
+            : throw new InvalidOperationException($"{variable} must be a port between 1 and 65535.");
+    }
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
     private static readonly JsonSerializerOptions _jsonSerializerOptionsIndented = new() { WriteIndented = true };

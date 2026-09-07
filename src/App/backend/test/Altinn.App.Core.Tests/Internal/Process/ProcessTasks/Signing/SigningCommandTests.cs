@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -383,7 +384,21 @@ public class SigningCommandTests
             )
             .Returns(Task.CompletedTask)
             .Verifiable(Times.Once);
-        var command = new AbortRuntimeDelegatedSigningCommand(_processReaderMock.Object, _signingServiceMock.Object);
+        var instances = new Mock<IInstanceClient>();
+        instances
+            .Setup(x =>
+                x.GetInstance(
+                    dataMutator.Object.Instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(CreateInstance());
+        var command = new AbortRuntimeDelegatedSigningCommand(
+            _processReaderMock.Object,
+            _signingServiceMock.Object,
+            instances.Object
+        );
 
         ProcessTaskCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 

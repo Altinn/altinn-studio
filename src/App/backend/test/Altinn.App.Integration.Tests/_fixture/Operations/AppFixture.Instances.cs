@@ -236,7 +236,8 @@ public partial class AppFixture : IAsyncDisposable
             ReadApiResponse<Instance> instanceData,
             ProcessNext? processNext = null,
             string? elementId = null,
-            string? language = null
+            string? language = null,
+            bool returnInstance = false
         )
         {
             var client = _fixture.GetAppClient();
@@ -248,6 +249,8 @@ public partial class AppFixture : IAsyncDisposable
             var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next";
 
             var queryParams = new List<string>();
+            if (returnInstance)
+                queryParams.Add("returnInstance=true");
             if (elementId is not null)
                 queryParams.Add($"elementId={Uri.EscapeDataString(elementId)}");
             if (language is not null)

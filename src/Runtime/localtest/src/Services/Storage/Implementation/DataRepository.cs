@@ -69,10 +69,28 @@ namespace LocalTest.Services.Storage.Implementation
             string path = GetDataForInstanceFolder(instanceGuid.ToString());
             if (Directory.Exists(path))
             {
-                string[] files = Directory.GetFiles(path);
+                string[] files;
+                try
+                {
+                    files = Directory.GetFiles(path);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return dataElements;
+                }
+
                 foreach (string filePath in files)
                 {
-                    string content = await ReadFileAsString(filePath);
+                    string content;
+                    try
+                    {
+                        content = await ReadFileAsString(filePath);
+                    }
+                    catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
+                    {
+                        // Parallel data deletion can remove an element after the directory was enumerated.
+                        continue;
+                    }
                     DataElement instance = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
                     dataElements.Add(instance);
                 }

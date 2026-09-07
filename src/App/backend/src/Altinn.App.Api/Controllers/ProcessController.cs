@@ -18,6 +18,7 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 
 namespace Altinn.App.Api.Controllers;
@@ -318,7 +319,7 @@ public class ProcessController : ControllerBase
     /// <param name="ct">Cancellation token, populated by the framework</param>
     /// <param name="elementId">obsolete: alias for action</param>
     /// <param name="language">Signal the language to use for pdf generation, error messages...</param>
-    /// <param name="returnInstance">When true, the response body is <see cref="EnrichedInstanceResponse"/> reflecting the post-transition instance state. Defaults to false for backward compatibility.</param>
+    /// <param name="returnInstance">When true, returns <see cref="EnrichedInstanceResponse"/> with the final process state. If the transition removes the caller's read access, retains the instance metadata authorized before the action. Defaults to false for backward compatibility.</param>
     /// <param name="processNext">The body of the request containing possible actions to perform before advancing the process</param>
     [HttpPut("next")]
     [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status200OK)]
@@ -348,6 +349,10 @@ public class ProcessController : ControllerBase
                 ct
             );
 
+            // App logic may mutate the supplied instance. Keep the metadata this user could read before the
+            // action, in case completing the transition revokes their right to read its updated metadata.
+            string? authorizedInstanceSnapshot = returnInstance ? JsonConvert.SerializeObject(instance) : null;
+
             var processNextRequest = new ProcessNextRequest
             {
                 User = User,
@@ -368,14 +373,28 @@ public class ProcessController : ControllerBase
             {
                 // Reload the instance so data elements, dataValues, presentationTexts etc.
                 // reflect any mutations the process engine made (e.g. generated PDF, locked elements).
-                instance = await _instanceClient.GetInstance(
-                    app,
-                    org,
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    authenticationMethod: null,
-                    ct
-                );
+                try
+                {
+                    instance = await _instanceClient.GetInstance(
+                        app,
+                        org,
+                        instanceOwnerPartyId,
+                        instanceGuid,
+                        authenticationMethod: null,
+                        ct
+                    );
+                }
+                catch (PlatformHttpException exception) when (exception.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    // The action succeeded, but it may have revoked the initiating signee's rights. Return
+                    // the outcome with their previously authorized metadata, never newly inaccessible fields.
+                    if (authorizedInstanceSnapshot is null)
+                        throw new InvalidOperationException("No authorized instance snapshot was captured.");
+                    instance =
+                        JsonConvert.DeserializeObject<Instance>(authorizedInstanceSnapshot)
+                        ?? throw new InvalidOperationException("Could not restore the authorized instance snapshot.");
+                    instance.Process = result.ProcessStateChange.NewProcessState;
+                }
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(

@@ -5452,7 +5452,7 @@
           {
             "name": "returnInstance",
             "in": "query",
-            "description": "When true, the response body is Altinn.App.Api.Models.EnrichedInstanceResponse reflecting the post-transition instance state. Defaults to false for backward compatibility.",
+            "description": "When true, returns Altinn.App.Api.Models.EnrichedInstanceResponse with the final process state. If the transition removes the caller's read access, retains the instance metadata authorized before the action. Defaults to false for backward compatibility.",
             "schema": {
               "type": "boolean",
               "default": false

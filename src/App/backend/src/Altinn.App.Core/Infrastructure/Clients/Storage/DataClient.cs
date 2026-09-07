@@ -669,7 +669,7 @@ public sealed class DataClient : IDataClient
     }
 
     /// <inheritdoc />
-    public async Task<DataElement> UpdateBinaryData(
+    public Task<DataElement> UpdateBinaryData(
         InstanceIdentifier instanceIdentifier,
         string? contentType,
         string? filename,
@@ -677,11 +677,37 @@ public sealed class DataClient : IDataClient
         Stream stream,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        UpdateBinaryData(
+            instanceIdentifier,
+            contentType,
+            filename,
+            dataGuid,
+            stream,
+            authenticationMethod,
+            generatedFromTask: null,
+            cancellationToken
+        );
+
+    /// <inheritdoc />
+    public async Task<DataElement> UpdateBinaryData(
+        InstanceIdentifier instanceIdentifier,
+        string? contentType,
+        string? filename,
+        Guid dataGuid,
+        Stream stream,
+        StorageAuthenticationMethod? authenticationMethod,
+        string? generatedFromTask,
+        CancellationToken cancellationToken
     )
     {
         using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceIdentifier.GetInstanceId());
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
+        if (!string.IsNullOrEmpty(generatedFromTask))
+        {
+            apiUrl += $"?generatedFromTask={Uri.EscapeDataString(generatedFromTask)}";
+        }
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,

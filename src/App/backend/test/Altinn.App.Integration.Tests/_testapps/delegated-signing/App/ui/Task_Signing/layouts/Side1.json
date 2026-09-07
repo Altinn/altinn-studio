@@ -1,0 +1,27 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "signing-title",
+        "type": "Heading",
+        "size": "M",
+        "textResourceBindings": {
+          "title": "signing.title"
+        }
+      },
+      {
+        "id": "signee-list",
+        "type": "SigneeList"
+      },
+      {
+        "id": "signing-documents",
+        "type": "SigningDocumentList"
+      },
+      {
+        "id": "signing-actions",
+        "type": "SigningActions"
+      }
+    ]
+  }
+}
