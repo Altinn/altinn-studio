@@ -5,6 +5,8 @@ import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@stud
 import { EnvironmentsCell } from '../../../../../../components/EnvironmentsCell/EnvironmentsCell';
 import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
+import { noReportFrequency } from 'app-shared/types/ContactPoint';
+import { emptyCellPlaceholder } from '../../../../constants/contactPointConstants';
 import { PersonDialog } from './PersonDialog/PersonDialog';
 import type { Person } from './PersonDialog/PersonDialog';
 import { contactPointToPerson } from './personUtils';
@@ -24,7 +26,7 @@ const createEmptyPerson = (availableEnvironments: string[]): Person => ({
   phone: '',
   isActive: true,
   environments: availableEnvironments,
-  reportFrequency: 'none',
+  reportFrequency: noReportFrequency,
 });
 
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
@@ -101,11 +103,9 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                 <StudioTable.Cell>{phone}</StudioTable.Cell>
                 <EnvironmentsCell environments={person.environments} />
                 <StudioTable.Cell>
-                  {person.reportFrequency && person.reportFrequency !== 'none'
-                    ? t(
-                        `settings.orgs.contact_points.report_frequency_${person.reportFrequency}`,
-                      )
-                    : '–'}
+                  {person.reportFrequency && person.reportFrequency !== noReportFrequency
+                    ? t(`settings.orgs.contact_points.report_frequency_${person.reportFrequency}`)
+                    : emptyCellPlaceholder}
                 </StudioTable.Cell>
                 <ActionsCell
                   onEdit={() => openEditDialog(person)}

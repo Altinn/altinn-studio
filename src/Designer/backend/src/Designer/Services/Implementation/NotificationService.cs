@@ -90,7 +90,7 @@ internal sealed class NotificationService(
         List<Task> notificationTasks = contactPoints
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, null, cancellationToken)
+                    SendContactMethodAsync(contactPoint, method, payload, attachments: null, cancellationToken)
                 )
             )
             .ToList();
@@ -131,11 +131,12 @@ internal sealed class NotificationService(
             return;
         }
 
+        IReadOnlyList<EmailAttachment>? attachments = BuildPdfAttachments(payload, pdfBytes);
         List<Task> notificationTasks = contactPoints
             .Where(cp => cp.ReportFrequency == frequency)
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, pdfBytes, cancellationToken)
+                    SendContactMethodAsync(contactPoint, method, payload, attachments, cancellationToken)
                 )
             )
             .ToList();
@@ -147,7 +148,7 @@ internal sealed class NotificationService(
         ContactPointEntity contactPoint,
         ContactMethodEntity method,
         NotificationPayload payload,
-        byte[]? pdfBytes,
+        IReadOnlyList<EmailAttachment>? attachments,
         CancellationToken cancellationToken
     )
     {
@@ -165,16 +166,6 @@ internal sealed class NotificationService(
             switch (method.MethodType)
             {
                 case ContactMethodType.Email:
-                    IReadOnlyList<EmailAttachment>? attachments = pdfBytes is not null
-                        ?
-                        [
-                            new EmailAttachment
-                            {
-                                Filename = $"{payload.Id}.pdf",
-                                Data = Convert.ToBase64String(pdfBytes),
-                            },
-                        ]
-                        : null;
                     await altinnNotificationsClient.SendEmailNotification(
                         idempotencyKey,
                         method.Value,
@@ -208,6 +199,12 @@ internal sealed class NotificationService(
             activity?.AddException(ex);
         }
     }
+
+    // The PDF is encoded once and shared by every delivery so large reports are not duplicated per recipient.
+    private static IReadOnlyList<EmailAttachment>? BuildPdfAttachments(NotificationPayload payload, byte[]? pdfBytes) =>
+        pdfBytes is null
+            ? null
+            : [new EmailAttachment { Filename = $"{payload.Id}.pdf", Data = Convert.ToBase64String(pdfBytes) }];
 
     private static string FormatEmailBody(NotificationPayload payload)
     {

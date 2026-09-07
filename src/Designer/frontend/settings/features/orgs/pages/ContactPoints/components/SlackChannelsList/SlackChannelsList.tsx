@@ -5,6 +5,8 @@ import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@stud
 import { EnvironmentsCell } from '../../../../../../components/EnvironmentsCell/EnvironmentsCell';
 import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
+import { noReportFrequency } from 'app-shared/types/ContactPoint';
+import { emptyCellPlaceholder } from '../../../../constants/contactPointConstants';
 import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';
 import type { SlackChannel } from './SlackChannelDialog/SlackChannelDialog';
 import { contactPointToSlackChannel } from './slackChannelUtils';
@@ -23,7 +25,7 @@ const createEmptySlackChannel = (availableEnvironments: string[]): SlackChannel 
   webhookUrl: '',
   isActive: true,
   environments: availableEnvironments,
-  reportFrequency: 'none',
+  reportFrequency: noReportFrequency,
 });
 
 export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): ReactElement => {
@@ -95,11 +97,9 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
               </StudioTable.Cell>
               <EnvironmentsCell environments={channel.environments} />
               <StudioTable.Cell>
-                {channel.reportFrequency && channel.reportFrequency !== 'none'
-                  ? t(
-                      `settings.orgs.contact_points.report_frequency_${channel.reportFrequency}`,
-                    )
-                  : '–'}
+                {channel.reportFrequency && channel.reportFrequency !== noReportFrequency
+                  ? t(`settings.orgs.contact_points.report_frequency_${channel.reportFrequency}`)
+                  : emptyCellPlaceholder}
               </StudioTable.Cell>
               <ActionsCell
                 onEdit={() => openEditDialog(channel)}

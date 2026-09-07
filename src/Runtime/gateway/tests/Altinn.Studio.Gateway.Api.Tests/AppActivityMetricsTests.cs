@@ -167,8 +167,9 @@ public sealed class AppActivityMetricsTests
             CancellationToken cancellationToken
         ) => throw new NotSupportedException();
 
-        public Task<IEnumerable<Metric>> GetMetrics(int range, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
+        public Task<
+            IEnumerable<Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor.Metric>
+        > GetMetrics(int range, CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public Task<IEnumerable<AllAppsFailedRequest>> GetAllAppsFailedRequests(
             int range,
