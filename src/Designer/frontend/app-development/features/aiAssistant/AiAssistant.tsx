@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { useCallback, useState } from 'react';
 import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import { useAssistant, useAssistantPermissions, useAssistantTexts } from './hooks';
@@ -10,6 +11,7 @@ import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedb
 import { useClearChatFeedbackMutation } from 'app-shared/hooks/mutations/useClearChatFeedbackMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
+import { takeAssistantPromptHandoff } from 'app-shared/utils/assistantPromptHandoff';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -19,6 +21,10 @@ function AiAssistant(): ReactElement {
   const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
   const { mutate: clearChatFeedback } = useClearChatFeedbackMutation(org, app);
   const texts = useAssistantTexts();
+  const [handoffPrompt, setHandoffPrompt] = useState<string | null>(() =>
+    takeAssistantPromptHandoff(org, app),
+  );
+  const clearHandoffPrompt = useCallback(() => setHandoffPrompt(null), []);
 
   const {
     connectionStatus,
@@ -57,6 +63,8 @@ function AiAssistant(): ReactElement {
         onCancelWorkflow={cancelCurrentWorkflow}
         cancelledMessageContent={cancelledMessageContent}
         onCancelledMessageConsumed={clearCancelledMessageContent}
+        initialMessageContent={handoffPrompt}
+        onInitialMessageConsumed={clearHandoffPrompt}
         onSelectThread={selectThread}
         onCreateThread={() => selectThread(null)}
         onDeleteThread={deleteThread}
