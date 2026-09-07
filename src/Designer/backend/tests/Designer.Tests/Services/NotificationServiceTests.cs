@@ -200,44 +200,50 @@ public class NotificationServiceTests
             CancellationToken.None
         );
 
-        _notificationClient.Verify(c =>
-            c.SendEmailNotification(
-                It.IsAny<string>(),
-                "owner@example.com",
-                "Altinn Studio - periodisk rapport",
-                It.Is<string>(body =>
-                    body.Contains("app-one") && body.Contains("3 feilende process/next") && !body.Contains("❌")
+        _notificationClient.Verify(
+            c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    "owner@example.com",
+                    "Altinn Studio - periodisk rapport",
+                    It.Is<string>(body =>
+                        body.Contains("app-one") && body.Contains("3 feilende process/next") && !body.Contains("❌")
+                    ),
+                    EmailContentType.Html,
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<IReadOnlyList<EmailAttachment>>(),
+                    It.IsAny<CancellationToken>()
                 ),
-                EmailContentType.Html,
-                It.IsAny<SendingTime>(),
-                It.IsAny<IReadOnlyList<EmailAttachment>>(),
-                It.IsAny<CancellationToken>()
-            )
+            Times.Once
         );
-        _notificationClient.Verify(c =>
-            c.SendSmsNotification(
-                It.IsAny<string>(),
-                "+4700000001",
-                It.Is<string>(body =>
-                    body.Contains("app-one") && body.Contains("3 feilende process/next") && !body.Contains("❌")
+        _notificationClient.Verify(
+            c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    "+4700000001",
+                    It.Is<string>(body =>
+                        body.Contains("app-one") && body.Contains("3 feilende process/next") && !body.Contains("❌")
+                    ),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
-                It.IsAny<SendingTime>(),
-                It.IsAny<CancellationToken>()
-            )
+            Times.Once
         );
-        _slackClient.Verify(c =>
-            c.SendMessageAsync(
-                s_contactSlackWebhook,
-                It.Is<SlackMessage>(message =>
-                    !message.Text.Contains(":x:")
-                    && message.Blocks.Any(block =>
-                        block.Text != null
-                        && block.Text.Text.Contains("app-one")
-                        && block.Text.Text.Contains("3 feilende process/next")
-                    )
+        _slackClient.Verify(
+            c =>
+                c.SendMessageAsync(
+                    s_contactSlackWebhook,
+                    It.Is<SlackMessage>(message =>
+                        !message.Text.Contains(":x:")
+                        && message.Blocks.Any(block =>
+                            block.Text != null
+                            && block.Text.Text.Contains("app-one")
+                            && block.Text.Text.Contains("3 feilende process/next")
+                        )
+                    ),
+                    It.IsAny<CancellationToken>()
                 ),
-                It.IsAny<CancellationToken>()
-            )
+            Times.Once
         );
     }
 

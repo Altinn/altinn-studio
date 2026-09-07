@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
@@ -117,7 +118,12 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
         var dbModels = await dbContext
             .ContactPoints.AsNoTracking()
             .Include(p => p.Methods)
-            .Where(p => p.Org == org && p.IsActive && p.Environments.Contains(environment) && p.ReportFrequency != 0)
+            .Where(p =>
+                p.Org == org
+                && p.IsActive
+                && p.Environments.Contains(environment)
+                && p.ReportFrequency != (int)ReportFrequency.None
+            )
             .ToListAsync(cancellationToken);
         return dbModels.Select(ContactPointMapper.MapToEntity).ToList();
     }
