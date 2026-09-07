@@ -118,8 +118,22 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
                 x => ParseString(x, nameof(FiksArkivMetadataSettings.CaseFileId)),
                 cancellationToken
             );
+            var caseFileAdministrativeUnit = await GetBindableConfigValue(
+                layoutState,
+                instance,
+                _fiksArkivSettings.Metadata.CaseFileAdministrativeUnit,
+                x => ParseString(x, nameof(FiksArkivMetadataSettings.CaseFileAdministrativeUnit)),
+                cancellationToken
+            );
 
-            return new FiksArkivDocumentMetadata(systemId, ruleId, caseFileId, caseFileTitle, journalEntryTitle);
+            return new FiksArkivDocumentMetadata(
+                systemId,
+                ruleId,
+                caseFileId,
+                caseFileTitle,
+                journalEntryTitle,
+                caseFileAdministrativeUnit
+            );
         }
         catch (Exception e)
         {
@@ -212,23 +226,35 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         );
 
     /// <inheritdoc />
-    public async Task<Klassifikasjon> GetInstanceOwnerClassification(
+    public async Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(
         Authenticated auth,
         CancellationToken cancellationToken = default
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        var entries = _fiksArkivSettings.Metadata?.CaseFileClassifications;
+        if (entries is null || entries.Count == 0)
+            return [];
 
-        return auth switch
+        var result = new List<Klassifikasjon>(entries.Count);
+        foreach (var entry in entries)
         {
-            Authenticated.User user => await KlassifikasjonFactory.CreateUser(user), // Note: Doesn't accept cancellation token.. yet
-            Authenticated.SystemUser systemUser => KlassifikasjonFactory.CreateSystemUser(systemUser),
-            Authenticated.ServiceOwner serviceOwner => KlassifikasjonFactory.CreateServiceOwner(serviceOwner),
-            Authenticated.Org org => KlassifikasjonFactory.CreateOrganization(org),
-            _ => throw new FiksArkivException(
-                $"Could not determine submitter details from authentication context: {auth}"
-            ),
-        };
+            var classification = entry.Source switch
+            {
+                FiksArkivClassificationSource.InstanceOwner => await GetInstanceOwnerClassification(
+                    auth,
+                    cancellationToken: cancellationToken
+                ),
+                null => entry.ToKlassifikasjon(),
+                _ => throw new FiksArkivException($"Unsupported classification source: {entry.Source}"),
+            };
+
+            // Forward the IsRestricted value from config
+            classification.ErSkjermet = entry.IsRestricted;
+
+            result.Add(classification);
+        }
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -298,6 +324,25 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     {
         var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(instance, null, null);
         return await _layoutStateInitializer.Init(unitOfWork, null);
+    }
+
+    private static async Task<Klassifikasjon> GetInstanceOwnerClassification(
+        Authenticated auth,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return auth switch
+        {
+            Authenticated.User user => await KlassifikasjonFactory.CreateUser(user),
+            Authenticated.SystemUser systemUser => KlassifikasjonFactory.CreateSystemUser(systemUser),
+            Authenticated.ServiceOwner serviceOwner => KlassifikasjonFactory.CreateServiceOwner(serviceOwner),
+            Authenticated.Org org => KlassifikasjonFactory.CreateOrganization(org),
+            _ => throw new FiksArkivException(
+                $"Could not determine submitter details from authentication context: {auth}"
+            ),
+        };
     }
 
     private static async Task<T?> GetBindableConfigValue<T>(

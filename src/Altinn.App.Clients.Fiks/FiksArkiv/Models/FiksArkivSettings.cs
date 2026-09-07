@@ -123,11 +123,28 @@ public sealed record FiksArkivMetadataSettings
     public FiksArkivBindableValue<string>? CaseFileTitle { get; set; }
 
     /// <summary>
+    /// Optional classifications (klassifikasjon) to attach to the generated saksmappe (case file) element in the arkivmelding.xml.
+    /// Entries are emitted in the order listed. Each entry is either a built-in dynamic
+    /// <see cref="FiksArkivClassification.Source"/> (e.g. the instance owner identity) or an explicitly
+    /// configured system/class/title. The instance owner classification is no longer added implicitly;
+    /// add an entry with <see cref="FiksArkivClassificationSource.InstanceOwner"/> to include it.
+    /// </summary>
+    [JsonPropertyName("caseFileClassifications")]
+    public IReadOnlyList<FiksArkivClassification>? CaseFileClassifications { get; set; }
+
+    /// <summary>
     /// The title to use for the generated journalpost (journal entry) element in the arkivmelding.xml.
     /// If no title is provided, the value will default to the application title as defined in applicationmetadata.json.
     /// </summary>
     [JsonPropertyName("journalEntryTitle")]
     public FiksArkivBindableValue<string>? JournalEntryTitle { get; set; }
+
+    /// <summary>
+    /// The administrative unit (administrativEnhet) to use for the generated saksmappe (case file) element in the arkivmelding.xml.
+    /// If no value is provided, the application owner's organization code will be used.
+    /// </summary>
+    [JsonPropertyName("caseFileAdministrativeUnit")]
+    public FiksArkivBindableValue<string>? CaseFileAdministrativeUnit { get; set; }
 
     /// <summary>
     /// Internal validation based on the requirements of <see cref="FiksArkivDefaultPayloadGenerator"/>
@@ -141,6 +158,16 @@ public sealed record FiksArkivMetadataSettings
         CaseFileId?.Validate($"{propertyName}.{nameof(CaseFileId)}", dataTypes, appModelResolver);
         CaseFileTitle?.Validate($"{propertyName}.{nameof(CaseFileTitle)}", dataTypes, appModelResolver);
         JournalEntryTitle?.Validate($"{propertyName}.{nameof(JournalEntryTitle)}", dataTypes, appModelResolver);
+        CaseFileAdministrativeUnit?.Validate(
+            $"{propertyName}.{nameof(CaseFileAdministrativeUnit)}",
+            dataTypes,
+            appModelResolver
+        );
+
+        foreach (var classification in CaseFileClassifications ?? [])
+        {
+            classification.Validate($"{propertyName}.{nameof(CaseFileClassifications)}");
+        }
     }
 }
 
@@ -412,6 +439,20 @@ public sealed record FiksArkivDataTypeSettings
     public string? Filename { get; set; }
 
     /// <summary>
+    /// Optional override for the document format (<c>dokumentobjekt.format</c>), e.g. <c>PDF/A</c>.
+    /// If not specified, the dotless file extension is used.
+    /// </summary>
+    [JsonPropertyName("format")]
+    public FiksArkivCode? Format { get; set; }
+
+    /// <summary>
+    /// Optional variant descriptor for the document (<c>dokumentobjekt.variantformat</c>), e.g. "P/Produksjonsformat" or "A/Arkivformat".
+    /// If not specified, the variant information is omitted.
+    /// </summary>
+    [JsonPropertyName("variant")]
+    public FiksArkivCode? Variant { get; set; }
+
+    /// <summary>
     /// Internal validation based on the requirements of <see cref="FiksArkivDefaultPayloadGenerator"/>
     /// </summary>
     internal void Validate(string propertyName, IReadOnlyList<DataType> dataTypes, bool requireFilename = false)
@@ -429,6 +470,9 @@ public sealed record FiksArkivDataTypeSettings
             throw new FiksArkivConfigurationException(
                 $"{propertyName}.{nameof(Filename)} configuration is required, but missing."
             );
+
+        Format?.Validate($"{propertyName}.{nameof(Format)}");
+        Variant?.Validate($"{propertyName}.{nameof(Variant)}");
     }
 
     /// <summary>
@@ -436,4 +480,113 @@ public sealed record FiksArkivDataTypeSettings
     /// </summary>
     public string GetFilenameOrDefault(string defaultExtension = "xml") =>
         !string.IsNullOrWhiteSpace(Filename) ? Filename : $"{DataType}.{defaultExtension.TrimStart('.')}";
+}
+
+/// <summary>
+/// Represents a code + description, analogous to <c>KS.Fiks.Arkiv.Models.V1.Metadatakatalog.Kode</c>
+/// </summary>
+public sealed record FiksArkivCode
+{
+    /// <summary>
+    /// The code.
+    /// </summary>
+    [JsonPropertyName("code")]
+    public required string Code { get; set; }
+
+    /// <summary>
+    /// An optional description.
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    internal void Validate(string propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(Code))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(Code)} cannot be empty or contain only whitespace. If you wish to omit this item, remove the {propertyName} configuration entry entirely."
+            );
+    }
+}
+
+/// <summary>
+/// Represents a single classification (klassifikasjon) entry attached to the saksmappe (case file).
+/// </summary>
+public sealed record FiksArkivClassification
+{
+    /// <summary>
+    /// Opt-in to a built-in, library-resolved dynamic classification (e.g. the instance owner identity).
+    /// When set, the system/class/title are resolved at shipment time and the explicit
+    /// <see cref="SystemId"/>/<see cref="ClassificationId"/>/<see cref="Title"/> fields must be left unset.
+    /// The optional <see cref="IsRestricted"/> flag is still honored.
+    /// </summary>
+    [JsonPropertyName("source")]
+    public FiksArkivClassificationSource? Source { get; set; }
+
+    /// <summary>
+    /// The identifier of the classification system this entry belongs to (klassifikasjonssystemID).
+    /// Required for an explicit entry; omit when <see cref="Source"/> is set.
+    /// </summary>
+    [JsonPropertyName("systemId")]
+    public string? SystemId { get; set; }
+
+    /// <summary>
+    /// The identifier of the class within the classification system (klasseID).
+    /// Required for an explicit entry; omit when <see cref="Source"/> is set.
+    /// </summary>
+    [JsonPropertyName("classificationId")]
+    public string? ClassificationId { get; set; }
+
+    /// <summary>
+    /// A human-readable title for the classification entry (tittel).
+    /// Required for an explicit entry; omit when <see cref="Source"/> is set.
+    /// </summary>
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// Optional flag indicating that the classification is restricted (erSkjermet).
+    /// Leave <c>null</c> to omit the property from the resulting XML. Applies to both explicitly configured
+    /// and <see cref="Source"/>-resolved classifications.
+    /// </summary>
+    [JsonPropertyName("isRestricted")]
+    public bool? IsRestricted { get; set; }
+
+    internal void Validate(string propertyName)
+    {
+        if (Source is not null)
+        {
+            if (SystemId is not null || ClassificationId is not null || Title is not null)
+                throw new FiksArkivConfigurationException(
+                    $"{propertyName}.{nameof(Source)} cannot be combined with {nameof(SystemId)}, {nameof(ClassificationId)} or {nameof(Title)}. A source-based classification is fully resolved by the library."
+                );
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SystemId))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(SystemId)} configuration is required, but missing. Did you mean to set {nameof(Source)}?"
+            );
+
+        if (string.IsNullOrWhiteSpace(ClassificationId))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(ClassificationId)} configuration is required, but missing."
+            );
+
+        if (string.IsNullOrWhiteSpace(Title))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(Title)} configuration is required, but missing."
+            );
+    }
+}
+
+/// <summary>
+/// Built-in, library-resolved dynamic classification sources for a <see cref="FiksArkivClassification"/>.
+/// </summary>
+public enum FiksArkivClassificationSource
+{
+    /// <summary>
+    /// The instance owner identity derived from the authentication context at execution time.
+    /// </summary>
+    InstanceOwner,
 }

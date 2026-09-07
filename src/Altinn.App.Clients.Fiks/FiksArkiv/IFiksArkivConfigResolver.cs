@@ -54,9 +54,11 @@ public interface IFiksArkivConfigResolver
     Task<Korrespondansepart?> GetInstanceOwnerParty(Instance instance, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the classification of the instance owner (klassifikasjon).
+    /// Gets the case file classifications (klassifikasjoner) for the shipment.
+    /// Always includes the instance owner classification derived from <paramref name="auth"/>, followed by any
+    /// classifications configured in <see cref="FiksArkivMetadataSettings.CaseFileClassifications"/>.
     /// </summary>
-    Task<Klassifikasjon> GetInstanceOwnerClassification(
+    Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(
         Authenticated auth,
         CancellationToken cancellationToken = default
     );
