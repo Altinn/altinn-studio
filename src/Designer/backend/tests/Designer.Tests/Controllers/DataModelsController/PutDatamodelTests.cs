@@ -21,6 +21,8 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.DataModeling.Validator.Json;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.DataModeling;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
@@ -259,6 +261,12 @@ public class PutDatamodelTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(problemDetails);
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(DataModelingErrorCodes.InvalidJsonSchemaError, errorCode.ToString());
+
         var customErrorMessages = (JsonElement)problemDetails.Extensions["customErrorMessages"];
         Assert.Equal(
             "'anyOf' requires at least one subschema",
