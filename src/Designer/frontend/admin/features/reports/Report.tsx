@@ -81,32 +81,34 @@ export const Report = () => {
       <style>{PDF_ALERT_ICON_CSS}</style>
       <h1 className={classes.title}>{t('admin.report.title')}</h1>
       <table className={classes.metaTable}>
-        <tr>
-          <td className={classes.metaCell}>
-            <b>{t('admin.report.org')}:</b>
-          </td>
-          <td className={classes.metaCell}>{data.org}</td>
-        </tr>
-        <tr>
-          <td className={classes.metaCell}>
-            <b>{t('admin.environment')}:</b>
-          </td>
-          <td className={classes.metaCell}>{data.environment}</td>
-        </tr>
-        <tr>
-          <td className={classes.metaCell}>
-            <b>{t('admin.report.period')}:</b>
-          </td>
-          <td className={classes.metaCell}>
-            {formatDate(data.from)} – {formatDate(data.to)}
-          </td>
-        </tr>
-        <tr>
-          <td className={classes.metaCell}>
-            <b>{t('admin.report.generated')}:</b>
-          </td>
-          <td className={classes.metaCell}>{formatDate(data.to)}</td>
-        </tr>
+        <tbody>
+          <tr>
+            <td className={classes.metaCell}>
+              <b>{t('admin.report.org')}:</b>
+            </td>
+            <td className={classes.metaCell}>{data.org}</td>
+          </tr>
+          <tr>
+            <td className={classes.metaCell}>
+              <b>{t('admin.environment')}:</b>
+            </td>
+            <td className={classes.metaCell}>{data.environment}</td>
+          </tr>
+          <tr>
+            <td className={classes.metaCell}>
+              <b>{t('admin.report.period')}:</b>
+            </td>
+            <td className={classes.metaCell}>
+              {formatDate(data.from)} – {formatDate(data.to)}
+            </td>
+          </tr>
+          <tr>
+            <td className={classes.metaCell}>
+              <b>{t('admin.report.generated')}:</b>
+            </td>
+            <td className={classes.metaCell}>{formatDate(data.to)}</td>
+          </tr>
+        </tbody>
       </table>
       {data.apps.length === 0 && <p className={classes.noApps}>{t('admin.report.no_apps')}</p>}
       {data.apps.map((app) => {
@@ -114,7 +116,7 @@ export const Report = () => {
           app.errorMetrics.some((m) => m.timestamps.length > 0) ||
           app.metrics.some((m) => m.timestamps.length > 0);
         return (
-          <section key={app.appName}>
+          <section key={app.appName} className={classes.appSection}>
             <h2 className={classes.appTitle}>{app.appName}</h2>
             {hasData ? (
               <div className={classes.metricsContainer}>

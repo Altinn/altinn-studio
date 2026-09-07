@@ -1,46 +1,54 @@
 .container {
-  padding: 24px;
-  font-size: system-ui, sans-serif;
+  padding: 32px;
+  font-family: system-ui, sans-serif;
   box-sizing: border-box;
-  overflow: hidden;
   display: flex;
-  gap: 24px;
+  gap: 28px;
   flex-direction: column;
 }
 
 .title {
-  font-size: 20px;
+  font-size: 22px;
+  margin: 0;
 }
 
 .metaTable {
   font-size: 13px;
+  border-collapse: collapse;
 }
 
 .metaCell {
-  padding: 4px 0;
+  padding: 4px 32px 4px 0;
+  vertical-align: top;
 }
 
 .noApps {
   color: #666;
   font-style: italic;
+  margin: 0;
 }
 
 .appSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .appTitle {
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin: 0;
+  break-after: avoid-page;
 }
 
 .metricsContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  zoom: 0.8;
 }
 
 .metricItem {
   min-width: 0;
+  break-inside: avoid-page;
+  --metric-chart-height: 210px;
 }
