@@ -304,6 +304,67 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Counts <c>Requeued</c> and active (incomplete) workflows per namespace in one
+    /// <c>GROUP BY</c> served by the <c>ix_workflows_namespace_status_incomplete</c> partial
+    /// index, whose leading columns are exactly what the query reads. The input to the throttle
+    /// sweep's trip detection.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceWorkflowCounts>> GetNamespaceWorkflowCounts(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Counts <c>Requeued</c> and active workflows in one namespace, excluding rows currently
+    /// parked behind a future <c>throttled_until</c>. The throttle sweep's re-trip evaluation
+    /// during recovery must use this variant: parked workflows are still <c>Requeued</c>, so raw
+    /// counts would read as an instant re-trip and recovery could never proceed.
+    /// </summary>
+    Task<NamespaceWorkflowCounts> GetUnparkedNamespaceWorkflowCounts(
+        string ns,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets all namespace throttle state rows.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceThrottle>> GetNamespaceThrottles(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Inserts or fully replaces a namespace throttle state row. Only the throttle sweep — the
+    /// table's sole writer, serialized by an advisory lock — may call this.
+    /// </summary>
+    Task UpsertNamespaceThrottle(NamespaceThrottle throttle, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes a namespace throttle state row (end of the closed-state grace period).
+    /// </summary>
+    Task DeleteNamespaceThrottle(string ns, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Selects the <paramref name="count"/> <c>Requeued</c> workflows in the namespace with the
+    /// earliest <c>backoff_until</c> (NULLS FIRST — mirroring fetch order) as canaries, excluding
+    /// <paramref name="excludeWorkflowIds"/> (the outgoing canaries, on rotation). Atomically
+    /// clears the selected rows' <c>throttled_until</c>: canaries probe on the normal retry
+    /// schedule and are never parked, and a rotation may promote a previously parked row.
+    /// Returns each canary with its requeue count recorded at selection.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleCanary>> SelectThrottleCanaries(
+        string ns,
+        int count,
+        IReadOnlyList<Guid> excludeWorkflowIds,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Observes the given canary workflows for progress judgment: current workflow status plus the
+    /// requeue count of the current (first non-terminal) step. Workflows that no longer exist are
+    /// absent from the result.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleCanaryObservation>> GetThrottleCanaryObservations(
+        IReadOnlyList<Guid> workflowIds,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Mints a mailbox, stamping its deadline as <paramref name="now"/> + <paramref name="timeout"/>.
     /// Idempotent on <c>(namespace, idempotencyKey)</c>, with a replay answered even at the collection cap; a
     /// genuinely new mailbox is refused at <paramref name="maxOpenPerCollection"/> open ones.
@@ -399,6 +460,35 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Loads one page of throttle park candidates: <c>Requeued</c> workflows in the namespace —
+    /// excluding the current canaries — that are unparked or whose <c>throttled_until</c> elapses
+    /// before <paramref name="restampCutoff"/>, together with the fields the per-stamp retry
+    /// deadline clamp needs. Keyset-paginated by workflow id (<paramref name="afterWorkflowId"/>,
+    /// pass <see cref="Guid.Empty"/> for the first page) so one park pass visits each row once
+    /// even when a stamp is clamped below the cutoff.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleParkCandidate>> GetThrottleParkCandidates(
+        string ns,
+        IReadOnlyList<Guid> excludeWorkflowIds,
+        DateTimeOffset restampCutoff,
+        Guid afterWorkflowId,
+        int limit,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Bulk-stamps <c>throttled_until</c> on the given workflows via the unnest write pattern.
+    /// Guarded per row like the lease-CAS writes: only rows still in <c>Requeued</c> at write time
+    /// are stamped, so a workflow fetched by a worker between candidate load and stamp is skipped.
+    /// Touches only <c>throttled_until</c> — parking is a scheduling gate, not a state transition,
+    /// so <c>updated_at</c> is left alone. Returns the number of rows stamped.
+    /// </summary>
+    Task<int> StampThrottledUntil(
+        IReadOnlyList<(Guid WorkflowId, DateTimeOffset ThrottledUntil)> stamps,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Appends one message at the next gapless position. Idempotent on <c>(mailboxId, idempotencyKey)</c>,
     /// and the lookup runs <em>before</em> the refusals: a kept message answers
     /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox is closed or full. Refusals write
@@ -435,6 +525,31 @@ internal interface IEngineRepository
         int maxLogLength,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Releases the next recovery cohort in a namespace: the <paramref name="cohortSize"/>
+    /// oldest-created workflows still parked (<c>Requeued</c> with <c>throttled_until</c> in the
+    /// future) get <c>throttled_until = now + random() * smear</c> — a jittered smear rather than
+    /// a NULL-clear, so a released horde spreads across the poll window instead of hitting one
+    /// fetch cycle. Returns the number of workflows released — a lower bound, not a census: the
+    /// cohort is claimed <c>FOR UPDATE SKIP LOCKED</c>, so a parked row locked by a concurrent
+    /// writer is skipped and left parked. A short cohort therefore proves nothing about the
+    /// parked population; only an empty one means there was nothing left to release.
+    /// </summary>
+    Task<int> ReleaseThrottledCohort(
+        string ns,
+        int cohortSize,
+        DateTimeOffset now,
+        TimeSpan smear,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Clears every non-null <c>throttled_until</c> in the namespace. Runs during a cleared
+    /// breaker's grace period to release stragglers parked by replicas holding a stale
+    /// tripped-breaker snapshot. Returns the number of rows cleared.
+    /// </summary>
+    Task<int> ClearNamespaceThrottledUntil(string ns, CancellationToken cancellationToken);
 
     /// <summary>
     /// Closes up to <paramref name="batchSize"/> overdue mailboxes, one <c>FOR UPDATE SKIP LOCKED</c>-claimed
