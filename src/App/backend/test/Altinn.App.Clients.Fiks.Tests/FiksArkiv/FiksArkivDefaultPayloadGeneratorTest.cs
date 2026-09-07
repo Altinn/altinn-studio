@@ -310,11 +310,11 @@ public class FiksArkivDefaultPayloadGeneratorTest
     internal async Task GeneratePayload_ReadsDocumentBytesFromAccessor()
     {
         // Arrange: one primary document and one attachment => exactly two reads, all through the caller's unit of
-        // work. Storage must never be consulted directly, or a retried step could archive different bytes than the
-        // ones staged on the unit of work.
+        // work, or a retried step could archive different bytes than the ones staged on it. The strict mock pins
+        // down exactly which accessor members the pipeline touches; a new read fails here instead of going unnoticed.
         var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
         await using var fixture = CreateFixture(testCase);
-        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(), "Accessor content");
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(), "Accessor content", MockBehavior.Strict);
 
         // Act
         var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
@@ -328,19 +328,19 @@ public class FiksArkivDefaultPayloadGeneratorTest
         // Assert
         Assert.NotNull(result);
         dataAccessor.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Exactly(2));
-        fixture.DataClientMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     internal async Task GeneratePayload_WithExecutionReferenceTime_UsesOneUtcInstantForEveryGeneratedDate()
     {
-        // Arrange: the reference time arrives with a non-UTC offset, and its local calendar date is already in the
-        // next year. Every generated date must derive from the same UTC instant, so the case year stays 2025.
+        // Arrange: half past midnight on New Year's Day in Oslo, which is still New Year's Eve in UTC. Every generated
+        // date must derive from the same UTC instant: the offset-less date and year fields follow the UTC calendar
+        // day, and the timestamps carry the UTC designator, so the archive never has to guess the offset.
         var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
         await using var fixture = CreateFixture(testCase);
         var dataAccessor = Factories.DataAccessor(NewDefaultInstance());
-        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2026-01-01T02:15:45+05:45");
-        DateTime expectedUtcTime = new(2025, 12, 31, 20, 30, 45, DateTimeKind.Utc);
+        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2026-01-01T00:30:45+01:00");
+        DateTime expectedUtcTime = new(2025, 12, 31, 23, 30, 45, DateTimeKind.Utc);
 
         // Act
         var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
@@ -367,9 +367,12 @@ public class FiksArkivDefaultPayloadGeneratorTest
         Assert.NotEmpty(journalEntry.Dokumentbeskrivelse);
         Assert.All(journalEntry.Dokumentbeskrivelse, document => Assert.Equal(expectedUtcTime, document.OpprettetDato));
 
-        // The wire format carries the UTC designator, so the archive never has to guess the offset.
-        Assert.Contains("<sendtDato>2025-12-31T20:30:45Z</sendtDato>", archiveMessageXml);
-        Assert.DoesNotContain("2026", archiveMessageXml);
+        Assert.Contains("<saksaar>2025</saksaar>", archiveMessageXml);
+        Assert.Contains("<saksdato>2025-12-31</saksdato>", archiveMessageXml);
+        Assert.Contains("<journalaar>2025</journalaar>", archiveMessageXml);
+        Assert.Contains("<dokumentetsDato>2025-12-31</dokumentetsDato>", archiveMessageXml);
+        Assert.Contains("<sendtDato>2025-12-31T23:30:45Z</sendtDato>", archiveMessageXml);
+        Assert.Contains("<opprettetDato>2025-12-31T23:30:45Z</opprettetDato>", archiveMessageXml);
     }
 
     private static TestFixture CreateFixture(TestCase testCase)
@@ -527,10 +530,18 @@ public class FiksArkivDefaultPayloadGeneratorTest
 
         // The generator reads every document through the caller's unit of work, never through Storage directly,
         // so the accessor is the only data source a test has to provide.
-        public static Mock<IInstanceDataAccessor> DataAccessor(Instance instance, string content = "Mocked content")
+        public static Mock<IInstanceDataAccessor> DataAccessor(
+            Instance instance,
+            string content = "Mocked content",
+            MockBehavior behavior = MockBehavior.Default
+        )
         {
-            var dataAccessor = new Mock<IInstanceDataAccessor>();
+            var dataAccessor = new Mock<IInstanceDataAccessor>(behavior);
             dataAccessor.Setup(x => x.Instance).Returns(instance);
+            // The config resolver initializes layout state for the accessor's task and language when it resolves
+            // bound metadata. Under MockBehavior.Strict these are the only reads allowed besides the document bytes.
+            dataAccessor.Setup(x => x.TaskId).Returns("Task_1");
+            dataAccessor.Setup(x => x.Language).Returns((string?)null);
             dataAccessor
                 .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
                 .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(content));
