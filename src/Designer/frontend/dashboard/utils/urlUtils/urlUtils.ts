@@ -8,3 +8,17 @@ type GetRepoUrl = {
   org: string;
   repo: string;
 };
+
+type GetAppUpgradePath = {
+  subroute: string;
+  selectedContext: string;
+  org: string;
+  app: string;
+};
+
+export const getAppUpgradePath = ({
+  subroute,
+  selectedContext,
+  org,
+  app,
+}: GetAppUpgradePath): string => `/${subroute}/${selectedContext}/${org}/${app}/upgrade`;
