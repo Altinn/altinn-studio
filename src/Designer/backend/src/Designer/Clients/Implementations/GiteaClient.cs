@@ -805,6 +805,24 @@ public class GiteaClient(
     }
 
     /// <inheritdoc/>
+    public async Task<bool> MergePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        MergePullRequestOption mergePullRequestOption,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string content = JsonSerializer.Serialize(mergePullRequestOption);
+        using HttpResponseMessage response = await httpClient.PostAsync(
+            $"repos/{org}/{repository}/pulls/{pullRequestNumber}/merge",
+            new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
     public async Task<bool> DeleteRepository(string org, string repository)
     {
         HttpResponseMessage response = await httpClient.DeleteAsync($"repos/{org}/{repository}");

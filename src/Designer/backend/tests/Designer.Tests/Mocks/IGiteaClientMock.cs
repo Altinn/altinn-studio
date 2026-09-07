@@ -246,6 +246,17 @@ public class IGiteaClientMock : IGiteaClient
         return await Task.FromResult(new PullRequest { Number = 1, Title = createPullRequestOption.Title });
     }
 
+    public async Task<bool> MergePullRequestAsync(
+        string org,
+        string app,
+        long pullRequestNumber,
+        MergePullRequestOption mergePullRequestOption,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await Task.FromResult(true);
+    }
+
     public async Task<Branch> CreateBranch(string org, string repository, string branchName)
     {
         Branch branch = new Branch { Name = branchName };

@@ -212,6 +212,17 @@ public interface IGiteaClient
     );
 
     /// <summary>
+    /// Merges a pull request into its base branch. Returns false when Gitea refused the merge.
+    /// </summary>
+    Task<bool> MergePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        MergePullRequestOption mergePullRequestOption,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Deletes the repository.
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the repository.</param>
