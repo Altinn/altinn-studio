@@ -8,8 +8,10 @@ public sealed record AppUpgradeResult(
     int TargetMajorVersion,
     IReadOnlyList<AppUpgradeStep> Steps,
     IReadOnlyList<AppUpgradeManualTask> ManualTasks,
+    IReadOnlyList<AppUpgradeFileChange> FileChanges,
     string? BranchName = null,
-    string? PullRequestUrl = null
+    string? PullRequestUrl = null,
+    long? PullRequestNumber = null
 );
 
 public sealed record AppUpgradeStep(string Name, IReadOnlyList<AppUpgradeMessage> Messages);
@@ -17,3 +19,5 @@ public sealed record AppUpgradeStep(string Name, IReadOnlyList<AppUpgradeMessage
 public sealed record AppUpgradeMessage(string Text, AppUpgradeMessageStatus Status);
 
 public sealed record AppUpgradeManualTask(string Step, string Text, AppUpgradeMessageStatus Status);
+
+public sealed record AppUpgradeFileChange(string Path, AppUpgradeFileChangeKind Kind, string Diff);
