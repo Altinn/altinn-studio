@@ -1,39 +1,41 @@
-import React, { useRef } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { Repository } from 'app-shared/types/Repository';
 import { useAppUpgradeStatusQuery } from '../../hooks/queries/useAppUpgradeStatusQuery';
-import { AppUpgradeDialog } from '../AppUpgradeDialog';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { useSubroute } from '../../hooks/useSubRoute';
+import { getAppUpgradePath } from '../../utils/urlUtils';
 import classes from './UpgradeNotice.module.css';
 
 type UpgradeNoticeProps = {
   repo: Repository;
 };
 
-export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement => {
+export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement | null => {
   const { t } = useTranslation();
   const [org, app] = repo.full_name.split('/');
   const { data: status } = useAppUpgradeStatusQuery(org, app);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const navigate = useNavigate();
+  const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
+
+  if (!status?.isUpgradeAvailable) return null;
 
   return (
-    <>
-      {status?.isUpgradeAvailable && (
-        <StudioButton
-          variant='tertiary'
-          data-size='sm'
-          className={classes.noticeButton}
-          onClick={() => dialogRef.current?.showModal()}
-        >
-          {t(
-            status.hasCustomCode || !status.isAutomaticUpgradeSupported
-              ? 'app_upgrade.notice_available'
-              : 'app_upgrade.notice_automatic_available',
-          )}
-        </StudioButton>
+    <StudioButton
+      variant='tertiary'
+      data-size='sm'
+      className={classes.noticeButton}
+      onClick={() => navigate(getAppUpgradePath({ subroute, selectedContext, org, app }))}
+    >
+      {t(
+        status.hasCustomCode || !status.isAutomaticUpgradeSupported
+          ? 'app_upgrade.notice_available'
+          : 'app_upgrade.notice_automatic_available',
       )}
-      <AppUpgradeDialog ref={dialogRef} org={org} app={app} />
-    </>
+    </StudioButton>
   );
 };
 

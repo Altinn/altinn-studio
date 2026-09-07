@@ -18,3 +18,17 @@ export const getRepoEditUrl = ({ org, repo }: GetRepoUrl): string => {
 
   return `${APP_DEVELOPMENT_BASENAME}/${org}/${repo}`;
 };
+
+type GetAppUpgradePath = {
+  subroute: string;
+  selectedContext: string;
+  org: string;
+  app: string;
+};
+
+export const getAppUpgradePath = ({
+  subroute,
+  selectedContext,
+  org,
+  app,
+}: GetAppUpgradePath): string => `/${subroute}/${selectedContext}/${org}/${app}/upgrade`;
