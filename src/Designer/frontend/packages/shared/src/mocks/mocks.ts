@@ -19,6 +19,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type {
+  AppUpgradeMergeResult,
   AppUpgradePreparation,
   AppUpgradeResult,
   AppUpgradeStatus,
@@ -87,8 +88,16 @@ export const appUpgradeResult: AppUpgradeResult = {
   targetMajorVersion: 9,
   steps: [],
   manualTasks: [],
+  fileChanges: [],
   branchName: null,
   pullRequestUrl: null,
+  pullRequestNumber: null,
+};
+
+export const appUpgradeMergeResult: AppUpgradeMergeResult = {
+  isMerged: true,
+  message: '',
+  baseBranch: 'main',
 };
 
 export const branchStatus: BranchStatus = {

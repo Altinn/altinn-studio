@@ -6,6 +6,7 @@ import {
   branchPath,
   discardChangesPath,
   copyAppPath,
+  appUpgradeMergePath,
   appUpgradePath,
   appUpgradePreparePath,
   createRepoPath,
@@ -94,6 +95,12 @@ import {
   publishResourcePolicyPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type {
+  AppUpgradeMergeRequest,
+  AppUpgradeMergeResult,
+  AppUpgradePreparation,
+  AppUpgradeResult,
+} from 'app-shared/types/AppUpgrade';
 import type { AppUpgradePreparation, AppUpgradeResult } from 'app-shared/types/AppUpgrade';
 import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -166,6 +173,7 @@ export const commitAndPushChanges = (org: string, app: string, payload: CreateRe
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
 export const upgradeApp = (org: string, app: string) => post<AppUpgradeResult>(appUpgradePath(org, app));
 export const prepareAppUpgrade = (org: string, app: string) => post<AppUpgradePreparation>(appUpgradePreparePath(org, app));
+export const mergeAppUpgrade = (org: string, app: string, payload: AppUpgradeMergeRequest) => post<AppUpgradeMergeResult, AppUpgradeMergeRequest>(appUpgradeMergePath(org, app), payload);
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
 export const undeployAppFromEnv = (org: string, app: string, environment: string) => post(undeployAppFromEnvPath(org, app), { environment });
