@@ -20,6 +20,8 @@ export type AssistantProps = {
   onCancelWorkflow?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
+  initialMessageContent?: string | null;
+  onInitialMessageConsumed?: () => void;
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
@@ -44,6 +46,8 @@ export function Assistant({
   onCancelWorkflow,
   cancelledMessageContent,
   onCancelledMessageConsumed,
+  initialMessageContent,
+  onInitialMessageConsumed,
   onSelectThread,
   onDeleteThread,
   onCreateThread,
@@ -68,6 +72,8 @@ export function Assistant({
       onCancelWorkflow={onCancelWorkflow}
       cancelledMessageContent={cancelledMessageContent}
       onCancelledMessageConsumed={onCancelledMessageConsumed}
+      initialMessageContent={initialMessageContent}
+      onInitialMessageConsumed={onInitialMessageConsumed}
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}

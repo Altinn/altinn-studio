@@ -23,6 +23,8 @@ export function CompleteInterface({
   onCancelWorkflow,
   cancelledMessageContent,
   onCancelledMessageConsumed,
+  initialMessageContent,
+  onInitialMessageConsumed,
   activeThreadId,
   connectionStatus,
   workflowStatusByThread,
@@ -95,6 +97,8 @@ export function CompleteInterface({
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
+            initialMessageContent={initialMessageContent}
+            onInitialMessageConsumed={onInitialMessageConsumed}
             onMessageFeedback={onMessageFeedback}
             onClearMessageFeedback={onClearMessageFeedback}
             onPermissionResponse={onPermissionResponse}
