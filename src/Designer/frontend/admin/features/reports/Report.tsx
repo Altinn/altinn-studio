@@ -118,6 +118,16 @@ export const Report = () => {
         return (
           <section key={app.appName} className={classes.appSection}>
             <h2 className={classes.appTitle}>{app.appName}</h2>
+            {(app.version || app.appLibVersion) && (
+              <p className={classes.appVersions}>
+                {[
+                  app.version && `${t('admin.report.app_version')} ${app.version}`,
+                  app.appLibVersion && `${t('admin.report.app_lib_version')} ${app.appLibVersion}`,
+                ]
+                  .filter(Boolean)
+                  .join(' \u00b7 ')}
+              </p>
+            )}
             {hasData ? (
               <div className={classes.metricsContainer}>
                 {app.errorMetrics.map((m) => (

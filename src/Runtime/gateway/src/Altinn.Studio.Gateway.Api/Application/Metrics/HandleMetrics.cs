@@ -83,7 +83,7 @@ internal static class HandleMetrics
         var amMetrics = await metricsTask;
         var amFailedRequests = await failedRequestsTask;
 
-        var apps = new List<string>();
+        var apps = new List<ReportApp>();
         foreach (var helmRelease in helmReleases)
         {
             if (
@@ -102,13 +102,15 @@ internal static class HandleMetrics
                 );
                 continue;
             }
-            apps.Add(deployment.App);
+            apps.Add(new ReportApp { Name = deployment.App, Version = deployment.ImageTag });
         }
 
         var metricsLookup = amMetrics.ToDictionary(m => (m.AppName.ToLowerInvariant(), m.Name.ToLowerInvariant()));
 
-        var metrics = apps.SelectMany(app =>
-            AzureMonitorClient.MetricNames.Select(name =>
+        var metrics = apps.SelectMany(reportApp =>
+        {
+            var app = reportApp.Name;
+            return AzureMonitorClient.MetricNames.Select(name =>
                 metricsLookup.TryGetValue((app.ToLowerInvariant(), name.ToLowerInvariant()), out var existing)
                     ? new Metric
                     {
@@ -126,15 +128,17 @@ internal static class HandleMetrics
                         Counts = [],
                         BucketSize = bucketSize,
                     }
-            )
-        );
+            );
+        });
 
         var errorMetricsLookup = amFailedRequests.ToDictionary(r =>
             (r.AppName.ToLowerInvariant(), r.Name.ToLowerInvariant())
         );
 
-        var errorMetrics = apps.SelectMany(app =>
-            AzureMonitorClient.OperationNameKeys.Select(name =>
+        var errorMetrics = apps.SelectMany(reportApp =>
+        {
+            var app = reportApp.Name;
+            return AzureMonitorClient.OperationNameKeys.Select(name =>
             {
                 var logsUrl = metricsClient.GetLogsUrl(
                     currentGatewayContext.AzureSubscriptionId,
@@ -167,8 +171,8 @@ internal static class HandleMetrics
                         BucketSize = bucketSize,
                         LogsUrl = logsUrl,
                     };
-            })
-        );
+            });
+        });
 
         return Results.Ok(
             new ReportMetrics

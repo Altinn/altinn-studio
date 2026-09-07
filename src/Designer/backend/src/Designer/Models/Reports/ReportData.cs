@@ -16,6 +16,8 @@ public class ReportData
 public class AppReportData
 {
     public required string AppName { get; init; }
+    public string? Version { get; init; }
+    public string? AppLibVersion { get; init; }
     public IEnumerable<Metric> Metrics { get; init; } = [];
     public IEnumerable<AppErrorMetric> ErrorMetrics { get; init; } = [];
 }
