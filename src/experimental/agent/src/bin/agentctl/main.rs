@@ -770,6 +770,8 @@ async fn read_apply_request(filename: PathBuf) -> Result<ApplyRequest, Error> {
         .to_path_buf();
     Ok(ApplyRequest {
         source_directory,
+        manifest_path: Some(filename),
+        create_only: false,
         agent,
     })
 }

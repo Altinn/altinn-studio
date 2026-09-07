@@ -1,5 +1,0 @@
-{
-  "name": "All true inputs",
-  "expression": ["or", true, true, true],
-  "expects": true
-}

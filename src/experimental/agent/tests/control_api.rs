@@ -154,6 +154,8 @@ async fn health_reports_a_compatible_daemon() {
 fn request(name: &str) -> ApplyRequest {
     ApplyRequest {
         source_directory: std::env::temp_dir().join("agent-platform-source"),
+        manifest_path: None,
+        create_only: false,
         agent: agent(name),
     }
 }
