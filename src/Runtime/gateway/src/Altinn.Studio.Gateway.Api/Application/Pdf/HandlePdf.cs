@@ -11,7 +11,7 @@ internal static class HandlePdf
     )
     {
         using var client = httpClientFactory.CreateClient("pdf3-proxy");
-        var pdf3Request = new Pdf3ProxyRequest(request.Url, WaitForSelector);
+        var pdf3Request = new Pdf3ProxyRequest(request.Url, WaitForSelector, new Pdf3ProxyOptions("a4", true));
         using var response = await client.PostAsJsonAsync(
             "/pdf",
             pdf3Request,
@@ -26,4 +26,6 @@ internal static class HandlePdf
 
 internal record PdfGenerateRequest(string Url);
 
-internal record Pdf3ProxyRequest(string Url, string WaitFor);
+internal record Pdf3ProxyRequest(string Url, string WaitFor, Pdf3ProxyOptions Options);
+
+internal record Pdf3ProxyOptions(string Format, bool PrintBackground);

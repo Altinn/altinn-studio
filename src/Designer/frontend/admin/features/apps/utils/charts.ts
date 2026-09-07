@@ -22,6 +22,7 @@ const formatTooltipTitle = (startMs: number, bucketSizeInMs: number): string[] =
 };
 
 export const getChartOptions = (bucketSize: number, range: number): ChartOptions<'bar'> => {
+  const dayInMinutes = 24 * 60;
   const minuteInMs = 60 * 1000;
   const bucketSizeInMs = bucketSize * minuteInMs;
   const rangeInMs = range * minuteInMs;
@@ -60,6 +61,7 @@ export const getChartOptions = (bucketSize: number, range: number): ChartOptions
           },
         },
         time: {
+          unit: bucketSize >= dayInMinutes ? 'day' : bucketSize >= 60 ? 'hour' : 'minute',
           displayFormats: {
             minute: 'HH:mm',
             hour: 'HH:mm',

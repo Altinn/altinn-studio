@@ -14,8 +14,6 @@ type AppMetricProps = {
 export const AppMetric = ({ range, metric, className }: AppMetricProps) => {
   const { t } = useTranslation();
 
-  console.log('metric.bucketSize', metric.bucketSize);
-  console.log('range', range);
   const options = getChartOptions(metric.bucketSize, range);
   const count = metric.counts.reduce((sum, item) => sum + item, 0);
 
