@@ -45,6 +45,9 @@ public class PutDatamodelTests
     private const string MinimumValidJsonSchema =
         "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
+    private const string JsonSchemaWithCombinationWithoutSubschemas =
+        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"},\"combination\":{\"anyOf\":[]}}}}}";
+
     private const string JsonSchemaThatWillNotCompile =
         "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
@@ -227,6 +230,40 @@ public class PutDatamodelTests
 
         HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task InvalidJsonSchema_ShouldReturn_BadRequest_And_CustomErrorMessages(
+        string modelPath,
+        string org,
+        string repo,
+        string user
+    )
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+
+        // Models saved before the frontend stopped sending empty combinations still contain them.
+        using var request = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(
+                JsonSchemaWithCombinationWithoutSubschemas,
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+
+        var response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        var customErrorMessages = (JsonElement)problemDetails.Extensions["customErrorMessages"];
+        Assert.Equal(
+            "'anyOf' requires at least one subschema",
+            customErrorMessages.EnumerateArray().Single().GetString()
+        );
     }
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)

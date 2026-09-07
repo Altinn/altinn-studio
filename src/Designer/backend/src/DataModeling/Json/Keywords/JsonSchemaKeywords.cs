@@ -25,7 +25,18 @@ public static class JsonSchemaKeywords
     /// <summary>
     /// Deserializes a JSON schema using reflection metadata so registered custom keywords are supported.
     /// </summary>
-    public static JsonSchema FromText(string jsonText) => JsonSchema.FromText(jsonText, s_serializerOptions);
+    /// <exception cref="InvalidJsonSchemaException">Thrown when the JSON is well formed but not a valid JSON schema.</exception>
+    public static JsonSchema FromText(string jsonText)
+    {
+        try
+        {
+            return JsonSchema.FromText(jsonText, s_serializerOptions);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidJsonSchemaException("The JSON schema could not be read.", exception);
+        }
+    }
 
     /// <summary>
     /// Register custom keywords in

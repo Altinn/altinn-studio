@@ -15,7 +15,11 @@ import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { makePointerFromArray } from './pointerUtils';
-import { isFieldOrCombination, isReference } from './utils';
+import { isCombination, isFieldOrCombination, isReference } from './utils';
+
+// Invalid according to the JSON Schema specification, which requires at least one subschema.
+const isEmptyCombination = (node: UiSchemaNode): boolean =>
+  isCombination(node) && node.children.length === 0;
 
 export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const out: JsonSchema = {};
@@ -28,7 +32,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
   sortedUiSchemaNodes
-    .filter((node) => node.schemaPointer !== ROOT_POINTER)
+    .filter((node) => node.schemaPointer !== ROOT_POINTER && !isEmptyCombination(node))
     .forEach((node: UiSchemaNode) => {
       // Arrays need to be dealt with
       const nodePointer = node.schemaPointer.replace(ROOT_POINTER, '');

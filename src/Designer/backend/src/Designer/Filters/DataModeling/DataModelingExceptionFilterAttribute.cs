@@ -4,6 +4,7 @@ using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Exceptions.DataModeling;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -105,6 +106,21 @@ public class DataModelingExceptionFilterAttribute : ExceptionFilterAttribute
             )
             {
                 StatusCode = (int)HttpStatusCode.UnprocessableEntity,
+            };
+        }
+
+        if (context.Exception is InvalidJsonSchemaException invalidJsonSchemaException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    DataModelingErrorCodes.InvalidJsonSchemaError,
+                    HttpStatusCode.BadRequest,
+                    invalidJsonSchemaException.CustomErrorMessages
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
             };
         }
 

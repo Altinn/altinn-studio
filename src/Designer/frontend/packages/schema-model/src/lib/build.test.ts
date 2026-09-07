@@ -54,6 +54,18 @@ describe('build', () => {
     expect(validateSchema(jsonSchema)).toBeTruthy();
   });
 
+  test('A combination without subschemas is left out of the schema', () => {
+    const textProperty = { type: 'string' };
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: { text: textProperty, combination: { anyOf: [] } },
+    };
+
+    const jsonSchema = buildJsonSchema(buildUiSchema(schema));
+
+    expect(jsonSchema).toEqual({ type: 'object', properties: { text: textProperty } });
+  });
+
   test('that schema-editor mock data works', () => {
     const uiSchemaNodes = buildUiSchema(dataMock);
     const jsonSchema = buildJsonSchema(uiSchemaNodes);
