@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -21,6 +23,7 @@ public class ReportServiceTests
     public async Task GenerateReportPdfAsync_ShouldIncludePerAppMetricSummaryInNotification()
     {
         var runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
+        var appResourcesService = new Mock<IAppResourcesService>();
         var notificationService = new Mock<INotificationService>();
         var pdf = new byte[] { 1, 2, 3 };
         NotificationPayload capturedPayload = null;
@@ -66,8 +69,16 @@ public class ReportServiceTests
             );
 
         using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        appResourcesService
+            .Setup(service => service.GetApplicationMetadata("ttd", "tt02", "app-one", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ApplicationMetadata("ttd/app-one") { AltinnNugetVersion = "8.5.3.108" });
+        appResourcesService
+            .Setup(service => service.GetApplicationMetadata("ttd", "tt02", "app-two", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("app is unreachable"));
+
         var service = new ReportService(
             runtimeGatewayClient.Object,
+            appResourcesService.Object,
             memoryCache,
             notificationService.Object,
             new GeneralSettings { HostName = "localhost" }
@@ -81,7 +92,7 @@ public class ReportServiceTests
         Assert.Contains(capturedPayload.Fields, field => field.Label == "Periode" && field.Value.Contains(" – "));
         Assert.Equal(
             """
-            *app-one*
+            *app-one* (versjon 1.4.2, app-bibliotek 8.5.3)
             • `3.5` feilende process/next
             • `0.5` feilende instansieringer
             • `2543` påbegynte instanser
@@ -100,7 +111,7 @@ public class ReportServiceTests
     private static ReportMetrics BuildReportMetrics() =>
         new()
         {
-            Apps = ["app-one", "app-two"],
+            Apps = [new ReportApp { Name = "app-one", Version = "1.4.2" }, new ReportApp { Name = "app-two" }],
             Metrics =
             [
                 BuildMetric("app-one", "altinn_app_lib_processes_started", [2500, 43]),

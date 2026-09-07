@@ -1,6 +1,10 @@
 const METRIC_NAMES = ['altinn_app_lib_processes_started', 'altinn_app_lib_processes_ended'];
 const ERROR_METRIC_NAMES = ['failed_process_next_requests', 'failed_instance_creation_requests'];
-const APPS = ['mocked-app-one', 'mocked-app-two', 'mocked-app-empty'];
+const APPS = [
+  { name: 'mocked-app-one', version: '1.14.2' },
+  { name: 'mocked-app-two', version: '3.0.1' },
+  { name: 'mocked-app-empty', version: '0.9.0' },
+];
 
 const getBucketSize = (range) => {
   const maxPoints = 12;
@@ -29,7 +33,7 @@ export const reportMetricsRoute = (req, res) => {
   const metrics = [];
   const errorMetrics = [];
   let seed = 1;
-  for (const app of APPS.slice(0, 2)) {
+  for (const { name: app } of APPS.slice(0, 2)) {
     for (const name of METRIC_NAMES) {
       metrics.push({ appName: app, name, ...buildSeries(range, seed++) });
     }
@@ -44,16 +48,16 @@ export const reportMetricsRoute = (req, res) => {
   }
   // mocked-app-empty deliberately has no series, mirroring the gateway's zero-padding
   for (const name of METRIC_NAMES) {
-    metrics.push({ appName: APPS[2], name, timestamps: [], counts: [], bucketSize });
+    metrics.push({ appName: APPS[2].name, name, timestamps: [], counts: [], bucketSize });
   }
   for (const name of ERROR_METRIC_NAMES) {
     errorMetrics.push({
-      appName: APPS[2],
+      appName: APPS[2].name,
       name,
       timestamps: [],
       counts: [],
       bucketSize,
-      logsUrl: `https://portal.azure.example/logs/${org}/${env}/${APPS[2]}`,
+      logsUrl: `https://portal.azure.example/logs/${org}/${env}/${APPS[2].name}`,
     });
   }
 
