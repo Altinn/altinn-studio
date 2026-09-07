@@ -62,6 +62,23 @@ public class AppUpgradeController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("merge")]
+    public async Task<ActionResult<AppUpgradeMergeResult>> Merge(
+        string org,
+        string repo,
+        [FromBody] AppUpgradeMergeRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = await CreateAuthenticatedContext(org, repo);
+        AppUpgradeMergeResult result = await _appUpgradeService.MergeAsync(
+            authenticatedContext,
+            request,
+            cancellationToken
+        );
+        return Ok(result);
+    }
+
     private async Task<AltinnAuthenticatedRepoEditingContext> CreateAuthenticatedContext(string org, string repo)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

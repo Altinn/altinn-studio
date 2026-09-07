@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto.AppUpgrade;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -43,6 +44,7 @@ public class AppUpgradeServiceTests
         Assert.Single(result.Steps);
         Assert.StartsWith("upgrade/altinn-app-v9-", result.BranchName);
         Assert.Equal(PullRequestUrl, result.PullRequestUrl);
+        Assert.Equal(1, result.PullRequestNumber);
         _sourceControl.Verify(
             s => s.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), result.BranchName, null),
             Times.Once
@@ -153,6 +155,135 @@ public class AppUpgradeServiceTests
                     It.IsAny<CreatePullRequestOption>(),
                     It.IsAny<CancellationToken>()
                 ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenEngineSucceeds_ReportsChangedFilesWithDiffs()
+    {
+        SetupCleanRepository();
+        SetupPullRequestCreation();
+        SetupEngineResponse(exitCode: 0, Step("Project file", ("Bumped Altinn.App.Api to 9.0.0", "OK")));
+        SetupLocalChanges(
+            ("App/App.csproj", FileStatus.ModifiedInIndex, "-8.0.0\n+9.0.0"),
+            ("App/ui/form/Settings.json", FileStatus.NewInIndex, "+{}"),
+            ("App/obj/project.assets.json", FileStatus.Ignored, null),
+            ("App/Dockerfile", FileStatus.DeletedFromIndex, "-FROM")
+        );
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeResult result = await service.RunAsync(Context(), CancellationToken.None);
+
+        Assert.Collection(
+            result.FileChanges,
+            change =>
+            {
+                Assert.Equal("App/App.csproj", change.Path);
+                Assert.Equal(AppUpgradeFileChangeKind.Modified, change.Kind);
+                Assert.Equal("-8.0.0\n+9.0.0", change.Diff);
+            },
+            change => Assert.Equal(AppUpgradeFileChangeKind.Added, change.Kind),
+            change => Assert.Equal(AppUpgradeFileChangeKind.Deleted, change.Kind)
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenEngineFails_ReportsChangedFilesBeforeDiscardingThem()
+    {
+        SetupCleanRepository();
+        SetupEngineResponse(exitCode: 1, error: "boom");
+        SetupLocalChanges(("App/App.csproj", FileStatus.ModifiedInWorkdir, "-8.0.0\n+9.0.0"));
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeResult result = await service.RunAsync(Context(), CancellationToken.None);
+
+        Assert.Equal(AppUpgradeOutcome.Failed, result.Outcome);
+        Assert.Single(result.FileChanges);
+        _sourceControl.Verify(s => s.DiscardLocalChanges(It.IsAny<AltinnRepoEditingContext>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenOnlyIgnoredFilesExist_RunsTheEngine()
+    {
+        _sourceControl
+            .Setup(s => s.RepositoryStatus(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(
+                new RepoStatus
+                {
+                    ContentStatus =
+                    [
+                        new RepositoryContent { FilePath = "App/bin/", FileStatus = FileStatus.Ignored },
+                        new RepositoryContent { FilePath = "App/obj/", FileStatus = FileStatus.Ignored },
+                    ],
+                }
+            );
+        SetupPullRequestCreation();
+        SetupEngineResponse(exitCode: 0);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeResult result = await service.RunAsync(Context(), CancellationToken.None);
+
+        Assert.Equal(AppUpgradeOutcome.Completed, result.Outcome);
+    }
+
+    [Fact]
+    public async Task MergeAsync_WhenGiteaMerges_MovesLocalCloneBackToDefaultBranch()
+    {
+        SetupPullRequestCreation();
+        _giteaClient
+            .Setup(g =>
+                g.MergePullRequestAsync(
+                    Org,
+                    Repo,
+                    1,
+                    It.Is<MergePullRequestOption>(o => o.DeleteBranchAfterMerge),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(true);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeMergeResult result = await service.MergeAsync(
+            Context(),
+            new AppUpgradeMergeRequest(1, "upgrade/altinn-app-v9-20260903-120000"),
+            CancellationToken.None
+        );
+
+        Assert.True(result.IsMerged);
+        Assert.Equal("main", result.BaseBranch);
+        _sourceControl.Verify(s => s.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), "main"), Times.Once);
+        _sourceControl.Verify(s => s.PullRemoteChanges(It.IsAny<AltinnAuthenticatedRepoEditingContext>()), Times.Once);
+        _sourceControl.Verify(
+            s =>
+                s.DeleteLocalBranchIfExists(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    "upgrade/altinn-app-v9-20260903-120000"
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task MergeAsync_WhenGiteaRefuses_LeavesLocalCloneUntouched()
+    {
+        SetupPullRequestCreation();
+        _giteaClient
+            .Setup(g =>
+                g.MergePullRequestAsync(Org, Repo, 1, It.IsAny<MergePullRequestOption>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(false);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeMergeResult result = await service.MergeAsync(
+            Context(),
+            new AppUpgradeMergeRequest(1, null),
+            CancellationToken.None
+        );
+
+        Assert.False(result.IsMerged);
+        _sourceControl.Verify(
+            s => s.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -329,6 +460,24 @@ public class AppUpgradeServiceTests
                 g.CreatePullRequestAsync(Org, Repo, It.IsAny<CreatePullRequestOption>(), It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(new PullRequest { Number = 1, HtmlUrl = PullRequestUrl });
+    }
+
+    private void SetupLocalChanges(params (string Path, FileStatus Status, string Diff)[] changes)
+    {
+        _sourceControl
+            .Setup(s => s.Status(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(
+                changes
+                    .Select(change => new RepositoryContent { FilePath = change.Path, FileStatus = change.Status })
+                    .ToList()
+            );
+        _sourceControl
+            .Setup(s => s.GetChangedContent(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
+            .Returns(
+                changes
+                    .Where(change => change.Diff is not null)
+                    .ToDictionary(change => change.Path, change => change.Diff)
+            );
     }
 
     private void SetupCleanRepository()

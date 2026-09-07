@@ -28,4 +28,14 @@ public interface IAppUpgradeService
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Merges the pull request opened by <see cref="RunAsync"/> into the default branch and moves the developer's
+    /// local clone back onto it.
+    /// </summary>
+    Task<AppUpgradeMergeResult> MergeAsync(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        AppUpgradeMergeRequest request,
+        CancellationToken cancellationToken
+    );
 }
