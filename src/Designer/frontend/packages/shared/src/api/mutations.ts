@@ -6,6 +6,8 @@ import {
   branchPath,
   discardChangesPath,
   copyAppPath,
+  appUpgradePath,
+  appUpgradePreparePath,
   createRepoPath,
   deploymentsPath,
   formLayoutNamePath,
@@ -89,6 +91,7 @@ import {
   layoutSetsV4Path,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type { AppUpgradePreparation, AppUpgradeResult } from 'app-shared/types/AppUpgrade';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
 import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
@@ -152,6 +155,8 @@ export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepo
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
+export const upgradeApp = (org: string, app: string) => post<AppUpgradeResult>(appUpgradePath(org, app));
+export const prepareAppUpgrade = (org: string, app: string) => post<AppUpgradePreparation>(appUpgradePreparePath(org, app));
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
 export const undeployAppFromEnv = (org: string, app: string, environment: string) => post(undeployAppFromEnvPath(org, app), { environment });

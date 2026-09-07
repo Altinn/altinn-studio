@@ -3,6 +3,11 @@
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type {
+  AppUpgradePreparation,
+  AppUpgradeResult,
+  AppUpgradeStatus,
+} from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
@@ -56,6 +61,9 @@ import {
   appConfig,
   deploymentsResponse,
   appVersion,
+  appUpgradePreparation,
+  appUpgradeResult,
+  appUpgradeStatus,
   appReleasesResponse,
   applicationMetadata,
   branchStatus,
@@ -100,6 +108,9 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
+  getAppUpgradeStatus: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeStatus>(appUpgradeStatus)),
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
@@ -325,6 +336,12 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
+  prepareAppUpgrade: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradePreparation>(appUpgradePreparation)),
+  upgradeApp: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeResult>(appUpgradeResult)),
   createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
