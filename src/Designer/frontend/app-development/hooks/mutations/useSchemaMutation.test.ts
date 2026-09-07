@@ -24,6 +24,35 @@ describe('useSchemaMutation', () => {
     await waitFor(() => result.current.isSuccess);
   });
 
+  it('Leaves combinations without subschemas out of the saved model but keeps them in the cache', async () => {
+    const saveDataModel = jest.fn();
+    const queryClient = createQueryClientMock();
+    const text = { type: 'string' };
+    const model = { type: 'object', properties: { text, combination: { anyOf: [] } } };
+    const {
+      renderHookResult: { result },
+    } = render({ saveDataModel }, queryClient);
+    result.current.mutate({ modelPath, model });
+    await waitFor(() => result.current.isSuccess);
+    expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, {
+      type: 'object',
+      properties: { text },
+    });
+    expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(model);
+  });
+
+  it('Sends the model unchanged when it has no combinations without subschemas', async () => {
+    const saveDataModel = jest.fn();
+    const model = { type: 'object', properties: { text: { type: 'string' } } };
+    const {
+      renderHookResult: { result },
+    } = render({ saveDataModel });
+    result.current.mutate({ modelPath, model });
+    await waitFor(() => result.current.isSuccess);
+    expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, model);
+    expect(saveDataModel.mock.calls[0][3]).toBe(model);
+  });
+
   it('Updates the JsonSchema query cache', async () => {
     const queryClient = createQueryClientMock();
     const {

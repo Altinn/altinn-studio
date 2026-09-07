@@ -15,7 +15,7 @@ import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { makePointerFromArray } from './pointerUtils';
-import { isEmptyCombination, isFieldOrCombination, isNotTheRootNode, isReference } from './utils';
+import { isFieldOrCombination, isNotTheRootNode, isReference } from './utils';
 
 export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const out: JsonSchema = {};
@@ -28,7 +28,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
   sortedUiSchemaNodes
-    .filter((node) => isNotTheRootNode(node) && !isEmptyCombination(node))
+    .filter((node) => isNotTheRootNode(node))
     .forEach((node: UiSchemaNode) => {
       // Arrays need to be dealt with
       const nodePointer = node.schemaPointer.replace(ROOT_POINTER, '');

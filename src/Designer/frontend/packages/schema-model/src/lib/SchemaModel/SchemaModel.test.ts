@@ -631,6 +631,22 @@ describe('SchemaModel', () => {
       validateTestUiSchema(result.asArray());
     });
 
+    it('Renumbers the remaining children when a child of a combination is deleted', () => {
+      const model = schemaModel.deepClone();
+      const parentPointer = combinationNodeWithMultipleChildrenMock.schemaPointer;
+      const [firstChildPointer, secondChildPointer, thirdChildPointer] =
+        combinationNodeWithMultipleChildrenMock.children;
+      const secondChildTitle = model.getNodeBySchemaPointer(secondChildPointer).title;
+      const thirdChildTitle = model.getNodeBySchemaPointer(thirdChildPointer).title;
+      const result = model.deleteNode(firstChildPointer);
+      const parent = result.getNodeBySchemaPointer(parentPointer) as CombinationNode;
+      expect(parent.children).toEqual([firstChildPointer, secondChildPointer]);
+      expect(result.getNodeBySchemaPointer(firstChildPointer).title).toBe(secondChildTitle);
+      expect(result.getNodeBySchemaPointer(secondChildPointer).title).toBe(thirdChildTitle);
+      expect(result.hasNode(thirdChildPointer)).toBe(false);
+      validateTestUiSchema(result.asArray());
+    });
+
     it('Deletes the given node when it is an unused definition', () => {
       const model = schemaModel.deepClone();
       const result = model.deleteNode(unusedDefinitionMock.schemaPointer);
