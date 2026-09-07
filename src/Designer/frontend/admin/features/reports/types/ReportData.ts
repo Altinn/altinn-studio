@@ -2,6 +2,8 @@ import type { AppMetric } from 'admin/features/apps/types/metrics/AppMetric';
 
 export type AppReportData = {
   appName: string;
+  version?: string;
+  appLibVersion?: string;
   metrics: AppMetric[];
   errorMetrics: AppMetric[];
 };

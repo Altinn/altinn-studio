@@ -76,6 +76,8 @@
   "admin.metrics.failed_process_next_requests": "feilende process/next",
   "admin.metrics.heading": "Statistikk fra siste",
   "admin.metrics.ready_pods": "av podene er klare",
+  "admin.report.app_lib_version": "App-bibliotek",
+  "admin.report.app_version": "Versjon",
   "admin.report.error_loading": "Kunne ikke laste inn rapportdata.",
   "admin.report.generated": "Generert",
   "admin.report.no_apps": "Ingen publiserte apper ble funnet for denne perioden.",

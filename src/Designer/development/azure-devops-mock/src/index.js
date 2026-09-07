@@ -25,7 +25,8 @@ const app = express();
 
 app.use(cors());
 app.use(morgan('combined'));
-app.use(express.json());
+// Reports attach base64-encoded PDFs to notification orders, which exceed the 100kb default.
+app.use(express.json({ limit: '20mb' }));
 
 app.get('/', (req, res) => res.send('Azure Devops API Mock'));
 app.get('/_apis/build/builds/', buildsRoute);

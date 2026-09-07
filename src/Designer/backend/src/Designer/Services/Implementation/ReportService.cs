@@ -17,12 +17,14 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class ReportService(
     IRuntimeGatewayClient runtimeGatewayClient,
+    IAppResourcesService appResourcesService,
     IMemoryCache memoryCache,
     INotificationService notificationService,
     GeneralSettings generalSettings
 ) : IReportService
 {
     private const int MinutesPerDay = 24 * 60;
+    private const int MaxConcurrentAppMetadataRequests = 4;
 
     private const string FailedProcessNextRequests = "failed_process_next_requests";
     private const string FailedInstanceCreationRequests = "failed_instance_creation_requests";
@@ -51,7 +53,13 @@ public class ReportService(
             cancellationToken
         );
 
-        IReadOnlyList<string> apps = reportMetrics.Apps;
+        IReadOnlyList<ReportApp> apps = reportMetrics.Apps;
+        IReadOnlyDictionary<string, string?> appLibVersions = await GetAppLibVersionsAsync(
+            org,
+            environment,
+            apps,
+            cancellationToken
+        );
 
         ILookup<string, Metric> metricsByApp = reportMetrics.Metrics.ToLookup(
             m => m.AppName,
@@ -68,11 +76,13 @@ public class ReportService(
         [
             .. apps.Select(app => new AppReportData
                 {
-                    AppName = app,
-                    Metrics = metricsByApp[app],
+                    AppName = app.Name,
+                    Version = app.Version,
+                    AppLibVersion = appLibVersions.GetValueOrDefault(app.Name),
+                    Metrics = metricsByApp[app.Name],
                     ErrorMetrics =
                     [
-                        .. errorMetricsByApp[app]
+                        .. errorMetricsByApp[app.Name]
                             .Select(e => new AppErrorMetric
                             {
                                 Name = e.Name,
@@ -122,6 +132,51 @@ public class ReportService(
         );
     }
 
+    private async Task<IReadOnlyDictionary<string, string?>> GetAppLibVersionsAsync(
+        string org,
+        string environment,
+        IReadOnlyList<ReportApp> apps,
+        CancellationToken cancellationToken
+    )
+    {
+        using var throttler = new SemaphoreSlim(MaxConcurrentAppMetadataRequests);
+        var lookups = apps.Select(async app =>
+        {
+            await throttler.WaitAsync(cancellationToken);
+            try
+            {
+                var applicationMetadata = await appResourcesService.GetApplicationMetadata(
+                    org,
+                    environment,
+                    app.Name,
+                    cancellationToken
+                );
+                return (app.Name, Version: ParseAppLibVersion(applicationMetadata.AltinnNugetVersion));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // The report must tolerate individual apps being unreachable.
+                return (app.Name, Version: null);
+            }
+            finally
+            {
+                throttler.Release();
+            }
+        });
+
+        var results = await Task.WhenAll(lookups);
+        return results.ToDictionary(r => r.Name, r => r.Version, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string? ParseAppLibVersion(string? altinnNugetVersion)
+    {
+        if (string.IsNullOrEmpty(altinnNugetVersion))
+        {
+            return null;
+        }
+        return Version.TryParse(altinnNugetVersion, out var version) ? version.ToString(3) : null;
+    }
+
     private static int GetRangeMinutes(ReportFrequency frequency) =>
         frequency switch
         {
@@ -146,12 +201,26 @@ public class ReportService(
 
     private static string FormatAppSummary(AppReportData appReport) =>
         $"""
-            *{appReport.AppName}*
+            *{appReport.AppName}*{FormatAppVersions(appReport)}
             • `{FormatCount(GetErrorCount(appReport, FailedProcessNextRequests))}` feilende process/next
             • `{FormatCount(GetErrorCount(appReport, FailedInstanceCreationRequests))}` feilende instansieringer
             • `{FormatCount(GetMetricCount(appReport, ProcessesStarted))}` påbegynte instanser
             • `{FormatCount(GetMetricCount(appReport, ProcessesEnded))}` fullførte instanser
             """;
+
+    private static string FormatAppVersions(AppReportData appReport)
+    {
+        List<string> parts = [];
+        if (!string.IsNullOrEmpty(appReport.Version))
+        {
+            parts.Add($"versjon {appReport.Version}");
+        }
+        if (!string.IsNullOrEmpty(appReport.AppLibVersion))
+        {
+            parts.Add($"app-bibliotek {appReport.AppLibVersion}");
+        }
+        return parts.Count > 0 ? $" ({string.Join(", ", parts)})" : "";
+    }
 
     private static double GetErrorCount(AppReportData appReport, string metricName) =>
         appReport.ErrorMetrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
