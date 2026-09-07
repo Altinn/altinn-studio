@@ -15,6 +15,7 @@ import { FileScanResults } from 'src/features/attachments/types';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { IData, IInstance, IInstanceDataSources, WorkflowActivityStatus } from 'src/types/shared';
 
@@ -52,6 +53,7 @@ export function useInstancePollFailureCount(): number {
 }
 
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
+  const isPdf = useIsPdf();
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
@@ -68,8 +70,13 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
     // way, so the error page is static and an open tab doesn't pay the expensive failed-path read
     // (two engine calls) every tick indefinitely — after an ops resume, a manual refresh picks up the
     // recovered state. Otherwise fall back to the slower pending-scans poll.
-    refetchInterval:
-      workflowStatus === 'processing' ? () => 2000 + Math.floor(Math.random() * 1000) : hasPendingScans ? 5000 : false,
+    refetchInterval: isPdf
+      ? false
+      : workflowStatus === 'processing'
+        ? () => 2000 + Math.floor(Math.random() * 1000)
+        : hasPendingScans
+          ? 5000
+          : false,
   });
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've

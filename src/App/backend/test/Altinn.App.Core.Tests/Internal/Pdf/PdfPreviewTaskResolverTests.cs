@@ -60,7 +60,30 @@ public class PdfPreviewTaskResolverTests
         _processReader.Setup(x => x.GetAltinnTaskExtension(task.Id)).Returns(task.ExtensionElements?.TaskExtension);
     }
 
-    private PdfPreviewTaskResolver Target() => new(_processReader.Object, _resources.Object);
+    private PdfPreviewTaskResolver Target()
+    {
+        _resources
+            .Setup(x => x.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new()
+                    {
+                        ["Task_1"] = new(),
+                        ["SubformUi"] = new() { DefaultDataType = "Sub" },
+                    },
+                }
+            );
+        _resources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns("{}");
+        _resources
+            .Setup(x => x.GetLayoutsInFolder("Task_1"))
+            .Returns(
+                """
+                {"Page":{"data":{"layout":[{"id":"subform-x","type":"Subform","layoutSet":"SubformUi"}]}}}
+                """
+            );
+        return new(_processReader.Object, _resources.Object);
+    }
 
     [Fact]
     public void Resolve_NoTaskIdNoDataElementId_UsesCurrentTask()
@@ -74,7 +97,7 @@ public class PdfPreviewTaskResolverTests
         Assert.Equal("Task_1", target.TaskId);
         Assert.Null(target.PathTaskId);
         Assert.Null(target.AutoPdfTaskIds);
-        Assert.Null(target.SubformPdfContext);
+        Assert.Null(target.Subform);
     }
 
     [Fact]
@@ -119,7 +142,7 @@ public class PdfPreviewTaskResolverTests
         Assert.Equal("Task_Plain", target.TaskId);
         Assert.Equal("Task_Plain", target.PathTaskId);
         Assert.Null(target.AutoPdfTaskIds);
-        Assert.Null(target.SubformPdfContext);
+        Assert.Null(target.Subform);
     }
 
     [Fact]
@@ -153,7 +176,7 @@ public class PdfPreviewTaskResolverTests
         Assert.Equal(taskId, target.TaskId);
         Assert.Equal(expectedPathTaskId, target.PathTaskId);
         Assert.Null(target.AutoPdfTaskIds);
-        Assert.Null(target.SubformPdfContext);
+        Assert.Null(target.Subform);
     }
 
     [Fact]
@@ -194,7 +217,7 @@ public class PdfPreviewTaskResolverTests
         Assert.Equal("Task_Pdf", target.TaskId);
         Assert.Equal("Task_Pdf", target.PathTaskId);
         Assert.Equal(["Task_1", "Task_2"], target.AutoPdfTaskIds);
-        Assert.Null(target.SubformPdfContext);
+        Assert.Null(target.Subform);
     }
 
     [Fact]
@@ -292,7 +315,7 @@ public class PdfPreviewTaskResolverTests
     }
 
     [Fact]
-    public void Resolve_SubformPdfTask_ValidRequest_ReturnsSubformPdfContext()
+    public void Resolve_SubformPdfTask_ValidRequest_ReturnsResolvedSubformTarget()
     {
         SetupProcessTask(
             SubformPdfTask(
@@ -305,11 +328,12 @@ public class PdfPreviewTaskResolverTests
         PdfPreviewTarget target = Target().Resolve(instance, taskId: "Task_SubformPdf", dataElementId: "elem-1");
 
         Assert.Equal("Task_SubformPdf", target.TaskId);
-        Assert.Null(target.PathTaskId);
+        Assert.Equal("Task_SubformPdf", target.PathTaskId);
         Assert.Null(target.AutoPdfTaskIds);
-        Assert.NotNull(target.SubformPdfContext);
-        Assert.Equal("subform-x", target.SubformPdfContext!.ComponentId);
-        Assert.Equal("elem-1", target.SubformPdfContext.DataElementId);
+        Assert.NotNull(target.Subform);
+        Assert.Equal("SubformUi", target.Subform!.UiFolder);
+        Assert.Equal("Sub", target.Subform.DataType);
+        Assert.Equal("elem-1", target.Subform.DataElementId);
     }
 
     [Fact]
@@ -326,7 +350,8 @@ public class PdfPreviewTaskResolverTests
         PdfPreviewTarget target = Target().Resolve(instance, taskId: null, dataElementId: "elem-1");
 
         Assert.Equal("Task_SubformPdf", target.TaskId);
-        Assert.Equal("subform-x", target.SubformPdfContext!.ComponentId);
+        Assert.Equal("SubformUi", target.Subform!.UiFolder);
+        Assert.Equal("Sub", target.Subform.DataType);
     }
 
     [Fact]

@@ -5,6 +5,7 @@ import {
   getHostname,
   getInstantiateUrl,
   getOptionsUrl,
+  getPdfFormatUrl,
   getPdfPreviewTasksUrl,
   getPdfPreviewUrl,
   getSetSelectedPartyUrl,
@@ -345,6 +346,28 @@ describe('Frontend urlHelper.ts', () => {
 
       expect(result).toEqual(
         'https://local.altinn.cloud/ttd/test/api/datalists/country?language=no&size=10&page=2&sortColumn=id&sortDirection=desc&selectedCountry=Norway',
+      );
+    });
+  });
+
+  describe('getPdfFormatUrl', () => {
+    it('preserves the legacy URL when no render context is provided', () => {
+      expect(getPdfFormatUrl('someInstanceId', 'elem-1')).toEqual(
+        'https://local.altinn.cloud/ttd/test/instances/someInstanceId/data/elem-1/pdf/format',
+      );
+    });
+
+    it('includes the rendered task and subform folder', () => {
+      expect(
+        getPdfFormatUrl('someInstanceId', 'elem-1', { taskId: 'Task_Parent', uiFolder: 'subform-layout' }),
+      ).toEqual(
+        'https://local.altinn.cloud/ttd/test/instances/someInstanceId/data/elem-1/pdf/format?taskId=Task_Parent&uiFolder=subform-layout',
+      );
+    });
+
+    it('encodes folder names and omits missing task ids', () => {
+      expect(getPdfFormatUrl('someInstanceId', 'elem-1', { uiFolder: 'folder & name' })).toEqual(
+        'https://local.altinn.cloud/ttd/test/instances/someInstanceId/data/elem-1/pdf/format?uiFolder=folder+%26+name',
       );
     });
   });

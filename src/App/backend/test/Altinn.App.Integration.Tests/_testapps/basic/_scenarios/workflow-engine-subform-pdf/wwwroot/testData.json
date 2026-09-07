@@ -1,0 +1,26 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/test-users/test-users.schema.v1.json",
+  "persons": [
+    {
+      "partyId": 951337,
+      "partyUuid": "d65932f7-4e1a-4e49-9b62-ed333a30b14f",
+      "ssn": "01019091337",
+      "firstName": "Pdf",
+      "lastName": "Preview",
+      "partyRoles": {
+        "951337": [
+          {
+            "type": "altinn",
+            "value": "PRIV"
+          }
+        ]
+      },
+      "userId": 91337,
+      "language": "nb",
+      "userName": "PdfPreview",
+      "email": "pdf-preview@example.com"
+    }
+  ],
+  "orgs": [],
+  "systems": []
+}

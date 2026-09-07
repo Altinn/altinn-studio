@@ -12,8 +12,8 @@ export function TaskTransitionBoundary({ children }: PropsWithChildren) {
   const isInTaskTransition = useIsInTaskTransition();
 
   // In PDF mode the URL task is chosen by the PDF generator/preview and may legitimately differ from
-  // process.currentTask (PDF service task previews, subform PDFs rendered under the parent data
-  // task), and the transition loader would suppress #readyForPrint.
+  // process.currentTask (PDF service task previews and direct subform render targets), and the
+  // transition loader would suppress #readyForPrint.
   if (isPdf) {
     return children;
   }

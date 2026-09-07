@@ -4907,7 +4907,8 @@
         "tags": [
           "Pdf"
         ],
-        "summary": "Get the pdf formatting",
+        "summary": "Get PDF formatting for the rendered task or subform UI folder.",
+        "description": "The UI folder takes precedence over the task id for subforms. When neither is specified,\nformatting uses the instance's current task for compatibility with existing clients.",
         "parameters": [
           {
             "name": "org",
@@ -4950,6 +4951,20 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uiFolder",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],

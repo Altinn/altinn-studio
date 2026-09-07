@@ -107,6 +107,32 @@ public interface IPdfService
     /// <param name="instance">The instance details.</param>
     /// <param name="target">The resolved preview target.</param>
     /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
-    internal Task<Stream> GeneratePreviewPdf(Instance instance, PdfPreviewTarget target, CancellationToken ct) =>
-        throw new NotImplementedException();
+    internal Task<Stream> GeneratePreviewPdf(Instance instance, PdfPreviewTarget target, CancellationToken ct)
+    {
+        if (target.Subform is not null)
+        {
+            throw new PdfPreviewException(
+                501,
+                "The registered IPdfService implementation does not support subform PDF previews"
+            );
+        }
+
+        if (target.AutoPdfTaskIds is { Count: > 0 })
+        {
+            throw new PdfPreviewException(
+                501,
+                "The registered IPdfService implementation does not support previews using autoPdfTaskIds"
+            );
+        }
+
+        if (target.PathTaskId is not null)
+        {
+            throw new PdfPreviewException(
+                501,
+                "The registered IPdfService implementation only supports previewing the instance's current task"
+            );
+        }
+
+        return GeneratePdf(instance, target.TaskId, isPreview: true, authenticationMethod: null, ct);
+    }
 }

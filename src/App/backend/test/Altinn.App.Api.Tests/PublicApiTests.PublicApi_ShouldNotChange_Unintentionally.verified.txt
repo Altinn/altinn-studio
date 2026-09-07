@@ -479,12 +479,14 @@ namespace Altinn.App.Api.Controllers
     public class PdfController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
         public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader) { }
+        [Microsoft.AspNetCore.Mvc.NonAction]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfFormat(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
             "id}/pdf/format")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(object), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfFormat([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfFormat([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? uiFolder = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]

@@ -292,6 +292,11 @@ function useIsSavingFormData() {
 }
 
 export function FormDataWriteEffects() {
+  const isReadOnly = FormStore.useIsReadOnly();
+  if (isReadOnly) {
+    return null;
+  }
+
   return (
     <>
       <FormDataEffects />

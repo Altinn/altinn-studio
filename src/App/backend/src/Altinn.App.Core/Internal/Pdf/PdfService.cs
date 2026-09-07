@@ -7,7 +7,6 @@ using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -35,7 +34,7 @@ public class PdfService : IPdfService
     private readonly GeneralSettings _generalSettings;
     private readonly IAppResources _resources;
     private readonly InstanceDataUnitOfWorkInitializer? _instanceDataUnitOfWorkInitializer;
-    private readonly IProcessReader? _processReader;
+    private readonly SubformPdfTargetResolver _subformResolver;
     private readonly Telemetry? _telemetry;
     internal const string PdfElementType = "ref-data-as-pdf";
     private const string PdfContentType = "application/pdf";
@@ -65,7 +64,8 @@ public class PdfService : IPdfService
         _translationService = translationService;
         _resources = resources;
         _instanceDataUnitOfWorkInitializer = serviceProvider?.GetService<InstanceDataUnitOfWorkInitializer>();
-        _processReader = serviceProvider?.GetService<IProcessReader>();
+        _subformResolver =
+            serviceProvider?.GetService<SubformPdfTargetResolver>() ?? new SubformPdfTargetResolver(resources);
         _telemetry = telemetry;
     }
 
@@ -134,11 +134,18 @@ public class PdfService : IPdfService
             instance.Process?.CurrentTask?.ElementId
             ?? throw new InvalidOperationException("Instance does not have a current task");
 
+        DataElement dataElement =
+            instance.Data?.Find(element => element.Id == subformPdfContext.DataElementId)
+            ?? throw new InvalidOperationException(
+                $"Subform data element '{subformPdfContext.DataElementId}' was not found on instance '{instance.Id}'."
+            );
+        SubformPdfRenderTarget subform = _subformResolver.Resolve(subformPdfContext.ComponentId, dataElement);
+
         return await GenerateAndStorePdfInternal(
             instanceDataMutator,
             taskId,
             customFileNameTextResourceKey,
-            subformPdfContext,
+            subform,
             null,
             authenticationMethod,
             metadata,
@@ -169,7 +176,7 @@ public class PdfService : IPdfService
             language,
             isPreview,
             pathTaskId: null,
-            subformPdfContext: null,
+            subform: null,
             autoGeneratePdfForTaskIds: null,
             authenticationMethod,
             dataAccessor: null,
@@ -206,7 +213,7 @@ public class PdfService : IPdfService
             language,
             isPreview,
             pathTaskId: null,
-            subformPdfContext: null,
+            subform: null,
             autoGeneratePdfForTaskIds: null,
             authenticationMethod,
             dataAccessor,
@@ -230,7 +237,7 @@ public class PdfService : IPdfService
             language,
             isPreview: true,
             target.PathTaskId,
-            target.SubformPdfContext,
+            target.Subform,
             target.AutoPdfTaskIds,
             authenticationMethod: null,
             dataAccessor: null,
@@ -242,7 +249,7 @@ public class PdfService : IPdfService
         IInstanceDataMutator instanceDataMutator,
         string taskId,
         string? customFileNameTextResourceKey,
-        SubformPdfContext? subformPdfContext,
+        SubformPdfRenderTarget? subform,
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
         List<KeyValueEntry>? metadata = null,
@@ -262,8 +269,8 @@ public class PdfService : IPdfService
             taskId,
             language,
             isPreview: false,
-            pathTaskId: null,
-            subformPdfContext,
+            pathTaskId: subform is null ? null : taskId,
+            subform,
             autoGeneratePdfForTaskIds,
             authenticationMethod,
             instanceDataMutator,
@@ -276,7 +283,7 @@ public class PdfService : IPdfService
             taskId,
             language,
             customFileNameTextResourceKey,
-            subformPdfContext?.DataElementId
+            subform?.DataElementId
         );
 
         // Read stream to byte array for the mutator
@@ -302,7 +309,7 @@ public class PdfService : IPdfService
         string language,
         bool isPreview,
         string? pathTaskId,
-        SubformPdfContext? subformPdfContext,
+        SubformPdfRenderTarget? subform,
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
         IInstanceDataAccessor? dataAccessor,
@@ -314,19 +321,18 @@ public class PdfService : IPdfService
             .AppPdfPagePathTemplate.ToLowerInvariant()
             .Replace("{instanceid}", instance.Id);
 
-        List<KeyValuePair<string, string>> autoPdfTaskIdsQueryParams = CreateAutoPdfTaskIdsQueryParams(
+        List<KeyValuePair<string, string>> additionalQueryParams = CreateAutoPdfTaskIdsQueryParams(
             autoGeneratePdfForTaskIds
         );
 
-        // A subform PDF must be rendered from the task that actually has the Subform component in its
-        // layout, not from the (typically UI-less) subformPdf service task, so it always overrides
-        // pathTaskId.
-        string? pathSegment =
-            subformPdfContext is not null ? BuildSubformPathSegment(subformPdfContext)
-            : pathTaskId is not null ? $"/{pathTaskId}"
-            : null;
+        if (subform is not null)
+        {
+            additionalQueryParams.Add(new("pdfUiFolder", Uri.EscapeDataString(subform.UiFolder)));
+            additionalQueryParams.Add(new("pdfDataElementId", Uri.EscapeDataString(subform.DataElementId)));
+        }
 
-        Uri uri = BuildUri(baseUrl, pagePath, pathSegment, language, autoPdfTaskIdsQueryParams);
+        string? pathSegment = pathTaskId is not null ? $"/{pathTaskId}" : null;
+        Uri uri = BuildUri(baseUrl, pagePath, pathSegment, language, additionalQueryParams);
 
         bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
 
@@ -344,20 +350,6 @@ public class PdfService : IPdfService
         Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, footerContent, authenticationMethod, ct);
 
         return pdfContent;
-    }
-
-    /// <summary>
-    /// Resolves the task hosting the given subform component's layout and builds the URL path segment
-    /// that routes the generated page to that subform, e.g. <c>/{parentTaskId}/subform/{componentId}/{dataElementId}/</c>.
-    /// </summary>
-    private string BuildSubformPathSegment(SubformPdfContext subformPdfContext)
-    {
-        string parentTaskId = SubformParentTaskResolver.Resolve(
-            subformPdfContext.ComponentId,
-            _processReader,
-            _resources
-        );
-        return $"/{parentTaskId}/subform/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}/";
     }
 
     private static Uri BuildUri(

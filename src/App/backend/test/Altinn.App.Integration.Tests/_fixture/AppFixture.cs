@@ -550,6 +550,15 @@ public sealed partial class AppFixture : IAsyncDisposable
         var scenarioDirectory = GetScenarioDir(name, scenario);
         var targetDirectory = Path.Join(generatedDirectory, "App", "scenario-overrides");
         CopyDirectory(scenarioDirectory, targetDirectory, static _ => false);
+
+        foreach (string folder in new[] { "ui", "models", "wwwroot" })
+        {
+            var scenarioFolder = Path.Join(scenarioDirectory, folder);
+            if (Directory.Exists(scenarioFolder))
+            {
+                CopyDirectory(scenarioFolder, Path.Join(generatedDirectory, "App", folder), static _ => false);
+            }
+        }
     }
 
     private static void PatchApplicationId(string metadataPath, string appId)

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
@@ -442,6 +443,102 @@ public class PdfControllerTests
         returnedSubformPdfTask.SubformComponentId.Should().Be("subform-x");
         returnedSubformPdfTask.SubformDataTypeId.Should().Be("Sub");
         returnedSubformPdfTask.DataElements.Should().ContainSingle(d => d.Id == "elem-1" && d.DataType == "Sub");
+    }
+
+    [Theory]
+    [InlineData(null, null, "Task_1")]
+    [InlineData("Task_Pdf", null, "Task_Pdf")]
+    [InlineData("Task_1", "Subform", "Subform")]
+    [InlineData(null, "Subform", "Subform")]
+    public async Task GetPdfFormat_UsesRenderedFolderExclusions(string? taskId, string? uiFolder, string expectedFolder)
+    {
+        var dataId = Guid.NewGuid();
+        var instance = SetupPdfFormatInstance(dataId);
+        var model = new object();
+        Dictionary<string, LayoutSettings> folders = new()
+        {
+            ["Task_1"] = new()
+            {
+                Pages = new Pages { ExcludeFromPdf = ["current-page"] },
+                Components = new Components { ExcludeFromPdf = ["current-component"] },
+            },
+            ["Task_Pdf"] = new()
+            {
+                Pages = new Pages { ExcludeFromPdf = ["internal-page"] },
+                Components = new Components { ExcludeFromPdf = ["internal-component"] },
+            },
+            ["Subform"] = new()
+            {
+                Pages = new Pages { ExcludeFromPdf = ["subform-page"] },
+                Components = new Components { ExcludeFromPdf = ["subform-component"] },
+            },
+        };
+        _appResources.Setup(r => r.GetUiConfiguration()).Returns(new UiConfiguration { Folders = folders });
+        _dataClient
+            .Setup(d => d.GetFormData(_instanceId, typeof(object), _org, _app, _partyId, dataId))
+            .ReturnsAsync(model);
+        _pdfFormatter
+            .Setup(f => f.FormatPdf(It.IsAny<LayoutSettings>(), model, instance))
+            .ReturnsAsync((LayoutSettings settings, object data, Instance currentInstance) => settings);
+        var controller = NewPdfController(new Mock<IPdfService>().Object);
+
+        // Exercise the existing overload too: callers without render context keep current-task formatting.
+        var result =
+            taskId is null && uiFolder is null
+                ? await controller.GetPdfFormat(_org, _app, _partyId, _instanceId, dataId)
+                : await controller.GetPdfFormat(_org, _app, _partyId, _instanceId, dataId, taskId, uiFolder);
+
+        var response = Assert.IsType<OkObjectResult>(result);
+        var json = JsonSerializer.SerializeToElement(response.Value);
+        Assert.Equal(
+            folders[expectedFolder].Pages!.ExcludeFromPdf,
+            json.GetProperty("ExcludedPages").Deserialize<string[]>()
+        );
+        Assert.Equal(
+            folders[expectedFolder].Components!.ExcludeFromPdf,
+            json.GetProperty("ExcludedComponents").Deserialize<string[]>()
+        );
+        _pdfFormatter.Verify(f => f.FormatPdf(folders[expectedFolder], model, instance), Times.Once);
+        Assert.Equal(_taskId, instance.Process.CurrentTask.ElementId);
+    }
+
+    [Theory]
+    [InlineData("Unknown_Task", null)]
+    [InlineData("Task_1", "Unknown_Subform")]
+    public async Task GetPdfFormat_UnknownExplicitFolder_DoesNotUseCurrentTask(string? taskId, string? uiFolder)
+    {
+        var dataId = Guid.NewGuid();
+        SetupPdfFormatInstance(dataId);
+        _appResources
+            .Setup(r => r.GetUiConfiguration())
+            .Returns(new UiConfiguration { Folders = new() { [_taskId] = new() } });
+        var controller = NewPdfController(new Mock<IPdfService>().Object);
+
+        var result = await controller.GetPdfFormat(_org, _app, _partyId, _instanceId, dataId, taskId, uiFolder);
+
+        Assert.IsType<NotFoundObjectResult>(result);
+        _pdfFormatter.Verify(
+            f => f.FormatPdf(It.IsAny<LayoutSettings>(), It.IsAny<object>(), It.IsAny<Instance>()),
+            Times.Never
+        );
+    }
+
+    private Instance SetupPdfFormatInstance(Guid dataId)
+    {
+        var instance = new Instance
+        {
+            Org = _org,
+            AppId = $"{_org}/{_app}",
+            Id = $"{_partyId}/{_instanceId}",
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = _taskId } },
+            Data = [new DataElement { Id = dataId.ToString(), DataType = "model" }],
+        };
+        _instanceClient
+            .Setup(c => c.GetInstance(_app, _org, _partyId, _instanceId, null, CancellationToken.None))
+            .ReturnsAsync(instance);
+        _appResources.Setup(r => r.GetClassRefForLogicDataType("model")).Returns("Model");
+        _appModel.Setup(m => m.GetModelType("Model")).Returns(typeof(object));
+        return instance;
     }
 
     private static Mock<IAuthenticationTokenResolver> BuildAuthenticationTokenResolver()

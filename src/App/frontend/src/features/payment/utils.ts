@@ -1,4 +1,7 @@
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useNavigationParam } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { ProcessTaskType } from 'src/types';
 
 /**
@@ -10,9 +13,18 @@ export function useHasPayment(): boolean {
 }
 
 /**
- * Returns true if the current task is a payment task
+ * Returns true if the task being presented is a payment task.
  */
 export function useIsPayment(): boolean {
   const { data: process } = useProcessQuery();
-  return process?.currentTask?.altinnTaskType === ProcessTaskType.Payment;
+  const isPdf = useIsPdf();
+  const taskIdFromUrl = useNavigationParam('taskId');
+  const taskId = useTaskOverrides().taskId ?? taskIdFromUrl;
+  const currentTask = process?.currentTask;
+  const renderedTask = process?.processTasks?.find((task) => task.elementId === taskId);
+
+  const taskType = isPdf
+    ? (renderedTask?.altinnTaskType ?? (taskId === currentTask?.elementId ? currentTask?.altinnTaskType : undefined))
+    : currentTask?.altinnTaskType;
+  return taskType === ProcessTaskType.Payment;
 }

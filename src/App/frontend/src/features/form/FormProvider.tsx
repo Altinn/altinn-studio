@@ -46,6 +46,7 @@ import { PaymentInformationProvider } from 'src/features/payment/PaymentInformat
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
@@ -63,6 +64,8 @@ interface FormProviderProps {
  * This helper-context provider is used to provide all the contexts needed for forms to work
  */
 export function FormProvider({ children, readOnly = false, ...props }: React.PropsWithChildren<FormProviderProps>) {
+  const isPdf = useIsPdf();
+  const effectiveReadOnly = readOnly || isPdf;
   const parentFromContext = FormStore.raw.useLaxStore();
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
@@ -72,11 +75,18 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const dataSliceProps = useFormDataSliceProps(bootstrap);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
-  if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
+  if (
+    enabled &&
+    bootstrap &&
+    dataSliceProps &&
+    (!storeRef.current ||
+      previousBootstrap.current !== bootstrap ||
+      storeRef.current.getState().readOnly !== effectiveReadOnly)
+  ) {
     // When the bootstrap query changes, or if it's the first render, we should wipe the store and restart. This usually
     // means we're moved to another task while keeping a similar enough render-tree to cause this to be re-used. The
     // layouts can change without all of this being reset, however.
-    storeRef.current = createFormStore({ parent, readOnly, data: dataSliceProps, bootstrap });
+    storeRef.current = createFormStore({ parent, readOnly: effectiveReadOnly, data: dataSliceProps, bootstrap });
     previousBootstrap.current = bootstrap;
   }
 
@@ -127,11 +137,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
             {window.Cypress && <UpdateAttachmentsForCypress />}
             <AttachmentEffects />
             <ValidationEffects />
-            <PaymentInformationProvider>
-              <OrderDetailsProvider>
-                <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-              </OrderDetailsProvider>
-            </PaymentInformationProvider>
+            <FormPaymentProviders hasProcess={hasProcess}>{children}</FormPaymentProviders>
           </TaskTransitionBoundary>
         </LayoutPropertiesValidation>
       </LayoutRevisionBoundary>
@@ -157,6 +163,25 @@ function useLayoutRevisionKey() {
     }
     return key;
   }, [layouts]);
+}
+
+function FormPaymentProviders({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {
+  const isPdf = useIsPdf();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
+  const hasPaymentComponents = Object.values(lookups.allComponents).some(
+    (component) => component?.type === 'Payment' || component?.type === 'PaymentDetails',
+  );
+  if (isPdf && !hasPaymentComponents) {
+    return children;
+  }
+
+  return (
+    <PaymentInformationProvider>
+      <OrderDetailsProvider>
+        <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+      </OrderDetailsProvider>
+    </PaymentInformationProvider>
+  );
 }
 
 function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {

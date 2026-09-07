@@ -6,6 +6,7 @@ import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { getPdfRenderContext } from 'src/features/pdf/pdfRenderContext';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
@@ -17,6 +18,10 @@ export async function clientLoader({ context, params, request }: LoaderFunctionA
   const { instanceOwnerPartyId, instanceGuid, taskId } = params;
   if (!instanceOwnerPartyId || !instanceGuid || !taskId) {
     throw new Error('task-index loader reached without instanceOwnerPartyId/instanceGuid/taskId route params');
+  }
+
+  if (getPdfRenderContext(new URL(request.url).searchParams)) {
+    return null;
   }
 
   const instance = await fetchFreshInstanceData(queryClient, {

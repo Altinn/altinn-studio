@@ -92,6 +92,8 @@ Tests in a class fixture are serialized because they share one app process and f
 
 Test different app configurations without maintaining separate test apps.
 
+Scenarios can also provide `ui/`, `models/`, and `wwwroot/` directories. Their files are copied into the corresponding directories in the generated app, allowing scenarios to supply layouts, schemas, and test-user data.
+
 ### Folder Structure
 
 ```

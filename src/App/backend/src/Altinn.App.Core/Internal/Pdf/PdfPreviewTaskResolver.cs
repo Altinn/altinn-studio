@@ -16,14 +16,20 @@ internal sealed class PdfPreviewTaskResolver
 {
     private readonly IProcessReader _processReader;
     private readonly IAppResources _resources;
+    private readonly SubformPdfTargetResolver _subformResolver;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfPreviewTaskResolver"/> class.
     /// </summary>
-    public PdfPreviewTaskResolver(IProcessReader processReader, IAppResources resources)
+    public PdfPreviewTaskResolver(
+        IProcessReader processReader,
+        IAppResources resources,
+        SubformPdfTargetResolver? subformResolver = null
+    )
     {
         _processReader = processReader;
         _resources = resources;
+        _subformResolver = subformResolver ?? new SubformPdfTargetResolver(resources);
     }
 
     /// <summary>
@@ -130,9 +136,9 @@ internal sealed class PdfPreviewTaskResolver
 
         return new PdfPreviewTarget(
             taskId,
-            PathTaskId: null,
+            PathTaskId: taskId,
             AutoPdfTaskIds: null,
-            SubformPdfContext: new SubformPdfContext(config.SubformComponentId, dataElementId)
+            Subform: _subformResolver.Resolve(config.SubformComponentId, element)
         );
     }
 
@@ -161,7 +167,7 @@ internal sealed class PdfPreviewTaskResolver
             taskId,
             PathTaskId: taskId != currentTaskId ? taskId : null,
             AutoPdfTaskIds: hasAutoPdfTaskIds ? config.AutoPdfTaskIds : null,
-            SubformPdfContext: null
+            Subform: null
         );
     }
 
@@ -176,7 +182,7 @@ internal sealed class PdfPreviewTaskResolver
             taskId,
             PathTaskId: taskId != currentTaskId ? taskId : null,
             AutoPdfTaskIds: null,
-            SubformPdfContext: null
+            Subform: null
         );
     }
 }

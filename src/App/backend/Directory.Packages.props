@@ -50,6 +50,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.17.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
+    <PackageVersion Include="PdfPig" Version="0.1.16" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <PackageVersion Include="System.Formats.Asn1" Version="10.0.8" />

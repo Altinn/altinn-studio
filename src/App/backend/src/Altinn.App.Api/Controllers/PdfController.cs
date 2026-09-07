@@ -233,6 +233,22 @@ public class PdfController : ControllerBase
     /// Get the pdf formatting
     /// </summary>
     /// <returns>The lists of pages/components to exclude from PDF</returns>
+    [NonAction]
+    public Task<ActionResult> GetPdfFormat(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid
+    ) => GetPdfFormat(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, taskId: null, uiFolder: null);
+
+    /// <summary>
+    /// Get PDF formatting for the rendered task or subform UI folder.
+    /// </summary>
+    /// <remarks>
+    /// The UI folder takes precedence over the task id for subforms. When neither is specified,
+    /// formatting uses the instance's current task for compatibility with existing clients.
+    /// </remarks>
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
@@ -242,7 +258,9 @@ public class PdfController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        [FromRoute] Guid dataGuid
+        [FromRoute] Guid dataGuid,
+        [FromQuery] string? taskId = null,
+        [FromQuery] string? uiFolder = null
     )
     {
         Instance instance = await _instanceClient.GetInstance(
@@ -258,8 +276,8 @@ public class PdfController : ControllerBase
             return NotFound("Did not find instance");
         }
 
-        string? taskId = instance.Process?.CurrentTask?.ElementId;
-        if (taskId == null)
+        string? folderId = uiFolder ?? taskId ?? instance.Process?.CurrentTask?.ElementId;
+        if (folderId == null)
         {
             return Conflict("Instance does not have a valid currentTask");
         }
@@ -279,7 +297,11 @@ public class PdfController : ControllerBase
             return NotFound("Did not find ui configuration");
         }
 
-        uiConfiguration.Folders.TryGetValue(taskId, out LayoutSettings? layoutSettings);
+        uiConfiguration.Folders.TryGetValue(folderId, out LayoutSettings? layoutSettings);
+        if (layoutSettings is null && (taskId is not null || uiFolder is not null))
+        {
+            return NotFound($"Did not find UI folder '{folderId}'");
+        }
 
         // Ensure layoutsettings are initialized in FormatPdf
         layoutSettings ??= new();

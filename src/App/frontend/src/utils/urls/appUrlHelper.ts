@@ -71,8 +71,15 @@ export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   return `${appPath}/instances${queryString}`;
 };
 
-export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format`;
+export interface IPdfFormatUrlOptions {
+  taskId?: string;
+  uiFolder?: string;
+}
+
+export const getPdfFormatUrl = (instanceId: string, dataElementId: string, options?: IPdfFormatUrlOptions) => {
+  const queryString = getQueryStringFromObject({ taskId: options?.taskId, uiFolder: options?.uiFolder });
+  return `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format${queryString}`;
+};
 
 export interface IPdfPreviewUrlOptions {
   taskId?: string;

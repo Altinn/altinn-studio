@@ -39,6 +39,7 @@ import type { BackendValidationIssuesWithSource } from 'src/features/validation'
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
+import type { IPdfFormatUrlOptions } from 'src/utils/urls/appUrlHelper';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
@@ -179,8 +180,11 @@ export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTo
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
-export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
-  httpGet(getPdfFormatUrl(instanceId, dataElementId));
+export const fetchPdfFormat = (
+  instanceId: string,
+  dataElementId: string,
+  options?: IPdfFormatUrlOptions,
+): Promise<IPdfFormat> => httpGet(getPdfFormatUrl(instanceId, dataElementId, options));
 
 export const fetchPdfPreviewTasks = (instanceId: string): Promise<IPdfPreviewTasksResponse> =>
   httpGet(getPdfPreviewTasksUrl(instanceId));

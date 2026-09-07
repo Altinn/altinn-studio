@@ -38,7 +38,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Dispose the streams you get from `IDataClient.GetBinaryData`, `IDataClient.GetBinaryDataStream` and `IPdfGeneratorClient.GeneratePdf` once you have finished reading them — each one holds an HTTP response open until it is disposed, and disposing the stream releases it. The interfaces now say so. Code that already disposed these streams is unaffected, and code that does not is no worse off than before. The app's other HTTP clients now release their responses promptly too, which needs nothing from you.
-- Fix subformPdf service tasks: generating a subform's PDF now correctly renders that subform. It previously failed with no useful error, because the page the PDF generator was sent to loaded the subformPdf service task itself rather than the data task whose layout contains the subform.
+- Subform PDF service tasks now render the selected subform, and previews use the same layout and data selection as the generated PDFs.
+- Viewing or generating a PDF no longer runs automatic changes to form data.
 
 ### Removed
 
