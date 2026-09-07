@@ -200,14 +200,13 @@ public class WorkflowEngineCallbackController : ControllerBase
                     );
                 }
                 catch (Exception ex)
-                    when ((commandKey == AcquireProcessingStatus.Key || commandKey == TakeOverProcessingStatus.Key)
+                    when (commandKey == AcquireProcessingStatus.Key
                         && ex is StorageProcessStatusConflictException or InstanceDataStaleException
                     )
                 {
                     _logger.LogWarning(
                         ex,
-                        "Storage rejected workflow process-status acquisition. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        commandKey,
+                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
                         instanceId,
                         currentTaskId
                     );
