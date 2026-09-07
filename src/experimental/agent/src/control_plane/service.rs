@@ -10,6 +10,12 @@ use super::{AgentRecord, SharedAgentStore, Wakeup};
 pub struct ApplyRequest {
     /// Absolute directory against which local manifest sources are resolved.
     pub source_directory: PathBuf,
+    /// Absolute path of the manifest being applied, recorded for discovery.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest_path: Option<PathBuf>,
+    /// Fail instead of updating when the name already identifies an Agent.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub create_only: bool,
     /// Agent manifest to store.
     pub agent: Agent,
 }
@@ -49,6 +55,13 @@ impl ControlPlane {
         if !request.source_directory.is_absolute() {
             return Err(Error::Invalid("sourceDirectory must be absolute".into()));
         }
+        if let Some(manifest) = &request.manifest_path
+            && manifest.parent() != Some(request.source_directory.as_path())
+        {
+            return Err(Error::Invalid(
+                "manifestPath must name a file in sourceDirectory".into(),
+            ));
+        }
 
         let mut desired = request.agent;
         desired.clear_managed_fields();
@@ -58,13 +71,23 @@ impl ControlPlane {
         loop {
             let result = match self.store.get_by_name(&desired.metadata.name).await {
                 Ok(current) => {
+                    if request.create_only {
+                        return Err(Error::Invalid(format!(
+                            "an Agent named {:?} already exists",
+                            desired.metadata.name
+                        )));
+                    }
                     if current.agent.metadata.deletion_timestamp.is_some() {
                         return Err(Error::Conflict);
                     }
-                    validate_immutable_fields(&current, &desired, &request.source_directory)?;
-                    if current.agent.spec == desired.spec && current.source_directory == request.source_directory {
+                    if current.source_directory != request.source_directory {
+                        return Err(Error::Immutable("sourceDirectory"));
+                    }
+                    validate_immutable_fields(&current, &desired)?;
+                    let manifest_path = request.manifest_path.clone().or_else(|| current.manifest_path.clone());
+                    if current.agent.spec == desired.spec && current.manifest_path == manifest_path {
                         self.notifier.notify(current.id);
-                        return Ok(current.agent);
+                        return Ok(resource(current));
                     }
 
                     let expected_generation = current.agent.metadata.generation;
@@ -75,12 +98,13 @@ impl ControlPlane {
                             AgentRecord {
                                 id: current.id,
                                 source_directory: request.source_directory.clone(),
+                                manifest_path: manifest_path.clone(),
                                 agent: desired.clone(),
                             },
                             expected_generation,
                         )
                         .await
-                        .map(|()| current.id)
+                        .map(|()| (current.id, manifest_path))
                 }
                 Err(Error::NotFound) => {
                     let id = AgentId::generate();
@@ -90,12 +114,13 @@ impl ControlPlane {
                             AgentRecord {
                                 id,
                                 source_directory: request.source_directory.clone(),
+                                manifest_path: request.manifest_path.clone(),
                                 agent: desired.clone(),
                             },
                             0,
                         )
                         .await
-                        .map(|()| id)
+                        .map(|()| (id, request.manifest_path.clone()))
                 }
                 Err(error) => return Err(error),
             };
@@ -103,8 +128,12 @@ impl ControlPlane {
             match result {
                 Err(Error::Conflict) => {}
                 Err(error) => return Err(error),
-                Ok(id) => {
+                Ok((id, manifest_path)) => {
                     self.notifier.notify(id);
+                    desired.status.provenance = Some(crate::Provenance {
+                        source_directory: request.source_directory,
+                        manifest_path,
+                    });
                     return Ok(desired);
                 }
             }
@@ -117,7 +146,7 @@ impl ControlPlane {
     ///
     /// Returns an error when the Agent does not exist or storage fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.store.get_by_name(name).await.map(|record| record.agent)
+        self.store.get_by_name(name).await.map(resource)
     }
 
     /// Lists every active Agent ordered by name.
@@ -129,7 +158,7 @@ impl ControlPlane {
         self.store
             .list()
             .await
-            .map(|records| records.into_iter().map(|record| record.agent).collect())
+            .map(|records| records.into_iter().map(resource).collect())
     }
 
     /// Resolves the closest Agent source directory containing `directory`.
@@ -161,11 +190,17 @@ impl ControlPlane {
         };
         matches.retain(|(_, candidate_depth)| *candidate_depth == depth);
         if matches.len() != 1 {
-            return Err(Error::Invalid(
-                "multiple Agents were applied from this directory; specify --agent".into(),
-            ));
+            let mut names = matches
+                .iter()
+                .map(|(record, _)| record.agent.metadata.name.clone())
+                .collect::<Vec<_>>();
+            names.sort();
+            return Err(Error::Invalid(format!(
+                "multiple Agents were applied from this directory ({}); specify --agent",
+                names.join(", ")
+            )));
         }
-        matches.pop().map(|(record, _)| record.agent).ok_or(Error::NotFound)
+        matches.pop().map(|(record, _)| resource(record)).ok_or(Error::NotFound)
     }
 
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
@@ -185,12 +220,18 @@ impl ControlPlane {
     }
 }
 
-fn validate_immutable_fields(
-    current: &AgentRecord,
-    desired: &Agent,
-    source_directory: &std::path::Path,
-) -> Result<(), Error> {
-    if current.agent.spec.sandbox.image != desired.spec.sandbox.image || current.source_directory != source_directory {
+/// Converts a stored record to its API representation, projecting provenance into status.
+fn resource(record: AgentRecord) -> Agent {
+    let mut agent = record.agent;
+    agent.status.provenance = Some(crate::Provenance {
+        source_directory: record.source_directory,
+        manifest_path: record.manifest_path,
+    });
+    agent
+}
+
+fn validate_immutable_fields(current: &AgentRecord, desired: &Agent) -> Result<(), Error> {
+    if current.agent.spec.sandbox.image != desired.spec.sandbox.image {
         return Err(Error::Immutable("spec.sandbox.image"));
     }
     if current.agent.spec.sandbox.platform != desired.spec.sandbox.platform {

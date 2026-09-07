@@ -6,7 +6,7 @@
     <tittel>Test app</tittel>
     <offentligTittel>Test app</offentligTittel>
     <klassifikasjon>
-      <klassifikasjonssystemID>Fødselsnummer</klassifikasjonssystemID>
+      <klassifikasjonssystemID>PNR</klassifikasjonssystemID>
       <klasseID>12345678901</klasseID>
       <tittel>Test Testesen</tittel>
     </klassifikasjon>
@@ -39,17 +39,12 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Dokumentet er ferdigstilt</beskrivelse>
       </dokumentstatus>
       <tittel>model.xml</tittel>
-      <opprettetDato>2025-10-24T09:58:00</opprettetDato>
+      <opprettetDato>2025-10-24T09:58:00Z</opprettetDato>
       <tilknyttetRegistreringSom>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">H</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Hoveddokument</beskrivelse>
       </tilknyttetRegistreringSom>
       <dokumentobjekt>
-        <systemID label="Altinn Studio">f41af07b-47c3-4d3a-9a34-1baa0f575101</systemID>
-        <variantformat>
-          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">P</kode>
-          <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Produksjonsformat</beskrivelse>
-        </variantformat>
         <format>
           <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">XML</kode>
         </format>
@@ -67,17 +62,12 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Dokumentet er ferdigstilt</beskrivelse>
       </dokumentstatus>
       <tittel>ref-data-as-pdf.pdf</tittel>
-      <opprettetDato>2025-10-24T09:58:00</opprettetDato>
+      <opprettetDato>2025-10-24T09:58:00Z</opprettetDato>
       <tilknyttetRegistreringSom>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">V</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Vedlegg</beskrivelse>
       </tilknyttetRegistreringSom>
       <dokumentobjekt>
-        <systemID label="Altinn Studio">f41af07b-47c3-4d3a-9a34-1baa0f575101</systemID>
-        <variantformat>
-          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">P</kode>
-          <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Produksjonsformat</beskrivelse>
-        </variantformat>
         <format>
           <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">PDF</kode>
         </format>
@@ -94,6 +84,21 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Mottaker</beskrivelse>
       </korrespondanseparttype>
       <korrespondansepartNavn>Recipient Name</korrespondansepartNavn>
+      <deresReferanse>https://ttd.apps.the-hostname/ttd/test-app/instances/12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90</deresReferanse>
+    </korrespondansepart>
+    <korrespondansepart>
+      <korrespondansepartID>501337</korrespondansepartID>
+      <korrespondanseparttype>
+        <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
+        <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
+      </korrespondanseparttype>
+      <korrespondansepartNavn>Test Testesen</korrespondansepartNavn>
+      <personid>12345678901</personid>
+      <postadresse>Street 1</postadresse>
+      <postnummer>0123</postnummer>
+      <poststed>City</poststed>
+      <telefonnummer>phone-no</telefonnummer>
+      <telefonnummer>mobile-no</telefonnummer>
     </korrespondansepart>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>
@@ -109,6 +114,6 @@
       <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Journalført</beskrivelse>
     </journalstatus>
     <dokumentetsDato>2025-10-24</dokumentetsDato>
-    <sendtDato>2025-10-24T09:58:00</sendtDato>
+    <sendtDato>2025-10-24T09:58:00Z</sendtDato>
   </registrering>
 </arkivmelding>

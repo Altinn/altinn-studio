@@ -6,7 +6,7 @@
     <tittel>Custom Case File Title</tittel>
     <offentligTittel>Custom Case File Title</offentligTittel>
     <klassifikasjon>
-      <klassifikasjonssystemID>Organisasjonsnummer</klassifikasjonssystemID>
+      <klassifikasjonssystemID>ORGNR</klassifikasjonssystemID>
       <klasseID>405003309</klasseID>
     </klassifikasjon>
     <referanseEksternNoekkel>
@@ -38,17 +38,12 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Dokumentet er ferdigstilt</beskrivelse>
       </dokumentstatus>
       <tittel>Form.xml</tittel>
-      <opprettetDato>2025-10-24T09:58:00</opprettetDato>
+      <opprettetDato>2025-10-24T09:58:00Z</opprettetDato>
       <tilknyttetRegistreringSom>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">H</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Hoveddokument</beskrivelse>
       </tilknyttetRegistreringSom>
       <dokumentobjekt>
-        <systemID label="Altinn Studio">f41af07b-47c3-4d3a-9a34-1baa0f575101</systemID>
-        <variantformat>
-          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">P</kode>
-          <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Produksjonsformat</beskrivelse>
-        </variantformat>
         <format>
           <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">XML</kode>
         </format>
@@ -65,17 +60,21 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Mottaker</beskrivelse>
       </korrespondanseparttype>
       <korrespondansepartNavn>Recipient Name</korrespondansepartNavn>
+      <deresReferanse>https://ttd.apps.the-hostname/ttd/test-app/instances/12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90</deresReferanse>
     </korrespondansepart>
     <korrespondansepart>
-      <korrespondansepartID>altinn-party-id</korrespondansepartID>
+      <korrespondansepartID>5001337</korrespondansepartID>
       <korrespondanseparttype>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
       </korrespondanseparttype>
-      <korrespondansepartNavn>Instance Owner Org Name</korrespondansepartNavn>
-      <organisasjonid>org-number</organisasjonid>
-      <telefonnummer>duplicate-phone-no</telefonnummer>
-      <telefonnummer>duplicate-mobile-no</telefonnummer>
+      <korrespondansepartNavn>Test AS</korrespondansepartNavn>
+      <organisasjonid>405003309</organisasjonid>
+      <postadresse>Street 1</postadresse>
+      <postnummer>0123</postnummer>
+      <poststed>City</poststed>
+      <telefonnummer>phone-no</telefonnummer>
+      <telefonnummer>mobile-no</telefonnummer>
     </korrespondansepart>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>
@@ -91,6 +90,6 @@
       <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Journalført</beskrivelse>
     </journalstatus>
     <dokumentetsDato>2025-10-24</dokumentetsDato>
-    <sendtDato>2025-10-24T09:58:00</sendtDato>
+    <sendtDato>2025-10-24T09:58:00Z</sendtDato>
   </registrering>
 </arkivmelding>

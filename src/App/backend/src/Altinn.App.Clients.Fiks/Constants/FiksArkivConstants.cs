@@ -1,3 +1,5 @@
+using Altinn.App.Clients.Fiks.FiksArkiv.Models;
+using KS.Fiks.Arkiv.Models.V1.Kodelister;
 using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
 
 namespace Altinn.App.Clients.Fiks.Constants;
@@ -37,11 +39,16 @@ public static class FiksArkivConstants
         public const string ArchiveRecordCreationReceipt = FiksArkivMeldingtype.ArkivmeldingOpprettKvittering;
     }
 
+    /// <summary>
+    /// Classification IDs for Fiks Arkiv messages.
+    /// </summary>
+    /// <remarks>Callers can also specify their own, additional, classifications via
+    /// <see cref="FiksArkivMetadataSettings.CaseFileClassifications"/>.</remarks>
     internal static class ClassificationId
     {
-        public const string NationalIdentityNumber = "Fødselsnummer";
-        public const string OrganizationNumber = "Organisasjonsnummer";
+        public static readonly string NationalIdentityNumber = KlassifikasjonstypeKoder.Foedselsnummer.Verdi;
+        public const string OrganizationNumber = "ORGNR";
         public const string AltinnUserId = "AltinnBrukerId";
-        public const string SystemUserId = "SystembrukerId";
+        public const string SystemUserId = "AltinnSystembrukerId";
     }
 }
