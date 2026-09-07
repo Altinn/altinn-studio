@@ -278,3 +278,23 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
         Err(agent::Error::Invalid(message)) if message.contains("spec.secrets[0]")
     ));
 }
+
+#[test]
+fn status_tolerates_unknown_fields_inside_provenance() {
+    let status: agent::Status = serde_json::from_value(serde_json::json!({
+        "observedGeneration": 1,
+        "futureField": true,
+        "provenance": {
+            "sourceDirectory": "/source",
+            "manifestPath": "/source/worker.yml",
+            "futureField": "ignored"
+        }
+    }))
+    .expect("newer status should decode");
+    let provenance = status.provenance.expect("provenance");
+    assert_eq!(provenance.source_directory, std::path::Path::new("/source"));
+    assert_eq!(
+        provenance.manifest_path.as_deref(),
+        Some(std::path::Path::new("/source/worker.yml"))
+    );
+}

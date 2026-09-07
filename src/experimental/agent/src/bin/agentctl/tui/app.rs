@@ -25,6 +25,7 @@ pub(crate) struct App {
     pub(crate) forward_selected: usize,
     pub(crate) creating: usize,
     pub(crate) discovering: bool,
+    pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
 }
 
 /// Display state of one process-owned port forward.
@@ -346,6 +347,7 @@ impl App {
             forward_selected: 0,
             creating: 0,
             discovering: false,
+            queued_candidates: None,
         }
     }
 
@@ -658,6 +660,28 @@ impl App {
                 Action::None
             }
             None => Action::None,
+        }
+    }
+
+    /// Opens the create-agent modal for finished discovery, or queues the
+    /// candidates while another view is open.
+    pub(crate) fn manifests_discovered(&mut self, candidates: Vec<ManifestCandidate>) {
+        if !std::mem::take(&mut self.discovering) {
+            return;
+        }
+        if self.idle() {
+            self.open_create(candidates);
+        } else {
+            self.queued_candidates = Some(candidates);
+        }
+    }
+
+    /// Opens the create-agent modal for candidates queued behind another view once it closes.
+    pub(crate) fn open_queued_create(&mut self) {
+        if self.idle()
+            && let Some(candidates) = self.queued_candidates.take()
+        {
+            self.open_create(candidates);
         }
     }
 
@@ -1191,6 +1215,31 @@ mod tests {
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
         app.selected = 1;
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+    }
+
+    #[test]
+    fn discovery_results_wait_for_an_open_view_to_close() {
+        let mut app = populated();
+        app.manifests_discovered(candidates(&[("/sources/stale", "stale")]));
+        assert!(app.modal.is_none());
+
+        app.discovering = true;
+        app.on_key(key(KeyCode::Char('s')));
+        app.manifests_discovered(candidates(&[("/sources/worker", "worker")]));
+        assert!(!app.discovering);
+        assert!(app.modal.is_none());
+        app.open_queued_create();
+        assert!(app.modal.is_none());
+
+        app.on_key(key(KeyCode::Esc));
+        app.open_queued_create();
+        assert_eq!(create_form(&app).placeholder(), Some("worker"));
+        assert!(app.queued_candidates.is_none());
+
+        let mut app = populated();
+        app.discovering = true;
+        app.manifests_discovered(candidates(&[("/sources/worker", "worker")]));
+        assert_eq!(create_form(&app).placeholder(), Some("worker"));
     }
 
     #[test]

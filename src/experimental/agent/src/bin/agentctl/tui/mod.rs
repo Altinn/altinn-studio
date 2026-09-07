@@ -44,6 +44,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     refresh(&mut app, &mut tui, client).await?;
     loop {
+        app.open_queued_create();
         app.set_forwards(forwards.entries());
         tui.draw(&app)?;
         let input = tokio::select! {
@@ -59,11 +60,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 }
             }
             Input::ForwardCreated(outcome) => forward_created(&mut app, &mut forwards, outcome),
-            Input::ManifestsDiscovered(candidates) => {
-                if std::mem::take(&mut app.discovering) && app.idle() {
-                    app.open_create(candidates);
-                }
-            }
+            Input::ManifestsDiscovered(candidates) => app.manifests_discovered(candidates),
             Input::Event(None) => {
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);

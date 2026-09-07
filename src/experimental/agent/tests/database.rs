@@ -82,6 +82,8 @@ fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
         let reloaded = store.get(record.id).await.expect("Agent reloaded");
         assert_eq!(reloaded.agent.status.provenance, None);
         assert_eq!(reloaded.agent.status.conditions, stored.agent.status.conditions);
+        assert_eq!(reloaded.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
+        assert_eq!(reloaded.source_directory, record.source_directory);
     });
 }
 

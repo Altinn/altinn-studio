@@ -533,8 +533,10 @@ impl Status {
 pub const MANIFEST_FILE: &str = "agent.yaml";
 
 /// Local origin of an Agent's desired state.
+///
+/// Part of [`Status`], so unknown fields are tolerated for the same reason.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct Provenance {
     /// Absolute directory against which manifest-relative sources are resolved.
     pub source_directory: std::path::PathBuf,
