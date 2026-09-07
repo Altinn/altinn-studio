@@ -20,6 +20,7 @@ export const appVersionPath = (org, app) => `${apiBasePath}/${org}/${app}/app-de
 export const appUpgradeStatusPath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade/status`; // Get
 export const appUpgradePath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade`; // Post
 export const appUpgradePreparePath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade/prepare`; // Post
+export const appUpgradeMergePath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade/merge`; // Post
 
 // UserOrgPermissions
 export const userOrgPermissionsPath = (org) => `${apiBasePath}/user/org-permissions/${org}`;
