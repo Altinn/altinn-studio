@@ -47,6 +47,11 @@ public abstract class BaseFixture : IDisposable
             Assert.True(Directory.Exists(ProjectDir));
             StringWriter log = new StringWriter();
             var manager = new AnalyzerManager(new AnalyzerManagerOptions { LogWriter = log });
+            // The projects analyzed here (and their project references, e.g. Altinn.App.Core/Api) now
+            // multi-target net8.0;net10.0. Without pinning TargetFramework, Buildalyzer's build of
+            // multi-targeted project references is ambiguous and can resolve a mismatched framework,
+            // causing CS1705 assembly-version errors when the resulting compilation is analyzed.
+            manager.SetGlobalProperty("TargetFramework", "net8.0");
 
             var logger = manager.LoggerFactory?.CreateLogger<AdhocWorkspace>();
             Workspace = new AdhocWorkspace();

@@ -12,6 +12,7 @@ public class PublicApiTests
         "System.Runtime.CompilerServices.InternalsVisibleToAttribute",
     ];
 
+#if NET10_0_OR_GREATER
     [Fact]
     public async Task PublicApi_ShouldNotChange_Unintentionally()
     {
@@ -26,4 +27,5 @@ public class PublicApiTests
         // committed with LF.
         await Verify(publicApi + "\n");
     }
+#endif
 }
