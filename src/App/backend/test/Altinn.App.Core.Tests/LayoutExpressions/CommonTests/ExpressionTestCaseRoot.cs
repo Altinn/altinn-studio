@@ -52,6 +52,9 @@ public class ExpressionTestCaseRoot
     [JsonPropertyName("expectsFailure")]
     public string? ExpectsFailure { get; set; }
 
+    [JsonPropertyName("expectsFailureBackend")]
+    public string? ExpectsFailureBackend { get; set; }
+
     public class TestCaseItem
     {
         [JsonPropertyName("name")]

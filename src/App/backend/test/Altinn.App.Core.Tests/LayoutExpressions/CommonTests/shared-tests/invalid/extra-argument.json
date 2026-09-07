@@ -1,5 +1,0 @@
-{
-  "name": "Extra argument in expression gives error",
-  "expression": ["equals", true, false, 55],
-  "expectsFailure": "Expected 2 argument(s), got 3"
-}

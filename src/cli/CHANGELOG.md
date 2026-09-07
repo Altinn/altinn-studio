@@ -9,12 +9,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.23] - 2026-09-04
+
 ### Added
 
 - `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; the renamed Standard Business Document `Arkivmelding`; and references the namespace rewrite cannot reach — an aliased `using X = Altinn.Common.EFormidlingClient;`, one written with `global::`, or a name written out in full — since it only rewrites plain `using` directives matched by name. Each is reported separately, with the fix to apply.
 
 ### Changed
 
+- Localtest now provides the storage endpoint v9 apps use to commit an instance's data, process state and events in one request. The localtest front page links to the workflow engine control panel.
 - Report a TODO in `studioctl app upgrade v9` when a layout set in `layout-sets.json` has no `dataType`, so `defaultDataType` is not migrated into `Settings.json` without notice. Connect the datamodel in the process editor after upgrade.
 - `studioctl app upgrade v9` now renames the SDK's misspelled C# API names to their corrected v9 US English spellings in your app code: the `OrganisationNumber`/`OrganisationOrPersonIdentifier` family becomes `OrganizationNumber`/`OrganizationOrPersonIdentifier` (with the Maskinporten `Organisation` properties), `IFileAnalyser`/`IFileAnalyserFactory` become `IFileAnalyzer`/`IFileAnalyzerFactory` with `Analyse` implementations renamed to `Analyze`, the `Features.FileAnalyzis` namespace becomes `Features.FileAnalysis`, and `InstansiationInstance` becomes `InstantiationInstance`. Only C# names and the OpenTelemetry contract change — routes and JSON payload keys keep their shipped spelling. The telemetry renames are deliberate and cannot be migrated by studioctl, because the affected state lives in your monitoring systems: the span `FileAnalysis.Analyse` is now `FileAnalysis.Analyze`, and the attribute keys `organisation.name`, `organisation.number` and `organisation.systemuser.id` are now spelled `organization.*` — update dashboards and alerts that key on them before upgrading. Names your app plausibly owns itself (such as an `OrganisationNumber` property on your own form model) are only renamed when they provably refer to the SDK, and every rewrite is listed in the upgrade output.
 - `studioctl app upgrade v9` renames the datepicker validation text keys in your app's own text resources: an override of `date_picker.min_date_exeeded` or `date_picker.max_date_exeeded` in `resource.*.json` is moved to the corrected v9 key (`…_exceeded`), so your customized message keeps applying instead of silently falling back to the built-in text.
@@ -30,6 +33,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Localtest no longer stops answering on the host bridge after a client aborts a request.
+- The workflow engine dashboard shows why a waiting step is deferred, keeps its horizontal scroll position while cards update, and reports the HTTP status of a failed app callback instead of a generic error.
 - `studioctl env up` now waits for the workflow engine to actually be able to serve requests before reporting that the environment has started. It previously returned around 0.8 seconds early, and instantiating an app inside that window failed with "Instance initialization failed" and left an unusable instance behind.
 - `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
 - `studioctl app upgrade v9` no longer adds a byte order mark to layout files that did not have one, and keeps Norwegian characters as they are instead of rewriting every "æ", "ø" and "å" as an escape sequence. Both turned a two-line migration into a diff across the whole file. Layout files containing comments are now left untouched and reported, rather than silently losing the comments to the rewrite.

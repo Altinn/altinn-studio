@@ -2063,6 +2063,106 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<WorkflowFailureInfo?> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset failedAt,
+        string reason,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.FailWorkflow");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        var errorEntry = JsonSerializer.Serialize(
+            new[] { new ErrorEntry(failedAt, reason, HttpStatusCode: null, WasRetryable: false) },
+            JsonOptions.Default
+        );
+
+        try
+        {
+            WorkflowFailureInfo? failed = null;
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    // Compare-and-set from the two parked states — the set the nudge acts on. A parked
+                    // row holds no lease, so a fetch that claims it first moves it to Processing and this
+                    // becomes a no-op: a step in flight is never failed out from under its worker. The
+                    // parked step is the one sharing its workflow's status (steps run sequentially, so
+                    // there is exactly one), and it receives the same non-retryable error entry the
+                    // handler writes when it gives up, so consumers cannot tell the two failures apart.
+                    // A step that never wrote back holds JSON null in error_history (the enqueue insert),
+                    // one that did holds SQL NULL; jsonb_typeof folds both into an empty array so the
+                    // concatenation appends instead of wrapping the null as a leading element.
+                    const string sql = """
+                        WITH failed AS (
+                            UPDATE engine.workflows
+                            SET status = @failed, backoff_until = NULL, updated_at = @now
+                            WHERE id = @id
+                              AND namespace = @ns
+                              AND status IN (@requeued, @waiting)
+                            RETURNING id, is_head
+                        ),
+                        failed_steps AS (
+                            UPDATE engine.steps s
+                            SET status = @failed,
+                                error_history = CASE
+                                                    WHEN jsonb_typeof(s.error_history) = 'array' THEN s.error_history
+                                                    ELSE '[]'::jsonb
+                                                END || @error_entry,
+                                updated_at = @now
+                            FROM failed f
+                            WHERE s.job_id = f.id
+                              AND s.status IN (@requeued, @waiting)
+                        )
+                        SELECT id, is_head FROM failed
+                        """;
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("waiting", (int)PersistentItemStatus.Waiting));
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", failedAt));
+                    cmd.Parameters.Add(new NpgsqlParameter("error_entry", NpgsqlDbType.Jsonb) { Value = errorEntry });
+
+                    await using (var reader = await cmd.ExecuteReaderAsync(ct))
+                    {
+                        if (await reader.ReadAsync(ct))
+                        {
+                            failed = new WorkflowFailureInfo(
+                                reader.GetGuid(0),
+                                await reader.IsDBNullAsync(1, ct) ? null : reader.GetBoolean(1)
+                            );
+                        }
+                    }
+
+                    if (failed is not null)
+                    {
+                        await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                        await notifyCmd.ExecuteNonQueryAsync(ct);
+                    }
+                },
+                cancellationToken
+            );
+
+            return failed;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow("fail", workflowId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<bool> AbandonWorkflow(
         Guid workflowId,
         string ns,

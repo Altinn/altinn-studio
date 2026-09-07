@@ -46,7 +46,7 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
         )
         .await?;
     // HACK: the mediated setup token is inference-only, so Claude Code cannot read the account's
-    // plan entitlement and gates Fable 5 behind a usage-credits prompt. Declaring the subscription
+    // plan entitlement and gates Fable behind a usage-credits prompt. Declaring the subscription
     // type and rate-limit tier in the settings env satisfies the client-side plan-inclusion check
     // (the literal "max" tier is what the check looks for, regardless of the real plan); the server
     // still authorizes inference independently. Both are required — the type alone unblocks Max
