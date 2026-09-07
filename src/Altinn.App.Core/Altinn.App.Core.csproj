@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <PackageTags>Altinn;Studio;App;Core</PackageTags>
     <Description>
       This class library holds all the core features used by a standard Altinn 3 App.
@@ -21,7 +21,6 @@
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime.Azure" />
-    <PackageReference Include="System.Text.RegularExpressions" />
     <!-- End JWTCookieAuthentication deps -->
 
     <PackageReference Include="Altinn.Common.AccessTokenClient"/>

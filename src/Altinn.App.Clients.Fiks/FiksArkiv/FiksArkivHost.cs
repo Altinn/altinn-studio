@@ -79,7 +79,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             while (!stoppingToken.IsCancellationRequested)
             {
                 TimeSpan delta = nextIteration - _timeProvider.GetUtcNow();
-                await _timeProvider.Delay(delta > TimeSpan.Zero ? delta : TimeSpan.Zero, stoppingToken);
+                await Task.Delay(delta > TimeSpan.Zero ? delta : TimeSpan.Zero, _timeProvider, stoppingToken);
 
                 // Perform health check
                 if (_timeProvider.GetUtcNow() >= nextHealthCheck)

@@ -63,7 +63,11 @@ public static class JwtTokenMock
 
         string certPath = Path.Join(unitTestFolder, "TestResources", "JWTValidationCert.cer");
 
+#if NET8_0
         X509Certificate2 cert = new(certPath);
+#else
+        X509Certificate2 cert = X509CertificateLoader.LoadCertificateFromFile(certPath);
+#endif
         return new X509SecurityKey(cert);
     }
 
@@ -97,7 +101,15 @@ public static class JwtTokenMock
         string unitTestFolder = Path.GetDirectoryName(GetCallerPath())!;
 
         string certPath = Path.Join(unitTestFolder, "TestResources", "jwtselfsignedcert.pfx");
+#if NET8_0
         X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
+#else
+        X509Certificate2 cert = X509CertificateLoader.LoadPkcs12FromFile(
+            certPath,
+            "qwer1234",
+            X509KeyStorageFlags.DefaultKeySet
+        );
+#endif
         return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
     }
 

@@ -134,7 +134,7 @@ public partial class DataTagsController : ControllerBase
         [FromBody] string tag
     )
     {
-        if (tag is null || !LettersRegex().Match(tag).Success)
+        if (tag is null || !LettersRegex().IsMatch(tag))
         {
             return Problem(
                 title: "Invalid tag name",

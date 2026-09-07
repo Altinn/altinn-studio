@@ -56,10 +56,42 @@ public static class TestData
         return Path.Join(applicationMetadataPath, "config", "applicationmetadata.json");
     }
 
+    // Instance data is mutated in place by tests (created, patched, deleted). Altinn.App.Api.Tests now
+    // multi-targets net8.0;net10.0, and both builds share the exact same [CallerFilePath]-derived source
+    // path, so running both TFMs concurrently (as `dotnet test solutions/All.sln` does by default) would
+    // otherwise race on the same on-disk files. Give each test *process* its own private, disposable copy
+    // of the Instances tree instead of mutating the checked-in fixtures directly.
+    private static readonly Lazy<string> _isolatedInstancesDirectory = new(CreateIsolatedInstancesDirectory);
+
+    private static string CreateIsolatedInstancesDirectory()
+    {
+        string sourceDirectory = Path.Join(GetTestDataRootDirectory(), "Instances");
+        string targetDirectory = Path.Join(Path.GetTempPath(), "AltinnAppApiTests", $"Instances-{Guid.NewGuid()}");
+        CopyDirectory(sourceDirectory, targetDirectory);
+        return targetDirectory;
+    }
+
+    private static void CopyDirectory(string sourceDirectory, string targetDirectory)
+    {
+        Directory.CreateDirectory(targetDirectory);
+        foreach (var directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, directory);
+            Directory.CreateDirectory(Path.Join(targetDirectory, relativePath));
+        }
+
+        foreach (var file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, file);
+            var targetPath = Path.Join(targetDirectory, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+            File.Copy(file, targetPath, overwrite: true);
+        }
+    }
+
     public static string GetInstancesDirectory()
     {
-        string? testDataDirectory = GetTestDataRootDirectory();
-        return Path.Join(testDataDirectory!, @"Instances");
+        return _isolatedInstancesDirectory.Value;
     }
 
     public static string GetDataDirectory(string org, string app, int instanceOwnerId, Guid instanceGuid)

@@ -46,7 +46,8 @@ public class DataClientTests
     );
 
     public static TheoryData<AuthenticationTestCase?> AuthenticationTestCases =>
-        [
+        new()
+        {
             null,
             new(StorageAuthenticationMethod.CurrentUser(), _testTokens.UserToken),
             new(StorageAuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerToken),
@@ -54,7 +55,7 @@ public class DataClientTests
                 StorageAuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)),
                 _testTokens.CustomToken
             ),
-        ];
+        };
 
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
@@ -99,7 +100,11 @@ public class DataClientTests
             platformRequest,
             expectedUri,
             HttpMethod.Post,
+#if NET8_0
             "\"a cats story.pdf\"",
+#else
+            "a cats story.pdf",
+#endif
             "application/pdf",
             expectedAuth: testCase?.ExpectedToken
         );
@@ -156,7 +161,11 @@ public class DataClientTests
             platformRequest,
             expectedUri,
             HttpMethod.Post,
+#if NET8_0
             "\"a cats story.pdf\"",
+#else
+            "a cats story.pdf",
+#endif
             "application/pdf",
             expectedAuth: testCase?.ExpectedToken
         );

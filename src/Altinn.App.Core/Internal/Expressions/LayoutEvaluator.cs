@@ -2,6 +2,9 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
+#if NET10_0_OR_GREATER
+using System.Globalization;
+#endif
 
 namespace Altinn.App.Core.Internal.Expressions;
 

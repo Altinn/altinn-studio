@@ -35,13 +35,14 @@ public class AuthenticationTokenResolverTest
     );
 
     public static TheoryData<TestCase> TestCases =>
-        [
+        new()
+        {
             new(AuthenticationMethod.CurrentUser(), _testTokens.UserToken),
             new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenLocal, _generalSettingsLocal),
             new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenTt02, _generalSettingsTt02),
             new(AuthenticationMethod.Maskinporten("-"), _testTokens.MaskinportenToken),
             new(AuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)), _testTokens.CustomToken),
-        ];
+        };
 
     [Theory]
     [MemberData(nameof(TestCases))]

@@ -45,6 +45,8 @@ public sealed class InstanceLockTests(ITestOutputHelper _output, AppFixtureClass
 
         using var successRequestResponse = await processNextTasks.First(x => x != conflictResponseTask);
 
+        _output.WriteLine(await successRequestResponse.Response.Content.ReadAsStringAsync());
+
         successRequestResponse.Response.EnsureSuccessStatusCode();
     }
 }
