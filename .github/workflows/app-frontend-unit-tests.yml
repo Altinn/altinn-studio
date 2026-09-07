@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/package.json'
+      - 'src/test/apps/**/App/ui/**/*.json'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
       - 'src/common/ts/form-engine/src/**'

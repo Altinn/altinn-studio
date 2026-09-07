@@ -115,15 +115,7 @@ public class TestContextList
     {
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
-            .GetDirectories(
-                Path.Join(
-                    PathUtils.GetCoreTestsPath(),
-                    "LayoutExpressions",
-                    "CommonTests",
-                    "shared-tests",
-                    "context-lists"
-                )
-            )
+            .GetDirectories(Path.Join(TestAttributeHelper.CommonExpressionTestsPath("evaluation"), "context-lists"))
             .Select(d => Path.GetFileName(d))
             .ToArray();
         var testMethods = this.GetType()
@@ -143,5 +135,5 @@ public class TestContextList
 
 public class SharedTestContextListAttribute(string folder)
     : FileNamesInFolderDataAttribute(
-        Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists", folder)
+        TestAttributeHelper.CommonExpressionTestsPath("evaluation", "context-lists", folder)
     ) { }

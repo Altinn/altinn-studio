@@ -1,5 +1,0 @@
-{
-  "name": "Disallows 2 as true",
-  "expression": ["or", 2, true],
-  "expectsFailure": "Expected boolean, got value 2"
-}
