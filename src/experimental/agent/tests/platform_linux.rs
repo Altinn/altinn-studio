@@ -335,6 +335,7 @@ async fn linux_setup_accepts_any_installed_version_when_none_is_declared() {
     let record = AgentRecord {
         id: agent_id,
         source_directory: PathBuf::from(directory.path()),
+        manifest_path: None,
         agent: resource,
     };
     let backend = Rc::new(memory::Provider::new());
