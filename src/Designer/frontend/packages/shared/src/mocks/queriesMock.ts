@@ -4,6 +4,11 @@ import { vi } from 'vitest';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type {
+  AppUpgradePreparation,
+  AppUpgradeResult,
+  AppUpgradeStatus,
+} from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
@@ -58,6 +63,9 @@ import {
   appConfig,
   deploymentsResponse,
   appVersion,
+  appUpgradePreparation,
+  appUpgradeResult,
+  appUpgradeStatus,
   appReleasesResponse,
   applicationMetadata,
   branchStatus,
@@ -102,6 +110,9 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: vi.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
+  getAppUpgradeStatus: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeStatus>(appUpgradeStatus)),
   getAvailableResourcesFromOrg: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
@@ -326,6 +337,12 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: vi.fn().mockImplementation(() => Promise.resolve()),
+  prepareAppUpgrade: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradePreparation>(appUpgradePreparation)),
+  upgradeApp: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeResult>(appUpgradeResult)),
   createBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   deleteBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),

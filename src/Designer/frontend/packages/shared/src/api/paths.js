@@ -17,6 +17,9 @@ export const appMetadataAttachmentPath = (org, app) => `${apiBasePath}/${org}/${
 
 // App version
 export const appVersionPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/app-version`; // Get
+export const appUpgradeStatusPath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade/status`; // Get
+export const appUpgradePath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade`; // Post
+export const appUpgradePreparePath = (org, app) => `${apiBasePath}/${org}/${app}/upgrade/prepare`; // Post
 
 // UserOrgPermissions
 export const userOrgPermissionsPath = (org) => `${apiBasePath}/user/org-permissions/${org}`;
