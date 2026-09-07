@@ -773,13 +773,35 @@ public class GiteaClient(
         CreatePullRequestOption createPullRequestOption
     )
     {
-        string content = JsonSerializer.Serialize(createPullRequestOption);
+        string content = JsonSerializer.Serialize(createPullRequestOption, s_jsonOptions);
         using HttpResponseMessage response = await httpClient.PostAsync(
             $"repos/{org}/{repository}/pulls",
             new StringContent(content, Encoding.UTF8, "application/json")
         );
 
         return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
+    public async Task<PullRequest> CreatePullRequestAsync(
+        string org,
+        string repository,
+        CreatePullRequestOption createPullRequestOption,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string content = JsonSerializer.Serialize(createPullRequestOption, s_jsonOptions);
+        using HttpResponseMessage response = await httpClient.PostAsync(
+            $"repos/{org}/{repository}/pulls",
+            new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<PullRequest>(s_jsonOptions, cancellationToken);
     }
 
     /// <inheritdoc/>

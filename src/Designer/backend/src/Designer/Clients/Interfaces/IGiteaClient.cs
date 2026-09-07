@@ -202,6 +202,16 @@ public interface IGiteaClient
     Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption);
 
     /// <summary>
+    /// Creates a pull request and returns it, or null when Gitea rejected the request.
+    /// </summary>
+    Task<PullRequest> CreatePullRequestAsync(
+        string org,
+        string repository,
+        CreatePullRequestOption createPullRequestOption,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Deletes the repository.
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the repository.</param>
