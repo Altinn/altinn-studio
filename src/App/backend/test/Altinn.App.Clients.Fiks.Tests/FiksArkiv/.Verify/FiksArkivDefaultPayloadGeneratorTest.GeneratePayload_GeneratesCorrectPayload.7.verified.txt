@@ -7,9 +7,20 @@
     <tittel>Custom Case File Title</tittel>
     <offentligTittel>Custom Case File Title</offentligTittel>
     <klassifikasjon>
-      <klassifikasjonssystemID>AltinnSystembrukerId</klassifikasjonssystemID>
-      <klasseID>f58fe166-bc22-4899-beb7-c3e8e3332f43</klasseID>
-      <tittel>310702641</tittel>
+      <klassifikasjonssystemID>ORGNR</klassifikasjonssystemID>
+      <klasseID>405003309</klasseID>
+      <tittel>tdd</tittel>
+    </klassifikasjon>
+    <klassifikasjon>
+      <klassifikasjonssystemID>custom-system</klassifikasjonssystemID>
+      <klasseID>custom-class</klasseID>
+      <tittel>Custom Classification</tittel>
+    </klassifikasjon>
+    <klassifikasjon>
+      <klassifikasjonssystemID>custom-system-2</klassifikasjonssystemID>
+      <klasseID>custom-class-2</klasseID>
+      <tittel>Restricted Classification</tittel>
+      <erSkjermet>true</erSkjermet>
     </klassifikasjon>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>
@@ -18,7 +29,7 @@
     <saksaar>2025</saksaar>
     <saksdato>2025-10-24</saksdato>
     <administrativEnhet>
-      <navn xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd</navn>
+      <navn xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Custom Administrative Unit</navn>
     </administrativEnhet>
   </mappe>
   <registrering xsi:type="journalpost">
@@ -39,18 +50,22 @@
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">F</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Dokumentet er ferdigstilt</beskrivelse>
       </dokumentstatus>
-      <tittel>Form.xml</tittel>
+      <tittel>Form.pdf</tittel>
       <opprettetDato>2025-10-24T09:58:00Z</opprettetDato>
       <tilknyttetRegistreringSom>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">H</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Hoveddokument</beskrivelse>
       </tilknyttetRegistreringSom>
       <dokumentobjekt>
+        <variantformat>
+          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">A</kode>
+          <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Arkivformat</beskrivelse>
+        </variantformat>
         <format>
-          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">XML</kode>
+          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">PDF/A</kode>
         </format>
-        <filnavn>Form.xml</filnavn>
-        <referanseDokumentfil>Form.xml</referanseDokumentfil>
+        <filnavn>Form.pdf</filnavn>
+        <referanseDokumentfil>Form.pdf</referanseDokumentfil>
       </dokumentobjekt>
     </dokumentbeskrivelse>
     <dokumentbeskrivelse>
@@ -62,18 +77,22 @@
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">F</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Dokumentet er ferdigstilt</beskrivelse>
       </dokumentstatus>
-      <tittel>Form.pdf</tittel>
+      <tittel>Attachment.pdf</tittel>
       <opprettetDato>2025-10-24T09:58:00Z</opprettetDato>
       <tilknyttetRegistreringSom>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">V</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Vedlegg</beskrivelse>
       </tilknyttetRegistreringSom>
       <dokumentobjekt>
+        <variantformat>
+          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">P</kode>
+          <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Produksjonsformat</beskrivelse>
+        </variantformat>
         <format>
-          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">PDF</kode>
+          <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">PDF/A</kode>
         </format>
-        <filnavn>Form.pdf</filnavn>
-        <referanseDokumentfil>Form.pdf</referanseDokumentfil>
+        <filnavn>Attachment.pdf</filnavn>
+        <referanseDokumentfil>Attachment.pdf</referanseDokumentfil>
       </dokumentobjekt>
     </dokumentbeskrivelse>
     <dokumentbeskrivelse>
@@ -154,6 +173,7 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Mottaker</beskrivelse>
       </korrespondanseparttype>
       <korrespondansepartNavn>Recipient Name</korrespondansepartNavn>
+      <organisasjonid>123456789</organisasjonid>
       <deresReferanse>https://ttd.apps.the-hostname/ttd/test-app/instances/12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90</deresReferanse>
     </korrespondansepart>
     <korrespondansepart>
@@ -163,7 +183,7 @@
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
       </korrespondanseparttype>
       <korrespondansepartNavn>Test AS</korrespondansepartNavn>
-      <organisasjonid>310702641</organisasjonid>
+      <organisasjonid>405003309</organisasjonid>
       <postadresse>Street 1</postadresse>
       <postnummer>0123</postnummer>
       <poststed>City</poststed>
