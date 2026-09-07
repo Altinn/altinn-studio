@@ -12,6 +12,7 @@ namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
+[AutoValidateAntiforgeryToken]
 [Route("designer/api/v1/admin/reports/{org}/{env}")]
 public class ReportsController(IReportService reportService, IMemoryCache memoryCache) : ControllerBase
 {

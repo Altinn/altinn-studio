@@ -47,7 +47,11 @@ const RANGE_MINUTES: Record<string, number> = {
   monthly: 30 * 24 * 60,
 };
 
-const formatDate = (isoString: string) => new Date(isoString).toLocaleString('nb-NO');
+// Match the notification body, which formats the period in Norwegian time regardless of where the page renders.
+const REPORT_TIME_ZONE = 'Europe/Oslo';
+
+const formatDate = (isoString: string) =>
+  new Date(isoString).toLocaleString('nb-NO', { timeZone: REPORT_TIME_ZONE });
 
 export const Report = () => {
   const { t } = useTranslation();

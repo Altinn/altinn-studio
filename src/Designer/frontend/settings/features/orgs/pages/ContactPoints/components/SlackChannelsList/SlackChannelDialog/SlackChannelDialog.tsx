@@ -12,6 +12,7 @@ import {
   StudioSelect,
 } from '@studio/components';
 import type { ReportFrequency } from 'app-shared/types/ContactPoint';
+import { reportFrequencies } from 'app-shared/types/ContactPoint';
 import classes from './SlackChannelDialog.module.css';
 import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
@@ -141,18 +142,11 @@ export const SlackChannelDialog = ({
               }))
             }
           >
-            <StudioSelect.Option value='none'>
-              {t('settings.orgs.contact_points.report_frequency_none')}
-            </StudioSelect.Option>
-            <StudioSelect.Option value='daily'>
-              {t('settings.orgs.contact_points.report_frequency_daily')}
-            </StudioSelect.Option>
-            <StudioSelect.Option value='weekly'>
-              {t('settings.orgs.contact_points.report_frequency_weekly')}
-            </StudioSelect.Option>
-            <StudioSelect.Option value='monthly'>
-              {t('settings.orgs.contact_points.report_frequency_monthly')}
-            </StudioSelect.Option>
+            {reportFrequencies.map((frequency) => (
+              <StudioSelect.Option key={frequency} value={frequency}>
+                {t(`settings.orgs.contact_points.report_frequency_${frequency}`)}
+              </StudioSelect.Option>
+            ))}
           </StudioSelect>
           <StudioCheckboxGroup
             legend={t('settings.orgs.contact_points.field_environments')}

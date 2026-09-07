@@ -6,6 +6,18 @@ const APPS = [
   { name: 'mocked-app-empty', version: '0.9.0' },
 ];
 
+const DEFAULT_RANGE_MINUTES = 1440;
+// Monthly reports cover 30 days, the longest window the report frontend requests.
+const MAX_RANGE_MINUTES = 30 * 1440;
+
+const parseRange = (rawRange) => {
+  const range = Number.parseInt(rawRange ?? String(DEFAULT_RANGE_MINUTES), 10);
+  return Number.isSafeInteger(range) && range > 0 && range <= MAX_RANGE_MINUTES ? range : undefined;
+};
+
+// Request-derived values are logged verbatim; strip line breaks so a single request cannot forge log lines.
+const sanitizeForLog = (value) => String(value).replace(/[\r\n]/g, ' ');
+
 const getBucketSize = (range) => {
   const maxPoints = 12;
   const candidates = [5, 15, 30, 60, 180, 360, 720, 1440, 2880];
@@ -26,8 +38,12 @@ const buildSeries = (range, seed) => {
 };
 
 export const reportMetricsRoute = (req, res) => {
-  const range = parseInt(req.query.range ?? '1440', 10);
+  const range = parseRange(req.query.range);
   const { org, env } = req.params;
+  if (range === undefined) {
+    res.status(400).json({ error: `range must be an integer between 1 and ${MAX_RANGE_MINUTES}` });
+    return;
+  }
   const bucketSize = getBucketSize(range);
 
   const metrics = [];
@@ -61,7 +77,9 @@ export const reportMetricsRoute = (req, res) => {
     });
   }
 
-  console.log(`Report metrics requested: org=${org} env=${env} range=${range}`);
+  console.log(
+    `Report metrics requested: org=${sanitizeForLog(org)} env=${sanitizeForLog(env)} range=${range}`,
+  );
   res.json({ apps: APPS, metrics, errorMetrics });
 };
 
@@ -77,6 +95,8 @@ trailer<</Root 1 0 R>>
 );
 
 export const generatePdfRoute = (req, res) => {
-  console.log(`PDF generation requested: url=${req.body?.url} waitFor=${req.body?.waitFor}`);
+  console.log(
+    `PDF generation requested: url=${sanitizeForLog(req.body?.url)} waitFor=${sanitizeForLog(req.body?.waitFor)}`,
+  );
   res.status(200).contentType('application/pdf').send(DUMMY_PDF);
 };

@@ -1,3 +1,4 @@
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -61,7 +62,7 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
             .Property(e => e.ReportFrequency)
             .HasColumnType("integer")
             .HasColumnName("report_frequency")
-            .HasDefaultValue(0)
+            .HasDefaultValue((int)ReportFrequency.None)
             .IsRequired();
 
         builder

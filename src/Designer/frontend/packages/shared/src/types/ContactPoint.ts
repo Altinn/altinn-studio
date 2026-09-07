@@ -6,7 +6,9 @@ export type ContactMethod = {
   value: string;
 };
 
-export type ReportFrequency = 'none' | 'daily' | 'weekly' | 'monthly';
+export const reportFrequencies = ['none', 'daily', 'weekly', 'monthly'] as const;
+export type ReportFrequency = (typeof reportFrequencies)[number];
+export const noReportFrequency: ReportFrequency = 'none';
 
 export type ContactPoint = {
   id: string;
