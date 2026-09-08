@@ -4880,7 +4880,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sandbox-self-dev"
+name = "sandbox-worktree"
 version = "0.1.0"
 dependencies = [
  "clap",

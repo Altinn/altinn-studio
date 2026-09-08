@@ -1,50 +1,50 @@
-# Altinn Studio self-development Agent
+# Agent platform self-development Agent
 
-Prerequisites are Docker, hardware virtualization, and authenticated Claude Code and ChatGPT subscriptions on the
-host. Linux requires `/dev/kvm`; macOS requires Apple Silicon; Windows requires the distinct
-`HypervisorPlatform` optional feature and Docker Desktop in Linux-container mode.
-The example owns its Ubuntu 26.04 LTS multi-platform development-toolchain Dockerfile and uses a direct ext4 root
-filesystem so Podman's overlay storage does not nest on the Sandbox root OverlayFS.
-Its systemd boot unit clones Altinn Studio over mediated HTTPS into `/home/agent/code/altinn-studio`, and the image
-declares `/home/agent/code` as the stable Session workspace root so other repositories can live beside that checkout.
-The unit uses the preauthenticated GitHub CLI, skips an existing `.git` checkout, and otherwise makes one straightforward
-clone attempt per boot; it never updates or deletes workspace data. Workspace initialization is intentionally independent
-of Agent readiness. The example's `instructions.md` tells the attached Agent to clone a still-missing checkout.
+An Agent for working on the agent platform itself: the crates under `src/experimental`, `agentd` and `agentctl`.
+For Agents that work on Altinn Studio and its apps, use the published variants under [`agents/`](../../../../../agents).
+
+Prerequisites are Docker, hardware virtualization and an authenticated Claude Code subscription on the host. Linux
+requires `/dev/kvm`; macOS requires Apple Silicon; Windows requires the `HypervisorPlatform` optional feature and
+Docker Desktop in Linux-container mode. Apply the manifest with the `agentctl` built from the same checkout:
 
 ```sh
+make -C src/experimental user-install
 agentctl claude login
-agentctl codex login
-cp .env.sample .env
-# Add a GitHub PAT and Studio bot token to .env without committing it.
-agentctl apply -f agent.yaml --name studiodev-0
-agentctl get agent studiodev-0
-agentctl describe agent/studiodev-0
-agentctl wait --for=condition=Ready agent/studiodev-0 --timeout=10m
-agentctl exec agent/studiodev-0 -- git -C altinn-studio status --short
-agentctl exec -it agent/studiodev-0 -- bash
-agentctl attach session/s1 --agent studiodev-0
-agentctl attach session/s2 --agent studiodev-0 --harness codex
-agentctl get sessions --agent studiodev-0
+agentctl codex login                      # optional
+cd src/experimental/agent/examples/self-dev
+cp .env.sample .env                       # add a GitHub PAT without committing it
+agentctl apply -f agent.yaml
+agentctl wait --for=condition=Ready agent/agent-dev --timeout=15m
+agentctl attach session/s1
+agentctl attach session/s2 --harness codex
+agentctl exec -- make -C altinn-studio/src/experimental build
 ```
 
-When exactly one Agent was applied from the current source directory, `exec` may omit its Agent and Session commands
-may omit `--agent`; both infer the owner. Multiple Agent names from the same directory are intentionally ambiguous.
+The first apply builds the image and takes several minutes. When exactly one Agent was applied from this directory,
+`exec` and Session commands infer it; pass `--name` to `apply` to run several. The image is fixed for an Agent
+incarnation and a Dockerfile edit does not change the manifest, so rebuild with `agentctl delete agent/agent-dev`
+followed by `agentctl apply`.
 
-The first apply includes the image build and can take several minutes. Image init starts one repository clone attempt,
-which may still be running when the Agent becomes Ready. Later boots reuse a successful persistent checkout. Sessions
-may use `gh repo clone` for a missing primary checkout or other relevant repositories; those checkouts are Session work,
-not declarative Agent state.
+## What the Agent gets
+
+The current checkout is bind-mounted read-write at `/home/agent/code/altinn-studio`. Edits made by the Agent appear
+in the host working tree at once, and host edits appear in the Sandbox, so review and commit on either side. Linked
+Git worktrees also need their common Git directory mounted for Git commands to work inside the Sandbox. Cargo's
+registry and build output stay on the Sandbox's own root filesystem so host and Sandbox builds do not invalidate each
+other.
+
+The image contains the Rust toolchain pinned in the root `Cargo.toml` with clippy, rustfmt and `cargo-machete`,
+Podman with the `docker` compatibility shim, the GitHub CLI, and the Claude Code and Codex CLIs. It deliberately
+omits the Studio toolchains (.NET, Node build tooling, Go, Kubernetes) that `agents/` provides.
+
+The Sandbox exposes `/dev/kvm` and a Podman socket, so the Agent can run the whole platform nested: `make test-e2e`
+and `make user-install` followed by `agentctl apply` work inside the Sandbox. The nested `agentd` reaches Podman's
+Docker Engine API through `DOCKER_HOST` and builds images there. Nested Sandboxes share the outer Sandbox's mediated
+network and receive no real secrets either.
 
 The Sandbox receives only inert placeholders. `agentd` stores real values in its owner-only SQLite database and the
-Microsandbox network mediator substitutes them only at their configured hosts. The image also seeds Claude's mutable
-`.claude.json` once to answer first-run prompts. Builders may replace that image seed, or deliberately supply Claude
-state or Codex `config.toml` through `spec.home`; files supplied through `spec.home` are desired state and therefore
-reapplied on every Agent reconciliation pass. The builder-wide `instructions.md` payload is declared separately through
-`spec.instructions`; the Claude adapter installs it as `~/.claude/CLAUDE.md`.
-The Codex adapter installs the same source as `~/.codex/AGENTS.md`.
+network mediator substitutes them only at their configured hosts. The image seeds Claude's mutable `.claude.json`
+once to answer first-run prompts; files under `home/` are desired state and are reapplied on every reconciliation
+pass. `instructions.md` is installed as `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`.
 
-Container tooling inside the Agent is Podman. The `podman-docker` package makes the `docker` CLI and
-`/run/docker.sock` compatibility surfaces Podman-backed, `podman buildx build` is the buildx-compatible alias, and
-`podman-compose` is the Compose provider. Agent commands transparently use the rootful system socket; access to that
-socket is root-equivalent inside the Sandbox. Kind remains installed, but `KIND_EXPERIMENTAL_PROVIDER=podman` has not been
-verified for this example and its nested-container CA path is out of scope.
+Harness versions are owned by the image, so a version bump in the Dockerfile needs no manifest change.

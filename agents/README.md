@@ -1,5 +1,8 @@
 # Altinn Agents
 
+These variants are for working on Altinn Studio and its apps. To work on the agent platform itself, use
+`src/experimental/agent/examples/self-dev` instead.
+
 Choose a Claude Code development environment:
 
 | Variant    | Additional tools                                        |

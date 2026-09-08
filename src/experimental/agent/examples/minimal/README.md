@@ -7,7 +7,8 @@ flow on the multi-platform Ubuntu 26.04 LTS base, and its layered root filesyste
 capacity-efficient. Sessions start in the platform's stable `/home/agent/code` workspace root; this example is
 intentionally repository-free and uses the
 Sandbox Provider's backend init instead of an image entrypoint. A builder that needs a boot-time checkout should use an
-image init/entrypoint like the self-development example. Sessions can instead clone repositories on demand when their
+image init/entrypoint like the published `agents/` images; the self-development example bind-mounts the host checkout
+instead. Sessions can instead clone repositories on demand when their
 Agent declares a suitable mediated secret. It is not intended for running Docker inside the Agent.
 
 ```sh

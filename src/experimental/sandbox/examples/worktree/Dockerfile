@@ -150,7 +150,7 @@ ENV DOTNET_NOLOGO=1
 ENV DISABLE_AUTOUPDATER=1
 ENV PATH=/home/agent/.local/bin:${PATH}
 
-COPY tmpfiles.conf /usr/lib/tmpfiles.d/self-dev.conf
+COPY tmpfiles.conf /usr/lib/tmpfiles.d/worktree.conf
 
 ENV HOME=/home/agent
 
