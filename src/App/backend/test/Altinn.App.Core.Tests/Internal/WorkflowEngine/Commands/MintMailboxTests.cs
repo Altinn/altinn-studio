@@ -110,9 +110,6 @@ public class MintMailboxTests
             CancellationToken ct = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
             throw new NotSupportedException();
 

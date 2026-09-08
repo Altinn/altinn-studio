@@ -296,54 +296,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);
     }
 
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
-    {
-        bool abandoned = false;
-        lock (_gate)
-        {
-            if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns)
-            {
-                if (workflow.Status == PersistentItemStatus.Abandoned)
-                {
-                    // Idempotent replay, mirroring the real engine.
-                    abandoned = true;
-                }
-                else if (
-                    workflow.Status
-                    is PersistentItemStatus.Failed
-                        or PersistentItemStatus.Canceled
-                        or PersistentItemStatus.DependencyFailed
-                )
-                {
-                    workflow.Status = PersistentItemStatus.Abandoned;
-                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
-
-                    // The engine releases an abandoned workflow's idempotency key, so a subsequent
-                    // enqueue with the same fingerprint is accepted as a fresh workflow instead of
-                    // deduplicating onto the abandoned one.
-                    string batchKey = CreateBatchKey(ns, workflow.IdempotencyKey);
-                    if (
-                        _workflowsByIdempotencyKey.TryGetValue(batchKey, out Guid[]? batchWorkflowIds)
-                        && batchWorkflowIds.Contains(workflowId)
-                    )
-                    {
-                        _workflowsByIdempotencyKey.TryRemove(batchKey, out _);
-                    }
-
-                    abandoned = true;
-                }
-            }
-        }
-
-        if (abandoned)
-        {
-            // A workflow gated only by the abandoned one may have become runnable.
-            await ProcessAvailableWorkflows(ct);
-        }
-
-        return abandoned;
-    }
-
     /// <summary>
     /// Mints idempotently on <c>(namespace, idempotencyKey)</c>, as the engine does. The fake models the
     /// address, not the rendezvous.
@@ -503,8 +455,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 .Where(workflow =>
                     workflow.DependencyIds.All(dependencyId =>
                         _workflows.TryGetValue(dependencyId, out StoredWorkflow? dependency)
-                        // Abandoned satisfies a dependency: terminal, and its failure is written off.
-                        && dependency.Status is PersistentItemStatus.Completed or PersistentItemStatus.Abandoned
+                        // Skipped satisfies a dependency: terminal, and not a failure.
+                        && dependency.Status is PersistentItemStatus.Completed or PersistentItemStatus.Skipped
                     )
                 )
                 .OrderBy(workflow => workflow.CreatedAt)
@@ -627,6 +579,28 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
                 {
+                    // The real host refuses these as a critical error, so the fake must not let a test
+                    // pass on them either.
+                    string? criticalError = response switch
+                    {
+                        { Defer: not null, Skip: not null } =>
+                            "App returned both defer and skip in one callback response",
+                        { Skip: { } skipWithoutReason } when string.IsNullOrWhiteSpace(skipWithoutReason.Reason) =>
+                            "App returned a skip without a reason",
+                        _ => null,
+                    };
+                    if (criticalError is not null)
+                    {
+                        step.ErrorHistory.Add(
+                            new ErrorEntry(DateTimeOffset.UtcNow, criticalError, null, WasRetryable: false)
+                        );
+                        step.Status = PersistentItemStatus.Failed;
+                        step.UpdatedAt = DateTimeOffset.UtcNow;
+                        workflow.Status = PersistentItemStatus.Failed;
+                        workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                        return;
+                    }
+
                     if (response.Defer is { } defer)
                     {
                         // Not a completion: no error recorded, retry counter reset, and the next
@@ -653,6 +627,26 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         }
 
                         continue;
+                    }
+
+                    if (response.Skip is { } skip)
+                    {
+                        // Mirrors the engine: the skipping step and every later step end Skipped, the
+                        // reason lives on the skipping step only, and the workflow ends Skipped.
+                        DateTimeOffset skippedAt = DateTimeOffset.UtcNow;
+                        step.SkipReason = skip.Reason;
+                        foreach (
+                            StoredStep skippedStep in workflow.Steps.Where(candidate =>
+                                candidate.ProcessingOrder >= step.ProcessingOrder
+                            )
+                        )
+                        {
+                            skippedStep.Status = PersistentItemStatus.Skipped;
+                            skippedStep.UpdatedAt = skippedAt;
+                        }
+                        workflow.Status = PersistentItemStatus.Skipped;
+                        workflow.UpdatedAt = skippedAt;
+                        return;
                     }
 
                     currentState = response.State;
@@ -856,6 +850,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             Command = new StepStatusResponse.CommandDetails { Type = step.CommandType },
             Status = step.Status,
             RetryCount = step.RetryCount,
+            SkipReason = step.SkipReason,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count == 0 ? null : step.ErrorHistory.ToList(),
@@ -957,6 +952,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public TimeSpan WaitElapsed { get; set; }
 
         public string? StateOut { get; set; }
+
+        public string? SkipReason { get; set; }
 
         public PersistentItemStatus Status { get; set; } = PersistentItemStatus.Enqueued;
 

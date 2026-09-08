@@ -1374,6 +1374,83 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
     }
 
+    [Fact]
+    public async Task NextElement_AfterAcquireConflict_AdmitsTheRetryAndReadsIdle()
+    {
+        const string org = "ttd";
+        const string app = "process-version-admission";
+        const int instanceOwnerPartyId = 501337;
+        var instanceGuid = new Guid("d2af1cfd-db99-45f9-9625-9dfa1223485f");
+        var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IFormDataValidator>();
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        };
+        // A concurrent writer moves the instance between the read that keyed the transition and
+        // the acquire that fences on that version, so the first acquire loses and the retry's does not.
+        storageMetadata.BumpInstanceBeforeNextAggregateMutation(instanceId);
+        using HttpClient client = GetRootedUserClient(org, app);
+
+        async Task AssertProcessReadsIdle()
+        {
+            using HttpResponseMessage readResponse = await client.GetAsync(
+                $"{org}/{app}/instances/{instanceId}/process"
+            );
+            string readContent = await readResponse.Content.ReadAsStringAsync();
+            readResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+            using JsonDocument read = JsonDocument.Parse(readContent);
+            JsonElement workflow = read.RootElement.GetProperty("workflow");
+            workflow.GetProperty("status").GetString().Should().Be("idle");
+            workflow.TryGetProperty("failure", out _).Should().BeFalse();
+        }
+
+        using HttpResponseMessage conflictResponse = await client.PutAsync(
+            $"{org}/{app}/instances/{instanceId}/process/next",
+            null
+        );
+        string conflictContent = await conflictResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(conflictContent);
+
+        conflictResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using (JsonDocument conflict = JsonDocument.Parse(conflictContent))
+        {
+            JsonElement root = conflict.RootElement;
+            JsonElement workflowFailure = root.GetProperty("workflowFailure");
+            workflowFailure.GetProperty("kind").GetString().Should().Be("acquireConflict");
+            workflowFailure.TryGetProperty("retryAction", out _).Should().BeFalse();
+            workflowFailure.TryGetProperty("retryTargetWorkflowId", out _).Should().BeFalse();
+            root.TryGetProperty("processStateChanged", out _).Should().BeFalse();
+            root.TryGetProperty("processState", out _).Should().BeFalse();
+            root.TryGetProperty("processNextState", out _).Should().BeFalse();
+        }
+        Instance unchangedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        unchangedInstance.Process.CurrentTask.ElementId.Should().Be("Task_1");
+        ProcessStatusHelper.IsIdle(unchangedInstance).Should().BeTrue();
+        storageMetadata.AggregateMutationRequestCount.Should().Be(1);
+        await AssertProcessReadsIdle();
+
+        using HttpResponseMessage retryResponse = await client.PutAsync(
+            $"{org}/{app}/instances/{instanceId}/process/next",
+            null
+        );
+        string retryContent = await retryResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(retryContent);
+
+        retryResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        using (JsonDocument retry = JsonDocument.Parse(retryContent))
+        {
+            retry.RootElement.GetProperty("currentTask").GetProperty("elementId").GetString().Should().Be("Task_2");
+        }
+        Instance advancedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        advancedInstance.Process.CurrentTask.ElementId.Should().Be("Task_2");
+        ProcessStatusHelper.IsIdle(advancedInstance).Should().BeTrue();
+        await AssertProcessReadsIdle();
+    }
+
     [Theory]
     [InlineData(ProcessStatus.Processing)]
     public async Task StartProcess_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeEngine(ProcessStatus processStatus)

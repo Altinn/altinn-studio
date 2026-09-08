@@ -204,18 +204,22 @@ public class WorkflowEngineCallbackController : ControllerBase
                         && ex is StorageProcessStatusConflictException or InstanceDataStaleException
                     )
                 {
-                    _logger.LogWarning(
+                    _logger.LogInformation(
                         ex,
-                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
+                        "Storage rejected workflow process-status acquisition; skipping the transition. Instance: {InstanceId}, Task: {TaskId}.",
                         instanceId,
                         currentTaskId
                     );
-                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
-                    return NonRetryableProblem(
-                        "WorkflowAcquireConflict",
-                        "The instance changed before the process transition could start. Refresh the instance and try again.",
-                        StatusCodes.Status409Conflict,
-                        AcquireProcessingStatus.ConcurrencyFailureCode
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    return Ok(
+                        new AppCallbackResponse
+                        {
+                            State = payload.State,
+                            Skip = new AppCallbackSkip
+                            {
+                                Reason = AcquireProcessingStatus.ConcurrencyConflictSkipReason,
+                            },
+                        }
                     );
                 }
                 catch (InstanceDataStaleException ex)
@@ -455,12 +459,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         );
     }
 
-    private static ObjectResult NonRetryableProblem(
-        string title,
-        string detail,
-        int statusCode,
-        string? workflowFailureCode = null
-    )
+    private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)
     {
         var problemDetails = new ProblemDetails
         {
@@ -469,10 +468,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             Status = statusCode,
         };
         problemDetails.Extensions["nonRetryable"] = true;
-        if (workflowFailureCode is not null)
-        {
-            problemDetails.Extensions["workflowFailureCode"] = workflowFailureCode;
-        }
         return new ObjectResult(problemDetails) { StatusCode = statusCode };
     }
 }

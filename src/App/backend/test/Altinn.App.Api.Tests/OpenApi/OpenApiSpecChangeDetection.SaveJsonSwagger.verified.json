@@ -8580,6 +8580,19 @@
           },
           "defer": {
             "$ref": "#/components/schemas/AppCallbackDeferral"
+          },
+          "skip": {
+            "$ref": "#/components/schemas/AppCallbackSkip"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppCallbackSkip": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -48,4 +48,15 @@ internal enum PersistentItemStatus
     /// fetches it, and it has no timer of its own.
     /// </summary>
     Held = 9,
+
+    /// <summary>
+    /// A command skipped the rest of the workflow: the item's work did not run and was not needed. On a
+    /// step: the step that returned the skip (which carries the reason in
+    /// <see cref="StepStatusResponse.SkipReason"/>) and every step after it. On a workflow: any step is
+    /// skipped; steps before the skipping one stay <see cref="Completed"/>. Terminal and not a failure:
+    /// workflows depending on it run, and unlike <see cref="Abandoned"/> it satisfies a dependency for
+    /// the engine's recovery sweep. Not <see cref="Completed"/>, because the work did not happen. Not
+    /// resumable.
+    /// </summary>
+    Skipped = 10,
 }

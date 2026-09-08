@@ -13,6 +13,7 @@ internal sealed class ApiTestStorageMetadata
     private readonly ConcurrentDictionary<string, InstanceState> _instances = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(string InstanceId, Guid DataElementId), byte> _bumpBeforeNextContentRead =
         new();
+    private readonly ConcurrentDictionary<string, byte> _bumpBeforeNextAggregateMutation = new(StringComparer.Ordinal);
     private readonly TaskCompletionSource _firstAggregateMutation = new(
         TaskCreationOptions.RunContinuationsAsynchronously
     );
@@ -25,6 +26,11 @@ internal sealed class ApiTestStorageMetadata
     public void BumpDataElementBeforeNextContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         _bumpBeforeNextContentRead[(instanceIdentifier.GetInstanceId(), dataGuid)] = 0;
+    }
+
+    public void BumpInstanceBeforeNextAggregateMutation(string instanceId)
+    {
+        _bumpBeforeNextAggregateMutation[instanceId] = 0;
     }
 
     public StorageVersionMetadata RegisterLoadedInstance(Instance instance)
@@ -62,6 +68,11 @@ internal sealed class ApiTestStorageMetadata
         InstanceState state = GetState(instanceIdentifier.GetInstanceId());
         lock (state)
         {
+            if (_bumpBeforeNextAggregateMutation.TryRemove(instanceIdentifier.GetInstanceId(), out _))
+            {
+                state.InstanceVersion++;
+            }
+
             if (
                 preconditions?.ProcessStateVersion is { } expectedProcessStateVersion
                 && expectedProcessStateVersion != state.ProcessStateVersion

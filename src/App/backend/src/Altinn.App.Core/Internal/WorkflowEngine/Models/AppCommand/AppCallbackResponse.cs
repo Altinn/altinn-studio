@@ -20,6 +20,14 @@ internal sealed record AppCallbackResponse
     /// </summary>
     [JsonPropertyName("defer")]
     public AppCallbackDeferral? Defer { get; init; }
+
+    /// <summary>
+    /// Set when the command ran without error and determined that neither its own work nor any later
+    /// step must run. Its presence is what tells the engine to skip the rest of the workflow, rather
+    /// than treating the callback as a completed step.
+    /// </summary>
+    [JsonPropertyName("skip")]
+    public AppCallbackSkip? Skip { get; init; }
 }
 
 /// <summary>
@@ -36,6 +44,19 @@ internal sealed record AppCallbackDeferral
 
     /// <summary>
     /// Optional description of what is being waited for, recorded in the engine log.
+    /// </summary>
+    [JsonPropertyName("reason")]
+    public string? Reason { get; init; }
+}
+
+/// <summary>
+/// A request to skip the rest of the workflow, because the work the command was about to do must not happen.
+/// </summary>
+internal sealed record AppCallbackSkip
+{
+    /// <summary>
+    /// Why the rest of the workflow is skipped. Required by the engine: a machine-readable code consumers
+    /// classify on, persisted on the step as its skip reason. Not logged.
     /// </summary>
     [JsonPropertyName("reason")]
     public string? Reason { get; init; }

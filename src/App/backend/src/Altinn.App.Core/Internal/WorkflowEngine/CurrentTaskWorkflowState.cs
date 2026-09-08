@@ -20,7 +20,7 @@ internal abstract record CurrentTaskWorkflowState
 
     /// <summary>
     /// The newest workflow for the current task failed terminally - the process cannot continue
-    /// until the workflow is resumed, or written off (-> Abandoned) by a bpmn-allowed reject.
+    /// until the workflow is resumed.
     /// </summary>
     internal sealed record ResumeRequired(Guid WorkflowId, string CollectionKey) : CurrentTaskWorkflowState;
 }

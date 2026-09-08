@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- A process transition that loses to a concurrent change of the instance is now reported as a conflict that can be retried at once, also when the original request was cancelled or timed out. It no longer leaves a failed workflow behind.
 - Breaking: the signing metric `altinn_app_lib_singing_get_service_owner_party` is now spelled `altinn_app_lib_signing_get_service_owner_party`. It counts the service owner party lookups an app makes when a signing task starts, and its name has carried the typo since the metric was added. Repoint any dashboard or alert matching the old name.
 - Running an app locally no longer logs Maskinporten errors at startup. The background refresh of Maskinporten's well-known metadata now only runs in deployed environments, where an app process is long-lived enough for the metadata to change under it. Apps that use Maskinporten locally are unaffected: the metadata is looked up the first time a token is requested, as before.
 

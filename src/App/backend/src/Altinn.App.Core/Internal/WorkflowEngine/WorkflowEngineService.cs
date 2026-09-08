@@ -227,9 +227,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             }
 
             // Terminal heads linger in the collection (it is shared by every transition of the
-            // instance), but a failed workflow that a reject wrote off carries the Abandoned
-            // status, which IsResumeRequiredCollectionHeadStatus excludes - the write-off lives
-            // in the workflow's own state, so no dating heuristics are needed here.
+            // instance), but only Failed, Canceled and DependencyFailed heads block. A Skipped head
+            // (an acquire conflict skipped the transition) and an Abandoned head (an operator wrote
+            // the workflow off) are settled like a Completed one, and
+            // IsResumeRequiredCollectionHeadStatus excludes them - the outcome lives in the
+            // workflow's own state, so no dating heuristics are needed here.
             CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
                 IsResumeRequiredCollectionHeadStatus
             );
@@ -277,7 +279,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         // A head that is active means a transition is in flight (processing); a head that failed
         // terminally means it needs resuming (failed). Active wins if both are somehow present.
-        // Everything else (completed / abandoned heads) is settled.
+        // Everything else is settled: Completed, Skipped (an acquire conflict skipped the
+        // transition) and Abandoned (an operator wrote the workflow off) heads.
         CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
 
         // A processing transition is fully described by the collection view: the head's labels carry
@@ -317,11 +320,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // A failed transition additionally needs its failure detail, which lives in the workflow's
         // steps - list the collection's workflows once to build it. The list goes through
         // ScopeToCurrentChain (no anchor) so failure classification here obeys the same visibility
-        // rules as the enqueue wait and the resume-target lookup: workflows that must never be
-        // classified as transition failures are stripped in that one place.
-        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
-            await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
-            sinceWorkflowId: null
+        // rules as the enqueue wait and the resume-target lookup, and through ExcludeSkipped like
+        // the resume-target lookup: this is the whole shared instance collection, not a chain
+        // anchored on one submitted workflow.
+        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ExcludeSkipped(
+            ScopeToCurrentChain(
+                await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                sinceWorkflowId: null
+            )
         );
         return new WorkflowTaskStatus(
             WorkflowActivityStatus.Failed,
@@ -461,20 +467,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         long startedAt = _timeProvider.GetTimestamp();
         int currentDelayMs = InitialWorkflowPollingDelayMs;
-        IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows = [];
 
         while (true)
         {
             ct.ThrowIfCancellationRequested();
             if (_timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs))
             {
-                return await CreatePollingTimeoutResult(
-                    instance,
-                    collectionKey,
-                    sinceWorkflowId,
-                    lastObservedCollectionWorkflows,
-                    ct
-                );
+                return await CreatePollingTimeoutResult(instance, collectionKey, sinceWorkflowId, ct);
             }
 
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
@@ -494,9 +493,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     );
 
                     // The engine buffers enqueues, so the workflow we just submitted may not be
-                    // visible yet - and a lingering terminal head from a previous failure (e.g. an
-                    // acquire conflict written off as abandoned) makes the heads look inactive before
-                    // our workflow has even started. When we know which workflow we submitted, keep
+                    // visible yet - and a lingering terminal head from a previous transition (e.g.
+                    // one an acquire conflict skipped) makes the heads look inactive before our
+                    // workflow has even started. When we know which workflow we submitted, keep
                     // polling until it is visible and its chain has settled.
                     bool anchoredChainSettled =
                         sinceWorkflowId is null
@@ -507,40 +506,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     if (anchoredChainSettled)
                     {
-                        lastObservedCollectionWorkflows = currentChain;
                         WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
-                        bool repollAfterAbandonCasLoss = false;
-                        if (
-                            workflowFailure?.Kind == WorkflowFailureKind.AcquireConflict
-                            && workflowFailure.WorkflowId is { } failedAcquireWorkflowId
-                        )
-                        {
-                            bool abandoned = await _workflowEngineClient.AbandonWorkflow(
-                                GetNamespace(),
-                                failedAcquireWorkflowId,
-                                ct
-                            );
-                            if (!abandoned)
-                            {
-                                // A concurrent resume won the engine compare-and-set. Re-read the
-                                // collection and wait for the permanently stale acquire to settle
-                                // again before retrying the write-off.
-                                repollAfterAbandonCasLoss = true;
-                            }
-                        }
-
-                        if (!repollAfterAbandonCasLoss)
-                        {
-                            InstanceWithStorageMetadata freshInstance =
-                                await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
-                            bool processStateChanged = HasCommittedProcessState(currentChain);
-                            return new ProcessNextWorkflowResult(
-                                freshInstance.Instance,
-                                freshInstance.Metadata,
-                                workflowFailure,
-                                processStateChanged
-                            );
-                        }
+                        InstanceWithStorageMetadata freshInstance =
+                            await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
+                        bool processStateChanged = HasCommittedProcessState(currentChain);
+                        return new ProcessNextWorkflowResult(
+                            freshInstance.Instance,
+                            freshInstance.Metadata,
+                            workflowFailure,
+                            processStateChanged
+                        );
                     }
                 }
                 else if (
@@ -598,7 +573,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Instance instance,
         string collectionKey,
         Guid? sinceWorkflowId,
-        IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows,
         CancellationToken ct
     )
     {
@@ -606,18 +580,15 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             instance,
             ct: ct
         );
-        if (lastObservedCollectionWorkflows.Count == 0)
-        {
-            lastObservedCollectionWorkflows = ScopeToCurrentChain(
-                await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
-                sinceWorkflowId
-            );
-        }
+        IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
+            await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+            sinceWorkflowId
+        );
         return new ProcessNextWorkflowResult(
             freshInstance.Instance,
             freshInstance.Metadata,
             new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-            HasCommittedProcessState(lastObservedCollectionWorkflows)
+            HasCommittedProcessState(currentChain)
         );
     }
 
@@ -625,7 +596,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// Scopes collection workflows to the chain started by <paramref name="sinceWorkflowId"/>: that
     /// workflow and everything created after it (e.g. auto-advance dependents). The collection is
     /// shared by every transition of the instance, so older workflows - completed earlier
-    /// transitions, or terminally failed workflows a reject superseded - must not influence the
+    /// transitions, or a transition an acquire conflict skipped - must not influence the
     /// current wait's failure reporting. The anchor itself is matched by id and other workflows by a
     /// strictly-newer timestamp, so a stale workflow sharing the anchor's exact timestamp cannot
     /// leak in (dependents are enqueued after the anchor's steps have run, so they are always
@@ -674,6 +645,15 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// the same ship-together requirement the state-inheritance feature already imposes.
     /// </summary>
     internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
+
+    /// <summary>
+    /// Strips skipped workflows from an unanchored view of the shared instance collection: a skipped
+    /// workflow never needs resuming and never blocks, so outside the wait that produced it, it must
+    /// not be classified over the failed workflow the caller is looking for.
+    /// </summary>
+    private static IReadOnlyList<WorkflowStatusResponse> ExcludeSkipped(
+        IReadOnlyList<WorkflowStatusResponse> workflows
+    ) => workflows.Where(workflow => workflow.OverallStatus != PersistentItemStatus.Skipped).ToList();
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
@@ -781,9 +761,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct: ct
         );
         // Scope with a null anchor to strip side-effects workflows: a failed side effect must not
-        // be picked as the resume target for a blocked transition.
+        // be picked as the resume target for a blocked transition. Skipped workflows are stripped
+        // for the same reason: the engine refuses to resume them.
         WorkflowFailure? workflowFailure = BuildWorkflowFailure(
-            ScopeToCurrentChain(collectionWorkflows, sinceWorkflowId: null)
+            ExcludeSkipped(ScopeToCurrentChain(collectionWorkflows, sinceWorkflowId: null))
         );
         return workflowFailure?.RetryTargetWorkflowId ?? workflowFailure?.WorkflowId ?? fallbackWorkflowId;
     }
@@ -797,29 +778,65 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {
-        // An abandoned workflow is only background noise when a superseding workflow was enqueued
-        // after it. When the newest workflow in view is Abandoned, nothing superseded it, so the
-        // action being waited on never ran - that must be reported as a failure, never success.
-        // Normally unreachable (the engine releases the idempotency key on abandon, so a
-        // superseding enqueue always creates a fresh, newer workflow), but the unscoped fallback
-        // wait can still land on an abandoned head.
+        // A skipped or abandoned workflow is only background noise when a superseding workflow was
+        // enqueued after it. When the newest workflow in view carries one of those statuses, nothing
+        // superseded it, so the action being waited on never ran - that must be reported as a
+        // failure, never success. Only the anchored wait can see a skipped newest workflow: the
+        // unanchored callers (the read path and the resume-target lookup) strip skipped workflows
+        // (ExcludeSkipped) before classifying, so a lingering skipped head never lands here.
         WorkflowStatusResponse? newestWorkflow = hierarchyWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
             .FirstOrDefault();
-        if (newestWorkflow?.OverallStatus == PersistentItemStatus.Abandoned)
+        switch (newestWorkflow?.OverallStatus)
         {
-            return new WorkflowFailure
-            {
-                Kind = WorkflowFailureKind.EngineFault,
-                WorkflowId = newestWorkflow.DatabaseId,
-                WorkflowOperationId = newestWorkflow.OperationId,
-                LastError = new WorkflowFailureError
+            case PersistentItemStatus.Abandoned:
+                // An operator wrote the workflow off through the engine's admin API. Normally
+                // unreachable in a wait (the engine releases the idempotency key on abandon, so a
+                // superseding enqueue always creates a fresh, newer workflow), but the unscoped
+                // fallback wait can still land on an abandoned head.
+                return new WorkflowFailure
                 {
-                    Timestamp = newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
-                    Message = "The workflow was abandoned before the process action completed. Try the action again.",
-                    WasRetryable = true,
-                },
-            };
+                    Kind = WorkflowFailureKind.EngineFault,
+                    WorkflowId = newestWorkflow.DatabaseId,
+                    WorkflowOperationId = newestWorkflow.OperationId,
+                    LastError = new WorkflowFailureError
+                    {
+                        Timestamp = newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
+                        Message =
+                            "The workflow was abandoned before the process action completed. Try the action again.",
+                        WasRetryable = true,
+                    },
+                };
+            case PersistentItemStatus.Skipped:
+            {
+                // The one skip the app produces is the acquire conflict: AcquireProcessingStatus, as
+                // the first step, lost to a concurrent change of the instance and skipped the
+                // transition without side effects. Any other skip is reported as an engine fault.
+                StepStatusResponse skippedStep = newestWorkflow
+                    .Steps.OrderBy(step => step.ProcessingOrder)
+                    .First(step => step.Status == PersistentItemStatus.Skipped);
+                bool acquireConflict =
+                    skippedStep.OperationId == AcquireProcessingStatus.Key
+                    && skippedStep.ProcessingOrder == newestWorkflow.Steps.Min(step => step.ProcessingOrder)
+                    && skippedStep.SkipReason == AcquireProcessingStatus.ConcurrencyConflictSkipReason;
+                return new WorkflowFailure
+                {
+                    Kind = acquireConflict ? WorkflowFailureKind.AcquireConflict : WorkflowFailureKind.EngineFault,
+                    WorkflowId = newestWorkflow.DatabaseId,
+                    WorkflowOperationId = newestWorkflow.OperationId,
+                    StepOperationId = skippedStep.OperationId,
+                    CommandType = skippedStep.Command.Type,
+                    RetryCount = skippedStep.RetryCount,
+                    LastError = new WorkflowFailureError
+                    {
+                        Timestamp = skippedStep.UpdatedAt ?? newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
+                        Message = acquireConflict
+                            ? "The instance changed before the process transition could start. Refresh the instance and try again."
+                            : $"The workflow was skipped before the process action completed ({skippedStep.SkipReason}).",
+                        WasRetryable = false,
+                    },
+                };
+            }
         }
 
         WorkflowStatusResponse? stepFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
@@ -831,22 +848,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             StepStatusResponse failedStep = stepFailedWorkflow.Steps.First(step =>
                 step.Status == PersistentItemStatus.Failed
             );
-            ErrorEntry? lastErrorEntry = failedStep.ErrorHistory?.LastOrDefault();
-            WorkflowFailureError? lastError = ToWorkflowFailureError(lastErrorEntry);
-            if (IsAcquireConcurrencyFailure(stepFailedWorkflow, failedStep, lastErrorEntry))
-            {
-                return new WorkflowFailure
-                {
-                    Kind = WorkflowFailureKind.AcquireConflict,
-                    WorkflowId = stepFailedWorkflow.DatabaseId,
-                    WorkflowOperationId = stepFailedWorkflow.OperationId,
-                    StepOperationId = failedStep.OperationId,
-                    CommandType = failedStep.Command.Type,
-                    RetryCount = failedStep.RetryCount,
-                    LastError = lastError,
-                };
-            }
-
             return new WorkflowFailure
             {
                 Kind = WorkflowFailureKind.StepFailed,
@@ -855,7 +856,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 StepOperationId = failedStep.OperationId,
                 CommandType = failedStep.Command.Type,
                 RetryCount = failedStep.RetryCount,
-                LastError = lastError,
+                LastError = ToWorkflowFailureError(failedStep.ErrorHistory?.LastOrDefault()),
                 RetryAction = "resumeWorkflow",
                 RetryTargetWorkflowId = stepFailedWorkflow.DatabaseId,
             };
@@ -895,38 +896,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         return null;
-    }
-
-    private static bool IsAcquireConcurrencyFailure(
-        WorkflowStatusResponse workflow,
-        StepStatusResponse failedStep,
-        ErrorEntry? lastError
-    ) =>
-        failedStep.OperationId == AcquireProcessingStatus.Key
-        && failedStep.ProcessingOrder == workflow.Steps.Min(step => step.ProcessingOrder)
-        && lastError is { WasRetryable: false }
-        && HasWorkflowFailureCode(lastError.Message, AcquireProcessingStatus.ConcurrencyFailureCode);
-
-    private static bool HasWorkflowFailureCode(string message, string expectedCode)
-    {
-        int jsonStart = message.IndexOf('{');
-        if (jsonStart < 0)
-        {
-            return false;
-        }
-
-        try
-        {
-            using var document = JsonDocument.Parse(message[jsonStart..]);
-            return document.RootElement.ValueKind == JsonValueKind.Object
-                && document.RootElement.TryGetProperty("workflowFailureCode", out JsonElement code)
-                && code.ValueKind == JsonValueKind.String
-                && string.Equals(code.GetString(), expectedCode, StringComparison.Ordinal);
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
     }
 
     private static WorkflowFailureError? ToWorkflowFailureError(ErrorEntry? errorEntry) =>

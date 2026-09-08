@@ -207,9 +207,6 @@ public class MailboxRelayFrontierTests
             CancellationToken ct = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,

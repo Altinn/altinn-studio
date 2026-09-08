@@ -10,7 +10,7 @@ internal sealed class AcquireProcessingStatus : IWorkflowEngineCommand
 {
     public static string Key => "AcquireProcessingStatus";
 
-    internal const string ConcurrencyFailureCode = "acquireConcurrencyConflict";
+    internal const string ConcurrencyConflictSkipReason = "acquireConcurrencyConflict";
 
     public string GetKey() => Key;
 

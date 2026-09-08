@@ -2288,10 +2288,6 @@ public sealed class ProcessEngineTest
         result.ProcessNextState.Should().Be(ProcessNextState.ResumeRequired);
         result.ErrorTitle.Should().Be("Task must be resumed before it can continue.");
         processEngineClientMock.Verify(
-            c => c.AbandonWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-        processEngineClientMock.Verify(
             c =>
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),

@@ -149,7 +149,7 @@ internal static class WorkflowInitializationProblem
         ) switch
         {
             (_, _, _, true, false, WorkflowFailureKind.AcquireConflict, _) =>
-                "The initial workflow could not acquire the captured instance version. The instance was left unchanged and the failed workflow was written off. Inspect the instance before retrying.",
+                "The initial workflow could not acquire the captured instance version. The instance was left unchanged and the workflow was skipped without side effects. Inspect the instance before retrying.",
             (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, _, _, HttpStatusCode.Conflict) =>
                 "Another initial workflow was submitted from the same instance version with different content. Inspect the instance before retrying.",
             (
@@ -183,7 +183,7 @@ internal static class WorkflowInitializationProblem
         (state, workflowAccepted, processStateChanged, workflowFailure?.Kind, submissionStatusCode) switch
         {
             (_, true, false, WorkflowFailureKind.AcquireConflict, _) =>
-                "The process start could not acquire the captured instance version. The instance was left unchanged and the failed workflow was written off. Refresh the instance and try again.",
+                "The process start could not acquire the captured instance version. The instance was left unchanged and the workflow was skipped without side effects. Refresh the instance and try again.",
             (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, HttpStatusCode.Conflict) =>
                 "Another process transition was submitted from the same instance version with different content. Refresh the instance before trying again.",
             (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, _) =>

@@ -236,7 +236,7 @@ public enum WorkflowFailureKind
 
     /// <summary>
     /// The first workflow step could not acquire process ownership because the captured
-    /// instance version or process status was no longer current. The workflow was written off
+    /// instance version or process status was no longer current. The workflow was skipped
     /// without side effects, so the caller should refresh the instance and retry the action.
     /// </summary>
     AcquireConflict,

@@ -243,7 +243,7 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenAcquireGetsStaleInstanceVersion_ReturnsNonRetryableConflictWithoutMutation()
+    public async Task ExecuteCommand_WhenAcquireGetsStaleInstanceVersion_SkipsTheWorkflowWithoutMutation()
     {
         await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
         setup.Services.Storage.SetStorageVersions(
@@ -255,23 +255,18 @@ public class WorkflowEngineCallbackControllerTests
 
         IActionResult result = await setup.Execute(AcquireProcessingStatus.Key, stepId: Guid.NewGuid());
 
-        var objectResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
-        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("WorkflowAcquireConflict", problem.Title);
-        Assert.Contains("Refresh", problem.Detail, StringComparison.Ordinal);
-        Assert.True((bool)problem.Extensions["nonRetryable"]!);
-        Assert.Equal(
-            AcquireProcessingStatus.ConcurrencyFailureCode,
-            problem.Extensions["workflowFailureCode"] as string
-        );
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<AppCallbackResponse>(ok.Value);
+        Assert.Equal(AcquireProcessingStatus.ConcurrencyConflictSkipReason, response.Skip?.Reason);
+        Assert.Null(response.Defer);
+        Assert.Equal(setup.State, response.State);
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
         Assert.Single(GetMutationRequests(setup.Services));
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenAcquireGetsProcessStatusConflict_ReturnsNonRetryableConflictWithoutMutation()
+    public async Task ExecuteCommand_WhenAcquireGetsProcessStatusConflict_SkipsTheWorkflowWithoutMutation()
     {
         await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
@@ -280,15 +275,11 @@ public class WorkflowEngineCallbackControllerTests
 
         IActionResult result = await setup.Execute(AcquireProcessingStatus.Key, stepId: Guid.NewGuid());
 
-        var objectResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
-        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("WorkflowAcquireConflict", problem.Title);
-        Assert.True((bool)problem.Extensions["nonRetryable"]!);
-        Assert.Equal(
-            AcquireProcessingStatus.ConcurrencyFailureCode,
-            problem.Extensions["workflowFailureCode"] as string
-        );
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<AppCallbackResponse>(ok.Value);
+        Assert.Equal(AcquireProcessingStatus.ConcurrencyConflictSkipReason, response.Skip?.Reason);
+        Assert.Null(response.Defer);
+        Assert.Equal(setup.State, response.State);
         Assert.Equal(ProcessStatus.Processing, storedInstance.Process.Status);
         StorageClientInterceptor.RequestResponse mutation = Assert.Single(GetMutationRequests(setup.Services));
         Assert.Equal("application/problem+json", mutation.ResponseContentHeaders.ContentType?.MediaType);
@@ -307,7 +298,7 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_DoesNotTagAcquireConflict()
+    public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_DoesNotSkip()
     {
         await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
         setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
@@ -320,11 +311,6 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
         Assert.Contains("application/json", exception.Response.Headers["Content-Type"][0]);
         Assert.Equal("\"unrelated conflict\"", exception.Response.Content);
-        Assert.DoesNotContain(
-            AcquireProcessingStatus.ConcurrencyFailureCode,
-            exception.Message,
-            StringComparison.Ordinal
-        );
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
         Assert.Single(GetMutationRequests(setup.Services));

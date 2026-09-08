@@ -1436,9 +1436,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             CancellationToken ct = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -1493,7 +1490,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                         new CollectionHeadStatus
                         {
                             DatabaseId = _workflowId,
-                            Status = PersistentItemStatus.Failed,
+                            Status = acquireConflict ? PersistentItemStatus.Skipped : PersistentItemStatus.Failed,
                             StepsCompleted = 0,
                             StepsTotal = 1,
                         },
@@ -1520,33 +1517,38 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                     CollectionKey = collectionKey ?? _collectionKey,
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
-                    OverallStatus = PersistentItemStatus.Failed,
+                    OverallStatus = acquireConflict ? PersistentItemStatus.Skipped : PersistentItemStatus.Failed,
                     Steps =
                     [
-                        new StepStatusResponse
-                        {
-                            DatabaseId = Guid.NewGuid(),
-                            OperationId = acquireConflict ? AcquireProcessingStatus.Key : "StartTask",
-                            ProcessingOrder = 0,
-                            Command = new StepStatusResponse.CommandDetails { Type = "app" },
-                            Status = PersistentItemStatus.Failed,
-                            RetryCount = 0,
-                            ErrorHistory =
-                            [
-                                new ErrorEntry(
-                                    DateTimeOffset.UtcNow,
-                                    acquireConflict
-                                        ? "AppCommand failed with client error Conflict: "
-                                            + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
-                                            + "\"detail\":\"Refresh and retry.\"}"
-                                        : "Simulated workflow callback failure.",
-                                    acquireConflict
-                                        ? StatusCodes.Status409Conflict
-                                        : StatusCodes.Status500InternalServerError,
-                                    WasRetryable: !acquireConflict
-                                ),
-                            ],
-                        },
+                        acquireConflict
+                            ? new StepStatusResponse
+                            {
+                                DatabaseId = Guid.NewGuid(),
+                                OperationId = AcquireProcessingStatus.Key,
+                                ProcessingOrder = 0,
+                                Command = new StepStatusResponse.CommandDetails { Type = "app" },
+                                Status = PersistentItemStatus.Skipped,
+                                RetryCount = 0,
+                                SkipReason = AcquireProcessingStatus.ConcurrencyConflictSkipReason,
+                            }
+                            : new StepStatusResponse
+                            {
+                                DatabaseId = Guid.NewGuid(),
+                                OperationId = "StartTask",
+                                ProcessingOrder = 0,
+                                Command = new StepStatusResponse.CommandDetails { Type = "app" },
+                                Status = PersistentItemStatus.Failed,
+                                RetryCount = 0,
+                                ErrorHistory =
+                                [
+                                    new ErrorEntry(
+                                        DateTimeOffset.UtcNow,
+                                        "Simulated workflow callback failure.",
+                                        StatusCodes.Status500InternalServerError,
+                                        WasRetryable: true
+                                    ),
+                                ],
+                            },
                     ],
                 },
             ]);
@@ -1563,9 +1565,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken ct = default
         ) => throw new NotSupportedException();
-
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
