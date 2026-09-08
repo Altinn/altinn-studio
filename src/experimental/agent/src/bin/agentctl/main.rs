@@ -223,7 +223,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             } else {
                 agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?
             };
-            let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
+            let imported = client
+                .auth_login(agent::Harness::ClaudeCode, token.to_string(), from_stdin)
+                .await?;
             println!("{} authentication stored", imported.provider);
         }
         Command::Codex {
@@ -234,7 +236,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             } else {
                 agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?
             };
-            let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
+            let imported = client
+                .auth_login(agent::Harness::Codex, credential.to_string(), from_stdin)
+                .await?;
             println!("{} authentication stored", imported.provider);
         }
         Command::Apply {

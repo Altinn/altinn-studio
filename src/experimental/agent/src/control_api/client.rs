@@ -122,8 +122,17 @@ impl Client {
         &self,
         harness: harness::Harness,
         credential: String,
+        imported: bool,
     ) -> Result<harness::ImportedAuthentication, Error> {
-        self.call(METHOD_AUTH_LOGIN, LoginParams { harness, credential }).await
+        self.call(
+            METHOD_AUTH_LOGIN,
+            LoginParams {
+                harness,
+                credential,
+                imported,
+            },
+        )
+        .await
     }
 
     /// Creates or resolves one named session attach target.

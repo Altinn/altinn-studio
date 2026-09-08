@@ -57,11 +57,13 @@ impl AgentApi for control_plane::ControlPlane {
 
 /// Host-side authentication operations exposed through the local control API.
 pub trait AuthenticationApi {
-    /// Stores a host-acquired credential for one harness.
+    /// Stores a credential for one harness; `imported` marks one supplied by the caller
+    /// instead of minted by the host login flow.
     fn login<'a>(
         &'a self,
         harness: harness::Harness,
         credential: &'a str,
+        imported: bool,
     ) -> LocalFuture<'a, Result<harness::ImportedAuthentication, Error>>;
 }
 
@@ -70,9 +72,10 @@ impl AuthenticationApi for harness::AuthenticationManager {
         &'a self,
         harness: harness::Harness,
         credential: &'a str,
+        imported: bool,
     ) -> LocalFuture<'a, Result<harness::ImportedAuthentication, Error>> {
         Box::pin(async move {
-            self.login(harness, zeroize::Zeroizing::new(credential.to_owned()))
+            self.login(harness, zeroize::Zeroizing::new(credential.to_owned()), imported)
                 .await
         })
     }
@@ -288,7 +291,12 @@ impl Server {
         let Ok(params) = serde_json::from_value::<LoginParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "harness and credential are required");
         };
-        result_response(id, self.authentication.login(params.harness, &params.credential).await)
+        result_response(
+            id,
+            self.authentication
+                .login(params.harness, &params.credential, params.imported)
+                .await,
+        )
     }
 
     async fn handle_session_ensure(&self, id: u64, value: Value) -> Response {

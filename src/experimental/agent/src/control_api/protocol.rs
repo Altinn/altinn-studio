@@ -96,6 +96,9 @@ pub(crate) struct SessionListParams {
 pub(crate) struct LoginParams {
     pub harness: crate::harness::Harness,
     pub credential: String,
+    /// The credential was supplied by the caller rather than minted by the host login flow.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub imported: bool,
 }
 
 pub(crate) fn error_response(id: u64, code: i32, message: impl Into<String>) -> Response {
