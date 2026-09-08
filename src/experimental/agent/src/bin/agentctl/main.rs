@@ -6,7 +6,7 @@ use std::{
 };
 
 use agent::{
-    Agent, ConditionStatus, Error,
+    Agent, Error,
     control_api::Client,
     control_plane::ApplyRequest,
     local::home::ControlPlaneHome,
@@ -68,6 +68,12 @@ enum Command {
         /// path outside any bind-mounted directory so real values never enter the Sandbox.
         #[arg(long)]
         env_file: Option<PathBuf>,
+        /// Stay attached after applying and show provisioning progress until the Agent is Ready.
+        #[arg(long)]
+        wait: bool,
+        /// Maximum wait with `--wait`, written as seconds, minutes, or hours (for example `10m`).
+        #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
+        timeout: Duration,
     },
     /// Display one or more resources.
     Get {
@@ -259,13 +265,20 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             filename,
             name,
             env_file,
+            wait,
+            timeout,
         } => {
             let mut request = read_apply_request(filename, env_file).await?;
             if let Some(name) = name {
                 request.agent.metadata.name = name;
             }
             let applied = client.apply(request).await?;
-            println!("agent/{} applied", applied.metadata.name);
+            let name = applied.metadata.name;
+            println!("agent/{name} applied");
+            if wait {
+                wait_for_ready(client, &name, timeout).await?;
+                println!("agent/{name} ready");
+            }
         }
         Command::Get {
             resource,
@@ -629,31 +642,29 @@ fn inference_error(error: Error) -> CommandError {
     }
 }
 
-async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Result<(), Error> {
-    const POLL_INTERVAL: Duration = Duration::from_secs(2);
-
-    let deadline = tokio::time::Instant::now() + timeout;
-    let mut last_ready = None;
-    loop {
-        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
-        if remaining.is_zero() {
-            return Err(Error::Invalid(wait_timeout_message(name, last_ready.as_ref())));
+/// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
+async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
+    let mut progress = ProgressRenderer::stderr();
+    let waited = progress::until_interrupted(tokio::time::timeout(
+        timeout,
+        client.ensure_execution(name, Some(&mut |event| progress.render(event))),
+    ))
+    .await;
+    progress.finish();
+    match waited {
+        None => Err(CommandError::Interrupted(name.to_owned())),
+        Some(Ok(result)) => result.map(|_target| ()).map_err(CommandError::from),
+        Some(Err(_elapsed)) => {
+            let ready = match client.get(name).await {
+                Ok(agent) => agent
+                    .status
+                    .conditions
+                    .into_iter()
+                    .find(|condition| condition.kind == "Ready"),
+                Err(_) => None,
+            };
+            Err(CommandError::Message(wait_timeout_message(name, ready.as_ref())))
         }
-        let agent = match tokio::time::timeout(remaining, client.get(name)).await {
-            Ok(result) => result?,
-            Err(_) => return Err(Error::Invalid(wait_timeout_message(name, last_ready.as_ref()))),
-        };
-        let ready = agent
-            .status
-            .conditions
-            .iter()
-            .find(|condition| condition.kind == "Ready");
-        if ready.is_some_and(|condition| condition.status == ConditionStatus::True) {
-            return Ok(());
-        }
-        last_ready = ready.cloned();
-        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
-        tokio::time::sleep(remaining.min(POLL_INTERVAL)).await;
     }
 }
 
@@ -998,6 +1009,19 @@ mod tests {
     }
 
     #[test]
+    fn apply_wait_is_opt_in_and_owns_the_timeout() {
+        let plain = Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml"]).expect("plain apply");
+        assert!(matches!(plain.command, Command::Apply { wait: false, .. }));
+        let waited = Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml", "--wait", "--timeout", "2m"])
+            .expect("apply --wait");
+        assert!(matches!(
+            waited.command,
+            Command::Apply { wait: true, timeout, .. } if timeout == Duration::from_mins(2)
+        ));
+        assert!(Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml", "--timeout", "2m"]).is_err());
+    }
+
+    #[test]
     fn wait_durations_are_bounded_and_explicit() {
         assert_eq!(parse_duration("30s").expect("seconds"), Duration::from_secs(30));
         assert_eq!(parse_duration("10m").expect("minutes"), Duration::from_mins(10));
@@ -1010,7 +1034,7 @@ mod tests {
     fn wait_timeout_reports_the_last_ready_diagnostic() {
         let condition = agent::Condition {
             kind: "Ready".into(),
-            status: ConditionStatus::False,
+            status: agent::ConditionStatus::False,
             reason: "SecretMissing".into(),
             message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
         };

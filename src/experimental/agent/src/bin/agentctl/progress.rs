@@ -155,24 +155,18 @@ impl<W: Write> Renderer<W> {
                 }
                 self.show_active(None)
             }
+            // Readiness is the command's outcome and reported by the command itself.
             Event::Condition {
-                condition,
-                status,
                 reason,
                 message,
-                failure,
+                failure: Some(FailureKind::Transient),
                 ..
             } => {
                 self.clear_active_line()?;
-                if failure == Some(FailureKind::Transient) {
-                    let diagnostic = if message.is_empty() { reason } else { message };
-                    self.error(&diagnostic)
-                } else if condition == "Ready" && status == agent::ConditionStatus::True {
-                    writeln!(self.output, "✓ Agent ready")
-                } else {
-                    Ok(())
-                }
+                let diagnostic = if message.is_empty() { reason } else { message };
+                self.error(&diagnostic)
             }
+            Event::Condition { .. } => Ok(()),
         }
     }
 
