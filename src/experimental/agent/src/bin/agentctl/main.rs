@@ -173,18 +173,24 @@ type CommandResult<T> = Result<T, CommandError>;
 enum ClaudeCommand {
     /// Mint a long-lived Claude token on the host and store it for agents.
     Login {
-        /// Read an existing setup token from standard input instead of minting one. Inside an
-        /// Agent this accepts the mediated placeholder, so a nested `agentd` chains through the
-        /// outer mediation without ever holding a real credential.
+        /// Read an existing credential from standard input instead of signing in. Inside an Agent
+        /// this accepts the mediated placeholder, so a nested `agentd` chains through the outer
+        /// mediation without ever holding a real credential.
         #[arg(long)]
-        token_stdin: bool,
+        from_stdin: bool,
     },
 }
 
 #[derive(Subcommand)]
 enum CodexCommand {
     /// Sign in with `ChatGPT` and store an Agent-only grant.
-    Login,
+    Login {
+        /// Read the harness's credential file from standard input instead of signing in. Inside
+        /// an Agent this accepts the file the harness already has, whose placeholders let a nested
+        /// `agentd` chain through the outer mediation without ever holding a real credential.
+        #[arg(long)]
+        from_stdin: bool,
+    },
 }
 
 fn main() -> ExitCode {
@@ -210,9 +216,9 @@ fn run() -> CommandResult<ExitCode> {
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
         Command::Claude {
-            command: ClaudeCommand::Login { token_stdin },
+            command: ClaudeCommand::Login { from_stdin },
         } => {
-            let token = if token_stdin {
+            let token = if from_stdin {
                 read_token_from_stdin()?
             } else {
                 agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?
@@ -221,9 +227,13 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             println!("{} authentication stored", imported.provider);
         }
         Command::Codex {
-            command: CodexCommand::Login,
+            command: CodexCommand::Login { from_stdin },
         } => {
-            let credential = agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?;
+            let credential = if from_stdin {
+                read_stdin_to_end()?
+            } else {
+                agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?
+            };
             let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
             println!("{} authentication stored", imported.provider);
         }
@@ -808,6 +818,19 @@ fn read_token_from_stdin() -> Result<zeroize::Zeroizing<String>, Error> {
     Ok(token)
 }
 
+fn read_stdin_to_end() -> Result<zeroize::Zeroizing<String>, Error> {
+    use std::io::Read as _;
+
+    let mut text = zeroize::Zeroizing::new(String::new());
+    std::io::stdin()
+        .read_to_string(&mut text)
+        .map_err(|error| Error::Invalid(format!("could not read the credential from standard input: {error}")))?;
+    if text.trim().is_empty() {
+        return Err(Error::Invalid("no credential was provided on standard input".into()));
+    }
+    Ok(text)
+}
+
 fn absolute(path: PathBuf) -> Result<PathBuf, Error> {
     if path.is_absolute() {
         Ok(path)
@@ -906,20 +929,28 @@ mod tests {
         assert!(matches!(
             arguments.command,
             Command::Codex {
-                command: CodexCommand::Login
+                command: CodexCommand::Login { from_stdin: false }
             }
         ));
         assert!(Arguments::try_parse_from(["agentctl", "codex", "login", "--with-api-key"]).is_err());
+        let nested = Arguments::try_parse_from(["agentctl", "codex", "login", "--from-stdin"])
+            .expect("Codex credential-file login arguments");
+        assert!(matches!(
+            nested.command,
+            Command::Codex {
+                command: CodexCommand::Login { from_stdin: true }
+            }
+        ));
     }
 
     #[test]
     fn claude_login_accepts_a_token_on_standard_input() {
-        let arguments = Arguments::try_parse_from(["agentctl", "claude", "login", "--token-stdin"])
-            .expect("Claude login arguments");
+        let arguments =
+            Arguments::try_parse_from(["agentctl", "claude", "login", "--from-stdin"]).expect("Claude login arguments");
         assert!(matches!(
             arguments.command,
             Command::Claude {
-                command: ClaudeCommand::Login { token_stdin: true }
+                command: ClaudeCommand::Login { from_stdin: true }
             }
         ));
     }

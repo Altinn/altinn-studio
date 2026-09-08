@@ -10,7 +10,7 @@ use zeroize::Zeroizing;
 
 use crate::{Error, harness::ImportedAuthentication, persistence};
 
-use super::{ACCESS_SECRET, ACCOUNT_SECRET, PROVIDER, REFRESH_SECRET};
+use super::{ACCESS_SECRET, ACCOUNT_PLACEHOLDER, ACCOUNT_SECRET, PROVIDER, REFRESH_PLACEHOLDER, REFRESH_SECRET};
 
 const REFRESH_URL: &str = "https://auth.openai.com/oauth/token";
 const OAUTH_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
@@ -70,6 +70,11 @@ impl Authentication {
     }
 
     /// Imports the independent `ChatGPT` grant produced in agentctl's private Codex home.
+    ///
+    /// An `auth.json` carrying the platform's own placeholders is the credential an Agent
+    /// Sandbox already holds. Importing it makes this `agentd` a nested one: the tokens are
+    /// stored verbatim, never refreshed, and the enclosing Sandbox's mediator substitutes the
+    /// real grant. No real credential exists at this level.
     pub(in crate::harness) async fn login(
         &self,
         credential: Zeroizing<String>,
@@ -93,8 +98,13 @@ impl Authentication {
         if access_token.is_empty() || refresh_token.is_empty() {
             return Err(Error::Invalid("Codex login produced incomplete ChatGPT tokens".into()));
         }
+        let kind = if *refresh_token == REFRESH_PLACEHOLDER && account_id == ACCOUNT_PLACEHOLDER {
+            CredentialKind::Mediated
+        } else {
+            CredentialKind::ChatgptOauth
+        };
         let metadata = CodexMetadata {
-            kind: CredentialKind::ChatgptOauth,
+            kind,
             account_id,
             expires_at: jwt_expiry(&access_token)?,
         };
@@ -118,7 +128,9 @@ impl Authentication {
     #[allow(clippy::option_if_let_else)]
     async fn refresh_if_needed(&self) -> Result<(), Error> {
         let metadata = self.metadata().await?;
-        if metadata.expires_at > unix_time()?.saturating_add(REFRESH_AHEAD_SECONDS) {
+        if matches!(metadata.kind, CredentialKind::Mediated)
+            || metadata.expires_at > unix_time()?.saturating_add(REFRESH_AHEAD_SECONDS)
+        {
             return Ok(());
         }
         if let Some(error) = self.cached_refresh_failure() {
@@ -352,7 +364,10 @@ struct LoginTokens {
 #[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 enum CredentialKind {
+    /// A real `ChatGPT` OAuth grant, refreshed by this `agentd`.
     ChatgptOauth,
+    /// Placeholders from an enclosing Sandbox; an outer mediator holds the real grant.
+    Mediated,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -584,6 +599,36 @@ mod tests {
         assert!(error.to_string().contains("ChatGPT subscription grant"));
         assert!(!error.to_string().contains("secret-canary"));
         assert!(!is_ready(&database).await.expect("readiness"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn placeholder_credentials_are_stored_verbatim_and_never_refreshed() {
+        let directory = TempDir::new().expect("temporary directory");
+        let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+        let expired_access = jwt(unix_time().expect("time") - 1);
+        let (endpoint, refresh_calls) = serve_refresh_failure("500 Internal Server Error", "{}").await;
+        let manager = Authentication::new(database.clone()).with_refresh_url(endpoint);
+        let credential = Zeroizing::new(
+            serde_json::json!({
+                "auth_mode": "chatgpt",
+                "OPENAI_API_KEY": null,
+                "tokens": {
+                    "id_token": expired_access,
+                    "access_token": expired_access,
+                    "refresh_token": REFRESH_PLACEHOLDER,
+                    "account_id": ACCOUNT_PLACEHOLDER
+                },
+                "last_refresh": "2026-08-24T00:00:00Z"
+            })
+            .to_string(),
+        );
+        manager.login(credential).await.expect("placeholder login");
+
+        let resolved = manager.resolve_access().await.expect("placeholder access token");
+
+        assert_eq!(resolved.expose(), expired_access.as_bytes());
+        assert_eq!(refresh_calls.get(), 0);
+        assert!(is_ready(&database).await.expect("readiness"));
     }
 
     #[tokio::test(flavor = "local")]

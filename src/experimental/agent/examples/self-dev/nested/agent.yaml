@@ -21,11 +21,12 @@ spec:
     source: home
   instructions:
     source: ../instructions.md
-  # Claude only: nested login chains the Claude placeholder, but Codex has no equivalent yet.
   harnesses:
     - type: claudeCode
       auth: mediated
       default: true
+    - type: codex
+      auth: mediated
   secrets:
     - environment: GITHUB_TOKEN
       allowedHosts:

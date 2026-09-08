@@ -7,7 +7,7 @@ For Agents that work on Altinn Studio and its apps, use the published variants u
 | ---------- | -------------------------------------------------------------- | -------------------- |
 | `worktree` | The current host checkout bind-mounted read-write              | 4 CPU, 8Gi, 64Gi     |
 | `checkout` | A fresh clone of `Altinn/altinn-studio` made once at boot      | 4 CPU, 8Gi, 64Gi     |
-| `nested`   | Like `checkout`, Claude only, sized to run inside another Agent | 2 CPU, 3Gi, 16Gi     |
+| `nested`   | Like `checkout`, sized to run inside another self-dev Agent    | 2 CPU, 3Gi, 16Gi     |
 
 All three build the same image from the shared `Dockerfile`: the Rust toolchain pinned in the root `Cargo.toml` with
 clippy, rustfmt and `cargo-machete`, `libcap-ng-dev` for the Microsandbox runtime, Podman with the `docker` shim, the
@@ -58,11 +58,13 @@ The Sandbox exposes `/dev/kvm` and a Podman socket, so the Agent can run the who
 Engine API through `DOCKER_HOST`. Nested Sandboxes share the outer Sandbox's mediated network and receive no real
 secrets either.
 
-Nested harness login chains the mediated placeholders: `agentctl claude login --token-stdin` accepts the outer
+Nested harness login chains the mediated placeholders: `agentctl claude login --from-stdin` accepts the outer
 Sandbox's `CLAUDE_CODE_OAUTH_TOKEN` placeholder, validates it through the outer mediator, and stores it as the nested
 "secret". The nested Sandbox then receives a placeholder of its own, and each mediator rewrites one level on the way
-out. The same works for `GITHUB_TOKEN` in the nested secret file. `instructions.md` spells the steps out for the Agent.
-Codex has no equivalent yet because its credential is a whole `auth.json` rather than a bearer token.
+out. The same works for `GITHUB_TOKEN` in the nested secret file, and for Codex through
+`agentctl codex login --from-stdin < ~/.codex/auth.json`: the nested `agentd` recognizes the placeholder
+`auth.json`, stores it verbatim as a mediated credential and never refreshes it. `instructions.md` spells the steps
+out for the Agent.
 
 ## Mediation
 

@@ -25,7 +25,8 @@ To run a nested Agent, chain the mediated placeholders. They are inert by design
 expected:
 
 ```sh
-printf '%s\n' "$CLAUDE_CODE_OAUTH_TOKEN" | agentctl claude login --token-stdin
+printf '%s\n' "$CLAUDE_CODE_OAUTH_TOKEN" | agentctl claude login --from-stdin
+agentctl codex login --from-stdin < ~/.codex/auth.json
 cd altinn-studio/src/experimental/agent/examples/self-dev/nested
 printf 'GITHUB_TOKEN=%s\n' "$GITHUB_TOKEN" > /home/agent/nested.env
 agentctl apply -f agent.yaml --env-file /home/agent/nested.env
@@ -33,7 +34,9 @@ agentctl wait --for=condition=Ready agent/agent-dev-nested --timeout=20m
 ```
 
 The nested `agentd` validates the Claude placeholder against `api.anthropic.com`; this Sandbox's mediator substitutes
-the real token on the way out, so validation succeeds without a credential ever being present here. Use the `nested`
+the real token on the way out, so validation succeeds without a credential ever being present here. The Codex
+`auth.json` here holds placeholders too; the nested `agentd` recognizes them, stores them verbatim and never tries to
+refresh them. Use the `nested`
 variant, whose resources fit inside this Sandbox's 4 CPU, 8Gi and 64Gi. Keep the nested secret file outside any
 directory a nested manifest bind-mounts; `agentctl apply` refuses the combination.
 
