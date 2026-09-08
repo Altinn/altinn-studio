@@ -21,6 +21,7 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
     public virtual DbSet<ContactPointDbModel> ContactPoints { get; set; }
     public virtual DbSet<ContactMethodDbModel> ContactMethods { get; set; }
+    public virtual DbSet<AdminAuditLogDbModel> AdminAuditLog { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +38,7 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
         modelBuilder.ApplyConfiguration(new ContactPointConfiguration());
         modelBuilder.ApplyConfiguration(new ContactMethodConfiguration());
+        modelBuilder.ApplyConfiguration(new AdminAuditLogConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

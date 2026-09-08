@@ -42,6 +42,21 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    /// <summary>
+    /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
+    /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
+    /// mapping - notably <c>Altinn.EFormidlingClient.Extensions</c> is deliberately absent, having no
+    /// destination; <see cref="CSharpApiMigration.RemovedEFormidlingClientApiDetector"/> reports it
+    /// instead.
+    /// </summary>
+    internal static readonly (string Old, string New)[] EFormidlingNamespaces =
+    [
+        ("Altinn.Common.EFormidlingClient", "Altinn.App.Core.EFormidling.Interface"),
+        ("Altinn.Common.EFormidlingClient.Configuration", "Altinn.App.Core.EFormidling.Configuration"),
+        ("Altinn.Common.EFormidlingClient.Models", "Altinn.App.Core.EFormidling.Models"),
+        ("Altinn.Common.EFormidlingClient.Models.SBD", "Altinn.App.Core.EFormidling.Models.SBD"),
+    ];
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
@@ -108,6 +123,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveLoggingDebugPackage(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
@@ -125,6 +143,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingClientNamespaces(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -135,6 +156,12 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateMisspelledApis(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileAnalysisNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
@@ -162,6 +189,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
@@ -198,6 +228,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
 
         return returnCode;
     }
@@ -295,6 +328,33 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    // net10.0's shared framework now carries Microsoft.Extensions.Logging.Debug's DebugLoggerProvider
+    // itself, so an app's own explicit reference to the (older) NuGet package collides with it at
+    // build time (CS0433, ambiguous 'DebugLoggerProvider'). The provider is still wired up by default
+    // through WebApplication.CreateBuilder, so dropping the package reference loses nothing.
+    static async Task<int> RemoveLoggingDebugPackage(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Logging.Debug package");
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            if (await rewriter.RemovePackageReference("Microsoft.Extensions.Logging.Debug"))
+            {
+                UpgradeConsole.Ok("Microsoft.Extensions.Logging.Debug package reference removed");
+            }
+            else
+            {
+                UpgradeConsole.Skip("No Microsoft.Extensions.Logging.Debug package reference");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing Microsoft.Extensions.Logging.Debug package reference", ex);
+        }
+    }
+
     /// <summary>
     /// Parses the app's C# source once, shared by every C# migration step. Unless disabled, it first
     /// restores and compiles the app against its current (v8) packages so detection can use exact
@@ -355,6 +415,26 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error resolving package downgrades", ex);
+        }
+    }
+
+    /// <summary>Rewrites the eFormidling client namespace usings across all app C# files.</summary>
+    static async Task<int> MigrateEFormidlingClientNamespaces(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("eFormidling client namespaces");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            foreach (var (oldNamespace, newNamespace) in EFormidlingNamespaces)
+            {
+                migration.Migrate(oldNamespace, newNamespace, _allCSharpFilesMatcher);
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating eFormidling client namespaces", ex);
         }
     }
 
@@ -470,7 +550,54 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// Renames the misspelled public C# API names that v9 corrected to US English (the
+    /// OrganisationNumber and IFileAnalyser families, InstansiationInstance, and friends). Compile-time
+    /// names only; the wire spellings are pinned in the SDK and no string literal is touched.
+    /// </summary>
+    static async Task<int> MigrateMisspelledApis(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Misspelled APIs");
+        try
+        {
+            var result = new MisspelledApiMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No renamed SDK API spellings in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating misspelled APIs", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites usings of the misspelled v8 <c>Features.FileAnalyzis</c> namespace. Runs after
+    /// <see cref="MigrateMisspelledApis"/>, which leaves those using directives alone precisely so this
+    /// step can merge them with an existing using of the correctly spelled sibling namespace.
+    /// </summary>
+    static async Task<int> MigrateFileAnalysisNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("FileAnalysis namespace");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            migration.Migrate(
+                "Altinn.App.Core.Features.FileAnalyzis",
+                "Altinn.App.Core.Features.FileAnalysis",
+                _allCSharpFilesMatcher
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileAnalysis namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>
@@ -495,6 +622,7 @@ internal static class V8Tov9Upgrade
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
+                new RemovedEFormidlingClientApiDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
                 new LegacyCorrespondenceCodeDetector(scanner).Detect(),
                 new PlatformHttpExceptionApiDetector(scanner).Detect(),
@@ -608,6 +736,23 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Datepicker timeStamp defaults", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
+    /// so a customized validation message keeps applying after the v9 key rename.
+    /// </summary>
+    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Datepicker text keys");
+        try
+        {
+            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Datepicker text-resource keys", ex);
         }
     }
 
@@ -920,6 +1065,11 @@ internal static class V8Tov9Upgrade
                 return ExitSuccess;
             }
 
+            foreach (var todo in result.Todos)
+            {
+                UpgradeConsole.Todo(todo);
+            }
+
             UpgradeConsole.Ok($"Migrated {result.MigratedFolderCount} UI folder(s)");
             UpgradeConsole.Ok(
                 $"Folder operations: {result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, {result.DeletedSourceFolderCount} deleted source folder(s)"
@@ -1112,6 +1262,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 12: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
+    /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
+    /// not followed by the exclusive gateway the v9 app requires at startup.
+    /// </summary>
+    static async Task<int> MigrateFiksArkivSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Fiks Arkiv settings");
+        try
+        {
+            var migrator = new FiksArkivSettingsMigration.FiksArkivSettingsMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No Fiks Arkiv settings to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Fiks Arkiv settings", ex);
         }
     }
 

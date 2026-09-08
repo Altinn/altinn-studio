@@ -1,5 +1,0 @@
-{
-  "name": "should return false if the second string does not contain the first string",
-  "expression": ["contains", "Hello", "Bye"],
-  "expects": false
-}

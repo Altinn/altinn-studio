@@ -151,7 +151,7 @@ func (b Backend) Destroy(ctx context.Context, id resource.ResourceID, observed e
 	}
 }
 
-// Discover adds labelled runtime resources owned by the graph to snapshot.
+// Discover adds labeled runtime resources owned by the graph to snapshot.
 func (b Backend) Discover(ctx context.Context, _ executor.BackendContext, snapshot *executor.Snapshot) error {
 	return b.discoverContainerGraphResources(ctx, snapshot)
 }

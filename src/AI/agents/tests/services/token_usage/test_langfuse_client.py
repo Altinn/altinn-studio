@@ -61,6 +61,7 @@ class TestAsTracePayload:
                 "id": "span-1",
                 "traceId": "trace-1",
                 "userId": "dev",
+                "environment": "default",
                 "metadata": {"session_id": "s1"},
             }
         )
@@ -68,11 +69,17 @@ class TestAsTracePayload:
         assert payload == {
             "id": "trace-1",
             "userId": "dev",
+            "environment": "default",
             "metadata": {"session_id": "s1"},
         }
 
     def test_missing_fields_do_not_raise(self):
-        assert _as_trace_payload({}) == {"id": None, "userId": None, "metadata": None}
+        assert _as_trace_payload({}) == {
+            "id": None,
+            "userId": None,
+            "environment": None,
+            "metadata": None,
+        }
 
 
 def _rows(count: int) -> list[dict]:

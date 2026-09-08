@@ -90,7 +90,7 @@ jobs:
     needs: determine-tag
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid semantic version
       chart-name: altinn-designer
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: dev

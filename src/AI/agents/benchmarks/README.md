@@ -14,7 +14,7 @@ quality, and you want evidence rather than a hunch:
   or temperature. Name the run after the change so the two columns sit
   next to each other in Langfuse.
 - **After a model or SDK bump**, where nothing in our code changed but
-  behaviour may have.
+  behavior may have.
 - **When a rubric or dataset item changes**, to re-baseline what "good"
   means before comparing anything to it.
 

@@ -6,13 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Altinn.App.Core.Features.Options;
 
 /// <summary>
-/// class to hold the Extention method for
+/// class to hold the Extension method for
 /// IServiceCollection to add the AddAltinn2CodeList() method
 /// </summary>
 public static class CommonOptionProviderServiceCollectionExtensions
 {
     /// <summary>
-    /// Extention method for IServiceCollection to add the AddAltinn2CodeList() method
+    /// Extension method for IServiceCollection to add the AddAltinn2CodeList() method
     /// <code>
     /// services.AddAltinn2CodeList(
     ///     id: "ASF_Land",
@@ -51,7 +51,7 @@ public static class CommonOptionProviderServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Extention method for IServiceCollection to add the AddAltinn3CodeList() method
+    /// Extension method for IServiceCollection to add the AddAltinn3CodeList() method
     /// <code>
     /// services.AddAltinn3CodeList(
     ///     optionId: "someNewCodeList-1",

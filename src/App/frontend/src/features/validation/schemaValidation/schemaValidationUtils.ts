@@ -132,7 +132,7 @@ const errorTypes: { [type in string]: { textKey: string; paramKey: string } | un
 };
 
 /**
- * Extract standarized language key from an error object.
+ * Extract standardized language key from an error object.
  */
 export function getErrorTextKey(error: ErrorObject): string {
   const errorType = errorTypes[error.keyword];

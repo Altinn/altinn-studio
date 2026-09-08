@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TextResource } from '@studio/components-legacy';
+import type { TextResource } from '@studio/pure-functions';
 import { StudioSearch } from '@studio/components';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';

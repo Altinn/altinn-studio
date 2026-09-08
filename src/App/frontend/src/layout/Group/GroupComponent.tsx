@@ -1,7 +1,7 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper, Panel } from '@app/form-component';
+import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, Panel } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -38,7 +38,7 @@ export function GroupComponent({
   renderLayoutComponent,
 }: IGroupComponent) {
   const container = useItemWhenType(baseComponentId, 'Group');
-  const { title, summaryTitle, description } = container.textResourceBindings ?? {};
+  const { title, summaryTitle, description, help } = container.textResourceBindings ?? {};
   const isHidden = useIsHidden(baseComponentId);
 
   const indexedId = useIndexedId(baseComponentId);
@@ -84,6 +84,15 @@ export function GroupComponent({
               <span className={classes.description}>
                 <Lang id={description} />
               </span>
+            ) : undefined
+          }
+          help={
+            help && !isSummary ? (
+              <HelpTextContainer
+                id={indexedId}
+                title={legend}
+                helpText={<Lang id={help} />}
+              />
             ) : undefined
           }
         >

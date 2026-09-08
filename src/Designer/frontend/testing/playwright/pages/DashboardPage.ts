@@ -30,7 +30,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async checkThatThereIsNoFavouriteAppInList(appName: string): Promise<void> {
-    // The .first() is added becuase the key is used two places; one in favourite list, and one in all applications list
+    // The .first() is added because the key is used two places; one in favorite list, and one in all applications list
     await this.page
       .getByRole('button', { name: this.textMock('dashboard.unstar', { appName }), exact: true })
       .first()
@@ -50,7 +50,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnUnFavouriteApplicatin(appName: string): Promise<void> {
-    // The .first() is added becuase the key is used two places; one in favourite list, and one in all applications list
+    // The .first() is added because the key is used two places; one in favorite list, and one in all applications list
     await this.page
       .getByRole('button', { name: this.textMock('dashboard.unstar', { appName }), exact: true })
       .first()

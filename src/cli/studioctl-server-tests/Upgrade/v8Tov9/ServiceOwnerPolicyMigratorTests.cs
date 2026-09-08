@@ -76,7 +76,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     public async Task DefaultStudioTemplatePolicy_NeedsNoMigration()
     {
         // A freshly-scaffolded app ships with the default Studio template, whose org rule already
-        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognise
+        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognize
         // that and leave the file completely untouched. The fixture is a verbatim copy of
         // src/App/template/v8/src/App/config/authorization/policy.xml.
         var policy = await File.ReadAllTextAsync(

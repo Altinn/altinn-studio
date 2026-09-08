@@ -47,5 +47,6 @@ def _as_trace_payload(root_span: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": root_span.get("traceId"),
         "userId": root_span.get("userId"),
+        "environment": root_span.get("environment"),
         "metadata": root_span.get("metadata"),
     }

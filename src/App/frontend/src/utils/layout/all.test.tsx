@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
+import path from 'node:path';
 import layoutSchema from 'schemas/json/layout/layout.schema.v1.json';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -17,9 +18,10 @@ import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-vi.mock('src/features/applicationMetadata');
-vi.mock('src/features/form/ui');
 vi.mock('src/queries/queries');
+vi.mock('src/features/options/useSourceOptions', () => ({
+  useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
+}));
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
@@ -91,8 +93,13 @@ const consoleLoggers = ['error', 'warn', 'log'];
 
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
+  let featureTogglesWere: typeof window.featureToggles;
+  let forceLayoutPropertiesValidationWas: typeof window.forceLayoutPropertiesValidation;
   beforeAll(() => {
+    forceLayoutPropertiesValidationWas = window.forceLayoutPropertiesValidation;
     window.forceLayoutPropertiesValidation = 'on';
+    featureTogglesWere = window.featureToggles;
+    window.featureToggles = { ...window.featureToggles, simpleTableEnabled: true };
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
       vi
@@ -115,12 +122,13 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterAll(() => {
-    window.forceLayoutPropertiesValidation = 'off';
-    window.location.pathname = pathnameWas;
+    window.forceLayoutPropertiesValidation = forceLayoutPropertiesValidationWas;
+    window.featureToggles = featureTogglesWere;
+    window.history.replaceState({}, '', pathnameWas);
     vi.restoreAllMocks();
   });
 
-  const dir = ensureAppsDirIsSet();
+  const dir = ensureAppsDirIsSet(true, path.resolve(import.meta.dirname, '../../../../../test/apps'));
   if (!dir) {
     return;
   }
@@ -137,8 +145,8 @@ describe('All known UI folders should render successfully', () => {
   allSets.sort(() => Math.random() - 0.5);
 
   async function testSet(uiFolder: ExternalAppUiFolder) {
-    const { pathname, mainFolder, subformComponent } = uiFolder.initialize();
-    window.location.pathname = pathname;
+    const { pathname, initialPage, mainFolder, subformComponent } = uiFolder.initialize();
+    window.history.replaceState({}, '', pathname);
     const [org, app] = uiFolder.app.getOrgApp();
     window.org = org;
     window.app = app;
@@ -148,12 +156,15 @@ describe('All known UI folders should render successfully', () => {
     const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),
+      initialPath: pathname,
+      initialPage,
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
         fetchFormBootstrapForInstance: async (options) =>
           getFormBootstrapMock((obj) => {
             obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+            obj.staticOptions = uiFolder.app.getStaticOptions();
             const models = uiFolder.app.getDataModelsFromMetaData();
             obj.dataModels = Object.fromEntries(
               models.map((model) => [

@@ -23,6 +23,62 @@ namespace Altinn.Studio.Designer.Migrations
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AdminAuditLogDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("action");
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<string>("Env")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("env");
+
+                    b.Property<string>("InstanceId")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("instance_id");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("timestamp");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("user_name");
+
+                    b.HasKey("Id")
+                        .HasName("admin_audit_log_pkey");
+
+                    b.HasIndex(new[] { "Org", "App", "Timestamp" }, "idx_admin_audit_log_org_app_timestamp");
+
+                    b.ToTable("admin_audit_log", "designer");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ApiKeyDbModel", b =>
                 {
                     b.Property<long>("Id")
@@ -255,6 +311,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("attachment_file_names");
 
+                    b.Property<bool?>("AttachmentInstructionFlagged")
+                        .HasColumnType("boolean")
+                        .HasColumnName("attachment_instruction_flagged");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("character varying")
@@ -275,10 +335,6 @@ namespace Altinn.Studio.Designer.Migrations
                     b.PrimitiveCollection<List<string>>("FilesChanged")
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
-
-                    b.Property<bool?>("AttachmentInstructionFlagged")
-                        .HasColumnType("boolean")
-                        .HasColumnName("attachment_instruction_flagged");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")

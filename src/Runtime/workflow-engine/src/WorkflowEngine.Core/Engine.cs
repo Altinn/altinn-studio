@@ -1,11 +1,14 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
@@ -59,6 +62,37 @@ internal interface IEngine
     /// it up immediately instead of when its timer elapses. Idempotent.
     /// </summary>
     Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fails a parked workflow (Requeued or Waiting) by caller decision, recording <paramref name="reason"/>
+    /// as the parked step's final error entry. Compare-and-set: a workflow that is not parked is left alone.
+    /// </summary>
+    Task<FailWorkflowResult> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        string reason,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>Mints a mailbox, idempotent on the caller's key within the namespace.</summary>
+    Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Closes a mailbox for deliveries. Idempotent: an already-closed mailbox is reported as it stands.
+    /// </summary>
+    Task<MailboxCloseResult> CloseMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>Delivers one message, idempotent on the caller's key within the mailbox.</summary>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDeliveryRequest request,
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>
@@ -122,6 +156,9 @@ internal interface IEngineStatus
 
 internal sealed class Engine(
     WorkflowWriteBuffer writeBuffer,
+    MailboxMintBuffer mintBuffer,
+    MailboxCloseBuffer closeBuffer,
+    MailboxDeliveryBuffer deliveryBuffer,
     ICommandRegistry registry,
     IConcurrencyLimiter limiter,
     IEngineRepository repository,
@@ -267,6 +304,23 @@ internal sealed class Engine(
         {
             var hash = request.ComputeHash();
             var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
+
+            // Decided inside the flush under the mailbox row lock, and carrying no workflow ids — which is why
+            // they answer before the zip below.
+            if (outcome.Status is BatchEnqueueResultStatus.MailboxNotFound)
+            {
+                activity?.Errored(errorMessage: outcome.Message);
+                return new WorkflowEnqueueResponse.Rejected.Invalid(outcome.Message ?? "Unknown mailbox.");
+            }
+
+            if (outcome.Status is BatchEnqueueResultStatus.MailboxLogFull)
+            {
+                activity?.Errored(errorMessage: outcome.Message);
+                return new WorkflowEnqueueResponse.Rejected.AtCapacity(
+                    outcome.Message ?? "The mailbox's receivers log is full."
+                );
+            }
+
             // outcome.WorkflowIds is in request order (see EngineRepository.Writes.BatchEnqueueWorkflows)
             var results = request
                 .Workflows.Zip(
@@ -418,6 +472,209 @@ internal sealed class Engine(
         return new NudgeWorkflowResult.NotParked(status.Value);
     }
 
+    /// <inheritdoc/>
+    public async Task<FailWorkflowResult> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        string reason,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            return new FailWorkflowResult.Invalid("Reason cannot be empty or whitespace.");
+
+        if (reason.Length > FailWorkflowRequest.MaxReasonLength)
+            return new FailWorkflowResult.Invalid(
+                $"Reason is {reason.Length} characters, maximum is {FailWorkflowRequest.MaxReasonLength}."
+            );
+
+        var now = timeProvider.GetUtcNow();
+        var failed = await repository.FailWorkflow(workflowId, ns, now, reason, cancellationToken);
+
+        if (failed is not null)
+        {
+            Metrics.StepsFailed.Add(1, ("reason", "manual"));
+            Metrics.WorkflowsFailed.Add(
+                1,
+                ("reason", "manual"),
+                ("is_head", WorkflowExtensions.IsHeadTagValue(failed.IsHead))
+            );
+
+            // The failure may unblock dependents (they settle as DependencyFailed on their next
+            // evaluation); signal so that happens on the next fetch cycle rather than the next poll tick.
+            workflowSignal.Signal();
+
+            return new FailWorkflowResult.Failed(workflowId, now);
+        }
+
+        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
+        if (status is null)
+            return new FailWorkflowResult.NotFound();
+
+        return new FailWorkflowResult.NotParked(status.Value);
+    }
+
+    /// <summary><c>idempotency_key</c> and <c>collection_key</c> are both <c>varchar(200)</c>.</summary>
+    private const int MaxMailboxKeyLength = 200;
+
+    /// <summary>
+    /// Length must be caught before the database: Postgres answers an over-long <c>varchar(200)</c> with SQLSTATE
+    /// 22001, which the retry classifier reads as transient — a typo retried to the command timeout and logged as
+    /// a suspected outage.
+    /// </summary>
+    private MailboxMintResult.Invalid? ValidateMailboxRequest(MailboxCreateRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+            return new MailboxMintResult.Invalid("IdempotencyKey cannot be empty or whitespace.");
+
+        if (request.IdempotencyKey.Length > MaxMailboxKeyLength)
+            return new MailboxMintResult.Invalid(
+                $"IdempotencyKey '{request.IdempotencyKey[..50]}...' is {request.IdempotencyKey.Length} characters, maximum is {MaxMailboxKeyLength}."
+            );
+
+        if (request.CollectionKey is not null)
+        {
+            if (string.IsNullOrWhiteSpace(request.CollectionKey))
+                return new MailboxMintResult.Invalid("CollectionKey cannot be empty or whitespace.");
+
+            if (request.CollectionKey.Length > MaxMailboxKeyLength)
+                return new MailboxMintResult.Invalid(
+                    $"CollectionKey '{request.CollectionKey[..50]}...' is {request.CollectionKey.Length} characters, maximum is {MaxMailboxKeyLength}."
+                );
+        }
+
+        if (request.Timeout <= TimeSpan.Zero)
+            return new MailboxMintResult.Invalid($"Timeout must be greater than zero, but was {request.Timeout}.");
+
+        if (request.Timeout > _settings.MaxMailboxTimeout)
+            return new MailboxMintResult.Invalid(
+                $"Timeout {request.Timeout} exceeds the maximum mailbox timeout of {_settings.MaxMailboxTimeout}."
+            );
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (ValidateMailboxRequest(request) is { } invalid)
+            return invalid;
+
+        var now = timeProvider.GetUtcNow();
+
+        // Time-ordered so a mailbox id sorts by mint time, as every other engine-generated id does.
+        var mailboxId = Guid.CreateVersion7(now);
+
+        var result = await mintBuffer.Enqueue(
+            mailboxId,
+            ns,
+            request.IdempotencyKey,
+            request.CollectionKey,
+            request.Timeout,
+            now,
+            cancellationToken
+        );
+
+        if (result is MailboxMintResult.Minted)
+            Metrics.MailboxesCreated.Add(1);
+
+        return result;
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxCloseResult> CloseMailbox(
+        Guid mailboxId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        // The closure metrics are the routine's, published by the repository after commit — the deadline sweep
+        // runs the same routine without passing through here.
+        return await closeBuffer.Enqueue(
+            mailboxId,
+            ns,
+            MailboxDisposedReason.Request,
+            timeProvider.GetUtcNow(),
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Key length for the reason <see cref="ValidateMailboxRequest"/> gives; the payload cap because it needs no
+    /// row state, so refusing early spends no connection on an answer knowable from the request.
+    /// </summary>
+    private MailboxDeliveryResult? ValidateMailboxDeliveryRequest(MailboxDeliveryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+            return new MailboxDeliveryResult.Invalid("IdempotencyKey cannot be empty or whitespace.");
+
+        if (request.IdempotencyKey.Length > MaxMailboxKeyLength)
+            return new MailboxDeliveryResult.Invalid(
+                $"IdempotencyKey '{request.IdempotencyKey[..50]}...' is {request.IdempotencyKey.Length} characters, maximum is {MaxMailboxKeyLength}."
+            );
+
+        // Not redundant with the property being declared required: `required` makes the property appear in the
+        // JSON, not be non-null in it, and an explicit null binds straight through.
+        if (request.Payload is null)
+            return new MailboxDeliveryResult.Invalid("Payload is required.");
+
+        var payloadSize = Encoding.UTF8.GetByteCount(request.Payload);
+        if (payloadSize > _settings.MaxMailboxPayloadSize)
+            return new MailboxDeliveryResult.PayloadTooLarge(
+                $"The delivery's payload is {payloadSize} bytes, maximum is {_settings.MaxMailboxPayloadSize}. "
+                    + "Store large content externally and let the delivery carry a reference."
+            );
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDeliveryRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var result =
+            ValidateMailboxDeliveryRequest(request)
+            ?? await deliveryBuffer.Enqueue(
+                mailboxId,
+                ns,
+                request.IdempotencyKey,
+                request.Payload,
+                timeProvider.GetUtcNow(),
+                cancellationToken
+            );
+
+        // Counted for every outcome, pre-lock refusals included, so a storm of bad forwards is visible in the
+        // mailbox metrics and not only in HTTP status codes.
+        Metrics.MailboxDeliveriesReceived.Add(1, ("outcome", MailboxDeliveryOutcomeTag(result)));
+
+        return result;
+    }
+
+    /// <summary>
+    /// Internal so <c>MailboxDeliveryOutcomeTagTests</c> covers every case — the rarer ones cost a filled log
+    /// or a malformed request to reach through the endpoint.
+    /// </summary>
+    internal static string MailboxDeliveryOutcomeTag(MailboxDeliveryResult result) =>
+        result switch
+        {
+            MailboxDeliveryResult.Accepted => "accepted",
+            MailboxDeliveryResult.Duplicate => "duplicate",
+            MailboxDeliveryResult.NotFound => "not_found",
+            MailboxDeliveryResult.Closed => "closed",
+            MailboxDeliveryResult.LogFull => "log_full",
+            MailboxDeliveryResult.PayloadTooLarge => "too_large",
+            MailboxDeliveryResult.Invalid => "invalid",
+            _ => throw new UnreachableException(),
+        };
+
     /// <summary>
     /// Validates that all command types in the request are known to the registry
     /// and that command-specific validation passes (including typed deserialization).
@@ -548,6 +805,28 @@ internal sealed class Engine(
                 return new RequestConstraintValidationResult.Invalid(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
+
+            // "At most one mailbox block" and "the delivery lands in the first step" need no check — both are
+            // the shape of the type. The rest is checkable.
+            if (workflow.Mailbox is { } mailbox)
+            {
+                if (mailbox.Id == Guid.Empty)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox with an empty id."
+                    );
+
+                // A held row has no schedule — nothing consults its StartAt — so honoring both would mean
+                // silently ignoring one.
+                if (workflow.StartAt is { } startAt)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Workflow '{workflow.Ref ?? $"#{i}"}' declares both a mailbox and a startAt ({startAt:O}); a mailbox receiver has no schedule."
+                    );
+
+                if (workflow.Steps.Count == 0)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox but has no steps to receive into."
+                    );
+            }
 
             for (int j = 0; j < workflow.Steps.Count; j++)
             {

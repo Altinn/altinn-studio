@@ -6,7 +6,7 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Recognises the one failure that looks like an infrastructure problem but is really a
+/// Recognizes the one failure that looks like an infrastructure problem but is really a
 /// configuration one: Altinn Authorization denying the app while it acts as the service owner.
 ///
 /// The app persists process transitions and instance data to Storage as the service owner rather

@@ -106,7 +106,7 @@ spec:
               mountPath: /tmp
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /api/v1/health/live
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 10
@@ -114,7 +114,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /api/v1/health/ready
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 5

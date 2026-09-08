@@ -1,0 +1,21 @@
+{
+  "id": "ttd/process-version-admission",
+  "org": "ttd",
+  "title": {
+    "nb": "Process version admission test"
+  },
+  "dataTypes": [
+    {
+      "id": "Model",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "classRef": "Altinn.App.Models.model.Model"
+      },
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ]
+}

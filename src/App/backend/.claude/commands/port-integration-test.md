@@ -21,7 +21,7 @@ Practices and rules when using the new harness:
 
 To port a test, follow these instructions
 
-1. Read the existing test and undestand what it verifies
+1. Read the existing test and understand what it verifies
 2. Ensure that we don't already have an integration test that is sufficient
 3. Create a plan for implementing the test in @test/Altinn.App.Integration.Tests/ :
   - Explain where the test belongs

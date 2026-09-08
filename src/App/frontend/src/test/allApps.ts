@@ -11,10 +11,19 @@ import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { GlobalPageSettings, UiConfig } from 'src/features/form/ui/types';
+import type { StaticOptionSet } from 'src/features/formBootstrap/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
+
+export function getProcessTaskType(process: string, taskId: string): string | undefined {
+  const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const task = process.match(
+    new RegExp(`<bpmn:([A-Za-z]*Task|task)\\b(?=[^>]*\\bid="${escapedTaskId}")[^>]*(?<!/)>([\\s\\S]*?)<\\/bpmn:\\1>`),
+  );
+  return task?.[2].match(/<altinn:taskType>([^<]+)<\/altinn:taskType>/)?.[1];
+}
 
 export class ExternalApp {
   private compat = false;
@@ -70,6 +79,22 @@ export class ExternalApp {
     return fs.readdirSync(this.rootDir + path);
   }
 
+  getStaticOptions(): Record<string, StaticOptionSet> {
+    const optionsPath = '/App/options';
+    if (!this.dirExists(optionsPath)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      this.readDir(optionsPath)
+        .filter((fileName) => fileName.endsWith('.json'))
+        .map((fileName) => [
+          path.basename(fileName, '.json'),
+          { options: this.readJson(`${optionsPath}/${fileName}`) },
+        ]),
+    );
+  }
+
   getBackendVersion(): string | undefined {
     let appFile: string;
     try {
@@ -105,6 +130,15 @@ export class ExternalApp {
       return undefined;
     }
     return parseInt(version.split('.')[0], 10);
+  }
+
+  getProcessTaskType(taskId: string): string | undefined {
+    const processPath = '/App/config/process/process.bpmn';
+    if (!this.fileExists(processPath)) {
+      return undefined;
+    }
+
+    return getProcessTaskType(this.readFile(processPath), taskId);
   }
 
   isValid(): boolean {
@@ -379,12 +413,17 @@ export class ExternalAppUiFolder {
     return this.getName();
   }
 
-  initialize(): { pathname: string; mainFolder: ExternalAppUiFolder; subformComponent?: CompExternal<'Subform'> } {
+  initialize(): {
+    pathname: string;
+    initialPage: string;
+    mainFolder: ExternalAppUiFolder;
+    subformComponent?: CompExternal<'Subform'>;
+  } {
     const instance = getInstanceDataMock();
     const pageSettings = this.getSettings().pages;
     const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
 
-    let pathname = `/dummyOrg/dummyApp/instance/${instance.instanceOwner.partyId}/${instance.id}`;
+    let pathname = `/ttd/test/instance/${instance.id}`;
     let mainSet: ExternalAppUiFolder | undefined;
     let subformComponent: CompExternal<'Subform'> | undefined = undefined;
 
@@ -406,7 +445,7 @@ export class ExternalAppUiFolder {
     if (!mainSet || !subformComponent) {
       // No other layout set includes us as a subform, we must be the main form.
       pathname += `/${this.getTaskId()}/${firstPage}`;
-      return { pathname, mainFolder: this };
+      return { pathname, initialPage: firstPage, mainFolder: this };
     }
 
     // From here on out, we're in a subform
@@ -415,17 +454,20 @@ export class ExternalAppUiFolder {
     const elementId = `fakeUuid:${this.config.defaultDataType}:end`;
     pathname += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
 
-    return { pathname, mainFolder: mainSet, subformComponent };
+    return { pathname, initialPage: firstPage, mainFolder: mainSet, subformComponent };
   }
 
   simulateProcessData(): IProcess {
     const taskId = this.getTaskId();
+    const taskType = this.app.getProcessTaskType(taskId);
     return getProcessDataMock((process) => {
       assert(process.currentTask?.elementId === 'Task_1');
       process.currentTask.elementId = taskId;
       process.currentTask.name = taskId;
+      process.currentTask.altinnTaskType = taskType ?? process.currentTask.altinnTaskType;
       assert(process.processTasks?.[0]?.elementId === 'Task_1');
       process.processTasks[0].elementId = taskId;
+      process.processTasks[0].altinnTaskType = taskType ?? process.processTasks[0].altinnTaskType;
     });
   }
 }
@@ -538,9 +580,9 @@ export function getAllApps(dir: string): ExternalApp[] {
  * Utility function used to get the path to a directory containing all known apps.
  * Only call this from unit tests, and be sure to stop the test if it fails.
  */
-export function ensureAppsDirIsSet(runVoidTest = true) {
+export function ensureAppsDirIsSet(runVoidTest = true, fallbackDir?: string) {
   const env = dotenv.config({ quiet: true });
-  const dir = env.parsed?.ALTINN_ALL_APPS_DIR;
+  const dir = env.parsed?.ALTINN_ALL_APPS_DIR ?? fallbackDir;
   if (!dir) {
     if (runVoidTest) {
       it('did not find any apps', () => {

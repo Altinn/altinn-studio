@@ -86,6 +86,7 @@ not delete guest files that disappear from the source. Builders may use it to ow
 with the consequence that those files are reapplied on every Agent pass.
 
 `spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
+A declared `version` is verified against the image at setup; omit it when the image owns the version, so image bumps need no manifest change.
 `spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
 at its global instruction location: `~/.claude/CLAUDE.md` for Claude Code and `~/.codex/AGENTS.md` for Codex.
 Repository-local instruction files continue to be discovered by the harness itself.

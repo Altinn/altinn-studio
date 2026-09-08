@@ -108,6 +108,13 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
       name: 'addButton',
       title: 'Add button (suffix)',
       description: 'The text for the "Add" button (used as a suffix after the default button text)',

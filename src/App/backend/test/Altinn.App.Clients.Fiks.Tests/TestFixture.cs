@@ -37,7 +37,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using Polly;
 
 namespace Altinn.App.Clients.Fiks.Tests;
 
@@ -55,7 +54,10 @@ internal sealed record TestFixture(
     Mock<IMaskinportenClient> MaskinportenClientMock,
     Mock<ILoggerFactory> LoggerFactoryMock,
     Mock<IDataClient> DataClientMock,
+    Mock<IDataClientWithStorageMetadata> DataClientWithStorageMetadataMock,
+    Mock<IInstanceMutationClient> InstanceMutationClientMock,
     Mock<IInstanceClient> InstanceClientMock,
+    Mock<IInstanceClientWithStorageMetadata> InstanceClientWithStorageMetadataMock,
     Mock<IAppResources> AppResourcesMock,
     Mock<IAppModel> AppModelMock,
     Mock<IAuthenticationContext> AuthenticationContextMock,
@@ -78,20 +80,22 @@ internal sealed record TestFixture(
         App.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
     public FiksArkivConfigValidationService FiksArkivConfigValidationService =>
         App.Services.GetServices<IHostedService>().OfType<FiksArkivConfigValidationService>().Single();
-    public FiksArkivHost FiksArkivHost => App.Services.GetServices<IHostedService>().OfType<FiksArkivHost>().Single();
+    public FiksArkivSubscriber FiksArkivSubscriber =>
+        App.Services.GetServices<IHostedService>().OfType<FiksArkivSubscriber>().Single();
+    public IFiksArkivMessageSender FiksArkivMessageSender => App.Services.GetRequiredService<IFiksArkivMessageSender>();
     public IAltinnCdnClient AltinnCdnClient => App.Services.GetRequiredService<IAltinnCdnClient>();
-    public IFiksArkivResponseHandler FiksArkivResponseHandler =>
-        App.Services.GetRequiredService<IFiksArkivResponseHandler>();
+    public IFiksArkivMessageHandler? FiksArkivMessageHandler => App.Services.GetService<IFiksArkivMessageHandler>();
     public IFiksArkivPayloadGenerator FiksArkivPayloadGenerator =>
         App.Services.GetRequiredService<IFiksArkivPayloadGenerator>();
     public IFiksArkivConfigResolver FiksArkivConfigResolver =>
         App.Services.GetRequiredService<IFiksArkivConfigResolver>();
     public IFiksArkivInstanceClient FiksArkivInstanceClient =>
         App.Services.GetRequiredService<IFiksArkivInstanceClient>();
-    public IServiceTask FiksArkivServiceTask =>
-        AppImplementationFactory.GetAll<IServiceTask>().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
-    public ResiliencePipeline<FiksIOMessageResponse> FiksIOResiliencePipeline =>
-        App.Services.ResolveResiliencePipeline();
+    public IPipelineServiceTask FiksArkivServiceTask =>
+        AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
+
+    /// <summary>The Fiks Arkiv task's composed pipeline — the send stage plus its reply handler.</summary>
+    public ServiceTaskPipeline FiksArkivPipeline => FiksArkivServiceTask.ResolvePipeline();
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();
     public IProcessReader ProcessReader => App.Services.GetRequiredService<IProcessReader>();
     public IHttpClientFactory HttpClientFactory => App.Services.GetRequiredService<IHttpClientFactory>();
@@ -147,7 +151,10 @@ internal sealed record TestFixture(
         var appMetadataMock = new Mock<IAppMetadata>();
         var maskinportenClientMock = new Mock<IMaskinportenClient>();
         var dataClientMock = new Mock<IDataClient>();
+        var dataClientWithStorageMetadataMock = dataClientMock.As<IDataClientWithStorageMetadata>();
+        var instanceMutationClientMock = dataClientMock.As<IInstanceMutationClient>();
         var instanceClientMock = new Mock<IInstanceClient>();
+        var instanceClientWithStorageMetadataMock = instanceClientMock.As<IInstanceClientWithStorageMetadata>();
         var appResourcesMock = new Mock<IAppResources>();
         var appModelMock = new Mock<IAppModel>();
         var authenticationContextMock = new Mock<IAuthenticationContext>();
@@ -195,13 +202,16 @@ internal sealed record TestFixture(
         builder.Services.AddSingleton(appMetadataMock.Object);
         builder.Services.AddSingleton(maskinportenClientMock.Object);
         builder.Services.AddSingleton(loggerFactoryMock.Object);
-        builder.Services.AddSingleton(dataClientMock.Object);
+        builder.Services.AddSingleton<IDataClient>(dataClientMock.Object);
+        builder.Services.AddSingleton<IDataClientWithStorageMetadata>(dataClientWithStorageMetadataMock.Object);
+        builder.Services.AddSingleton<IInstanceMutationClient>(instanceMutationClientMock.Object);
         builder.Services.AddSingleton(authenticationContextMock.Object);
         builder.Services.AddSingleton(partyClientMock.Object);
         builder.Services.AddSingleton(layoutStateInitializerMock.Object);
         builder.Services.AddSingleton(emailNotificationClientMock.Object);
         builder.Services.AddSingleton(appResourcesMock.Object);
-        builder.Services.AddSingleton(instanceClientMock.Object);
+        builder.Services.AddSingleton<IInstanceClient>(instanceClientMock.Object);
+        builder.Services.AddSingleton<IInstanceClientWithStorageMetadata>(instanceClientWithStorageMetadataMock.Object);
         builder.Services.AddSingleton(appModelMock.Object);
         builder.Services.AddSingleton(processReaderMock.Object);
         builder.Services.AddSingleton(httpClientFactoryMock.Object);
@@ -213,7 +223,6 @@ internal sealed record TestFixture(
 
         // Non-mockable services
         builder.Services.AddTransient<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
-        builder.Services.AddTransient<InstanceDataUnitOfWorkInitializer>();
         builder.Services.AddSingleton<ModelSerializationService>();
         builder.Services.AddAppImplementationFactory();
         builder.Services.AddRuntimeEnvironment();
@@ -225,7 +234,10 @@ internal sealed record TestFixture(
             maskinportenClientMock,
             loggerFactoryMock,
             dataClientMock,
+            dataClientWithStorageMetadataMock,
+            instanceMutationClientMock,
             instanceClientMock,
+            instanceClientWithStorageMetadataMock,
             appResourcesMock,
             appModelMock,
             authenticationContextMock,

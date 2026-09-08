@@ -468,6 +468,35 @@ describe('RepeatingGroupContainer', () => {
     const saveButton = screen.getByText('New save text');
     expect(saveButton).toBeInTheDocument();
   });
+
+  describe('help text', () => {
+    it('should render the title and a help text button in showAll mode when a help text is set', async () => {
+      await render({
+        container: {
+          edit: { ...mockContainer.edit, mode: 'showAll' },
+          textResourceBindings: { title: 'Group title', help: 'Group help text' },
+        },
+        numRows: 1,
+      });
+
+      expect(screen.getByText('Group title')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+    });
+
+    it('should render the help text button when editing a row in hideTable mode', async () => {
+      await render({
+        container: {
+          edit: { ...mockContainer.edit, mode: 'hideTable' },
+          textResourceBindings: { title: 'Group title', help: 'Group help text' },
+        },
+        numRows: 1,
+      });
+
+      await userEvent.click(screen.getByRole('button', { name: /Rediger/i }));
+
+      expect(await screen.findByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
+    });
+  });
 });
 
 function LeakEditIndex() {

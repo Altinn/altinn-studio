@@ -58,7 +58,7 @@ export const InstantiationButton = ({
             if (data) {
               const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
               const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-              navigate(url);
+              await navigate(url);
             }
           })
         }

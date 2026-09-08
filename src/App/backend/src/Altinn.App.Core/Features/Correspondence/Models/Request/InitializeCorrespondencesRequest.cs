@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Features.Correspondence.Models;
 
 /// <summary>
-/// Request body for <c>POST /correspondence</c> — initialises one or more correspondences.
+/// Request body for <c>POST /correspondence</c> — initializes one or more correspondences.
 /// Replaces the multipart <c>POST /correspondence/upload</c> endpoint.
 /// Attachments must be pre-uploaded and referenced via <see cref="ExistingAttachments"/>.
 /// </summary>
@@ -16,7 +16,7 @@ internal sealed record InitializeCorrespondencesRequest
     public required CorrespondenceDetailsRequest Correspondence { get; init; }
 
     /// <summary>
-    /// The recipients of the correspondence. Either Norwegian organisation numbers or national identity numbers in URN format.
+    /// The recipients of the correspondence. Either Norwegian organization numbers or national identity numbers in URN format.
     /// </summary>
     [JsonPropertyName("recipients")]
     public required IReadOnlyList<string> Recipients { get; init; }
@@ -56,7 +56,7 @@ internal sealed record CorrespondenceDetailsRequest
     public required string SendersReference { get; init; }
 
     /// <summary>
-    /// An alternative display name for the sender. When set, shown instead of the organisation name.
+    /// An alternative display name for the sender. When set, shown instead of the organization name.
     /// </summary>
     [JsonPropertyName("messageSender")]
     public string? MessageSender { get; init; }
@@ -230,8 +230,8 @@ internal sealed record CorrespondenceNotificationRequest
     /// </summary>
     /// <remarks>
     /// <p>The API also accepts a singular <c>customRecipient</c> and a <c>customNotificationRecipients</c> list,
-    /// both of which it has deprecated in favour of this property. It resolves them in that order of
-    /// precedence and normalises whichever it finds into this same list shape, so emitting this directly is
+    /// both of which it has deprecated in favor of this property. It resolves them in that order of
+    /// precedence and normalizes whichever it finds into this same list shape, so emitting this directly is
     /// equivalent to the singular form and keeps us off the deprecated tiers.
     /// </p>
     /// <p>See <see cref="OverrideRegisteredContactInformation"/> to notify only these recipients.</p>
@@ -269,7 +269,7 @@ internal sealed record CorrespondenceNotificationRecipientRequest
     public string? MobileNumber { get; init; }
 
     /// <summary>
-    /// Organisation number of the recipient in URN format.
+    /// Organization number of the recipient in URN format.
     /// </summary>
     [JsonPropertyName("organizationNumber")]
     public string? OrganizationNumber { get; init; }

@@ -69,7 +69,7 @@ partial class Telemetry
         activity.SetTag("maskinporten.client_id", clientId);
 
         if (request.ConsumerOrg is { } consumerOrg)
-            activity.SetTag("maskinporten.consumer_org", consumerOrg.Get(OrganisationNumberFormat.Local));
+            activity.SetTag("maskinporten.consumer_org", consumerOrg.Get(OrganizationNumberFormat.Local));
 
         if (request.Resource is { } resource)
             activity.SetTag("maskinporten.resource", resource);
@@ -78,7 +78,7 @@ partial class Telemetry
         {
             activity.SetTag(
                 "maskinporten.systemuser_org",
-                systemUser.Organisation.Get(OrganisationNumberFormat.International)
+                systemUser.Organization.Get(OrganizationNumberFormat.International)
             );
 
             if (systemUser.ExternalRef is { } externalRef)

@@ -14,7 +14,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// told so, with both ways out. Either way nothing is rewritten: the two clients differ in credential
 /// model (JWK only, versus the external package's PKCS#12 paths, certificate-store thumbprints and
 /// enterprise-user credentials) and in where scopes are declared, and the right migration for most apps
-/// is to delete their configuration in favour of the provisioned client - a judgement that depends on
+/// is to delete their configuration in favor of the provisioned client - a judgment that depends on
 /// scopes this tool cannot see.
 /// </para>
 /// </summary>

@@ -187,7 +187,7 @@ public class GetOrgContentReferencesTests
             .ReturnsAsync(false);
 
         const string TargetOrgName = "invalidOrgName";
-        string apiBaseUrl = new Organisation(TargetOrgName).ApiBaseUrl;
+        string apiBaseUrl = new Organization(TargetOrgName).ApiBaseUrl;
         using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
         // Act
@@ -196,7 +196,7 @@ public class GetOrgContentReferencesTests
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
-        Assert.Equal($"{TargetOrgName} is not a valid organisation", reasonHeader);
+        Assert.Equal($"{TargetOrgName} is not a valid organization", reasonHeader);
 
         _orgServiceMock.Verify(service => service.IsOrg(TargetOrgName, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -210,7 +210,7 @@ public class GetOrgContentReferencesTests
             .ReturnsAsync(true);
 
         const string TargetOrgName = "orgWithoutRepositories";
-        string apiBaseUrl = new Organisation(TargetOrgName).ApiBaseUrl;
+        string apiBaseUrl = new Organization(TargetOrgName).ApiBaseUrl;
         using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
         // Act
@@ -365,11 +365,11 @@ public class GetOrgContentReferencesTests
 
     private class OrgAndRepoName(string orgName, string repoName)
     {
-        public Organisation Org { get; } = new(orgName);
+        public Organization Org { get; } = new(orgName);
         public string RepoName { get; } = repoName;
     }
 
-    private class Organisation(string name)
+    private class Organization(string name)
     {
         public string Name { get; } = name;
         public string ApiBaseUrl => $"designer/api/{Name}/content";

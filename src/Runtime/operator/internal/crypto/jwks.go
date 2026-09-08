@@ -119,7 +119,7 @@ func (j *Jwk) Public() *Jwk {
 
 	publicJwk := j.inner.Public()
 	// We set certificates to nil here because Maskinporten doesn't want the 'x5c' field
-	// which is marshalled from the Certificates field on the struct.
+	// which is marshaled from the Certificates field on the struct.
 	publicJwk.Certificates = nil
 
 	return &Jwk{

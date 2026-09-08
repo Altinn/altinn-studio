@@ -15,7 +15,6 @@ Content-Type: application/json; charset=utf-8
       "orgId": "test-user",
       "language": null
     },
-    "lockToken": "e2e-lock-token-abc123",
     "org": "ttd",
     "app": "e2e-tests",
     "instanceOwnerPartyId": 50001,
@@ -61,7 +60,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     }
   ]
 }
@@ -99,9 +99,9 @@ Workflow-Id: Guid_3
     "orgId": "test-user",
     "language": null
   },
-  "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
+  "mailbox": null,
   "stepId": "Guid_4",
   "executionReferenceTime": "{Scrubbed}",
   "state": "initial-workflow-state",
@@ -139,9 +139,9 @@ Workflow-Id: Guid_3
     "orgId": "test-user",
     "language": null
   },
-  "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
+  "mailbox": null,
   "stepId": "Guid_5",
   "executionReferenceTime": "{Scrubbed}",
   "state": "step-1-result",

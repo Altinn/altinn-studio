@@ -126,7 +126,7 @@ _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 
 def _compile_template(content: str, variables: dict) -> str:
-    """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behaviour.
+    """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behavior.
 
     Only patterns matching a valid Python identifier are treated as variables.
     Non-identifier patterns like ``{{"key": "value"}}`` (escaped JSON braces

@@ -1398,7 +1398,7 @@ public class MaskinportenClientTests
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
-            ConsumerOrg = OrganisationNumber.Parse("991825827"),
+            ConsumerOrg = OrganizationNumber.Parse("991825827"),
             Resource = "https://api.example.com/v1",
         };
 
@@ -1422,7 +1422,7 @@ public class MaskinportenClientTests
             Scopes = ["scope1"],
             SystemUser = new MaskinportenSystemUser
             {
-                Organisation = OrganisationNumber.Parse("991825827"),
+                Organization = OrganizationNumber.Parse("991825827"),
                 ExternalRef = "systembruker-1",
             },
         };
@@ -1438,9 +1438,9 @@ public class MaskinportenClientTests
         Assert.Equal("urn:altinn:systemuser", detail.GetProperty("type").GetString());
         Assert.Equal("systembruker-1", detail.GetProperty("externalRef").GetString());
 
-        var organisation = detail.GetProperty("systemuser_org");
-        Assert.Equal("iso6523-actorid-upis", organisation.GetProperty("authority").GetString());
-        Assert.Equal("0192:991825827", organisation.GetProperty("ID").GetString());
+        var organization = detail.GetProperty("systemuser_org");
+        Assert.Equal("iso6523-actorid-upis", organization.GetProperty("authority").GetString());
+        Assert.Equal("0192:991825827", organization.GetProperty("ID").GetString());
     }
 
     [Fact]
@@ -1454,7 +1454,7 @@ public class MaskinportenClientTests
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
-            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+            SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
         };
 
         // Act
@@ -1476,7 +1476,7 @@ public class MaskinportenClientTests
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
-            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+            SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
         };
 
         // Act
@@ -1501,11 +1501,11 @@ public class MaskinportenClientTests
             },
             {
                 "consumer org",
-                new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = OrganisationNumber.Parse("991825827") }
+                new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = OrganizationNumber.Parse("991825827") }
             },
             {
                 "other consumer org",
-                new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = OrganisationNumber.Parse("311169963") }
+                new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = OrganizationNumber.Parse("311169963") }
             },
             {
                 "resource",
@@ -1524,7 +1524,7 @@ public class MaskinportenClientTests
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["a"],
-                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+                    SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
                 }
             },
             {
@@ -1532,7 +1532,7 @@ public class MaskinportenClientTests
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["a"],
-                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+                    SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("311169963") },
                 }
             },
             {
@@ -1542,7 +1542,7 @@ public class MaskinportenClientTests
                     Scopes = ["a"],
                     SystemUser = new MaskinportenSystemUser
                     {
-                        Organisation = OrganisationNumber.Parse("991825827"),
+                        Organization = OrganizationNumber.Parse("991825827"),
                         ExternalRef = "ref",
                     },
                 }
@@ -1556,7 +1556,7 @@ public class MaskinportenClientTests
                     Scopes = ["a"],
                     SystemUser = new MaskinportenSystemUser
                     {
-                        Organisation = OrganisationNumber.Parse("991825827"),
+                        Organization = OrganizationNumber.Parse("991825827"),
                         ExternalRef = "other-ref",
                     },
                 }
@@ -1566,9 +1566,9 @@ public class MaskinportenClientTests
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["a"],
-                    ConsumerOrg = OrganisationNumber.Parse("991825827"),
+                    ConsumerOrg = OrganizationNumber.Parse("991825827"),
                     Resource = "https://api.example.com",
-                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+                    SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
                 }
             },
         };
@@ -1636,10 +1636,10 @@ public class MaskinportenClientTests
         await client.GetAccessToken(new MaskinportenTokenRequest { Scopes = ["scope"] });
         await client.GetAccessToken(new MaskinportenTokenRequest { Scopes = ["scope"] });
         await client.GetAccessToken(
-            new MaskinportenTokenRequest { Scopes = ["scope"], ConsumerOrg = OrganisationNumber.Parse("991825827") }
+            new MaskinportenTokenRequest { Scopes = ["scope"], ConsumerOrg = OrganizationNumber.Parse("991825827") }
         );
         await client.GetAccessToken(
-            new MaskinportenTokenRequest { Scopes = ["scope"], ConsumerOrg = OrganisationNumber.Parse("311169963") }
+            new MaskinportenTokenRequest { Scopes = ["scope"], ConsumerOrg = OrganizationNumber.Parse("311169963") }
         );
 
         // Assert - one grant request per distinct token identity
@@ -1693,8 +1693,8 @@ public class MaskinportenClientTests
             new MaskinportenTokenRequest
             {
                 Scopes = ["scope"],
-                ConsumerOrg = OrganisationNumber.Parse("991825827"),
-                SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+                ConsumerOrg = OrganizationNumber.Parse("991825827"),
+                SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("311169963") },
             }
         );
 

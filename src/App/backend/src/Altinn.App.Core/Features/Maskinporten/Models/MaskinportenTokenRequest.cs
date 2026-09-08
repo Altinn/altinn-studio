@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 /// var request = new MaskinportenTokenRequest
 /// {
 ///     Scopes = ["altinn:serviceowner/instances.read"],
-///     ConsumerOrg = OrganisationNumber.Parse("991825827"),
+///     ConsumerOrg = OrganizationNumber.Parse("991825827"),
 /// };
 /// </code>
 /// </example>
@@ -23,7 +23,7 @@ public sealed record MaskinportenTokenRequest
 {
     private readonly ReadOnlyCollection<string> _scopes = ReadOnlyCollection<string>.Empty;
     private readonly string _formattedScopes = string.Empty;
-    private readonly OrganisationNumber? _consumerOrg;
+    private readonly OrganizationNumber? _consumerOrg;
     private readonly string? _resource;
 
     /// <summary>
@@ -60,14 +60,14 @@ public sealed record MaskinportenTokenRequest
     }
 
     /// <summary>
-    /// <p><c>consumer_org</c>: the organisation a supplier requests a token on behalf of.</p>
+    /// <p><c>consumer_org</c>: the organization a supplier requests a token on behalf of.</p>
     /// <p>Required when acting as a supplier for an external consumer that has delegated the scope via Altinn.
     /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_guide_apikonsument">the docs</a>.</p>
     /// </summary>
-    public OrganisationNumber? ConsumerOrg
+    public OrganizationNumber? ConsumerOrg
     {
         get => _consumerOrg;
-        init => _consumerOrg = value is { } org ? OrganisationNumberGuard.Require(org, nameof(ConsumerOrg)) : null;
+        init => _consumerOrg = value is { } org ? OrganizationNumberGuard.Require(org, nameof(ConsumerOrg)) : null;
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public sealed record MaskinportenTokenRequest
     }
 
     /// <summary>
-    /// <p><c>authorization_details</c>: requests a system user token on behalf of the given organisation
+    /// <p><c>authorization_details</c>: requests a system user token on behalf of the given organization
     /// (RFC 9396 rich authorization requests).</p>
     /// <p>System user grants still carry <see cref="Scopes"/>, and only one party can be queried per token.
     /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.</p>
@@ -120,7 +120,7 @@ public sealed record MaskinportenTokenRequest
     public MaskinportenSystemUser? SystemUser { get; init; }
 
     /// <summary>
-    /// The normalised, space-delimited scope string, as expected by Maskinporten.
+    /// The normalized, space-delimited scope string, as expected by Maskinporten.
     /// </summary>
     internal string FormattedScopes => _formattedScopes;
 
@@ -133,7 +133,7 @@ public sealed record MaskinportenTokenRequest
         var claims = new Dictionary<string, object> { [JwtClaimTypes.Scope] = _formattedScopes };
 
         if (_consumerOrg is { } consumerOrg)
-            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganisationNumberFormat.Local);
+            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganizationNumberFormat.Local);
 
         if (_resource is { } resource)
             claims[JwtClaimTypes.Maskinporten.Resource] = resource;
@@ -151,7 +151,7 @@ public sealed record MaskinportenTokenRequest
     }
 
     /// <remarks>
-    /// Declared explicitly because the synthesised record equality would compare <see cref="Scopes"/> by reference,
+    /// Declared explicitly because the synthesized record equality would compare <see cref="Scopes"/> by reference,
     /// making two otherwise identical requests unequal.
     /// </remarks>
     public bool Equals(MaskinportenTokenRequest? other) =>
@@ -171,16 +171,16 @@ public sealed record MaskinportenTokenRequest
 /// </summary>
 public sealed partial record MaskinportenSystemUser
 {
-    private readonly OrganisationNumber _organisation;
+    private readonly OrganizationNumber _organization;
     private readonly string? _externalRef;
 
     /// <summary>
-    /// The organisation (customer) that owns the system user. Sent in ISO 6523 format, e.g. <c>0192:991825827</c>.
+    /// The organization (customer) that owns the system user. Sent in ISO 6523 format, e.g. <c>0192:991825827</c>.
     /// </summary>
-    public required OrganisationNumber Organisation
+    public required OrganizationNumber Organization
     {
-        get => _organisation;
-        init => _organisation = OrganisationNumberGuard.Require(value, nameof(Organisation));
+        get => _organization;
+        init => _organization = OrganizationNumberGuard.Require(value, nameof(Organization));
     }
 
     /// <summary>
@@ -226,7 +226,7 @@ public sealed partial record MaskinportenSystemUser
             ["systemuser_org"] = new Dictionary<string, object>
             {
                 ["authority"] = "iso6523-actorid-upis",
-                ["ID"] = _organisation.Get(OrganisationNumberFormat.International),
+                ["ID"] = _organization.Get(OrganizationNumberFormat.International),
             },
         };
 
@@ -242,15 +242,15 @@ public sealed partial record MaskinportenSystemUser
 }
 
 /// <summary>
-/// <see cref="OrganisationNumber"/> is a struct, so <c>default</c> slips past both <c>required</c> and
+/// <see cref="OrganizationNumber"/> is a struct, so <c>default</c> slips past both <c>required</c> and
 /// nullability checks while holding no value at all. Fail loudly rather than emit an empty claim.
 /// </summary>
-file static class OrganisationNumberGuard
+file static class OrganizationNumberGuard
 {
-    internal static OrganisationNumber Require(OrganisationNumber value, string paramName)
+    internal static OrganizationNumber Require(OrganizationNumber value, string paramName)
     {
-        if (string.IsNullOrEmpty(value.Get(OrganisationNumberFormat.Local)))
-            throw new ArgumentException("A valid organisation number is required.", paramName);
+        if (string.IsNullOrEmpty(value.Get(OrganizationNumberFormat.Local)))
+            throw new ArgumentException("A valid organization number is required.", paramName);
 
         return value;
     }

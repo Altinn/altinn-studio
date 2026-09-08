@@ -12,7 +12,7 @@ namespace Altinn.Codelists.RestCountries.Clients;
 internal sealed class CountriesClient : ICountryClient
 {
     /// <summary>
-    /// Sends a asynchronus internal request to get all the countries of the world.
+    /// Sends a asynchronous internal request to get all the countries of the world.
     /// </summary>
     public async Task<List<Country>> GetCountries()
     {
@@ -22,7 +22,7 @@ internal sealed class CountriesClient : ICountryClient
     }
 
     /// <summary>
-    /// Sends a asynchronus internal request to get all countries of the world,
+    /// Sends a asynchronous internal request to get all countries of the world,
     /// matching the specified filters.
     /// Values within the same filter object are AND'ed,
     /// while values between filter objects are OR'ed.

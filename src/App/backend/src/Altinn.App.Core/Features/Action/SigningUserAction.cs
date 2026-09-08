@@ -219,29 +219,29 @@ internal class SigningUserAction : IUserAction
         if (userId is null)
         {
             _logger.LogWarning(
-                "Unsupported authentication type for signing on behalf of {OrganisationNumber}",
+                "Unsupported authentication type for signing on behalf of {OrganizationNumber}",
                 context.OnBehalfOf
             );
             return false;
         }
 
-        // Fetch authorized organisation signees for the extracted user ID
-        var authorizedOrganisations = await _signingService.GetAuthorizedOrganizationSignees(
+        // Fetch authorized organization signees for the extracted user ID
+        var authorizedOrganizations = await _signingService.GetAuthorizedOrganizationSignees(
             context.DataMutator,
             signatureConfiguration,
             userId.Value,
             ct
         );
 
-        bool isAuthorized = authorizedOrganisations.Any(o => o.OrgNumber == context.OnBehalfOf);
+        bool isAuthorized = authorizedOrganizations.Any(o => o.OrgNumber == context.OnBehalfOf);
 
         if (isAuthorized)
         {
-            _logger.LogInformation("User is authorized to sign on behalf of {OrganisationNumber}", context.OnBehalfOf);
+            _logger.LogInformation("User is authorized to sign on behalf of {OrganizationNumber}", context.OnBehalfOf);
         }
         else
         {
-            _logger.LogWarning("User is not authorized to sign on behalf of {OrganisationNumber}", context.OnBehalfOf);
+            _logger.LogWarning("User is not authorized to sign on behalf of {OrganizationNumber}", context.OnBehalfOf);
         }
 
         return isAuthorized;
@@ -297,14 +297,14 @@ internal class SigningUserAction : IUserAction
                 {
                     UserId = userProfile.UserId.ToString(CultureInfo.InvariantCulture),
                     PersonNumber = userProfile.Party.SSN,
-                    OrganisationNumber = context.OnBehalfOf,
+                    OrganizationNumber = context.OnBehalfOf,
                 };
             }
             case Authenticated.SystemUser systemUser:
                 return new Signee
                 {
                     SystemUserId = systemUser.SystemUserId[0],
-                    OrganisationNumber = context.OnBehalfOf,
+                    OrganizationNumber = context.OnBehalfOf,
                 };
             default:
                 throw new SigningException("Could not get signee");

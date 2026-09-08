@@ -61,11 +61,6 @@ async function handleSelectInstance(queryClient: QueryClient, instanceApi: Insta
     return await createInstanceAndRedirect(instanceApi);
   }
 
-  if (activeInstances.length === 1) {
-    const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(activeInstances[0].id);
-    return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
-  }
-
   return redirect('/instance-selection');
 }
 

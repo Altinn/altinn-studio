@@ -6,7 +6,7 @@ import type { NewResource } from 'app-shared/types/ResourceAdm';
 /**
  * Mutation to create a new resource.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  */
 export const useCreateResourceMutation = (org: string) => {
   const queryClient = useQueryClient();

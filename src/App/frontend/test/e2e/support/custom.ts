@@ -77,7 +77,7 @@ Cypress.Commands.add('dsClear', (selector) => {
   // Additional step to ensure dropdown is reset
   cy.get(selector).click();
   cy.get(selector).type('{esc}');
-  cy.get('[data-floating-ui-portal]').should('not.exist');
+  cy.get('u-datalist:popover-open').should('not.exist');
 });
 
 Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
@@ -91,7 +91,10 @@ Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
   // It is tempting to just use findByRole('option', { name: value }) here, but that's flakier than using findByText()
   // as it never retries if the element re-renders. More information here:
   // https://github.com/testing-library/cypress-testing-library/issues/205#issuecomment-974688283
-  cy.findByRole('option', { name: value }).click();
+  // Native popovers are rendered in the top layer, but Cypress can still consider them clipped by
+  // an overflow ancestor in the DOM tree. Scope the lookup to the open list before bypassing that
+  // incorrect actionability check.
+  cy.get('u-datalist:popover-open').findByRole('option', { name: value }).click({ force: true });
   if (debounce) {
     cy.get('body').click('bottomRight');
   }
@@ -579,7 +582,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   cy.getCurrentViewportSize().as('directSnapshotViewportSize');
   cy.viewport(width, minHeight);
 
-  // cy.screenshot's blackout property does not ensure that text is monospace which causes unecessary visual changes, so using our own percy css instead
+  // cy.screenshot's blackout property does not ensure that text is monospace which causes unnecessary visual changes, so using our own percy css instead
   cy.readFile('test/percy.css').then((percyCSS) => {
     cy.document().then((doc) => {
       const style = doc.createElement('style');

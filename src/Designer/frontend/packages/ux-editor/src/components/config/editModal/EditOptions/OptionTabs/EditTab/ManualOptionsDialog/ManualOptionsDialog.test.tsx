@@ -54,7 +54,9 @@ describe('ManualOptionsDialog', () => {
 
   it('Displays the code list editor when the component has manual options set', async () => {
     await renderAndShowCodeListDialog();
-    expect(screen.getByRole('group')).toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: textMock('code_list_editor.legend') }),
+    ).toBeInTheDocument();
   });
 
   it('Does not render with the code list editor when the component refers to an external list', async () => {

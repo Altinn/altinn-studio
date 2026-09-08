@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 
 /// <summary>
 /// <p>A configuration object that represents all required Maskinporten authentication settings.</p>
-/// <p>Typically serialised as <c>maskinporten-settings.json</c> and injected in the runtime.</p>
+/// <p>Typically serialized as <c>maskinporten-settings.json</c> and injected in the runtime.</p>
 /// </summary>
 public sealed record MaskinportenSettings
 {

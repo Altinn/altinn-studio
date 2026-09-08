@@ -6,7 +6,8 @@ use ratatui::{
     widgets::{Block, Clear, List, ListItem, ListState, Paragraph, Wrap},
 };
 
-use super::app::{App, Modal, Tone};
+use super::MANIFEST_FILE;
+use super::app::{App, ForwardField, Modal, Tone};
 
 pub(crate) fn render(frame: &mut Frame, app: &App) {
     let [header, body, footer] =
@@ -16,6 +17,8 @@ pub(crate) fn render(frame: &mut Frame, app: &App) {
         render_detail(frame, body, detail);
     } else if let Some(error) = &app.error {
         render_error(frame, body, error);
+    } else if app.view == super::app::View::Forwards {
+        render_forwards(frame, body, app);
     } else {
         render_tree(frame, body, app);
     }
@@ -40,6 +43,12 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     ];
     if app.loading {
         spans.push(Span::styled(" · ⟳", Style::new().fg(Color::Cyan)));
+    }
+    if app.creating > 0 {
+        spans.push(Span::styled(" · creating forward…", Style::new().fg(Color::Cyan)));
+    }
+    if app.discovering {
+        spans.push(Span::styled(" · scanning manifests…", Style::new().fg(Color::Cyan)));
     }
     frame.render_widget(Line::from(spans), area);
 }
@@ -85,6 +94,40 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App) {
     frame.render_stateful_widget(list, area, &mut state);
 }
 
+fn render_forwards(frame: &mut Frame, area: Rect, app: &App) {
+    let block = Block::bordered().title(" port-forwards ");
+    if app.forwards.is_empty() {
+        frame.render_widget(
+            Paragraph::new("(no port forwards — press f on an agent to create one)")
+                .style(Style::new().fg(Color::DarkGray))
+                .block(block),
+            area,
+        );
+        return;
+    }
+    let items = app
+        .forwards
+        .iter()
+        .map(|entry| {
+            let mut spans = vec![
+                Span::styled("⇄ ", Style::new().fg(Color::Cyan)),
+                Span::raw(format!("{} → {}", entry.local, entry.guest_port)),
+                Span::styled(format!("  {}", entry.agent), Style::new().fg(Color::DarkGray)),
+            ];
+            match &entry.status {
+                Some(status) => spans.push(Span::styled(format!("  {status}"), Style::new().fg(Color::Red))),
+                None => spans.push(Span::styled("  active", Style::new().fg(Color::Green))),
+            }
+            ListItem::new(Line::from(spans))
+        })
+        .collect::<Vec<_>>();
+    let list = List::new(items)
+        .block(block)
+        .highlight_style(Style::new().add_modifier(Modifier::REVERSED));
+    let mut state = ListState::default().with_selected(Some(app.forward_selected));
+    frame.render_stateful_widget(list, area, &mut state);
+}
+
 fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail) {
     let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
     let scroll = u16::try_from(detail.scroll).unwrap_or(u16::MAX);
@@ -113,7 +156,7 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App) {
     frame.render_widget(Line::from(spans), contextual);
     frame.render_widget(
         Line::from(Span::styled(
-            "j/k move · r refresh · q quit",
+            "j/k move · r refresh · F forwards · q quit",
             Style::new().fg(Color::DarkGray),
         )),
         global,
@@ -168,7 +211,151 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal) {
             lines.push(hint_line(&[("enter", "create"), ("tab", "harness"), ("esc", "cancel")]));
             popup(frame, area, " new session ", Color::Cyan, lines);
         }
+        Modal::CreateAgent(form) => render_create_agent(frame, area, form),
+        Modal::PortForward(form) => {
+            let mut lines = vec![
+                Line::from(format!("Agent:         {}", form.agent)),
+                form_field("Local address", &form.address, form.field == ForwardField::Address),
+                form_field("Local port", &form.local, form.field == ForwardField::LocalPort),
+                form_field("Guest port", &form.guest, form.field == ForwardField::GuestPort),
+            ];
+            if form.local.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    "An empty local port mirrors the guest port.",
+                    Style::new().fg(Color::DarkGray),
+                )));
+            }
+            if let Some(error) = &form.error {
+                lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
+            }
+            lines.push(Line::default());
+            lines.push(hint_line(&[("enter", "forward"), ("tab", "field"), ("esc", "cancel")]));
+            let title = if form.replace.is_some() {
+                " edit forward "
+            } else {
+                " port forward "
+            };
+            popup(frame, area, title, Color::Cyan, lines);
+        }
     }
+}
+
+fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm) {
+    let mut lines = form.candidates.get(form.selected).map_or_else(
+        || {
+            vec![
+                Line::from("No agent manifests found."),
+                Line::from(Span::styled(
+                    format!("Start the TUI from a directory containing {MANIFEST_FILE},"),
+                    Style::new().fg(Color::DarkGray),
+                )),
+                Line::from(Span::styled(
+                    "or apply one first: agentctl apply -f",
+                    Style::new().fg(Color::DarkGray),
+                )),
+            ]
+        },
+        |candidate| picker_lines(form, candidate),
+    );
+    if let Some(error) = &form.error {
+        lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
+    }
+    lines.push(Line::default());
+    lines.push(hint_line(&[
+        ("enter", "create"),
+        ("tab", "manifest"),
+        ("esc", "cancel"),
+    ]));
+    popup(frame, area, " create agent ", Color::Cyan, lines);
+}
+
+fn picker_lines(form: &super::app::CreateForm, candidate: &super::app::ManifestCandidate) -> Vec<Line<'static>> {
+    let directory = candidate
+        .path
+        .parent()
+        .map_or_else(String::new, |parent| abbreviate_home(&parent.display().to_string()));
+    let mut manifest_spans = vec![
+        Span::raw("Manifest: "),
+        Span::styled("◂ ", Style::new().fg(Color::DarkGray)),
+    ];
+    if let Ok(name) = &candidate.name {
+        manifest_spans.push(Span::styled(name.clone(), Style::new().fg(Color::Cyan)));
+        manifest_spans.push(Span::styled(" | ", Style::new().fg(Color::DarkGray)));
+    }
+    manifest_spans.extend([
+        Span::styled(directory, Style::new().fg(Color::DarkGray)),
+        Span::styled(" ▸", Style::new().fg(Color::DarkGray)),
+        Span::styled(
+            format!("  {}/{}", form.selected + 1, form.candidates.len()),
+            Style::new().fg(Color::DarkGray),
+        ),
+    ]);
+    let mut lines = vec![Line::from(manifest_spans)];
+    if let Err(invalid) = &candidate.name {
+        lines.push(Line::from(Span::styled(
+            format!("          {invalid}"),
+            Style::new().fg(Color::Red),
+        )));
+    }
+    lines.push(Line::from(name_field_spans(form)));
+    lines
+}
+
+/// Renders the name input; an empty buffer shows the placeholder with a
+/// block cursor over its first character, so the cursor sits flush against
+/// the grayed text instead of leaving a cell-wide gap before it.
+fn name_field_spans(form: &super::app::CreateForm) -> Vec<Span<'static>> {
+    let mut spans = vec![Span::raw("Name:     ")];
+    if !form.name.is_empty() {
+        spans.push(Span::raw(form.name.clone()));
+        spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+        return spans;
+    }
+    let mut placeholder = form.placeholder().unwrap_or_default().chars();
+    match placeholder.next() {
+        Some(first) => {
+            spans.push(Span::styled(
+                first.to_string(),
+                Style::new().fg(Color::DarkGray).add_modifier(Modifier::REVERSED),
+            ));
+            spans.push(Span::styled(
+                placeholder.collect::<String>(),
+                Style::new().fg(Color::DarkGray),
+            ));
+        }
+        None => spans.push(Span::styled("▏", Style::new().fg(Color::Cyan))),
+    }
+    spans
+}
+
+fn abbreviate_home(path: &str) -> String {
+    abbreviate(path, std::env::var("HOME").ok().as_deref())
+}
+
+fn abbreviate(path: &str, home: Option<&str>) -> String {
+    home.filter(|home| !home.is_empty())
+        .and_then(|home| {
+            let rest = path.strip_prefix(home)?;
+            (rest.is_empty() || rest.starts_with('/')).then(|| format!("~{rest}"))
+        })
+        .unwrap_or_else(|| path.to_owned())
+}
+
+fn form_field(label: &str, value: &str, selected: bool) -> Line<'static> {
+    let mut spans = vec![Span::raw(format!(
+        "{label}:{}",
+        " ".repeat(14usize.saturating_sub(label.len()))
+    ))];
+    let style = if selected {
+        Style::new().fg(Color::Cyan)
+    } else {
+        Style::new()
+    };
+    spans.push(Span::styled(value.to_owned(), style));
+    if selected {
+        spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+    }
+    Line::from(spans)
 }
 
 fn hint_line(hints: &[(&'static str, &'static str)]) -> Line<'static> {
@@ -252,6 +439,115 @@ mod tests {
         assert!(text.contains("agentctl"));
         assert!(text.contains("0 agents · 0 sessions · 0 running"));
         assert!(text.contains("loading…"));
-        assert!(text.contains("j/k move · r refresh · q quit"));
+        assert!(text.contains("j/k move · r refresh · F forwards · q quit"));
+    }
+
+    #[test]
+    fn create_agent_modal_shows_the_picker_and_placeholder_name() {
+        use super::super::app::{CreateForm, ManifestCandidate};
+
+        let mut app = App::new();
+        app.modal = Some(Modal::CreateAgent(CreateForm {
+            candidates: vec![
+                ManifestCandidate {
+                    path: std::path::PathBuf::from("/sources/full/agent.yaml"),
+                    name: Ok("full".into()),
+                },
+                ManifestCandidate {
+                    path: std::path::PathBuf::from("/sources/broken/agent.yaml"),
+                    name: Err("manifest cannot be decoded".into()),
+                },
+            ],
+            selected: 0,
+            name: String::new(),
+            error: None,
+        }));
+        let mut terminal = Terminal::new(TestBackend::new(80, 14)).expect("test terminal");
+        terminal.draw(|frame| render(frame, &app)).expect("modal draw");
+        let text = buffer_text(&terminal);
+        assert!(text.contains("create agent"));
+        assert!(text.contains("◂ full | /sources/full ▸"));
+        assert!(text.contains("1/2"));
+        assert!(text.contains("Name:     full"));
+        assert!(text.contains("enter create · tab manifest · esc cancel"));
+
+        let Some(Modal::CreateAgent(form)) = &mut app.modal else {
+            panic!("expected the CreateAgent modal");
+        };
+        form.selected = 1;
+        form.name = "copy".into();
+        form.error = Some("agent \"copy\" already exists".into());
+        terminal.draw(|frame| render(frame, &app)).expect("error draw");
+        let text = buffer_text(&terminal);
+        assert!(text.contains("◂ /sources/broken ▸"));
+        assert!(text.contains("manifest cannot be decoded"));
+        assert!(text.contains("Name:     copy▏"));
+        assert!(text.contains("agent \"copy\" already exists"));
+    }
+
+    #[test]
+    fn create_agent_placeholder_first_character_is_the_block_cursor() {
+        use super::super::app::{CreateForm, ManifestCandidate};
+
+        let form = CreateForm {
+            candidates: vec![ManifestCandidate {
+                path: std::path::PathBuf::from("/sources/full/agent.yaml"),
+                name: Ok("full".into()),
+            }],
+            selected: 0,
+            name: String::new(),
+            error: None,
+        };
+        let spans = name_field_spans(&form);
+        assert_eq!(spans[1].content, "f");
+        assert!(spans[1].style.add_modifier.contains(Modifier::REVERSED));
+        assert_eq!(spans[2].content, "ull");
+
+        let typed = CreateForm {
+            name: "my".into(),
+            ..form
+        };
+        let spans = name_field_spans(&typed);
+        assert_eq!(spans[1].content, "my");
+        assert_eq!(spans[2].content, "▏");
+    }
+
+    #[test]
+    fn header_reports_a_running_manifest_scan() {
+        let mut app = App::new();
+        app.discovering = true;
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+        terminal.draw(|frame| render(frame, &app)).expect("draw");
+        assert!(buffer_text(&terminal).contains("scanning manifests…"));
+    }
+
+    #[test]
+    fn create_agent_modal_explains_an_empty_picker() {
+        use super::super::app::CreateForm;
+
+        let mut app = App::new();
+        app.modal = Some(Modal::CreateAgent(CreateForm {
+            candidates: Vec::new(),
+            selected: 0,
+            name: String::new(),
+            error: None,
+        }));
+        let mut terminal = Terminal::new(TestBackend::new(80, 14)).expect("test terminal");
+        terminal.draw(|frame| render(frame, &app)).expect("empty draw");
+        let text = buffer_text(&terminal);
+        assert!(text.contains("No agent manifests found."));
+        assert!(text.contains("agentctl apply -f"));
+    }
+
+    #[test]
+    fn home_abbreviation_replaces_only_the_whole_home_component() {
+        assert_eq!(abbreviate("/Users/dev/code", Some("/Users/dev")), "~/code");
+        assert_eq!(abbreviate("/Users/dev", Some("/Users/dev")), "~");
+        assert_eq!(
+            abbreviate("/Users/devops/code", Some("/Users/dev")),
+            "/Users/devops/code"
+        );
+        assert_eq!(abbreviate("/srv/code", None), "/srv/code");
+        assert_eq!(abbreviate("/srv/code", Some("")), "/srv/code");
     }
 }

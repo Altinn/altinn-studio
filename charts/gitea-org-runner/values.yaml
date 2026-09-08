@@ -78,7 +78,7 @@ keda:
   # queue. Created out-of-band (one per cluster), not by this chart.
   authenticationRef:
     name: keda-gitea-auth-bearer
-  # How often KEDA polls Gitea per ScaledJob. At 30s, 68 organisations produce
+  # How often KEDA polls Gitea per ScaledJob. At 30s, 68 organizations produce
   # approximately 2.3 lightweight requests per second in total.
   pollingInterval: 30
   # KEDA cleans up completed Jobs older than this many seconds.

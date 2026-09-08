@@ -395,6 +395,7 @@ internal static class DashboardEndpoints
                                     "FAILED" => PersistentItemStatus.Failed,
                                     "REQUEUED" => PersistentItemStatus.Requeued,
                                     "WAITING" => PersistentItemStatus.Waiting,
+                                    "HELD" => PersistentItemStatus.Held,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
                                     "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
@@ -431,6 +432,59 @@ internal static class DashboardEndpoints
                     };
 
                     return Results.Json(result, _jsonCompact);
+                }
+            )
+            .ExcludeFromDescription();
+
+        // A fetch rather than a field on the live stream: a three-table read on a two-second loop would charge
+        // every engine for a feature most do not use. Two caps, the per-collection one so a busy collection
+        // cannot crowd another's mailbox off the payload; full windows come back named.
+        const int mailboxCollectionCap = 100;
+        const int mailboxesPerCollectionCap = 10;
+        app.MapGet(
+                "/dashboard/mailboxes",
+                async (IServiceProvider sp, string? collectionKeys, string? @namespace, CancellationToken ct) =>
+                {
+                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
+
+                    // Extra keys are dropped: a surface showing over a hundred collections is showing a window.
+                    string[] keys =
+                    [
+                        .. (collectionKeys ?? string.Empty)
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .Distinct(StringComparer.Ordinal)
+                            .Take(mailboxCollectionCap),
+                    ];
+
+                    if (keys.Length == 0)
+                    {
+                        return Results.Json(
+                            new
+                            {
+                                mailboxes = Array.Empty<DashboardMailboxDto>(),
+                                truncatedCollections = Array.Empty<string>(),
+                            },
+                            _jsonCompact
+                        );
+                    }
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    MailboxCollectionPage page = await repo.GetMailboxesForCollections(
+                        nsFilter,
+                        keys,
+                        limitPerCollection: mailboxesPerCollectionCap,
+                        ct
+                    );
+
+                    return Results.Json(
+                        new
+                        {
+                            mailboxes = page.Mailboxes.Select(DashboardMapper.MapMailbox),
+                            truncatedCollections = page.TruncatedCollections,
+                        },
+                        _jsonCompact
+                    );
                 }
             )
             .ExcludeFromDescription();
@@ -485,6 +539,10 @@ internal static class DashboardEndpoints
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
+                            deferCount = s.DeferCount,
+                            firstDeferredAt = s.FirstDeferredAt,
+                            lastDeferredAt = s.LastDeferredAt,
+                            lastDeferReason = s.LastDeferReason,
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,
@@ -615,87 +673,6 @@ internal static class DashboardEndpoints
                         },
                         _jsonCompact
                     );
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapPost(
-                "/dashboard/retry",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
-
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp)
-                        || nsProp.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp.GetString() ?? throw new UnreachableException();
-                    var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
-
-                    return result switch
-                    {
-                        ResumeWorkflowResult.Resumed => Results.Ok(),
-                        ResumeWorkflowResult.NotFound => Results.NotFound(),
-                        ResumeWorkflowResult.NotResumable r => Results.Conflict(
-                            $"Workflow is in {r.CurrentStatus} state"
-                        ),
-                        _ => throw new UnreachableException(),
-                    };
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapPost(
-                "/dashboard/nudge",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
-
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
-                        || nsProp2.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp2.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp2.GetString() ?? throw new UnreachableException();
-                    using IServiceScope scope = sp.CreateScope();
-                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
-
-                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/nudge — routed through the
-                    // engine rather than the repository so the dashboard button also wakes the
-                    // processor immediately instead of waiting for its next poll tick.
-                    var result = await engine.NudgeWorkflow(workflowId, ns, ct);
-
-                    return result switch
-                    {
-                        NudgeWorkflowResult.Nudged or NudgeWorkflowResult.AlreadyRunnable => Results.Ok(),
-                        NudgeWorkflowResult.NotFound => Results.NotFound(),
-                        NudgeWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
-                        _ => throw new UnreachableException(),
-                    };
                 }
             )
             .ExcludeFromDescription();

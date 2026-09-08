@@ -189,7 +189,7 @@ internal sealed class EFormidlingRegistrationMigration
     )
     {
         // The replacement node inherits the original invocation's leading/trailing trivia, so only the
-        // pieces carried over need normalising - and they need it: a receiver written across several
+        // pieces carried over need normalizing - and they need it: a receiver written across several
         // lines keeps those line breaks between its own tokens, which would land mid-chain here.
         var text = $"{Render(receiver)}.AddEFormidling().WithMetadata<{Render(typeArguments[0])}>()";
 

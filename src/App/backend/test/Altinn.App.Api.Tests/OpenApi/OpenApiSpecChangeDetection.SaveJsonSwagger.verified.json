@@ -16,7 +16,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -25,7 +25,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -169,17 +169,36 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "type": "string"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    }
+                  ]
                 }
               }
             }
@@ -293,7 +312,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -302,7 +321,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -362,7 +381,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -371,7 +390,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -442,7 +461,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -451,7 +470,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -713,7 +732,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -722,7 +741,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -787,6 +806,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "deprecated": true
@@ -800,7 +829,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -809,7 +838,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -887,6 +916,16 @@
           },
           "409": {
             "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1018,7 +1057,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1027,7 +1066,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1103,27 +1142,7 @@
           "409": {
             "description": "Conflict",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -1193,7 +1212,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1202,7 +1221,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1241,7 +1260,7 @@
           {
             "name": "dataType",
             "in": "path",
-            "description": "Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec",
+            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec",
             "required": true,
             "schema": {
               "type": "string"
@@ -1280,7 +1299,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1289,7 +1308,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1328,7 +1347,7 @@
           {
             "name": "dataType",
             "in": "path",
-            "description": "Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec,",
+            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
             "required": true,
             "schema": {
               "type": "string"
@@ -1393,6 +1412,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       },
@@ -1405,7 +1434,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1414,7 +1443,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1503,27 +1532,7 @@
           "409": {
             "description": "Conflict",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -1572,7 +1581,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1581,7 +1590,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1620,7 +1629,7 @@
           {
             "name": "dataType",
             "in": "path",
-            "description": "Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec,",
+            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
             "required": true,
             "schema": {
               "type": "string"
@@ -1660,6 +1669,16 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -1981,6 +2000,21 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       },
@@ -2095,6 +2129,21 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -2167,6 +2216,21 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -2320,7 +2384,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2329,7 +2393,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -2420,7 +2484,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2429,7 +2493,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2571,6 +2635,36 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -2585,7 +2679,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2594,7 +2688,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3241,7 +3335,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3250,7 +3344,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3361,6 +3455,21 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -3375,7 +3484,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3384,7 +3493,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3454,7 +3563,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3463,7 +3572,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3508,6 +3617,16 @@
               }
             }
           },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error",
             "content": {
@@ -3531,7 +3650,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3540,7 +3659,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3560,17 +3679,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             }
           }
@@ -3588,6 +3707,16 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "application/json": {
                 "schema": {
@@ -3664,6 +3793,21 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -3678,7 +3822,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3687,7 +3831,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3769,6 +3913,21 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -3778,12 +3937,12 @@
         "tags": [
           "Instances"
         ],
-        "summary": "Retrieves all active instances that fulfull the org, app, and instanceOwnerParty Id combination.",
+        "summary": "Retrieves all active instances that fulfill the org, app, and instanceOwnerParty Id combination.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3792,7 +3951,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3829,9 +3988,9 @@
     "/{org}/{app}/api/v1/lookup/organisation/{orgNr}": {
       "get": {
         "tags": [
-          "LookupOrganisation"
+          "LookupOrganization"
         ],
-        "summary": "Allows an organisation lookup by orgNr in ER",
+        "summary": "Allows an organization lookup by orgNr in ER",
         "parameters": [
           {
             "name": "orgNr",
@@ -3865,7 +4024,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LookupOrganisationResponse"
+                  "$ref": "#/components/schemas/LookupOrganizationResponse"
                 }
               }
             }
@@ -4189,7 +4348,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4198,7 +4357,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4417,7 +4576,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4426,7 +4585,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4531,7 +4690,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4540,7 +4699,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4668,7 +4827,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -4677,7 +4836,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -4794,7 +4953,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -4803,7 +4962,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5007,7 +5166,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5016,7 +5175,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5116,7 +5275,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5125,7 +5284,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5216,27 +5375,36 @@
             "content": {
               "text/plain": {
                 "schema": {
+                  "type": "string"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    }
+                  ]
                 }
               }
             }
@@ -5274,7 +5442,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5283,7 +5451,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5398,7 +5566,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5407,7 +5575,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5548,27 +5716,12 @@
           "409": {
             "description": "Conflict",
             "content": {
-              "text/plain": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -5709,12 +5862,12 @@
         "tags": [
           "Process"
         ],
-        "summary": "Attemts to end the process by running next until an end event is reached.\nNotice that process must have been started.",
+        "summary": "Attempts to end the process by running next until an end event is reached.\nNotice that process must have been started.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5723,7 +5876,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5814,27 +5967,36 @@
             "content": {
               "text/plain": {
                 "schema": {
+                  "type": "string"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    }
+                  ]
                 }
               }
             }
@@ -6216,7 +6378,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -6225,7 +6387,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -6559,6 +6721,36 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -6688,6 +6880,36 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "text/plain": {
                 "schema": {
@@ -6855,7 +7077,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identfier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -6864,7 +7086,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -6984,7 +7206,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -6993,7 +7215,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -7241,7 +7463,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7250,7 +7472,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7457,6 +7679,21 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -7471,7 +7708,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7480,7 +7717,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -7694,7 +7931,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7703,7 +7940,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -7780,6 +8017,36 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "text/plain": {
                 "schema": {
@@ -7898,7 +8165,144 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppCallbackResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppCallbackResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppCallbackResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -8040,12 +8444,73 @@
         },
         "additionalProperties": false
       },
+      "AppCallbackDeferral": {
+        "type": "object",
+        "properties": {
+          "delay": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppCallbackMailbox": {
+        "required": [
+          "id",
+          "seq"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/AppCallbackMailboxDelivery"
+          },
+          "disposedReason": {
+            "$ref": "#/components/schemas/MailboxDisposedReason"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppCallbackMailboxDelivery": {
+        "required": [
+          "acceptedAt",
+          "idempotencyKey",
+          "payload"
+        ],
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "payload": {
+            "type": "string",
+            "nullable": true
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "AppCallbackPayload": {
         "required": [
           "actor",
           "commandKey",
           "executionReferenceTime",
-          "lockToken",
+          "stepId",
           "workflowId"
         ],
         "type": "object",
@@ -8057,10 +8522,6 @@
           "actor": {
             "$ref": "#/components/schemas/Actor"
           },
-          "lockToken": {
-            "type": "string",
-            "nullable": true
-          },
           "payload": {
             "type": "string",
             "nullable": true
@@ -8068,6 +8529,9 @@
           "workflowId": {
             "type": "string",
             "format": "uuid"
+          },
+          "mailbox": {
+            "$ref": "#/components/schemas/AppCallbackMailbox"
           },
           "stepId": {
             "type": "string",
@@ -8103,6 +8567,19 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppCallbackResponse": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "nullable": true
+          },
+          "defer": {
+            "$ref": "#/components/schemas/AppCallbackDeferral"
           }
         },
         "additionalProperties": false
@@ -8249,6 +8726,9 @@
       "AppProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProcessStatus"
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -8663,6 +9143,10 @@
             "type": "string",
             "nullable": true
           },
+          "blobVersionId": {
+            "type": "string",
+            "nullable": true
+          },
           "locked": {
             "type": "boolean"
           },
@@ -8900,6 +9384,10 @@
             "type": "string",
             "nullable": true
           },
+          "blobVersionId": {
+            "type": "string",
+            "nullable": true
+          },
           "locked": {
             "type": "boolean"
           },
@@ -9054,6 +9542,12 @@
         ],
         "type": "object",
         "properties": {
+          "expectedProcessStateVersion": {
+            "type": "integer",
+            "description": "The process-state version the caller expects the instance to have.\nWhen supplied and the current version differs, the request fails with 412 before any data is touched.\nWhen omitted, no process-state admission check is performed.",
+            "format": "int32",
+            "nullable": true
+          },
           "patches": {
             "type": "array",
             "items": {
@@ -9408,7 +9902,7 @@
           },
           "org": {
             "type": "string",
-            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "description": "Application owner identifier, usually a abbreviation of organization name. All in lower case.",
             "nullable": true
           },
           "selfLinks": {
@@ -9711,7 +10205,7 @@
           },
           "organisationNumber": {
             "type": "string",
-            "description": "The organisation number of the party. Null if the party is not an organisation.",
+            "description": "The organization number of the party. Null if the party is not an organization.",
             "nullable": true
           },
           "username": {
@@ -9768,7 +10262,7 @@
           },
           "org": {
             "type": "string",
-            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "description": "Application owner identifier, usually a abbreviation of organization name. All in lower case.",
             "nullable": true
           },
           "selfLinks": {
@@ -9916,7 +10410,7 @@
         },
         "additionalProperties": false
       },
-      "InstansiationInstance": {
+      "InstantiationInstance": {
         "type": "object",
         "properties": {
           "instanceOwner": {
@@ -10145,7 +10639,7 @@
         },
         "additionalProperties": false
       },
-      "LookupOrganisationResponse": {
+      "LookupOrganizationResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -10153,11 +10647,11 @@
             "description": "Indicates whether a person was found or not."
           },
           "organisationDetails": {
-            "$ref": "#/components/schemas/OrganisationDetails"
+            "$ref": "#/components/schemas/OrganizationDetails"
           }
         },
         "additionalProperties": false,
-        "description": "Contains the result of an organisation lookup."
+        "description": "Contains the result of an organization lookup."
       },
       "LookupPersonRequest": {
         "required": [
@@ -10193,6 +10687,13 @@
         },
         "additionalProperties": false,
         "description": "Contains the result of a person search request."
+      },
+      "MailboxDisposedReason": {
+        "enum": [
+          "Request",
+          "Deadline"
+        ],
+        "type": "string"
       },
       "MessageBoxConfig": {
         "type": "object",
@@ -10320,27 +10821,6 @@
         },
         "additionalProperties": false
       },
-      "OrganisationDetails": {
-        "required": [
-          "name",
-          "orgNr"
-        ],
-        "type": "object",
-        "properties": {
-          "orgNr": {
-            "type": "string",
-            "description": "The organisation number",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "description": "The full name",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Contains details about an organisation"
-      },
       "Organization": {
         "type": "object",
         "properties": {
@@ -10406,6 +10886,27 @@
           }
         },
         "additionalProperties": false
+      },
+      "OrganizationDetails": {
+        "required": [
+          "name",
+          "orgNr"
+        ],
+        "type": "object",
+        "properties": {
+          "orgNr": {
+            "type": "string",
+            "description": "The organization number",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Contains details about an organization"
       },
       "Party": {
         "type": "object",
@@ -10494,7 +10995,7 @@
           },
           "orgNumber": {
             "type": "string",
-            "description": "The organisation number of the party. Null if the party is not an organisation.",
+            "description": "The organization number of the party. Null if the party is not an organization.",
             "nullable": true
           },
           "unitType": {
@@ -11038,7 +11539,7 @@
           },
           "actionOnBehalfOf": {
             "type": "string",
-            "description": "The organisation number of the party the user is acting on behalf of",
+            "description": "The organization number of the party the user is acting on behalf of",
             "nullable": true
           }
         },
@@ -11048,6 +11549,9 @@
       "ProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProcessStatus"
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -11071,6 +11575,13 @@
           }
         },
         "additionalProperties": false
+      },
+      "ProcessStatus": {
+        "enum": [
+          "idle",
+          "processing"
+        ],
+        "type": "string"
       },
       "ProfileSettingPreference": {
         "type": "object",
@@ -11298,7 +11809,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The instance identifier formated as {instanceOwner.partyId}/{instanceGuid}.",
+            "description": "The instance identifier formatted as {instanceOwner.partyId}/{instanceGuid}.",
             "nullable": true
           },
           "presentationTexts": {
@@ -11563,7 +12074,7 @@
           },
           "onBehalfOf": {
             "type": "string",
-            "description": "The organisation number of the party the user is acting on behalf of",
+            "description": "The organization number of the party the user is acting on behalf of",
             "nullable": true
           }
         },
@@ -11876,7 +12387,8 @@
           "stepFailed",
           "dependencyFailed",
           "engineFault",
-          "timeout"
+          "timeout",
+          "acquireConflict"
         ],
         "type": "string"
       },
@@ -12057,7 +12569,7 @@
       "name": "Instances"
     },
     {
-      "name": "LookupOrganisation"
+      "name": "LookupOrganization"
     },
     {
       "name": "LookupPerson"

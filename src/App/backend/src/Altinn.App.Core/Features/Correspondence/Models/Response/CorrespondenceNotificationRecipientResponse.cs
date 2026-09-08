@@ -23,7 +23,7 @@ public sealed record CorrespondenceNotificationRecipientResponse
     /// The organization number of the recipient.
     /// </summary>
     [JsonPropertyName("organizationNumber")]
-    public string? OrganisationNumber { get; init; }
+    public string? OrganizationNumber { get; init; }
 
     /// <summary>
     /// The SSN/identity number of the recipient.

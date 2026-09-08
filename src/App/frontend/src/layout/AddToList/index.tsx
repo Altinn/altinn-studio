@@ -16,7 +16,7 @@ export class AddToList extends AddToListDef {
     return <AddToListFeatureFlagLayoutValidator {...props} />;
   }
   renderSummary(_: SummaryRendererProps): JSX.Element | null {
-    return <div>summary</div>; // TODO: Implment?
+    return <div>summary</div>; // TODO: Implement?
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'AddToList'>>(
     function LayoutComponentAddToListRender(props, _): JSX.Element | null {

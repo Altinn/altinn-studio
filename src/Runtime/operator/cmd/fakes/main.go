@@ -503,7 +503,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		w.WriteHeader(
 			http.StatusInternalServerError,
-		) // As of manual testing, it just returns 500 here (even though the endopint doesnt exist)
+		) // As of manual testing, it just returns 500 here (even though the endpoint doesnt exist)
 		return
 	case http.MethodPut:
 		handleClientPut(state, clientId, w, r)

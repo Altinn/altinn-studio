@@ -71,8 +71,8 @@ public class StatelessDataController : ControllerBase
     /// <summary>
     /// Create a new data object of the defined data type
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="dataType">The data type id</param>
     /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
     /// <param name="prefill">Prefilled fields from query parameters</param>
@@ -230,8 +230,8 @@ public class StatelessDataController : ControllerBase
     /// <summary>
     /// Create a new data object of the defined data type
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="dataType">The data type id</param>
     /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
     /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>

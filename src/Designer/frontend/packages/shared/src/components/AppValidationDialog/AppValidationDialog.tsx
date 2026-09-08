@@ -1,22 +1,33 @@
 import React from 'react';
 import {
   StudioAlert,
+  StudioBadge,
+  StudioDetails,
   StudioDialog,
   StudioErrorSummary,
   StudioHeading,
   StudioLink,
   StudioParagraph,
+  StudioTag,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import {
-  type AppValidationResult,
-  useAppValidationQuery,
-} from 'app-development/hooks/queries/useAppValidationQuery';
+import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import { appValidationAreaId } from '@studio/testing/testids';
 import { formatDateAndTime } from '../../utils/formatDateAndTime';
 import classes from './AppValidationDialog.module.css';
-import { type ErrorItem, mapErrorKeyErrorItems } from 'app-shared/utils/appValidationUtils';
+import {
+  type AppValidationAreaGroup,
+  type ErrorItem,
+  type Severity,
+  getAppValidationSummary,
+  SEVERITY_TEXT_KEYS,
+} from 'app-shared/utils/appValidationUtils';
+
+type ErrorLinkClickHandler = (
+  search: string,
+) => (event: React.MouseEvent<HTMLAnchorElement>) => void;
 
 export const AppValidationDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -25,6 +36,15 @@ export const AppValidationDialog = () => {
     app,
   );
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const errorKeys = Object.keys(validationResult?.errors ?? {});
+  const { errorItems, warningItems, areaGroups } = getAppValidationSummary(errorKeys, org, app, t);
+
+  const handleErrorLinkClick: ErrorLinkClickHandler = (search) => (event) => {
+    event.preventDefault();
+    navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
+  };
 
   return (
     <StudioDialog
@@ -39,85 +59,116 @@ export const AppValidationDialog = () => {
         <StudioParagraph>
           {t('general.updatedAt')} {formatDateAndTime(validationUpdatedAt)}
         </StudioParagraph>
+        <div className={classes.countTags}>
+          <ValidationCountTag severity='danger' count={errorItems.length} />
+          <ValidationCountTag severity='warning' count={warningItems.length} />
+        </div>
       </StudioDialog.Block>
-      <StudioDialog.Block>
-        <AppValidationErrorSummary validationResult={validationResult} />
+      <StudioDialog.Block className={classes.areaList}>
+        {areaGroups.length === 0 ? (
+          <StudioParagraph>{t('app_validation.no_issues')}</StudioParagraph>
+        ) : (
+          areaGroups.map((areaGroup) => (
+            <AppValidationArea
+              key={areaGroup.area}
+              areaGroup={areaGroup}
+              handleErrorLinkClick={handleErrorLinkClick}
+            />
+          ))
+        )}
       </StudioDialog.Block>
     </StudioDialog>
   );
 };
 
-type AppValidationErrorSummaryProps = { validationResult: AppValidationResult | undefined };
+type ValidationCountProps = { severity: Severity; count: number };
 
-const AppValidationErrorSummary = ({ validationResult }: AppValidationErrorSummaryProps) => {
-  if (validationResult?.errors) {
-    return <AltinnAppServiceResourceValidation validationResult={validationResult} />;
-  }
-  return null;
-};
-
-const AltinnAppServiceResourceValidation = ({
-  validationResult,
-}: {
-  validationResult: AppValidationResult;
-}) => {
-  const { org, app } = useStudioEnvironmentParams();
+const ValidationCountTag = ({ severity, count }: ValidationCountProps) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
-  const handleErrorLinkClick = (search: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
-  };
-
-  const errorKeys = Object.keys(validationResult?.errors || {});
-
-  const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
-  const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
+  if (count === 0) return null;
 
   return (
-    <div className={classes.validationAlertsWrapper}>
-      {errorItems.length > 0 && (
-        <AppValidationAlert
-          errorItems={errorItems}
-          severity='danger'
-          handleErrorLinkClick={handleErrorLinkClick}
-          title={t('app_validation.app_metadata.errors')}
-          description={t('app_validation.app_metadata.errors_description')}
-        />
-      )}
-      {warningItems.length > 0 && (
-        <AppValidationAlert
-          errorItems={warningItems}
-          severity='warning'
-          title={t('app_validation.app_metadata.warnings')}
-          description={t('app_validation.app_metadata.warnings_description')}
-          handleErrorLinkClick={handleErrorLinkClick}
-        />
-      )}
-    </div>
+    <StudioTag data-color={severity} data-size='sm' className={classes.countTag}>
+      <StudioBadge data-color={severity} count={count} />
+      {t(SEVERITY_TEXT_KEYS[severity].label)}
+    </StudioTag>
+  );
+};
+
+const AreaCountBadge = ({ severity, count }: ValidationCountProps) => {
+  const { t } = useTranslation();
+
+  if (count === 0) return null;
+
+  return (
+    <StudioBadge
+      data-color={severity}
+      count={count}
+      aria-label={t(SEVERITY_TEXT_KEYS[severity].count, { count })}
+      role='img'
+    />
+  );
+};
+
+type AppValidationAreaProps = {
+  areaGroup: AppValidationAreaGroup;
+  handleErrorLinkClick: ErrorLinkClickHandler;
+};
+
+const AppValidationArea = ({ areaGroup, handleErrorLinkClick }: AppValidationAreaProps) => {
+  const { t } = useTranslation();
+  const { area, areaNameKey, errorItems, warningItems } = areaGroup;
+
+  return (
+    <StudioDetails defaultOpen data-testid={appValidationAreaId(area)}>
+      <StudioDetails.Summary>
+        <span className={classes.areaSummary}>
+          {t(areaNameKey)}
+          <AreaCountBadge severity='danger' count={errorItems.length} />
+          <AreaCountBadge severity='warning' count={warningItems.length} />
+        </span>
+      </StudioDetails.Summary>
+      <StudioDetails.Content>
+        <div className={classes.validationAlertsWrapper}>
+          {errorItems.length > 0 && (
+            <AppValidationAlert
+              errorItems={errorItems}
+              severity='danger'
+              handleErrorLinkClick={handleErrorLinkClick}
+            />
+          )}
+          {warningItems.length > 0 && (
+            <AppValidationAlert
+              errorItems={warningItems}
+              severity='warning'
+              handleErrorLinkClick={handleErrorLinkClick}
+            />
+          )}
+        </div>
+      </StudioDetails.Content>
+    </StudioDetails>
   );
 };
 
 export type AppValidationAlertProps = {
   errorItems: ErrorItem[];
-  severity: 'warning' | 'danger';
-  title: string;
-  description: string;
-  handleErrorLinkClick?: (search: string) => (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  severity: Severity;
+  handleErrorLinkClick: ErrorLinkClickHandler;
 };
 
 const AppValidationAlert = ({
   errorItems,
   severity,
-  title,
-  description,
   handleErrorLinkClick,
 }: AppValidationAlertProps) => {
+  const { t } = useTranslation();
+
   return (
     <StudioAlert data-color={severity}>
-      <StudioHeading className={classes.validationHeader}>{title}</StudioHeading>
-      <StudioParagraph spacing>{description}</StudioParagraph>
+      <StudioHeading className={classes.validationHeader}>
+        {t(SEVERITY_TEXT_KEYS[severity].alertTitle)}
+      </StudioHeading>
       <StudioErrorSummary.List>
         {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
           <StudioErrorSummary.Item key={errorKey}>
