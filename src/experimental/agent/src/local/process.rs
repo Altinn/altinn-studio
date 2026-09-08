@@ -4,12 +4,15 @@
 ///
 /// Runtime helpers inherit the daemon's stderr and install their own tracing
 /// subscriber, so the filter travels through the environment rather than code.
-pub const DAEMON_LOG_FILTER: &str = "info,microsandbox_agent_client=warn";
+#[must_use]
+pub fn daemon_log_filter() -> String {
+    format!("info,{}", crate::sandbox::microsandbox::LOG_DIRECTIVES)
+}
 
 /// Gives a child daemon the default log filter unless the caller set `RUST_LOG`.
 pub fn configure_logging(command: &mut std::process::Command) {
     if std::env::var_os("RUST_LOG").is_none() {
-        command.env("RUST_LOG", DAEMON_LOG_FILTER);
+        command.env("RUST_LOG", daemon_log_filter());
     }
 }
 

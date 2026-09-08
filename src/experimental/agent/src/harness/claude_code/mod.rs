@@ -115,7 +115,8 @@ pub(super) async fn verify_linux(
         ))
         .await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
+        // The image does not provide the declared harness; retrying cannot change that.
+        return Err(Error::Invalid(format!(
             "Claude Code is missing or `claude --version` exited with code {}",
             output.status.code
         )));
@@ -127,7 +128,7 @@ pub(super) async fn verify_linux(
         .next()
         .ok_or_else(|| Error::SandboxSetup("`claude --version` returned no version".into()))?;
     if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
-        return Err(Error::SandboxSetup(format!(
+        return Err(Error::Invalid(format!(
             "declared Claude Code version {expected:?} does not match installed version {installed:?}"
         )));
     }

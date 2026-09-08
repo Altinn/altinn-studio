@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Condition, ConditionStatus, Error, ReconcileFailure, Status};
+use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status};
 
 use super::{AgentRecord, ObservedStatus, SharedAgentStore, StatusWatch};
 
@@ -63,7 +63,8 @@ impl Reconciler {
             let provider = match self.sandboxes.resolve(&record).await {
                 Ok(provider) => provider,
                 Err(error) => {
-                    self.record_failure(&record, "ProviderResolutionFailed", &error).await?;
+                    self.record_failure(&record, "ProviderResolutionFailed", &ReconcileFailure::classify(&error))
+                        .await?;
                     return Err(error);
                 }
             };
@@ -87,7 +88,8 @@ impl Reconciler {
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {
-                observer.failed(&error);
+                let failure = ReconcileFailure::classify(&error);
+                observer.failed(&failure);
                 let message = error.to_string();
                 let status = Status::observed(
                     record.agent.metadata.generation,
@@ -107,7 +109,7 @@ impl Reconciler {
                         ),
                     ],
                 );
-                self.update_status(&record, status, Some(&error)).await?;
+                self.update_status(&record, status, Some(failure.kind)).await?;
                 return Err(error);
             }
         };
@@ -149,7 +151,12 @@ impl Reconciler {
         Ok(())
     }
 
-    async fn record_failure(&self, record: &AgentRecord, reason: &str, error: &Error) -> Result<(), Error> {
+    async fn record_failure(
+        &self,
+        record: &AgentRecord,
+        reason: &str,
+        failure: &ReconcileFailure,
+    ) -> Result<(), Error> {
         self.update_status(
             record,
             Status::observed(
@@ -159,19 +166,24 @@ impl Reconciler {
                     Condition::READY,
                     ConditionStatus::False,
                     reason,
-                    &error.to_string(),
+                    &failure.message,
                 )],
             ),
-            Some(error),
+            Some(failure.kind),
         )
         .await
     }
 
-    async fn update_status(&self, record: &AgentRecord, status: Status, failure: Option<&Error>) -> Result<(), Error> {
+    async fn update_status(
+        &self,
+        record: &AgentRecord,
+        status: Status,
+        failure: Option<FailureKind>,
+    ) -> Result<(), Error> {
         let notify = session_relevant_transition(&record.agent.status, &status);
         let observed = ObservedStatus {
             conditions: status.conditions.clone(),
-            failure: failure.map(|error| ReconcileFailure::classify(error).kind),
+            failure,
         };
         self.store
             .update_status(record.id, record.agent.metadata.generation, status)

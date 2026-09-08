@@ -4,7 +4,7 @@ use std::{cell::Cell, rc::Rc, time::Instant};
 
 use tokio::sync::broadcast;
 
-use crate::AgentId;
+use crate::{AgentId, ReconcileFailure};
 
 use super::{Event, SandboxReporter};
 
@@ -99,7 +99,7 @@ impl SandboxObserver {
     }
 
     /// Reports that the ensure failed while a phase was open.
-    pub fn failed(&self, error: &crate::Error) {
+    pub fn failed(&self, failure: &ReconcileFailure) {
         if let Some((phase, message, started)) = self.open_phase.take() {
             self.hub.publish(
                 self.id,
@@ -107,8 +107,8 @@ impl SandboxObserver {
                     agent: self.agent.clone(),
                     phase,
                     message,
-                    detail: error.to_string(),
-                    failure: crate::ReconcileFailure::classify(error).kind,
+                    detail: failure.message.clone(),
+                    failure: failure.kind,
                     elapsed_ms: super::event::milliseconds(started.elapsed()),
                 },
             );

@@ -22,6 +22,9 @@ use preparation::Preparation;
 
 use super::{Provider, ProviderEnsureOutcome, ProviderId};
 
+/// `RUST_LOG` directives that keep this Provider's runtime helper processes quiet at the default level.
+pub const LOG_DIRECTIVES: &str = sandbox_microsandbox::LOG_DIRECTIVES;
+
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
 /// Sandbox-resolvable name of the Microsandbox Network Backend's host alias.

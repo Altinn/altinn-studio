@@ -139,7 +139,8 @@ pub(super) async fn verify_linux(
         ))
         .await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
+        // The image does not provide the declared harness; retrying cannot change that.
+        return Err(Error::Invalid(format!(
             "Codex is missing or `codex --version` exited with code {}",
             output.status.code
         )));
@@ -151,7 +152,7 @@ pub(super) async fn verify_linux(
         .nth(1)
         .ok_or_else(|| Error::SandboxSetup("`codex --version` returned no version".into()))?;
     if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
-        return Err(Error::SandboxSetup(format!(
+        return Err(Error::Invalid(format!(
             "declared Codex version {expected:?} does not match installed version {installed:?}"
         )));
     }

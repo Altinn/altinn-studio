@@ -42,7 +42,7 @@ fn run() -> Result<(), Error> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(agent::local::process::DAEMON_LOG_FILTER)),
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(agent::local::process::daemon_log_filter())),
         )
         .with_writer(std::io::stderr)
         .with_ansi(std::io::stderr().is_terminal())
