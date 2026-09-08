@@ -172,7 +172,6 @@ public class FiksArkivReplyAddressRoundTripTest
                 },
                 Attachments = [],
             },
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
         };
 
     private static Instance CreateInstance(DataElement primaryDocument) =>

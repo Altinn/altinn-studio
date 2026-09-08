@@ -5,7 +5,6 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -23,7 +22,6 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenerator
 {
     private readonly IAppMetadata _appMetadata;
-    private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FiksArkivDefaultPayloadGenerator> _logger;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IFiksArkivConfigResolver _fiksArkivConfigResolver;
@@ -34,7 +32,6 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
 
     public FiksArkivDefaultPayloadGenerator(
         IAppMetadata appMetadata,
-        IAuthenticationContext authenticationContext,
         ILogger<FiksArkivDefaultPayloadGenerator> logger,
         IHostEnvironment hostEnvironment,
         IFiksArkivConfigResolver fiksArkivConfigResolver,
@@ -43,7 +40,6 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
     )
     {
         _appMetadata = appMetadata;
-        _authenticationContext = authenticationContext;
         _logger = logger;
         _hostEnvironment = hostEnvironment;
         _fiksArkivConfigResolver = fiksArkivConfigResolver;
@@ -82,7 +78,7 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         var recipientParty = _fiksArkivConfigResolver.GetRecipientParty(instance, recipient);
         var instanceOwnerParty = await _fiksArkivConfigResolver.GetInstanceOwnerParty(instance, cancellationToken);
         var caseFileClassifications = await _fiksArkivConfigResolver.GetCaseFileClassifications(
-            _authenticationContext.Current,
+            instance,
             cancellationToken
         );
 

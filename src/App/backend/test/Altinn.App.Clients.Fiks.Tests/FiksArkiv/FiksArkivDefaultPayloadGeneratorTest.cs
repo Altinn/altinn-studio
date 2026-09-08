@@ -4,10 +4,8 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
@@ -23,13 +21,32 @@ public class FiksArkivDefaultPayloadGeneratorTest
     private static readonly XsdValidator _xsdValidator = new();
     private static readonly DateTimeOffset _now = DateTimeOffset.Parse("2025-10-24T09:58:00.000000Z");
 
+    /// <summary>
+    /// Who owns the instance being archived. The owner drives both the sender korrespondansepart and the
+    /// <see cref="FiksArkivClassificationSource.InstanceOwner"/> classification, so the two always agree.
+    /// </summary>
+    internal enum TestInstanceOwner
+    {
+        Person,
+        Organization,
+
+        // The register does not know the party and the instance carries no identifier, modelling an owner that
+        // cannot be resolved (no Avsender emitted).
+        Unresolved,
+    }
+
     // Built fresh per test invocation so no test case can leak instance state into another.
-    private static Instance NewDefaultInstance() =>
+    private static Instance NewDefaultInstance(TestInstanceOwner owner) =>
         new()
         {
             Id = "12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90",
             AppId = "ttd/test-app",
-            InstanceOwner = new InstanceOwner { PartyId = "12345" },
+            InstanceOwner = new InstanceOwner
+            {
+                PartyId = "12345",
+                PersonNumber = owner is TestInstanceOwner.Person ? Factories.PersonNumber : null,
+                OrganisationNumber = owner is TestInstanceOwner.Organization ? Factories.OrganizationNumber : null,
+            },
             Data =
             [
                 Factories.DataElement("model", null, "application/xml"),
@@ -39,17 +56,6 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 Factories.DataElement("something-uploaded", "drawing_1a.jpg", null),
             ],
         };
-
-    private static class AuthTypes
-    {
-        public static readonly Authenticated User = TestAuthentication.GetUserAuthentication();
-        public static readonly Authenticated SystemUser = TestAuthentication.GetSystemUserAuthentication();
-        public static readonly Authenticated ServiceOwner = TestAuthentication.GetServiceOwnerAuthentication();
-        public static readonly Authenticated Org = TestAuthentication.GetOrgAuthentication();
-
-        // No authenticated identity => no associated party => the instance owner party resolves to null.
-        public static readonly Authenticated None = TestAuthentication.GetNoneAuthentication();
-    }
 
     public static IEnumerable<object[]> TestCases =>
         [
@@ -67,7 +73,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                         CaseFileClassifications = [Factories.InstanceOwnerClassification()],
                     },
                 },
-                Auth: AuthTypes.User,
+                Owner: TestInstanceOwner.Person,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
                 ExpectedAttachmentFilenames: ["model.xml", "ref-data-as-pdf.pdf"]
             ),
@@ -94,7 +100,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                         CaseFileClassifications = [Factories.InstanceOwnerClassification()],
                     },
                 },
-                Auth: AuthTypes.SystemUser,
+                Owner: TestInstanceOwner.Organization,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
                 ExpectedAttachmentFilenames: ["Form.xml", "Form.pdf", "receipt2.pdf", "letter.docx", "drawing_1a.jpg"]
             ),
@@ -112,7 +118,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                         CaseFileClassifications = [Factories.InstanceOwnerClassification()],
                     },
                 },
-                Auth: AuthTypes.ServiceOwner,
+                Owner: TestInstanceOwner.Organization,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name", "123456789"),
                 ExpectedAttachmentFilenames: ["Form.xml"]
             ),
@@ -133,7 +139,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                         CaseFileClassifications = [Factories.InstanceOwnerClassification()],
                     },
                 },
-                Auth: AuthTypes.Org,
+                Owner: TestInstanceOwner.Organization,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
                 ExpectedAttachmentFilenames: ["Form.xml"]
             ),
@@ -170,7 +176,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                         ],
                     },
                 },
-                Auth: AuthTypes.User,
+                Owner: TestInstanceOwner.Person,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
                 ExpectedAttachmentFilenames: ["Form.pdf", "ref-data-as-pdf.pdf"]
             ),
@@ -183,9 +189,9 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 {
                     Documents = new FiksArkivDocumentSettings { PrimaryDocument = Factories.DocumentSettings("model") },
                 },
-                // Authenticated.None resolves no instance owner party, asserting the generator omits the Avsender
+                // An unresolved owner has no register party, asserting the generator omits the Avsender
                 // korrespondansepart and still produces a schema-valid arkivmelding.
-                Auth: AuthTypes.None,
+                Owner: TestInstanceOwner.Unresolved,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
                 ExpectedAttachmentFilenames: ["model.xml"]
             ),
@@ -241,7 +247,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
                         ],
                     },
                 },
-                Auth: AuthTypes.ServiceOwner,
+                Owner: TestInstanceOwner.Organization,
                 Recipient: Factories.Recipient("recipient-id", "Recipient Name", "123456789"),
                 ExpectedAttachmentFilenames:
                 [
@@ -260,7 +266,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
     {
         // Arrange
         await using var fixture = CreateFixture(testCase);
-        var dataAccessor = Factories.DataAccessor(NewDefaultInstance());
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(testCase.Owner));
 
         // Act
         var result = (
@@ -314,7 +320,11 @@ public class FiksArkivDefaultPayloadGeneratorTest
         // down exactly which accessor members the pipeline touches; a new read fails here instead of going unnoticed.
         var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
         await using var fixture = CreateFixture(testCase);
-        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(), "Accessor content", MockBehavior.Strict);
+        var dataAccessor = Factories.DataAccessor(
+            NewDefaultInstance(testCase.Owner),
+            "Accessor content",
+            MockBehavior.Strict
+        );
 
         // Act
         var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
@@ -338,7 +348,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
         // day, and the timestamps carry the UTC designator, so the archive never has to guess the offset.
         var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
         await using var fixture = CreateFixture(testCase);
-        var dataAccessor = Factories.DataAccessor(NewDefaultInstance());
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(testCase.Owner));
         DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2026-01-01T00:30:45+01:00");
         DateTime expectedUtcTime = new(2025, 12, 31, 23, 30, 45, DateTimeKind.Utc);
 
@@ -397,83 +407,19 @@ public class FiksArkivDefaultPayloadGeneratorTest
         fixture
             .TranslationServiceMock.Setup(x => x.TranslateTextKey("appName", LanguageConst.Nb, null))
             .ReturnsAsync("Test app");
-        fixture.AuthenticationContextMock.SetupGet(x => x.Current).Returns(testCase.Auth);
-        // The instance owner party is resolved from the same authenticated identity that drives the classification,
-        // so the submitter and the instance owner stay consistent instead of being hand-rolled per case. An
-        // Authenticated.None identity has no party, modelling an unresolved instance owner (no Avsender emitted).
+        // The register lookup serves both the sender korrespondansepart and the instance owner classification's
+        // title, so the two are driven from the same owner rather than being hand-rolled per case.
         fixture
-            .PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>()))
-            .Returns(() => ResolveInstanceOwnerParty(testCase.Auth));
+            .PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .ReturnsAsync(Factories.RegisterParty(testCase.Owner));
 
         return fixture;
-    }
-
-    // Each authenticated identity carries its own associated party (see TestAuthentication), so we reuse that
-    // rather than constructing a separate instance owner party that could drift from the auth context.
-    // Authenticated.None has no party and resolves to null, modelling an instance owner that cannot be resolved.
-    private static async Task<Party?> ResolveInstanceOwnerParty(Authenticated auth)
-    {
-        Party? authParty = auth switch
-        {
-            Authenticated.User user => await user.LookupSelectedParty(),
-            Authenticated.Org org => (await org.LoadDetails()).Party,
-            Authenticated.ServiceOwner serviceOwner => (await serviceOwner.LoadDetails()).Party,
-            Authenticated.SystemUser systemUser => (await systemUser.LoadDetails()).Party,
-            Authenticated.None => null,
-            _ => throw new InvalidOperationException($"Unsupported authentication type: {auth.GetType().Name}"),
-        };
-
-        return authParty is null ? null : WithRegisterContactInfo(authParty);
-    }
-
-    // The lightweight auth party (TestAuthentication) only carries flat identity fields, whereas a real register
-    // lookup (IAltinnPartyClient.GetParty) returns the nested Person/Organisation + contact details that
-    // GetInstanceOwnerParty renders. Project the auth identity onto a fully-populated register party so the
-    // generated korrespondansepart keeps its personid/organisasjonid and contact information.
-    private static Party WithRegisterContactInfo(Party authParty)
-    {
-        var party = new Party
-        {
-            PartyId = authParty.PartyId,
-            PartyUuid = authParty.PartyUuid,
-            PartyTypeName = authParty.PartyTypeName,
-            Name = authParty.Name,
-            OrgNumber = authParty.OrgNumber,
-            SSN = authParty.SSN,
-        };
-
-        if (!string.IsNullOrEmpty(authParty.SSN))
-        {
-            party.Person = new Person
-            {
-                SSN = authParty.SSN,
-                TelephoneNumber = "phone-no",
-                MobileNumber = "mobile-no",
-                MailingAddress = "Street 1",
-                MailingPostalCode = "0123",
-                MailingPostalCity = "City",
-            };
-        }
-        else if (!string.IsNullOrEmpty(authParty.OrgNumber))
-        {
-            party.Organization = new Organization
-            {
-                OrgNumber = authParty.OrgNumber,
-                TelephoneNumber = "phone-no",
-                MobileNumber = "mobile-no",
-                MailingAddress = "Street 1",
-                MailingPostalCode = "0123",
-                MailingPostalCity = "City",
-            };
-        }
-
-        return party;
     }
 
     internal sealed record TestCase(
         string TestIdentifier,
         FiksArkivSettings Settings,
-        Authenticated Auth,
+        TestInstanceOwner Owner,
         FiksArkivRecipient Recipient,
         IEnumerable<string> ExpectedAttachmentFilenames
     )
@@ -485,6 +431,9 @@ public class FiksArkivDefaultPayloadGeneratorTest
 
     private static class Factories
     {
+        public const string PersonNumber = "12345678901";
+        public const string OrganizationNumber = "405003309";
+
         public static FiksArkivRecipient Recipient(string identifier, string name, string? orgNumber = null) =>
             new(Guid.Empty, identifier, name, orgNumber);
 
@@ -526,6 +475,45 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 DataType = dataType,
                 Filename = filename,
                 ContentType = contentType,
+            };
+
+        // What a real register lookup (IAltinnPartyClient.GetParty) returns for the owner: the nested
+        // Person/Organisation with contact details that the sender korrespondansepart renders.
+        public static Party? RegisterParty(TestInstanceOwner owner) =>
+            owner switch
+            {
+                TestInstanceOwner.Person => new Party
+                {
+                    PartyId = 12345,
+                    Name = "Test Testesen",
+                    SSN = PersonNumber,
+                    Person = new Person
+                    {
+                        SSN = PersonNumber,
+                        TelephoneNumber = "phone-no",
+                        MobileNumber = "mobile-no",
+                        MailingAddress = "Street 1",
+                        MailingPostalCode = "0123",
+                        MailingPostalCity = "City",
+                    },
+                },
+                TestInstanceOwner.Organization => new Party
+                {
+                    PartyId = 12345,
+                    Name = "Test AS",
+                    OrgNumber = OrganizationNumber,
+                    Organization = new Organization
+                    {
+                        OrgNumber = OrganizationNumber,
+                        TelephoneNumber = "phone-no",
+                        MobileNumber = "mobile-no",
+                        MailingAddress = "Street 1",
+                        MailingPostalCode = "0123",
+                        MailingPostalCity = "City",
+                    },
+                },
+                TestInstanceOwner.Unresolved => null,
+                _ => throw new ArgumentOutOfRangeException(nameof(owner), owner, null),
             };
 
         // The generator reads every document through the caller's unit of work, never through Storage directly,

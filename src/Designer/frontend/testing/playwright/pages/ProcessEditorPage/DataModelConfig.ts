@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { BasePage } from '@studio/testing/playwright/helpers/BasePage';
 
 export class DataModelConfig extends BasePage {
@@ -12,14 +12,26 @@ export class DataModelConfig extends BasePage {
     ).click();
   }
 
-  public async clickOnDataModelButton(dataModelName: string): Promise<void> {
-    await this.page
+  private dataModelButton(dataModelName: string): Locator {
+    return this.page
       .getByRole('button', {
         name: this.textMock('process_editor.configuration_panel_set_data_model', {
           dataModelName,
         }),
       })
-      .click();
+      .first();
+  }
+
+  private addDataModelButton(): Locator {
+    return this.page
+      .getByRole('button', {
+        name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
+      })
+      .first();
+  }
+
+  public async clickOnDataModelButton(dataModelName: string): Promise<void> {
+    await this.dataModelButton(dataModelName).click();
   }
 
   public async waitForComboboxToBeVisible(): Promise<void> {
@@ -38,18 +50,11 @@ export class DataModelConfig extends BasePage {
   }
 
   public async waitForAddDataModelButtonWithoutValueToBeVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
-    });
-    await expect(button).toBeVisible();
+    await expect(this.addDataModelButton()).toBeVisible();
   }
 
   public async clickOnAddButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
-      })
-      .click();
+    await this.addDataModelButton().click();
   }
 
   public async clickOnCombobox(): Promise<void> {
@@ -65,30 +70,15 @@ export class DataModelConfig extends BasePage {
   }
 
   public async waitForDataModelButtonToBeVisibleWithValue(dataModelName: string): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model', {
-        dataModelName,
-      }),
-    });
-    await expect(button).toBeVisible();
+    await expect(this.dataModelButton(dataModelName)).toBeVisible();
   }
 
   public async verifyDataModelButtonTextIsSelectedDataModel(option: string): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model', {
-          dataModelName: option,
-        }),
-      })
-      .isVisible();
+    await expect(this.dataModelButton(option)).toBeVisible();
   }
 
   public async verifyThatAddNewDataModelLinkButtonIsHidden(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
-      })
-      .isHidden();
+    await expect(this.addDataModelButton()).toBeHidden();
   }
 
   public async verifyThatThereAreNoDataModelsAvailable(): Promise<void> {

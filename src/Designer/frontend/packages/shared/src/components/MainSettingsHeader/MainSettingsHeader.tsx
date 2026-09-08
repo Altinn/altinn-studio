@@ -18,7 +18,7 @@ export const MainSettingsHeader = (): JSX.Element => {
     >
       <div className={classes.flexContainer}>
         <StudioHeading id={headingId} className={classes.heading}>
-          {t('ux_editor.component_properties.main_configuration')}
+          {t('shared.main_configuration')}
         </StudioHeading>
         <span id={requiredIndicatorId}>
           <StudioTag className={classes.requiredIndicator} data-color='warning'>
