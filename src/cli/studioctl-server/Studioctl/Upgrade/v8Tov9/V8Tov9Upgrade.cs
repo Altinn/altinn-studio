@@ -229,6 +229,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
+
         return returnCode;
     }
 
@@ -1259,6 +1262,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 12: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
+    /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
+    /// not followed by the exclusive gateway the v9 app requires at startup.
+    /// </summary>
+    static async Task<int> MigrateFiksArkivSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Fiks Arkiv settings");
+        try
+        {
+            var migrator = new FiksArkivSettingsMigration.FiksArkivSettingsMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No Fiks Arkiv settings to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Fiks Arkiv settings", ex);
         }
     }
 

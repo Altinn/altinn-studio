@@ -7,9 +7,9 @@
     <tittel>Custom Case File Title</tittel>
     <offentligTittel>Custom Case File Title</offentligTittel>
     <klassifikasjon>
-      <klassifikasjonssystemID>AltinnSystembrukerId</klassifikasjonssystemID>
-      <klasseID>f58fe166-bc22-4899-beb7-c3e8e3332f43</klasseID>
-      <tittel>310702641</tittel>
+      <klassifikasjonssystemID>ORGNR</klassifikasjonssystemID>
+      <klasseID>405003309</klasseID>
+      <tittel>Test AS</tittel>
     </klassifikasjon>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>
@@ -157,13 +157,13 @@
       <deresReferanse>https://ttd.apps.the-hostname/ttd/test-app/instances/12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90</deresReferanse>
     </korrespondansepart>
     <korrespondansepart>
-      <korrespondansepartID>5001337</korrespondansepartID>
+      <korrespondansepartID>12345</korrespondansepartID>
       <korrespondanseparttype>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
         <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
       </korrespondanseparttype>
       <korrespondansepartNavn>Test AS</korrespondansepartNavn>
-      <organisasjonid>310702641</organisasjonid>
+      <organisasjonid>405003309</organisasjonid>
       <postadresse>Street 1</postadresse>
       <postnummer>0123</postnummer>
       <poststed>City</poststed>
