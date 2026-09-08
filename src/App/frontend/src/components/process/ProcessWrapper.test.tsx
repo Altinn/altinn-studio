@@ -411,9 +411,9 @@ describe('ProcessWrapper workflow state machine', () => {
 
   it('failed on the current service task renders the recoverable failure view, even over a custom layout', async () => {
     // A failed workflow that targeted the CURRENT task, when that task is a service task, is owned
-    // by that task and renders ServiceTaskFailed (retry via process/resume + the bpmn-allowed
-    // reject) instead of the terminal error page - the terminal page is only for failures no task
-    // UI can recover from (e.g. the pre-commit failure above, which targets ANOTHER task).
+    // by that task and renders ServiceTaskFailed (retry via process/resume) instead of the
+    // terminal error page - the terminal page is only for failures no task UI can recover from
+    // (e.g. the pre-commit failure above, which targets ANOTHER task).
     // The harness registers a layout for the task, so this also pins failure-over-layout
     // precedence: a custom layout would classify the task as Data and silently render its form
     // with no trace of the failure, so the failure view must win (#18935).
