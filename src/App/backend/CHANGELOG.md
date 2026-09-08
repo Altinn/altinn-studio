@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Breaking: the signing metric `altinn_app_lib_singing_get_service_owner_party` is now spelled `altinn_app_lib_signing_get_service_owner_party`. It counts the service owner party lookups an app makes when a signing task starts, and its name has carried the typo since the metric was added. Repoint any dashboard or alert matching the old name.
+
 ## [9.0.0-preview.5] - 2026-09-04
 
 ### Added
