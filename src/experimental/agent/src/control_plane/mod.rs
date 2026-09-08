@@ -1,6 +1,7 @@
 //! Declarative Agent storage, reconciliation, and continuous repair.
 
 mod controller;
+mod convergence;
 pub mod memory;
 mod reconciler;
 mod resource;
@@ -14,6 +15,7 @@ use ::sandbox::LocalFuture;
 use crate::{Error, Status};
 
 pub use controller::{Controller, ErrorHandler, Wakeup};
+pub use convergence::{Convergence, Observers, WaitPolicy};
 pub use reconciler::{Reconciler, SessionNotifier};
 pub use resource::{AgentId, AgentRecord, ENV_FILE};
 pub use service::{ApplyRequest, ControlPlane, Notifier};

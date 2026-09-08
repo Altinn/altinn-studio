@@ -5,8 +5,8 @@ mod view;
 use std::{collections::HashSet, io::IsTerminal as _, path::PathBuf, process::ExitCode, time::Duration};
 
 use agent::{
-    Agent, Error, Harness, control_api::Client, local::home::ControlPlaneHome, manifest, sessions::Session,
-    sessions::SessionName,
+    Agent, Error, Harness, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
+    sessions::Session, sessions::SessionName,
 };
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
@@ -163,7 +163,9 @@ fn spawn_create(
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
         let result = async {
-            let target = client.ensure_execution(&agent, None).await?;
+            // The TUI has no place to render progress while on screen, so a failing
+            // first pass is reported instead of waited through.
+            let target = client.ensure_execution(&agent, WaitPolicy::FirstPass, None).await?;
             PortForward::start(home_path, target.sandbox, spec.clone()).await
         }
         .await;
@@ -319,9 +321,14 @@ async fn attach(
     harness: Option<Harness>,
 ) -> Result<(), Error> {
     let mut progress = ProgressRenderer::stderr();
-    let waited =
-        until_interrupted(client.ensure_session(agent, session, harness, Some(&mut |event| progress.render(event))))
-            .await;
+    let waited = until_interrupted(client.ensure_session(
+        agent,
+        session,
+        harness,
+        WaitPolicy::UntilReady,
+        Some(&mut |event| progress.render(event)),
+    ))
+    .await;
     progress.finish();
     let target = waited.ok_or_else(|| interrupted(agent))??;
     agent::sessions::attach(home.path(), &target).await
@@ -329,7 +336,12 @@ async fn attach(
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
     let mut progress = ProgressRenderer::stderr();
-    let waited = until_interrupted(client.ensure_execution(agent, Some(&mut |event| progress.render(event)))).await;
+    let waited = until_interrupted(client.ensure_execution(
+        agent,
+        WaitPolicy::UntilReady,
+        Some(&mut |event| progress.render(event)),
+    ))
+    .await;
     progress.finish();
     let target = waited.ok_or_else(|| interrupted(agent))??;
     let command = ["bash".to_owned(), "-l".to_owned()];

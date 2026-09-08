@@ -1,6 +1,6 @@
 //! User-facing Session operations coordinated with the reconciler.
 
-use crate::{Error, Harness, control_plane, progress::Observation};
+use crate::{Error, Harness, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::{AttachTarget, Session, SessionName, SharedStore, Wakeup};
 
@@ -8,30 +8,24 @@ use super::{AttachTarget, Session, SessionName, SharedStore, Wakeup};
 pub struct Service {
     store: SharedStore,
     agents: std::rc::Rc<dyn control_plane::AgentStore>,
-    agent_wakeup: control_plane::Wakeup,
+    convergence: control_plane::Convergence,
     wakeup: Wakeup,
-    progress: crate::progress::Hub,
-    statuses: control_plane::StatusWatch,
 }
 
 impl Service {
-    /// Creates a Session service over durable storage and controller wake-ups.
+    /// Creates a Session service over durable storage, Agent convergence, and the Session controller.
     #[must_use]
-    pub fn new(
+    pub const fn new(
         store: SharedStore,
         agents: std::rc::Rc<dyn control_plane::AgentStore>,
-        agent_wakeup: control_plane::Wakeup,
+        convergence: control_plane::Convergence,
         wakeup: Wakeup,
-        progress: crate::progress::Hub,
-        statuses: control_plane::StatusWatch,
     ) -> Self {
         Self {
             store,
             agents,
-            agent_wakeup,
+            convergence,
             wakeup,
-            progress,
-            statuses,
         }
     }
 
@@ -40,29 +34,19 @@ impl Service {
     /// # Errors
     ///
     /// Returns an error when persistence fails or the Agent is invalid; with
-    /// [`Observation::OnePass`] also when the single Agent pass fails.
+    /// [`WaitPolicy::FirstPass`] also when the single Agent pass fails.
     pub async fn ensure(
         &self,
         agent: &str,
         name: &SessionName,
         requested_harness: Option<Harness>,
-        observation: Observation,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, requested_harness).await?;
-        match observation {
-            Observation::OnePass => self.agent_wakeup.reconcile(owner.id).await?,
-            Observation::Follow(reporter) => {
-                crate::progress::observe_agent(
-                    &self.progress,
-                    &self.statuses,
-                    &self.agent_wakeup,
-                    owner.id,
-                    &owner.agent.metadata.name,
-                    &reporter,
-                )
-                .await?;
-            }
-        }
+        self.convergence
+            .converge(owner.id, &owner.agent.metadata.name, wait, progress.as_ref())
+            .await?;
         self.wakeup.reconcile(session.id).await?;
         self.store.session_attach_target(session.id).await
     }

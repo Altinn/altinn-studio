@@ -4,7 +4,7 @@ use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane, harness, sessions};
+use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
 
 use super::protocol::{
     DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
@@ -95,8 +95,9 @@ impl Client {
 
     /// Converges an Agent and resolves its exact transient Execution target.
     ///
-    /// With a progress sink the call opts in to streamed provisioning events and
-    /// waits through transient failures; without one it returns the first pass's outcome.
+    /// `wait` decides whether the call returns after one reconciliation pass or
+    /// follows background retries until Ready; a progress sink independently
+    /// opts in to streamed provisioning events.
     ///
     /// # Errors
     ///
@@ -105,6 +106,7 @@ impl Client {
     pub async fn ensure_execution(
         &self,
         name: &str,
+        wait: WaitPolicy,
         progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<crate::sandbox::ExecutionTarget, Error> {
         self.call(
@@ -112,6 +114,7 @@ impl Client {
             ExecutionEnsureParams {
                 name: name.into(),
                 progress: progress.is_some(),
+                follow: wait == WaitPolicy::UntilReady,
             },
             progress,
         )
@@ -153,8 +156,9 @@ impl Client {
 
     /// Creates or resolves one named session attach target.
     ///
-    /// With a progress sink the call opts in to streamed Agent provisioning events
-    /// and waits through transient failures; without one it returns the first pass's outcome.
+    /// `wait` decides whether the call returns after one Agent reconciliation
+    /// pass or follows background retries until Ready; a progress sink
+    /// independently opts in to streamed provisioning events.
     ///
     /// # Errors
     ///
@@ -164,6 +168,7 @@ impl Client {
         agent: &str,
         name: sessions::SessionName,
         harness: Option<harness::Harness>,
+        wait: WaitPolicy,
         progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<sessions::AttachTarget, Error> {
         self.call(
@@ -173,6 +178,7 @@ impl Client {
                 name,
                 harness,
                 progress: progress.is_some(),
+                follow: wait == WaitPolicy::UntilReady,
             },
             progress,
         )

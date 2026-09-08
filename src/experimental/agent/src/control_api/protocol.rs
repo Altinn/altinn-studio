@@ -99,6 +99,8 @@ pub(crate) struct ExecutionEnsureParams {
     pub name: String,
     #[serde(default, skip_serializing_if = "is_false")]
     pub progress: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub follow: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -119,6 +121,8 @@ pub(crate) struct SessionEnsureParams {
     pub harness: Option<crate::Harness>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub progress: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub follow: bool,
 }
 
 #[derive(Deserialize, Serialize)]

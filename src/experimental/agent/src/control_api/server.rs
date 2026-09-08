@@ -5,7 +5,7 @@ use serde::Serialize;
 use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane, harness, progress::Observation, sessions};
+use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::Reporter, sessions};
 
 use super::outbox::Outbox;
 use super::protocol::{
@@ -91,7 +91,8 @@ pub trait SessionApi {
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
-        observation: Observation,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
 
     /// Gets one named Session scoped to an Agent.
@@ -111,9 +112,10 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
-        observation: Observation,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness, observation).await })
+        Box::pin(async move { Self::ensure(self, agent, name, harness, wait, progress).await })
     }
 
     fn get<'a>(
@@ -135,7 +137,8 @@ pub trait ExecutionApi {
     fn ensure<'a>(
         &'a self,
         name: &'a str,
-        observation: Observation,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
 }
 
@@ -143,9 +146,10 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
     fn ensure<'a>(
         &'a self,
         name: &'a str,
-        observation: Observation,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, name, observation).await })
+        Box::pin(async move { Self::ensure(self, name, wait, progress).await })
     }
 }
 
@@ -306,8 +310,8 @@ impl Server {
         if params.name.is_empty() {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
         }
-        let observation = observation(params.progress, progress);
-        result_response(id, self.executions.ensure(&params.name, observation).await)
+        let (wait, progress) = observation(params.follow, params.progress, progress);
+        result_response(id, self.executions.ensure(&params.name, wait, progress).await)
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
@@ -326,11 +330,11 @@ impl Server {
         let Ok(params) = serde_json::from_value::<SessionEnsureParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
         };
-        let observation = observation(params.progress, progress);
+        let (wait, progress) = observation(params.follow, params.progress, progress);
         result_response(
             id,
             self.sessions
-                .ensure(&params.agent, &params.name, params.harness, observation)
+                .ensure(&params.agent, &params.name, params.harness, wait, progress)
                 .await,
         )
     }
@@ -350,12 +354,14 @@ impl Server {
     }
 }
 
-fn observation(opted_in: bool, progress: crate::progress::Reporter) -> Observation {
-    if opted_in {
-        Observation::Follow(progress)
+/// Maps the request's opt-in flags to the wait policy and optional progress sink.
+fn observation(follow: bool, progress: bool, reporter: Reporter) -> (WaitPolicy, Option<Reporter>) {
+    let wait = if follow {
+        WaitPolicy::UntilReady
     } else {
-        Observation::OnePass
-    }
+        WaitPolicy::FirstPass
+    };
+    (wait, progress.then_some(reporter))
 }
 
 async fn flush<W: AsyncWrite + Unpin>(outbox: &Outbox, writer: &mut W) -> Result<(), Error> {

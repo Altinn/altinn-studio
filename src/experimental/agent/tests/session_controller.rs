@@ -6,9 +6,8 @@ use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
-    control_plane::{AgentRecord, AgentStore as _},
+    control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
     persistence,
-    progress::Observation,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{Reconcile, SessionId, SessionName, SessionStore as _},
 };
@@ -260,10 +259,8 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     let service = agent::sessions::Service::new(
         session_store,
         agent_store,
-        agent_wakeup,
+        Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        agent::progress::Hub::new(),
-        agent::control_plane::StatusWatch::new(),
     );
 
     let explicit = service
@@ -271,7 +268,8 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::Codex),
-            Observation::OnePass,
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect("explicit harness Session");
@@ -280,7 +278,8 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("implicit").expect("name"),
             None,
-            Observation::OnePass,
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect("implicit default Session");
@@ -293,7 +292,8 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::ClaudeCode),
-            Observation::OnePass,
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect_err("an existing Session keeps its harness");
@@ -578,10 +578,8 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
     let service = Rc::new(agent::sessions::Service::new(
         session_store,
         agent_store,
-        agent_wakeup,
+        Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        agent::progress::Hub::new(),
-        agent::control_plane::StatusWatch::new(),
     ));
     let ensure_service = service.clone();
     let ensure = tokio::task::spawn_local(async move {
@@ -590,7 +588,8 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
                 "worker",
                 &SessionName::new("s1").expect("name"),
                 None,
-                Observation::OnePass,
+                WaitPolicy::FirstPass,
+                None,
             )
             .await
     });

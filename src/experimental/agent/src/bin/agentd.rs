@@ -102,8 +102,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let (sandboxes, session_hook_url) =
         open_sandboxes(&home, &database, credentials.clone(), policy, platform_api_port).await?;
     let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
-    let progress = agent::progress::Hub::new();
-    let statuses = agent::control_plane::StatusWatch::new();
+    let observers = agent::control_plane::Observers::new();
 
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
         session_store.clone(),
@@ -127,10 +126,8 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_wakeup.clone(),
         Rc::new(|error| tracing::error!(%error, "Session notification scan failed")),
     ));
-    let reconciler = Rc::new(
-        Reconciler::new(store.clone(), sandboxes, progress.clone(), statuses.clone())
-            .with_session_notifier(session_notifier),
-    );
+    let reconciler =
+        Rc::new(Reconciler::new(store.clone(), sandboxes, observers.clone()).with_session_notifier(session_notifier));
     let (controller, wakeup) = Controller::new(
         store.clone(),
         reconciler,
@@ -138,20 +135,9 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         reconciliation_errors("Agent"),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
-    let executions = Rc::new(ExecutionService::new(
-        store.clone(),
-        wakeup.clone(),
-        progress.clone(),
-        statuses.clone(),
-    ));
-    let sessions = Rc::new(SessionService::new(
-        session_store,
-        store,
-        wakeup,
-        session_wakeup,
-        progress,
-        statuses,
-    ));
+    let convergence = agent::control_plane::Convergence::new(wakeup, observers);
+    let executions = Rc::new(ExecutionService::new(store.clone(), convergence.clone()));
+    let sessions = Rc::new(SessionService::new(session_store, store, convergence, session_wakeup));
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),

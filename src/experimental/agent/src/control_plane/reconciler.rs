@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status};
 
-use super::{AgentRecord, ObservedStatus, SharedAgentStore, StatusWatch};
+use super::{AgentRecord, ObservedStatus, Observers, SharedAgentStore};
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
@@ -15,25 +15,18 @@ pub struct Reconciler {
     store: SharedAgentStore,
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
-    progress: crate::progress::Hub,
-    statuses: StatusWatch,
+    observers: Observers,
 }
 
 impl Reconciler {
     /// Creates an Agent reconciler over persistent resources and runtime-resolved Sandboxes.
     #[must_use]
-    pub fn new(
-        store: SharedAgentStore,
-        sandboxes: Rc<crate::sandbox::Service>,
-        progress: crate::progress::Hub,
-        statuses: StatusWatch,
-    ) -> Self {
+    pub fn new(store: SharedAgentStore, sandboxes: Rc<crate::sandbox::Service>, observers: Observers) -> Self {
         Self {
             store,
             sandboxes,
             sessions: None,
-            progress,
-            statuses,
+            observers,
         }
     }
 
@@ -83,7 +76,7 @@ impl Reconciler {
         }
 
         let observer = self
-            .progress
+            .observers
             .observe_sandbox(record.id, record.agent.metadata.name.clone());
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
@@ -147,7 +140,7 @@ impl Reconciler {
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
             .await?;
-        self.statuses.forget(record.id);
+        self.observers.forget(record.id);
         Ok(())
     }
 
@@ -188,7 +181,7 @@ impl Reconciler {
         self.store
             .update_status(record.id, record.agent.metadata.generation, status)
             .await?;
-        self.statuses.publish(record.id, observed);
+        self.observers.publish_status(record.id, observed);
         if notify {
             self.notify_sessions(record.id);
         }

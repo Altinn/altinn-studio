@@ -5,7 +5,7 @@ use std::{path::Path, rc::Rc};
 use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, control_plane, progress::Observation};
+use crate::{Error, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::Assignment;
 
@@ -22,26 +22,14 @@ pub struct ExecutionTarget {
 /// Resolves transient executions without taking ownership of Sandbox lifecycle effects.
 pub struct ExecutionService {
     agents: Rc<dyn control_plane::AgentStore>,
-    wakeup: control_plane::Wakeup,
-    progress: crate::progress::Hub,
-    statuses: control_plane::StatusWatch,
+    convergence: control_plane::Convergence,
 }
 
 impl ExecutionService {
     /// Creates an execution-target resolver over the Agent controller.
     #[must_use]
-    pub fn new(
-        agents: Rc<dyn control_plane::AgentStore>,
-        wakeup: control_plane::Wakeup,
-        progress: crate::progress::Hub,
-        statuses: control_plane::StatusWatch,
-    ) -> Self {
-        Self {
-            agents,
-            wakeup,
-            progress,
-            statuses,
-        }
+    pub const fn new(agents: Rc<dyn control_plane::AgentStore>, convergence: control_plane::Convergence) -> Self {
+        Self { agents, convergence }
     }
 
     /// Wakes Agent convergence and returns its exact ready Sandbox assignment.
@@ -49,24 +37,18 @@ impl ExecutionService {
     /// # Errors
     ///
     /// Returns an error when the Agent is missing, deleting, or invalid; with
-    /// [`Observation::OnePass`] also when the single pass fails or leaves the
+    /// [`WaitPolicy::FirstPass`] also when the single pass fails or leaves the
     /// Agent without a ready materialized Sandbox.
-    pub async fn ensure(&self, name: &str, observation: Observation) -> Result<ExecutionTarget, Error> {
+    pub async fn ensure(
+        &self,
+        name: &str,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
+    ) -> Result<ExecutionTarget, Error> {
         let record = self.load_active(name).await?;
-        match observation {
-            Observation::OnePass => self.wakeup.reconcile(record.id).await?,
-            Observation::Follow(reporter) => {
-                crate::progress::observe_agent(
-                    &self.progress,
-                    &self.statuses,
-                    &self.wakeup,
-                    record.id,
-                    &record.agent.metadata.name,
-                    &reporter,
-                )
-                .await?;
-            }
-        }
+        self.convergence
+            .converge(record.id, &record.agent.metadata.name, wait, progress.as_ref())
+            .await?;
         self.target(record.id, name).await
     }
 

@@ -9,6 +9,7 @@ use agent::{
     Agent, Error,
     control_api::Client,
     control_plane::ApplyRequest,
+    control_plane::WaitPolicy,
     local::home::ControlPlaneHome,
     manifest,
     sessions::{Session, SessionName},
@@ -381,6 +382,7 @@ async fn attach(
         &agent,
         session,
         harness,
+        WaitPolicy::UntilReady,
         Some(&mut |event| progress.render(event)),
     ))
     .await;
@@ -404,8 +406,12 @@ async fn exec_command(
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
     let mut progress = ProgressRenderer::stderr();
-    let waited =
-        progress::until_interrupted(client.ensure_execution(&agent, Some(&mut |event| progress.render(event)))).await;
+    let waited = progress::until_interrupted(client.ensure_execution(
+        &agent,
+        WaitPolicy::UntilReady,
+        Some(&mut |event| progress.render(event)),
+    ))
+    .await;
     progress.finish();
     let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
@@ -462,8 +468,12 @@ async fn port_forward(
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
     let mut progress = ProgressRenderer::stderr();
-    let waited =
-        progress::until_interrupted(client.ensure_execution(&agent, Some(&mut |event| progress.render(event)))).await;
+    let waited = progress::until_interrupted(client.ensure_execution(
+        &agent,
+        WaitPolicy::UntilReady,
+        Some(&mut |event| progress.render(event)),
+    ))
+    .await;
     progress.finish();
     let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
     let mut forwards = Vec::new();
@@ -644,7 +654,7 @@ async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Comma
     let mut progress = ProgressRenderer::stderr();
     let waited = progress::until_interrupted(tokio::time::timeout(
         timeout,
-        client.ensure_execution(name, Some(&mut |event| progress.render(event))),
+        client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut |event| progress.render(event))),
     ))
     .await;
     progress.finish();

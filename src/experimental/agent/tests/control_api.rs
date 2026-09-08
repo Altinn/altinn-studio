@@ -11,9 +11,10 @@ use std::{
 use agent::{
     Error,
     control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
+    control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
-    progress::Observation,
+    progress::Reporter,
 };
 use sandbox::LocalFuture;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -56,7 +57,8 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         harness: Option<agent::Harness>,
-        _observation: Observation,
+        _wait: WaitPolicy,
+        _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
         self.ensured_harnesses.borrow_mut().push(harness);
         Box::pin(async { Err(Error::NotFound) })
@@ -79,9 +81,10 @@ impl ExecutionApi for FakeExecutions {
     fn ensure<'a>(
         &'a self,
         name: &'a str,
-        observation: Observation,
+        _wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        if let Observation::Follow(progress) = observation {
+        if let Some(progress) = progress {
             self.progress_ensures.set(self.progress_ensures.get() + 1);
             progress(agent::progress::Event::PhaseStarted {
                 agent: name.into(),
@@ -222,7 +225,10 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             .expect("resolve source"),
         applied
     );
-    let execution = client.ensure_execution("worker", None).await.expect("execution target");
+    let execution = client
+        .ensure_execution("worker", WaitPolicy::FirstPass, None)
+        .await
+        .expect("execution target");
     assert_eq!(fixture.progress_ensures.get(), 0);
     assert_eq!(execution.operating_system, "linux");
     assert_eq!(execution.sandbox.provider().as_str(), "memory");
@@ -232,6 +238,7 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             "worker",
             agent::sessions::SessionName::new("s1").expect("Session name"),
             Some(agent::Harness::ClaudeCode),
+            WaitPolicy::FirstPass,
             None,
         )
         .await
@@ -259,7 +266,11 @@ async fn opted_in_ensure_routes_notifications_before_the_matching_response() {
     let observed = events.clone();
     let target = fixture
         .client
-        .ensure_execution("worker", Some(&mut |event| observed.borrow_mut().push(event)))
+        .ensure_execution(
+            "worker",
+            WaitPolicy::UntilReady,
+            Some(&mut |event| observed.borrow_mut().push(event)),
+        )
         .await
         .expect("streaming execution target");
 
@@ -290,7 +301,7 @@ async fn unknown_notifications_are_skipped_but_malformed_frames_fail_the_call() 
     let client = Client::new(Rc::new(unknown));
     let mut event_count = 0;
     let target = client
-        .ensure_execution("worker", Some(&mut |_| event_count += 1))
+        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| event_count += 1))
         .await
         .expect("response after unknown notifications");
     assert_eq!(event_count, 0);
@@ -301,7 +312,7 @@ async fn unknown_notifications_are_skipped_but_malformed_frames_fail_the_call() 
     };
     let client = Client::new(Rc::new(malformed));
     let error = client
-        .ensure_execution("worker", Some(&mut |_| {}))
+        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| {}))
         .await
         .expect_err("corrupted frame is a protocol error");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
