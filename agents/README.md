@@ -1,8 +1,5 @@
 # Altinn Agents
 
-These variants are for working on Altinn Studio and its apps. To work on the agent platform itself, use
-`src/experimental/agent/examples/self-dev` instead.
-
 Choose a Claude Code development environment:
 
 | Variant    | Additional tools                                        |
@@ -60,10 +57,9 @@ To work directly on the current checkout without cloning it, apply `agents/workt
 the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
 worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
 
-Because ignored files are visible too, a `.env` inside the checkout would expose its real values to the Agent.
-`agentctl apply` therefore refuses the worktree variant while another Agent applied from this checkout, such as
-`agents/full`, keeps its `.env` beside its manifest. Move that secret file outside the checkout and point the
-other Agent at it with `agentctl apply --env-file <path>`.
+A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree
+variant while any `.env` of another Agent, for example `agents/full/.env`, lies inside the checkout. Keep such
+secret files outside the checkout and pass their location with `agentctl apply --env-file <path>`.
 
 Create or reattach to a Session:
 
