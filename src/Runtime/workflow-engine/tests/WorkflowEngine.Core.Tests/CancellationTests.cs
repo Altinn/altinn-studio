@@ -12,6 +12,11 @@ namespace WorkflowEngine.Core.Tests;
 /// <summary>
 /// Tests for cancellation behavior in <see cref="WorkflowHandler"/> and <see cref="InFlightTracker"/>.
 /// </summary>
+/// <remarks>
+/// Shares a collection with <see cref="WorkflowHandlerTests"/>: both drive the handler, whose outcome
+/// counters are process-global and asserted on exactly there.
+/// </remarks>
+[Collection("WorkflowHandlerTests")]
 public class CancellationTests
 {
     #region Helpers

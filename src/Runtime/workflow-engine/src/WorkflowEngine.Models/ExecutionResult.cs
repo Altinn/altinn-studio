@@ -76,4 +76,22 @@ public record struct ExecutionResult(
     /// </param>
     public static ExecutionResult Defer(TimeSpan delay, string? message = null) =>
         new(ExecutionStatus.Deferred, message, DeferDelay: delay);
+
+    /// <summary>
+    /// Creates a skipped execution result: the command ran without error and determined that
+    /// neither its own work nor any later step must run. The engine marks this step and every
+    /// later step <see cref="PersistentItemStatus.Skipped"/> and ends the workflow
+    /// <see cref="PersistentItemStatus.Skipped"/>. A skip is not a failure — it records no error
+    /// history — and it is terminal: dependents run, and the workflow is not resumable.
+    /// </summary>
+    /// <param name="reason">
+    /// Why the rest of the workflow is skipped. A machine-readable code consumers classify on,
+    /// persisted as the step's <see cref="Step.SkipReason"/> and surfaced on status reads.
+    /// Required and non-blank.
+    /// </param>
+    public static ExecutionResult Skip(string reason)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        return new(ExecutionStatus.Skipped, reason);
+    }
 };

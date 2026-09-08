@@ -755,6 +755,72 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task BatchUpdateWorkflowsAndSteps_SkippedStepsAndSkipReason_RoundTrip()
+    {
+        // Arrange: a two-step workflow whose first step skips the rest, written back the way the
+        // handler does it — both steps dirty in one write, the reason on the skipping step only.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var request = new WorkflowRequest
+        {
+            OperationId = "next",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "acquire",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "commit",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            null,
+            DateTimeOffset.UtcNow,
+            null
+        );
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+        await WorkflowTestHelper.AssignLeaseToken(context, workflow);
+
+        var skipping = workflow.Steps.Single(s => s.OperationId == "acquire");
+        var later = workflow.Steps.Single(s => s.OperationId == "commit");
+        workflow.Status = PersistentItemStatus.Skipped;
+        skipping.Status = PersistentItemStatus.Skipped;
+        skipping.SkipReason = "acquireConcurrencyConflict";
+        later.Status = PersistentItemStatus.Skipped;
+
+        // Act
+        await repo.BatchUpdateWorkflowsAndSteps(
+            [new BatchWorkflowStatusUpdate(workflow, [skipping, later])],
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Skipped, dbWorkflow.Status);
+
+        var dbSkipping = await fixture.GetStep(skipping.DatabaseId);
+        Assert.NotNull(dbSkipping);
+        Assert.Equal(PersistentItemStatus.Skipped, dbSkipping.Status);
+        Assert.Equal("acquireConcurrencyConflict", dbSkipping.SkipReason);
+        Assert.Empty(dbSkipping.ErrorHistory);
+
+        var dbLater = await fixture.GetStep(later.DatabaseId);
+        Assert.NotNull(dbLater);
+        Assert.Equal(PersistentItemStatus.Skipped, dbLater.Status);
+        Assert.Null(dbLater.SkipReason);
+        Assert.NotNull(dbLater.UpdatedAt);
+    }
+
+    [Fact]
     public async Task GetSuccessfulWorkflows_ReturnsOnlyCompleted()
     {
         await using var context = fixture.CreateDbContext();

@@ -69,6 +69,29 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task FetchAndLock_DependentOfSkippedWorkflow_IsClaimed()
+    {
+        // Skipped is in the Finished set, so the dependency gate treats it like any other settled
+        // upstream and lets the dependent through.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+
+        var skipped = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Skipped, ns: ns);
+        var dependent = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Enqueued,
+            ns: ns,
+            dependencies: [skipped.DatabaseId]
+        );
+
+        var workflows = await repo.FetchAndLockWorkflows(10, TestContext.Current.CancellationToken);
+
+        Assert.Equal(dependent.DatabaseId, Assert.Single(workflows).DatabaseId);
+    }
+
+    [Fact]
     public async Task FetchAndLock_RespectsCountLimit()
     {
         await using var context = fixture.CreateDbContext();

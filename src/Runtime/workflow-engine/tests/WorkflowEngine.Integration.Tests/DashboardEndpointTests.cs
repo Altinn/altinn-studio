@@ -271,6 +271,50 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
     }
 
     [Fact]
+    public async Task Step_SkippedWorkflow_ReturnsSkipReason()
+    {
+        // Arrange
+        var wfRequest = _testHelpers.CreateWorkflow(
+            "wf-skipped",
+            [
+                new StepRequest
+                {
+                    OperationId = "skip-dashboard-step",
+                    Command = CommandDefinition.Create(
+                        "test-skip",
+                        new SkippingCommandData { Reason = "acquireConcurrencyConflict" }
+                    ),
+                },
+            ]
+        );
+        var enqueueResponse = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(wfRequest));
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Skipped,
+            TimeSpan.FromSeconds(30)
+        );
+
+        var stepId = status.Steps[0].DatabaseId;
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("Skipped", doc.RootElement.GetProperty("status").GetString());
+        Assert.Equal("acquireConcurrencyConflict", doc.RootElement.GetProperty("skipReason").GetString());
+        Assert.False(doc.RootElement.TryGetProperty("lastDeferReason", out _));
+    }
+
+    [Fact]
     public async Task Query_WaitingWorkflow_StepCarriesDeferReason()
     {
         // Arrange

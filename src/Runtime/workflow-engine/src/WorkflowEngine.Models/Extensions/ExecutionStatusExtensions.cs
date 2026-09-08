@@ -31,5 +31,11 @@ public static class ExecutionStatusExtensions
         /// Determines if the execution result indicates a deferred execution (wait, then re-execute).
         /// </summary>
         public bool IsDeferred() => result.Status == ExecutionStatus.Deferred;
+
+        /// <summary>
+        /// Determines if the execution result indicates a skipped execution (this step and every later step
+        /// end without running).
+        /// </summary>
+        public bool IsSkipped() => result.Status == ExecutionStatus.Skipped;
     }
 }

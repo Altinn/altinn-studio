@@ -18,6 +18,11 @@ namespace WorkflowEngine.Core.Tests;
 /// Unit tests for <see cref="WorkflowHandler"/>, focusing on the retry state machine
 /// and step status resolution in <c>UpdateStepStatusAndRetryDecision</c>.
 /// </summary>
+/// <remarks>
+/// Shares a collection with the other handler-driving class so the exact-total assertions on the
+/// process-global step/workflow outcome counters are not disturbed by a concurrent handler run.
+/// </remarks>
+[Collection("WorkflowHandlerTests")]
 public class WorkflowHandlerTests
 {
     private static readonly TimeProvider _fixedTime = TimeProvider.System;
@@ -916,6 +921,170 @@ public class WorkflowHandlerTests
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
         Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[1].Status);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Steps[2].Status);
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_MarksItAndLaterStepsSkipped_WorkflowSkipped_NoErrorHistory()
+    {
+        var executor = MockExecutor(ExecutionResult.Skip("acquireConcurrencyConflict"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2)
+        );
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Skipped, workflow.Status);
+        Assert.All(workflow.Steps, s => Assert.Equal(PersistentItemStatus.Skipped, s.Status));
+        Assert.All(workflow.Steps, s => Assert.Empty(s.ErrorHistory));
+        Assert.All(workflow.Steps, s => Assert.NotNull(s.UpdatedAt));
+        // Only the skipping step ran; the later ones were never executed
+        executor.Verify(
+            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_EarlierStepsStayCompleted()
+    {
+        var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Skip("acquireConcurrencyConflict"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2)
+        );
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Skipped, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Equal(PersistentItemStatus.Skipped, workflow.Steps[1].Status);
+        Assert.Equal(PersistentItemStatus.Skipped, workflow.Steps[2].Status);
+        executor.Verify(
+            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2)
+        );
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_PersistsReasonOnTriggeringStepOnly()
+    {
+        var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Skip("acquireConcurrencyConflict"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2)
+        );
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Null(workflow.Steps[0].SkipReason);
+        Assert.Equal("acquireConcurrencyConflict", workflow.Steps[1].SkipReason);
+        Assert.Null(workflow.Steps[2].SkipReason);
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_TruncatesReasonTo500()
+    {
+        var reason = new string('r', 600);
+        var executor = MockExecutor(ExecutionResult.Skip(reason));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(reason[..500], workflow.Steps[0].SkipReason);
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_SubmitsAllLaterStepsInOneWrite()
+    {
+        // The later steps change status without ever being processed, so the skipping step's own
+        // write-back must carry them — nothing else writes them before the terminal workflow submit.
+        var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Skip("acquireConcurrencyConflict"));
+        List<IReadOnlyList<Step>?> stepWrites = [];
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
+        buffer
+            .Setup(b =>
+                b.Submit(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Activity?>()
+                )
+            )
+            .Callback<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (_, _, dirtySteps, reason, _) =>
+                {
+                    if (reason == "step.completed")
+                        stepWrites.Add(dirtySteps);
+                }
+            )
+            .Returns(Task.CompletedTask);
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2),
+            CreateStep("step-3", processingOrder: 3)
+        );
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, stepWrites.Count);
+        Assert.Equal(["step-0"], stepWrites[0]!.Select(s => s.OperationId));
+        Assert.Equal(["step-1", "step-2", "step-3"], stepWrites[1]!.Select(s => s.OperationId));
+        Assert.All(stepWrites[1]!, s => Assert.Equal(PersistentItemStatus.Skipped, s.Status));
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_IncrementsSkippedMetricsNotFailureOrSuccess()
+    {
+        using var meters = new MeterCollector();
+        var executor = MockExecutor(ExecutionResult.Skip("acquireConcurrencyConflict"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1)
+        );
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        // One skipping step, however many it took with it; one skipped workflow tagged by head visibility
+        Assert.Equal(1, meters.Total("engine.steps.execution.skipped"));
+        Assert.Equal(1, meters.Total("engine.workflows.execution.skipped"));
+        Assert.Equal(1, meters.ByTag("engine.workflows.execution.skipped", "is_head")["unset"]);
+
+        Assert.Equal(0, meters.Total("engine.steps.execution.success"));
+        Assert.Equal(0, meters.Total("engine.steps.execution.failed"));
+        Assert.Equal(0, meters.Total("engine.workflows.execution.success"));
+        Assert.Equal(0, meters.Total("engine.workflows.execution.failed"));
+    }
+
+    [Fact]
+    public async Task Handle_StepSkips_NoRetryScheduled()
+    {
+        // A skip is terminal: no backoff for a next attempt, and the retry counter untouched.
+        var executor = MockExecutor(ExecutionResult.Skip("acquireConcurrencyConflict"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromSeconds(5), maxRetries: 3),
+        };
+        var handler = CreateHandler(executor.Object, settings);
+        var workflow = CreateWorkflow(CreateStep());
+        workflow.BackoffUntil = DateTimeOffset.UtcNow.AddSeconds(-1);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Skipped, workflow.Status);
+        Assert.Null(workflow.BackoffUntil);
+        Assert.Equal(0, workflow.Steps[0].RequeueCount);
     }
 
     [Fact]

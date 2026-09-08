@@ -398,7 +398,8 @@ internal static class DashboardEndpoints
                                     "HELD" => PersistentItemStatus.Held,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
-                                    "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
+                                    "CANCELED" => PersistentItemStatus.Canceled,
+                                    "SKIPPED" => (PersistentItemStatus?)PersistentItemStatus.Skipped,
                                     _ => null,
                                 }
                             )
@@ -543,6 +544,7 @@ internal static class DashboardEndpoints
                             firstDeferredAt = s.FirstDeferredAt,
                             lastDeferredAt = s.LastDeferredAt,
                             lastDeferReason = s.LastDeferReason,
+                            skipReason = s.SkipReason,
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,

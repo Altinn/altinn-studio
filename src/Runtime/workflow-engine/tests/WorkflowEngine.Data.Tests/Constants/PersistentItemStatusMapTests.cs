@@ -12,6 +12,7 @@ public class PersistentItemStatusMapTests
         PersistentItemStatusMap.Fetchable,
         PersistentItemStatusMap.Successful,
         PersistentItemStatusMap.Failed,
+        PersistentItemStatusMap.SatisfiesDependency,
         PersistentItemStatusMap.Finished,
     ];
 
@@ -40,6 +41,10 @@ public class PersistentItemStatusMapTests
         Assert.Equal(
             PersistentItemStatusMap.FetchableSqlList,
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Fetchable)
+        );
+        Assert.Equal(
+            PersistentItemStatusMap.SatisfiesDependencySqlList,
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.SatisfiesDependency)
         );
         Assert.Equal(
             PersistentItemStatusMap.ProcessingSqlLiteral,
@@ -71,6 +76,22 @@ public class PersistentItemStatusMapTests
         Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Finished);
         Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Failed);
         Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Successful);
+    }
+
+    [Fact]
+    public void Skipped_IsTerminalAndNeverFetchable()
+    {
+        // Finished lets dependents through the fetch gate and retention purge it; SatisfiesDependency
+        // lets the recovery sweep release a DependencyFailed dependent — the one place Skipped and
+        // Abandoned part ways.
+        Assert.Contains(PersistentItemStatus.Skipped, PersistentItemStatusMap.Finished);
+        Assert.Contains(PersistentItemStatus.Skipped, PersistentItemStatusMap.SatisfiesDependency);
+        Assert.DoesNotContain(PersistentItemStatus.Abandoned, PersistentItemStatusMap.SatisfiesDependency);
+
+        Assert.DoesNotContain(PersistentItemStatus.Skipped, PersistentItemStatusMap.Fetchable);
+        Assert.DoesNotContain(PersistentItemStatus.Skipped, PersistentItemStatusMap.Incomplete);
+        Assert.DoesNotContain(PersistentItemStatus.Skipped, PersistentItemStatusMap.Failed);
+        Assert.DoesNotContain(PersistentItemStatus.Skipped, PersistentItemStatusMap.Successful);
     }
 
     [Fact]

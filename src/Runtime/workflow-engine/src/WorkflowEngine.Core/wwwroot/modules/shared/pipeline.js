@@ -21,6 +21,8 @@ const stepIcon = (status) => {
             return '&#8987;';
         case 'Canceled':
             return '&#8212;';
+        case 'Skipped':
+            return '&#187;';
         default:
             return '&#9675;';
     }
@@ -97,8 +99,8 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     if (isBackedOff && backoff) {
         const action =
             step.status === 'Waiting'
-                ? 'check now (skip wait timer)'
-                : 'Retry now (skip backoff timer)';
+                ? 'check now (clear wait timer)'
+                : 'Retry now (clear backoff timer)';
         const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${escAttr(backoff)}"></span>`;
         html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${action}">${label}</button>`;

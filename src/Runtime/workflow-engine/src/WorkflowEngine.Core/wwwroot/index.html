@@ -107,6 +107,7 @@ No active workflows
         <button class="chip" data-status="completed">Completed</button>
         <button class="chip" data-status="failed">Failed</button>
         <button class="chip" data-status="abandoned">Abandoned</button>
+        <button class="chip" data-status="skipped">Skipped</button>
       </span>
       <span class="view-toggle" onclick="event.stopPropagation()"><button id="recent-view-chains" onclick="setRecentView('chains')">Chains</button><button id="recent-view-compact" onclick="setRecentView('compact')">Compact</button><button id="recent-view-full" onclick="setRecentView('full')">Full</button></span>
     </div>
@@ -129,6 +130,7 @@ No active workflows
       <label class="retried-toggle" title="Show completed workflows"><input type="checkbox" id="completed-check" onchange="toggleQueryStatus()"><span>Completed</span></label>
       <label class="retried-toggle" title="Show failed workflows"><input type="checkbox" id="failed-check" checked onchange="toggleQueryStatus()"><span>Failed</span></label>
       <label class="retried-toggle" title="Show canceled workflows"><input type="checkbox" id="canceled-check" onchange="toggleQueryStatus()"><span>Canceled</span></label>
+      <label class="retried-toggle" title="Show skipped workflows (a command skipped the rest of the workflow; terminal, not a failure)"><input type="checkbox" id="skipped-check" onchange="toggleQueryStatus()"><span>Skipped</span></label>
       <div class="chip-sep"></div>
       <div class="time-range-group">
         <button class="time-range-btn" id="time-range-btn" onclick="toggleTimeDropdown()">

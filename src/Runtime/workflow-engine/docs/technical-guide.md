@@ -14,6 +14,7 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Command System](#command-system)
     - [Retry \& Error Handling](#retry--error-handling)
     - [Deferral (Durable Yield)](#deferral-durable-yield)
+    - [Skip](#skip)
     - [Concurrency Model](#concurrency-model)
     - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
     - [Cancellation](#cancellation)
@@ -134,8 +135,11 @@ Additional states:
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
 - **Abandoned** — an unsuccessful terminal workflow whose failure a caller explicitly wrote off. See [Abandon](#abandon).
+- **Waiting** — a step deferred; the workflow is parked until its timer elapses. Non-terminal. See [Deferral](#deferral-durable-yield).
+- **Held** — a receive workflow parked until its mailbox position is delivered or the mailbox closes. Non-terminal. See [Receive workflows](#receive-workflows).
+- **Skipped** — a command skipped the rest of the workflow: the step that returned the skip and every later step are `Skipped`, earlier steps stay `Completed`. Terminal, neither a success nor a failure. See [Skip](#skip).
 
-Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume). `Skipped` is terminal too but not resumable: the work was declined, not lost, and a retry is a new workflow.
 
 ### Processing Loop
 
@@ -190,11 +194,13 @@ The `CommandRegistry` maps type strings to `ICommand` singletons. Commands valid
 
 ### ExecutionResult
 
-| Result                                    | Meaning                      |
-| ----------------------------------------- | ---------------------------- |
-| `ExecutionResult.Success()`               | Step completed               |
-| `ExecutionResult.RetryableError(message)` | Transient failure — retry    |
-| `ExecutionResult.CriticalError(message)`  | Permanent failure — no retry |
+| Result                                    | Meaning                                                                                         |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ExecutionResult.Success()`               | Step completed                                                                                  |
+| `ExecutionResult.RetryableError(message)` | Transient failure — retry                                                                       |
+| `ExecutionResult.CriticalError(message)`  | Permanent failure — no retry                                                                    |
+| `ExecutionResult.Defer(delay, reason)`    | Ran fine, outcome not ready — re-execute after `delay`. See [Deferral](#deferral-durable-yield) |
+| `ExecutionResult.Skip(reason)`            | Ran fine, nothing more must run — this and every later step `Skipped`. See [Skip](#skip)        |
 
 ### State Passing
 
@@ -374,6 +380,52 @@ The step's own cadence is always the source of truth. When an external signal _d
 [Nudge](#nudge) to collapse the remaining wait — the step then re-executes and decides for itself
 whether the outcome is ready. A lost signal therefore costs latency, never correctness.
 
+## Skip
+
+Some work is settled before it runs: a process transition's acquire step loses to a concurrent
+change of the instance, so neither its own work nor anything after it should happen — and nothing
+failed. That is a **skip** — _"I ran fine; the rest of this workflow must not run."_ Not a failure,
+not a retry, and not a completion, because the work did not happen.
+
+```csharp
+return ExecutionResult.Skip("acquireConcurrencyConflict");
+```
+
+The engine marks the step `Skipped` together with every later step in the workflow; steps before it
+stay `Completed`. The workflow ends `Skipped`. The reason is required and non-blank, truncated to
+500 characters, persisted as `skipReason` on the step that returned the skip only (the later steps it
+took with it carry null) and surfaced on workflow status reads. It is the code a consumer classifies
+on, so phrase it as one. Like the defer reason it is app-supplied text and is never written to logs
+or trace tags.
+
+A skip is kept apart from errors and from deferrals alike:
+
+|                | Retryable error                   | Deferral                          | Skip                                                    |
+| -------------- | --------------------------------- | --------------------------------- | ------------------------------------------------------- |
+| Status         | `Requeued`                        | `Waiting`                         | `Skipped` — this step and every later one               |
+| `ErrorHistory` | Appends an entry                  | Records nothing                   | Records nothing                                         |
+| `RequeueCount` | Incremented                       | **Reset to 0**                    | Unchanged                                               |
+| Metric         | `engine.steps.execution.requeued` | `engine.steps.execution.deferred` | `engine.steps.execution.skipped`                        |
+| Bounded by     | `RetryStrategy`                   | The step's wait budget            | Nothing — it ends the workflow (`BackoffUntil` cleared) |
+| Dependents     | Wait                              | Wait                              | Run — the skip satisfies the dependency                 |
+| Resumable      | Yes — clears the backoff          | Yes — clears the wait anchors     | **No** — `resume` answers 409 `NotResumable`            |
+
+### Terminal, and settled
+
+`Skipped` is in the finished status set, so everything that gates on the workflow afterwards reads
+it as done — the fetch gate lets dependents through, the dependency-recovery sweep releases a
+`DependencyFailed` dependent parked behind it, retention purges it — while `cancel` and `nudge`
+answer 409 and `resume` answers 409 `NotResumable`. Unlike `Abandoned`, which only stops condemning
+new dependents, a skip satisfies a dependency the way `Completed` does. It is counted neither as a
+success nor as a failure: `engine.workflows.execution.skipped` (tagged `is_head`) beside
+`engine.steps.execution.skipped`, and it never fires the failure alert. A retry is a new workflow.
+
+### One word, because the semantics coincide
+
+`Skip` is what the command returns; `Skipped` is the state the engine records — the same split as
+`Defer` → `Waiting` and `RetryableError` → `Requeued`, collapsed onto one word here because what the
+command decided and what the engine did about it are the same thing.
+
 ## Concurrency Model
 
 Three independent semaphore pools via `IConcurrencyLimiter`:
@@ -425,7 +477,7 @@ In all cases the database flag guarantees the workflow _will_ be canceled; `canc
 
 ## Resume
 
-Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be resumed for re-processing:
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned — not Skipped) can be resumed for re-processing:
 
 ```http
 POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
@@ -447,7 +499,7 @@ When `cascade=true`, all transitively dependent workflows in `DependencyFailed` 
 }
 ```
 
-Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed` or `Processing`).
+Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed`, `Processing` or `Skipped` — a skipped workflow is terminal and never resumable, see [Skip](#skip)).
 
 ## Abandon
 
@@ -460,7 +512,7 @@ POST /api/v1/{namespace}/workflows/{workflowId}/abandon
 Dependency edges carry two things: sequencing (a dependent waits until its dependencies are terminal) and outcome gating (a failed dependency condemns dependents to `DependencyFailed`). Abandoning removes only the gating, prospectively:
 
 - **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
-- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed`. If a written-off casualty should also be built past, abandon it too.
+- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed` or `Skipped`. If a written-off casualty should also be built past, abandon it too.
 - **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
 - **The enqueue fingerprint is released.** Abandoned means the action may be retried: atomically with the transition, the idempotency key of the request that created the workflow is deleted, so replaying the same fingerprint — even with an identical body — creates and runs a fresh workflow (`201 Created`) instead of deduplicating onto the write-off or conflicting. For batch enqueues the key covers the whole batch, so abandoning any member releases the fingerprint for all of them (the surviving members themselves are untouched).
 
@@ -1326,13 +1378,13 @@ GET /api/v1/{namespace}/workflows
 
 Supports the following optional query parameters (all repeatable params can be supplied multiple times):
 
-| Parameter       | Repeatable | Description                                                                                                                                                                                                                                 |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
-| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                               |
-| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                              |
-| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                |
-| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                 |
+| Parameter       | Repeatable | Description                                                                                                                                                                                                                                                               |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Waiting`, `Held`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`, `Skipped`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                                                             |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                                                            |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                                              |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                                               |
 
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 

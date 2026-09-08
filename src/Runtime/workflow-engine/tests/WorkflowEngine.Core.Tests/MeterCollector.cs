@@ -39,6 +39,8 @@ internal sealed class MeterCollector : IDisposable
     /// </summary>
     public void RecordObservableInstruments() => _listener.RecordObservableInstruments();
 
+    public long Total(string instrumentName) => _taken.Where(m => m.Name == instrumentName).Sum(m => m.Value);
+
     public Dictionary<string, long> ByTag(string instrumentName, string tagKey) =>
         _taken
             .Where(m => m.Name == instrumentName)

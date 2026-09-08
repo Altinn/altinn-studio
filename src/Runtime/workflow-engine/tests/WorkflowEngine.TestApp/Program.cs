@@ -16,6 +16,7 @@ builder.AddWorkflowEngine(connectionString);
 // fixture instead of booting a second PostgreSQL container. They are inert unless a step names them.
 builder.Services.AddCommand<DeferringCommand>();
 builder.Services.AddCommand<ReceivingCommand>();
+builder.Services.AddCommand<SkippingCommand>();
 
 var app = builder.Build();
 await app.UseWorkflowEngine();

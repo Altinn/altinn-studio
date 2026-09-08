@@ -193,6 +193,50 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task RequestCancellation_SkippedWorkflow_ReturnsFalse()
+    {
+        // Skipped is terminal, so there is nothing left to withdraw.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Skipped);
+
+        var updated = await repo.RequestCancellation(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.False(updated);
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Skipped, dbWorkflow.Status);
+        Assert.Null(dbWorkflow.CancellationRequestedAt);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_SkippedWorkflow_ReturnsEmpty()
+    {
+        // The skipping command decided the work must not run; that decision is not re-tried by resume.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Skipped);
+
+        var resumed = await repo.ResumeWorkflow(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            cascade: false,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Empty(resumed);
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Skipped, dbWorkflow.Status);
+    }
+
+    [Fact]
     public async Task ResumeWorkflow_WrongNamespace_ReturnsEmpty()
     {
         await using var context = fixture.CreateDbContext();
@@ -257,6 +301,44 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Null(step.LastDeferredAt);
         Assert.Null(step.LastDeferReason);
         Assert.Equal("signed-state-from-last-deferral", step.StateOut);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_CanceledWithSkippedStep_ResetsStepAndClearsSkipReason()
+    {
+        // A cancel or shutdown that lands while the skip write-back is awaited leaves a Canceled
+        // workflow holding a Skipped step, and Canceled is resumable. The re-run must start from a
+        // clean step, or it could end with a Completed step still carrying a stale skip reason.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Canceled);
+
+        var stepId = Assert.Single(workflow.Steps).DatabaseId;
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.steps
+            SET status = {(int)PersistentItemStatus.Skipped},
+                skip_reason = 'acquireConcurrencyConflict'
+            WHERE id = {stepId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        var resumed = await repo.ResumeWorkflow(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            cascade: false,
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal([workflow.DatabaseId], resumed);
+
+        var step = await context
+            .Steps.AsNoTracking()
+            .SingleAsync(s => s.Id == stepId, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
+        Assert.Null(step.SkipReason);
     }
 
     [Fact]

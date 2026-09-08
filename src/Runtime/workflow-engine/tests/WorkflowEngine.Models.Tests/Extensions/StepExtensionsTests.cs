@@ -21,6 +21,7 @@ public class StepExtensionsTests
     [InlineData(PersistentItemStatus.Completed, true)]
     [InlineData(PersistentItemStatus.Failed, true)]
     [InlineData(PersistentItemStatus.Canceled, true)]
+    [InlineData(PersistentItemStatus.Skipped, true)]
     [InlineData(PersistentItemStatus.Enqueued, false)]
     [InlineData(PersistentItemStatus.Processing, false)]
     public void IsDone_ReturnsExpectedResult(PersistentItemStatus status, bool expected)

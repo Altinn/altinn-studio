@@ -70,4 +70,14 @@ public enum PersistentItemStatus
     /// Never observed on a <see cref="Step"/>.
     /// </summary>
     Held = 9,
+
+    /// <summary>
+    /// A command returned <see cref="ExecutionStatus.Skipped"/>: the item's work did not run and was not
+    /// needed. When a step skips, the handler marks it (with the reason in <see cref="Step.SkipReason"/>) and
+    /// every later step Skipped and ends the workflow Skipped; earlier steps stay <see cref="Completed"/>.
+    /// Terminal and not a failure: dependents evaluated against it run, and unlike <see cref="Abandoned"/> it
+    /// satisfies a dependency for the recovery sweep. Not <see cref="Completed"/>, because the work did not
+    /// happen. A Skipped workflow is not resumable.
+    /// </summary>
+    Skipped = 10,
 }

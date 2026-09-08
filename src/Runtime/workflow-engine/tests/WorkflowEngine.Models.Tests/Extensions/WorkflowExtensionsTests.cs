@@ -104,6 +104,56 @@ public class WorkflowExtensionsTests
     }
 
     [Fact]
+    public void OverallStatus_ReturnsSkipped_WhenAnyStepSkipped()
+    {
+        // Arrange
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Skipped, 0),
+            CreateStep(PersistentItemStatus.Skipped, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Skipped, result);
+    }
+
+    [Fact]
+    public void OverallStatus_ReturnsFailed_WhenFailedAndSkipped()
+    {
+        // Arrange — a Skipped step only ever appears in a Skipped workflow; should that invariant ever
+        // break, the failure must still be what the workflow reports
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Failed, 0),
+            CreateStep(PersistentItemStatus.Skipped, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, result);
+    }
+
+    [Fact]
+    public void OverallStatus_ReturnsSkipped_WhenCompletedThenSkipped()
+    {
+        // Arrange — the shape a skip produces: the steps before the skipping one completed
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Completed, 0),
+            CreateStep(PersistentItemStatus.Skipped, 1),
+            CreateStep(PersistentItemStatus.Skipped, 2)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Skipped, result);
+    }
+
+    [Fact]
     public void OverallStatus_ReturnsWaiting_WhenAnyStepWaiting()
     {
         // Arrange

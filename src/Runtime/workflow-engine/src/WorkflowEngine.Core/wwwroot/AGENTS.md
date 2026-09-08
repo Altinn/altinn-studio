@@ -24,7 +24,7 @@ wwwroot/
       cards.js                       — all card renderers (full, compact, scheduled), filter data, label segments
       chain.js                       — chain rows: spine layout (edge-based + creation-order), inline row expansion
       chain-groups.js                — collection group chrome + history and mailbox caches, shared by recent & query chains modes
-      pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/skip/fail buttons
+      pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/nudge/fail buttons
       section.js                     — collapse/expand, compact/full toggle, card expand
       timers.js                      — requestAnimationFrame timer loop for elapsed counters, backoff countdowns, mailbox deadline/park counters
     features/                        — one file per visible UI section (imports from core/ and shared/)
@@ -35,7 +35,7 @@ wwwroot/
       filters.js                     — label filters, status chips, text filter, tabs
       url.js                         — syncUrl(), restoreUrl(), time range state
       query.js                       — query tab with pagination, time range, auto-refresh; chains/compact/full view modes
-      modal.js                       — step detail modal (SSE-driven refresh, retry/skip/fail actions)
+      modal.js                       — step detail modal (SSE-driven refresh, retry/nudge/fail actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)
       chain-modal.js                 — chain modal: fetches /dashboard/graph, renders via shared/chain.js

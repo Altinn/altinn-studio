@@ -495,16 +495,18 @@ internal sealed class DbMaintenanceService(
 
     /// <summary>
     /// Re-enqueues workflows stuck in <see cref="PersistentItemStatus.DependencyFailed"/> whose
-    /// dependencies have since all reached <see cref="PersistentItemStatus.Completed"/>. The status
+    /// dependencies have since all reached a status in <see cref="PersistentItemStatusMap.SatisfiesDependency"/>
+    /// (<see cref="PersistentItemStatus.Completed"/> or <see cref="PersistentItemStatus.Skipped"/>). The status
     /// is purely derived — a workflow lands there because a dependency was in a failed state when it
-    /// was evaluated — so once every dependency completes (typically after the upstream was resumed
+    /// was evaluated — so once every dependency settles that way (typically after the upstream was resumed
     /// without cascade) the original reason no longer holds and the workflow should run.
     /// A still-Canceled, still-Failed or Abandoned dependency keeps the workflow parked: a default
     /// dependency edge requires the upstream to <em>succeed</em>, and abandoning a workflow writes off
-    /// its failure without ever satisfying that requirement — only an actual Completed does. (Abandoned
-    /// differs from the others at <em>evaluation</em> time instead: it does not condemn dependents that
-    /// have not yet been evaluated.) Deep chains heal one layer per sweep as each intermediate
-    /// completes. Idempotent: re-enqueued rows no longer match the predicate.
+    /// its failure without ever satisfying that requirement — only an actual Completed, or a Skipped
+    /// upstream that ended deliberately without failing, does. (Abandoned differs from the others at
+    /// <em>evaluation</em> time instead: it does not condemn dependents that have not yet been
+    /// evaluated.) Deep chains heal one layer per sweep as each intermediate completes. Idempotent:
+    /// re-enqueued rows no longer match the predicate.
     /// </summary>
     internal async Task RecoverDependencyResolvedWorkflows(DateTimeOffset now, CancellationToken ct)
     {
@@ -529,13 +531,16 @@ internal sealed class DbMaintenanceService(
     internal static class Sql
     {
         // Status lists interpolated as literals below all come from PersistentItemStatusMap's SQL
-        // constants (test-pinned to the map properties) so the candidate SELECT, the DELETE, and
-        // the ix_workflows_updated_at partial index filter (see EngineDbContext) can never
-        // disagree about which statuses are terminal. Consts keep the command texts compile-time
-        // constant, which CA2100 requires of raw SQL.
+        // constants (test-pinned to the map properties) so the candidate SELECT, the DELETE, the
+        // recovery sweep's dependency predicate, and the ix_workflows_updated_at partial index
+        // filter (see EngineDbContext) can never disagree about which statuses are terminal or
+        // satisfy a dependency. Consts keep the command texts compile-time constant, which CA2100
+        // requires of raw SQL.
         private const string FinishedStatuses = PersistentItemStatusMap.FinishedSqlList;
 
         private const string IncompleteStatuses = PersistentItemStatusMap.IncompleteSqlList;
+
+        private const string SatisfiesDependencyStatuses = PersistentItemStatusMap.SatisfiesDependencySqlList;
 
         internal const string SelectExpiredWorkflowCandidatesCommand = $"""
             SELECT w.id, w.collection_key, w.namespace
@@ -709,7 +714,7 @@ internal sealed class DbMaintenanceService(
                   SELECT 1 FROM engine.workflow_dependency wd
                   JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
                   WHERE wd.workflow_id = w.id
-                    AND dep.status <> {(int)PersistentItemStatus.Completed}
+                    AND dep.status NOT IN ({SatisfiesDependencyStatuses})
               )
             """;
     }

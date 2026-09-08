@@ -32,4 +32,11 @@ public enum ExecutionStatus
     /// and do not count against the step's retry budget.
     /// </summary>
     Deferred,
+
+    /// <summary>
+    /// The execution ran without error and determined that neither its own work nor any later step
+    /// must run. The step and every step after it end in <see cref="PersistentItemStatus.Skipped"/>,
+    /// and so does the workflow. Not a failure: a skip records no error history. Terminal.
+    /// </summary>
+    Skipped,
 }

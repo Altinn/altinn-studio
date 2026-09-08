@@ -17,6 +17,7 @@ const TERMINAL_STATUSES = new Set([
     'Canceled',
     'Abandoned',
     'DependencyFailed',
+    'Skipped',
 ]);
 
 /** databaseIds of chain rows currently expanded to full cards (survives re-renders). */

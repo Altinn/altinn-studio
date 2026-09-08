@@ -212,6 +212,15 @@ internal sealed class WorkflowHandler(
 
             Metrics.WorkflowsDeferred.Add(1);
         }
+        else if (workflow.Status == PersistentItemStatus.Skipped)
+        {
+            RecordWorkflowServiceTime(workflow);
+            RecordWorkflowTotalTime(workflow, attemptAnchor);
+
+            Metrics.WorkflowsSkipped.Add(1, ("is_head", workflow.IsHeadTagValue()));
+            workflow.EngineActivity?.Succeeded();
+            logger.WorkflowSkipped(workflow);
+        }
 
         await statusWriteBuffer.Submit(workflow, ct);
     }
@@ -272,7 +281,9 @@ internal sealed class WorkflowHandler(
             await statusWriteBuffer.Submit(
                 workflow,
                 ct,
-                dirtySteps: [step],
+                dirtySteps: step.Status == PersistentItemStatus.Skipped
+                    ? workflow.Steps.Where(s => s.ProcessingOrder >= step.ProcessingOrder).ToList()
+                    : [step],
                 reason: "step.completed",
                 parentActivity: step.EngineActivity
             );
@@ -306,6 +317,12 @@ internal sealed class WorkflowHandler(
                 break;
             }
 
+            if (step.Status == PersistentItemStatus.Skipped)
+            {
+                step.EngineActivity?.Succeeded();
+                break;
+            }
+
             throw new UnreachableException();
         }
     }
@@ -333,6 +350,12 @@ internal sealed class WorkflowHandler(
         if (result.IsDeferred())
         {
             ApplyDeferDecision(workflow, currentStep, result);
+            return;
+        }
+
+        if (result.IsSkipped())
+        {
+            ApplySkipDecision(workflow, currentStep, result);
             return;
         }
 
@@ -476,6 +499,36 @@ internal sealed class WorkflowHandler(
 
         Metrics.StepsDeferred.Add(1);
         logger.DeferringStep(currentStep, currentStep.DeferCount, scheduledDelay);
+    }
+
+    /// <summary>
+    /// Ends the workflow without running the rest of it: the skipping step and every step after it
+    /// become <see cref="PersistentItemStatus.Skipped"/>, with the command's reason recorded on the
+    /// skipping step only. A skip is a successful execution: no error history, no retry scheduled,
+    /// and the later steps' counters and state are left untouched.
+    /// </summary>
+    private void ApplySkipDecision(Workflow workflow, Step currentStep, ExecutionResult result)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        currentStep.SkipReason = result.Message is { Length: > 500 } longReason ? longReason[..500] : result.Message;
+        currentStep.Status = PersistentItemStatus.Skipped;
+
+        var skippedSuccessorCount = 0;
+        foreach (var laterStep in workflow.Steps.Where(s => s.ProcessingOrder > currentStep.ProcessingOrder))
+        {
+            if (laterStep.Status != PersistentItemStatus.Enqueued)
+                throw new UnreachableException();
+
+            laterStep.Status = PersistentItemStatus.Skipped;
+            laterStep.UpdatedAt = now;
+            skippedSuccessorCount++;
+        }
+
+        workflow.BackoffUntil = null;
+
+        Metrics.StepsSkipped.Add(1);
+        logger.SkippingStep(currentStep, skippedSuccessorCount);
     }
 
     /// <summary>
@@ -650,6 +703,9 @@ internal static partial class WorkflowHandlerLogs
     [LoggerMessage(LogLevel.Debug, "Workflow {Workflow} is done")]
     internal static partial void WorkflowCompleted(this ILogger<WorkflowHandler> logger, Workflow workflow);
 
+    [LoggerMessage(LogLevel.Debug, "Workflow {Workflow} is skipped")]
+    internal static partial void WorkflowSkipped(this ILogger<WorkflowHandler> logger, Workflow workflow);
+
     [LoggerMessage(LogLevel.Debug, "Step {Step} completed successfully")]
     internal static partial void StepCompletedSuccessfully(this ILogger<WorkflowHandler> logger, Step step);
 
@@ -678,6 +734,9 @@ internal static partial class WorkflowHandlerLogs
         int deferrals,
         TimeSpan delay
     );
+
+    [LoggerMessage(LogLevel.Information, "Skipping step {Step} and {SkippedSuccessors} later step(s)")]
+    internal static partial void SkippingStep(this ILogger<WorkflowHandler> logger, Step step, int skippedSuccessors);
 
     [LoggerMessage(
         LogLevel.Error,

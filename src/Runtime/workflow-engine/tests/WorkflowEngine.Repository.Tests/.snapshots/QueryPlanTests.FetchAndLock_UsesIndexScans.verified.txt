@@ -108,7 +108,7 @@
                           Plan Width: {Scrubbed},
                           Disabled: false,
                           Index Cond: (id = wd.depends_on_workflow_id),
-                          Filter: (status <> ALL ('{3,4,5,6,7}'::integer[]))
+                          Filter: (status <> ALL ('{3,4,5,6,7,10}'::integer[]))
                         }
                       ]
                     }

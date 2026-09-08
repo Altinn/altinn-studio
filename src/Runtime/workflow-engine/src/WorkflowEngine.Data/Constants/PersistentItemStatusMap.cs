@@ -39,8 +39,18 @@ internal static class PersistentItemStatusMap
     public static IReadOnlyCollection<PersistentItemStatus> Failed =>
         [PersistentItemStatus.Canceled, PersistentItemStatus.Failed, PersistentItemStatus.DependencyFailed];
 
+    /// <summary>
+    /// Terminal states that satisfy a default dependency edge for the recovery sweep. Wider than
+    /// <see cref="Successful"/>: a <see cref="PersistentItemStatus.Skipped"/> upstream did not do its work,
+    /// but ended deliberately and without failure, so a dependent parked behind it may run. Narrower than
+    /// <see cref="Finished"/>: <see cref="PersistentItemStatus.Abandoned"/> writes off a failure without ever
+    /// satisfying the requirement, and the failed states never do.
+    /// </summary>
+    public static IReadOnlyCollection<PersistentItemStatus> SatisfiesDependency =>
+        [.. Successful, PersistentItemStatus.Skipped];
+
     public static IReadOnlyCollection<PersistentItemStatus> Finished =>
-        [.. Successful, .. Failed, PersistentItemStatus.Abandoned];
+        [.. Successful, .. Failed, PersistentItemStatus.Abandoned, PersistentItemStatus.Skipped];
 
     /// <summary>
     /// <see cref="Finished"/> as a comma-separated list of integer literals, for interpolation into
@@ -48,7 +58,13 @@ internal static class PersistentItemStatusMap
     /// interpolating command texts stay constant too (CA2100 requires provably-constant SQL);
     /// PersistentItemStatusMapTests pins it to <see cref="ToSqlList"/> of the map property.
     /// </summary>
-    public const string FinishedSqlList = "3, 4, 5, 6, 7";
+    public const string FinishedSqlList = "3, 4, 5, 6, 7, 10";
+
+    /// <summary>
+    /// <see cref="SatisfiesDependency"/> as a comma-separated list of integer literals.
+    /// Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string SatisfiesDependencySqlList = "3, 10";
 
     /// <summary>
     /// <see cref="Incomplete"/> as a comma-separated list of integer literals.

@@ -157,7 +157,17 @@ export const restoreUrl = () => {
             document.getElementById('retried-check')
         );
         if (rc) rc.checked = false;
-        for (const s of ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled']) {
+        for (const s of [
+            'enqueued',
+            'processing',
+            'requeued',
+            'waiting',
+            'held',
+            'completed',
+            'failed',
+            'canceled',
+            'skipped',
+        ]) {
             const el = /** @type {HTMLInputElement | null} */ (
                 document.getElementById(`${s}-check`)
             );
@@ -205,9 +215,12 @@ export const restoreUrl = () => {
                     'enqueued',
                     'processing',
                     'requeued',
+                    'waiting',
+                    'held',
                     'completed',
                     'failed',
                     'canceled',
+                    'skipped',
                 ]) {
                     const el = /** @type {HTMLInputElement | null} */ (
                         document.getElementById(`${s}-check`)

@@ -45,6 +45,36 @@ public sealed class DependencyRecoverySweepTests(PostgresFixture fixture) : IAsy
     }
 
     [Fact]
+    public async Task Recover_DependencyFailed_WithSkippedDependency_IsReEnqueued()
+    {
+        // A skipped upstream ended deliberately and without failing, so — unlike Abandoned — it
+        // satisfies the dependency and a dependent parked behind it recovers.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var maintenance = fixture.CreateMaintenanceService();
+        var ns = Guid.NewGuid().ToString("N");
+
+        var parent = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Skipped, ns: ns);
+        var child = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            ns: ns,
+            dependencies: [parent.DatabaseId]
+        );
+
+        await maintenance.RecoverDependencyResolvedWorkflows(
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        var dbChild = await fixture.GetWorkflow(child.DatabaseId);
+        Assert.NotNull(dbChild);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbChild.Status);
+        Assert.Null(dbChild.LeaseToken);
+    }
+
+    [Fact]
     public async Task Recover_ReEnqueuedChild_SurfacesAsFetchable()
     {
         // End-to-end: the sweep re-enqueues the resolved child; the next fetch picks it up.

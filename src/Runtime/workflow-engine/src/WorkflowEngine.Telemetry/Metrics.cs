@@ -117,6 +117,17 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of workflows that ended <c>Skipped</c> because a command returned a skip outcome: the
+    /// step and the rest of the workflow did not run, by the command's own decision. Not a failure and
+    /// not a success — counted in neither <see cref="WorkflowsFailed"/> nor <see cref="WorkflowsSucceeded"/>.
+    /// Tagged with <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsSkipped = Meter.CreateCounter<long>(
+        "engine.workflows.execution.skipped",
+        description: "Number of workflows ended by a command's skip outcome — the rest of the workflow did not run. Not a failure and not a success"
+    );
+
+    /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
     /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c> / <c>manual</c>) and
     /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
@@ -128,7 +139,9 @@ public static class Metrics
     /// the default alert: a step's wait budget running out means the awaited external outcome
     /// never arrived, not that the engine or command failed — route it to the owning team instead.
     /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose through the fail
-    /// endpoint (the dashboard's Fail button included).
+    /// endpoint (the dashboard's Fail button included). Skips are not counted here at all — a workflow
+    /// ended by a command's skip outcome increments <see cref="WorkflowsSkipped"/> instead and never
+    /// fires the failure alert.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
@@ -248,6 +261,13 @@ public static class Metrics
     /// Deliberately separate from <see cref="StepsRequeued"/>/<see cref="StepsFailed"/>: a deferral is not a failure.
     /// </summary>
     public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
+
+    /// <summary>
+    /// Counter of steps that returned a skip outcome (ran without error and ended the rest of the workflow).
+    /// Counted once per skipping step, not per step it caused to be skipped. Deliberately separate from
+    /// <see cref="StepsSucceeded"/>/<see cref="StepsFailed"/>: a skip is neither.
+    /// </summary>
+    public static readonly Counter<long> StepsSkipped = Meter.CreateCounter<long>("engine.steps.execution.skipped");
 
     /// <summary>
     /// Counter of steps that terminated in failure.
@@ -560,6 +580,8 @@ public static class Metrics
 
     /// <summary>
     /// Gauge of all terminal workflows currently retained (success + failure + canceled + dependency-failed).
+    /// Skipped and Abandoned workflows are not counted, so this gauge is narrower than the Finished status set
+    /// retention purges.
     /// </summary>
     public static readonly ObservableGauge<long> FinishedWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.finished",

@@ -196,8 +196,8 @@ const buildDetailsContent = (data) => {
     if (status === 'Failed') {
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">&#8635; Retry</a>`;
     } else if (showNudge) {
-        const skipLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${skipLabel}</a>`;
+        const nudgeLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${nudgeLabel}</a>`;
     }
     if (status === 'Requeued' || status === 'Waiting') {
         const failTitle = status === 'Waiting' ? 'Stop waiting and mark the step Failed' : 'Stop retrying and mark the step Failed';
@@ -214,6 +214,7 @@ const buildDetailsContent = (data) => {
     html += timeRow('First Deferred', /** @type {string} */ (data.firstDeferredAt));
     html += timeRow('Last Deferred', /** @type {string} */ (data.lastDeferredAt));
     html += row('Defer Reason', data.lastDeferReason);
+    html += row('Skip Reason', data.skipReason);
 
     const rs = /** @type {Record<string, unknown>|null} */ (data.retryStrategy);
     if (rs) {
@@ -518,7 +519,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
     }
 };
 
-/** Skip a parked step's backoff timer (public API `nudge`) — called from the status row / pipeline nudge button */
+/** Clear a parked step's backoff timer (public API `nudge`) — called from the status row / pipeline nudge button */
 window.nudgeWorkflow = async (e, workflowId, ns) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
@@ -530,22 +531,22 @@ window.nudgeWorkflow = async (e, workflowId, ns) => {
         setTimeout(() => {
             btn.removeAttribute('disabled');
             btn.innerHTML = original;
-            btn.classList.remove('skip-failed');
+            btn.classList.remove('action-failed');
         }, 3000);
     try {
         const res = await fetch(workflowActionUrl(ns, workflowId, 'nudge'), { method: 'POST' });
         if (res.ok) {
-            btn.textContent = 'Skipped';
-            btn.classList.add('skip-success');
+            btn.textContent = 'Nudged';
+            btn.classList.add('action-success');
         } else {
             btn.textContent = 'Failed';
             btn.title = await problemDetail(res);
-            btn.classList.add('skip-failed');
+            btn.classList.add('action-failed');
             restore();
         }
     } catch {
         btn.textContent = 'Error';
-        btn.classList.add('skip-failed');
+        btn.classList.add('action-failed');
         restore();
     }
 };
@@ -562,7 +563,7 @@ window.failWorkflow = async (e, workflowId, ns) => {
         setTimeout(() => {
             btn.removeAttribute('disabled');
             btn.innerHTML = original;
-            btn.classList.remove('skip-failed');
+            btn.classList.remove('action-failed');
         }, 3000);
     try {
         const res = await fetch(workflowActionUrl(ns, workflowId, 'fail'), {
@@ -573,16 +574,16 @@ window.failWorkflow = async (e, workflowId, ns) => {
         if (res.ok) {
             btn.textContent = 'Marked failed';
             btn.classList.remove('fail');
-            btn.classList.add('skip-success');
+            btn.classList.add('action-success');
         } else {
             btn.textContent = 'Rejected';
             btn.title = await problemDetail(res);
-            btn.classList.add('skip-failed');
+            btn.classList.add('action-failed');
             restore();
         }
     } catch {
         btn.textContent = 'Error';
-        btn.classList.add('skip-failed');
+        btn.classList.add('action-failed');
         restore();
     }
 };

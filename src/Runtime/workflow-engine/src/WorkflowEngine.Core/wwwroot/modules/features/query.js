@@ -338,6 +338,7 @@ const queryStatusIds = [
     'completed',
     'failed',
     'canceled',
+    'skipped',
 ];
 window.toggleQueryStatus = () => {
     const checked = queryStatusIds.filter(

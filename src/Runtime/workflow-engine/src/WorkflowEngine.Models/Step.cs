@@ -62,6 +62,14 @@ public sealed record Step : PersistentItem
     /// </summary>
     public string? LastDeferReason { get; set; }
 
+    /// <summary>
+    /// The reason the command gave when it skipped the rest of the workflow
+    /// (<see cref="ExecutionStatus.Skipped"/>) — a code consumers classify on. Set only on the step
+    /// that returned the skip; the later steps it caused to be <see cref="PersistentItemStatus.Skipped"/>
+    /// carry <c>null</c>. Surfaced on status reads.
+    /// </summary>
+    public string? SkipReason { get; set; }
+
 #pragma warning disable CA1002, CA2227 // Mutable domain entity — List<T> with setter is intentional
     /// <summary>
     /// Errors recorded across this step's execution attempts, in chronological order.

@@ -1,7 +1,7 @@
 /* Type definitions, DOM references, shared state */
 
 /**
- * @typedef {'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled'} StepStatus
+ * @typedef {'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled' | 'Skipped'} StepStatus
  * @typedef {'app' | 'webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate'} CommandType
  */
 
@@ -17,6 +17,7 @@
  *   deferCount:     number,
  *   firstDeferredAt: string | null,
  *   lastDeferReason: string | null,
+ *   skipReason:     string | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   executionStartedAt: string | null,
@@ -281,9 +282,14 @@ export const stepPhase = (commandDetail) => {
 
 /**
  * Extra sub-label for a step. A Waiting step shows the reason its command gave for deferring, so
- * the card says what the step is waiting for without opening the modal.
+ * the card says what the step is waiting for without opening the modal; a Skipped step shows the
+ * reason its command gave for skipping, which only the step that returned the skip carries (the
+ * later steps it took with it have none).
  * @param {Step} step
  * @returns {string | null}
  */
-export const stepSubLabel = (step) =>
-    step.status === 'Waiting' && step.lastDeferReason ? step.lastDeferReason : null;
+export const stepSubLabel = (step) => {
+    if (step.status === 'Waiting' && step.lastDeferReason) return step.lastDeferReason;
+    if (step.status === 'Skipped' && step.skipReason) return step.skipReason;
+    return null;
+};

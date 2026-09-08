@@ -378,18 +378,20 @@ const TERMINAL_STATUSES = new Set([
     'Canceled',
     'Abandoned',
     'DependencyFailed',
+    'Skipped',
 ]);
 
 /**
  * Aggregate status for a group header: an in-flight member wins (the story is still
- * running), then the worst terminal outcome, then Completed.
+ * running), then the worst terminal outcome — Skipped last, so a group with a skip and
+ * completions reads Skipped rather than Completed — then Completed.
  * @param {Workflow[]} members @returns {string}
  */
 const aggregateStatus = (members) => {
     const statuses = new Set(members.map((m) => m.status));
     for (const s of ['Processing', 'Requeued', 'Waiting', 'Held', 'Enqueued'])
         if (statuses.has(s)) return s;
-    for (const s of ['Failed', 'DependencyFailed', 'Canceled', 'Abandoned'])
+    for (const s of ['Failed', 'DependencyFailed', 'Canceled', 'Abandoned', 'Skipped'])
         if (statuses.has(s)) return s;
     return 'Completed';
 };
