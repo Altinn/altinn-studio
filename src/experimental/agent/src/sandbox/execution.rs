@@ -5,7 +5,7 @@ use std::{path::Path, rc::Rc};
 use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
-use crate::{ConditionStatus, Error, control_plane};
+use crate::{ConditionStatus, Error, control_plane, progress::Observation};
 
 use super::Assignment;
 
@@ -23,28 +23,63 @@ pub struct ExecutionTarget {
 pub struct ExecutionService {
     agents: Rc<dyn control_plane::AgentStore>,
     wakeup: control_plane::Wakeup,
+    progress: crate::progress::Hub,
+    statuses: control_plane::StatusWatch,
 }
 
 impl ExecutionService {
     /// Creates an execution-target resolver over the Agent controller.
     #[must_use]
-    pub fn new(agents: Rc<dyn control_plane::AgentStore>, wakeup: control_plane::Wakeup) -> Self {
-        Self { agents, wakeup }
+    pub fn new(
+        agents: Rc<dyn control_plane::AgentStore>,
+        wakeup: control_plane::Wakeup,
+        progress: crate::progress::Hub,
+        statuses: control_plane::StatusWatch,
+    ) -> Self {
+        Self {
+            agents,
+            wakeup,
+            progress,
+            statuses,
+        }
     }
 
     /// Wakes Agent convergence and returns its exact ready Sandbox assignment.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, fails convergence,
-    /// or does not have a ready materialized Sandbox after the pass.
-    pub async fn ensure(&self, name: &str) -> Result<ExecutionTarget, Error> {
+    /// Returns an error when the Agent is missing, deleting, or invalid; with
+    /// [`Observation::OnePass`] also when the single pass fails or leaves the
+    /// Agent without a ready materialized Sandbox.
+    pub async fn ensure(&self, name: &str, observation: Observation) -> Result<ExecutionTarget, Error> {
+        let record = self.load_active(name).await?;
+        match observation {
+            Observation::OnePass => self.wakeup.reconcile(record.id).await?,
+            Observation::Follow(reporter) => {
+                crate::progress::observe_agent(
+                    &self.progress,
+                    &self.statuses,
+                    &self.wakeup,
+                    record.id,
+                    &record.agent.metadata.name,
+                    &reporter,
+                )
+                .await?;
+            }
+        }
+        self.target(record.id, name).await
+    }
+
+    async fn load_active(&self, name: &str) -> Result<control_plane::AgentRecord, Error> {
         let record = self.agents.get_by_name(name).await?;
         if record.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
-        self.wakeup.reconcile(record.id).await?;
-        let record = self.agents.get(record.id).await?;
+        Ok(record)
+    }
+
+    async fn target(&self, id: crate::AgentId, name: &str) -> Result<ExecutionTarget, Error> {
+        let record = self.agents.get(id).await?;
         if record.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }

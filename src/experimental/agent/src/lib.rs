@@ -12,10 +12,12 @@ pub mod local;
 pub mod manifest;
 pub mod persistence;
 pub mod platform_api;
+pub mod progress;
 pub mod sandbox;
 pub mod sessions;
 
 pub use control_plane::AgentId;
+pub use controller::{FailureKind, ReconcileFailure};
 pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
 pub use manifest::{
     API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec,

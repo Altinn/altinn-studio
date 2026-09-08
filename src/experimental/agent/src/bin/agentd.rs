@@ -6,6 +6,8 @@ use agent::{
     control_plane::{ControlPlane, Controller, Reconciler},
     local::home::ControlPlaneHome,
     persistence,
+    sandbox::ExecutionService,
+    sessions::Service as SessionService,
 };
 use clap::Parser;
 use tokio::runtime::LocalRuntime;
@@ -37,11 +39,45 @@ fn main() -> ExitCode {
 
 fn run() -> Result<(), Error> {
     let arguments = Arguments::parse();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+                .from_env_lossy(),
+        )
+        .with_writer(std::io::stderr)
+        .init();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let _lock = home.acquire_lock()?;
     let database = persistence::Database::open(&home.path().join("agent.db"))?;
     let runtime = LocalRuntime::new()?;
     runtime.block_on(run_control_plane(home, database))
+}
+
+async fn open_sandboxes(
+    home: &ControlPlaneHome,
+    database: &persistence::Database,
+    credentials: Rc<agent::harness::AuthenticationManager>,
+    policy: Rc<agent::authorization::AgentPolicyEngine>,
+    platform_api_port: u16,
+) -> Result<(Rc<agent::sandbox::Service>, String), Error> {
+    let microsandbox = Rc::new(
+        agent::sandbox::microsandbox::Adapter::open(
+            home.path(),
+            database.clone(),
+            credentials,
+            policy,
+            platform_api_port,
+        )
+        .await?,
+    );
+    let session_hook_url = microsandbox.platform_url("/v1/session/hooks/start")?;
+    let provider: Rc<dyn agent::sandbox::Provider> = microsandbox;
+    let platform: Rc<dyn agent::sandbox::PlatformAdapter> = Rc::new(agent::sandbox::platform::Linux);
+    Ok((
+        Rc::new(agent::sandbox::Service::new([provider], [platform])?),
+        session_hook_url,
+    ))
 }
 
 async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
@@ -50,21 +86,11 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let policy = Rc::new(agent::authorization::AgentPolicyEngine::new());
     let platform_api_listener = agent::platform_api::bind_persistent(&home.path().join("platform-api-port")).await?;
     let platform_api_port = platform_api_listener.local_addr()?.port();
-    let microsandbox = Rc::new(
-        agent::sandbox::microsandbox::Adapter::open(
-            home.path(),
-            database.clone(),
-            credentials.clone(),
-            policy.clone(),
-            platform_api_port,
-        )
-        .await?,
-    );
-    let session_hook_url = microsandbox.platform_url("/v1/session/hooks/start")?;
-    let provider: Rc<dyn agent::sandbox::Provider> = microsandbox;
-    let platform: Rc<dyn agent::sandbox::PlatformAdapter> = Rc::new(agent::sandbox::platform::Linux);
-    let sandboxes = Rc::new(agent::sandbox::Service::new([provider], [platform])?);
+    let (sandboxes, session_hook_url) =
+        open_sandboxes(&home, &database, credentials.clone(), policy, platform_api_port).await?;
     let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
+    let progress = agent::progress::Hub::new();
+    let statuses = agent::control_plane::StatusWatch::new();
 
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
         session_store.clone(),
@@ -91,7 +117,10 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_wakeup.clone(),
         Rc::new(|error| eprintln!("agentd Session notification scan: {error}")),
     ));
-    let reconciler = Rc::new(Reconciler::new(store.clone(), sandboxes).with_session_notifier(session_notifier));
+    let reconciler = Rc::new(
+        Reconciler::new(store.clone(), sandboxes, progress.clone(), statuses.clone())
+            .with_session_notifier(session_notifier),
+    );
     let (controller, wakeup) = Controller::new(
         store.clone(),
         reconciler,
@@ -102,12 +131,19 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         }),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
-    let executions = Rc::new(agent::sandbox::ExecutionService::new(store.clone(), wakeup.clone()));
-    let sessions = Rc::new(agent::sessions::Service::new(
+    let executions = Rc::new(ExecutionService::new(
+        store.clone(),
+        wakeup.clone(),
+        progress.clone(),
+        statuses.clone(),
+    ));
+    let sessions = Rc::new(SessionService::new(
         session_store,
         store,
         wakeup,
         session_wakeup,
+        progress,
+        statuses,
     ));
     let server = Rc::new(Server::new(
         control_plane,

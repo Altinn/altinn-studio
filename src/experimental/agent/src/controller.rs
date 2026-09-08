@@ -33,7 +33,58 @@ pub(crate) type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
 
 struct Request<Key> {
     key: Key,
-    response: Option<oneshot::Sender<Result<(), String>>>,
+    response: Option<oneshot::Sender<Result<(), ReconcileFailure>>>,
+}
+
+/// Whether a failed reconciliation pass can succeed later without operator action.
+#[derive(Clone, Copy, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum FailureKind {
+    /// Desired state must change before another pass can succeed.
+    Invalid,
+    /// A later pass may succeed without any change to desired state.
+    Transient,
+}
+
+/// One classified reconciliation failure.
+#[derive(Clone, Debug)]
+pub struct ReconcileFailure {
+    /// Classification decided once at the reconcile boundary.
+    pub kind: FailureKind,
+    /// Human-readable failure detail.
+    pub message: String,
+}
+
+impl ReconcileFailure {
+    /// Classifies a reconciliation error by its variant, never by its message.
+    #[must_use]
+    pub fn classify(error: &Error) -> Self {
+        match error {
+            Error::Invalid(message) => Self {
+                kind: FailureKind::Invalid,
+                message: message.clone(),
+            },
+            error => Self {
+                kind: FailureKind::Transient,
+                message: error.to_string(),
+            },
+        }
+    }
+}
+
+impl std::fmt::Display for ReconcileFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.message)
+    }
+}
+
+impl From<ReconcileFailure> for Error {
+    fn from(failure: ReconcileFailure) -> Self {
+        match failure.kind {
+            FailureKind::Invalid => Self::Invalid(failure.message),
+            FailureKind::Transient => Self::Daemon(failure.message),
+        }
+    }
 }
 
 /// A handle for requesting immediate keyed convergence.
@@ -56,8 +107,8 @@ impl<Key> Wakeup<Key> {
     ///
     /// # Errors
     ///
-    /// Returns an error when the controller stops or reconciliation fails.
-    pub async fn reconcile(&self, key: Key) -> Result<(), Error> {
+    /// Returns the pass's classified failure, or a transient failure when the controller stops.
+    pub async fn reconcile(&self, key: Key) -> Result<(), ReconcileFailure> {
         let (response, receiver) = oneshot::channel();
         self.sender
             .send(Request {
@@ -65,11 +116,10 @@ impl<Key> Wakeup<Key> {
                 response: Some(response),
             })
             .await
-            .map_err(|_| Error::Daemon(format!("{} controller stopped", self.resource)))?;
+            .map_err(|_| transient(format!("{} controller stopped", self.resource)))?;
         receiver
             .await
-            .map_err(|_| Error::Daemon(format!("{} controller dropped a response", self.resource)))?
-            .map_err(Error::Daemon)
+            .map_err(|_| transient(format!("{} controller dropped a response", self.resource)))?
     }
 
     /// Provides a best-effort low-latency hint for already-durable state.
@@ -78,7 +128,7 @@ impl<Key> Wakeup<Key> {
     }
 }
 
-type Response = oneshot::Sender<Result<(), String>>;
+type Response = oneshot::Sender<Result<(), ReconcileFailure>>;
 type ReconcileResult<Key> = (Key, Vec<Response>, Result<(), Error>);
 type ReconcileFuture<Key> = futures_util::future::LocalBoxFuture<'static, ReconcileResult<Key>>;
 
@@ -145,7 +195,7 @@ where
                     if let Err(error) = &result {
                         (self.on_error)(Some(key), error);
                     }
-                    let response = result.map_err(|error| error.to_string());
+                    let response = result.as_ref().copied().map_err(ReconcileFailure::classify);
                     for sender in responses {
                         let _ignored = sender.send(response.clone());
                     }
@@ -180,6 +230,13 @@ where
             let reconciler = self.reconciler.clone();
             reconciliations.push(async move { (key, responses, reconciler.reconcile(key).await) }.boxed_local());
         }
+    }
+}
+
+const fn transient(message: String) -> ReconcileFailure {
+    ReconcileFailure {
+        kind: FailureKind::Transient,
+        message,
     }
 }
 

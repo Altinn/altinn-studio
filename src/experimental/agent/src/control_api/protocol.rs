@@ -16,6 +16,7 @@ pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
 pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
+pub(crate) const METHOD_PROGRESS_EVENT: &str = "progress.v1.event";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
@@ -53,6 +54,15 @@ pub(crate) struct Response {
     pub error: Option<ResponseError>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Notification {
+    pub jsonrpc: String,
+    pub method: String,
+    #[serde(default)]
+    pub params: serde_json::Value,
+}
+
 /// JSON-RPC error returned by the local control plane.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, thiserror::Error)]
 #[error("{message}")]
@@ -71,11 +81,30 @@ pub(crate) struct NameParams {
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
+pub(crate) struct ExecutionEnsureParams {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub progress: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct SessionParams {
     pub agent: String,
     pub name: crate::sessions::SessionName,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub harness: Option<crate::Harness>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionEnsureParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub harness: Option<crate::Harness>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub progress: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -138,4 +167,9 @@ pub(crate) async fn read_message<R: AsyncBufRead + Unpin>(reader: &mut R) -> std
             return Ok(ReadMessage::Complete(message));
         }
     }
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+const fn is_false(value: &bool) -> bool {
+    !*value
 }

@@ -17,10 +17,12 @@ use clap::{Parser, Subcommand};
 
 mod format;
 mod forward;
+mod progress;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
 use futures_util::StreamExt as _;
+use progress::Renderer as ProgressRenderer;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
@@ -349,11 +351,12 @@ async fn attach(
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
-        session = session.as_str()
-    );
-    let target = client.ensure_session(&agent, session, harness).await?;
+    let mut progress = ProgressRenderer::stderr();
+    let target = client
+        .ensure_session(&agent, session, harness, Some(&mut |event| progress.render(event)))
+        .await;
+    progress.finish();
+    let target = target?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
 }
@@ -371,16 +374,12 @@ async fn exec_command(
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
-    let current = client.get(&agent).await?;
-    if !current
-        .status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True)
-    {
-        eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    }
-    let target = client.ensure_execution(&agent).await?;
+    let mut progress = ProgressRenderer::stderr();
+    let target = client
+        .ensure_execution(&agent, Some(&mut |event| progress.render(event)))
+        .await;
+    progress.finish();
+    let target = target?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
         match agent::sandbox::attach_terminal(
@@ -435,7 +434,7 @@ async fn port_forward(
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(&agent).await?;
+    let target = client.ensure_execution(&agent, None).await?;
     let mut forwards = Vec::new();
     for spec in specs {
         let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;

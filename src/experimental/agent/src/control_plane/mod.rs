@@ -5,6 +5,7 @@ pub mod memory;
 mod reconciler;
 mod resource;
 mod service;
+mod status;
 
 use std::rc::Rc;
 
@@ -16,6 +17,7 @@ pub use controller::{Controller, ErrorHandler, Wakeup};
 pub use reconciler::{Reconciler, SessionNotifier};
 pub use resource::{AgentId, AgentRecord, ENV_FILE};
 pub use service::{ApplyRequest, ControlPlane, Notifier};
+pub use status::{ObservedStatus, StatusWatch};
 
 /// Separates desired-state writes from reconciler status writes using generation checks.
 pub trait AgentStore {

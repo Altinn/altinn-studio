@@ -162,7 +162,7 @@ fn spawn_create(
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
         let result = async {
-            let target = client.ensure_execution(&agent).await?;
+            let target = client.ensure_execution(&agent, None).await?;
             PortForward::start(home_path, target.sandbox, spec.clone()).await
         }
         .await;
@@ -315,13 +315,13 @@ async fn attach(
         "Ensuring Agent {agent:?} and Session {name:?}; initial provisioning can take several minutes...",
         name = session.as_str()
     );
-    let target = client.ensure_session(agent, session, harness).await?;
+    let target = client.ensure_session(agent, session, harness, None).await?;
     agent::sessions::attach(home.path(), &target).await
 }
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
     eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(agent).await?;
+    let target = client.ensure_execution(agent, None).await?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
     match agent::sandbox::attach_terminal(

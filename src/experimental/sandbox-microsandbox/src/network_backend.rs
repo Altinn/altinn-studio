@@ -181,6 +181,8 @@ impl NetworkBackend for MicrosandboxNetworkBackend {
                 .cloned()
                 .unwrap_or_default();
             let sandbox_id = request.sandbox_id.clone();
+            let log_sandbox_id = sandbox_id.clone();
+            let log_sandbox_name = request.sandbox_name.clone();
             let task = tokio::task::spawn_local(async move {
                 if let Err(error) = drive(
                     sandbox_id,
@@ -193,7 +195,12 @@ impl NetworkBackend for MicrosandboxNetworkBackend {
                 )
                 .await
                 {
-                    tracing::warn!(%error, "Microsandbox Network controller stopped");
+                    tracing::warn!(
+                        %error,
+                        sandbox = %log_sandbox_id,
+                        sandbox_name = %log_sandbox_name,
+                        "Microsandbox Network data plane stopped"
+                    );
                 }
             });
             self.drivers
@@ -355,6 +362,9 @@ async fn handle_runtime_message(
             operation,
         } if *handshake_complete => {
             let authorization = authorize_operation(subject, &operation, policy, secret_store, secret_bindings).await;
+            if authorization.is_none() {
+                log_authorization_denial(subject, &operation);
+            }
             let (decision, secret_material) = authorization.map_or_else(
                 || (RuntimeDecision::Deny, None),
                 |secret_material| {
@@ -375,6 +385,37 @@ async fn handle_runtime_message(
         RuntimeMessage::AuthorizationRequest { .. } | RuntimeMessage::FlowClosed { .. } => Err(Error::Backend(
             "Microsandbox Network request arrived before the protocol handshake".into(),
         )),
+    }
+}
+
+fn log_authorization_denial(subject: SandboxSubject<'_>, operation: &NetworkOperation) {
+    let (action, hostname, destination) = operation_log_fields(operation);
+    tracing::warn!(
+        action,
+        hostname,
+        destination = %destination,
+        sandbox = %subject.id,
+        sandbox_name = %subject.name,
+        "Microsandbox Network authorization denied"
+    );
+}
+
+fn operation_log_fields(operation: &NetworkOperation) -> (&'static str, Option<&str>, String) {
+    match operation {
+        NetworkOperation::Connect {
+            destination, hostname, ..
+        } => (action::NETWORK_CONNECT, hostname.as_deref(), destination.to_string()),
+        NetworkOperation::DnsQuery { name, resolver, .. } => (
+            action::DNS_QUERY,
+            Some(name),
+            resolver.as_ref().map_or_else(|| "none".into(), ToString::to_string),
+        ),
+        NetworkOperation::HttpRequest {
+            destination, authority, ..
+        } => (action::HTTP_REQUEST, Some(authority), destination.to_string()),
+        NetworkOperation::SecretUse {
+            destination, authority, ..
+        } => (action::SECRET_USE, Some(authority), destination.to_string()),
     }
 }
 

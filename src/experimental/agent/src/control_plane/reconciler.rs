@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use crate::{Condition, ConditionStatus, Error, Status};
+use crate::{Condition, ConditionStatus, Error, ReconcileFailure, Status};
 
-use super::{AgentRecord, SharedAgentStore};
+use super::{AgentRecord, ObservedStatus, SharedAgentStore, StatusWatch};
 
 const READY: &str = "Ready";
 const SANDBOX_READY: &str = "SandboxReady";
@@ -18,16 +18,25 @@ pub struct Reconciler {
     store: SharedAgentStore,
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
+    progress: crate::progress::Hub,
+    statuses: StatusWatch,
 }
 
 impl Reconciler {
     /// Creates an Agent reconciler over persistent resources and runtime-resolved Sandboxes.
     #[must_use]
-    pub fn new(store: SharedAgentStore, sandboxes: Rc<crate::sandbox::Service>) -> Self {
+    pub fn new(
+        store: SharedAgentStore,
+        sandboxes: Rc<crate::sandbox::Service>,
+        progress: crate::progress::Hub,
+        statuses: StatusWatch,
+    ) -> Self {
         Self {
             store,
             sandboxes,
             sessions: None,
+            progress,
+            statuses,
         }
     }
 
@@ -71,11 +80,14 @@ impl Reconciler {
                     "Sandbox provisioning has not completed",
                 )],
             );
-            self.update_status(&record, status.clone()).await?;
+            self.update_status(&record, status.clone(), None).await?;
             record.agent.status = status;
         }
 
-        let ensured = match self.sandboxes.ensure(&record).await {
+        let reporter = self
+            .progress
+            .sandbox_reporter(record.id, record.agent.metadata.name.clone());
+        let ensured = match self.sandboxes.ensure(&record, reporter).await {
             Ok(ensured) => ensured,
             Err(error) => {
                 let message = error.to_string();
@@ -87,7 +99,7 @@ impl Reconciler {
                         condition(SANDBOX_READY, ConditionStatus::False, "ReconcileFailed", &message),
                     ],
                 );
-                self.update_status(&record, status).await?;
+                self.update_status(&record, status, Some(&error)).await?;
                 return Err(error);
             }
         };
@@ -112,7 +124,7 @@ impl Reconciler {
                 condition(READY, ConditionStatus::True, "SandboxReady", ""),
             ],
         );
-        self.update_status(&record, status).await?;
+        self.update_status(&record, status, None).await?;
         if ensured.runtime_restarted {
             self.notify_sessions(record.id);
         }
@@ -124,7 +136,9 @@ impl Reconciler {
         self.notify_sessions(record.id);
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
-            .await
+            .await?;
+        self.statuses.forget(record.id);
+        Ok(())
     }
 
     async fn record_failure(&self, record: &AgentRecord, reason: &str, error: &Error) -> Result<(), Error> {
@@ -135,15 +149,21 @@ impl Reconciler {
                 record.agent.status.sandbox.clone(),
                 vec![condition(READY, ConditionStatus::False, reason, &error.to_string())],
             ),
+            Some(error),
         )
         .await
     }
 
-    async fn update_status(&self, record: &AgentRecord, status: Status) -> Result<(), Error> {
+    async fn update_status(&self, record: &AgentRecord, status: Status, failure: Option<&Error>) -> Result<(), Error> {
         let notify = session_relevant_transition(&record.agent.status, &status);
+        let observed = ObservedStatus {
+            conditions: status.conditions.clone(),
+            failure: failure.map(|error| ReconcileFailure::classify(error).kind),
+        };
         self.store
             .update_status(record.id, record.agent.metadata.generation, status)
             .await?;
+        self.statuses.publish(record.id, observed);
         if notify {
             self.notify_sessions(record.id);
         }

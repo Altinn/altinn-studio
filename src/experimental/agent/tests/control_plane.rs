@@ -2,11 +2,18 @@
 
 mod support;
 
-use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    collections::VecDeque,
+    path::PathBuf,
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
-    AgentId, ConditionStatus, Error, MountSpec, SecretSpec, Status,
+    AgentId, ConditionStatus, Error, FailureKind, MountSpec, SecretSpec, Status,
     control_plane::{AgentRecord, AgentStore, ControlPlane, Controller, Notifier, Reconciler, memory},
+    progress::Observation,
     sandbox::{ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
 };
 use sandbox::{
@@ -101,7 +108,11 @@ impl Provider for MemoryProvider {
         Box::pin(async move { Ok(record.agent.spec.sandbox.platform.os == "linux") })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        _progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             if let Some(blocking) = &self.blocking
                 && record.id == blocking.agent
@@ -163,6 +174,73 @@ struct UnsupportedProvider {
     id: ProviderId,
 }
 
+enum PlannedFailure {
+    Invalid(String),
+    /// Floods telemetry past the lossy channel's capacity, then fails as invalid.
+    InvalidAfterFlood(String),
+    Transient(String),
+}
+
+const TELEMETRY_FLOOD: usize = 4_096;
+
+struct PlannedProvider {
+    inner: MemoryProvider,
+    failures: RefCell<VecDeque<PlannedFailure>>,
+}
+
+impl PlannedProvider {
+    fn new(backend: Rc<sandbox_memory::Provider>, failures: impl IntoIterator<Item = PlannedFailure>) -> Self {
+        Self {
+            inner: MemoryProvider::new(backend),
+            failures: RefCell::new(failures.into_iter().collect()),
+        }
+    }
+}
+
+impl Provider for PlannedProvider {
+    fn id(&self) -> &ProviderId {
+        self.inner.id()
+    }
+
+    fn supports<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<bool, Error>> {
+        self.inner.supports(record)
+    }
+
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+        match self.failures.borrow_mut().pop_front() {
+            Some(PlannedFailure::Invalid(message)) => Box::pin(async move { Err(Error::Invalid(message)) }),
+            Some(PlannedFailure::InvalidAfterFlood(message)) => Box::pin(async move {
+                for _ in 0..TELEMETRY_FLOOD {
+                    progress(sandbox::SandboxEvent::PhaseStarted {
+                        phase: sandbox::SandboxPhase::Validate,
+                    });
+                }
+                Err(Error::Invalid(message))
+            }),
+            Some(PlannedFailure::Transient(message)) => {
+                Box::pin(async move { Err(Error::Sandbox(sandbox::Error::Backend(message))) })
+            }
+            None => self.inner.ensure(record, progress),
+        }
+    }
+
+    fn open<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        id: &'a sandbox::SandboxId,
+    ) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+        self.inner.open(record, id)
+    }
+
+    fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        self.inner.release(record)
+    }
+}
+
 impl UnsupportedProvider {
     fn new() -> Self {
         Self {
@@ -180,7 +258,11 @@ impl Provider for UnsupportedProvider {
         Box::pin(async { Ok(false) })
     }
 
-    fn ensure<'a>(&'a self, _record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        _record: &'a AgentRecord,
+        _progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
     }
 
@@ -202,7 +284,12 @@ fn sandbox_service(provider: Rc<dyn Provider>) -> Rc<Service> {
 }
 
 fn reconciler(store: Rc<dyn AgentStore>, provider: Rc<dyn Provider>) -> Reconciler {
-    Reconciler::new(store, sandbox_service(provider))
+    Reconciler::new(
+        store,
+        sandbox_service(provider),
+        agent::progress::Hub::new(),
+        agent::control_plane::StatusWatch::new(),
+    )
 }
 
 struct Fixture {
@@ -586,7 +673,12 @@ async fn reconciliation_resolves_provider_capabilities_and_persists_the_assignme
     let sandboxes =
         Rc::new(Service::new(providers, [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>]).expect("Sandbox service"));
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
-    let reconciler = Reconciler::new(store.clone(), sandboxes);
+    let reconciler = Reconciler::new(
+        store.clone(),
+        sandboxes,
+        agent::progress::Hub::new(),
+        agent::control_plane::StatusWatch::new(),
+    );
     control_plane.apply(apply_request("worker")).await.expect("apply");
 
     reconciler
@@ -1059,10 +1151,15 @@ async fn execution_target_waits_for_agent_convergence() {
     let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
     let reconciler = Rc::new(reconciler(store.clone(), provider));
     let (controller, wakeup) = Controller::new(store.clone(), reconciler, Duration::from_mins(1), Rc::new(|_, _| {}));
-    let execution = ExecutionService::new(store, wakeup);
+    let execution = ExecutionService::new(
+        store,
+        wakeup,
+        agent::progress::Hub::new(),
+        agent::control_plane::StatusWatch::new(),
+    );
     let task = tokio::task::spawn_local(controller.run());
 
-    let target = tokio::time::timeout(Duration::from_secs(1), execution.ensure("worker"))
+    let target = tokio::time::timeout(Duration::from_secs(1), execution.ensure("worker", Observation::OnePass))
         .await
         .expect("execution target should not wait for the periodic scan")
         .expect("ready execution target");
@@ -1072,6 +1169,215 @@ async fn execution_target_waits_for_agent_convergence() {
     assert!(target.sandbox.id().is_some());
     assert_eq!(backend.count(), 1);
     task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn observed_execution_reports_invalid_failure_then_returns_it() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [PlannedFailure::Invalid(
+            ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        )],
+    ));
+    let progress = agent::progress::Hub::new();
+    let statuses = agent::control_plane::StatusWatch::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        progress.clone(),
+        statuses.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, wakeup, progress, statuses);
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let error = execution
+        .ensure("worker", Observation::Follow(reporter))
+        .await
+        .expect_err("invalid preparation must fail fast");
+
+    assert!(matches!(error, Error::Invalid(message) if message.contains("GITHUB_TOKEN")));
+    assert!(events.borrow().iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition { message, failure: Some(FailureKind::Invalid), .. }
+            if message.contains(".env does not define required variable")
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn lagged_telemetry_observer_still_sees_the_terminal_condition() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [PlannedFailure::InvalidAfterFlood(
+            ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        )],
+    ));
+    let progress = agent::progress::Hub::new();
+    let statuses = agent::control_plane::StatusWatch::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        progress.clone(),
+        statuses.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, wakeup, progress, statuses);
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let error = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", Observation::Follow(reporter)),
+    )
+    .await
+    .expect("a dropped telemetry frame must not stall the request")
+    .expect_err("invalid preparation must fail");
+
+    assert!(matches!(error, Error::Invalid(message) if message.contains("GITHUB_TOKEN")));
+    let events = events.borrow();
+    let phases = events
+        .iter()
+        .filter(|event| matches!(event, agent::progress::Event::PhaseStarted { .. }))
+        .count();
+    assert!(
+        phases < TELEMETRY_FLOOD,
+        "telemetry should have lagged: {phases} phase events"
+    );
+    assert!(events.iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition { message, failure: Some(FailureKind::Invalid), .. }
+            if message.contains(".env does not define required variable")
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn observed_execution_waits_for_background_retry_after_transient_failure() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+    ));
+    let progress = agent::progress::Hub::new();
+    let statuses = agent::control_plane::StatusWatch::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        progress.clone(),
+        statuses.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, wakeup, progress, statuses);
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let target = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", Observation::Follow(reporter)),
+    )
+    .await
+    .expect("background retry should complete")
+    .expect("eventual execution target");
+
+    assert!(target.sandbox.id().is_some());
+    assert_eq!(
+        events
+            .borrow()
+            .iter()
+            .filter(|event| matches!(
+                event,
+                agent::progress::Event::Condition { message, failure: Some(FailureKind::Transient), .. }
+                    if message.contains("temporary runtime failure")
+            ))
+            .count(),
+        2,
+        "Ready and SandboxReady each change once; retries with the same message emit nothing"
+    );
+    assert!(events.borrow().iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition {
+            condition,
+            status: ConditionStatus::True,
+            ..
+        } if condition == "Ready"
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn dropping_observed_execution_does_not_stop_background_reconciliation() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend.clone(),
+        [PlannedFailure::Transient("temporary runtime failure".into())],
+    ));
+    let progress = agent::progress::Hub::new();
+    let statuses = agent::control_plane::StatusWatch::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        progress.clone(),
+        statuses.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = Rc::new(ExecutionService::new(store, wakeup, progress, statuses));
+    let controller_task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let failed = Rc::new(Notify::new());
+    let observed = failed.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| {
+        if matches!(event, agent::progress::Event::Condition { failure: Some(_), .. }) {
+            observed.notify_one();
+        }
+    });
+    let waiting = execution.clone();
+    let observation_task =
+        tokio::task::spawn_local(async move { waiting.ensure("worker", Observation::Follow(reporter)).await });
+    tokio::time::timeout(Duration::from_secs(1), failed.notified())
+        .await
+        .expect("transient failure event");
+    observation_task.abort();
+
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while backend.count() == 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("background controller should keep reconciling");
+    controller_task.abort();
 }
 
 #[tokio::test(flavor = "local")]

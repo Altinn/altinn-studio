@@ -3,6 +3,7 @@
 use std::{path::Path, rc::Rc};
 
 use ::sandbox::{EnsureSandboxRequest, ErrorKind, LocalFuture, Platform, SandboxHandle, SandboxService, SandboxState};
+use futures_util::StreamExt as _;
 use sandbox_microsandbox::{MicrosandboxNetworkBackend, MicrosandboxProvider};
 
 use crate::{Error, authorization::AgentPolicyEngine, control_plane::AgentRecord, persistence};
@@ -109,7 +110,11 @@ impl Provider for Adapter {
         })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        progress: crate::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             let running_before = record
                 .agent
@@ -128,11 +133,11 @@ impl Provider for Adapter {
             let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
                 .with_mounts(Self::sandbox_mounts(record))
                 .with_environment(prepared.environment);
-            let mut sandbox = self.service.ensure(&request).await?;
+            let mut sandbox = ensure_with_progress(&self.service, &request, &progress).await?;
             if prepared.bindings_changed && running_before {
                 self.preparation.restart_network(&sandbox).await?;
                 // Re-ensure starts the stopped Network with the replacement handshake bindings.
-                sandbox = self.service.ensure(&request).await?;
+                sandbox = ensure_with_progress(&self.service, &request, &progress).await?;
             }
             Ok(ProviderEnsureOutcome {
                 sandbox,
@@ -164,4 +169,20 @@ impl Provider for Adapter {
             Ok(())
         })
     }
+}
+
+async fn ensure_with_progress(
+    service: &SandboxService,
+    request: &EnsureSandboxRequest,
+    progress: &crate::progress::SandboxReporter,
+) -> Result<SandboxHandle, Error> {
+    let mut pending = service.ensure(request);
+    while let Some(event) = pending.next().await {
+        match event? {
+            ::sandbox::OperationEvent::Progress(event) => progress(event),
+            ::sandbox::OperationEvent::Ready(sandbox) => return Ok(sandbox),
+            _ => {}
+        }
+    }
+    Err(::sandbox::Error::OperationStreamEnded.into())
 }
