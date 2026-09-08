@@ -112,6 +112,7 @@ public static class ServiceRegistration
         services.AddTransient<IOrgCodeListService, OrgCodeListService>();
         services.AddTransient<IOrgContentService, OrgContentService>();
         services.AddTransient<IEnvironmentsService, EnvironmentsService>();
+        services.AddTransient<IResourceEnvironmentsService, ResourceEnvironmentsService>();
         services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
         services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();

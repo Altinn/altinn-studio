@@ -34,6 +34,7 @@ public class ResourceAdminController : ControllerBase
     private readonly CacheSettings _cacheSettings;
     private readonly IOrgService _orgService;
     private readonly IResourceRegistry _resourceRegistry;
+    private readonly IResourceEnvironmentsService _resourceEnvironmentsService;
 
     public ResourceAdminController(
         IGiteaClient giteaClient,
@@ -43,7 +44,7 @@ public class ResourceAdminController : ControllerBase
         IOptions<CacheSettings> cacheSettings,
         IOrgService orgService,
         IResourceRegistry resourceRegistry,
-        IEnvironmentsService environmentsService
+        IResourceEnvironmentsService resourceEnvironmentsService
     )
     {
         _giteaClient = giteaClient;
@@ -53,6 +54,7 @@ public class ResourceAdminController : ControllerBase
         _cacheSettings = cacheSettings.Value;
         _orgService = orgService;
         _resourceRegistry = resourceRegistry;
+        _resourceEnvironmentsService = resourceEnvironmentsService;
     }
 
     [HttpPost]
@@ -198,7 +200,7 @@ public class ResourceAdminController : ControllerBase
             return StatusCode(403);
         }
 
-        List<string> envs = GetEnvironmentsForOrg(org);
+        IReadOnlyList<string> envs = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
         List<AccessList> allAccessLists = [];
         foreach (string environment in envs)
         {
@@ -220,7 +222,7 @@ public class ResourceAdminController : ControllerBase
     private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
     {
         List<Team> teams = await _giteaClient.GetTeams();
-        List<string> envs = GetEnvironmentsForOrg(org);
+        IReadOnlyList<string> envs = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
 
         bool isTeamMember = teams.Any(team =>
             team.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
@@ -272,6 +274,19 @@ public class ResourceAdminController : ControllerBase
         }
 
         return StatusCode(204);
+    }
+
+    /// <summary>
+    /// Gets the environments the organization can publish resources to, in the order they should
+    /// be presented to the user.
+    /// </summary>
+    /// <param name="org">The short name of the organization</param>
+    /// <returns>The environment names, for example tt02 and prod</returns>
+    [HttpGet]
+    [Route("designer/api/{org}/resources/environments")]
+    public ActionResult<IReadOnlyList<string>> GetResourceEnvironments(string org)
+    {
+        return Ok(_resourceEnvironmentsService.GetEnvironmentsForOrg(org));
     }
 
     [HttpGet]
@@ -349,7 +364,7 @@ public class ResourceAdminController : ControllerBase
 
         if (includeEnvResources)
         {
-            IEnumerable<string> environments = GetEnvironmentsForOrg(org);
+            IEnumerable<string> environments = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
             foreach (string environment in environments)
             {
                 string cacheKey = $"resourcelist_${environment}";
@@ -440,7 +455,7 @@ public class ResourceAdminController : ControllerBase
 
         ServiceResourceStatus resourceStatus = new() { ResourceVersion = resource.Version, PublishedVersions = [] };
 
-        IEnumerable<string> environments = GetEnvironmentsForOrg(org);
+        IEnumerable<string> environments = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
         foreach (string envir in environments)
         {
             resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
@@ -864,17 +879,5 @@ public class ResourceAdminController : ControllerBase
     private string GetRepositoryName(string org)
     {
         return string.Format("{0}-resources", org);
-    }
-
-    private static List<string> GetEnvironmentsForOrg(string org)
-    {
-        List<string> defaultOrgs = ["prod", "tt02"];
-        return org.ToUpper() switch
-        {
-            "TTD" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
-            "DIGDIR" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
-            "SKD" => [.. defaultOrgs, "yt01"],
-            _ => defaultOrgs,
-        };
     }
 }

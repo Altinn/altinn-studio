@@ -184,7 +184,10 @@ export const applicationMetadata: ApplicationMetadata = {
 };
 
 export const resourceVersionStatus: ResourceVersionStatus = {
-  publishedVersions: [],
+  publishedVersions: [
+    { version: null, environment: 'tt02' },
+    { version: null, environment: 'prod' },
+  ],
 };
 
 export const validation: Validation = {
