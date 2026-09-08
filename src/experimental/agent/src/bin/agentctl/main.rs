@@ -433,8 +433,12 @@ async fn port_forward(
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
-    eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(&agent, None).await?;
+    let mut progress = ProgressRenderer::stderr();
+    let target = client
+        .ensure_execution(&agent, Some(&mut |event| progress.render(event)))
+        .await;
+    progress.finish();
+    let target = target?;
     let mut forwards = Vec::new();
     for spec in specs {
         let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;

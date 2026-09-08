@@ -14,6 +14,7 @@ use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
+use crate::progress::Renderer as ProgressRenderer;
 use agent::manifest::MANIFEST_FILE;
 use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal};
 use terminal::Tui;
@@ -311,17 +312,21 @@ async fn attach(
     session: SessionName,
     harness: Option<Harness>,
 ) -> Result<(), Error> {
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {name:?}; initial provisioning can take several minutes...",
-        name = session.as_str()
-    );
-    let target = client.ensure_session(agent, session, harness, None).await?;
-    agent::sessions::attach(home.path(), &target).await
+    let mut progress = ProgressRenderer::stderr();
+    let target = client
+        .ensure_session(agent, session, harness, Some(&mut |event| progress.render(event)))
+        .await;
+    progress.finish();
+    agent::sessions::attach(home.path(), &target?).await
 }
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
-    eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(agent, None).await?;
+    let mut progress = ProgressRenderer::stderr();
+    let target = client
+        .ensure_execution(agent, Some(&mut |event| progress.render(event)))
+        .await;
+    progress.finish();
+    let target = target?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
     match agent::sandbox::attach_terminal(
