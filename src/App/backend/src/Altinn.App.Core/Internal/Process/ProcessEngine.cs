@@ -418,10 +418,8 @@ internal class ProcessEngine : IProcessEngine
                 return blockedResult;
             }
 
-            // A terminally failed workflow normally requires an explicit resume before the process
-            // can continue. The one exception is a bpmn-allowed 'reject': the user is abandoning
-            // the task (e.g. backing out of a failed service task from its failure screen, which
-            // offers both retry and go-back).
+            // When no durable process status blocks the instance, a BPMN-allowed 'reject' can
+            // abandon the failed workflow and its task. Other actions require an explicit resume.
             case CurrentTaskWorkflowState.ResumeRequired failedWorkflow
                 when request.Action is "reject" && rejectAllowedForTask:
             {

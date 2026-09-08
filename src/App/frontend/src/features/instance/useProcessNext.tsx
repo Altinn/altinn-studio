@@ -187,7 +187,7 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
  * Resumes the terminally failed workflow that owns the current task (POST process/resume). This is
  * the engine-era analogue of "retry the service task": the engine re-runs the failed step (and its
  * dependents) in place, whereas a plain process/next is rejected with 409/resumeRequired while the
- * workflow is failed. The mutation shares the process/next scope so a retry and a reject can never
+ * workflow is failed. The mutation shares the process/next scope so resuming and advancing can never
  * run concurrently, but deliberately not its mutation key: the key gates ProcessWrapper's
  * full-screen loader, and the failed task view should stay mounted (button spinner) while resuming.
  */
