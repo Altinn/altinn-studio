@@ -1,5 +1,0 @@
-{
-  "name": "Should find the index of a substring",
-  "expression": ["stringIndexOf", "Hello, world!", "world"],
-  "expects": 7
-}

@@ -225,8 +225,14 @@ fn fixture() -> Fixture {
 }
 
 fn apply_request(name: &str) -> agent::control_plane::ApplyRequest {
+    apply_request_in(name, std::env::temp_dir().join("agent-platform-source"))
+}
+
+fn apply_request_in(name: &str, source_directory: PathBuf) -> agent::control_plane::ApplyRequest {
     agent::control_plane::ApplyRequest {
-        source_directory: std::env::temp_dir().join("agent-platform-source"),
+        manifest_path: Some(source_directory.join("agent.yaml")),
+        source_directory,
+        create_only: false,
         agent: agent(name),
     }
 }
@@ -266,11 +272,9 @@ async fn apply_stores_desired_state_without_running_inline() {
 async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
     let fixture = fixture();
     let root = std::env::temp_dir().join("agent-platform-sources");
-    let mut outer = apply_request("outer");
-    outer.source_directory = root.clone();
+    let outer = apply_request_in("outer", root.clone());
     fixture.control_plane.apply(outer).await.expect("outer Agent");
-    let mut inner = apply_request("inner");
-    inner.source_directory = root.join("nested");
+    let inner = apply_request_in("inner", root.join("nested"));
     fixture.control_plane.apply(inner).await.expect("inner Agent");
 
     let listed = fixture.control_plane.list().await.expect("list Agents");
@@ -307,8 +311,7 @@ async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and
     let nested = root.join("src/feature");
     std::fs::create_dir_all(&manifest).expect("manifest directory");
     std::fs::create_dir_all(&nested).expect("nested workspace directory");
-    let mut request = apply_request("worker");
-    request.source_directory = manifest;
+    let mut request = apply_request_in("worker", manifest);
     request.agent.spec.sandbox.mounts.push(MountSpec::Bind {
         source: PathBuf::from("../.."),
         target: SandboxPath::new("/home/agent/code/altinn-studio"),
@@ -342,11 +345,130 @@ async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and
 }
 
 #[tokio::test(flavor = "local")]
+async fn api_responses_carry_provenance_without_persisting_it() {
+    let fixture = fixture();
+    let request = apply_request("worker");
+    let expected = agent::Provenance {
+        source_directory: request.source_directory.clone(),
+        manifest_path: request.manifest_path.clone(),
+    };
+
+    let applied = fixture.control_plane.apply(request.clone()).await.expect("apply");
+    assert_eq!(applied.status.provenance.as_ref(), Some(&expected));
+
+    let unchanged = fixture.control_plane.apply(request).await.expect("unchanged apply");
+    assert_eq!(unchanged.status.provenance.as_ref(), Some(&expected));
+
+    let fetched = fixture.control_plane.get("worker").await.expect("get");
+    assert_eq!(fetched.status.provenance.as_ref(), Some(&expected));
+
+    let listed = fixture.control_plane.list().await.expect("list");
+    assert_eq!(listed[0].status.provenance.as_ref(), Some(&expected));
+
+    let resolved = fixture
+        .control_plane
+        .resolve_directory(&expected.source_directory)
+        .await
+        .expect("resolve directory");
+    assert_eq!(resolved.status.provenance.as_ref(), Some(&expected));
+
+    let record = stored(&fixture, "worker").await;
+    assert_eq!(record.agent.status.provenance, None);
+    assert_eq!(record.manifest_path, expected.manifest_path);
+
+    reconcile(&fixture, "worker").await;
+    let reconciled = fixture.control_plane.get("worker").await.expect("get after reconcile");
+    assert_eq!(reconciled.status.provenance.as_ref(), Some(&expected));
+    assert!(!reconciled.status.conditions.is_empty());
+    let record = stored(&fixture, "worker").await;
+    assert_eq!(record.agent.status.provenance, None);
+}
+
+#[tokio::test(flavor = "local")]
+async fn create_only_applies_reject_existing_names() {
+    let fixture = fixture();
+    let mut request = apply_request("worker");
+    request.create_only = true;
+    fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("initial create");
+
+    let error = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect_err("repeated create must fail");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("already exists")));
+
+    request.create_only = false;
+    fixture.control_plane.apply(request).await.expect("upsert still works");
+}
+
+#[tokio::test(flavor = "local")]
+async fn applies_keep_the_recorded_manifest_path_unless_a_new_one_is_reported() {
+    let fixture = fixture();
+    let request = apply_request("worker");
+    let recorded = request.manifest_path.clone();
+    fixture.control_plane.apply(request.clone()).await.expect("apply");
+
+    let mut pathless = request.clone();
+    pathless.manifest_path = None;
+    fixture.control_plane.apply(pathless).await.expect("pathless apply");
+    assert_eq!(stored(&fixture, "worker").await.manifest_path, recorded);
+
+    let mut renamed = request.clone();
+    renamed.manifest_path = Some(request.source_directory.join("worker.yml"));
+    let applied = fixture
+        .control_plane
+        .apply(renamed.clone())
+        .await
+        .expect("renamed apply");
+    assert_eq!(stored(&fixture, "worker").await.manifest_path, renamed.manifest_path);
+    assert_eq!(
+        applied
+            .status
+            .provenance
+            .and_then(|provenance| provenance.manifest_path),
+        renamed.manifest_path
+    );
+
+    let mut foreign = request;
+    foreign.manifest_path = Some(PathBuf::from("/elsewhere/agent.yaml"));
+    let error = fixture
+        .control_plane
+        .apply(foreign)
+        .await
+        .expect_err("manifest outside sourceDirectory must fail");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("manifestPath")));
+}
+
+#[tokio::test(flavor = "local")]
+async fn changing_the_source_directory_is_rejected_by_name() {
+    let fixture = fixture();
+    fixture
+        .control_plane
+        .apply(apply_request("worker"))
+        .await
+        .expect("apply");
+
+    let mut moved = apply_request("worker");
+    moved.source_directory = std::env::temp_dir().join("agent-platform-elsewhere");
+    moved.manifest_path = Some(moved.source_directory.join("agent.yaml"));
+    let error = fixture
+        .control_plane
+        .apply(moved)
+        .await
+        .expect_err("directory change must fail");
+    assert!(matches!(error, Error::Immutable("sourceDirectory")));
+}
+
+#[tokio::test(flavor = "local")]
 async fn changing_a_mount_is_rejected_for_an_existing_agent() {
     let fixture = fixture();
     let root = TempDirectory::new("immutable-mount");
-    let mut request = apply_request("worker");
-    request.source_directory = root.path().to_path_buf();
+    let mut request = apply_request_in("worker", root.path().to_path_buf());
     request.agent.spec.sandbox.mounts.push(MountSpec::Bind {
         source: PathBuf::from("."),
         target: SandboxPath::new("/home/agent/code/first"),

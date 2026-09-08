@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 
 import type { ExternalApisResult } from 'src/core/queries/externalApi';
 import type { ExprPositionalArgs, ExprVal, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
@@ -15,6 +16,7 @@ export type DataModelAndElement = {
 interface SharedTest {
   name: string;
   disabledFrontend?: boolean;
+  disabledBackend?: boolean;
   layouts?: ILayoutCollection;
   dataModel?: object;
   dataModels?: DataModelAndElement[];
@@ -53,6 +55,7 @@ export interface FunctionTestBase {
   expression: ExprValToActualOrExpr<ExprVal.Any>;
   expects?: unknown;
   expectsFailure?: string;
+  expectsFailureBackend?: string;
   name?: string;
 }
 
@@ -93,12 +96,12 @@ export function getSharedTests<Folder extends keyof TestFolders>(
     folderName: subPath,
     content: [],
   };
-  const fullPath = `${__dirname}/shared-tests/${parentPath}/${subPath}`;
+  const fullPath = path.join(__dirname, '../../../../../common/expression-tests/evaluation', parentPath, subPath);
 
   fs.readdirSync(fullPath).forEach((name) => {
     const isDir = fs.statSync(`${fullPath}/${name}`).isDirectory();
     if (isDir) {
-      out.content.push(getSharedTests(name as keyof TestFolders, `${parentPath}/${subPath}`));
+      out.content.push(getSharedTests(name as keyof TestFolders, [parentPath, subPath].filter(Boolean).join('/')));
     } else if (name.endsWith('.json')) {
       const testJson = fs.readFileSync(`${fullPath}/${name}`);
       const test = JSON.parse(testJson.toString());
