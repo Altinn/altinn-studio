@@ -63,8 +63,8 @@ public interface IFiksArkivConfigResolver
     /// <see cref="FiksArkivMetadataSettings.CaseFileClassifications"/>. An entry whose source is
     /// <see cref="FiksArkivClassificationSource.InstanceOwner"/> resolves to the owner recorded on
     /// <paramref name="instance"/>: an organization by its organization number, a person by their national identity
-    /// number, titled with the party's registered name. Every other entry is emitted as configured. Returns an empty
-    /// list when nothing is configured.
+    /// number, titled with the party's registered name when the register knows it. Every other entry is emitted as
+    /// configured. Returns an empty list when nothing is configured.
     /// </summary>
     Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(
         Instance instance,

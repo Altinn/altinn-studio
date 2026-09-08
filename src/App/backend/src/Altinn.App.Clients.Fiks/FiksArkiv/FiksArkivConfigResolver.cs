@@ -308,6 +308,11 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
             int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
             return await _altinnPartyClient.GetParty(partyId); // Note: doesn't accept cancellation token.. yet
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // A cancelled shipment must stop here rather than degrade to a nameless owner and carry on.
+            throw;
+        }
         catch (Exception e)
         {
             _logger.LogError(

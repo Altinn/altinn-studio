@@ -609,9 +609,9 @@ public enum FiksArkivClassificationSource
 {
     /// <summary>
     /// The instance owner as recorded on the instance: an organization by its organization number (<c>ORGNR</c>),
-    /// a person by their national identity number (<c>PNR</c>), titled with the party's registered name. The
-    /// shipment runs asynchronously in the workflow engine, so this is the owner of the case, not whoever performed
-    /// the submission.
+    /// a person by their national identity number (<c>PNR</c>), titled with the party's registered name when the
+    /// register knows it. The shipment runs asynchronously in the workflow engine, so this is the owner of the case,
+    /// not whoever performed the submission.
     /// </summary>
     InstanceOwner,
 }

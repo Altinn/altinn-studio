@@ -523,6 +523,41 @@ public class FiksArkivConfigResolverTest
     }
 
     [Fact]
+    public async Task GetCaseFileClassifications_PropagatesCancellation_FromTheRegisterLookup()
+    {
+        // Arrange: a cancelled shipment must stop rather than resolve a nameless owner and carry on.
+        var fiksArkivSettingsOverride = new FiksArkivSettings
+        {
+            Metadata = new FiksArkivMetadataSettings
+            {
+                CaseFileClassifications =
+                [
+                    new FiksArkivClassification { Source = FiksArkivClassificationSource.InstanceOwner },
+                ],
+            },
+        };
+        await using var fixture = TestFixture.Create(
+            services => services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings"),
+            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
+            useDefaultFiksArkivSettings: false
+        );
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            fixture.FiksArkivConfigResolver.GetCaseFileClassifications(OrganizationOwnedInstance(), cancellation.Token)
+        );
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(OrganizationOwnedInstance(), cancellation.Token)
+        );
+        fixture.PartyClientMock.Verify(
+            x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task GetCaseFileClassifications_ThrowsException_WhenInstanceOwnerHasNoIdentifier()
     {
         // Arrange: a self-identified user owns the instance, so neither identifier is recorded on it.
