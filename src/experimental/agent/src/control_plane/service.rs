@@ -172,7 +172,7 @@ impl ControlPlane {
         let mut secret_files = Vec::new();
         if !desired.spec.secrets.is_empty() {
             let path = env_file.map_or_else(|| source_directory.join(super::resource::ENV_FILE), PathBuf::from);
-            secret_files.push((desired.metadata.name.clone(), canonical_or_original(&path).await));
+            secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
         }
         let mut mounts = bind_mount_sources(desired);
         for other in self.store.list().await? {
@@ -182,7 +182,7 @@ impl ControlPlane {
             if !other.agent.spec.secrets.is_empty() {
                 secret_files.push((
                     other.agent.metadata.name.clone(),
-                    canonical_or_original(&other.env_file_path()).await,
+                    canonical_secret_file(&other.env_file_path()).await,
                 ));
             }
             if !desired.spec.secrets.is_empty() {
@@ -420,11 +420,19 @@ fn bind_mount_sources(agent: &Agent) -> Vec<(String, PathBuf)> {
 }
 
 async fn canonical_or_original(path: &std::path::Path) -> PathBuf {
+    tokio::fs::canonicalize(path)
+        .await
+        .unwrap_or_else(|_| path.to_path_buf())
+}
+
+/// Canonical form of a secret file for comparison against canonical bind mount sources.
+///
+/// The file may not exist yet, so its directory is canonicalized instead when it does;
+/// a symlinked parent then still compares equal to the resolved mount source.
+async fn canonical_secret_file(path: &std::path::Path) -> PathBuf {
     if let Ok(canonical) = tokio::fs::canonicalize(path).await {
         return canonical;
     }
-    // A secret file may not exist yet; canonicalize its directory so symlinked
-    // parents still compare against canonical bind mount sources.
     match (path.parent(), path.file_name()) {
         (Some(parent), Some(name)) => tokio::fs::canonicalize(parent)
             .await

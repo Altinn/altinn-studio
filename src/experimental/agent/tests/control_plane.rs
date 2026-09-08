@@ -777,6 +777,29 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     assert_eq!(applied.spec.secrets.len(), 1);
 }
 
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_survives_a_symlinked_parent_of_a_missing_source() {
+    // macOS and Windows temp directories canonicalize to a different spelling; a source
+    // directory that does not exist on disk must still resolve by its literal path.
+    let fixture = fixture();
+    let real = tempfile::tempdir().expect("real directory");
+    let link = tempfile::tempdir().expect("link holder");
+    let alias = link.path().join("alias");
+    std::os::unix::fs::symlink(real.path(), &alias).expect("symlink");
+    let source_directory = alias.join("missing-source");
+    let request = apply_request_in("worker", source_directory.clone());
+    let applied = fixture.control_plane.apply(request).await.expect("apply");
+
+    let resolved = fixture
+        .control_plane
+        .resolve_directory(&source_directory.join("nested"))
+        .await
+        .expect("a subdirectory of the literal source path resolves");
+
+    assert_eq!(resolved.metadata.name, applied.metadata.name);
+}
+
 #[tokio::test(flavor = "local")]
 async fn secret_file_inside_a_bind_mount_is_rejected() {
     let fixture = fixture();
