@@ -328,8 +328,9 @@ impl MicrosandboxImageBackend {
             },
         );
         let report = async {
+            let mut pull = PullReport::default();
             while let Some(event) = import_events.recv().await {
-                report_image_progress(&step, event).await;
+                pull.report(&step, event).await;
             }
         };
         let (loaded, ()) = tokio::join!(load, report);
@@ -435,8 +436,9 @@ impl MicrosandboxImageBackend {
             let (mut events, sender) = microsandbox_image::progress_channel();
             let pull = registry.pull_with_sender(&parsed, &options, sender);
             let report = async {
+                let mut pull = PullReport::default();
                 while let Some(event) = events.recv().await {
-                    report_image_progress(&step, event).await;
+                    pull.report(&step, event).await;
                 }
             };
             let (result, ()) = tokio::join!(pull, report);
@@ -660,41 +662,74 @@ async fn report_buildkit_status(
     Ok(())
 }
 
-async fn report_image_progress(step: &ProgressStep, event: microsandbox_image::PullProgress) {
-    match event {
-        microsandbox_image::PullProgress::Resolved { layer_count, .. } => {
-            step.progress(0, u64::try_from(layer_count).ok(), ProgressUnit::Items)
+/// Translates registry pull events into one step's progress.
+///
+/// Layer counts keep their total across events, byte progress covers both the
+/// download and the materialization of each layer, and the stitch stages that
+/// have no byte progress are named as output so a long root-disk write is
+/// visibly in progress rather than silent.
+#[derive(Default)]
+struct PullReport {
+    layers: Option<u64>,
+}
+
+impl PullReport {
+    async fn report(&mut self, step: &ProgressStep, event: microsandbox_image::PullProgress) {
+        use microsandbox_image::PullProgress;
+        match event {
+            PullProgress::Resolved { layer_count, .. } => {
+                self.layers = u64::try_from(layer_count).ok();
+                step.progress(0, self.layers, ProgressUnit::Items).await;
+            }
+            PullProgress::LayerDownloadProgress {
+                downloaded_bytes,
+                total_bytes,
+                ..
+            } => step.progress(downloaded_bytes, total_bytes, ProgressUnit::Bytes).await,
+            PullProgress::LayerMaterializeStarted { layer_index, .. } => {
+                step.output(
+                    OutputStream::Stdout,
+                    self.layer_line("Materializing layer", layer_index),
+                )
                 .await;
+            }
+            PullProgress::LayerMaterializeProgress {
+                bytes_read,
+                total_bytes,
+                ..
+            } => step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await,
+            PullProgress::LayerMaterializeComplete { layer_index, .. } => {
+                let completed = u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX);
+                step.progress(completed, self.layers, ProgressUnit::Items).await;
+            }
+            PullProgress::StitchMergingTrees { layer_count } => {
+                step.output(OutputStream::Stdout, format!("Merging {layer_count} layer trees\n"))
+                    .await;
+            }
+            PullProgress::StitchWritingFsmeta => {
+                step.output(OutputStream::Stdout, "Writing filesystem metadata\n").await;
+            }
+            PullProgress::StitchWritingVmdk => {
+                step.output(OutputStream::Stdout, "Writing root disk image\n").await;
+            }
+            PullProgress::Complete { layer_count, .. } => {
+                let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
+                step.progress(completed, Some(completed), ProgressUnit::Items).await;
+            }
+            PullProgress::Resolving { .. }
+            | PullProgress::LayerDownloadComplete { .. }
+            | PullProgress::LayerDownloadVerifying { .. }
+            | PullProgress::LayerMaterializeWriting { .. }
+            | PullProgress::StitchComplete => {}
         }
-        microsandbox_image::PullProgress::LayerMaterializeProgress {
-            bytes_read,
-            total_bytes,
-            ..
-        } => {
-            step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await;
-        }
-        microsandbox_image::PullProgress::LayerMaterializeComplete { layer_index, .. } => {
-            step.progress(
-                u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX),
-                None,
-                ProgressUnit::Items,
-            )
-            .await;
-        }
-        microsandbox_image::PullProgress::Complete { layer_count, .. } => {
-            let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
-            step.progress(completed, Some(completed), ProgressUnit::Items).await;
-        }
-        microsandbox_image::PullProgress::Resolving { .. }
-        | microsandbox_image::PullProgress::LayerDownloadProgress { .. }
-        | microsandbox_image::PullProgress::LayerDownloadComplete { .. }
-        | microsandbox_image::PullProgress::LayerDownloadVerifying { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeStarted { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeWriting { .. }
-        | microsandbox_image::PullProgress::StitchMergingTrees { .. }
-        | microsandbox_image::PullProgress::StitchWritingFsmeta
-        | microsandbox_image::PullProgress::StitchWritingVmdk
-        | microsandbox_image::PullProgress::StitchComplete => {}
+    }
+
+    fn layer_line(&self, activity: &str, layer_index: usize) -> String {
+        let ordinal = layer_index.saturating_add(1);
+        self.layers.map_or_else(
+            || format!("{activity} {ordinal}\n"),
+            |total| format!("{activity} {ordinal}/{total}\n"),
+        )
     }
 }
 
