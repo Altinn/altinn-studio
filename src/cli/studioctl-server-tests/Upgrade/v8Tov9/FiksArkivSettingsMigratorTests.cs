@@ -271,6 +271,34 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task GatewayWithASingleExit_GetsATodo()
+    {
+        // A gateway is there, but with one way out it cannot separate a confirmed archiving from a rejected one.
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                StartEvent("StartEvent_1"),
+                ServiceTask("Task_Fiks", "fiksArkiv"),
+                Gateway("Gateway_Fiks"),
+                EndEvent("EndEvent_1"),
+                Flow("Flow_1", "StartEvent_1", "Task_Fiks"),
+                Flow("Flow_2", "Task_Fiks", "Gateway_Fiks"),
+                Flow("Flow_3", "Gateway_Fiks", "EndEvent_1")
+            )
+        );
+
+        var result = await Migrate();
+
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains(
+            "'Gateway_Fiks' after the Fiks Arkiv task 'Task_Fiks' has fewer than two",
+            todo,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("gatewayAction", todo, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task FiksArkivTaskFollowedByAGateway_IsClean()
     {
         _app.Write("config/process/process.bpmn", ProcessWithGateway());

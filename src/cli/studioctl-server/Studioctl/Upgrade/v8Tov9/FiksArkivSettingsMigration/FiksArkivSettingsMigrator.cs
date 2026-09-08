@@ -224,17 +224,30 @@ internal sealed class FiksArkivSettingsMigrator
                     && targets.All(t =>
                         elementsById.TryGetValue(t, out var target) && target.Name.LocalName == "exclusiveGateway"
                     );
-                if (followedByGateway)
+                if (!followedByGateway)
+                {
+                    messages.Todo(
+                        $"The Fiks Arkiv task '{taskId}' is not followed by an exclusive gateway. In v9 the task always "
+                            + "moves the process on when it concludes, with the success action once the archive confirms "
+                            + "the record and with 'reject' when the archiving cannot succeed, and the app refuses to "
+                            + "start until a gateway right after the task separates the two. Add an exclusive gateway "
+                            + "with a default flow for the confirmed case and a flow with "
+                            + "[\"equals\", [\"gatewayAction\"], \"reject\"] to where someone follows a rejected case up."
+                    );
                     continue;
+                }
 
-                messages.Todo(
-                    $"The Fiks Arkiv task '{taskId}' is not followed by an exclusive gateway. In v9 the task always "
-                        + "moves the process on when it concludes, with the success action once the archive confirms "
-                        + "the record and with 'reject' when the archiving cannot succeed, and the app refuses to "
-                        + "start until a gateway right after the task separates the two. Add an exclusive gateway "
-                        + "with a default flow for the confirmed case and a flow with "
-                        + "[\"equals\", [\"gatewayAction\"], \"reject\"] to where someone follows a rejected case up."
-                );
+                // The startup check also requires two ways out of the gateway; a single exit cannot separate
+                // the two outcomes either, so say so here rather than at app startup.
+                foreach (var gatewayId in targets.Where(g => flows.Count(f => f.Source == g) < 2))
+                {
+                    messages.Todo(
+                        $"The exclusive gateway '{gatewayId}' after the Fiks Arkiv task '{taskId}' has fewer than two "
+                            + "outgoing flows, and the v9 app refuses to start until it has at least two: a default flow "
+                            + "for the confirmed case and a flow with [\"equals\", [\"gatewayAction\"], \"reject\"] to "
+                            + "where someone follows a rejected case up."
+                    );
+                }
             }
         }
     }
