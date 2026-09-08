@@ -33,7 +33,7 @@ export interface LabelContentProps {
 /**
  * The contents of a label: the label text with its required/optional indicators, an optional help
  * text tooltip and an optional description. Unlike {@link LabelComponent} it renders no `<label>`
- * element of its own, so it can be placed inside markup that provides the labelling element — e.g. a
+ * element of its own, so it can be placed inside markup that provides the labeling element — e.g. a
  * `<fieldset>` legend for grouped inputs such as checkboxes and radio buttons.
  *
  * Takes only primitive props (text-resource keys + booleans) and resolves the text itself.
