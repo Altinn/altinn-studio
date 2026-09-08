@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- A `reject` action no longer replaces a failed workflow. While the current task's workflow has failed, `POST .../process/next` is refused with `409 Conflict` and `processNextState: "resumeRequired"` for every action, `reject` included, until the workflow is resumed with `POST .../process/resume`. Previously a BPMN-allowed `reject` wrote the failed workflow off and moved the process along the reject flow, which could not undo work the failed task had already done.
+
 ### Fixed
 
 - Breaking: the signing metric `altinn_app_lib_singing_get_service_owner_party` is now spelled `altinn_app_lib_signing_get_service_owner_party`. It counts the service owner party lookups an app makes when a signing task starts, and its name has carried the typo since the metric was added. Repoint any dashboard or alert matching the old name.
