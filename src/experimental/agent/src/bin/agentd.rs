@@ -1,4 +1,4 @@
-use std::{path::PathBuf, process::ExitCode, rc::Rc, time::Duration};
+use std::{io::IsTerminal as _, path::PathBuf, process::ExitCode, rc::Rc, time::Duration};
 
 use agent::{
     Error,
@@ -41,11 +41,11 @@ fn run() -> Result<(), Error> {
     let arguments = Arguments::parse();
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::builder()
-                .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-                .from_env_lossy(),
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(agent::local::process::DAEMON_LOG_FILTER)),
         )
         .with_writer(std::io::stderr)
+        .with_ansi(std::io::stderr().is_terminal())
         .init();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let _lock = home.acquire_lock()?;

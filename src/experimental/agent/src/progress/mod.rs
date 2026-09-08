@@ -10,7 +10,7 @@ mod hub;
 mod observe;
 
 pub use event::{Event, OutputStream, Phase, PhaseOutcome, ProgressUnit};
-pub use hub::Hub;
+pub use hub::{Hub, SandboxObserver};
 pub(crate) use observe::observe_agent;
 
 /// Synchronous event callback used at Agent-layer seams.

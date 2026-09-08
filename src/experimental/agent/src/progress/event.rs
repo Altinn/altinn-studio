@@ -28,6 +28,24 @@ pub enum Event {
         /// Phase duration in milliseconds.
         elapsed_ms: u64,
     },
+    /// The Sandbox operation failed inside a stable lifecycle phase.
+    ///
+    /// The reconciler records the failure as a condition; this event closes
+    /// the open phase for renderers and fires on every failed pass.
+    PhaseFailed {
+        /// User-facing Agent name.
+        agent: String,
+        /// Stable phase identifier.
+        phase: Phase,
+        /// Human-readable phase label.
+        message: String,
+        /// Failure detail.
+        detail: String,
+        /// Whether desired state must change before another pass can succeed.
+        failure: FailureKind,
+        /// Time spent in the phase before it failed, in milliseconds.
+        elapsed_ms: u64,
+    },
     /// An implementation-specific step started inside a phase.
     StepStarted {
         /// User-facing Agent name.
@@ -110,6 +128,7 @@ impl Event {
         match self {
             Self::PhaseStarted { agent, .. }
             | Self::PhaseCompleted { agent, .. }
+            | Self::PhaseFailed { agent, .. }
             | Self::StepStarted { agent, .. }
             | Self::StepProgress { agent, .. }
             | Self::StepOutput { agent, .. }
@@ -196,6 +215,10 @@ pub enum OutputStream {
     Stderr,
     /// A stream introduced by a newer SDK.
     Unknown,
+}
+
+pub(super) fn milliseconds(duration: std::time::Duration) -> u64 {
+    u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
 
 pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Option<Event> {
@@ -314,8 +337,4 @@ impl From<::sandbox::OutputStream> for OutputStream {
             _ => Self::Unknown,
         }
     }
-}
-
-fn milliseconds(duration: std::time::Duration) -> u64 {
-    u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }

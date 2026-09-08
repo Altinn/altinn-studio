@@ -84,12 +84,13 @@ impl Reconciler {
             record.agent.status = status;
         }
 
-        let reporter = self
+        let observer = self
             .progress
-            .sandbox_reporter(record.id, record.agent.metadata.name.clone());
-        let ensured = match self.sandboxes.ensure(&record, reporter).await {
+            .observe_sandbox(record.id, record.agent.metadata.name.clone());
+        let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {
+                observer.failed(&error);
                 let message = error.to_string();
                 let status = Status::observed(
                     record.agent.metadata.generation,

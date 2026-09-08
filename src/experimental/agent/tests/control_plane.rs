@@ -221,9 +221,12 @@ impl Provider for PlannedProvider {
                 }
                 Err(Error::Invalid(message))
             }),
-            Some(PlannedFailure::Transient(message)) => {
-                Box::pin(async move { Err(Error::Sandbox(sandbox::Error::Backend(message))) })
-            }
+            Some(PlannedFailure::Transient(message)) => Box::pin(async move {
+                progress(sandbox::SandboxEvent::PhaseStarted {
+                    phase: sandbox::SandboxPhase::SandboxStart,
+                });
+                Err(Error::Sandbox(sandbox::Error::Backend(message)))
+            }),
             None => self.inner.ensure(record, progress),
         }
     }
@@ -1329,6 +1332,67 @@ async fn observed_execution_waits_for_background_retry_after_transient_failure()
             ..
         } if condition == "Ready"
     )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_standing_failure_is_reported_when_observation_starts() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+    ));
+    let progress = agent::progress::Hub::new();
+    let statuses = agent::control_plane::StatusWatch::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        progress.clone(),
+        statuses.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store.clone(), wakeup.clone(), progress, statuses);
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    // The Agent is already failing before anyone observes it.
+    let id = store.get_by_name("worker").await.expect("record").id;
+    wakeup.reconcile(id).await.expect_err("first pass fails");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", Observation::Follow(reporter)),
+    )
+    .await
+    .expect("background retry should complete")
+    .expect("eventual execution target");
+
+    let events = events.borrow();
+    assert!(
+        matches!(
+            events.first(),
+            Some(agent::progress::Event::Condition { failure: Some(FailureKind::Transient), message, .. })
+                if message.contains("temporary runtime failure")
+        ),
+        "the standing failure must be the first thing reported: {events:?}"
+    );
+    assert_eq!(
+        events
+            .iter()
+            .filter(|event| matches!(event, agent::progress::Event::PhaseFailed { .. }))
+            .count(),
+        1,
+        "the observed failed pass closes its open phase"
+    );
     task.abort();
 }
 

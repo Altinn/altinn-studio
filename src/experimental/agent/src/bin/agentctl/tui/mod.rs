@@ -14,7 +14,7 @@ use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
-use crate::progress::Renderer as ProgressRenderer;
+use crate::progress::{Renderer as ProgressRenderer, until_interrupted};
 use agent::manifest::MANIFEST_FILE;
 use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal};
 use terminal::Tui;
@@ -305,6 +305,12 @@ async fn suspended(
     Ok(())
 }
 
+fn interrupted(agent: &str) -> Error {
+    Error::Session(format!(
+        "stopped waiting; agentd keeps reconciling Agent {agent:?} in the background"
+    ))
+}
+
 async fn attach(
     home: &ControlPlaneHome,
     client: &Client,
@@ -313,20 +319,19 @@ async fn attach(
     harness: Option<Harness>,
 ) -> Result<(), Error> {
     let mut progress = ProgressRenderer::stderr();
-    let target = client
-        .ensure_session(agent, session, harness, Some(&mut |event| progress.render(event)))
-        .await;
+    let waited =
+        until_interrupted(client.ensure_session(agent, session, harness, Some(&mut |event| progress.render(event))))
+            .await;
     progress.finish();
-    agent::sessions::attach(home.path(), &target?).await
+    let target = waited.ok_or_else(|| interrupted(agent))??;
+    agent::sessions::attach(home.path(), &target).await
 }
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
     let mut progress = ProgressRenderer::stderr();
-    let target = client
-        .ensure_execution(agent, Some(&mut |event| progress.render(event)))
-        .await;
+    let waited = until_interrupted(client.ensure_execution(agent, Some(&mut |event| progress.render(event)))).await;
     progress.finish();
-    let target = target?;
+    let target = waited.ok_or_else(|| interrupted(agent))??;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
     match agent::sandbox::attach_terminal(

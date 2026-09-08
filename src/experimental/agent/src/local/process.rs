@@ -1,5 +1,18 @@
 //! Host-specific process launch behavior.
 
+/// Default `RUST_LOG` filter for `agentd` and every runtime process it spawns.
+///
+/// Runtime helpers inherit the daemon's stderr and install their own tracing
+/// subscriber, so the filter travels through the environment rather than code.
+pub const DAEMON_LOG_FILTER: &str = "info,microsandbox_agent_client=warn";
+
+/// Gives a child daemon the default log filter unless the caller set `RUST_LOG`.
+pub fn configure_logging(command: &mut std::process::Command) {
+    if std::env::var_os("RUST_LOG").is_none() {
+        command.env("RUST_LOG", DAEMON_LOG_FILTER);
+    }
+}
+
 /// Configures a child daemon to run independently of the invoking terminal.
 #[cfg(windows)]
 pub fn configure_detached(command: &mut std::process::Command) {

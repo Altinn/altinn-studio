@@ -11,7 +11,7 @@ use crate::{
     init::InitSystem,
     mount::{Mount, MountKind},
     network,
-    progress::{PendingSandbox, PhaseOutcome, SandboxEvents, SandboxPhase},
+    progress::{PendingSandbox, PhaseOutcome, SandboxEvents, SandboxPhase, SandboxProgress},
     provider::SandboxProvider,
     terminal, volume,
 };
@@ -628,8 +628,7 @@ impl SandboxService {
                 if sandbox.network != network {
                     return Err(Error::Immutable("network"));
                 }
-                let sandbox = self.ensure_environment(sandbox, &request.environment, events).await?;
-                let sandbox = self.ensure_resources(sandbox, request.spec.resources, events).await?;
+                let sandbox = self.ensure_updates(sandbox, request, events).await?;
                 self.ensure_running(sandbox, events).await
             }
             Err(error) if error.is_not_found() => {
@@ -706,24 +705,26 @@ impl SandboxService {
         Ok(image)
     }
 
-    async fn ensure_resources(
+    /// Converges mutable Sandbox settings in one `SandboxUpdate` phase.
+    async fn ensure_updates(
         &self,
         sandbox: Sandbox,
-        resources: SandboxResources,
+        request: &EnsureSandboxRequest,
         events: &SandboxEvents,
     ) -> Result<Sandbox, Error> {
         let started = Instant::now();
         events.phase_started(SandboxPhase::SandboxUpdate).await;
-        let (sandbox, outcome) = if sandbox.resources == resources {
-            (sandbox, PhaseOutcome::Reused)
+        let progress = events.progress(SandboxPhase::SandboxUpdate);
+        let (sandbox, environment) = self
+            .ensure_environment(sandbox, &request.environment, events, &progress)
+            .await?;
+        let (sandbox, resources) = self
+            .ensure_resources(sandbox, request.spec.resources, events, &progress)
+            .await?;
+        let outcome = if environment == PhaseOutcome::Reused && resources == PhaseOutcome::Reused {
+            PhaseOutcome::Reused
         } else {
-            let sandbox = self
-                .backend()
-                .update_resources(&sandbox.id, resources)
-                .forward(events)
-                .await
-                .map_err(|error| Error::component("update Sandbox resources", error))?;
-            (sandbox, PhaseOutcome::Completed)
+            PhaseOutcome::Completed
         };
         events
             .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
@@ -731,41 +732,60 @@ impl SandboxService {
         Ok(sandbox)
     }
 
+    async fn ensure_resources(
+        &self,
+        sandbox: Sandbox,
+        resources: SandboxResources,
+        events: &SandboxEvents,
+        progress: &SandboxProgress,
+    ) -> Result<(Sandbox, PhaseOutcome), Error> {
+        if sandbox.resources == resources {
+            return Ok((sandbox, PhaseOutcome::Reused));
+        }
+        let started = Instant::now();
+        let step = progress.start_step("Update Sandbox resources").await;
+        let sandbox = self
+            .backend()
+            .update_resources(&sandbox.id, resources)
+            .forward(events)
+            .await
+            .map_err(|error| Error::component("update Sandbox resources", error))?;
+        step.complete(started.elapsed()).await;
+        Ok((sandbox, PhaseOutcome::Completed))
+    }
+
     async fn ensure_environment(
         &self,
         sandbox: Sandbox,
         environment: &std::collections::BTreeMap<String, String>,
         events: &SandboxEvents,
-    ) -> Result<Sandbox, Error> {
+        progress: &SandboxProgress,
+    ) -> Result<(Sandbox, PhaseOutcome), Error> {
+        if &sandbox.environment == environment {
+            return Ok((sandbox, PhaseOutcome::Reused));
+        }
         let started = Instant::now();
-        events.phase_started(SandboxPhase::SandboxUpdate).await;
-        let (sandbox, outcome) = if &sandbox.environment == environment {
-            (sandbox, PhaseOutcome::Reused)
-        } else {
-            if sandbox.state != SandboxState::Stopped {
-                self.backend()
+        let step = progress.start_step("Update Sandbox environment").await;
+        if sandbox.state != SandboxState::Stopped {
+            self.backend()
+                .stop(&sandbox.id)
+                .await
+                .map_err(|error| Error::component("stop Sandbox for environment update", error))?;
+            if let Some(network_backend) = self.network_backend_for(&sandbox)? {
+                network_backend
                     .stop(&sandbox.id)
                     .await
-                    .map_err(|error| Error::component("stop Sandbox for environment update", error))?;
-                if let Some(network_backend) = self.network_backend_for(&sandbox)? {
-                    network_backend
-                        .stop(&sandbox.id)
-                        .await
-                        .map_err(|error| Error::component("stop Sandbox Network for environment update", error))?;
-                }
+                    .map_err(|error| Error::component("stop Sandbox Network for environment update", error))?;
             }
-            let sandbox = self
-                .backend()
-                .update_environment(&sandbox.id, environment.clone())
-                .forward(events)
-                .await
-                .map_err(|error| Error::component("update Sandbox environment", error))?;
-            (sandbox, PhaseOutcome::Completed)
-        };
-        events
-            .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
-            .await;
-        Ok(sandbox)
+        }
+        let sandbox = self
+            .backend()
+            .update_environment(&sandbox.id, environment.clone())
+            .forward(events)
+            .await
+            .map_err(|error| Error::component("update Sandbox environment", error))?;
+        step.complete(started.elapsed()).await;
+        Ok((sandbox, PhaseOutcome::Completed))
     }
 
     async fn require_backend_features_observed(

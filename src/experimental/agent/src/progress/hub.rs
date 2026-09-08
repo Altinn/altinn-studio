@@ -1,5 +1,7 @@
 //! Lossy in-process fan-out of provisioning telemetry.
 
+use std::{cell::Cell, rc::Rc, time::Instant};
+
 use tokio::sync::broadcast;
 
 use crate::AgentId;
@@ -54,15 +56,63 @@ impl Hub {
         let _ignored = self.sender.send(Envelope { id, event });
     }
 
-    /// Creates the callback a Sandbox Provider reports SDK progress through.
+    /// Observes one Sandbox ensure for an Agent, forwarding SDK progress as telemetry.
     #[must_use]
-    pub fn sandbox_reporter(&self, id: AgentId, agent: String) -> SandboxReporter {
-        let hub = self.clone();
-        std::rc::Rc::new(move |event| {
+    pub fn observe_sandbox(&self, id: AgentId, agent: String) -> SandboxObserver {
+        SandboxObserver {
+            hub: self.clone(),
+            id,
+            agent,
+            open_phase: Rc::new(Cell::new(None)),
+        }
+    }
+}
+
+/// Forwards one Sandbox ensure's SDK progress and closes its open phase on failure.
+pub struct SandboxObserver {
+    hub: Hub,
+    id: AgentId,
+    agent: String,
+    open_phase: Rc<Cell<Option<(super::Phase, String, Instant)>>>,
+}
+
+impl SandboxObserver {
+    /// Returns the callback handed to the Sandbox Provider.
+    #[must_use]
+    pub fn reporter(&self) -> SandboxReporter {
+        let hub = self.hub.clone();
+        let id = self.id;
+        let agent = self.agent.clone();
+        let open_phase = self.open_phase.clone();
+        Rc::new(move |event| {
             if let Some(event) = super::event::sandbox_event(&agent, event) {
+                match &event {
+                    Event::PhaseStarted { phase, message, .. } => {
+                        open_phase.set(Some((*phase, message.clone(), Instant::now())));
+                    }
+                    Event::PhaseCompleted { .. } => open_phase.set(None),
+                    _ => {}
+                }
                 hub.publish(id, event);
             }
         })
+    }
+
+    /// Reports that the ensure failed while a phase was open.
+    pub fn failed(&self, error: &crate::Error) {
+        if let Some((phase, message, started)) = self.open_phase.take() {
+            self.hub.publish(
+                self.id,
+                Event::PhaseFailed {
+                    agent: self.agent.clone(),
+                    phase,
+                    message,
+                    detail: error.to_string(),
+                    failure: crate::ReconcileFailure::classify(error).kind,
+                    elapsed_ms: super::event::milliseconds(started.elapsed()),
+                },
+            );
+        }
     }
 }
 

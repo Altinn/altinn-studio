@@ -32,7 +32,13 @@ pub(crate) async fn observe_agent(
         statuses: statuses.subscribe(id),
         last: ObservedStatus::default(),
     };
-    observer.last = observer.statuses.borrow_and_update().clone();
+    // A failure that is already recorded when observation starts is what the
+    // user came to see; a standing Ready is not worth a line.
+    let current = observer.statuses.borrow_and_update().clone();
+    if current.failure.is_some() {
+        observer.emit(&current);
+    }
+    observer.last = current;
 
     let mut reconcile = std::pin::pin!(wakeup.reconcile(id));
     let first_pass = loop {
@@ -85,11 +91,15 @@ impl Observer<'_> {
     fn status_changed(&mut self, changed: Result<(), watch::error::RecvError>) -> Result<(), Error> {
         changed.map_err(|_| Error::Conflict)?;
         let current = self.statuses.borrow_and_update().clone();
+        self.emit(&current);
+        self.last = current;
+        Ok(())
+    }
+
+    fn emit(&self, current: &ObservedStatus) {
         for condition in current.changed_since(&self.last) {
             (self.reporter)(Event::condition(self.agent, condition, current.failure));
         }
-        self.last = current;
-        Ok(())
     }
 
     fn drain(&mut self) -> Result<(), Error> {

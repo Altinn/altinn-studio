@@ -167,6 +167,9 @@ enum CommandError {
     Agent(#[from] Error),
     #[error("{0}")]
     Message(String),
+    /// The user stopped waiting for convergence; the daemon keeps reconciling.
+    #[error("stopped waiting; agentd keeps reconciling Agent {0:?} in the background")]
+    Interrupted(String),
 }
 
 type CommandResult<T> = Result<T, CommandError>;
@@ -198,6 +201,15 @@ enum CodexCommand {
 fn main() -> ExitCode {
     match run() {
         Ok(code) => code,
+        Err(error @ CommandError::Interrupted(_)) => {
+            eprintln!("agentctl: {error}");
+            exit_code(130)
+        }
+        // The daemon rejected the desired state; the message is the whole story.
+        Err(CommandError::Agent(Error::Rpc(error))) if error.code == CODE_INVALID_PARAMS => {
+            eprintln!("agentctl: {}", error.message);
+            ExitCode::FAILURE
+        }
         Err(error) => {
             eprintln!("agentctl: {error}");
             ExitCode::FAILURE
@@ -352,11 +364,15 @@ async fn attach(
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
     let mut progress = ProgressRenderer::stderr();
-    let target = client
-        .ensure_session(&agent, session, harness, Some(&mut |event| progress.render(event)))
-        .await;
+    let waited = progress::until_interrupted(client.ensure_session(
+        &agent,
+        session,
+        harness,
+        Some(&mut |event| progress.render(event)),
+    ))
+    .await;
     progress.finish();
-    let target = target?;
+    let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
 }
@@ -375,11 +391,10 @@ async fn exec_command(
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
     let mut progress = ProgressRenderer::stderr();
-    let target = client
-        .ensure_execution(&agent, Some(&mut |event| progress.render(event)))
-        .await;
+    let waited =
+        progress::until_interrupted(client.ensure_execution(&agent, Some(&mut |event| progress.render(event)))).await;
     progress.finish();
-    let target = target?;
+    let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
         match agent::sandbox::attach_terminal(
@@ -434,11 +449,10 @@ async fn port_forward(
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
     let mut progress = ProgressRenderer::stderr();
-    let target = client
-        .ensure_execution(&agent, Some(&mut |event| progress.render(event)))
-        .await;
+    let waited =
+        progress::until_interrupted(client.ensure_execution(&agent, Some(&mut |event| progress.render(event)))).await;
     progress.finish();
-    let target = target?;
+    let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
     let mut forwards = Vec::new();
     for spec in specs {
         let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
@@ -525,6 +539,9 @@ async fn stream_execution(
     }
     Err(::sandbox::Error::ExecutionStreamEnded { id }.into())
 }
+
+/// JSON-RPC invalid-params code used by the Control API for rejected desired state.
+const CODE_INVALID_PARAMS: i32 = -32602;
 
 fn exit_code(code: i32) -> ExitCode {
     u8::try_from(code).map_or(ExitCode::FAILURE, ExitCode::from)
@@ -788,6 +805,7 @@ fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
         .stdout(Stdio::null())
         .stderr(log);
     agent::local::process::configure_detached(&mut command);
+    agent::local::process::configure_logging(&mut command);
     command.spawn().map_err(Error::from)
 }
 
