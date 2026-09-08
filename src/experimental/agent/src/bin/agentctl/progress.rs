@@ -26,20 +26,24 @@ const RECENT_OUTPUT_LINES: usize = 5;
 
 /// Runs `ensure` until it completes or the user presses Ctrl-C.
 ///
-/// Returns `None` when interrupted. Ctrl-C then keeps its default effect for the
-/// rest of the process.
+/// Returns `None` when interrupted. Awaiting Ctrl-C installs a process-wide
+/// handler that outlives this call, so a command that afterwards runs something
+/// the user must be able to interrupt, and that does not watch Ctrl-C itself,
+/// calls [`exit_on_next_interrupt`].
 pub(crate) async fn until_interrupted<T>(ensure: impl Future<Output = T>) -> Option<T> {
-    let result = tokio::select! {
+    tokio::select! {
         biased;
         result = ensure => Some(result),
         _ = tokio::signal::ctrl_c() => None,
-    };
-    // Awaiting ctrl_c installed a handler; give the next Ctrl-C its usual meaning.
+    }
+}
+
+/// Gives the next Ctrl-C its default meaning again: exit with status 130.
+pub(crate) fn exit_on_next_interrupt() {
     tokio::task::spawn_local(async {
         let _ignored = tokio::signal::ctrl_c().await;
         std::process::exit(130);
     });
-    result
 }
 
 /// Where the renderer writes, which decides between an updating line and plain lines.

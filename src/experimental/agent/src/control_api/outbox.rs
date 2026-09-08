@@ -6,18 +6,23 @@ use tokio::sync::Notify;
 
 use crate::progress::{Event, Reporter};
 
-/// Upper bound on queued events before droppable diagnostics are discarded.
+/// Queued events above which droppable diagnostics are discarded.
 const CAPACITY: usize = 256;
+/// Queued events above which the client is considered undrained and is disconnected.
+const OVERFLOW: usize = 4 * CAPACITY;
 
 /// Notifications produced by a request handler faster than the connection drains them.
 ///
 /// Numeric step progress coalesces to the latest value per step, and step
 /// output is dropped once the queue is full. Phase transitions, step start and
-/// completion, and conditions are always delivered.
+/// completion, and conditions are never dropped; a client that lets them pile
+/// up past [`OVERFLOW`] is disconnected instead, which keeps memory bounded
+/// without ever delivering a partial condition history.
 #[derive(Default)]
 pub(super) struct Outbox {
     queue: RefCell<VecDeque<Event>>,
     ready: Notify,
+    overflowed: std::cell::Cell<bool>,
 }
 
 impl Outbox {
@@ -37,11 +42,18 @@ impl Outbox {
             queue[position] = event;
         } else if queue.len() >= CAPACITY && event.is_droppable() {
             return;
+        } else if queue.len() >= OVERFLOW {
+            self.overflowed.set(true);
         } else {
             queue.push_back(event);
         }
         drop(queue);
         self.ready.notify_one();
+    }
+
+    /// Returns whether undeliverable events had to be refused because the client did not drain.
+    pub(super) const fn overflowed(&self) -> bool {
+        self.overflowed.get()
     }
 
     pub(super) fn pop(&self) -> Option<Event> {
@@ -95,6 +107,23 @@ mod tests {
         outbox.push(progress("1", 30));
 
         assert_eq!(drain(&outbox), vec![progress("1", 30), progress("2", 5)]);
+    }
+
+    #[test]
+    fn an_undrained_client_overflows_instead_of_growing_without_bound() {
+        let outbox = Outbox::new();
+        let phase = Event::PhaseStarted {
+            agent: "worker".into(),
+            phase: Phase::SandboxStart,
+            message: "Start Sandbox".into(),
+        };
+        for _ in 0..OVERFLOW {
+            outbox.push(phase.clone());
+        }
+        assert!(!outbox.overflowed());
+        outbox.push(phase);
+        assert!(outbox.overflowed());
+        assert_eq!(drain(&outbox).len(), OVERFLOW);
     }
 
     #[test]

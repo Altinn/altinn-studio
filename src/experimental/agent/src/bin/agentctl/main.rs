@@ -414,6 +414,8 @@ async fn exec_command(
     .await;
     progress.finish();
     let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
+    // A streamed (non-terminal) Execution has no Ctrl-C handling of its own.
+    progress::exit_on_next_interrupt();
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
         match agent::sandbox::attach_terminal(
