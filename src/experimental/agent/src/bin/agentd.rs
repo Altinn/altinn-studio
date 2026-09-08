@@ -54,6 +54,19 @@ fn run() -> Result<(), Error> {
     runtime.block_on(run_control_plane(home, database))
 }
 
+type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
+
+/// Logs recoverable reconciliation errors for one durable resource kind.
+fn reconciliation_errors<Key: std::fmt::Display + 'static>(resource: &'static str) -> ErrorHandler<Key> {
+    Rc::new(move |id, error| {
+        if let Some(id) = id {
+            tracing::warn!(resource, %id, %error, "reconciliation failed");
+        } else {
+            tracing::error!(resource, %error, "reconciliation scan failed");
+        }
+    })
+}
+
 async fn open_sandboxes(
     home: &ControlPlaneHome,
     database: &persistence::Database,
@@ -94,7 +107,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
 
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
         session_store.clone(),
-        Rc::new(|error| eprintln!("agentd Platform API: {error}")),
+        Rc::new(|error| tracing::error!(%error, "Platform API connection failed")),
     ));
     let session_reconciler: Rc<dyn agent::sessions::Reconcile<agent::sessions::SessionId>> =
         Rc::new(agent::sessions::Reconciler::new(
@@ -107,15 +120,12 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_store.clone(),
         session_reconciler,
         Duration::from_secs(30),
-        Rc::new(|id, error| match id {
-            Some(id) => eprintln!("agentd reconciliation for Session {id}: {error}"),
-            None => eprintln!("agentd Session reconciliation scan: {error}"),
-        }),
+        reconciliation_errors("Session"),
     );
     let session_notifier = Rc::new(agent::sessions::AgentNotifier::new(
         session_store.clone(),
         session_wakeup.clone(),
-        Rc::new(|error| eprintln!("agentd Session notification scan: {error}")),
+        Rc::new(|error| tracing::error!(%error, "Session notification scan failed")),
     ));
     let reconciler = Rc::new(
         Reconciler::new(store.clone(), sandboxes, progress.clone(), statuses.clone())
@@ -125,10 +135,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         store.clone(),
         reconciler,
         Duration::from_secs(30),
-        Rc::new(|id, error| match id {
-            Some(id) => eprintln!("agentd reconciliation for Agent {id}: {error}"),
-            None => eprintln!("agentd reconciliation scan: {error}"),
-        }),
+        reconciliation_errors("Agent"),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
     let executions = Rc::new(ExecutionService::new(
@@ -150,7 +157,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         credentials.clone(),
         executions,
         sessions,
-        Rc::new(|error| eprintln!("agentd local API connection: {error}")),
+        Rc::new(|error| tracing::error!(%error, "Control API connection failed")),
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());
     let mut session_controller_task = tokio::task::spawn_local(session_controller.run());
