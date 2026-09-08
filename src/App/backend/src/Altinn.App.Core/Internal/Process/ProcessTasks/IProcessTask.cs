@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// <remarks>
 /// <para>
 /// A task type declares what happens when a task of that type is entered, ended or abandoned as lists of
-/// <see cref="IProcessTaskCommand"/> keys. Each declared command runs as a durable step of its own in the
+/// <see cref="IWorkflowEngineCommand"/> references. Each declared command runs as a durable step of its own in the
 /// workflow engine: it commits its data changes when it completes, and a failed command is retried without
 /// re-running the commands before it. A task that has nothing to do in a phase declares nothing, and the
 /// transition has no step for it.
@@ -44,19 +44,19 @@ public interface IProcessTask
     /// commits, after the app's <see cref="IOnTaskStartingHandler"/> for the task.
     /// </summary>
     /// <param name="taskId">The BPMN element id of the task being entered.</param>
-    IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) => [];
+    IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [];
 
     /// <summary>
     /// The commands that run, in order, when a task of this type is ended. They run before the app's
     /// <see cref="IOnTaskEndingHandler"/> for the task and before the task's data is locked.
     /// </summary>
     /// <param name="taskId">The BPMN element id of the task being left.</param>
-    IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) => [];
+    IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [];
 
     /// <summary>
     /// The commands that run, in order, when a task of this type is abandoned (the process is moved backwards
     /// out of it). They run before the app's <see cref="IOnTaskAbandonHandler"/> for the task.
     /// </summary>
     /// <param name="taskId">The BPMN element id of the task being left.</param>
-    IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) => [];
+    IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) => [];
 }

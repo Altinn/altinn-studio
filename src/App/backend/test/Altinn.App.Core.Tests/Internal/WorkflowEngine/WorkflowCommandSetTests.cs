@@ -110,6 +110,38 @@ public class WorkflowCommandSetTests
         Assert.Empty(commandSet.SideEffectCommands);
     }
 
+    [Theory]
+    [InlineData("start")]
+    [InlineData("end")]
+    [InlineData("abandon")]
+    public void LifecycleCommands_UseTheirOwnWireKeysAndPreserveSerializedPayloads(string phase)
+    {
+        const string payload = "{ \"taskId\": \"Task_1\", \"extra\": { \"version\": 2 } }";
+        WorkflowCommandRef[] declarations = [new("FirstCommand", payload), new("SecondCommand")];
+        WorkflowCommandSet commandSet = phase switch
+        {
+            "start" => WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    ServiceTask = null,
+                    IsInitialTaskStart = false,
+                    StartCommands = declarations,
+                }
+            ),
+            "end" => WorkflowCommandSet.GetTaskEndSteps(declarations),
+            _ => WorkflowCommandSet.GetTaskAbandonSteps(declarations),
+        };
+        List<string> keys = Keys(commandSet.Commands);
+        Assert.Equal(keys.IndexOf("FirstCommand") + 1, keys.IndexOf("SecondCommand"));
+        Assert.DoesNotContain("ExecuteProcessTaskCommand", keys);
+        StepRequest first = Assert.Single(commandSet.Commands, s => s.CommandKey == "FirstCommand");
+        StepRequest second = Assert.Single(commandSet.Commands, s => s.CommandKey == "SecondCommand");
+        Assert.Equal("FirstCommand", first.OperationId);
+        Assert.Equal("SecondCommand", second.OperationId);
+        Assert.Equal(payload, JsonSerializer.Deserialize<AppCommandData>(first.Command.Data!.Value)!.Payload);
+        Assert.Null(JsonSerializer.Deserialize<AppCommandData>(second.Command.Data!.Value)!.Payload);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // The segment planner: the items split at each reply handler and at each mailbox-opening stage,
     // each segment ended by its own hand-over.

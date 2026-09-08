@@ -2,8 +2,10 @@ using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
@@ -12,7 +14,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
 /// Verifies that the task's payment is complete and generates the receipt PDF. Declared by the payment task for
 /// its end phase. A payment that is not complete is a permanent failure: retrying cannot pay it.
 /// </summary>
-internal sealed class CompletePaymentCommand : IProcessTaskCommand
+internal sealed class CompletePaymentCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
@@ -23,30 +25,53 @@ internal sealed class CompletePaymentCommand : IProcessTaskCommand
 
     private readonly IProcessReader _processReader;
     private readonly IPdfService _pdfService;
+    private readonly IInstanceClient _instanceClient;
 
-    public CompletePaymentCommand(IProcessReader processReader, IPdfService pdfService)
+    public CompletePaymentCommand(IProcessReader processReader, IPdfService pdfService, IInstanceClient instanceClient)
     {
         _processReader = processReader;
         _pdfService = pdfService;
+        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
-    string IProcessTaskCommand.Key => Key;
+    public override string GetKey() => Key;
 
     /// <inheritdoc/>
-    public async Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public override async Task<ProcessEngineCommandResult> Execute(
+        ProcessEngineCommandContext context,
+        ProcessTaskPayload payload
+    )
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         CancellationToken ct = context.CancellationToken;
-        string taskId = context.TaskId;
+        string taskId = payload.TaskId;
         ValidAltinnPaymentConfiguration paymentConfiguration = PaymentTaskConfiguration.Get(_processReader, taskId);
+
+        // A receipt may already have been saved by an attempt whose response was lost. Adopt current
+        // payment/receipt metadata before upserting, without replacing the workflow's virtual process state.
+        Instance stored = await _instanceClient.GetInstance(
+            dataMutator.Instance,
+            StorageAuthenticationMethod.ServiceOwner(),
+            ct
+        );
+        bool IsPaymentData(DataElement element) =>
+            element.DataType == paymentConfiguration.PaymentDataType
+            || element.DataType == paymentConfiguration.PaymentReceiptPdfDataType;
+        DataElement[] currentPaymentData = (stored.Data ?? []).Where(IsPaymentData).ToArray();
+        List<DataElement> instanceData = dataMutator.Instance.Data ??= [];
+        instanceData.RemoveAll(element => IsPaymentData(element));
+        instanceData.AddRange(currentPaymentData);
 
         DataElement? paymentDataElement = dataMutator
             .GetDataElementsForType(paymentConfiguration.PaymentDataType)
             .SingleOrDefault();
         if (paymentDataElement is null)
         {
-            return ProcessTaskCommandResult.FailedPermanent("Payment information not found.");
+            return ProcessEngineCommandResult.FailedPermanent(
+                $"Process task command '{Key}' failed: Payment information not found.",
+                "ProcessTaskCommandFailed"
+            );
         }
 
         ReadOnlyMemory<byte> paymentData = await dataMutator.GetBinaryData(paymentDataElement);
@@ -56,12 +81,15 @@ internal sealed class CompletePaymentCommand : IProcessTaskCommand
 
         if (paymentInformation.Status == PaymentStatus.Skipped)
         {
-            return ProcessTaskCommandResult.Completed();
+            return ProcessEngineCommandResult.Completed();
         }
 
         if (paymentInformation.Status != PaymentStatus.Paid)
         {
-            return ProcessTaskCommandResult.FailedPermanent("The payment is not completed.");
+            return ProcessEngineCommandResult.FailedPermanent(
+                $"Process task command '{Key}' failed: The payment is not completed.",
+                "ProcessTaskCommandFailed"
+            );
         }
 
         await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
@@ -77,6 +105,6 @@ internal sealed class CompletePaymentCommand : IProcessTaskCommand
             taskId
         );
 
-        return ProcessTaskCommandResult.Completed();
+        return ProcessEngineCommandResult.Completed();
     }
 }

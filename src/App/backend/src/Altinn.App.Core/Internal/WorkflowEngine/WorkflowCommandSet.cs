@@ -106,7 +106,7 @@ internal sealed class WorkflowCommandSet
     /// before the common finalization, the app's ending handler and the data lock.
     /// </summary>
     /// <param name="endCommands">The commands the leaving task's type declares for its end phase, in order.</param>
-    public static WorkflowCommandSet GetTaskEndSteps(IReadOnlyList<ProcessTaskCommandRef> endCommands)
+    public static WorkflowCommandSet GetTaskEndSteps(IReadOnlyList<WorkflowCommandRef> endCommands)
     {
         return new WorkflowCommandSet()
             .AddTaskCommands(endCommands)
@@ -120,7 +120,7 @@ internal sealed class WorkflowCommandSet
     /// each, before the app's abandon handler.
     /// </summary>
     /// <param name="abandonCommands">The commands the leaving task's type declares for its abandon phase, in order.</param>
-    public static WorkflowCommandSet GetTaskAbandonSteps(IReadOnlyList<ProcessTaskCommandRef> abandonCommands)
+    public static WorkflowCommandSet GetTaskAbandonSteps(IReadOnlyList<WorkflowCommandRef> abandonCommands)
     {
         return new WorkflowCommandSet().AddTaskCommands(abandonCommands).AddCommand(OnTaskAbandonHook.Key);
     }
@@ -165,24 +165,14 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds the commands a process task declared for one lifecycle phase to the main sequence, one
-    /// <see cref="ExecuteProcessTaskCommand"/> step each, in order. The declared key is the step's whole identity
-    /// and travels three ways, deliberately: in the payload (dispatch reads it), in
-    /// <see cref="StepRequest.TaskCommandKey"/> (the enqueueing hop resolves the command's step options by it),
-    /// and in the OperationId (the engine's own record, readable by name in its dashboards).
+    /// Adds the commands a process task declared for one lifecycle phase as ordinary workflow steps, in order.
+    /// The payload is already serialized by the declaration and travels unchanged to the command.
     /// </summary>
-    private WorkflowCommandSet AddTaskCommands(IReadOnlyList<ProcessTaskCommandRef> commands)
+    private WorkflowCommandSet AddTaskCommands(IReadOnlyList<WorkflowCommandRef> commands)
     {
-        foreach (ProcessTaskCommandRef command in commands)
+        foreach (WorkflowCommandRef command in commands)
         {
-            _commands.Add(
-                CreateCommand(
-                    ExecuteProcessTaskCommand.Key,
-                    new ExecuteProcessTaskCommandPayload(command.Key, command.Payload),
-                    operationId: $"{ExecuteProcessTaskCommand.Key}: {command.Key}",
-                    taskCommandKey: command.Key
-                )
-            );
+            _commands.Add(CreateSerializedCommand(command.Key, command.Payload));
         }
 
         return this;
@@ -326,12 +316,22 @@ internal sealed class WorkflowCommandSet
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? serviceTaskItemIndex = null,
-        string? taskCommandKey = null
-    )
-    {
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        int? serviceTaskItemIndex = null
+    ) =>
+        CreateSerializedCommand(
+            commandKey,
+            CommandPayloadSerializer.Serialize(payload),
+            operationId,
+            serviceTaskItemIndex
+        );
+
+    private static StepRequest CreateSerializedCommand(
+        string commandKey,
+        string? serializedPayload,
+        string? operationId = null,
+        int? serviceTaskItemIndex = null
+    ) =>
+        new()
         {
             OperationId = operationId ?? commandKey,
             Command = CommandDefinition.Create(
@@ -340,7 +340,5 @@ internal sealed class WorkflowCommandSet
             ),
             CommandKey = commandKey,
             ServiceTaskItemIndex = serviceTaskItemIndex,
-            TaskCommandKey = taskCommandKey,
         };
-    }
 }

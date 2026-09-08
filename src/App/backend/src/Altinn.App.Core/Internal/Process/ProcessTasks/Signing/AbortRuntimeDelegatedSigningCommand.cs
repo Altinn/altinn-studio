@@ -3,6 +3,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
@@ -11,7 +12,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 /// Aborts runtime-delegated signing when the task is abandoned: revokes the signees' access and removes the
 /// signee state and every signature. Declared by the signing task for its abandon phase.
 /// </summary>
-internal sealed class AbortRuntimeDelegatedSigningCommand : IProcessTaskCommand
+internal sealed class AbortRuntimeDelegatedSigningCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {
     public static string Key => "AbortRuntimeDelegatedSigning";
 
@@ -31,12 +32,15 @@ internal sealed class AbortRuntimeDelegatedSigningCommand : IProcessTaskCommand
     }
 
     /// <inheritdoc/>
-    string IProcessTaskCommand.Key => Key;
+    public override string GetKey() => Key;
 
     /// <inheritdoc/>
-    public async Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public override async Task<ProcessEngineCommandResult> Execute(
+        ProcessEngineCommandContext context,
+        ProcessTaskPayload payload
+    )
     {
-        AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, context.TaskId);
+        AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
 
         // A previous attempt may have deleted only some elements, or completed before its response was lost.
         // Reconcile the signing metadata before reading/revoking/deleting so a retry never targets missing data.
@@ -58,6 +62,6 @@ internal sealed class AbortRuntimeDelegatedSigningCommand : IProcessTaskCommand
             context.CancellationToken
         );
 
-        return ProcessTaskCommandResult.Completed();
+        return ProcessEngineCommandResult.Completed();
     }
 }

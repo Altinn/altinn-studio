@@ -3,6 +3,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
@@ -69,7 +70,12 @@ public class PaymentProcessTaskTests
     public void GetStartCommands_DeclaresCleanup()
     {
         Assert.Equal(
-            [new ProcessTaskCommandRef(CleanupPaymentCommand.Key)],
+            [
+                new WorkflowCommandRef(
+                    CleanupPaymentCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+            ],
             _paymentProcessTask.GetStartCommands(TaskId)
         );
     }
@@ -78,7 +84,12 @@ public class PaymentProcessTaskTests
     public void GetEndCommands_DeclaresCompletePayment()
     {
         Assert.Equal(
-            [new ProcessTaskCommandRef(CompletePaymentCommand.Key)],
+            [
+                new WorkflowCommandRef(
+                    CompletePaymentCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+            ],
             _paymentProcessTask.GetEndCommands(TaskId)
         );
     }
@@ -87,7 +98,12 @@ public class PaymentProcessTaskTests
     public void GetAbandonCommands_DeclaresCleanup()
     {
         Assert.Equal(
-            [new ProcessTaskCommandRef(CleanupPaymentCommand.Key)],
+            [
+                new WorkflowCommandRef(
+                    CleanupPaymentCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+            ],
             _paymentProcessTask.GetAbandonCommands(TaskId)
         );
     }

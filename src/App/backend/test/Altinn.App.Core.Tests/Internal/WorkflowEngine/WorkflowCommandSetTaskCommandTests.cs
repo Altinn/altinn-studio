@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
@@ -10,21 +9,11 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
-/// <summary>
-/// A process task's declared commands become one ExecuteProcessTaskCommand step each, in order, in the
-/// phase's group, with the declared key travelling in the payload, the operation id and the step's
-/// TaskCommandKey.
-/// </summary>
+/// <summary>Task declarations keep lifecycle ordering while running as ordinary named commands.</summary>
 public class WorkflowCommandSetTaskCommandTests
 {
     private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
         steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();
-
-    private static ExecuteProcessTaskCommandPayload TaskCommandPayload(StepRequest step)
-    {
-        AppCommandData appCommand = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-        return CommandPayloadSerializer.Deserialize<ExecuteProcessTaskCommandPayload>(appCommand.Payload)!;
-    }
 
     [Fact]
     public void GetTaskStartSteps_DeclaredCommands_BecomeOneStepEachAfterCommonInitialization()
@@ -35,8 +24,8 @@ public class WorkflowCommandSetTaskCommandTests
                 ServiceTask = null,
                 StartCommands =
                 [
-                    new ProcessTaskCommandRef("ResolveSignees"),
-                    new ProcessTaskCommandRef("NotifySignees", "{\"batch\":2}"),
+                    new WorkflowCommandRef("ResolveSignees"),
+                    new WorkflowCommandRef("NotifySignees", "{\"batch\":2}"),
                 ],
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
@@ -49,26 +38,23 @@ public class WorkflowCommandSetTaskCommandTests
                 CleanupGeneratedFromTask.Key,
                 OnTaskStartingHook.Key,
                 CommonTaskInitialization.Key,
-                ExecuteProcessTaskCommand.Key,
-                ExecuteProcessTaskCommand.Key,
+                "ResolveSignees",
+                "NotifySignees",
             ],
             Keys(commandSet.Commands)
         );
 
         StepRequest resolve = commandSet.Commands[4];
-        Assert.Equal("ExecuteProcessTaskCommand: ResolveSignees", resolve.OperationId);
-        Assert.Equal(ExecuteProcessTaskCommand.Key, resolve.CommandKey);
-        Assert.Equal("ResolveSignees", resolve.TaskCommandKey);
+        Assert.Equal("ResolveSignees", resolve.OperationId);
+        Assert.Equal("ResolveSignees", resolve.CommandKey);
         Assert.Null(resolve.ServiceTaskItemIndex);
-        Assert.Equal(new ExecuteProcessTaskCommandPayload("ResolveSignees"), TaskCommandPayload(resolve));
+        Assert.Null(JsonSerializer.Deserialize<AppCommandData>(resolve.Command.Data!.Value)!.Payload);
 
         StepRequest notify = commandSet.Commands[5];
-        Assert.Equal("ExecuteProcessTaskCommand: NotifySignees", notify.OperationId);
-        Assert.Equal("NotifySignees", notify.TaskCommandKey);
-        Assert.Equal(
-            new ExecuteProcessTaskCommandPayload("NotifySignees", "{\"batch\":2}"),
-            TaskCommandPayload(notify)
-        );
+        Assert.Equal("NotifySignees", notify.OperationId);
+        Assert.Equal("NotifySignees", notify.CommandKey);
+        Assert.Null(notify.ServiceTaskItemIndex);
+        Assert.Equal("{\"batch\":2}", JsonSerializer.Deserialize<AppCommandData>(notify.Command.Data!.Value)!.Payload);
 
         Assert.Empty(commandSet.CriticalPostCommitCommands);
     }
@@ -85,39 +71,42 @@ public class WorkflowCommandSetTaskCommandTests
             }
         );
 
-        Assert.DoesNotContain(ExecuteProcessTaskCommand.Key, Keys(commandSet.Commands));
+        Assert.Equal(
+            [UnlockTaskData.Key, CleanupGeneratedFromTask.Key, OnTaskStartingHook.Key, CommonTaskInitialization.Key],
+            Keys(commandSet.Commands)
+        );
     }
 
     [Fact]
     public void GetTaskEndSteps_DeclaredCommands_RunBeforeCommonFinalization()
     {
         WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskEndSteps([
-            new ProcessTaskCommandRef("GenerateSigningPdf"),
-            new ProcessTaskCommandRef("RevokeSigneeRights"),
+            new WorkflowCommandRef("GenerateSigningPdf"),
+            new WorkflowCommandRef("RevokeSigneeRights"),
         ]);
 
         Assert.Equal(
             [
-                ExecuteProcessTaskCommand.Key,
-                ExecuteProcessTaskCommand.Key,
+                "GenerateSigningPdf",
+                "RevokeSigneeRights",
                 CommonTaskFinalization.Key,
                 OnTaskEndingHook.Key,
                 LockTaskData.Key,
             ],
             Keys(commandSet.Commands)
         );
-        Assert.Equal("ExecuteProcessTaskCommand: GenerateSigningPdf", commandSet.Commands[0].OperationId);
-        Assert.Equal("ExecuteProcessTaskCommand: RevokeSigneeRights", commandSet.Commands[1].OperationId);
+        Assert.Equal("GenerateSigningPdf", commandSet.Commands[0].OperationId);
+        Assert.Equal("RevokeSigneeRights", commandSet.Commands[1].OperationId);
     }
 
     [Fact]
     public void GetTaskAbandonSteps_DeclaredCommands_RunBeforeAbandonHook()
     {
         WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskAbandonSteps([
-            new ProcessTaskCommandRef("AbortRuntimeDelegatedSigning"),
+            new WorkflowCommandRef("AbortRuntimeDelegatedSigning"),
         ]);
 
-        Assert.Equal([ExecuteProcessTaskCommand.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
-        Assert.Equal("AbortRuntimeDelegatedSigning", commandSet.Commands[0].TaskCommandKey);
+        Assert.Equal(["AbortRuntimeDelegatedSigning", OnTaskAbandonHook.Key], Keys(commandSet.Commands));
+        Assert.Equal("AbortRuntimeDelegatedSigning", commandSet.Commands[0].CommandKey);
     }
 }

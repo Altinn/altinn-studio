@@ -2006,11 +2006,6 @@ namespace Altinn.App.Core.Features.Process
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IProcessTaskCommand : Altinn.App.Core.Features.Process.IProcessStepConfigurable
-    {
-        string Key { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ProcessTaskCommandResult> Execute(Altinn.App.Core.Features.Process.ProcessTaskCommandContext context);
-    }
     public interface IServiceTask : Altinn.App.Core.Features.Process.IPipelineServiceTask, Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
@@ -2018,6 +2013,12 @@ namespace Altinn.App.Core.Features.Process
     public interface IServiceTaskReplyForwarder
     {
         System.Threading.Tasks.Task ForwardReply(System.Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IWorkflowEngineCommand
+    {
+        Altinn.App.Core.Features.Process.ProcessStepOptions? DefaultStepOptions { get; }
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ProcessEngineCommandResult> Execute(Altinn.App.Core.Features.Process.ProcessEngineCommandContext context);
+        string GetKey();
     }
     public enum MailboxClosedReason
     {
@@ -2057,6 +2058,20 @@ namespace Altinn.App.Core.Features.Process
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
     }
+    public struct ProcessEngineCommandContext
+    {
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public string? CommandPayload { get; init; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public System.Guid StepId { get; init; }
+        public System.Guid WorkflowId { get; init; }
+    }
+    public abstract class ProcessEngineCommandResult
+    {
+        public static Altinn.App.Core.Features.Process.ProcessEngineCommandResult Completed() { }
+        public static Altinn.App.Core.Features.Process.ProcessEngineCommandResult FailedPermanent(string errorMessage, string? errorCode = null) { }
+        public static Altinn.App.Core.Features.Process.ProcessEngineCommandResult FailedRetryable(string errorMessage, string? errorCode = null) { }
+    }
     public enum ProcessStepBackoffType
     {
         Constant = 0,
@@ -2082,28 +2097,6 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Exponential(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
-    }
-    public sealed class ProcessTaskCommandContext
-    {
-        public ProcessTaskCommandContext() { }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-        public string? Payload { get; init; }
-        public required System.Guid StepId { get; init; }
-        public required string TaskId { get; init; }
-        public required System.Guid WorkflowId { get; init; }
-    }
-    public sealed class ProcessTaskCommandRef : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskCommandRef>
-    {
-        public ProcessTaskCommandRef(string Key, string? Payload = null) { }
-        public string Key { get; init; }
-        public string? Payload { get; init; }
-    }
-    public abstract class ProcessTaskCommandResult : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskCommandResult>
-    {
-        public static Altinn.App.Core.Features.Process.ProcessTaskCommandResult Completed() { }
-        public static Altinn.App.Core.Features.Process.ProcessTaskCommandResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ProcessTaskCommandResult FailedRetryable(string errorMessage) { }
     }
     public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
     {
@@ -2231,6 +2224,12 @@ namespace Altinn.App.Core.Features.Process
     public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
     {
         public SuccessfulHookResult() { }
+    }
+    public sealed class WorkflowCommandRef : System.IEquatable<Altinn.App.Core.Features.Process.WorkflowCommandRef>
+    {
+        public WorkflowCommandRef(string Key, string? Payload = null) { }
+        public string Key { get; init; }
+        public string? Payload { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Redirect
@@ -4061,9 +4060,9 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     public interface IProcessTask
     {
         string Type { get; }
-        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.ProcessTaskCommandRef> GetAbandonCommands(string taskId);
-        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.ProcessTaskCommandRef> GetEndCommands(string taskId);
-        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.ProcessTaskCommandRef> GetStartCommands(string taskId);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.WorkflowCommandRef> GetAbandonCommands(string taskId);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.WorkflowCommandRef> GetEndCommands(string taskId);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.WorkflowCommandRef> GetStartCommands(string taskId);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
     public interface IProcessTaskDataLocker

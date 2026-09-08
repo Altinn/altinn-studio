@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Constants;
@@ -16,8 +17,8 @@ public sealed class WaitForReleaseProcessTaskEnd : IProcessTask
     private static TaskCompletionSource _signal = new();
     public string Type => AltinnTaskTypes.Data;
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
-        [new ProcessTaskCommandRef(WaitForReleaseCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [new WorkflowCommandRef(WaitForReleaseCommand.Key)];
 
     public static void Release()
     {
@@ -30,16 +31,16 @@ public sealed class WaitForReleaseProcessTaskEnd : IProcessTask
         _signal = new TaskCompletionSource();
     }
 
-    public sealed class WaitForReleaseCommand : IProcessTaskCommand
+    public sealed class WaitForReleaseCommand : IWorkflowEngineCommand
     {
         public static string Key => "WaitForRelease";
 
-        string IProcessTaskCommand.Key => Key;
+        public string GetKey() => Key;
 
-        public async Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+        public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
         {
             await _signal.Task;
-            return ProcessTaskCommandResult.Completed();
+            return ProcessEngineCommandResult.Completed();
         }
     }
 }
@@ -73,7 +74,7 @@ public static class ServiceRegistration
     public static void RegisterServices(IServiceCollection services)
     {
         services.AddTransient<IProcessTask, WaitForReleaseProcessTaskEnd>();
-        services.AddTransient<IProcessTaskCommand, WaitForReleaseProcessTaskEnd.WaitForReleaseCommand>();
+        services.AddTransient<IWorkflowEngineCommand, WaitForReleaseProcessTaskEnd.WaitForReleaseCommand>();
         services.AddSingleton<IEndpointConfigurator, WaitForReleaseProcessTaskEndEndpoints>();
     }
 }

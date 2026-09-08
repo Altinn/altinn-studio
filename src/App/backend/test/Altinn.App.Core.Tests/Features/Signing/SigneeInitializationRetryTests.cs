@@ -22,6 +22,7 @@ using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -643,14 +644,14 @@ public sealed class SigneeInitializationRetryTests
         public Task Revoke(InstanceDataUnitOfWork data) =>
             _signing.RevokeSigneeRightsOnTaskEnd(data, _config, CancellationToken.None);
 
-        public Task<ProcessTaskCommandResult> Abort(InstanceDataUnitOfWork data) =>
-            _abort.Execute(
-                new ProcessTaskCommandContext
+        public Task<ProcessEngineCommandResult> Abort(InstanceDataUnitOfWork data) =>
+            ((IWorkflowEngineCommand)_abort).Execute(
+                new ProcessEngineCommandContext
                 {
                     InstanceDataMutator = data,
-                    TaskId = TaskId,
                     WorkflowId = _workflowId,
                     StepId = _stepId,
+                    CommandPayload = CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId)),
                 }
             );
 

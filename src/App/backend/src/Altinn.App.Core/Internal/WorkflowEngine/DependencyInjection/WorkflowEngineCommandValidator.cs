@@ -1,54 +1,112 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.Notifications.Future;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 
 /// <summary>
-/// Validates that all process engine commands referenced in ProcessEventCommands are registered in DI.
+/// Validates the app's complete ordinary workflow command registrations after the service provider is built.
+/// Factory and scoped registrations are checked in the same way as implementation-type registrations.
 /// </summary>
 internal static class WorkflowEngineCommandValidator
 {
+    private static readonly HashSet<string> _frameworkCommandKeys = GetRequiredCommandKeys();
+
     /// <summary>
-    /// Validates that all required commands are registered. Throws if any are missing.
-    /// Call this immediately after registering commands in AddProcessServices.
+    /// Framework coordination commands cannot be placed in a task's lifecycle declarations: the transition
+    /// planner owns their position, payload and outcome semantics.
     /// </summary>
-    public static void Validate(IServiceCollection services)
+    internal static IReadOnlySet<string> FrameworkCommandKeys => _frameworkCommandKeys;
+
+    /// <summary>
+    /// Checks every resolved command, including commands that the current process does not declare. Returns
+    /// the registered keys for the task-declaration check. Call from an app startup scope, never the root.
+    /// </summary>
+    internal static IReadOnlySet<string> Validate(
+        IReadOnlyList<IWorkflowEngineCommand> commands,
+        CancellationToken cancellationToken = default
+    )
     {
-        HashSet<string> requiredCommandKeys = GetRequiredCommandKeys();
-        HashSet<string> registeredCommandKeys = GetRegisteredCommandKeys(services);
+        var findings = new List<string>();
+        var registeredKeys = new HashSet<string>(StringComparer.Ordinal);
 
-        var missingCommands = requiredCommandKeys.Except(registeredCommandKeys).ToList();
-
-        if (missingCommands.Count > 0)
+        foreach (IWorkflowEngineCommand command in commands)
         {
-            string missingCommandsList = string.Join(", ", missingCommands.Select(k => $"'{k}'"));
-            throw new InvalidOperationException(
-                $"Process Engine configuration error: The following command keys are referenced but not registered: {missingCommandsList}. "
-                    + "Ensure all commands are registered in ServiceCollectionExtensions.AddProcessServices()."
+            cancellationToken.ThrowIfCancellationRequested();
+            if (command is null)
+            {
+                findings.Add("A workflow command registration returned null.");
+                continue;
+            }
+
+            string commandType = command.GetType().FullName ?? command.GetType().Name;
+            try
+            {
+                string key = command.GetKey();
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    findings.Add($"Workflow command '{commandType}' has an empty key.");
+                }
+                else if (!IsValidCommandKey(key))
+                {
+                    findings.Add(
+                        $"Workflow command '{commandType}' has an invalid key '{key}'. Keys must start with an "
+                            + "ASCII letter and contain only ASCII letters, digits, dots, underscores or hyphens."
+                    );
+                }
+                else if (!registeredKeys.Add(key))
+                {
+                    findings.Add($"More than one workflow command is registered with the same key: '{key}'.");
+                }
+
+                command.DefaultStepOptions?.Validate();
+            }
+            catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                findings.Add(
+                    $"Workflow command '{commandType}' has an invalid key or default step options: {e.Message}"
+                );
+            }
+        }
+
+        foreach (string missingKey in _frameworkCommandKeys.Except(registeredKeys).Order(StringComparer.Ordinal))
+        {
+            findings.Add($"Required workflow command '{missingKey}' is not registered.");
+        }
+
+        if (findings.Count > 0)
+        {
+            throw new ApplicationConfigException(
+                "Workflow command configuration is not valid:"
+                    + Environment.NewLine
+                    + string.Join(Environment.NewLine, findings.Select(finding => "  - " + finding))
             );
         }
+
+        return registeredKeys;
     }
+
+    /// <summary>The command key is one unescaped callback URL segment in the workflow engine.</summary>
+    internal static bool IsValidCommandKey(string? key) =>
+        !string.IsNullOrEmpty(key)
+        && char.IsAsciiLetter(key[0])
+        && key.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-');
 
     private static HashSet<string> GetRequiredCommandKeys()
     {
         var keys = new HashSet<string>();
 
-        // Collect keys from all event types with all features enabled to cover all possible commands. A task
-        // type's own commands all run through ExecuteProcessTaskCommand, so one dummy declaration per phase
-        // is what makes that key required.
-        ProcessTaskCommandRef[] dummyTaskCommands = [new ProcessTaskCommandRef("DummyTaskCommand")];
+        // Collect framework keys with all features enabled. Task-specific commands are validated against
+        // the actual BPMN declarations after the app has registered its implementations.
         CollectCommandKeys(
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     ServiceTask = null,
-                    StartCommands = dummyTaskCommands,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -104,8 +162,8 @@ internal static class WorkflowEngineCommandValidator
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps(dummyTaskCommands), keys);
-        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(dummyTaskCommands), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps([]), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps([]), keys);
         CollectCommandKeys(
             WorkflowCommandSet.GetProcessEndSteps(
                 new ProcessEndContext
@@ -191,33 +249,5 @@ internal static class WorkflowEngineCommandValidator
 
         commandKey = null;
         return false;
-    }
-
-    private static HashSet<string> GetRegisteredCommandKeys(IServiceCollection services)
-    {
-        return services
-            .Where(sd => sd.ServiceType == typeof(IWorkflowEngineCommand))
-            .Select(sd => sd.ImplementationType)
-            .OfType<Type>()
-            .Select(implType => GetCommandKeyFromType(implType))
-            .ToHashSet();
-    }
-
-    private static string GetCommandKeyFromType(Type commandType)
-    {
-        // Get the static Key property
-        var keyProperty = commandType.GetProperty("Key", BindingFlags.Public | BindingFlags.Static);
-
-        if (keyProperty?.PropertyType == typeof(string))
-        {
-            return (string?)keyProperty.GetValue(null)
-                ?? throw new InvalidOperationException(
-                    $"Command type {commandType.Name} has a null 'Key' property value"
-                );
-        }
-
-        throw new InvalidOperationException(
-            $"Command type {commandType.Name} does not have a public static 'Key' property"
-        );
     }
 }

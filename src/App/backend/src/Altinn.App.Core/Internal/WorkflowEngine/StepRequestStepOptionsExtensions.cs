@@ -33,8 +33,7 @@ internal static class StepRequestStepOptionsExtensions
     /// string): an OperationId can be a display identity — a service-task stage or the mailbox mint carries
     /// its item index there — and keying off it would silently miss the command's own tier-2 default. A
     /// service-task step additionally resolves the options of the one pipeline item it runs by
-    /// <see cref="StepRequest.ServiceTaskItemIndex"/>, and a process-task command step those of the one command
-    /// it runs by <see cref="StepRequest.TaskCommandKey"/>.
+    /// <see cref="StepRequest.ServiceTaskItemIndex"/>.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
@@ -43,13 +42,7 @@ internal static class StepRequestStepOptionsExtensions
         string? serviceTaskType
     ) =>
         step.WithStepOptions(
-            resolver.Resolve(
-                step.CommandKey ?? step.OperationId,
-                taskId,
-                serviceTaskType,
-                step.ServiceTaskItemIndex,
-                step.TaskCommandKey
-            )
+            resolver.Resolve(step.CommandKey ?? step.OperationId, taskId, serviceTaskType, step.ServiceTaskItemIndex)
         );
 
     /// <summary>

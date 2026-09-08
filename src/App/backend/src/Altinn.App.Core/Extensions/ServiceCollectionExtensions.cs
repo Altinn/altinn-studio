@@ -304,8 +304,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<IPaymentService, PaymentService>();
         services.AddTransient<IProcessTask, PaymentProcessTask>();
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Payment.CleanupPaymentCommand>();
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Payment.CompletePaymentCommand>();
+        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Payment.CleanupPaymentCommand>();
+        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Payment.CompletePaymentCommand>();
         services.AddTransient<IUserAction, PaymentUserAction>();
 
         // Fake Payment Processor used for automatic frontend tests
@@ -338,13 +338,22 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ISigneeInitializationService, SigneeInitializationService>();
 
         // The signing task's own lifecycle work, one durable step each
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.ResolveSigneesCommand>();
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.DelegateSigneeRightsCommand>();
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.NotifySigneesCommand>();
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.GenerateSigningPdfCommand>();
-        services.AddTransient<IProcessTaskCommand, Internal.Process.ProcessTasks.Signing.RevokeSigneeRightsCommand>();
+        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.ResolveSigneesCommand>();
         services.AddTransient<
-            IProcessTaskCommand,
+            IWorkflowEngineCommand,
+            Internal.Process.ProcessTasks.Signing.DelegateSigneeRightsCommand
+        >();
+        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.NotifySigneesCommand>();
+        services.AddTransient<
+            IWorkflowEngineCommand,
+            Internal.Process.ProcessTasks.Signing.GenerateSigningPdfCommand
+        >();
+        services.AddTransient<
+            IWorkflowEngineCommand,
+            Internal.Process.ProcessTasks.Signing.RevokeSigneeRightsCommand
+        >();
+        services.AddTransient<
+            IWorkflowEngineCommand,
             Internal.Process.ProcessTasks.Signing.AbortRuntimeDelegatedSigningCommand
         >();
     }

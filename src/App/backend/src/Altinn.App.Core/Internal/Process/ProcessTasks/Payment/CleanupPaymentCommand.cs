@@ -4,7 +4,9 @@ using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
@@ -13,7 +15,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
 /// Cancels and removes any earlier, unpaid payment of the task, so the task starts (or is left) without one.
 /// Declared by the payment task for both its start and its abandon phase.
 /// </summary>
-internal sealed class CleanupPaymentCommand : IProcessTaskCommand
+internal sealed class CleanupPaymentCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
@@ -21,31 +23,54 @@ internal sealed class CleanupPaymentCommand : IProcessTaskCommand
 
     private readonly IProcessReader _processReader;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IInstanceClient _instanceClient;
 
-    public CleanupPaymentCommand(IProcessReader processReader, AppImplementationFactory appImplementationFactory)
+    public CleanupPaymentCommand(
+        IProcessReader processReader,
+        AppImplementationFactory appImplementationFactory,
+        IInstanceClient instanceClient
+    )
     {
         _processReader = processReader;
         _appImplementationFactory = appImplementationFactory;
+        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
-    string IProcessTaskCommand.Key => Key;
+    public override string GetKey() => Key;
 
     /// <inheritdoc/>
-    public async Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public override async Task<ProcessEngineCommandResult> Execute(
+        ProcessEngineCommandContext context,
+        ProcessTaskPayload payload
+    )
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         ValidAltinnPaymentConfiguration paymentConfiguration = PaymentTaskConfiguration.Get(
             _processReader,
-            context.TaskId
+            payload.TaskId
         );
+
+        // A completed deletion can outlive a lost callback response. Reconcile only payment metadata:
+        // Storage may still have the previous process task until this transition commits.
+        Instance stored = await _instanceClient.GetInstance(
+            dataMutator.Instance,
+            StorageAuthenticationMethod.ServiceOwner(),
+            context.CancellationToken
+        );
+        DataElement[] currentPaymentData = (stored.Data ?? [])
+            .Where(element => element.DataType == paymentConfiguration.PaymentDataType)
+            .ToArray();
+        List<DataElement> instanceData = dataMutator.Instance.Data ??= [];
+        instanceData.RemoveAll(element => element.DataType == paymentConfiguration.PaymentDataType);
+        instanceData.AddRange(currentPaymentData);
 
         DataElement? paymentDataElement = dataMutator
             .GetDataElementsForType(paymentConfiguration.PaymentDataType)
             .SingleOrDefault();
         if (paymentDataElement is null)
         {
-            return ProcessTaskCommandResult.Completed();
+            return ProcessEngineCommandResult.Completed();
         }
 
         ReadOnlyMemory<byte> paymentData = await dataMutator.GetBinaryData(paymentDataElement);
@@ -55,7 +80,7 @@ internal sealed class CleanupPaymentCommand : IProcessTaskCommand
 
         if (paymentInformation.Status == PaymentStatus.Paid)
         {
-            return ProcessTaskCommandResult.Completed();
+            return ProcessEngineCommandResult.Completed();
         }
 
         if (paymentInformation.Status != PaymentStatus.Skipped)
@@ -78,6 +103,6 @@ internal sealed class CleanupPaymentCommand : IProcessTaskCommand
         }
 
         dataMutator.RemoveDataElement(paymentDataElement);
-        return ProcessTaskCommandResult.Completed();
+        return ProcessEngineCommandResult.Completed();
     }
 }

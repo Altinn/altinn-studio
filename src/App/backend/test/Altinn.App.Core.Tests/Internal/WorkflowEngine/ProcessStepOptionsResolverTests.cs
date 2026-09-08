@@ -21,18 +21,12 @@ public class ProcessStepOptionsResolverTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        services.AddTransient<IWorkflowEngineCommand>(sp => new ExecuteServiceTask(
+            new AppImplementationFactory(sp),
+            TestMailboxDeliveryEnvelope.Create()
+        ));
         register(services);
-        var sp = services.BuildServiceProvider();
-        var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
-
-        // ExecuteServiceTask is the only command declaring a tier-2 default (10 min) today.
-        return new ProcessStepOptionsResolver(
-            [
-                // Only its DefaultStepOptions are read here; nothing executes.
-                new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
-            ],
-            appImplFactory
-        );
+        return new ProcessStepOptionsResolver(services.BuildServiceProvider());
     }
 
     private static ProcessStepOptionsResolver CreateResolver(params IServiceTask[] serviceTasks) =>

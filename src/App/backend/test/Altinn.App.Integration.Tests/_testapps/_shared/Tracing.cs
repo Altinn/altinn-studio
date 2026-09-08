@@ -55,9 +55,9 @@ public static class TracingDI
         services.AddSingleton<IProcessEnd, ProcessEnd>();
         services.AddSingleton<IProcessTask, TracingDataProcessTask>();
         services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
-        services.AddSingleton<IProcessTaskCommand, TracingStartCommand>();
-        services.AddSingleton<IProcessTaskCommand, TracingEndCommand>();
-        services.AddSingleton<IProcessTaskCommand, TracingAbandonCommand>();
+        services.AddSingleton<IWorkflowEngineCommand, TracingStartCommand>();
+        services.AddSingleton<IWorkflowEngineCommand, TracingEndCommand>();
+        services.AddSingleton<IWorkflowEngineCommand, TracingAbandonCommand>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
         services.AddSingleton<IUserAction, UserAction>();
         services.AddSingleton<IUserActionAuthorizer, UserActionAuthorizer>();
@@ -278,66 +278,66 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) =>
-        [new ProcessTaskCommandRef(TracingStartCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingStartCommand.Key)];
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
-        [new ProcessTaskCommandRef(TracingEndCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingEndCommand.Key)];
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) =>
-        [new ProcessTaskCommandRef(TracingAbandonCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingAbandonCommand.Key)];
 }
 
 internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) =>
-        [new ProcessTaskCommandRef(TracingStartCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingStartCommand.Key)];
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
-        [new ProcessTaskCommandRef(TracingEndCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingEndCommand.Key)];
 
-    public IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) =>
-        [new ProcessTaskCommandRef(TracingAbandonCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingAbandonCommand.Key)];
 }
 
-internal sealed class TracingStartCommand : IProcessTaskCommand
+internal sealed class TracingStartCommand : IWorkflowEngineCommand
 {
     public static string Key => "TracingStart";
 
-    string IProcessTaskCommand.Key => Key;
+    public string GetKey() => Key;
 
-    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.FromResult(ProcessTaskCommandResult.Completed());
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }
 
-internal sealed class TracingEndCommand : IProcessTaskCommand
+internal sealed class TracingEndCommand : IWorkflowEngineCommand
 {
     public static string Key => "TracingEnd";
 
-    string IProcessTaskCommand.Key => Key;
+    public string GetKey() => Key;
 
-    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.FromResult(ProcessTaskCommandResult.Completed());
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }
 
-internal sealed class TracingAbandonCommand : IProcessTaskCommand
+internal sealed class TracingAbandonCommand : IWorkflowEngineCommand
 {
     public static string Key => "TracingAbandon";
 
-    string IProcessTaskCommand.Key => Key;
+    public string GetKey() => Key;
 
-    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.FromResult(ProcessTaskCommandResult.Completed());
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }
 

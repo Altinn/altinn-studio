@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -22,21 +23,36 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
 
     Task<ProcessEngineCommandResult> IWorkflowEngineCommand.Execute(ProcessEngineCommandContext context)
     {
-        TRequestPayload? payload = CommandPayloadSerializer.Deserialize<TRequestPayload>(context.Payload.Payload);
+        TRequestPayload? payload;
+        try
+        {
+            payload = CommandPayloadSerializer.Deserialize<TRequestPayload>(context.CommandPayload);
+        }
+        catch (JsonException)
+        {
+            return InvalidPayload("is not valid JSON for this command");
+        }
 
         if (payload is null)
         {
-            string commandKey = GetKey();
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
-                    $"{commandKey} payload is missing or invalid",
-                    "InvalidPayloadException"
-                )
-            );
+            return InvalidPayload("is missing");
+        }
+
+        if (payload.Validate() is { } validationError)
+        {
+            return InvalidPayload(validationError);
         }
 
         return Execute(context, payload);
     }
+
+    private Task<ProcessEngineCommandResult> InvalidPayload(string reason) =>
+        Task.FromResult<ProcessEngineCommandResult>(
+            FailedProcessEngineCommandResult.Permanent(
+                $"{GetKey()} payload is missing or invalid: {reason}",
+                "InvalidPayloadException"
+            )
+        );
 
     public abstract Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,

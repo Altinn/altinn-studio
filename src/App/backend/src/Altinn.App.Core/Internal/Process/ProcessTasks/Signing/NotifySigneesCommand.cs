@@ -2,6 +2,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
@@ -13,7 +14,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 /// the step for retry; a permanent failure, for one signee or for all of them, is recorded and the step still
 /// completes.
 /// </summary>
-internal sealed class NotifySigneesCommand : IProcessTaskCommand
+internal sealed class NotifySigneesCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {
     public static string Key => "NotifySignees";
 
@@ -27,18 +28,21 @@ internal sealed class NotifySigneesCommand : IProcessTaskCommand
     }
 
     /// <inheritdoc/>
-    string IProcessTaskCommand.Key => Key;
+    public override string GetKey() => Key;
 
     /// <inheritdoc/>
-    public ProcessStepOptions StepOptions => SigningStepOptions.PlatformCallsPerSignee;
+    public override ProcessStepOptions DefaultStepOptions => SigningStepOptions.PlatformCallsPerSignee;
 
     /// <inheritdoc/>
-    public async Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public override async Task<ProcessEngineCommandResult> Execute(
+        ProcessEngineCommandContext context,
+        ProcessTaskPayload payload
+    )
     {
-        AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, context.TaskId);
+        AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
         if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
         {
-            return ProcessTaskCommandResult.Completed();
+            return ProcessEngineCommandResult.Completed();
         }
 
         ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
@@ -47,12 +51,12 @@ internal sealed class NotifySigneesCommand : IProcessTaskCommand
             await initialization.ExecuteNotification(
                 context.InstanceDataMutator,
                 configuration,
-                context.TaskId,
+                payload.TaskId,
                 context.WorkflowId,
                 context.StepId,
                 context.CancellationToken
             );
-            return ProcessTaskCommandResult.Completed();
+            return ProcessEngineCommandResult.Completed();
         }
         catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested)
         {
@@ -60,11 +64,17 @@ internal sealed class NotifySigneesCommand : IProcessTaskCommand
         }
         catch (SigneeInitializationPermanentException e)
         {
-            return ProcessTaskCommandResult.FailedPermanent(e.Message);
+            return ProcessEngineCommandResult.FailedPermanent(
+                $"Process task command '{Key}' failed: {e.Message}",
+                "ProcessTaskCommandFailed"
+            );
         }
         catch (Exception e)
         {
-            return ProcessTaskCommandResult.FailedRetryable(SigningFailureClassifier.ShortReason(e));
+            return ProcessEngineCommandResult.FailedRetryable(
+                $"Process task command '{Key}' failed: {SigningFailureClassifier.ShortReason(e)}",
+                "ProcessTaskCommandFailed"
+            );
         }
     }
 }

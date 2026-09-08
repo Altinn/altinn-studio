@@ -4,6 +4,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -77,14 +78,29 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) =>
-        [new ProcessTaskCommandRef(CleanupPaymentCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+        [
+            new WorkflowCommandRef(
+                CleanupPaymentCommand.Key,
+                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+            ),
+        ];
 
     /// <inheritdoc/>
-    public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
-        [new ProcessTaskCommandRef(CompletePaymentCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [
+            new WorkflowCommandRef(
+                CompletePaymentCommand.Key,
+                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+            ),
+        ];
 
     /// <inheritdoc/>
-    public IReadOnlyList<ProcessTaskCommandRef> GetAbandonCommands(string taskId) =>
-        [new ProcessTaskCommandRef(CleanupPaymentCommand.Key)];
+    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
+        [
+            new WorkflowCommandRef(
+                CleanupPaymentCommand.Key,
+                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+            ),
+        ];
 }

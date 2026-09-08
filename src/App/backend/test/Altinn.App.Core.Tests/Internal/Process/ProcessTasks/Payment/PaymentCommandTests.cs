@@ -5,10 +5,12 @@ using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -21,6 +23,7 @@ public class PaymentCommandTests
 {
     private const string TaskId = "Task_1";
 
+    private readonly Mock<IInstanceClient> _instanceClientMock = new();
     private readonly Mock<IPdfService> _pdfServiceMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IPaymentProcessor> _paymentProcessorMock = new();
@@ -29,6 +32,24 @@ public class PaymentCommandTests
     public PaymentCommandTests()
     {
         _paymentProcessorMock.Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
+        _instanceClientMock
+            .Setup(x =>
+                x.GetInstance(
+                    It.IsAny<Instance>(),
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (Instance instance, StorageAuthenticationMethod? authenticationMethod, CancellationToken ct) =>
+                    new Instance
+                    {
+                        Id = instance.Id,
+                        AppId = instance.AppId,
+                        Process = instance.Process,
+                        Data = [.. instance.Data],
+                    }
+            );
 
         var services = new ServiceCollection();
         services.AddSingleton(_paymentProcessorMock.Object);
@@ -58,9 +79,9 @@ public class PaymentCommandTests
             )
             .ReturnsAsync(true);
 
-        ProcessTaskCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _paymentProcessorMock.Verify(x =>
             x.TerminatePayment(
                 instance,
@@ -80,9 +101,9 @@ public class PaymentCommandTests
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Paid);
         SetupConfiguration();
 
-        ProcessTaskCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _paymentProcessorMock.Verify(
             x => x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
             Times.Never
@@ -96,9 +117,56 @@ public class PaymentCommandTests
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
         SetupConfiguration();
 
-        ProcessTaskCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+    }
+
+    [Fact]
+    public async Task Cleanup_ReplayAfterStoredDeletion_DropsStalePaymentWithoutRepeatingEffects()
+    {
+        DataElement deletedPayment = CreatePaymentDataElement();
+        DataElement unrelated = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "form-data",
+            Filename = "local.json",
+        };
+        Instance instance = CreateInstance(deletedPayment, unrelated);
+        ProcessState virtualProcess = instance.Process;
+        virtualProcess.CurrentTask.ElementId = "Task_AfterPayment";
+        Instance stored = CreateInstance(
+            new DataElement
+            {
+                Id = unrelated.Id,
+                DataType = unrelated.DataType,
+                Filename = "stored.json",
+            }
+        );
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(instance);
+        SetupConfiguration();
+        using var cancellation = new CancellationTokenSource();
+        _instanceClientMock
+            .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), cancellation.Token))
+            .ReturnsAsync(stored);
+
+        ProcessEngineCommandResult result = await CreateCleanupCommand()
+            .Execute(CreateContext(dataMutator.Object, cancellation.Token));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Same(virtualProcess, instance.Process);
+        Assert.Equal("Task_AfterPayment", instance.Process.CurrentTask.ElementId);
+        Assert.Same(unrelated, Assert.Single(instance.Data));
+        dataMutator.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Never);
+        dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
+        _paymentProcessorMock.Verify(
+            x => x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
+            Times.Never
+        );
+        _instanceClientMock.Verify(
+            x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), cancellation.Token),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -124,9 +192,9 @@ public class PaymentCommandTests
             .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
 
-        ProcessTaskCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         dataMutator.Verify(x =>
             x.AddBinaryDataElement(
                 "paymentReceiptPdfDataType",
@@ -166,9 +234,9 @@ public class PaymentCommandTests
             .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
 
-        ProcessTaskCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         dataMutator.Verify(x =>
             x.UpdateBinaryDataElement(existingReceipt, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
         );
@@ -187,6 +255,143 @@ public class PaymentCommandTests
     }
 
     [Fact]
+    public async Task Complete_ReplayAfterStoredReceiptCreation_UpdatesAdoptedReceiptWithoutReplacingVirtualState()
+    {
+        DataElement payment = CreatePaymentDataElement();
+        DataElement unrelated = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "form-data",
+            Filename = "local.json",
+        };
+        Instance instance = CreateInstance(payment, unrelated);
+        ProcessState virtualProcess = instance.Process;
+        virtualProcess.CurrentTask.ElementId = "Task_AfterPayment";
+        DataElement storedReceipt = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "paymentReceiptPdfDataType",
+            ContentType = "application/pdf",
+            References =
+            [
+                new Reference
+                {
+                    Relation = RelationType.GeneratedFrom,
+                    ValueType = ReferenceType.Task,
+                    Value = TaskId,
+                },
+            ],
+        };
+        Instance stored = CreateInstance(
+            payment,
+            storedReceipt,
+            new DataElement
+            {
+                Id = unrelated.Id,
+                DataType = unrelated.DataType,
+                Filename = "stored.json",
+            }
+        );
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(instance);
+        SetupPaymentInformation(dataMutator, payment, PaymentStatus.Paid);
+        SetupConfiguration();
+        using var cancellation = new CancellationTokenSource();
+        _instanceClientMock
+            .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), cancellation.Token))
+            .ReturnsAsync(stored);
+        _pdfServiceMock
+            .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, cancellation.Token))
+            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+
+        ProcessEngineCommandResult result = await CreateCompleteCommand()
+            .Execute(CreateContext(dataMutator.Object, cancellation.Token));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Same(virtualProcess, instance.Process);
+        Assert.Equal("Task_AfterPayment", instance.Process.CurrentTask.ElementId);
+        Assert.Same(unrelated, Assert.Single(instance.Data, x => x.DataType == "form-data"));
+        Assert.Same(storedReceipt, Assert.Single(instance.Data, x => x.DataType == "paymentReceiptPdfDataType"));
+        dataMutator.Verify(
+            x => x.UpdateBinaryDataElement(storedReceipt, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>()),
+            Times.Once
+        );
+        dataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                ),
+            Times.Never
+        );
+        _instanceClientMock.Verify(
+            x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), cancellation.Token),
+            Times.Once
+        );
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StorageReadFailure_PropagatesBeforePaymentOrDataEffects(bool complete)
+    {
+        DataElement payment = CreatePaymentDataElement();
+        Instance instance = CreateInstance(payment);
+        ProcessState virtualProcess = instance.Process;
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(instance);
+        SetupConfiguration();
+        using var cancellation = new CancellationTokenSource();
+        var failure = new HttpRequestException("Storage is temporarily unavailable.");
+        _instanceClientMock
+            .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), cancellation.Token))
+            .ThrowsAsync(failure);
+        IWorkflowEngineCommand command = complete ? CreateCompleteCommand() : CreateCleanupCommand();
+
+        var thrown = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            command.Execute(CreateContext(dataMutator.Object, cancellation.Token))
+        );
+
+        Assert.Same(failure, thrown);
+        Assert.Same(virtualProcess, instance.Process);
+        Assert.Same(payment, Assert.Single(instance.Data));
+        dataMutator.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Never);
+        dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
+        dataMutator.Verify(
+            x =>
+                x.UpdateBinaryDataElement(
+                    It.IsAny<DataElementIdentifier>(),
+                    It.IsAny<string>(),
+                    It.IsAny<ReadOnlyMemory<byte>>()
+                ),
+            Times.Never
+        );
+        dataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                ),
+            Times.Never
+        );
+        _pdfServiceMock.VerifyNoOtherCalls();
+        _paymentProcessorMock.Verify(
+            x => x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
+            Times.Never
+        );
+        _instanceClientMock.Verify(
+            x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), cancellation.Token),
+            Times.Once
+        );
+    }
+
+    [Fact]
     public async Task Complete_SkippedPayment_CompletesWithoutReceipt()
     {
         DataElement paymentDataElement = CreatePaymentDataElement();
@@ -194,9 +399,9 @@ public class PaymentCommandTests
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Skipped);
         SetupConfiguration();
 
-        ProcessTaskCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _pdfServiceMock.Verify(
             x =>
                 x.GeneratePdf(
@@ -218,10 +423,10 @@ public class PaymentCommandTests
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Created);
         SetupConfiguration();
 
-        ProcessTaskCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.True(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
         Assert.Contains("not completed", failed.ErrorMessage);
     }
 
@@ -231,10 +436,10 @@ public class PaymentCommandTests
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
         SetupConfiguration();
 
-        ProcessTaskCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCompleteCommand().Execute(CreateContext(dataMutator.Object));
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.True(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
         Assert.Contains("Payment information not found", failed.ErrorMessage);
     }
 
@@ -250,9 +455,11 @@ public class PaymentCommandTests
         Assert.Contains("PaymentConfig is missing", exception.Message);
     }
 
-    private CleanupPaymentCommand CreateCleanupCommand() => new(_processReaderMock.Object, _appImplementationFactory);
+    private CleanupPaymentCommand CreateCleanupCommand() =>
+        new(_processReaderMock.Object, _appImplementationFactory, _instanceClientMock.Object);
 
-    private CompletePaymentCommand CreateCompleteCommand() => new(_processReaderMock.Object, _pdfServiceMock.Object);
+    private CompletePaymentCommand CreateCompleteCommand() =>
+        new(_processReaderMock.Object, _pdfServiceMock.Object, _instanceClientMock.Object);
 
     private void SetupConfiguration() =>
         _processReaderMock
@@ -268,11 +475,15 @@ public class PaymentCommandTests
                 }
             );
 
-    private static ProcessTaskCommandContext CreateContext(IInstanceDataMutator dataMutator) =>
+    private static ProcessEngineCommandContext CreateContext(
+        IInstanceDataMutator dataMutator,
+        CancellationToken ct = default
+    ) =>
         new()
         {
             InstanceDataMutator = dataMutator,
-            TaskId = TaskId,
+            CancellationToken = ct,
+            CommandPayload = CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId)),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
         };
@@ -338,4 +549,12 @@ public class PaymentCommandTests
             ContentType = "application/json",
             Filename = "paymentDataType.json",
         };
+}
+
+internal static class PaymentCommandTestExtensions
+{
+    public static Task<ProcessEngineCommandResult> Execute(
+        this WorkflowEngineCommandBase<ProcessTaskPayload> command,
+        ProcessEngineCommandContext context
+    ) => ((IWorkflowEngineCommand)command).Execute(context);
 }

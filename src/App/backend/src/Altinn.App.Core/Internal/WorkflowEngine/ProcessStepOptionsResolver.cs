@@ -15,25 +15,19 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// (tier 1) applies, so that field is left off the wire request entirely.
 /// </summary>
 /// <remarks>
-/// The tier-2 command defaults are static per command type and built once. The tier-3 lookup goes through
+/// The command defaults are read from the implementations resolved in the current scope. The tier-3 lookup goes through
 /// <see cref="AppImplementationFactory"/> on every call — never a cached instance — so it resolves the
 /// same handler (in the same request scope) that the command will resolve at execute time. That keeps
 /// build-time and run-time selection in agreement even when handlers are registered as scoped/transient.
 /// </remarks>
 internal sealed class ProcessStepOptionsResolver
 {
-    private readonly IReadOnlyDictionary<string, ProcessStepOptions?> _commandDefaults;
+    private IReadOnlyDictionary<string, ProcessStepOptions?>? _commandDefaults;
     private readonly AppImplementationFactory _appImplementationFactory;
 
-    public ProcessStepOptionsResolver(
-        IEnumerable<IWorkflowEngineCommand> commands,
-        AppImplementationFactory appImplementationFactory
-    )
+    public ProcessStepOptionsResolver(IServiceProvider services)
     {
-        _appImplementationFactory = appImplementationFactory;
-        _commandDefaults = commands
-            .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
+        _appImplementationFactory = new AppImplementationFactory(services);
     }
 
     /// <summary>
@@ -48,25 +42,23 @@ internal sealed class ProcessStepOptionsResolver
     /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
     /// step, including the mailbox mint, which must not inherit the declaring stage's options.
     /// </param>
-    /// <param name="taskCommandKey">
-    /// For a process-task command step: the key of the <see cref="IProcessTaskCommand"/> the step runs. Tier 3 is
-    /// then that command's own options. Null on every other step.
-    /// </param>
     public ProcessStepOptions? Resolve(
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex = null,
-        string? taskCommandKey = null
+        int? serviceTaskItemIndex = null
     )
     {
+        _commandDefaults ??= _appImplementationFactory
+            .GetAll<IWorkflowEngineCommand>()
+            .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
             commandKey,
             taskId,
             serviceTaskType,
-            serviceTaskItemIndex,
-            taskCommandKey
+            serviceTaskItemIndex
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
@@ -103,20 +95,9 @@ internal sealed class ProcessStepOptionsResolver
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex,
-        string? taskCommandKey
+        int? serviceTaskItemIndex
     )
     {
-        if (commandKey == ExecuteProcessTaskCommand.Key && taskCommandKey is not null)
-        {
-            // By key, as ProcessTaskCommandExecutor selects at execute time. FirstOrDefault is enough here: the
-            // startup validation refuses an app with two commands under one key, so this never sees a duplicate.
-            return _appImplementationFactory
-                .GetAll<IProcessTaskCommand>()
-                .FirstOrDefault(command => string.Equals(command.Key, taskCommandKey, StringComparison.Ordinal))
-                ?.StepOptions;
-        }
-
         if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
             IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);

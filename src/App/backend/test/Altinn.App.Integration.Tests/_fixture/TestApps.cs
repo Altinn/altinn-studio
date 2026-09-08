@@ -4,4 +4,5 @@ internal static class TestApps
 {
     public const string Basic = "basic";
     public const string DelegatedSigning = "delegated-signing";
+    public const string WorkflowCommands = "workflow-commands";
 }

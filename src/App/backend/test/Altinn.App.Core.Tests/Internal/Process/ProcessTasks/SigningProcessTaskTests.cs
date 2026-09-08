@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -144,13 +145,22 @@ public class SigningProcessTaskTests
         SetupConfiguration(CreateRuntimeDelegatedConfiguration(withGlobalCorrespondenceResource: true));
         SigningProcessTask task = CreateTask();
 
-        IReadOnlyList<ProcessTaskCommandRef> commands = task.GetStartCommands(TaskId);
+        IReadOnlyList<WorkflowCommandRef> commands = task.GetStartCommands(TaskId);
 
         Assert.Equal(
             [
-                new ProcessTaskCommandRef(ResolveSigneesCommand.Key),
-                new ProcessTaskCommandRef(DelegateSigneeRightsCommand.Key),
-                new ProcessTaskCommandRef(NotifySigneesCommand.Key),
+                new WorkflowCommandRef(
+                    ResolveSigneesCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+                new WorkflowCommandRef(
+                    DelegateSigneeRightsCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+                new WorkflowCommandRef(
+                    NotifySigneesCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
             ],
             commands
         );
@@ -175,12 +185,18 @@ public class SigningProcessTaskTests
         SetupConfiguration(configuration);
         SigningProcessTask task = CreateTask();
 
-        IReadOnlyList<ProcessTaskCommandRef> commands = task.GetEndCommands(TaskId);
+        IReadOnlyList<WorkflowCommandRef> commands = task.GetEndCommands(TaskId);
 
         Assert.Equal(
             [
-                new ProcessTaskCommandRef(GenerateSigningPdfCommand.Key),
-                new ProcessTaskCommandRef(RevokeSigneeRightsCommand.Key),
+                new WorkflowCommandRef(
+                    GenerateSigningPdfCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+                new WorkflowCommandRef(
+                    RevokeSigneeRightsCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
             ],
             commands
         );
@@ -202,7 +218,12 @@ public class SigningProcessTaskTests
         SigningProcessTask task = CreateTask();
 
         Assert.Equal(
-            [new ProcessTaskCommandRef(AbortRuntimeDelegatedSigningCommand.Key)],
+            [
+                new WorkflowCommandRef(
+                    AbortRuntimeDelegatedSigningCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+            ],
             task.GetAbandonCommands(TaskId)
         );
     }

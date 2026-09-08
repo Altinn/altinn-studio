@@ -65,6 +65,7 @@ public class ExecuteServiceTaskTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
             Payload = new AppCallbackPayload
             {
                 CommandKey = ExecuteServiceTask.Key,

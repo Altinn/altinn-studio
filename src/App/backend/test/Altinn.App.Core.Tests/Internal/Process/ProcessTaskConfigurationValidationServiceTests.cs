@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -95,7 +96,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     }
 
     [Fact]
-    public async Task StartAsync_ProcessDefinitionUnreadable_StandsDown()
+    public async Task StartAsync_ProcessDefinitionUnreadable_FailsStartup()
     {
         var processReader = new Mock<IProcessReader>();
         processReader.Setup(x => x.GetProcessTasks()).Throws(new InvalidOperationException("no bpmn"));
@@ -105,7 +106,10 @@ public class ProcessTaskConfigurationValidationServiceTests
             commands: []
         );
 
-        await service.StartAsync(CancellationToken.None);
+        ApplicationConfigException exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            service.StartAsync(CancellationToken.None)
+        );
+        Assert.Contains("no bpmn", exception.Message);
     }
 
     [Theory]
@@ -124,7 +128,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             return probe;
         });
         services.AddScoped<IProcessTask>(sp => new ScopedTask(sp.GetRequiredService<ScopeProbe>()));
-        services.AddScoped<IProcessTaskCommand>(sp =>
+        services.AddScoped<IWorkflowEngineCommand>(sp =>
         {
             sp.GetRequiredService<ScopeProbe>().CommandResolved = true;
             return new FakeCommand(commandIsRegistered ? "DoThing" : "Other");
@@ -183,7 +187,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             }
         )
         {
-            services.AddSingleton<IProcessTaskCommand>(new FakeCommand(command));
+            services.AddSingleton<IWorkflowEngineCommand>(new FakeCommand(command));
         }
         List<ScopedSigneeProvider> providers = [];
         services.AddScoped<ISigneeProvider>(_ =>
@@ -212,6 +216,139 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.True(Assert.Single(providers).Disposed);
     }
 
+    [Fact]
+    public async Task StartAsync_CanceledToken_DoesNotResolveCommandsAndPropagatesCancellation()
+    {
+        var processReader = new Mock<IProcessReader>();
+        ServiceCollection services = CreateServices(processReader.Object);
+        services.AddScoped<IWorkflowEngineCommand>(_ => throw new InvalidOperationException("Must not resolve"));
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateService(provider).StartAsync(cancellation.Token)
+        );
+    }
+
+    [Theory]
+    [InlineData("MutateProcessState")]
+    [InlineData("SaveProcessStateToStorage")]
+    [InlineData("ExecuteServiceTask")]
+    [InlineData("MintMailbox")]
+    [InlineData("OnTaskStartingHook")]
+    public async Task StartAsync_TaskDeclaresFrameworkCoordinationCommand_FailsStartup(string key)
+    {
+        ProcessTaskConfigurationValidationService service = CreateService(
+            [BpmnTask("Task_1", "custom")],
+            [new FakeTask("custom", startCommands: [key])],
+            []
+        );
+
+        ApplicationConfigException exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            service.StartAsync(CancellationToken.None)
+        );
+
+        Assert.Contains($"declares the start command '{key}'", exception.Message);
+        Assert.Contains("framework coordination", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task StartAsync_TaskDeclaresEmptyCommand_FailsStartup(string key)
+    {
+        ProcessTaskConfigurationValidationService service = CreateService(
+            [BpmnTask("Task_1", "custom")],
+            [new FakeTask("custom", startCommands: [key])],
+            []
+        );
+
+        ApplicationConfigException exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            service.StartAsync(CancellationToken.None)
+        );
+
+        Assert.Contains("empty start command reference", exception.Message);
+    }
+
+    [Fact]
+    public async Task StartAsync_TaskDeclaresKeyContainingAPathSeparator_FailsBeforeEnqueue()
+    {
+        ProcessTaskConfigurationValidationService service = CreateService(
+            [BpmnTask("Task_1", "custom")],
+            [new FakeTask("custom", startCommands: ["Customer/Submit"])],
+            []
+        );
+
+        ApplicationConfigException exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            service.StartAsync(CancellationToken.None)
+        );
+
+        Assert.Contains("invalid key 'Customer/Submit'", exception.Message);
+    }
+
+    [Fact]
+    public async Task StartAsync_CommandDependencyNotRegistered_FailsInsteadOfSkippingValidation()
+    {
+        var processReader = new Mock<IProcessReader>();
+        processReader.Setup(x => x.GetProcessTasks()).Returns([BpmnTask("Task_1", "data")]);
+        ServiceCollection services = CreateServices(processReader.Object);
+        services.AddSingleton<IProcessTask, DataProcessTask>();
+        services.AddScoped<IWorkflowEngineCommand>(sp =>
+        {
+            _ = sp.GetRequiredService<ScopeProbe>();
+            return new FakeCommand("MissingDependency");
+        });
+        using ServiceProvider serviceProvider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true }
+        );
+
+        ApplicationConfigException exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            CreateService(serviceProvider).StartAsync(CancellationToken.None)
+        );
+
+        Assert.Contains(nameof(ScopeProbe), exception.Message);
+        Assert.Contains("No service for type", exception.Message);
+    }
+
+    [Fact]
+    public async Task StartAsync_InvalidOptionsOnUndeclaredCommand_FailsStartup()
+    {
+        ProcessTaskConfigurationValidationService service = CreateService(
+            [BpmnTask("Task_1", "data")],
+            [new DataProcessTask()],
+            [new FakeCommand("Unused", new ProcessStepOptions { MaxExecutionTime = TimeSpan.Zero })]
+        );
+
+        ApplicationConfigException exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            service.StartAsync(CancellationToken.None)
+        );
+
+        Assert.Contains("default step options", exception.Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartAsync_ServiceTaskWithLifecycleCommands_IsFoundThroughItsServiceInterface(bool pipeline)
+    {
+        var processReader = new Mock<IProcessReader>();
+        processReader.Setup(x => x.GetProcessTasks()).Returns([BpmnTask("Task_1", "custom")]);
+        ServiceCollection services = CreateServices(processReader.Object);
+        // An ordinary task of the same type must not hide a service-task implementation.
+        services.AddSingleton<IProcessTask>(new FakeTask("custom", startCommands: ["WrongImplementation"]));
+        services.AddSingleton<IWorkflowEngineCommand>(new FakeCommand("DoThing"));
+        if (pipeline)
+            services.AddScoped<IPipelineServiceTask, PipelineTask>();
+        else
+            services.AddScoped<IServiceTask, SimpleServiceTask>();
+        using ServiceProvider serviceProvider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true }
+        );
+
+        await CreateService(serviceProvider).StartAsync(CancellationToken.None);
+    }
+
     private static ProcessTask BpmnTask(string id, string taskType) =>
         new()
         {
@@ -225,7 +362,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     private static ProcessTaskConfigurationValidationService CreateService(
         List<ProcessTask> bpmnTasks,
         IProcessTask[] processTasks,
-        IProcessTaskCommand[] commands
+        IWorkflowEngineCommand[] commands
     )
     {
         var processReader = new Mock<IProcessReader>();
@@ -236,7 +373,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     private static ProcessTaskConfigurationValidationService CreateService(
         IProcessReader processReader,
         IProcessTask[] processTasks,
-        IProcessTaskCommand[] commands
+        IWorkflowEngineCommand[] commands
     )
     {
         ServiceCollection services = CreateServices(processReader);
@@ -244,7 +381,7 @@ public class ProcessTaskConfigurationValidationServiceTests
         {
             services.AddSingleton(processTask);
         }
-        foreach (IProcessTaskCommand command in commands)
+        foreach (IWorkflowEngineCommand command in commands)
         {
             services.AddSingleton(command);
         }
@@ -265,6 +402,10 @@ public class ProcessTaskConfigurationValidationServiceTests
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
         services.AddTransient<ProcessTaskResolver>();
+        foreach (string key in WorkflowEngineCommandValidator.FrameworkCommandKeys)
+        {
+            services.AddSingleton<IWorkflowEngineCommand>(new FakeCommand(key));
+        }
         return services;
     }
 
@@ -293,7 +434,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             return [];
         }
 
-        public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) => [new("DoThing")];
+        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [new("DoThing")];
     }
 
     private sealed class ScopedSigneeProvider : ISigneeProvider, IAsyncDisposable
@@ -322,18 +463,40 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => findings ?? [];
 
-        public IReadOnlyList<ProcessTaskCommandRef> GetStartCommands(string taskId) =>
-            (startCommands ?? []).Select(key => new ProcessTaskCommandRef(key)).ToList();
+        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+            (startCommands ?? []).Select(key => new WorkflowCommandRef(key)).ToList();
 
-        public IReadOnlyList<ProcessTaskCommandRef> GetEndCommands(string taskId) =>
-            (endCommands ?? []).Select(key => new ProcessTaskCommandRef(key)).ToList();
+        public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+            (endCommands ?? []).Select(key => new WorkflowCommandRef(key)).ToList();
     }
 
-    private sealed class FakeCommand(string key) : IProcessTaskCommand
+    private sealed class SimpleServiceTask : IServiceTask
     {
-        public string Key => key;
+        public string Type => "custom";
 
-        public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context) =>
-            Task.FromResult(ProcessTaskCommandResult.Completed());
+        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [new("DoThing")];
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            throw new NotSupportedException("Startup must not execute service tasks.");
+    }
+
+    private sealed class PipelineTask : IPipelineServiceTask
+    {
+        public string Type => "custom";
+
+        public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [new("DoThing")];
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    }
+
+    private sealed class FakeCommand(string key, ProcessStepOptions? options = null) : IWorkflowEngineCommand
+    {
+        public string GetKey() => key;
+
+        public ProcessStepOptions? DefaultStepOptions => options;
+
+        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context) =>
+            Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }

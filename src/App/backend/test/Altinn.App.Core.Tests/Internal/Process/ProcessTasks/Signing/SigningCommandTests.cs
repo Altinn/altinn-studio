@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,6 +23,7 @@ public class SigningCommandTests
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
 
     [Fact]
     public async Task ResolveSignees_NotRuntimeDelegated_DoesNothingWithoutResolvingService()
@@ -31,11 +33,11 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationService: null);
         var command = new ResolveSigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(
+        ProcessEngineCommandResult result = await command.Execute(
             CreateContext(CreateDataMutator(CreateInstance()).Object)
         );
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
     }
 
     [Fact]
@@ -43,7 +45,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x => x.ResolveSignees(dataMutator.Object, configuration, TaskId, context.CancellationToken))
@@ -52,9 +54,9 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new ResolveSigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         initializationServiceMock.VerifyAll();
     }
 
@@ -63,7 +65,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x => x.ResolveSignees(dataMutator.Object, configuration, TaskId, context.CancellationToken))
@@ -71,11 +73,14 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new ResolveSigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.True(failed.Permanent);
-        Assert.Equal("no signee provider registered", failed.ErrorMessage);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal(
+            "Process task command 'ResolveSignees' failed: no signee provider registered",
+            failed.ErrorMessage
+        );
     }
 
     [Fact]
@@ -83,7 +88,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x => x.ResolveSignees(dataMutator.Object, configuration, TaskId, context.CancellationToken))
@@ -91,11 +96,14 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new ResolveSigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.True(failed.Permanent);
-        Assert.Equal("could not resolve instance owner", failed.ErrorMessage);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal(
+            "Process task command 'ResolveSignees' failed: could not resolve instance owner",
+            failed.ErrorMessage
+        );
     }
 
     [Fact]
@@ -103,7 +111,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x => x.ResolveSignees(dataMutator.Object, configuration, TaskId, context.CancellationToken))
@@ -111,10 +119,10 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new ResolveSigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.False(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.False(failed.NonRetryable);
     }
 
     [Fact]
@@ -123,8 +131,8 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationService: null);
         var command = new ResolveSigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        Assert.Equal(SigningStepOptions.ProviderAndRegisterCalls, command.StepOptions);
-        Assert.Equal(TimeSpan.FromMinutes(2), command.StepOptions.MaxExecutionTime);
+        Assert.Equal(SigningStepOptions.ProviderAndRegisterCalls, command.DefaultStepOptions);
+        Assert.Equal(TimeSpan.FromMinutes(2), command.DefaultStepOptions.MaxExecutionTime);
     }
 
     [Fact]
@@ -134,11 +142,11 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationService: null);
         var command = new DelegateSigneeRightsCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(
+        ProcessEngineCommandResult result = await command.Execute(
             CreateContext(CreateDataMutator(CreateInstance()).Object)
         );
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
     }
 
     [Fact]
@@ -146,7 +154,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x =>
@@ -163,9 +171,9 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new DelegateSigneeRightsCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         initializationServiceMock.VerifyAll();
     }
 
@@ -174,7 +182,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x =>
@@ -190,10 +198,10 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new DelegateSigneeRightsCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.True(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
     }
 
     [Fact]
@@ -201,7 +209,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x =>
@@ -217,10 +225,10 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new DelegateSigneeRightsCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.False(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.False(failed.NonRetryable);
     }
 
     [Fact]
@@ -229,8 +237,8 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationService: null);
         var command = new DelegateSigneeRightsCommand(serviceProvider, _processReaderMock.Object);
 
-        Assert.Equal(SigningStepOptions.PlatformCallsPerSignee, command.StepOptions);
-        Assert.Equal(TimeSpan.FromMinutes(5), command.StepOptions.MaxExecutionTime);
+        Assert.Equal(SigningStepOptions.PlatformCallsPerSignee, command.DefaultStepOptions);
+        Assert.Equal(TimeSpan.FromMinutes(5), command.DefaultStepOptions.MaxExecutionTime);
     }
 
     [Fact]
@@ -240,11 +248,11 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationService: null);
         var command = new NotifySigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(
+        ProcessEngineCommandResult result = await command.Execute(
             CreateContext(CreateDataMutator(CreateInstance()).Object)
         );
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
     }
 
     [Fact]
@@ -252,7 +260,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x =>
@@ -270,9 +278,9 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new NotifySigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         initializationServiceMock.VerifyAll();
     }
 
@@ -281,7 +289,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x =>
@@ -298,10 +306,10 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new NotifySigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.True(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
     }
 
     [Fact]
@@ -309,7 +317,7 @@ public class SigningCommandTests
     {
         AltinnSignatureConfiguration configuration = SetupConfiguration(CreateRuntimeDelegatedConfiguration());
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        ProcessTaskCommandContext context = CreateContext(dataMutator.Object);
+        ProcessEngineCommandContext context = CreateContext(dataMutator.Object);
         var initializationServiceMock = new Mock<ISigneeInitializationService>(MockBehavior.Strict);
         initializationServiceMock
             .Setup(x =>
@@ -326,10 +334,10 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationServiceMock.Object);
         var command = new NotifySigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(context);
+        ProcessEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessTaskCommandResult failed = Assert.IsType<FailedProcessTaskCommandResult>(result);
-        Assert.False(failed.Permanent);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.False(failed.NonRetryable);
     }
 
     [Fact]
@@ -338,8 +346,8 @@ public class SigningCommandTests
         using ServiceProvider serviceProvider = CreateServiceProvider(initializationService: null);
         var command = new NotifySigneesCommand(serviceProvider, _processReaderMock.Object);
 
-        Assert.Equal(SigningStepOptions.PlatformCallsPerSignee, command.StepOptions);
-        Assert.Equal(TimeSpan.FromMinutes(5), command.StepOptions.MaxExecutionTime);
+        Assert.Equal(SigningStepOptions.PlatformCallsPerSignee, command.DefaultStepOptions);
+        Assert.Equal(TimeSpan.FromMinutes(5), command.DefaultStepOptions.MaxExecutionTime);
     }
 
     [Fact]
@@ -353,9 +361,9 @@ public class SigningCommandTests
             .Verifiable(Times.Once);
         var command = new RevokeSigneeRightsCommand(_processReaderMock.Object, _signingServiceMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _signingServiceMock.VerifyAll();
     }
 
@@ -365,11 +373,11 @@ public class SigningCommandTests
         SetupConfiguration(new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" });
         var command = new RevokeSigneeRightsCommand(_processReaderMock.Object, _signingServiceMock.Object);
 
-        ProcessTaskCommandResult result = await command.Execute(
+        ProcessEngineCommandResult result = await command.Execute(
             CreateContext(CreateDataMutator(CreateInstance()).Object)
         );
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _signingServiceMock.VerifyNoOtherCalls();
     }
 
@@ -400,9 +408,9 @@ public class SigningCommandTests
             instances.Object
         );
 
-        ProcessTaskCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _signingServiceMock.VerifyAll();
     }
 
@@ -411,6 +419,7 @@ public class SigningCommandTests
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" });
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
+        SetupStoredInstance(dataMutator.Object.Instance, CreateInstance());
         _pdfServiceMock
             .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
@@ -436,17 +445,26 @@ public class SigningCommandTests
                     TaskId
                 )
             );
-        var command = new GenerateSigningPdfCommand(_processReaderMock.Object, _pdfServiceMock.Object);
+        var command = new GenerateSigningPdfCommand(
+            _processReaderMock.Object,
+            _pdfServiceMock.Object,
+            _instanceClientMock.Object
+        );
 
-        ProcessTaskCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _pdfServiceMock.VerifyAll();
+        _instanceClientMock.VerifyAll();
         dataMutator.VerifyAll();
     }
 
-    [Fact]
-    public async Task GenerateSigningPdf_WithExistingTaskGeneratedPdf_UpdatesPdfOnMutator()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GenerateSigningPdf_WithStoredTaskGeneratedPdf_ReusesPdfAndPreservesCarriedState(
+        bool pdfInCallbackState
+    )
     {
         DataElement existingSigningPdf = new()
         {
@@ -465,9 +483,29 @@ public class SigningCommandTests
             ],
         };
         SetupConfiguration(new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" });
-        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance(existingSigningPdf));
+        DataElement unrelatedData = new() { Id = Guid.NewGuid().ToString(), DataType = "other-data" };
+        Instance carried = pdfInCallbackState
+            ? CreateInstance(unrelatedData, existingSigningPdf)
+            : CreateInstance(unrelatedData);
+        ProcessState virtualProcess = carried.Process;
+        virtualProcess.CurrentTask.ElementId = "Task_Virtual";
+        Instance stored = CreateInstance(existingSigningPdf);
+        stored.Data.Add(new DataElement { Id = Guid.NewGuid().ToString(), DataType = "storage-only-data" });
+        SetupStoredInstance(carried, stored);
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(carried);
         _pdfServiceMock
             .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, CancellationToken.None))
+            .Callback(() =>
+            {
+                Assert.Same(carried, dataMutator.Object.Instance);
+                Assert.Same(virtualProcess, carried.Process);
+                Assert.Equal("Task_Virtual", carried.Process.CurrentTask.ElementId);
+                Assert.Collection(
+                    carried.Data,
+                    element => Assert.Same(unrelatedData, element),
+                    element => Assert.Same(existingSigningPdf, element)
+                );
+            })
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
         dataMutator
             .Setup(x =>
@@ -483,12 +521,17 @@ public class SigningCommandTests
                     ReadOnlyMemory<byte>.Empty
                 )
             );
-        var command = new GenerateSigningPdfCommand(_processReaderMock.Object, _pdfServiceMock.Object);
+        var command = new GenerateSigningPdfCommand(
+            _processReaderMock.Object,
+            _pdfServiceMock.Object,
+            _instanceClientMock.Object
+        );
 
-        ProcessTaskCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _pdfServiceMock.VerifyAll();
+        _instanceClientMock.VerifyAll();
         dataMutator.VerifyAll();
         dataMutator.Verify(
             x =>
@@ -508,15 +551,32 @@ public class SigningCommandTests
     public async Task GenerateSigningPdf_WithoutSigningPdfDataType_DoesNothing()
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" });
-        var command = new GenerateSigningPdfCommand(_processReaderMock.Object, _pdfServiceMock.Object);
+        var command = new GenerateSigningPdfCommand(
+            _processReaderMock.Object,
+            _pdfServiceMock.Object,
+            _instanceClientMock.Object
+        );
 
-        ProcessTaskCommandResult result = await command.Execute(
+        ProcessEngineCommandResult result = await command.Execute(
             CreateContext(CreateDataMutator(CreateInstance()).Object)
         );
 
-        Assert.IsType<CompletedProcessTaskCommandResult>(result);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _pdfServiceMock.VerifyNoOtherCalls();
+        _instanceClientMock.VerifyNoOtherCalls();
     }
+
+    private void SetupStoredInstance(Instance carried, Instance stored) =>
+        _instanceClientMock
+            .Setup(x =>
+                x.GetInstance(
+                    carried,
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync(stored)
+            .Verifiable(Times.Once);
 
     private AltinnSignatureConfiguration SetupConfiguration(AltinnSignatureConfiguration configuration)
     {
@@ -526,11 +586,11 @@ public class SigningCommandTests
         return configuration;
     }
 
-    private static ProcessTaskCommandContext CreateContext(IInstanceDataMutator dataMutator) =>
+    private static ProcessEngineCommandContext CreateContext(IInstanceDataMutator dataMutator) =>
         new()
         {
             InstanceDataMutator = dataMutator,
-            TaskId = TaskId,
+            CommandPayload = CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId)),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
         };
@@ -552,8 +612,7 @@ public class SigningCommandTests
 
     private static Mock<IInstanceDataMutator> CreateDataMutator(Instance instance)
     {
-        // Commands read the task id from their context, never from the mutator, so no TaskId setup here: with a
-        // strict mock, VerifyAll would flag an unused one.
+        // Commands receive the explicit task id through their serialized workflow payload.
         var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
         dataMutator.Setup(x => x.Instance).Returns(instance);
         return dataMutator;
@@ -578,4 +637,12 @@ public class SigningCommandTests
             SigneeStatesDataTypeId = "SigneeStatesDataTypeId",
             SigneeProviderId = "SigneeProviderId",
         };
+}
+
+internal static class SigningCommandTestExtensions
+{
+    public static Task<ProcessEngineCommandResult> Execute(
+        this WorkflowEngineCommandBase<ProcessTaskPayload> command,
+        ProcessEngineCommandContext context
+    ) => ((IWorkflowEngineCommand)command).Execute(context);
 }

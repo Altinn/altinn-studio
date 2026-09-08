@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,8 +22,8 @@ namespace Altinn.App.Core.Internal.Process;
 /// <remarks>
 /// Resolved inside <see cref="StartAsync"/> from a fresh scope rather than injected: a hosted service's
 /// constructor runs whenever anything merely enumerates hosted services, and taking process services there would
-/// make that enumeration require the whole graph to be constructible. A check that cannot read what it needs
-/// stands down with a warning rather than taking the app with it; only a real finding fails boot.
+/// make that enumeration require the whole graph to be constructible. Failure to resolve the registrations or
+/// read the configuration fails startup; the app must not silently skip its command validation.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService : IHostedService
 {
@@ -40,6 +41,7 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
 
@@ -47,47 +49,33 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
         ProcessTaskResolver resolver;
-        IReadOnlyList<IProcessTaskCommand> registeredCommands;
+        IReadOnlyList<IWorkflowEngineCommand> registeredCommands;
         try
         {
             bpmnTasks = services.GetRequiredService<IProcessReader>().GetProcessTasks().ToList();
             appMetadata = await services.GetRequiredService<IAppMetadata>().GetApplicationMetadata();
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
             resolver = services.GetRequiredService<ProcessTaskResolver>();
-            registeredCommands = new AppImplementationFactory(services).GetAll<IProcessTaskCommand>().ToList();
+            registeredCommands = new AppImplementationFactory(services).GetAll<IWorkflowEngineCommand>().ToList();
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
-            _logger.LogWarning(
-                e,
-                "Could not read the process definition, application metadata or process task registrations; "
-                    + "skipping process task configuration validation."
+            _logger.LogError(e, "Could not load the process configuration or workflow command registrations.");
+            throw new ApplicationConfigException(
+                "Could not validate the process configuration or workflow command registrations: " + e.Message,
+                e
             );
-            return;
         }
 
+        IReadOnlySet<string> registeredKeys = WorkflowEngineCommandValidator.Validate(
+            registeredCommands,
+            cancellationToken
+        );
         var findings = new List<string>();
-
-        List<string> duplicateKeys = registeredCommands
-            .GroupBy(command => command.Key, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
-            .Select(group => $"'{group.Key}' ({string.Join(", ", group.Select(c => c.GetType().FullName))})")
-            .ToList();
-        if (duplicateKeys.Count > 0)
-        {
-            findings.Add(
-                "More than one process task command is registered with the same key: "
-                    + string.Join("; ", duplicateKeys)
-                    + ". Keys must be unique among the app's task commands."
-            );
-        }
-
-        HashSet<string> registeredKeys = registeredCommands
-            .Select(command => command.Key)
-            .ToHashSet(StringComparer.Ordinal);
 
         foreach (ProcessTask bpmnTask in bpmnTasks)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string? taskType = bpmnTask.ExtensionElements?.TaskExtension?.TaskType;
 
             IProcessTask processTask;
@@ -95,7 +83,7 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
             {
                 processTask = resolver.GetProcessTaskInstance(taskType);
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
                 findings.Add($"Task '{bpmnTask.Id}': {e.Message}");
                 continue;
@@ -114,7 +102,7 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
                     )
                 );
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
                 findings.Add($"Task '{bpmnTask.Id}': validating its configuration threw: {e.Message}");
                 continue;
@@ -125,21 +113,24 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
                 "start",
                 () => processTask.GetStartCommands(bpmnTask.Id),
                 registeredKeys,
-                findings
+                findings,
+                cancellationToken
             );
             CollectDeclaredKeyFindings(
                 bpmnTask.Id,
                 "end",
                 () => processTask.GetEndCommands(bpmnTask.Id),
                 registeredKeys,
-                findings
+                findings,
+                cancellationToken
             );
             CollectDeclaredKeyFindings(
                 bpmnTask.Id,
                 "abandon",
                 () => processTask.GetAbandonCommands(bpmnTask.Id),
                 registeredKeys,
-                findings
+                findings,
+                cancellationToken
             );
         }
 
@@ -158,29 +149,61 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
     private static void CollectDeclaredKeyFindings(
         string taskId,
         string phase,
-        Func<IReadOnlyList<ProcessTaskCommandRef>> declare,
-        HashSet<string> registeredKeys,
-        List<string> findings
+        Func<IReadOnlyList<WorkflowCommandRef>> declare,
+        IReadOnlySet<string> registeredKeys,
+        List<string> findings,
+        CancellationToken cancellationToken
     )
     {
-        IReadOnlyList<ProcessTaskCommandRef> commands;
+        IReadOnlyList<WorkflowCommandRef> commands;
         try
         {
             commands = declare();
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
             findings.Add($"Task '{taskId}': declaring its {phase} commands threw: {e.Message}");
             return;
         }
 
-        foreach (ProcessTaskCommandRef command in commands)
+        if (commands is null)
         {
+            findings.Add($"Task '{taskId}' returned null when declaring its {phase} commands.");
+            return;
+        }
+
+        foreach (WorkflowCommandRef command in commands)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (command is null || string.IsNullOrWhiteSpace(command.Key))
+            {
+                findings.Add($"Task '{taskId}' declares an empty {phase} command reference.");
+                continue;
+            }
+
+            if (!WorkflowEngineCommandValidator.IsValidCommandKey(command.Key))
+            {
+                findings.Add(
+                    $"Task '{taskId}' declares the {phase} command with invalid key '{command.Key}'. Keys must "
+                        + "start with an ASCII letter and contain only ASCII letters, digits, dots, underscores or hyphens."
+                );
+                continue;
+            }
+
+            if (WorkflowEngineCommandValidator.FrameworkCommandKeys.Contains(command.Key))
+            {
+                findings.Add(
+                    $"Task '{taskId}' declares the {phase} command '{command.Key}', but framework coordination "
+                        + "commands cannot be declared by a task. Their position and payload are owned by the workflow planner."
+                );
+                continue;
+            }
+
             if (!registeredKeys.Contains(command.Key))
             {
                 findings.Add(
                     $"Task '{taskId}' declares the {phase} command '{command.Key}', but no "
-                        + $"{nameof(IProcessTaskCommand)} with that key is registered."
+                        + $"{nameof(IWorkflowEngineCommand)} with that key is registered."
                 );
             }
         }

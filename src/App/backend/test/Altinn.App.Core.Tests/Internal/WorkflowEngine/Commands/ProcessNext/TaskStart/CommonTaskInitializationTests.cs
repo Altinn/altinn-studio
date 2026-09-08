@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Prefill;
@@ -30,6 +31,7 @@ public class CommonTaskInitializationTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
             Payload = new AppCallbackPayload
             {
                 CommandKey = CommonTaskInitialization.Key,
@@ -60,6 +62,7 @@ public class CommonTaskInitializationTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
             Payload = new AppCallbackPayload
             {
                 CommandKey = CommonTaskInitialization.Key,

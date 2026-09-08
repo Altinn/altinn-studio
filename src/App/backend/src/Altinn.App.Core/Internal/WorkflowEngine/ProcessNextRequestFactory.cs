@@ -440,10 +440,10 @@ internal sealed class ProcessNextRequestFactory
     /// selects the implementation during startup validation.
     /// A task type with no registered implementation fails here, at enqueue, rather than at its first step.
     /// </summary>
-    private IReadOnlyList<ProcessTaskCommandRef> ResolveTaskCommands(
+    private IReadOnlyList<WorkflowCommandRef> ResolveTaskCommands(
         string? altinnTaskType,
         string? taskId,
-        Func<IProcessTask, string, IReadOnlyList<ProcessTaskCommandRef>> declare
+        Func<IProcessTask, string, IReadOnlyList<WorkflowCommandRef>> declare
     )
     {
         if (taskId is null)

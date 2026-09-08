@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.App.Models.logic;
 
-internal sealed class ProcessTaskStart1 : IProcessTaskCommand
+internal sealed class ProcessTaskStart1 : IWorkflowEngineCommand
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly HttpContext _httpContext;
-    public string Key => "x1";
+
+    public string GetKey() => "x1";
 
     public ProcessTaskStart1(IHttpContextAccessor httpContextAccessor)
     {
@@ -20,26 +21,27 @@ internal sealed class ProcessTaskStart1 : IProcessTaskCommand
         _httpContext = httpContextAccessor?.HttpContext ?? throw new Exception();
     }
 
-    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         _ = _httpContextAccessor.HttpContext;
         _ = _httpContextAccessor.HttpContext.User;
-        return Task.FromResult(ProcessTaskCommandResult.Completed());
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }
 
-internal sealed class ProcessTaskStart2(IHttpContextAccessor httpContextAccessor) : IProcessTaskCommand
+internal sealed class ProcessTaskStart2(IHttpContextAccessor httpContextAccessor) : IWorkflowEngineCommand
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly HttpContext _httpContext1 = httpContextAccessor.HttpContext;
     private HttpContext _httpContext2 { get; } = httpContextAccessor.HttpContext;
     private HttpContext _httpContext3 { get; } = httpContextAccessor?.HttpContext ?? throw new Exception();
-    public string Key => "x2";
 
-    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context)
+    public string GetKey() => "x2";
+
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         _ = _httpContextAccessor.HttpContext;
         _ = _httpContextAccessor.HttpContext.User;
-        return Task.FromResult(ProcessTaskCommandResult.Completed());
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }

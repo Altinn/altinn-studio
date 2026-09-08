@@ -43,13 +43,20 @@ internal static class DelegatedSigningServices
             )
         );
 
-        foreach (var descriptor in services.Where(x => x.ServiceType == typeof(IProcessTaskCommand)).ToArray())
+        foreach (
+            var descriptor in services
+                .Where(x =>
+                    x.ServiceType == typeof(IWorkflowEngineCommand)
+                    && x.ImplementationType?.Namespace == "Altinn.App.Core.Internal.Process.ProcessTasks.Signing"
+                )
+                .ToArray()
+        )
         {
             services.Remove(descriptor);
             services.Add(
                 new ServiceDescriptor(
-                    typeof(IProcessTaskCommand),
-                    sp => new FastRetryTaskCommand(CreateOriginal<IProcessTaskCommand>(descriptor, sp)),
+                    typeof(IWorkflowEngineCommand),
+                    sp => new FastRetryTaskCommand(CreateOriginal<IWorkflowEngineCommand>(descriptor, sp)),
                     descriptor.Lifetime
                 )
             );
@@ -78,17 +85,18 @@ internal sealed class IntegrationSigneeProvider(DelegatedSigningState state) : I
         Task.FromResult(state.GetSignees());
 }
 
-internal sealed class FastRetryTaskCommand(IProcessTaskCommand inner) : IProcessTaskCommand
+internal sealed class FastRetryTaskCommand(IWorkflowEngineCommand inner) : IWorkflowEngineCommand
 {
-    public string Key => inner.Key;
-    public ProcessStepOptions StepOptions =>
+    public string GetKey() => inner.GetKey();
+
+    public ProcessStepOptions DefaultStepOptions =>
         new()
         {
             MaxExecutionTime = TimeSpan.FromSeconds(30),
             RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 2),
         };
 
-    public Task<ProcessTaskCommandResult> Execute(ProcessTaskCommandContext context) => inner.Execute(context);
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context) => inner.Execute(context);
 }
 
 internal sealed class RecordingAccessManagementClient(IAccessManagementClient inner, DelegatedSigningState state)
@@ -254,14 +262,6 @@ internal sealed class SigningCallbackFilter(DelegatedSigningState state) : IAsyn
         if (payload is null)
             return;
         string commandKey = payload.CommandKey;
-        if (commandKey == "ExecuteProcessTaskCommand" && payload.Payload is { } commandPayload)
-        {
-            using var document = JsonDocument.Parse(commandPayload);
-            commandKey = document
-                .RootElement.EnumerateObject()
-                .Single(property => property.Name.Equals("commandKey", StringComparison.OrdinalIgnoreCase))
-                .Value.GetString()!;
-        }
         int status = executed.Exception is not null
             ? 500
             : executed.Result switch

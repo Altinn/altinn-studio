@@ -20,9 +20,8 @@ internal static class ServiceCollectionExtensions
     {
         // Process engine callback helpers
         services.AddTransient<ProcessTaskResolver>();
-        services.AddTransient<ProcessTaskCommandExecutor>();
         services.AddTransient<ProcessNextRequestFactory>();
-        services.AddSingleton<ProcessStepOptionsResolver>();
+        services.AddScoped<ProcessStepOptionsResolver>();
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<MailboxDeliveryEnvelope>();
@@ -47,9 +46,6 @@ internal static class ServiceCollectionExtensions
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<AppCodesSettings>, WorkflowCallbackAppCodesValidator>()
         );
-
-        // Process engine callback handlers - the task type's own commands, one step per declared command
-        services.AddTransient<IWorkflowEngineCommand, ExecuteProcessTaskCommand>();
 
         // Process engine callback handlers - TaskStart
         services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
@@ -87,9 +83,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
-
-        // Validate all commands are registered
-        WorkflowEngineCommandValidator.Validate(services);
 
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
