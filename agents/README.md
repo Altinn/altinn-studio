@@ -47,9 +47,11 @@ From the repository root, configure and start an Agent:
 cd agents/full
 cp .env.sample .env
 $EDITOR .env
-agentctl apply -f agent.yaml
-agentctl wait agent/altinn-full --for condition=Ready --timeout 10m
+agentctl apply -f agent.yaml --wait
 ```
+
+`--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
+returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
 Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
 

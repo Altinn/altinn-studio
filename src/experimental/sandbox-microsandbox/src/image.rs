@@ -671,21 +671,45 @@ async fn report_buildkit_status(
 #[derive(Default)]
 struct PullReport {
     layers: Option<u64>,
+    /// Total download size announced by the registry, when known up front.
+    total_download_bytes: Option<u64>,
+    /// Bytes downloaded and expected per layer; layers download concurrently.
+    downloads: std::collections::BTreeMap<usize, (u64, Option<u64>)>,
 }
 
 impl PullReport {
     async fn report(&mut self, step: &ProgressStep, event: microsandbox_image::PullProgress) {
         use microsandbox_image::PullProgress;
         match event {
-            PullProgress::Resolved { layer_count, .. } => {
+            PullProgress::Resolved {
+                layer_count,
+                total_download_bytes,
+                ..
+            } => {
                 self.layers = u64::try_from(layer_count).ok();
+                self.total_download_bytes = total_download_bytes;
                 step.progress(0, self.layers, ProgressUnit::Items).await;
             }
             PullProgress::LayerDownloadProgress {
+                layer_index,
                 downloaded_bytes,
                 total_bytes,
                 ..
-            } => step.progress(downloaded_bytes, total_bytes, ProgressUnit::Bytes).await,
+            } => {
+                self.downloads.insert(layer_index, (downloaded_bytes, total_bytes));
+                let (downloaded, total) = self.download_totals();
+                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+            }
+            PullProgress::LayerDownloadComplete {
+                layer_index,
+                downloaded_bytes,
+                ..
+            } => {
+                self.downloads
+                    .insert(layer_index, (downloaded_bytes, Some(downloaded_bytes)));
+                let (downloaded, total) = self.download_totals();
+                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+            }
             PullProgress::LayerMaterializeStarted { layer_index, .. } => {
                 step.output(
                     OutputStream::Stdout,
@@ -717,11 +741,21 @@ impl PullReport {
                 step.progress(completed, Some(completed), ProgressUnit::Items).await;
             }
             PullProgress::Resolving { .. }
-            | PullProgress::LayerDownloadComplete { .. }
             | PullProgress::LayerDownloadVerifying { .. }
             | PullProgress::LayerMaterializeWriting { .. }
             | PullProgress::StitchComplete => {}
         }
+    }
+
+    /// Sums per-layer download progress; the total is the registry's figure when it
+    /// announced one, otherwise the sum of the layer sizes seen so far.
+    fn download_totals(&self) -> (u64, Option<u64>) {
+        let downloaded = self.downloads.values().map(|(bytes, _)| bytes).sum();
+        let total = self.total_download_bytes.or_else(|| {
+            let known: Vec<u64> = self.downloads.values().filter_map(|(_, total)| *total).collect();
+            (known.len() == self.downloads.len() && !known.is_empty()).then(|| known.iter().sum())
+        });
+        (downloaded, total)
     }
 
     fn layer_line(&self, activity: &str, layer_index: usize) -> String {
