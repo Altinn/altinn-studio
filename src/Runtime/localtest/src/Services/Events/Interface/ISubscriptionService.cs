@@ -15,7 +15,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// Operation to create a subscription
         /// </summary>
         /// <param name="eventsSubscription">The event subscription</param>
-        /// <returns>A subscription if creation was successful or an errorr object</returns>
+        /// <returns>A subscription if creation was successful or an error object</returns>
         public Task<(Subscription Subscription, ServiceError Error)> CreateSubscription(Subscription eventsSubscription);
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// <summary>
         /// Get a given subscription
         /// </summary>
-        /// <param name="id">The subcription Id</param>
+        /// <param name="id">The subscription Id</param>
         public Task<(Subscription Subscription, ServiceError Error)> GetSubscription(int id);
 
         /// <summary>
@@ -44,17 +44,17 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// <summary>
         /// Get a list of matching org subscriptions
         /// </summary>
-        /// <param name="source">The subcription Source</param>
-        /// <param name="subject">The subcription Subject</param>
-        /// <param name="type">The subcription Type</param>
+        /// <param name="source">The subscription Source</param>
+        /// <param name="subject">The subscription Subject</param>
+        /// <param name="type">The subscription Type</param>
         public Task<List<Subscription>> GetOrgSubscriptions(string source, string subject, string type);
 
         /// <summary>
         /// Get a list of matching subscriptions, orgs excluded
         /// </summary>
-        /// <param name="source">The subcription Source</param>
-        /// <param name="subject">The subcription Subject</param>
-        /// <param name="type">The subcription Type</param>
+        /// <param name="source">The subscription Source</param>
+        /// <param name="subject">The subscription Subject</param>
+        /// <param name="type">The subscription Type</param>
         public Task<List<Subscription>> GetSubscriptions(string source, string subject, string type);
     }
 }

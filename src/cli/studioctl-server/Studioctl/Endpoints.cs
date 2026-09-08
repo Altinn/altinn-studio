@@ -134,7 +134,7 @@ internal static class Endpoints
 
     /// <summary>
     /// The wire spelling of a message status. Mapped explicitly because no <c>JsonSerializerOptions</c> are
-    /// configured for this app, so a bare enum would serialise as a number.
+    /// configured for this app, so a bare enum would serialize as a number.
     /// </summary>
     private static string ToWire(UpgradeMessageStatus status) =>
         status switch

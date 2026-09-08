@@ -28,7 +28,7 @@ public class InternalsController(
     /// This triggers a pipeline that pushes the GitOps configuration for an org's environment.
     /// It's get method on purpose to allow triggering from browser.
     /// </summary>
-    /// <param name="org">Organisation name</param>
+    /// <param name="org">Organization name</param>
     /// <param name="environment">Target environment</param>
     /// <param name="cancellationToken">Cancellation token to abort the operation</param>
     /// <returns>Accepted response when pipeline is queued</returns>

@@ -84,6 +84,7 @@
       },
       VisibleAfter: DateTime_1,
       Process: {
+        Status: idle,
         Started: DateTime_2,
         StartEvent: StartEvent_1,
         CurrentTask: {
@@ -98,8 +99,7 @@
       Status: {
         IsArchived: false,
         IsSoftDeleted: false,
-        IsHardDeleted: false,
-        ReadStatus: UpdatedSinceLastReview
+        IsHardDeleted: false
       },
       Data: [
         {
@@ -107,12 +107,13 @@
           InstanceGuid: <instanceGuid>,
           DataType: model,
           ContentType: application/xml,
-          BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[0]>,
+          BlobStoragePath: ttd/basic/<instanceGuid>/data-elements/<blobVersionId[0]>,
           SelfLinks: {
             Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
           Size: 146,
+          BlobVersionId: <blobVersionId[0]>,
           Locked: false,
           IsRead: false,
           Created: DateTime_4,
@@ -126,12 +127,13 @@
           DataType: attachment,
           Filename: Test Doc 2025.pdf,
           ContentType: application/pdf,
-          BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[1]>,
+          BlobStoragePath: ttd/basic/<instanceGuid>/data-elements/<blobVersionId[1]>,
           SelfLinks: {
             Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[1]>,
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[1]>
           },
           Size: 25,
+          BlobVersionId: <blobVersionId[1]>,
           Locked: false,
           IsRead: true,
           Created: DateTime_5,
@@ -142,8 +144,8 @@
       ],
       Created: DateTime_1,
       CreatedBy: 1337,
-      LastChanged: DateTime_6,
-      LastChangedBy: 991825827
+      LastChanged: DateTime_5,
+      LastChangedBy: 1337
     }
   }
 }

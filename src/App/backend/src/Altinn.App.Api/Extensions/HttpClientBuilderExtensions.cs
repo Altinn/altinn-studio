@@ -11,9 +11,9 @@ namespace Altinn.App.Api.Extensions;
 public static class HttpClientBuilderExtensions
 {
     /// <summary>
-    /// <p>Authorises all requests with Maskinporten using the provided scopes,
+    /// <p>Authorizes all requests with Maskinporten using the provided scopes,
     /// and injects the resulting token in the Authorization header using the Bearer scheme.</p>
-    /// <p>If your target API does <em>not</em> use this authorisation scheme, you should consider implementing
+    /// <p>If your target API does <em>not</em> use this authorization scheme, you should consider implementing
     /// <see cref="IMaskinportenClient.GetAccessToken(IEnumerable{string}, CancellationToken)"/> directly and handling the specifics manually.</p>
     /// </summary>
     /// <param name="builder">The Http client builder</param>
@@ -29,10 +29,10 @@ public static class HttpClientBuilderExtensions
     }
 
     /// <summary>
-    /// <p>Authorises all requests with Maskinporten using the provided scopes.
+    /// <p>Authorizes all requests with Maskinporten using the provided scopes.
     /// The resulting token is then exchanged for an Altinn issued token and injected in
     /// the Authorization header using the Bearer scheme.</p>
-    /// <p>If your target API does <em>not</em> use this authorisation scheme, you should consider implementing
+    /// <p>If your target API does <em>not</em> use this authorization scheme, you should consider implementing
     /// <see cref="IMaskinportenClient.GetAltinnExchangedToken(IEnumerable{string}, CancellationToken)"/> directly and handling the specifics manually.</p>
     /// </summary>
     /// <param name="builder">The Http client builder</param>
@@ -48,13 +48,13 @@ public static class HttpClientBuilderExtensions
     }
 
     /// <summary>
-    /// <p>Authorises all requests with Maskinporten using the provided token request,
+    /// <p>Authorizes all requests with Maskinporten using the provided token request,
     /// and injects the resulting token in the Authorization header using the Bearer scheme.</p>
     /// <p>Use this overload when the target API requires more than scopes, e.g. an audience-restricted
     /// (<c>resource</c>) or system user token.</p>
     /// </summary>
     /// <param name="builder">The Http client builder</param>
-    /// <param name="request">The token request to authorise every outgoing request with</param>
+    /// <param name="request">The token request to authorize every outgoing request with</param>
     public static IHttpClientBuilder UseMaskinportenAuthorization(
         this IHttpClientBuilder builder,
         MaskinportenTokenRequest request
@@ -66,13 +66,13 @@ public static class HttpClientBuilderExtensions
     }
 
     /// <summary>
-    /// <p>Authorises all requests with Maskinporten using the provided token request.
+    /// <p>Authorizes all requests with Maskinporten using the provided token request.
     /// The resulting token is then exchanged for an Altinn issued token and injected in
     /// the Authorization header using the Bearer scheme.</p>
     /// <p>Use this overload when the target API requires more than scopes, e.g. a system user token.</p>
     /// </summary>
     /// <param name="builder">The Http client builder</param>
-    /// <param name="request">The token request to authorise every outgoing request with</param>
+    /// <param name="request">The token request to authorize every outgoing request with</param>
     public static IHttpClientBuilder UseMaskinportenAltinnAuthorization(
         this IHttpClientBuilder builder,
         MaskinportenTokenRequest request

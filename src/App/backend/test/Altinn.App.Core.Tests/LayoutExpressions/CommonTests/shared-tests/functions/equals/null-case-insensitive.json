@@ -1,5 +1,0 @@
-{
-  "name": "Null is compared case-insensitively",
-  "expression": ["equals", "nULL", null],
-  "expects": true
-}

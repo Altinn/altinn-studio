@@ -8,12 +8,12 @@ import { org, app } from '@studio/testing/testids';
 import { useIsRepoOwnerOrg } from './useIsRepoOwnerOrg';
 
 describe('useIsRepoOwnerOrg', () => {
-  it('returns true when the repository owner is in the organisation list', () => {
+  it('returns true when the repository owner is in the organization list', () => {
     const { result } = renderIsRepoOwnerOrg(org);
     expect(result.current).toBe(true);
   });
 
-  it('returns false when the repository owner is not in the organisation list', () => {
+  it('returns false when the repository owner is not in the organization list', () => {
     const { result } = renderIsRepoOwnerOrg('private-user');
     expect(result.current).toBe(false);
   });

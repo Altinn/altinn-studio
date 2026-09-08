@@ -32,7 +32,7 @@ export const Config = new CG.component({
         new CG.dataModelBinding()
           .setTitle('Data binding for organization name')
           .setDescription(
-            'Describes the location in the data model where the component should store the name of the organisation.',
+            'Describes the location in the data model where the component should store the name of the organization.',
           )
           .optional(),
       ),

@@ -192,7 +192,7 @@ public class AuthorizationClient : IAuthorizationClient
             return [];
         }
 
-        List<string> organisations =
+        List<string> organizations =
         [
             .. response
                 .Response.Where(result => result.Decision == "Permit")
@@ -202,7 +202,7 @@ public class AuthorizationClient : IAuthorizationClient
                 .Select(attribute => attribute.Value),
         ];
 
-        return organisations;
+        return organizations;
     }
 
     private static XacmlJsonRequestRoot CreateXacmlJsonRequest(int userId, List<string> orgNumbers)

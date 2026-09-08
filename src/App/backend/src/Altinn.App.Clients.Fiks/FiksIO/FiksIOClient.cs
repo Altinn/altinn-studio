@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
-using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
@@ -15,7 +13,6 @@ using KS.Fiks.IO.Send.Client.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Polly;
 using RabbitMQ.Client.Events;
 using FiksResult = Altinn.App.Core.Features.Telemetry.Fiks.FiksResult;
 using IExternalFiksIOClient = KS.Fiks.IO.Client.IFiksIOClient;
@@ -28,7 +25,6 @@ internal sealed class FiksIOClient : IFiksIOClient
     private readonly IAppMetadata _appMetadata;
     private readonly IHostEnvironment _env;
     private readonly ILogger<FiksIOClient> _logger;
-    private readonly ResiliencePipeline<FiksIOMessageResponse> _resiliencePipeline;
     private IExternalFiksIOClient? _fiksIoClient;
     private readonly Telemetry? _telemetry;
     private readonly IFiksIOClientFactory _fiksIOClientFactory;
@@ -41,7 +37,6 @@ internal sealed class FiksIOClient : IFiksIOClient
     public IFiksIOAccountSettings AccountSettings => _fiksIOSettings.CurrentValue;
 
     public FiksIOClient(
-        IServiceProvider serviceProvider,
         IOptionsMonitor<FiksIOSettings> fiksIOSettings,
         IHostEnvironment env,
         IAppMetadata appMetadata,
@@ -55,7 +50,6 @@ internal sealed class FiksIOClient : IFiksIOClient
         _env = env;
         _logger = logger;
         _fiksIOClientFactory = fiksIOClientFactory;
-        _resiliencePipeline = serviceProvider.ResolveResiliencePipeline();
         _telemetry = telemetry;
 
         if (fiksIOSettings.CurrentValue is null)
@@ -84,36 +78,21 @@ internal sealed class FiksIOClient : IFiksIOClient
             request.SendersReference
         );
 
-        var numAttempts = 0;
-
+        // One attempt per call, bounded by the caller's token: retries belong to the caller — the workflow
+        // engine's step ladder for the Fiks Arkiv task, or whatever policy a standalone consumer wraps
+        // this client in.
         try
         {
-            ResilienceContext context = ResilienceContextPool.Shared.Get(cancellationToken);
-            context.Properties.Set(
-                new ResiliencePropertyKey<FiksIOMessageRequest>(FiksIOConstants.MessageRequestPropertyKey),
-                request
+            if (_fiksIoClient is null || await _fiksIoClient.IsOpenAsync().WaitAsync(cancellationToken) is false)
+                _fiksIoClient = await InitializeFiksIOClient(cancellationToken);
+
+            var externalResult = await _fiksIoClient.Send(
+                request.ToMeldingRequest(AccountSettings.AccountId),
+                request.ToPayload(),
+                cancellationToken
             );
-
-            FiksIOMessageResponse result = await _resiliencePipeline.ExecuteAsync(
-                async context =>
-                {
-                    if (_fiksIoClient is null || await _fiksIoClient.IsOpenAsync() is false)
-                        _fiksIoClient = await InitializeFiksIOClient();
-
-                    numAttempts += 1;
-
-                    var externalResult = await _fiksIoClient.Send(
-                        request.ToMeldingRequest(AccountSettings.AccountId),
-                        request.ToPayload(),
-                        cancellationToken
-                    );
-                    var result = new FiksIOMessageResponse(externalResult);
-                    _logger.LogInformation("FiksIO message sent successfully: {MessageDetails}", result);
-
-                    return result;
-                },
-                context
-            );
+            var result = new FiksIOMessageResponse(externalResult);
+            _logger.LogInformation("FiksIO message sent successfully: {MessageDetails}", result);
 
             activity?.AddTag(Telemetry.Labels.FiksMessageId, result.MessageId);
             _telemetry?.RecordFiksMessageSent(FiksResult.Success);
@@ -124,10 +103,9 @@ internal sealed class FiksIOClient : IFiksIOClient
         {
             _logger.LogError(
                 e,
-                "Failed to send message {MessageType}:{ClientMessageId} after {NumRetries} attempts: {Exception}",
+                "Failed to send message {MessageType}:{ClientMessageId}: {Exception}",
                 request.MessageType,
                 request.SendersReference,
-                numAttempts,
                 e.Message
             );
             _telemetry?.RecordFiksMessageSent(FiksResult.Error);
@@ -160,12 +138,15 @@ internal sealed class FiksIOClient : IFiksIOClient
 
     public Task Reconnect() => InitializeFiksIOClient();
 
-    internal async Task<IExternalFiksIOClient> InitializeFiksIOClient()
+    // The underlying KS APIs on this path take no CancellationToken, so the token abandons the wait
+    // (WaitAsync) rather than cancelling the work: the operation runs on in the background, and the caller
+    // — a workflow-engine step whose request-abort is the token — retries against whatever it produced.
+    internal async Task<IExternalFiksIOClient> InitializeFiksIOClient(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         var fiksIOSettings = _fiksIOSettings.CurrentValue;
-        var appMeta = await _appMetadata.GetApplicationMetadata();
+        var appMeta = await _appMetadata.GetApplicationMetadata().WaitAsync(cancellationToken);
 
         var apiHostUri = GetUri(fiksIOSettings.ApiHost);
         var amqpHostUri = GetUri(fiksIOSettings.AmqpHost);
@@ -191,12 +172,12 @@ internal sealed class FiksIOClient : IFiksIOClient
         );
 
         if (_fiksIoClient is not null)
-            await _fiksIoClient.DisposeAsync();
+            await _fiksIoClient.DisposeAsync().AsTask().WaitAsync(cancellationToken);
 
-        _fiksIoClient = await _fiksIOClientFactory.CreateClient(fiksConfiguration);
+        _fiksIoClient = await _fiksIOClientFactory.CreateClient(fiksConfiguration).WaitAsync(cancellationToken);
 
         if (_messageReceivedHandler is not null)
-            await SubscribeToEvents();
+            await SubscribeToEvents(cancellationToken);
 
         return _fiksIoClient;
     }
@@ -209,18 +190,20 @@ internal sealed class FiksIOClient : IFiksIOClient
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to initialise Fiks IO client: {ErrorMessage}", e.Message);
+            _logger.LogError(e, "Failed to initialize Fiks IO client: {ErrorMessage}", e.Message);
         }
     }
 
-    private async Task SubscribeToEvents()
+    private async Task SubscribeToEvents(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         if (_fiksIoClient is null)
             return;
 
-        await _fiksIoClient.NewSubscriptionAsync(MessageReceivedHandler, SubscriptionCancelledHandler);
+        await _fiksIoClient
+            .NewSubscriptionAsync(MessageReceivedHandler, SubscriptionCancelledHandler)
+            .WaitAsync(cancellationToken);
     }
 
     private async Task MessageReceivedHandler(MottattMeldingArgs eventArgs)

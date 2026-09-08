@@ -76,7 +76,7 @@ function logEmptyValueMulti(option: IOptionInternal) {
 /**
  * Option used for single select can be weird when containing empty values
  * If you only select the empty value, the form data will be set to an empty string (""), which we then converted to null
- * this will cause nothing to be selected. This can be resonable behavor for a Dropdown, but will look very strange in Radiobuttons
+ * this will cause nothing to be selected. This can be reasonable behavior for a Dropdown, but will look very strange in Radiobuttons
  *
  * Warning because it could be reasonable in a Dropdown component
  */

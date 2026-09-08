@@ -40,7 +40,9 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     /// time. The callback controller verifies this signature before trusting any of the blob.
     /// </summary>
     private string SignState(WorkflowCallbackState state) =>
-        Services.GetRequiredService<WorkflowStateSigner>().Sign(JsonSerializer.Serialize(state));
+        Services
+            .GetRequiredService<WorkflowStateSigner>()
+            .Sign(JsonSerializer.Serialize(state), SigningDomain.CallbackState);
 
     private static string CallbackUrl(Guid instanceGuid) =>
         $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/some-command";
@@ -127,11 +129,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
-            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Properly signed so the instance-mismatch check (not the signature check) is what rejects it.
-            State = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = SignState(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -168,11 +178,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
-            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Raw inner state, NOT wrapped in a signed envelope.
-            State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -206,7 +224,15 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
             Data = [],
         };
-        string signed = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] });
+        string signed = SignState(
+            new WorkflowCallbackState
+            {
+                Instance = stateInstance,
+                InstanceVersion = 1,
+                ProcessStateVersion = 1,
+                FormData = [],
+            }
+        );
         var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(signed)!;
         string tampered = JsonSerializer.Serialize(
             envelope with
@@ -220,9 +246,9 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
-            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             State = tampered,
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");

@@ -32,7 +32,7 @@ from agents.core.tool import Tool
 
 # Cap on a single read's payload — without this, a 200kB schema file
 # would dominate the model's context budget.  Truncation marker mirrors
-# the compaction layer's style so the model recognises it.
+# the compaction layer's style so the model recognizes it.
 _MAX_READ_CHARS = 60_000
 
 
@@ -191,7 +191,7 @@ class EditFileTool(WriteToolMixin):
         "MATCHING: `old_string` is matched as literal text (not a regex).  "
         "It must appear EXACTLY once unless you set `replace_all=true`.  "
         "If your `old_string` matches multiple places, the tool will say so "
-        "— add enough surrounding context (whitespace, neighbouring lines) "
+        "— add enough surrounding context (whitespace, neighboring lines) "
         "to make the match unique.\n\n"
         "FAILURE MODES:\n"
         "  - `File has not been read yet` — call `read_file` first.\n"

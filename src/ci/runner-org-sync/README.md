@@ -1,7 +1,7 @@
 # runner-org-sync
 
-A small, idempotent Kubernetes CronJob that bridges the Altinn organisation
-list (published on the public CDN) to the per-organisation Gitea Actions
+A small, idempotent Kubernetes CronJob that bridges the Altinn organization
+list (published on the public CDN) to the per-organization Gitea Actions
 runners running in the Studio cluster.
 
 ## What it does

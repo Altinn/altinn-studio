@@ -8,7 +8,7 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 /// <summary>
 /// Covers the semantic detection paths (see <see cref="CSharpSemanticQueries"/>): each case is either
 /// a false positive the syntax heuristics cannot avoid, or a false negative they cannot catch, with
-/// the contrasting syntax-only behaviour asserted alongside where it demonstrates the difference.
+/// the contrasting syntax-only behavior asserted alongside where it demonstrates the difference.
 /// </summary>
 public sealed class SemanticDetectionTests : IDisposable
 {

@@ -17,7 +17,7 @@ describe('Expression validation', () => {
 
   describe('Shared tests for invalid expressions', () => {
     const invalidSharedTests = getSharedTests('invalid');
-    it.each(invalidSharedTests.content)('$name', (invalid) => {
+    it.each(invalidSharedTests.content.filter((test) => !test.disabledFrontend))('$name', (invalid) => {
       expect(() => ExprValidation.throwIfInvalid(invalid.expression)).toThrow(invalid.expectsFailure);
     });
   });

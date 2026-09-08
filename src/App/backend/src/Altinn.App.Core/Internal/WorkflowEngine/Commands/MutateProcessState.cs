@@ -8,22 +8,28 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// Inserted between task-end and task-start command groups so that:
 /// - Task-end commands see the OLD CurrentTask (the task being ended)
 /// - Task-start commands see the NEW CurrentTask (the task being started)
-/// The actual persistence happens later via <see cref="SaveProcessStateToStorage"/>.
+/// The actual persistence happens later via <see cref="CommitProcessState"/>.
 ///
 /// Note: After this command runs, Storage still has the OLD process state until
-/// <see cref="SaveProcessStateToStorage"/> persists it. Any data saves by subsequent
+/// <see cref="CommitProcessState"/> persists it. Any data saves by subsequent
 /// task-start commands are authorized by Storage against the OLD current task.
 /// This works because callbacks use ServiceOwner authentication for data operations.
 /// </summary>
-internal sealed class MutateProcessState : WorkflowEngineCommandBase<SaveProcessStateToStoragePayload>
+internal sealed class MutateProcessState : WorkflowEngineCommandBase<ProcessStateChangePayload>
 {
     public static string Key => "MutateProcessState";
 
     public override string GetKey() => Key;
 
+    protected override ProcessStateChangePayload? ResolvePayload(ProcessEngineCommandContext context)
+    {
+        ProcessStateChangePayload? payload = base.ResolvePayload(context);
+        return payload?.ProcessStateChange is null ? null : payload;
+    }
+
     public override Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
-        SaveProcessStateToStoragePayload toStoragePayload
+        ProcessStateChangePayload toStoragePayload
     )
     {
         ProcessStateChange processStateChange = toStoragePayload.ProcessStateChange;
@@ -39,6 +45,7 @@ internal sealed class MutateProcessState : WorkflowEngineCommandBase<SaveProcess
         }
 
         Instance instance = context.InstanceDataMutator.Instance;
+        processStateChange.NewProcessState.Status = instance.Process?.Status;
         instance.Process = processStateChange.NewProcessState;
 
         return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());

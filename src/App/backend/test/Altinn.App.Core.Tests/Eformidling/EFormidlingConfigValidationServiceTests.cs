@@ -1,4 +1,5 @@
 using Altinn.App.Core.EFormidling;
+using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
@@ -58,7 +59,8 @@ public class EFormidlingConfigValidationServiceTests
         EFormidlingService eFormidlingService = EFormidlingService.BuiltIn,
         bool registerEFormidlingMetadata = true,
         string environment = "Production",
-        List<DataType>? dataTypes = null
+        List<DataType>? dataTypes = null,
+        string? baseUrl = "https://platform.example/eformidling/"
     )
     {
         var processReader = new Mock<IProcessReader>();
@@ -85,6 +87,7 @@ public class EFormidlingConfigValidationServiceTests
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
         services.AddSingleton(new Mock<IUserTokenProvider>().Object);
+        services.Configure<EFormidlingClientSettings>(settings => settings.BaseUrl = baseUrl);
         switch (eFormidlingService)
         {
             case EFormidlingService.BuiltIn:
@@ -126,6 +129,31 @@ public class EFormidlingConfigValidationServiceTests
     public async Task Passes_When_ConfigurationIsComplete()
     {
         await RunValidation([EFormidlingTask("Task_Send", ValidConfig())]);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Fails_When_BaseUrlIsMissing(string? baseUrl)
+    {
+        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            RunValidation([EFormidlingTask("Task_Send", ValidConfig())], baseUrl: baseUrl)
+        );
+
+        Assert.Contains(nameof(EFormidlingClientSettings.BaseUrl), exception.Message);
+    }
+
+    [Fact]
+    public async Task Passes_When_BaseUrlIsMissing_But_ServiceIsReplaced()
+    {
+        // An app that composes its own shipment does not ship through the built-in client, so it has
+        // no reason to configure one.
+        await RunValidation(
+            [EFormidlingTask("Task_Send", ValidConfig())],
+            eFormidlingService: EFormidlingService.Replaced,
+            baseUrl: null
+        );
     }
 
     [Fact]

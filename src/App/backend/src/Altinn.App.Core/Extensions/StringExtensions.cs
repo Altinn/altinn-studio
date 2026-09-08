@@ -8,7 +8,7 @@ public static class StringExtensions
     /// <summary>
     /// Checks if a given character is contained more than once within a string.
     /// </summary>
-    /// <returns>true if the string has more than one occurences of the provided char, otherwise false</returns>
+    /// <returns>true if the string has more than one occurrences of the provided char, otherwise false</returns>
     public static bool ContainsMoreThanOne(this string s, char ch)
     {
         if (s.IndexOf(ch) != s.LastIndexOf(ch))

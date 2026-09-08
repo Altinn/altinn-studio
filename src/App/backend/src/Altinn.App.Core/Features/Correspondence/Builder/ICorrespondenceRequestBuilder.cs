@@ -37,14 +37,14 @@ public interface ICorrespondenceRequestBuilderRecipients
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
     /// <param name="recipient">A recipient</param>
-    ICorrespondenceRequestBuilderContent WithRecipient(OrganisationOrPersonIdentifier recipient);
+    ICorrespondenceRequestBuilderContent WithRecipient(OrganizationOrPersonIdentifier recipient);
 
     /// <summary>
     /// <p>Adds a recipient to the correspondence.</p>
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
-    /// <param name="organisation">A recipient</param>
-    ICorrespondenceRequestBuilderContent WithRecipient(OrganisationNumber organisation);
+    /// <param name="organization">A recipient</param>
+    ICorrespondenceRequestBuilderContent WithRecipient(OrganizationNumber organization);
 
     /// <summary>
     /// <p>Adds a recipient to the correspondence.</p>
@@ -57,7 +57,7 @@ public interface ICorrespondenceRequestBuilderRecipients
     /// <p>Adds a recipient to the correspondence.</p>
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
-    /// <param name="recipient">A recipient: Either a Norwegian organisation number or national identity number</param>
+    /// <param name="recipient">A recipient: Either a Norwegian organization number or national identity number</param>
     ICorrespondenceRequestBuilderContent WithRecipient(string recipient);
 
     /// <summary>
@@ -65,13 +65,13 @@ public interface ICorrespondenceRequestBuilderRecipients
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
     /// <param name="recipients">A list of recipients</param>
-    ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<OrganisationOrPersonIdentifier> recipients);
+    ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<OrganizationOrPersonIdentifier> recipients);
 
     /// <summary>
     /// <p>Adds recipients to the correspondence.</p>
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
-    /// <param name="recipients">A list of recipients: Either Norwegian organisation numbers or national identity numbers</param>
+    /// <param name="recipients">A list of recipients: Either Norwegian organization numbers or national identity numbers</param>
     ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<string> recipients);
 }
 

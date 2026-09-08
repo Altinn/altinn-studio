@@ -41,6 +41,8 @@ public static class WorkflowEngineAppExtensions
             await app.ResetDatabaseConnectionsInDev();
             await app.ApplyDatabaseMigrations();
 
+            await app.WarmUpEngine();
+
             return app;
         }
     }

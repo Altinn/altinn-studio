@@ -45,12 +45,12 @@ describe('StudioTextarea', () => {
   });
 
   it('should render a textarea using aria-labelledby if provided', () => {
-    const labelledById: string = 'external-label';
+    const labeledById: string = 'external-label';
     renderStudioTextarea({
-      'aria-labelledby': labelledById,
+      'aria-labelledby': labeledById,
     });
     const input: HTMLTextAreaElement = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('aria-labelledby', labelledById);
+    expect(input).toHaveAttribute('aria-labelledby', labeledById);
   });
 
   it('should accept user input', async () => {

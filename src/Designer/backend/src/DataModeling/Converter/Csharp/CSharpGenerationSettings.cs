@@ -17,7 +17,7 @@ public class CSharpGenerationSettings
     public bool XmlTextValueNullableHack { get; set; } = true;
 
     /// <summary>
-    /// Add a ShouldSerialize method for to the parent property for [XmlText] elements when all attibutes are fixed
+    /// Add a ShouldSerialize method for to the parent property for [XmlText] elements when all attributes are fixed
     /// </summary>
     public bool AddShouldSerializeForTagContent { get; set; } = true;
 }

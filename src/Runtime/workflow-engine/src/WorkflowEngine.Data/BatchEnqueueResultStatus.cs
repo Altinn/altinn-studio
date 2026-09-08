@@ -21,4 +21,11 @@ internal enum BatchEnqueueResultStatus
     /// One or more workflow dependency/link references could not be resolved.
     /// </summary>
     InvalidReference,
+
+    /// <summary>
+    /// The declared mailbox does not exist in the namespace — nothing could ever release the receiver.
+    /// </summary>
+    MailboxNotFound,
+
+    MailboxLogFull,
 }

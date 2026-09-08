@@ -18,10 +18,13 @@ class _FixedDatetime(datetime):
         return FIXED_NOW
 
 
-def make_raw_trace(trace_id="trace-1", user_id="ttd", metadata=None):
+def make_raw_trace(
+    trace_id="trace-1", user_id="ttd", metadata=None, environment="default"
+):
     return {
         "id": trace_id,
         "userId": user_id,
+        "environment": environment,
         "metadata": metadata if metadata is not None else {"app_name": "ttd-app"},
         "nonRelevantAttribute": "some-value",
     }
@@ -92,6 +95,7 @@ class TestTokenUsageForWindow:
         assert traces_by_id["trace-1"] == {
             "id": "trace-1",
             "user_id": "ttd",
+            "environment": "default",
             "metadata": {"app_name": "ttd-app"},
         }
 

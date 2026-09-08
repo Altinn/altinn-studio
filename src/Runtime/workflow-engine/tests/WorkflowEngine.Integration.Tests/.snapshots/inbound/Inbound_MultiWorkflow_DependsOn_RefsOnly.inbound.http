@@ -34,7 +34,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     },
     {
       "ref": "wf-b",
@@ -63,7 +64,8 @@ Content-Type: application/json; charset=utf-8
       ],
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     },
     {
       "ref": "wf-c",
@@ -93,7 +95,8 @@ Content-Type: application/json; charset=utf-8
       ],
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     }
   ]
 }

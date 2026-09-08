@@ -54,7 +54,7 @@ public class AltinnPartyClientMock : IAltinnPartyClient
             }
         }
 
-        // Current implementation throws PlatformException if party is not found. Not sure what the correct behaviour for tests is.
+        // Current implementation throws PlatformException if party is not found. Not sure what the correct behavior for tests is.
         throw new Exception(
             $"Could not find party with orgNo {partyLookup.OrgNo} or ssn {partyLookup.Ssn} in {_partyFolder}"
         );

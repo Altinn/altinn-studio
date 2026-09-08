@@ -537,7 +537,7 @@ public class DeploymentService : IDeploymentService
         cancellationToken.ThrowIfCancellationRequested();
         // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
         // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
-        // This particular multi-step process starts mutating state by queueing the ADO build
+        // This particular multi-step process starts mutating state by queuing the ADO build
         cancellationToken = CancellationToken.None;
         var traceContext = GetCurrentTraceContext();
         var (deployToken, authHeaderName) = await GetDeployTokenAsync(editingContext.Developer);

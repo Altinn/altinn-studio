@@ -103,7 +103,7 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await textEditorPage.verifyThatTextKeyIsVisible(INITIAL_TEXT_KEY);
   await updateTextKey(textEditorPage, INITIAL_TEXT_KEY, UPDATED_TEXT_KEY);
 
-  // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has updated label
+  // When the button is clicked, it might take some ms for the API call to be executed - It is success when the textarea has updated label
   await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, UPDATED_TEXT_KEY);
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage, defaultLayoutSet);

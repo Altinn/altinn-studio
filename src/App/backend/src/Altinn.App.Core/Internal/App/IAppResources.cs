@@ -12,8 +12,8 @@ public interface IAppResources
     /// <summary>
     /// Get the app resource for the given parameters.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="textResource">the resource.</param>
     /// <returns>The app resource.</returns>
     byte[] GetText(string org, string app, string textResource);
@@ -21,8 +21,8 @@ public interface IAppResources
     /// <summary>
     /// Get the text resources in a specific language.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="language">The two letter language code.</param>
     /// <returns>The text resources in the specified language if they exist. Otherwise null.</returns>
     Task<TextResource?> GetTexts(string org, string app, string language);

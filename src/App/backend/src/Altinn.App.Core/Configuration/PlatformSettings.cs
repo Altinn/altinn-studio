@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Configuration;
 
 /// <summary>
 /// Represents a set of configuration options when communicating with the platform API.
-/// Instances of this class is initialised with values from app settings. Some values can be overridden by environment variables.
+/// Instances of this class is initialized with values from app settings. Some values can be overridden by environment variables.
 /// </summary>
 public class PlatformSettings
 {

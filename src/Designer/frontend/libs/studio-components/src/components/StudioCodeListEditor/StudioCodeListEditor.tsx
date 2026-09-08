@@ -2,20 +2,20 @@ import type { CodeList } from './types/CodeList';
 import { useMemo, useRef, useCallback, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
-import type { CodeListItem } from './types/CodeListItem';
+import type { MultiLanguageCodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
 import {
   removeCodeListItem,
   addNewCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
-  initialiseSelectedLanguage,
+  initializeSelectedLanguage,
   addLanguage,
   removeLanguage,
-  initialiseLanguageOptions,
+  initializeLanguageOptions,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
-import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
+import type { StudioCodeListEditorTexts } from './types/CodeListEditorTexts';
 import {
   StudioCodeListEditorContextProvider,
   useStudioCodeListEditorContext,
@@ -39,7 +39,7 @@ export type StudioCodeListEditorProps = Readonly<{
   fallbackLanguage: string;
   onInvalid?: () => void;
   onUpdateCodeList: (codeList: CodeList) => void;
-  texts: CodeListEditorTexts;
+  texts: StudioCodeListEditorTexts;
 }>;
 
 export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorProps): ReactElement {
@@ -105,7 +105,7 @@ function ControlledCodeListEditor({
 
   const className = cn(classes.codeListEditor, givenClass);
 
-  const [language, setLanguage] = useState(initialiseSelectedLanguage(codeList, fallbackLanguage));
+  const [language, setLanguage] = useState(initializeSelectedLanguage(codeList, fallbackLanguage));
 
   return (
     <StudioFieldset legend={texts.codeList} className={className} ref={fieldsetRef}>
@@ -144,7 +144,7 @@ function LanguagePicker({
   texts,
 }: LanguagePickerProps): ReactElement {
   const [languageCodes, setLanguageCodes] = useState<string[]>(
-    initialiseLanguageOptions(codeList, fallbackLanguage),
+    initializeLanguageOptions(codeList, fallbackLanguage),
   );
 
   const handleAddLanguage = useCallback(
@@ -234,7 +234,7 @@ function TableBody({
   );
 
   const handleChangeCodeListItem = useCallback(
-    (index: number, newItem: CodeListItem) => {
+    (index: number, newItem: MultiLanguageCodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
       onChangeCodeList(updatedCodeList);
     },

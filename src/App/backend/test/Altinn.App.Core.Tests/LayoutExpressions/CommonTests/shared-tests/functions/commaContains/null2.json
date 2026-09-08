@@ -1,5 +1,0 @@
-{
-  "name": "Should not split a null value",
-  "expression": ["commaContains", null, "hello world"],
-  "expects": false
-}

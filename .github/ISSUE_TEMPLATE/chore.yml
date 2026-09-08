@@ -29,10 +29,10 @@ body:
       description: Add tasks to be done as part of this issue.
 
   - type: textarea
-    id: acceptance-criterias
+    id: acceptance-criteria
     attributes:
-      label: Acceptance Criterias
-      description: Define the acceptance criterias that this user story should testet against (if relevant).
+      label: Acceptance Criteria
+      description: Define the acceptance criteria that this user story should testet against (if relevant).
 
   - type: markdown
     attributes:

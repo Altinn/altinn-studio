@@ -13,9 +13,22 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         .and_then(agent::sandbox::Assignment::id)
         .map_or_else(|| "-".into(), ToString::to_string);
 
+    let source = agent.status.provenance.as_ref().map_or_else(
+        || "-".into(),
+        |provenance| {
+            provenance
+                .manifest_path
+                .as_ref()
+                .unwrap_or(&provenance.source_directory)
+                .display()
+                .to_string()
+        },
+    );
+
     let mut lines = vec![
         format!("Name:       {}", agent.metadata.name),
         format!("Generation: {}", agent.metadata.generation),
+        format!("Source:     {source}"),
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
@@ -59,7 +72,12 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
             } else {
                 ""
             };
-            format!("{} {}{suffix}", harness.kind.as_str(), harness.version)
+            let version = harness
+                .version
+                .as_deref()
+                .map(|version| format!(" {version}"))
+                .unwrap_or_default();
+            format!("{}{version}{suffix}", harness.kind.as_str())
         })
         .collect::<Vec<_>>()
         .join(", ")

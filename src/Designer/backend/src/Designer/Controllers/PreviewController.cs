@@ -86,8 +86,8 @@ public partial class PreviewController(
     /// <summary>
     /// Endpoint to fetch the cshtml to render app-frontend specific to what is defined in the app-repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The cshtml modified to ignore this route path added in the iframe.</returns>
     [HttpGet]
@@ -124,8 +124,8 @@ public partial class PreviewController(
     /// uses browser routing, so these real paths must return the index HTML rather than being treated as
     /// image requests by the catch-all route below.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The generated v9 preview index HTML, or NotFound for non-v9 apps.</returns>
     [HttpGet]
@@ -151,8 +151,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting local app-images
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="imageFilePath">A path to the image location, including file name, consisting of an arbitrary amount of directories</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The specified local app-image as Stream</returns>
@@ -186,8 +186,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the application metadata
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The application metadata for the app</returns>
     [HttpGet]
@@ -209,8 +209,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for mocking a response containing the application settings
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>ApplicationSettings</returns>
     [HttpGet]
@@ -242,8 +242,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the layout sets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>layoutsets file, or an OK response if app does not use layoutsets</returns>
     [HttpGet]
@@ -271,8 +271,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the layout settings for apps without layoutsets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>layoutsettings</returns>
     [HttpGet]
@@ -304,8 +304,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the layout settings for apps with layout sets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set to get layout settings from</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>layoutsettings</returns>
@@ -343,8 +343,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for responding to keepAlive
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>200 Ok</returns>
     [HttpGet]
     [Route("api/authentication/keepAlive")]
@@ -356,8 +356,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting a response from v1/data/anonymous
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>Empty object</returns>
     [HttpGet]
     [Route("api/v1/data/anonymous")]
@@ -370,8 +370,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for mocking a response to the profile user
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>An example user</returns>
     [HttpGet]
     [Route("api/v1/profile/user")]
@@ -383,8 +383,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for mocking a response to the current party
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>An example party</returns>
     [HttpGet]
     [Route("api/authorization/parties/current")]
@@ -432,8 +432,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the text resource file
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="languageCode">Language code</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Nb text resource file</returns>
@@ -459,8 +459,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the mocked instance id
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The mocked instance object</returns>
     [HttpGet]
@@ -485,8 +485,8 @@ public partial class PreviewController(
     /// Action for mocking a response to getting all text resources
     /// </summary>
     /// <remarks>Hardcoded to only serve norwegian bokmal resource file</remarks>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Single text resource file</returns>
     [HttpGet]
@@ -510,8 +510,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the datamodel as jsonschema
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="datamodel">Datamodel used by the application</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>datamodel as json schema</returns>
@@ -557,8 +557,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the form layout
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Request form layout as byte array</returns>
     [HttpGet]
@@ -584,8 +584,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting form layouts for a specific layout set
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set to get layouts from</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A List of form layouts as byte array</returns>
@@ -616,8 +616,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the ruleHandler
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Rule handler as string or no content if not found</returns>
     [HttpGet]
@@ -644,8 +644,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the ruleHandler for apps with layout sets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set to get rule handler from</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Rule handler as string or no content if not found</returns>
@@ -678,8 +678,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the ruleConfiguration
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Rule configuration as string or no content if not found</returns>
     [HttpGet]
@@ -713,8 +713,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting the ruleConfiguration for apps with layout sets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set to get rule config from</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Rule configuration as string or no content if not found</returns>
@@ -750,8 +750,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting application languages
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>List of application languages in the format [{language: "nb"}, {language: "en"}]</returns>
     [HttpGet]
     [Route("api/v1/applicationlanguages")]
@@ -778,8 +778,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for getting options list for a given options list id
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="optionsListIdOrLibraryRef">The id or reference to the options list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The options list if it exists, otherwise nothing</returns>
@@ -833,8 +833,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for mocking the GET method for app footer
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Empty response</returns>
     [HttpGet]
@@ -861,8 +861,8 @@ public partial class PreviewController(
     /// <summary>
     /// Action for mocking the GET method for app validation config
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="modelname">The name of the model to validate</param>
     /// <returns>Empty response</returns>
     [HttpGet]
@@ -873,11 +873,11 @@ public partial class PreviewController(
     }
 
     /// <summary>
-    /// Action for mocking the GET method for organisation lookup for v4 apps
+    /// Action for mocking the GET method for organization lookup for v4 apps
     /// </summary>
     /// <param name="org">The org</param>
     /// <param name="app">The app</param>
-    /// <param name="organisationNumber">The organisation number to lookup</param>
+    /// <param name="organisationNumber">The organization number to look up</param>
     /// <returns></returns>
     [HttpGet]
     [Route("api/v1/lookup/organisation/{organisationNumber}")]

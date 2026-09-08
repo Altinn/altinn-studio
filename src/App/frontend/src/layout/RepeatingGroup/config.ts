@@ -37,6 +37,13 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
       name: 'addButtonFull',
       title: 'Add button (full) (for repeating groups)',
       description: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
@@ -307,7 +314,7 @@ export const Config = new CG.component({
                 .setTitle('Show in expanded edit')
                 .setDescription(
                   'If set to true, the component will be shown in the expanded edit view. This is also the default ' +
-                    'behaviour, but can be turned off for components that are only to be edited in the table view.',
+                    'behavior, but can be turned off for components that are only to be edited in the table view.',
                 ),
             ),
           )

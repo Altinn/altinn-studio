@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => {
       // `cssTarget` defaults to `target`, which would make the CSS minifier read "es2020" as a
       // browser baseline old enough to lack `:is()`, and downlevel it to the legacy
       // `:-webkit-any()`. That is not a safe rewrite. Webpack shipped this CSS
-      // untransformed, so keep it that way. (not setting cssTarget gave screenshot diff i percy in LIst-Component)
+      // untransformed, so keep it that way. (not setting cssTarget gave screenshot diff in percy in List-Component)
       cssTarget: 'esnext',
       sourcemap: isDevBuild ? 'inline' : false,
       minify: !isDevBuild,

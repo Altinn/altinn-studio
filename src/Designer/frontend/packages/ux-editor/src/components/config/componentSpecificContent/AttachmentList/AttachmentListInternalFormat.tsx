@@ -3,12 +3,12 @@ import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
-import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
+import type { AvailableAttachmentLists, InternalDataTypesFormat } from './types';
 import { StudioFieldset, StudioSwitch, StudioValidationMessage } from '@studio/components';
 
 type AttachmentListInternalFormatProps = {
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;
-  availableAttachments: AvailableAttachementLists;
+  availableAttachments: AvailableAttachmentLists;
   internalDataFormat: InternalDataTypesFormat;
   isTaskCustomReceipt: boolean;
   className?: string;

@@ -1,9 +1,10 @@
 export const app = 'testApp';
+export const appValidationAreaId = (area) => `app-validation-area-${area}`;
 export const layoutSet = 'test-layout-set';
 export const appContentWrapperId = 'app-content-wrapper';
 export const conditionalRenderingDeleteButtonId = 'delete_field_button';
 export const conditionalRenderingOutputFieldId = 'conditional-rendering-output-field';
-export const dataModellingContainerId = 'data-modelling-container';
+export const dataModelingContainerId = 'data-modeling-container';
 export const deleteButtonId = (key) => `delete-button-${key}`;
 export const draggableToolbarItemId = 'draggableToolbarItem';
 export const droppableListId = 'droppableList';

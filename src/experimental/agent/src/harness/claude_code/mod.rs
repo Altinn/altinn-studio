@@ -102,7 +102,10 @@ pub(super) async fn bootstrap_linux(
     bootstrap::configure_linux(sandbox, home, instructions).await
 }
 
-pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {
+pub(super) async fn verify_linux(
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
     use sandbox::{SandboxPath, execution::ExecutionSpec};
 
     let output = sandbox
@@ -113,7 +116,7 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .await?;
     if !output.status.success() {
         return Err(Error::SandboxSetup(format!(
-            "declared Claude Code {expected_version:?} is missing or `claude --version` exited with code {}",
+            "Claude Code is missing or `claude --version` exited with code {}",
             output.status.code
         )));
     }
@@ -123,9 +126,9 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .split_whitespace()
         .next()
         .ok_or_else(|| Error::SandboxSetup("`claude --version` returned no version".into()))?;
-    if installed != expected_version {
+    if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
         return Err(Error::SandboxSetup(format!(
-            "declared Claude Code version {expected_version:?} does not match installed version {installed:?}"
+            "declared Claude Code version {expected:?} does not match installed version {installed:?}"
         )));
     }
     Ok(())
@@ -133,12 +136,12 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
 
 pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.claude");
-    // The mediated setup token cannot enumerate models, so Fable 5 never appears in the /model
+    // The mediated setup token cannot enumerate models, so Fable never appears in the /model
     // picker (same inference-only-scope limitation as the usage-credits gate handled in bootstrap).
-    // Launch on Fable 5 directly; users can still switch to the listed models via /model. Revisit
-    // when github.com/anthropics/claude-code#79360 ships.
-    let base =
-        format!("claude --dangerously-skip-permissions --model claude-fable-5 --settings {config}/agent-settings.json");
+    // Launch on the `fable` alias directly so the sandbox tracks the latest Fable release; users
+    // can still switch to the listed models via /model. Revisit when
+    // github.com/anthropics/claude-code#79360 ships.
+    let base = format!("claude --dangerously-skip-permissions --model fable --settings {config}/agent-settings.json");
     // Claude Code currently reports UUID conversation IDs. Keep that
     // harness-specific constraint out of the generic Session reconciler.
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());

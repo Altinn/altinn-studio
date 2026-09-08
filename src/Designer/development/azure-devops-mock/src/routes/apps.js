@@ -74,7 +74,7 @@ export const appMetadataRoute = async (req, res) => {
     ],
     partyTypesAllowed: {
       bankruptcyEstate: false,
-      organisation: false,
+      organization: false,
       person: false,
       subUnit: false,
     },

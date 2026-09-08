@@ -1,4 +1,4 @@
-import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/hooks';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import type { AddedItem } from '../../types';
 

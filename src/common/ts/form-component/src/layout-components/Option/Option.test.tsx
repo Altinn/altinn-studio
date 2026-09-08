@@ -23,9 +23,9 @@ describe('Option', () => {
     renderWithTranslations(<Option componentId='option-1' title='my.title' optionLabel='Hund' />, {
       overrides: { 'my.title': 'Dyreart' },
     });
-    const labelled = document.querySelector('[aria-labelledby="label-option-1"]');
-    expect(labelled).toBeInTheDocument();
-    expect(labelled).toHaveTextContent('Hund');
+    const labeled = document.querySelector('[aria-labelledby="label-option-1"]');
+    expect(labeled).toBeInTheDocument();
+    expect(labeled).toHaveTextContent('Hund');
     expect(document.getElementById('label-option-1')).toBeInTheDocument();
   });
 

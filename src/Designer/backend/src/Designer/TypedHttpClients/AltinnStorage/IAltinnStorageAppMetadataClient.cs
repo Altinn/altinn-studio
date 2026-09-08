@@ -14,8 +14,8 @@ public interface IAltinnStorageAppMetadataClient
     /// <summary>
     /// Creates application metadata for an application in Platform.Storage
     /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="app">Application connected to the organisation</param>
+    /// <param name="org">Organization</param>
+    /// <param name="app">Application connected to the organization</param>
     /// <param name="applicationMetadata">Application</param>
     /// <param name="envName">Environment Name</param>
     /// <returns></returns>

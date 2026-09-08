@@ -89,7 +89,7 @@ const renderStudioResizableLayoutContainer = (
         maximumSize={maximumSize}
         collapsed={collapsed}
         collapsedSize={400}
-        hasNeighbour={true}
+        hasNeighbor={true}
       >
         <div>test1</div>
       </StudioResizableLayoutElement>
@@ -98,7 +98,7 @@ const renderStudioResizableLayoutContainer = (
         maximumSize={maximumSize}
         collapsed={collapsed}
         collapsedSize={400}
-        hasNeighbour={true}
+        hasNeighbor={true}
         disableRightHandle={true}
       >
         <div>test2</div>

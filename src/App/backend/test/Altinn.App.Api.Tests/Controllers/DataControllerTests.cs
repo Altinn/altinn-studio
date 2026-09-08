@@ -7,6 +7,7 @@ using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -85,7 +86,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -118,7 +119,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -153,7 +154,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserFailureStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerFailureStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -215,6 +216,9 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
 
         MemoryStream dataStream = new([1, 2, 3]);
         Mock<IDataClient> dataClient = new();
+        // The app resolves the metadata and mutation clients by casting the registered IDataClient.
+        dataClient.As<IDataClientWithStorageMetadata>();
+        dataClient.As<IInstanceMutationClient>();
         dataClient
             .Setup(d =>
                 d.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, null, It.IsAny<CancellationToken>())
@@ -222,6 +226,22 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
             .ReturnsAsync(dataStream);
 
         Mock<IInstanceClient> instanceClient = new();
+        // The controller reads the instance through the storage-metadata client, which the app resolves by
+        // casting the registered IInstanceClient.
+        Mock<IInstanceClientWithStorageMetadata> metadataInstanceClient =
+            instanceClient.As<IInstanceClientWithStorageMetadata>();
+        metadataInstanceClient
+            .Setup(i =>
+                i.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, new StorageVersionMetadata()));
         instanceClient
             .Setup(i =>
                 i.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, null, It.IsAny<CancellationToken>())
@@ -289,6 +309,9 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         };
 
         Mock<IDataClient> dataClient = new();
+        // The app resolves the metadata and mutation clients by casting the registered IDataClient.
+        dataClient.As<IDataClientWithStorageMetadata>();
+        dataClient.As<IInstanceMutationClient>();
         dataClient
             .Setup(d =>
                 d.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, null, It.IsAny<CancellationToken>())
@@ -296,6 +319,22 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
             .ThrowsAsync(new PlatformHttpException(HttpStatusCode.NotFound, "data element not found"));
 
         Mock<IInstanceClient> instanceClient = new();
+        // The controller reads the instance through the storage-metadata client, which the app resolves by
+        // casting the registered IInstanceClient.
+        Mock<IInstanceClientWithStorageMetadata> metadataInstanceClient =
+            instanceClient.As<IInstanceClientWithStorageMetadata>();
+        metadataInstanceClient
+            .Setup(i =>
+                i.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, new StorageVersionMetadata()));
         instanceClient
             .Setup(i =>
                 i.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, null, It.IsAny<CancellationToken>())
@@ -337,16 +376,16 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 }
 
-public class MimeTypeAnalyserSuccessStub : IFileAnalyser
+public class MimeTypeAnalyzerSuccessStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)
@@ -359,16 +398,16 @@ public class MimeTypeAnalyserSuccessStub : IFileAnalyser
     }
 }
 
-public class MimeTypeAnalyserFailureStub : IFileAnalyser
+public class MimeTypeAnalyzerFailureStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)

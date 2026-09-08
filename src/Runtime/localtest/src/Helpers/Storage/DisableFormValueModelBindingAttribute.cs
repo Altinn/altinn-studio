@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Altinn.Platform.Storage.Helpers
 {
     /// <summary>
-    /// Turns of binding of attachement
+    /// Turns of binding of attachment
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class DisableFormValueModelBindingAttribute : Attribute, IResourceFilter
@@ -20,6 +20,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             var factories = context.ValueProviderFactories;
             factories.RemoveType<FormValueProviderFactory>();
+            factories.RemoveType<FormFileValueProviderFactory>();
             factories.RemoveType<JQueryFormValueProviderFactory>();
         }
 

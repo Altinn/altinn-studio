@@ -98,7 +98,7 @@ public class DataModelWrapper
         }
         else
         {
-            rowIndexes = default; //when you use a literal index, the context indecies are not to be used later.
+            rowIndexes = default; //when you use a literal index, the context indices are not to be used later.
         }
 
         var elementAt = GetElementAt(childModelList, groupIndex.Value);
@@ -359,7 +359,7 @@ public class DataModelWrapper
     /// indexes = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
-    public string AddIndicies(string field, ReadOnlySpan<int> rowIndexes = default)
+    public string AddIndices(string field, ReadOnlySpan<int> rowIndexes = default)
     {
         if (rowIndexes.Length == 0)
         {

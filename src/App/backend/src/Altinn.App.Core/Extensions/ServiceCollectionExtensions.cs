@@ -8,7 +8,7 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
-using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Features.Notifications.Cancellation;
 using Altinn.App.Core.Features.Notifications.Email;
@@ -48,7 +48,6 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Files;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
@@ -111,8 +110,17 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
         services.AddHttpClient<IAuthorizationClient, AuthorizationClient>();
         services.AddHttpClient<IDataClient, DataClient>();
+        services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+            (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+        );
+        services.AddTransient<IInstanceMutationClient>(sp =>
+            (IInstanceMutationClient)sp.GetRequiredService<IDataClient>()
+        );
         services.AddHttpClient<IOrganizationClient, RegisterERClient>();
         services.AddHttpClient<IInstanceClient, InstanceClient>();
+        services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+        );
         services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();
@@ -123,7 +131,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IText, TextClient>();
 #pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
-        services.AddSingleton<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
 
@@ -225,7 +232,7 @@ public static class ServiceCollectionExtensions
         AddNotificationServices(services);
         AddProcessServices(services);
         services.AddWorkflowEngineIntegration();
-        AddFileAnalyserServices(services);
+        AddFileAnalyzerServices(services);
         AddFileValidatorServices(services);
 
         if (!env.IsDevelopment())
@@ -369,8 +376,6 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
 
-        services.AddSingleton<IInstanceLocker, InstanceLocker>();
-
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();
         services.AddTransient<IProcessTask, ConfirmationProcessTask>();
@@ -395,10 +400,10 @@ public static class ServiceCollectionExtensions
         services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");
     }
 
-    private static void AddFileAnalyserServices(IServiceCollection services)
+    private static void AddFileAnalyzerServices(IServiceCollection services)
     {
         services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
-        services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        services.TryAddTransient<IFileAnalyzerFactory, FileAnalyzerFactory>();
     }
 
     private static void AddFileValidatorServices(IServiceCollection services)

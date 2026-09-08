@@ -10,7 +10,7 @@ public interface ISharedContentClient
     /// <summary>
     /// Publishes a code list to shared content storage.
     /// </summary>
-    /// <param name="orgName">The organisation identifier.</param>
+    /// <param name="orgName">The organization identifier.</param>
     /// <param name="codeListId">The code list id.</param>
     /// <param name="codeList">The code list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -23,9 +23,9 @@ public interface ISharedContentClient
     );
 
     /// <summary>
-    /// Gets a published code list for an organisation.
+    /// Gets a published code list for an organization.
     /// </summary>
-    /// <param name="orgName">Organisation name.</param>
+    /// <param name="orgName">Organization name.</param>
     /// <param name="codeListId">The code list id.</param>
     /// <param name="version">The code list version.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -38,9 +38,9 @@ public interface ISharedContentClient
     );
 
     /// <summary>
-    /// Gets all the published library elements for the organisation.
+    /// Gets all the published library elements for the organization.
     /// </summary>
-    /// <param name="orgName">Organisation.</param>
+    /// <param name="orgName">Organization.</param>
     /// <param name="path">Path to a folder.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The published library elements from mentioned path.</returns>

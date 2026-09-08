@@ -10,7 +10,7 @@ import type { AxiosError } from 'axios';
 /**
  * Query to get the metadata of an app.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param app the app the user is in
  * @param meta the query meta data
  *

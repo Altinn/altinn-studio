@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, path::PathBuf};
 
 use agent::{
     Agent, ConditionStatus, Harness,
@@ -6,7 +6,7 @@ use agent::{
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::format;
+use crate::{format, forward::ForwardSpec};
 
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
@@ -20,6 +20,36 @@ pub(crate) struct App {
     pub(crate) error: Option<String>,
     pub(crate) detail: Option<Detail>,
     pub(crate) modal: Option<Modal>,
+    pub(crate) forwards: Vec<ForwardEntry>,
+    pub(crate) view: View,
+    pub(crate) forward_selected: usize,
+    pub(crate) creating: usize,
+    pub(crate) discovering: bool,
+    pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
+}
+
+/// Display state of one process-owned port forward.
+pub(crate) struct ForwardEntry {
+    pub(crate) id: u64,
+    pub(crate) agent: String,
+    pub(crate) local: String,
+    pub(crate) guest_port: u16,
+    pub(crate) status: Option<String>,
+}
+
+impl ForwardEntry {
+    /// Renders the mapping as `LOCAL:GUEST`, keeping a non-loopback address.
+    fn mapping(&self) -> String {
+        let local = self.local.strip_prefix("127.0.0.1:").unwrap_or(&self.local);
+        format!("{local}:{}", self.guest_port)
+    }
+}
+
+/// Which main screen the TUI is showing.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum View {
+    Tree,
+    Forwards,
 }
 
 pub(crate) struct Group {
@@ -51,6 +81,198 @@ pub(crate) enum Modal {
         harness: usize,
         error: Option<String>,
     },
+    CreateAgent(CreateForm),
+    PortForward(ForwardForm),
+}
+
+/// One manifest source offered by the create-agent picker.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ManifestCandidate {
+    /// Full path of the manifest file.
+    pub(crate) path: PathBuf,
+    /// Decoded `metadata.name`, or why the manifest cannot be used.
+    pub(crate) name: Result<String, String>,
+}
+
+/// Create-agent form state: a manifest picker plus a placeholder-backed name.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct CreateForm {
+    pub(crate) candidates: Vec<ManifestCandidate>,
+    pub(crate) selected: usize,
+    pub(crate) name: String,
+    pub(crate) error: Option<String>,
+}
+
+impl CreateForm {
+    /// Returns the selected manifest's name, shown grayed while nothing is typed.
+    pub(crate) fn placeholder(&self) -> Option<&str> {
+        self.candidates.get(self.selected)?.name.as_deref().ok()
+    }
+
+    /// Applies one key press; a submitted or cancelled form returns its Action.
+    fn key(&mut self, key: KeyEvent, agents: &[Agent]) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter => match self.submission(agents) {
+                Ok(action) => return Some(action),
+                Err(invalid) => self.error = Some(invalid),
+            },
+            KeyCode::Tab | KeyCode::Right | KeyCode::Down => self.select(1),
+            KeyCode::BackTab | KeyCode::Left | KeyCode::Up => self.select(-1),
+            KeyCode::Backspace => {
+                self.name.pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                    && ::sandbox::SandboxName::accepts(character)
+                    && self.name.len() < ::sandbox::MAX_SANDBOX_NAME_BYTES =>
+            {
+                self.name.push(character);
+                self.error = None;
+            }
+            _ => {}
+        }
+        None
+    }
+
+    fn select(&mut self, delta: isize) {
+        if self.candidates.is_empty() {
+            return;
+        }
+        let length = isize::try_from(self.candidates.len()).unwrap_or(1);
+        let current = isize::try_from(self.selected).unwrap_or_default();
+        self.selected = usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default();
+        self.error = None;
+    }
+
+    fn submission(&self, agents: &[Agent]) -> Result<Action, String> {
+        let candidate = self
+            .candidates
+            .get(self.selected)
+            .ok_or_else(|| "no manifest available; apply one with agentctl apply -f".to_owned())?;
+        let manifest_name = candidate.name.as_ref().map_err(Clone::clone)?;
+        let name = if self.name.is_empty() {
+            manifest_name.clone()
+        } else {
+            self.name.clone()
+        };
+        ::sandbox::SandboxName::new(name.clone()).map_err(|invalid| format!("name: {invalid}"))?;
+        if agents.iter().any(|agent| agent.metadata.name == name) {
+            return Err(format!("agent {name:?} already exists"));
+        }
+        Ok(Action::CreateAgent {
+            manifest: candidate.path.clone(),
+            name,
+            form: self.clone(),
+        })
+    }
+}
+
+/// k9s-style port-forward form state.
+pub(crate) struct ForwardForm {
+    pub(crate) agent: String,
+    pub(crate) address: String,
+    pub(crate) local: String,
+    pub(crate) guest: String,
+    pub(crate) field: ForwardField,
+    pub(crate) error: Option<String>,
+    pub(crate) replace: Option<u64>,
+}
+
+impl ForwardForm {
+    /// Reopens the form for a mapping the runtime rejected, keeping its values.
+    pub(crate) fn rejected(agent: String, spec: &ForwardSpec, replace: Option<u64>, error: String) -> Self {
+        Self {
+            agent,
+            address: spec.address.to_string(),
+            local: if spec.local_port == 0 {
+                String::new()
+            } else {
+                spec.local_port.to_string()
+            },
+            guest: spec.guest_port.to_string(),
+            field: ForwardField::Address,
+            error: Some(bind_hint(spec, error)),
+            replace,
+        }
+    }
+
+    /// Applies one key press; a submitted or cancelled form returns its Action.
+    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter => {
+                let local = if self.local.is_empty() {
+                    &self.guest
+                } else {
+                    &self.local
+                };
+                match ForwardSpec::parse(&format!("{}:{local}:{}", self.address, self.guest)) {
+                    Ok(spec) => {
+                        return Some(Action::CreateForward {
+                            agent: self.agent.clone(),
+                            spec,
+                            replace: self.replace,
+                        });
+                    }
+                    Err(invalid) => self.error = Some(invalid),
+                }
+            }
+            KeyCode::Tab | KeyCode::Down => self.field = self.field.next(),
+            KeyCode::BackTab | KeyCode::Up => self.field = self.field.previous(),
+            KeyCode::Backspace => {
+                self.field_text().pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                    && forward_field_accepts(self.field, character) =>
+            {
+                let text = self.field_text();
+                if text.len() < 45 {
+                    text.push(character);
+                    self.error = None;
+                }
+            }
+            _ => {}
+        }
+        None
+    }
+
+    const fn field_text(&mut self) -> &mut String {
+        match self.field {
+            ForwardField::Address => &mut self.address,
+            ForwardField::LocalPort => &mut self.local,
+            ForwardField::GuestPort => &mut self.guest,
+        }
+    }
+}
+
+/// One editable field of the port-forward form.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ForwardField {
+    Address,
+    LocalPort,
+    GuestPort,
+}
+
+impl ForwardField {
+    const fn next(self) -> Self {
+        match self {
+            Self::Address => Self::LocalPort,
+            Self::LocalPort => Self::GuestPort,
+            Self::GuestPort => Self::Address,
+        }
+    }
+
+    const fn previous(self) -> Self {
+        match self {
+            Self::Address => Self::GuestPort,
+            Self::LocalPort => Self::Address,
+            Self::GuestPort => Self::LocalPort,
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -67,11 +289,25 @@ pub(crate) enum Action {
         session: SessionName,
         harness: Harness,
     },
+    OpenCreate,
+    CreateAgent {
+        manifest: PathBuf,
+        name: String,
+        form: CreateForm,
+    },
     Exec {
         agent: String,
     },
     Delete {
         agent: String,
+    },
+    CreateForward {
+        agent: String,
+        spec: ForwardSpec,
+        replace: Option<u64>,
+    },
+    DeleteForward {
+        id: u64,
     },
 }
 
@@ -106,6 +342,12 @@ impl App {
             error: None,
             detail: None,
             modal: None,
+            forwards: Vec::new(),
+            view: View::Tree,
+            forward_selected: 0,
+            creating: 0,
+            discovering: false,
+            queued_candidates: None,
         }
     }
 
@@ -179,6 +421,11 @@ impl App {
             self.detail_key(key);
             return Action::None;
         }
+        // The error screen renders over the forwards view, so its keys must
+        // win over forwards_key while an error is shown.
+        if self.view == View::Forwards && self.error.is_none() {
+            return self.forwards_key(key);
+        }
         self.main_key(key)
     }
 
@@ -189,6 +436,8 @@ impl App {
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
             KeyCode::Char('r') => return Action::Refresh,
             KeyCode::Char('z') => self.toggle_all(),
+            KeyCode::Char('F') => self.view = View::Forwards,
+            KeyCode::Char('c') => return Action::OpenCreate,
             _ => {
                 return match self.selected_row() {
                     Some(Row::Agent(group)) => self.agent_key(key, group),
@@ -196,6 +445,40 @@ impl App {
                     None => Action::None,
                 };
             }
+        }
+        Action::None
+    }
+
+    fn forwards_key(&mut self, key: KeyEvent) -> Action {
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q' | 'F') => self.view = View::Tree,
+            KeyCode::Down | KeyCode::Char('j') => self.move_forward_selection(1),
+            KeyCode::Up | KeyCode::Char('k') => self.move_forward_selection(-1),
+            KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                if let Some(entry) = self.forwards.get(self.forward_selected) {
+                    return Action::DeleteForward { id: entry.id };
+                }
+            }
+            KeyCode::Char('e') => {
+                if let Some(entry) = self.forwards.get(self.forward_selected) {
+                    let (address, local) = entry
+                        .local
+                        .rsplit_once(':')
+                        .map_or((String::new(), String::new()), |(address, local)| {
+                            (address.to_owned(), local.to_owned())
+                        });
+                    self.modal = Some(Modal::PortForward(ForwardForm {
+                        agent: entry.agent.clone(),
+                        address,
+                        local,
+                        guest: entry.guest_port.to_string(),
+                        field: ForwardField::LocalPort,
+                        error: None,
+                        replace: Some(entry.id),
+                    }));
+                }
+            }
+            _ => {}
         }
         Action::None
     }
@@ -237,6 +520,17 @@ impl App {
             }
             KeyCode::Char('n') => self.open_new_session(group),
             KeyCode::Char('e') => return Action::Exec { agent: name },
+            KeyCode::Char('f') => {
+                self.modal = Some(Modal::PortForward(ForwardForm {
+                    agent: name,
+                    address: "127.0.0.1".into(),
+                    local: String::new(),
+                    guest: String::new(),
+                    field: ForwardField::GuestPort,
+                    error: None,
+                    replace: None,
+                }));
+            }
             _ => {}
         }
         Action::None
@@ -351,7 +645,73 @@ impl App {
                 });
                 Action::None
             }
+            Some(Modal::CreateAgent(mut form)) => {
+                if let Some(action) = form.key(key, &self.agents) {
+                    return action;
+                }
+                self.modal = Some(Modal::CreateAgent(form));
+                Action::None
+            }
+            Some(Modal::PortForward(mut form)) => {
+                if let Some(action) = form.key(key) {
+                    return action;
+                }
+                self.modal = Some(Modal::PortForward(form));
+                Action::None
+            }
             None => Action::None,
+        }
+    }
+
+    /// Opens the create-agent modal for finished discovery, or queues the
+    /// candidates while another view is open.
+    pub(crate) fn manifests_discovered(&mut self, candidates: Vec<ManifestCandidate>) {
+        if !std::mem::take(&mut self.discovering) {
+            return;
+        }
+        if self.idle() {
+            self.open_create(candidates);
+        } else {
+            self.queued_candidates = Some(candidates);
+        }
+    }
+
+    /// Opens the create-agent modal for candidates queued behind another view once it closes.
+    pub(crate) fn open_queued_create(&mut self) {
+        if self.idle()
+            && let Some(candidates) = self.queued_candidates.take()
+        {
+            self.open_create(candidates);
+        }
+    }
+
+    /// Opens the create-agent modal, preselecting the highlighted Agent's manifest.
+    pub(crate) fn open_create(&mut self, candidates: Vec<ManifestCandidate>) {
+        let manifest = match self.selected_row() {
+            Some(Row::Agent(group) | Row::Session { group, .. }) => self
+                .group_agent(group)
+                .and_then(|agent| agent.status.provenance.as_ref())
+                .map(agent::Provenance::manifest_or_default),
+            None => None,
+        };
+        let selected = manifest
+            .and_then(|manifest| candidates.iter().position(|candidate| candidate.path == manifest))
+            .unwrap_or_default();
+        self.modal = Some(Modal::CreateAgent(CreateForm {
+            candidates,
+            selected,
+            name: String::new(),
+            error: None,
+        }));
+    }
+
+    pub(crate) fn select_agent(&mut self, name: &str) {
+        let position = self.rows.iter().position(|row| {
+            matches!(row, Row::Agent(group)
+                if self.group_agent(*group).is_some_and(|agent| agent.metadata.name == name))
+        });
+        if let Some(position) = position {
+            self.selected = position;
         }
     }
 
@@ -391,6 +751,21 @@ impl App {
         self.rebuild();
     }
 
+    fn move_forward_selection(&mut self, delta: isize) {
+        if self.forwards.is_empty() {
+            return;
+        }
+        let length = isize::try_from(self.forwards.len()).unwrap_or(1);
+        let current = isize::try_from(self.forward_selected).unwrap_or_default();
+        self.forward_selected = usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default();
+    }
+
+    /// Replaces the forward display list, keeping the selection in range.
+    pub(crate) fn set_forwards(&mut self, forwards: Vec<ForwardEntry>) {
+        self.forwards = forwards;
+        self.forward_selected = self.forward_selected.min(self.forwards.len().saturating_sub(1));
+    }
+
     fn move_selection(&mut self, delta: isize) {
         if self.rows.is_empty() {
             return;
@@ -427,11 +802,23 @@ impl App {
                         "▾ "
                     };
                     let (tone, status) = agent_tone(agent);
+                    let forwards = self
+                        .forwards
+                        .iter()
+                        .filter(|entry| entry.agent == agent.metadata.name)
+                        .map(ForwardEntry::mapping)
+                        .collect::<Vec<_>>();
+                    let forward_badge = if forwards.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" · ports: {}", forwards.join(" "))
+                    };
+                    let badge = format!("{running}/{} · {status}{forward_badge}", sessions.len());
                     Some(RowView {
                         marker,
                         dot: None,
                         label: agent.metadata.name.clone(),
-                        badge: format!("{running}/{} · {status}", sessions.len()),
+                        badge,
                         tone,
                         agent: true,
                     })
@@ -469,10 +856,15 @@ impl App {
             return match modal {
                 Modal::ConfirmDelete { .. } => vec![("y", "confirm"), ("n", "cancel")],
                 Modal::NewSession { .. } => vec![("enter", "create"), ("tab", "harness"), ("esc", "cancel")],
+                Modal::CreateAgent { .. } => vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")],
+                Modal::PortForward { .. } => vec![("enter", "forward"), ("tab", "field"), ("esc", "cancel")],
             };
         }
         if self.detail.is_some() {
             return vec![("j/k", "scroll"), ("q", "back")];
+        }
+        if self.view == View::Forwards {
+            return vec![("e", "edit"), ("ctrl-d", "delete"), ("q", "back")];
         }
         match self.selected_row() {
             Some(Row::Agent(_)) => vec![
@@ -480,7 +872,9 @@ impl App {
                 ("s", "describe"),
                 ("y", "yaml"),
                 ("n", "new session"),
+                ("c", "new agent"),
                 ("e", "exec"),
+                ("f", "forward"),
                 ("d", "delete"),
                 ("z", "all"),
             ],
@@ -489,8 +883,9 @@ impl App {
                 ("s", "describe"),
                 ("y", "yaml"),
                 ("n", "new session"),
+                ("c", "new agent"),
             ],
-            None => Vec::new(),
+            None => vec![("c", "new agent")],
         }
     }
 }
@@ -528,6 +923,22 @@ const fn session_tone(state: State) -> Tone {
         State::Starting => Tone::Yellow,
         State::Idle => Tone::Gray,
         State::Failed => Tone::Red,
+    }
+}
+
+fn bind_hint(spec: &ForwardSpec, error: String) -> String {
+    let low_port_on_specific_address = spec.local_port != 0 && spec.local_port < 1024 && !spec.address.is_unspecified();
+    if cfg!(target_os = "macos") && low_port_on_specific_address && error.contains("Permission denied") {
+        format!("{error} — macOS allows ports below 1024 only on 0.0.0.0")
+    } else {
+        error
+    }
+}
+
+const fn forward_field_accepts(field: ForwardField, character: char) -> bool {
+    match field {
+        ForwardField::Address => character.is_ascii_digit() || character == '.',
+        ForwardField::LocalPort | ForwardField::GuestPort => character.is_ascii_digit(),
     }
 }
 
@@ -777,6 +1188,177 @@ mod tests {
         );
     }
 
+    fn candidates(entries: &[(&str, &str)]) -> Vec<ManifestCandidate> {
+        entries
+            .iter()
+            .map(|(directory, name)| ManifestCandidate {
+                path: PathBuf::from(directory).join("agent.yaml"),
+                name: Ok((*name).to_owned()),
+            })
+            .collect()
+    }
+
+    fn create_form(app: &App) -> &CreateForm {
+        let Some(Modal::CreateAgent(form)) = &app.modal else {
+            panic!("expected the CreateAgent modal");
+        };
+        form
+    }
+
+    #[test]
+    fn create_key_requests_manifest_discovery_even_without_agents() {
+        let mut app = App::new();
+        app.apply_snapshot(Vec::new(), Vec::new());
+        assert_eq!(app.hints(), vec![("c", "new agent")]);
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+        let mut app = populated();
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+        app.selected = 1;
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
+    }
+
+    #[test]
+    fn discovery_results_wait_for_an_open_view_to_close() {
+        let mut app = populated();
+        app.manifests_discovered(candidates(&[("/sources/stale", "stale")]));
+        assert!(app.modal.is_none());
+
+        app.discovering = true;
+        app.on_key(key(KeyCode::Char('s')));
+        app.manifests_discovered(candidates(&[("/sources/worker", "worker")]));
+        assert!(!app.discovering);
+        assert!(app.modal.is_none());
+        app.open_queued_create();
+        assert!(app.modal.is_none());
+
+        app.on_key(key(KeyCode::Esc));
+        app.open_queued_create();
+        assert_eq!(create_form(&app).placeholder(), Some("worker"));
+        assert!(app.queued_candidates.is_none());
+
+        let mut app = populated();
+        app.discovering = true;
+        app.manifests_discovered(candidates(&[("/sources/worker", "worker")]));
+        assert_eq!(create_form(&app).placeholder(), Some("worker"));
+    }
+
+    #[test]
+    fn open_create_preselects_the_highlighted_agents_manifest() {
+        let mut app = populated();
+        for agent in &mut app.agents {
+            if agent.metadata.name == "worker" {
+                agent.status.provenance = Some(agent::Provenance {
+                    source_directory: PathBuf::from("/sources/worker"),
+                    manifest_path: None,
+                });
+            }
+        }
+        app.selected = 3;
+        app.open_create(candidates(&[
+            ("/sources/builder", "builder"),
+            ("/sources/worker", "worker"),
+        ]));
+        let form = create_form(&app);
+        assert_eq!(form.selected, 1);
+        assert_eq!(form.placeholder(), Some("worker"));
+        assert_eq!(
+            app.hints(),
+            vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")]
+        );
+    }
+
+    #[test]
+    fn create_form_submits_the_placeholder_name_when_nothing_is_typed() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/sources/fresh", "fresh")]));
+        let Action::CreateAgent { manifest, name, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(manifest, PathBuf::from("/sources/fresh/agent.yaml"));
+        assert_eq!(name, "fresh");
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn create_form_placeholder_follows_selection_and_typed_names_win() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/a", "alpha"), ("/b", "beta")]));
+        assert_eq!(create_form(&app).placeholder(), Some("alpha"));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(create_form(&app).placeholder(), Some("beta"));
+        app.on_key(key(KeyCode::Char('m')));
+        app.on_key(key(KeyCode::Char('E')));
+        app.on_key(key(KeyCode::Char('y')));
+        assert_eq!(create_form(&app).name, "my");
+        let Action::CreateAgent { manifest, name, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(manifest, PathBuf::from("/b/agent.yaml"));
+        assert_eq!(name, "my");
+    }
+
+    #[test]
+    fn create_form_reports_duplicates_and_invalid_names_on_submit() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/sources/worker", "worker")]));
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert_eq!(
+            create_form(&app).error.as_deref(),
+            Some("agent \"worker\" already exists")
+        );
+        app.on_key(key(KeyCode::Char('-')));
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        let error = create_form(&app).error.as_deref().expect("invalid name error");
+        assert!(error.starts_with("name:"));
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Char('w')));
+        app.on_key(key(KeyCode::Char('2')));
+        let Action::CreateAgent { name, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(name, "w2");
+    }
+
+    #[test]
+    fn create_form_blocks_unreadable_manifests_and_empty_pickers() {
+        let mut app = populated();
+        app.open_create(vec![ManifestCandidate {
+            path: PathBuf::from("/gone/agent.yaml"),
+            name: Err("manifest cannot be decoded".into()),
+        }]);
+        assert_eq!(create_form(&app).placeholder(), None);
+        app.on_key(key(KeyCode::Enter));
+        assert_eq!(create_form(&app).error.as_deref(), Some("manifest cannot be decoded"));
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.modal.is_none());
+        app.open_create(Vec::new());
+        app.on_key(key(KeyCode::Enter));
+        assert!(create_form(&app).error.is_some());
+    }
+
+    #[test]
+    fn create_form_selection_wraps_and_clears_errors() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/a", "builder"), ("/b", "beta")]));
+        app.on_key(key(KeyCode::Enter));
+        assert!(create_form(&app).error.is_some());
+        app.on_key(key(KeyCode::Left));
+        let form = create_form(&app);
+        assert_eq!(form.selected, 1);
+        assert_eq!(form.error, None);
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(create_form(&app).selected, 0);
+    }
+
+    #[test]
+    fn select_agent_moves_the_selection_to_that_row() {
+        let mut app = populated();
+        app.select_agent("worker");
+        assert_eq!(app.selected, 2);
+        app.select_agent("missing");
+        assert_eq!(app.selected, 2);
+    }
+
     #[test]
     fn tones_reflect_agent_conditions_and_session_states() {
         let mut terminating = ready_agent("done");
@@ -797,6 +1379,171 @@ mod tests {
         assert!(views[4].badge.contains("Pending"));
         assert_eq!(views[1].dot, Some("●"));
         assert!(views[1].badge.contains("Failed"));
+    }
+
+    #[test]
+    fn forward_form_mirrors_an_empty_local_port_and_creates_on_enter() {
+        let mut app = populated();
+        assert_eq!(app.on_key(key(KeyCode::Char('f'))), Action::None);
+        assert!(matches!(app.modal, Some(Modal::PortForward { .. })));
+        app.on_key(key(KeyCode::Char('8')));
+        app.on_key(key(KeyCode::Char('0')));
+        let action = app.on_key(key(KeyCode::Enter));
+        assert_eq!(
+            action,
+            Action::CreateForward {
+                agent: "builder".into(),
+                spec: ForwardSpec {
+                    address: std::net::IpAddr::from([127, 0, 0, 1]),
+                    local_port: 80,
+                    guest_port: 80,
+                },
+                replace: None,
+            }
+        );
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn forward_form_cycles_fields_and_reports_invalid_input() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('f')));
+        app.on_key(key(KeyCode::Enter));
+        assert!(matches!(
+            app.modal,
+            Some(Modal::PortForward(ForwardForm { error: Some(_), .. }))
+        ));
+        app.on_key(key(KeyCode::Tab));
+        let Some(Modal::PortForward(form)) = &app.modal else {
+            panic!("expected the PortForward modal");
+        };
+        assert_eq!(form.field, ForwardField::Address);
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Char('9')));
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Char('8')));
+        app.on_key(key(KeyCode::Char('0')));
+        let action = app.on_key(key(KeyCode::Enter));
+        assert_eq!(
+            action,
+            Action::CreateForward {
+                agent: "builder".into(),
+                spec: ForwardSpec {
+                    address: std::net::IpAddr::from([127, 0, 0, 1]),
+                    local_port: 9,
+                    guest_port: 80,
+                },
+                replace: None,
+            }
+        );
+    }
+
+    #[test]
+    fn forwards_view_lists_deletes_and_edits_like_k9s() {
+        let mut app = populated();
+        app.set_forwards(vec![ForwardEntry {
+            id: 7,
+            agent: "worker".into(),
+            local: "127.0.0.1:9090".into(),
+            guest_port: 80,
+            status: None,
+        }]);
+        app.on_key(key(KeyCode::Char('F')));
+        assert_eq!(app.view, View::Forwards);
+        assert_eq!(
+            app.on_key(KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL)),
+            Action::DeleteForward { id: 7 }
+        );
+        app.on_key(key(KeyCode::Char('e')));
+        let Some(Modal::PortForward(form)) = &app.modal else {
+            panic!("expected the PortForward modal");
+        };
+        assert_eq!(form.replace, Some(7));
+        assert_eq!(form.local, "9090");
+        assert_eq!(form.guest, "80");
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.modal.is_none());
+        app.on_key(key(KeyCode::Char('q')));
+        assert_eq!(app.view, View::Tree);
+    }
+
+    #[test]
+    fn error_screen_keys_win_over_an_open_forwards_view() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('F')));
+        app.error = Some("control plane unreachable".into());
+        assert_eq!(app.on_key(key(KeyCode::Char('r'))), Action::Refresh);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit);
+        assert_eq!(app.view, View::Forwards);
+        app.error = None;
+        app.on_key(key(KeyCode::Char('q')));
+        assert_eq!(app.view, View::Tree);
+    }
+
+    #[test]
+    fn rejected_forwards_reopen_the_form_with_their_values() {
+        let spec = ForwardSpec {
+            address: std::net::IpAddr::from([127, 0, 0, 1]),
+            local_port: 0,
+            guest_port: 5432,
+        };
+        let form = ForwardForm::rejected("worker".into(), &spec, Some(3), "boom".into());
+        assert_eq!(form.agent, "worker");
+        assert_eq!(form.address, "127.0.0.1");
+        assert_eq!(form.local, "");
+        assert_eq!(form.guest, "5432");
+        assert_eq!(form.field, ForwardField::Address);
+        assert_eq!(form.error.as_deref(), Some("boom"));
+        assert_eq!(form.replace, Some(3));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn low_loopback_ports_get_the_wildcard_bind_hint() {
+        let spec = ForwardSpec {
+            address: std::net::IpAddr::from([127, 0, 0, 1]),
+            local_port: 80,
+            guest_port: 80,
+        };
+        let form = ForwardForm::rejected(
+            "worker".into(),
+            &spec,
+            None,
+            "bind: Permission denied (os error 13)".into(),
+        );
+        let error = form.error.expect("rejected form should keep its error");
+        assert!(error.contains("macOS allows ports below 1024 only on 0.0.0.0"));
+
+        let wildcard = ForwardSpec {
+            address: std::net::IpAddr::from([0, 0, 0, 0]),
+            ..spec
+        };
+        let form = ForwardForm::rejected("worker".into(), &wildcard, None, "Permission denied".into());
+        assert_eq!(form.error.as_deref(), Some("Permission denied"));
+    }
+
+    #[test]
+    fn agent_badges_list_forward_mappings() {
+        let mut app = populated();
+        app.set_forwards(vec![
+            ForwardEntry {
+                id: 1,
+                agent: "worker".into(),
+                local: "127.0.0.1:9090".into(),
+                guest_port: 80,
+                status: None,
+            },
+            ForwardEntry {
+                id: 2,
+                agent: "worker".into(),
+                local: "0.0.0.0:80".into(),
+                guest_port: 80,
+                status: None,
+            },
+        ]);
+        let views = app.render_rows();
+        assert!(!views[0].badge.contains("ports:"));
+        assert!(views[2].badge.contains("ports: 9090:80 0.0.0.0:80:80"));
     }
 
     #[test]

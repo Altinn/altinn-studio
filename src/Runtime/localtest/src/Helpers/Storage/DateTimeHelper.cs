@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.Helpers
     public static class DateTimeHelper
     {
         /// <summary>
-        /// The standard date format to excpect in input data.
+        /// The standard date format to expect in input data.
         /// </summary>
         public static readonly string Iso8601Format = "yyyy-MM-ddTHH:mm:ss.sss";
 
