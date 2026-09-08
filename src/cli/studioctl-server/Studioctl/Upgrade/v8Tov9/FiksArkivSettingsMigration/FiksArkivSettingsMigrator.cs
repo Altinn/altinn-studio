@@ -73,9 +73,9 @@ internal sealed class FiksArkivSettingsMigrator
 
             if (TryParseSettingLine(line, out var value))
             {
-                if (IsHandler(owner))
+                if (owner is { } handler && IsHandler(handler))
                 {
-                    removed.Add((owner!, value));
+                    removed.Add((handler, value));
                     // Removing the last property of the object leaves a dangling comma on the previous one.
                     if (NextMeaningfulLine(lines, i).StartsWith('}') && kept.Count > 0)
                     {
@@ -188,17 +188,24 @@ internal sealed class FiksArkivSettingsMigrator
 
         foreach (var process in doc.Root?.Elements().Where(e => e.Name.LocalName == "process") ?? [])
         {
-            var elementsById = process
-                .Elements()
-                .Where(e => e.Attribute("id")?.Value is not null)
-                .ToDictionary(e => e.Attribute("id")!.Value, e => e, StringComparer.Ordinal);
+            var elementsById = new Dictionary<string, XElement>(StringComparer.Ordinal);
+            foreach (var element in process.Elements())
+            {
+                if (element.Attribute("id")?.Value is { } id)
+                    elementsById[id] = element;
+            }
 
-            var flows = process
-                .Elements()
-                .Where(e => e.Name.LocalName == "sequenceFlow")
-                .Select(f => (Source: f.Attribute("sourceRef")?.Value, Target: f.Attribute("targetRef")?.Value))
-                .Where(f => f.Source is not null && f.Target is not null)
-                .ToList();
+            var flows = new List<(string Source, string Target)>();
+            foreach (var flow in process.Elements().Where(e => e.Name.LocalName == "sequenceFlow"))
+            {
+                if (
+                    flow.Attribute("sourceRef")?.Value is { } source
+                    && flow.Attribute("targetRef")?.Value is { } target
+                )
+                {
+                    flows.Add((source, target));
+                }
+            }
 
             var fiksArkivTasks = process
                 .Elements()
@@ -211,7 +218,7 @@ internal sealed class FiksArkivSettingsMigrator
 
             foreach (var taskId in fiksArkivTasks)
             {
-                var targets = flows.Where(f => f.Source == taskId).Select(f => f.Target!).ToList();
+                var targets = flows.Where(f => f.Source == taskId).Select(f => f.Target).ToList();
                 var followedByGateway =
                     targets.Count > 0
                     && targets.All(t =>
@@ -293,12 +300,17 @@ internal sealed class FiksArkivSettingsMigrator
 
         var inString = false;
         var firstOpenOnLine = true;
-        for (var i = 0; i < line.Length; i++)
+        var skipEscaped = false;
+        foreach (var c in line)
         {
-            var c = line[i];
+            if (skipEscaped)
+            {
+                skipEscaped = false;
+                continue;
+            }
             if (c == '\\' && inString)
             {
-                i++;
+                skipEscaped = true;
                 continue;
             }
             if (c == '"')
