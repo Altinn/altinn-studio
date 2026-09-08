@@ -139,11 +139,14 @@ pub(super) async fn verify_linux(
         ))
         .await?;
     if !output.status.success() {
-        // The image does not provide the declared harness; retrying cannot change that.
-        return Err(Error::Invalid(format!(
-            "Codex is missing or `codex --version` exited with code {}",
-            output.status.code
-        )));
+        let message = format!("`codex --version` exited with code {}", output.status.code);
+        // 126/127 mean the image does not provide the harness; retrying cannot change that.
+        // Any other failure this early in the guest's life may be transient.
+        return Err(if matches!(output.status.code, 126 | 127) {
+            Error::Invalid(format!("Codex is missing: {message}"))
+        } else {
+            Error::SandboxSetup(message)
+        });
     }
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|_| Error::SandboxSetup("`codex --version` returned non-UTF-8 output".into()))?;

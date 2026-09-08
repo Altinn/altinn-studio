@@ -30,7 +30,8 @@ use thiserror::Error;
 /// Errors exposed by the Agent control plane.
 #[derive(Debug, Error)]
 pub enum Error {
-    /// The Agent resource is invalid.
+    /// The Agent resource is invalid: desired state must change before another
+    /// reconciliation pass can succeed, so waiters fail fast and nothing retries.
     #[error("invalid Agent: {0}")]
     Invalid(String),
     /// The requested Agent does not exist.
@@ -45,7 +46,8 @@ pub enum Error {
     /// Persistent control-plane state could not be read or written.
     #[error("control-plane database failed: {0}")]
     Database(String),
-    /// Immutable Agent setup failed inside a running Sandbox.
+    /// Immutable Agent setup failed inside a running Sandbox. Treated as transient:
+    /// the background controller retries and waiters keep following.
     #[error("Agent Sandbox setup failed: {0}")]
     SandboxSetup(String),
     /// A generic Sandbox operation failed.

@@ -368,11 +368,6 @@ async fn flush<W: AsyncWrite + Unpin>(outbox: &Outbox, writer: &mut W) -> Result
     while let Some(event) = outbox.pop() {
         write_notification(writer, &event).await?;
     }
-    if outbox.overflowed() {
-        return Err(Error::Daemon(
-            "Agent Control API client did not drain progress notifications".into(),
-        ));
-    }
     Ok(())
 }
 

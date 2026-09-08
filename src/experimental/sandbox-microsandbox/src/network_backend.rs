@@ -397,26 +397,40 @@ struct DriverState {
 ///
 /// A Sandbox can be denied once per request it makes, so unbounded logging would
 /// let it grow the host log at will. Each distinct `(action, hostname)` is logged
-/// on its first denial and then once per [`DenialLog::REPEAT_EVERY`] repeats, with
-/// the repeat count; the number of distinct keys tracked is capped as well.
+/// on its first denial and then once per [`DenialLog::REPEAT_EVERY`] repeats. A
+/// Sandbox rotating hostnames would still log one line per new key, so the total
+/// number of lines per driver is capped at [`DenialLog::MAX_LINES`]; beyond it only
+/// every [`DenialLog::SUMMARY_EVERY`]th denial is logged, with the running total.
 #[derive(Default)]
 struct DenialLog {
     counts: HashMap<(&'static str, Option<String>), u64>,
+    total: u64,
+    lines: u64,
 }
 
 impl DenialLog {
     const REPEAT_EVERY: u64 = 100;
     const MAX_KEYS: usize = 1_024;
+    const MAX_LINES: u64 = 1_000;
+    const SUMMARY_EVERY: u64 = 10_000;
 
-    /// Records one denial and returns the repeat count when it should be logged.
+    /// Records one denial and returns the count to log when a line is warranted.
     fn record(&mut self, action: &'static str, hostname: Option<&str>) -> Option<u64> {
+        self.total += 1;
+        if self.lines >= Self::MAX_LINES {
+            return self.total.is_multiple_of(Self::SUMMARY_EVERY).then_some(self.total);
+        }
         let key = (action, hostname.map(str::to_owned));
         if !self.counts.contains_key(&key) && self.counts.len() >= Self::MAX_KEYS {
             self.counts.clear();
         }
         let count = self.counts.entry(key).or_insert(0);
         *count += 1;
-        (*count == 1 || count.is_multiple_of(Self::REPEAT_EVERY)).then_some(*count)
+        let log = *count == 1 || count.is_multiple_of(Self::REPEAT_EVERY);
+        if log {
+            self.lines += 1;
+        }
+        log.then_some(*count)
     }
 }
 
@@ -731,6 +745,20 @@ mod tests {
             denials.record("network.connect", None),
             Some(1),
             "a new key logs immediately"
+        );
+
+        let mut rotating = super::DenialLog::default();
+        let hostnames: Vec<String> = (0..super::DenialLog::MAX_LINES + 50)
+            .map(|i| format!("h{i}.example"))
+            .collect();
+        let logged = hostnames
+            .iter()
+            .filter(|hostname| rotating.record("dns.query", Some(hostname)).is_some())
+            .count();
+        assert_eq!(
+            u64::try_from(logged).expect("count"),
+            super::DenialLog::MAX_LINES,
+            "rotating hostnames hit the line cap"
         );
     }
     use std::{
