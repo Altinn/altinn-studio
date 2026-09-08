@@ -4,9 +4,6 @@ use crate::{Condition, ConditionStatus, Error, ReconcileFailure, Status};
 
 use super::{AgentRecord, ObservedStatus, SharedAgentStore, StatusWatch};
 
-const READY: &str = "Ready";
-const SANDBOX_READY: &str = "SandboxReady";
-
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
     /// Wakes every durable Session owned by the Agent incarnation.
@@ -74,7 +71,7 @@ impl Reconciler {
                 record.agent.metadata.generation,
                 Some(crate::sandbox::Assignment::Selected { provider }),
                 vec![condition(
-                    READY,
+                    Condition::READY,
                     ConditionStatus::False,
                     "ProviderSelected",
                     "Sandbox provisioning has not completed",
@@ -96,8 +93,18 @@ impl Reconciler {
                     record.agent.metadata.generation,
                     record.agent.status.sandbox.clone(),
                     vec![
-                        condition(READY, ConditionStatus::False, "SandboxReconcileFailed", &message),
-                        condition(SANDBOX_READY, ConditionStatus::False, "ReconcileFailed", &message),
+                        condition(
+                            Condition::READY,
+                            ConditionStatus::False,
+                            "SandboxReconcileFailed",
+                            &message,
+                        ),
+                        condition(
+                            Condition::SANDBOX_READY,
+                            ConditionStatus::False,
+                            "ReconcileFailed",
+                            &message,
+                        ),
                     ],
                 );
                 self.update_status(&record, status, Some(&error)).await?;
@@ -121,8 +128,8 @@ impl Reconciler {
                 id: ensured.id,
             }),
             vec![
-                condition(SANDBOX_READY, ConditionStatus::True, "SandboxRunning", ""),
-                condition(READY, ConditionStatus::True, "SandboxReady", ""),
+                condition(Condition::SANDBOX_READY, ConditionStatus::True, "SandboxRunning", ""),
+                condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""),
             ],
         );
         self.update_status(&record, status, None).await?;
@@ -148,7 +155,12 @@ impl Reconciler {
             Status::observed(
                 record.agent.metadata.generation,
                 record.agent.status.sandbox.clone(),
-                vec![condition(READY, ConditionStatus::False, reason, &error.to_string())],
+                vec![condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    reason,
+                    &error.to_string(),
+                )],
             ),
             Some(error),
         )
@@ -194,14 +206,7 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
 }
 
 fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
-    ready(previous) != ready(current)
+    previous.is_ready() != current.is_ready()
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
-}
-
-fn ready(status: &Status) -> bool {
-    status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == READY && condition.status == ConditionStatus::True)
 }

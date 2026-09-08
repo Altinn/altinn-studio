@@ -8,11 +8,9 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use tokio::sync::watch;
 
-use crate::{Condition, ConditionStatus, FailureKind};
+use crate::{Condition, FailureKind};
 
 use super::AgentId;
-
-const READY: &str = "Ready";
 
 /// Conditions recorded by the most recent reconciliation pass, with its failure class.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -27,9 +25,7 @@ impl ObservedStatus {
     /// Returns whether the Agent reported `Ready=True`.
     #[must_use]
     pub fn ready(&self) -> bool {
-        self.conditions
-            .iter()
-            .any(|condition| condition.kind == READY && condition.status == ConditionStatus::True)
+        Condition::any_ready(&self.conditions)
     }
 
     /// Returns the readiness failure detail when desired state must change before another pass can succeed.
@@ -38,9 +34,7 @@ impl ObservedStatus {
         if self.failure != Some(FailureKind::Invalid) {
             return None;
         }
-        self.conditions
-            .iter()
-            .find(|condition| condition.kind == READY)
+        Condition::find_ready(&self.conditions)
             .or_else(|| self.conditions.first())
             .map(|condition| {
                 if condition.message.is_empty() {

@@ -212,7 +212,7 @@ fn main() -> ExitCode {
             exit_code(130)
         }
         // The daemon rejected the desired state; the message is the whole story.
-        Err(CommandError::Agent(Error::Rpc(error))) if error.code == CODE_INVALID_PARAMS => {
+        Err(CommandError::Agent(Error::Rpc(error))) if error.is_invalid_params() => {
             eprintln!("agentctl: {}", error.message);
             ExitCode::FAILURE
         }
@@ -553,9 +553,6 @@ async fn stream_execution(
     Err(::sandbox::Error::ExecutionStreamEnded { id }.into())
 }
 
-/// JSON-RPC invalid-params code used by the Control API for rejected desired state.
-const CODE_INVALID_PARAMS: i32 = -32602;
-
 fn exit_code(code: i32) -> ExitCode {
     u8::try_from(code).map_or(ExitCode::FAILURE, ExitCode::from)
 }
@@ -634,7 +631,7 @@ async fn resolve_agent_name(client: &Client, explicit: Option<String>) -> Comman
 
 fn inference_error(error: Error) -> CommandError {
     match error {
-        Error::Rpc(error) if error.code == -32004 => {
+        Error::Rpc(error) if error.is_not_found() => {
             CommandError::Message("no Agent was applied from the current directory; specify --agent".into())
         }
         Error::Rpc(error) => CommandError::Message(error.message),
@@ -656,11 +653,7 @@ async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Comma
         Some(Ok(result)) => result.map(|_target| ()).map_err(CommandError::from),
         Some(Err(_elapsed)) => {
             let ready = match client.get(name).await {
-                Ok(agent) => agent
-                    .status
-                    .conditions
-                    .into_iter()
-                    .find(|condition| condition.kind == "Ready"),
+                Ok(agent) => agent.status.ready_condition().cloned(),
                 Err(_) => None,
             };
             Err(CommandError::Message(wait_timeout_message(name, ready.as_ref())))
@@ -711,11 +704,7 @@ fn print_agents(agents: &[Agent]) {
     let rows = agents
         .iter()
         .map(|agent| {
-            let ready = agent
-                .status
-                .conditions
-                .iter()
-                .find(|condition| condition.kind == "Ready");
+            let ready = agent.status.ready_condition();
             let ready_value = ready.map_or("Unknown", |condition| condition_status(condition.status));
             let status = if agent.metadata.deletion_timestamp.is_some() {
                 "Terminating"

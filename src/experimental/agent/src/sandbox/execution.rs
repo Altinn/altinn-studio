@@ -5,7 +5,7 @@ use std::{path::Path, rc::Rc};
 use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
-use crate::{ConditionStatus, Error, control_plane, progress::Observation};
+use crate::{Error, control_plane, progress::Observation};
 
 use super::Assignment;
 
@@ -83,13 +83,8 @@ impl ExecutionService {
         if record.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
-        let ready = record
-            .agent
-            .status
-            .conditions
-            .iter()
-            .find(|condition| condition.kind == "Ready");
-        if !ready.is_some_and(|condition| condition.status == ConditionStatus::True) {
+        let ready = record.agent.status.ready_condition();
+        if !record.agent.status.is_ready() {
             let detail = ready.map_or_else(
                 || "no Ready condition was reported".to_owned(),
                 |condition| {

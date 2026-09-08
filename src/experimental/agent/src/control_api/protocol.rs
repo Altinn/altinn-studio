@@ -73,6 +73,20 @@ pub struct ResponseError {
     pub message: String,
 }
 
+impl ResponseError {
+    /// Returns whether the daemon rejected the request's desired state or parameters.
+    #[must_use]
+    pub const fn is_invalid_params(&self) -> bool {
+        self.code == CODE_INVALID_PARAMS
+    }
+
+    /// Returns whether the addressed resource does not exist.
+    #[must_use]
+    pub const fn is_not_found(&self) -> bool {
+        self.code == CODE_AGENT_NOT_FOUND
+    }
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct NameParams {
