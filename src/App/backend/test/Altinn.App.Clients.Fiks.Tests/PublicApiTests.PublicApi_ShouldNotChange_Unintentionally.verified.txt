@@ -160,8 +160,6 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv.Models
         public FiksArkivErrorHandlingSettings() { }
         [System.Text.Json.Serialization.JsonPropertyName("action")]
         public string? Action { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("moveToNextTask")]
-        public bool MoveToNextTask { get; set; }
     }
     public sealed class FiksArkivMetadataSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivMetadataSettings>
     {
@@ -265,8 +263,6 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv.Models
         public string? Action { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("markInstanceComplete")]
         public bool MarkInstanceComplete { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("moveToNextTask")]
-        public bool MoveToNextTask { get; set; }
     }
 }
 namespace Altinn.App.Clients.Fiks.FiksIO

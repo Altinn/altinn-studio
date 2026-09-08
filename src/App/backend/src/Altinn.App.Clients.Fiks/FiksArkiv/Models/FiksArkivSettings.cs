@@ -219,35 +219,30 @@ public sealed record FiksArkivDocumentSettings
 /// </summary>
 /// <remarks>
 /// Applies once <strong>the archive has confirmed the record</strong> — not when the message was handed to
-/// Fiks IO. Applied by <see cref="FiksArkivServiceTask"/>.
+/// Fiks IO. A confirmed archiving always moves the process on to the next task; these settings decide how.
+/// Applied by <see cref="FiksArkivServiceTask"/>.
 /// </remarks>
 public sealed record FiksArkivSuccessHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task once the archive has confirmed the record?
-    /// Default to <c>true</c>.
-    /// </summary>
-    /// <remarks><c>false</c> leaves the instance on the Fiks Arkiv task, to be advanced manually.</remarks>
-    [JsonPropertyName("moveToNextTask")]
-    public bool MoveToNextTask { get; set; } = true;
-
-    /// <summary>
-    /// When progressing to the next task, which action should we send?
-    /// Defaults to <c>null</c>.
+    /// The action the process moves on with once the archive has confirmed the record.
+    /// Defaults to <c>null</c>, which follows the process's default flow.
     /// </summary>
     [JsonPropertyName("action")]
     public string? Action { get; set; }
 
     /// <summary>
     /// Should we mark the instance as `completed` once the archive has confirmed the record?
-    /// Defaults to <c>false</c>.
+    /// Defaults to <c>true</c>.
     /// </summary>
     /// <remarks>
     /// The confirmation is sent before the process advances, because advancing can end the process and
     /// an ended process can take the instance with it.
     /// </remarks>
     [JsonPropertyName("markInstanceComplete")]
-    public bool MarkInstanceComplete { get; set; }
+    public bool MarkInstanceComplete { get; set; } = DefaultMarkInstanceComplete;
+
+    internal const bool DefaultMarkInstanceComplete = true;
 
     /// <summary>
     /// Gets the action if set to an actual value, otherwise returns null.
@@ -261,34 +256,29 @@ public sealed record FiksArkivSuccessHandlingSettings
 /// </summary>
 /// <remarks>
 /// Applies when <strong>the archiving cannot succeed for this case</strong>: the archive reports it could
-/// not create the record, or the recipient account does not exist. Fiks IO refusing the app's integration
-/// credentials is outside its reach — an operations problem, so it fails the workflow for the app owner to
-/// fix and resume — and so are transient and unknown-outcome send failures, Maskinporten and transport
-/// failures included, which are retried and then fail the task. Applied by
-/// <see cref="FiksArkivServiceTask"/>.
+/// not create the record, or the recipient account does not exist. Such an archiving always moves the
+/// process on, with <see cref="Action"/> — so the process must branch on that action right after the Fiks
+/// Arkiv task, which the app verifies at startup. Fiks IO refusing the app's integration credentials is
+/// outside its reach — an operations problem, so it fails the workflow for the app owner to fix and
+/// resume — and so are transient and unknown-outcome send failures, Maskinporten and transport failures
+/// included, which are retried and then fail the task. Applied by <see cref="FiksArkivServiceTask"/>.
 /// </remarks>
 public sealed record FiksArkivErrorHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task when the archiving cannot succeed for this case —
-    /// the archive rejected the record, or the recipient account does not exist? Defaults to <c>false</c>:
-    /// such a failure fails the task, so it reaches monitoring — whether this block is present or not.
-    /// </summary>
-    [JsonPropertyName("moveToNextTask")]
-    public bool MoveToNextTask { get; set; }
-
-    /// <summary>
-    /// When progressing to the next task (<see cref="MoveToNextTask"/> is <c>true</c>), which action
-    /// should we send? Defaults to <c>reject</c>.
+    /// The action the process moves on with when the archiving cannot succeed for this case.
+    /// Defaults to <c>reject</c>.
     /// </summary>
     [JsonPropertyName("action")]
-    public string? Action { get; set; } = "reject";
+    public string? Action { get; set; } = DefaultAction;
+
+    internal const string DefaultAction = "reject";
 
     /// <summary>
-    /// Gets the action if set to an actual value, otherwise returns null.
+    /// Gets the action if set to an actual value, otherwise the default <c>reject</c>.
     /// </summary>
     /// <remarks><c>IOptions</c> can on occasion deserialize null as empty string, which is undesirable.</remarks>
-    internal string? GetActionOrDefault() => string.IsNullOrWhiteSpace(Action) ? null : Action;
+    internal string GetActionOrDefault() => string.IsNullOrWhiteSpace(Action) ? DefaultAction : Action;
 }
 
 /// <summary>
