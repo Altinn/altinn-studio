@@ -112,7 +112,10 @@ Policy is evaluated for live Sandbox-originated operations and fails closed when
 secret resolution or trusted mediation path is unavailable. Host-destined traffic is restricted to the registered
 Platform API endpoint. This authorization is separate from authorization of users calling the host Agent API.
 When an Agent image includes Podman, the platform makes the guest's mediated CA bundle available to containers and
-build steps through standard trust paths. Docker and dockerd are not covered by this convenience wiring.
+build steps through standard trust paths. An OCI hook copies the bundle into the container root filesystem rather
+than bind-mounting it, so package managers can still replace the bundle, and it adds the mediator CA as a trust
+anchor so a regenerated bundle keeps trusting mediation. Docker and dockerd are not covered by this convenience
+wiring.
 
 SQLite `secure_delete` and owner-only filesystem permissions provide local hygiene. They are not a cryptographic
 erasure guarantee across WAL history, filesystem snapshots or backups.

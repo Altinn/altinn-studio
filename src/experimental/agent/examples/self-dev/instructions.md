@@ -42,5 +42,6 @@ or persist their values. Placeholders are the only values you will find, and onl
 
 Build steps inside Podman receive the mediated CA bundle at `/run/agent/tls/ca-bundle.pem` and the common system
 trust paths. A current Buildah bug drops default environment variables from build stages, so tools that ignore the
-system store need a step-scoped variable such as `RUN NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem npm ci`.
+system store need a step-scoped variable such as `RUN NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem npm ci` or
+`RUN NODE_OPTIONS=--use-openssl-ca npm ci`.
 Do not persist that workaround with Dockerfile `ENV`.
