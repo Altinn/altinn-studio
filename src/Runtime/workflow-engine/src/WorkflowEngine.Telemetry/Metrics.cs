@@ -463,6 +463,16 @@ public static class Metrics
         description: "Number of namespace circuit breakers cleared after successful recovery"
     );
 
+    /// <summary>
+    /// Counter of workflows parked cooperatively by the workflow handler — a retryable failure in
+    /// a namespace whose breaker was tripped in the handler's snapshot — tagged with <c>namespace</c>.
+    /// The sweep's own parking is not counted here.
+    /// </summary>
+    public static readonly Counter<long> ThrottleHandlerParked = Meter.CreateCounter<long>(
+        "engine.throttle.handler_parked",
+        description: "Number of workflows parked by the workflow handler on retryable failure in a tripped namespace"
+    );
+
     private static long _trippedThrottleBreakersCount;
 
     /// <summary>
