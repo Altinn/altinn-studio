@@ -427,17 +427,26 @@ async fn canonical_or_original(path: &std::path::Path) -> PathBuf {
 
 /// Canonical form of a secret file for comparison against canonical bind mount sources.
 ///
-/// The file may not exist yet, so its directory is canonicalized instead when it does;
-/// a symlinked parent then still compares equal to the resolved mount source.
+/// The file, and any number of its parent directories, may not exist yet. The nearest existing
+/// ancestor is canonicalized and the missing components appended, so a symlink anywhere above
+/// the file still compares equal to the resolved mount source.
 async fn canonical_secret_file(path: &std::path::Path) -> PathBuf {
-    if let Ok(canonical) = tokio::fs::canonicalize(path).await {
-        return canonical;
-    }
-    match (path.parent(), path.file_name()) {
-        (Some(parent), Some(name)) => tokio::fs::canonicalize(parent)
-            .await
-            .map_or_else(|_| path.to_path_buf(), |parent| parent.join(name)),
-        _ => path.to_path_buf(),
+    let mut missing = Vec::new();
+    let mut ancestor = path;
+    loop {
+        if let Ok(canonical) = tokio::fs::canonicalize(ancestor).await {
+            return missing
+                .iter()
+                .rev()
+                .fold(canonical, |joined, component| joined.join(component));
+        }
+        match (ancestor.parent(), ancestor.file_name()) {
+            (Some(parent), Some(name)) => {
+                missing.push(name);
+                ancestor = parent;
+            }
+            _ => return path.to_path_buf(),
+        }
     }
 }
 
