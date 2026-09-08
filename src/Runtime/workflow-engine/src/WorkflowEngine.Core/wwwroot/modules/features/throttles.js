@@ -32,6 +32,13 @@ export const initThrottles = () => {
 export const loadThrottles = async () => {
     try {
         const res = await fetch('/api/v1/throttles');
+
+        // 204 is an answer: no breaker state exists, so empty the panel. Any other non-200 is a
+        // failed poll, and rendering it as an empty list would tell an operator that nothing is
+        // throttled during the incident this panel exists for. Leave the last render standing
+        // instead — the same call the catch below makes for a failed request.
+        if (res.status !== 200 && res.status !== 204) return;
+
         /** @type {NamespaceThrottle[]} */
         const throttles = res.status === 200 ? await res.json() : [];
         renderThrottles(throttles);

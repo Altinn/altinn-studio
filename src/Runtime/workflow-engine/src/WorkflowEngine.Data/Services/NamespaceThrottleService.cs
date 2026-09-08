@@ -250,11 +250,19 @@ internal sealed class NamespaceThrottleService(
         if (throttle is null)
             return new ThrottleForceClearResult.NotFound();
 
-        // Idempotent replay: already closed, but still mop up stragglers immediately rather than
+        // Idempotent replay: already clear, but still mop up stragglers immediately rather than
         // leaving them to the sweep's next grace-period pass.
         if (throttle.State == NamespaceThrottleState.Clear)
         {
             await repository.ClearNamespaceThrottledUntil(ns, cancellationToken);
+
+            // Refresh even though this replica changed no state: the row can have been cleared by
+            // another replica since this one's last cycle, leaving this replica's snapshot still
+            // reporting the breaker tripped and its handler still parking. An operator who calls
+            // force-clear and gets a success back should not have to wait out a sweep interval for
+            // the replica they called to stop parking.
+            await RefreshSnapshot(cancellationToken);
+
             return new ThrottleForceClearResult.AlreadyClear(throttle);
         }
 

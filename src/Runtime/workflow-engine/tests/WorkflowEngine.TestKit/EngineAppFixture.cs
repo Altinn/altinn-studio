@@ -117,7 +117,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
     /// Resets both WireMock (back to the default catch-all 200 stub) and the database
     /// (all workflow state rows truncated). Called at the start of every test.
     /// </summary>
-    public async Task Reset()
+    public virtual async Task Reset()
     {
         // Stop and dispose WireMock server. This may or may not fail in-flight pending requests.
         WireMock.Stop();

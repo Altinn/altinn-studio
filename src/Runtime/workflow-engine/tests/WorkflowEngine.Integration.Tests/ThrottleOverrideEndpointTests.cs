@@ -181,6 +181,37 @@ public sealed class ThrottleOverrideEndpointTests(ThrottlingEngineAppFixture fix
     }
 
     [Fact]
+    public async Task ForceClear_AlreadyClear_RepublishesTheSnapshot()
+    {
+        // A replica whose snapshot predates another replica's clear is still parking workflows in
+        // the namespace. An operator calling force-clear on that replica gets a 200 back, so the
+        // idempotent path has to republish too — otherwise the parking continues until the next
+        // sweep cycle, on the very replica the operator addressed.
+        var ns = UniqueNamespace();
+        await SeedRequeuedWorkflows(ns, count: 4);
+
+        using (var trip = await _client.TripThrottleRaw(ns))
+        {
+            Assert.Equal(HttpStatusCode.Accepted, trip.StatusCode);
+        }
+        using (var clear = await _client.ClearThrottleRaw(ns))
+        {
+            Assert.Equal(HttpStatusCode.Accepted, clear.StatusCode);
+        }
+
+        // Stand in for the stale snapshot: the row is Clear, but this replica's view still says
+        // tripped. This is the view the sweep and the overrides publish to.
+        var sweepView = fixture.Services.GetRequiredService<ThrottleStateView>();
+        sweepView.Publish(new Dictionary<string, TimeSpan>(StringComparer.Ordinal) { [ns] = TimeSpan.FromMinutes(10) });
+        Assert.Contains(ns, sweepView.TrippedBreakers);
+
+        using var replay = await _client.ClearThrottleRaw(ns);
+        Assert.Equal(HttpStatusCode.OK, replay.StatusCode);
+
+        Assert.DoesNotContain(ns, sweepView.TrippedBreakers);
+    }
+
+    [Fact]
     public async Task ForceClear_UnknownNamespace_Returns404()
     {
         using var response = await _client.ClearThrottleRaw(UniqueNamespace());
