@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
+import { skipToken, useIsMutating, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
@@ -12,6 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { invalidateInstanceData, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { instanceDataQuery, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { FileScanResults } from 'src/features/attachments/types';
+import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -32,6 +33,23 @@ const InstanceContext = React.createContext<IInstance | null>(null);
  * pauses) doesn't blow through the threshold on its first refetch after refocus.
  */
 export const INSTANCE_POLL_FAILURE_ESCALATION_CYCLES = 3;
+
+/**
+ * Poll cadence while this session's own process/next call is in flight. That call holds until the
+ * transition settles (up to the backend's synchronous wait budget, ~100s), and its response is the
+ * only thing that would otherwise write the live workflow annotation into the cache - so without a
+ * poll the submitting tab shows nothing but the button spinner for the whole transition, while a
+ * reload of the same page would already show the advancing view. Polling lets the read path's
+ * `processing` land mid-request, and ProcessWrapper swaps the task for the advancing view as soon as
+ * the engine has the workflow rather than when the response finally returns.
+ *
+ * Tight on purpose: the cadence only lasts until the first read that observes `processing` (the
+ * ordinary processing cadence takes over from there), and the timer starts when the mutation becomes
+ * pending, i.e. before the client-side validation and save that precede the request - so the first
+ * useful read lands a second or two after the request goes out. No jitter: individual submissions
+ * are not synchronized across users the way a shared engine stall is.
+ */
+export const PROCESS_NEXT_IN_FLIGHT_POLL_MS = 1000;
 
 /**
  * Number of consecutive failed instance refetch cycles since the last successful fetch.
@@ -59,6 +77,7 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 
   const hasPendingScans = useHasPendingScans();
   const workflowStatus = useWorkflowStatus();
+  const isProcessNextInFlight = useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
   const pollFailureCount = useInstancePollFailureCount();
   const { error: instanceDataError, data } = useInstanceDataQuery({
     // Poll while a workflow transition is in flight (~2-3s, jittered so many clients waiting on the
@@ -67,9 +86,27 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
     // state deliberately does NOT poll: a terminal failure requires manual (ops) intervention either
     // way, so the error page is static and an open tab doesn't pay the expensive failed-path read
     // (two engine calls) every tick indefinitely — after an ops resume, a manual refresh picks up the
-    // recovered state. Otherwise fall back to the slower pending-scans poll.
+    // recovered state.
+    //
+    // While this session's own process/next call is in flight, poll tightly instead (see
+    // PROCESS_NEXT_IN_FLIGHT_POLL_MS) so the live annotation arrives during the request rather than
+    // with the response. Driving the task swap off that read is safe: the read path only reports
+    // processing once the workflow is enqueued, which is after validation - so the swap can neither
+    // pre-empt the mutation's pre-request phase (which needs the form providers mounted, see
+    // ProcessWrapper) nor race a validation 409 - and the mutation's handlers live on the mutation,
+    // not on the unmounted button, so success and error still converge on the settled task. Resume
+    // deliberately keeps its own key and is not polled for: the failed task view stays mounted with a
+    // button spinner while resuming (see useProcessResume).
+    //
+    // Otherwise fall back to the slower pending-scans poll.
     refetchInterval:
-      workflowStatus === 'processing' ? () => 2000 + Math.floor(Math.random() * 1000) : hasPendingScans ? 5000 : false,
+      workflowStatus === 'processing'
+        ? () => 2000 + Math.floor(Math.random() * 1000)
+        : isProcessNextInFlight
+          ? PROCESS_NEXT_IN_FLIGHT_POLL_MS
+          : hasPendingScans
+            ? 5000
+            : false,
   });
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've

@@ -16,7 +16,8 @@ import {
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
+import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -282,7 +283,8 @@ function useIsRunningProcessNext() {
   // as soon as the mutation starts, unmounting those providers and deadlocking the mutation - it
   // never reaches process/next and never settles, so the Loader stays forever. This check only
   // exists to cover mounting mid-mutation; while mounted, blocking is driven by the server-side
-  // workflow annotation instead.
+  // workflow annotation instead - which InstanceProvider polls for while the mutation is in flight,
+  // so the swap happens once the engine has the workflow rather than when the response returns.
   useEffect(() => {
     setIsMutating(isRunningProcessNext(queryClient));
   }, [queryClient]);
