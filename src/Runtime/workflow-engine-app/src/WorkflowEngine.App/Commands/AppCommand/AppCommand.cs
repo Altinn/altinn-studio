@@ -181,10 +181,22 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             if (callbackResponse?.State is not null)
                 context.Step.StateOut = callbackResponse.State;
 
+            if (callbackResponse is { Defer: not null, Skip: not null })
+                return ExecutionResult.CriticalError("App returned both defer and skip in one callback response");
+
             if (callbackResponse?.Defer is { } deferral)
             {
                 _logger.AppCommandDeferred(commandData.CommandKey, context.Workflow.DatabaseId, deferral.Delay);
                 return ExecutionResult.Defer(deferral.Delay, deferral.Reason);
+            }
+
+            if (callbackResponse?.Skip is { } skip)
+            {
+                if (string.IsNullOrWhiteSpace(skip.Reason))
+                    return ExecutionResult.CriticalError("App returned a skip without a reason");
+
+                _logger.AppCommandSkipped(commandData.CommandKey, context.Workflow.DatabaseId);
+                return ExecutionResult.Skip(skip.Reason);
             }
 
             return ExecutionResult.Success();
@@ -309,4 +321,11 @@ internal static partial class AppCommandDescriptorLogs
         Guid workflowId,
         TimeSpan delay
     );
+
+    // The app's reason is not logged here — it is app-supplied text, and it is persisted on the step as its skip reason.
+    [LoggerMessage(
+        LogLevel.Information,
+        "AppCommand '{CommandKey}' skipped the rest of the workflow (workflowId: {WorkflowId})"
+    )]
+    internal static partial void AppCommandSkipped(this ILogger<AppCommand> logger, string commandKey, Guid workflowId);
 }

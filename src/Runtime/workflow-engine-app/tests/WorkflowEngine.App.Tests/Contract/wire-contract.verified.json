@@ -208,7 +208,22 @@
         "Nullable": true
       },
       {
+        "Name": "skip",
+        "Kind": "object<AppCallbackSkip>",
+        "Nullable": true
+      },
+      {
         "Name": "state",
+        "Kind": "string",
+        "Nullable": true
+      }
+    ]
+  },
+  "AppCallbackSkip": {
+    "Name": "AppCallbackSkip",
+    "Fields": [
+      {
+        "Name": "reason",
         "Kind": "string",
         "Nullable": true
       }
@@ -304,7 +319,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9,Skipped=10}",
         "Nullable": false
       },
       {
@@ -703,13 +718,18 @@
         "Nullable": true
       },
       {
+        "Name": "skipReason",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
         "Name": "stateOut",
         "Kind": "string",
         "Nullable": true
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9,Skipped=10}",
         "Nullable": false
       },
       {
@@ -874,12 +894,12 @@
       },
       {
         "Name": "dependencies",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9,Skipped=10}>",
         "Nullable": true
       },
       {
         "Name": "dependents",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9,Skipped=10}>",
         "Nullable": true
       },
       {
@@ -904,7 +924,7 @@
       },
       {
         "Name": "links",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9,Skipped=10}>",
         "Nullable": true
       },
       {
@@ -919,7 +939,7 @@
       },
       {
         "Name": "overallStatus",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9,Skipped=10}",
         "Nullable": false
       },
       {

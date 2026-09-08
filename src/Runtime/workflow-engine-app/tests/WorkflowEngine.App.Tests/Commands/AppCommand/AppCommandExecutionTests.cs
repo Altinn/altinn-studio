@@ -410,6 +410,104 @@ public class AppCommandExecutionTests
         Assert.Null(result.HttpStatusCode);
     }
 
+    // --- Outcome classification: defer and skip ---
+
+    [Fact]
+    public async Task Execute_SuccessWithDeferInResponse_ReturnsDeferred()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent = """{"defer": {"delay": "00:00:30", "reason": "waiting for payment"}}""";
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Deferred, result.Status);
+        Assert.Equal(TimeSpan.FromSeconds(30), result.DeferDelay);
+        Assert.Equal("waiting for payment", result.Message);
+        Assert.Null(result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task Execute_SuccessWithSkipInResponse_ReturnsSkippedWithReason()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent = """{"skip": {"reason": "acquireConcurrencyConflict"}}""";
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Skipped, result.Status);
+        Assert.Equal("acquireConcurrencyConflict", result.Message);
+        Assert.Null(result.HttpStatusCode);
+    }
+
+    [Theory]
+    [InlineData("""{"skip": {}}""")]
+    [InlineData("""{"skip": {"reason": null}}""")]
+    [InlineData("""{"skip": {"reason": ""}}""")]
+    [InlineData("""{"skip": {"reason": "   "}}""")]
+    public async Task Execute_SkipWithoutReason_ReturnsCriticalError(string responseBody)
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent = responseBody;
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Contains("skip without a reason", result.Message, StringComparison.Ordinal);
+        Assert.Null(result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task Execute_SkipAndDeferTogether_ReturnsCriticalError()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent =
+            """{"defer": {"delay": "00:00:30"}, "skip": {"reason": "acquireConcurrencyConflict"}}""";
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Contains("both defer and skip", result.Message, StringComparison.Ordinal);
+        Assert.Null(result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task Execute_SkipResponse_CapturesStateOut()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent =
+            """{"state": "echoed-state", "skip": {"reason": "acquireConcurrencyConflict"}}""";
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Skipped, result.Status);
+        Assert.Equal("echoed-state", step.StateOut);
+    }
+
     // --- StateIn / payload completeness ---
 
     [Fact]
