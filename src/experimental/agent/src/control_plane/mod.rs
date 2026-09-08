@@ -14,7 +14,7 @@ use crate::{Error, Status};
 
 pub use controller::{Controller, ErrorHandler, Wakeup};
 pub use reconciler::{Reconciler, SessionNotifier};
-pub use resource::{AgentId, AgentRecord};
+pub use resource::{AgentId, AgentRecord, ENV_FILE};
 pub use service::{ApplyRequest, ControlPlane, Notifier};
 
 /// Separates desired-state writes from reconciler status writes using generation checks.

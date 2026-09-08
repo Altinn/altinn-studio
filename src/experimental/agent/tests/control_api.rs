@@ -32,6 +32,7 @@ impl AuthenticationApi for FakeAuthentication {
         &'a self,
         _harness: agent::Harness,
         _token: &'a str,
+        _imported: bool,
     ) -> LocalFuture<'a, Result<ImportedAuthentication, Error>> {
         Box::pin(async {
             Ok(ImportedAuthentication {
@@ -137,7 +138,7 @@ async fn login_returns_only_non_secret_readiness() {
     let fixture = api();
     let imported = fixture
         .client
-        .auth_login(agent::Harness::ClaudeCode, "sk-ant-oat01-canary".into())
+        .auth_login(agent::Harness::ClaudeCode, "sk-ant-oat01-canary".into(), false)
         .await
         .expect("login");
     assert_eq!(imported.provider, "claude");
@@ -155,6 +156,7 @@ fn request(name: &str) -> ApplyRequest {
     ApplyRequest {
         source_directory: std::env::temp_dir().join("agent-platform-source"),
         manifest_path: None,
+        env_file: None,
         create_only: false,
         agent: agent(name),
     }

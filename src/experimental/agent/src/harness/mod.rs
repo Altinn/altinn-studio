@@ -101,7 +101,10 @@ impl AuthenticationManager {
         }
     }
 
-    /// Stores a host-acquired credential for the selected harness.
+    /// Stores a credential for the selected harness.
+    ///
+    /// `imported` marks a credential supplied by the caller rather than minted by the host login
+    /// flow; adapters whose host grant must stay isolated only accept mediated placeholders that way.
     ///
     /// # Errors
     ///
@@ -110,10 +113,11 @@ impl AuthenticationManager {
         &self,
         harness: Harness,
         credential: Zeroizing<String>,
+        imported: bool,
     ) -> Result<ImportedAuthentication, Error> {
         match harness {
             Harness::ClaudeCode => self.claude_code.login(credential).await,
-            Harness::Codex => self.codex.login(credential).await,
+            Harness::Codex => self.codex.login(credential, imported).await,
         }
     }
 }

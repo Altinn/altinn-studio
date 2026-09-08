@@ -3,7 +3,7 @@ members = [
   "src/experimental/agent",
   "src/experimental/sandbox-authorization",
   "src/experimental/sandbox",
-  "src/experimental/sandbox/examples/self-dev",
+  "src/experimental/sandbox/examples/worktree",
   "src/experimental/sandbox-microsandbox",
   "src/ci/github-runner/coordinator",
 ]

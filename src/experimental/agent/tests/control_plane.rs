@@ -231,6 +231,7 @@ fn apply_request(name: &str) -> agent::control_plane::ApplyRequest {
 fn apply_request_in(name: &str, source_directory: PathBuf) -> agent::control_plane::ApplyRequest {
     agent::control_plane::ApplyRequest {
         manifest_path: Some(source_directory.join("agent.yaml")),
+        env_file: None,
         source_directory,
         create_only: false,
         agent: agent(name),
@@ -351,6 +352,7 @@ async fn api_responses_carry_provenance_without_persisting_it() {
     let expected = agent::Provenance {
         source_directory: request.source_directory.clone(),
         manifest_path: request.manifest_path.clone(),
+        env_file: None,
     };
 
     let applied = fixture.control_plane.apply(request.clone()).await.expect("apply");
@@ -773,6 +775,162 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
 
     assert_eq!(applied.metadata.generation, 2);
     assert_eq!(applied.spec.secrets.len(), 1);
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_survives_a_symlinked_parent_of_a_missing_source() {
+    // macOS and Windows temp directories canonicalize to a different spelling; a source
+    // directory that does not exist on disk must still resolve by its literal path.
+    let fixture = fixture();
+    let real = tempfile::tempdir().expect("real directory");
+    let link = tempfile::tempdir().expect("link holder");
+    let alias = link.path().join("alias");
+    std::os::unix::fs::symlink(real.path(), &alias).expect("symlink");
+    let source_directory = alias.join("missing-source");
+    let request = apply_request_in("worker", source_directory.clone());
+    let applied = fixture.control_plane.apply(request).await.expect("apply");
+
+    let resolved = fixture
+        .control_plane
+        .resolve_directory(&source_directory.join("nested"))
+        .await
+        .expect("a subdirectory of the literal source path resolves");
+
+    assert_eq!(resolved.metadata.name, applied.metadata.name);
+}
+
+#[tokio::test(flavor = "local")]
+async fn secret_file_inside_a_bind_mount_is_rejected() {
+    let fixture = fixture();
+    let root = tempfile::tempdir().expect("temporary checkout");
+    let source_directory = root.path().join("examples/worktree");
+    std::fs::create_dir_all(&source_directory).expect("source directory");
+    let mut request = apply_request_in("worker", source_directory.clone());
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: root.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let error = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect_err("the default .env beside the manifest lies inside the mounted checkout");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("secret file") && message.contains("--env-file")),
+        "{error}"
+    );
+
+    let outside = tempfile::tempdir().expect("secret directory outside the checkout");
+    request.env_file = Some(outside.path().join("worker.env"));
+    let applied = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("a secret file outside every mount is accepted");
+    assert_eq!(
+        applied.status.provenance.expect("provenance").env_file,
+        request.env_file
+    );
+    assert_eq!(
+        stored(&fixture, "worker").await.env_file_path(),
+        outside.path().join("worker.env")
+    );
+
+    let mut unchanged = request.clone();
+    unchanged.env_file = None;
+    let reapplied = fixture
+        .control_plane
+        .apply(unchanged)
+        .await
+        .expect("omitting envFile keeps the recorded path");
+    assert_eq!(reapplied.metadata.generation, applied.metadata.generation);
+
+    let mut inside = request;
+    inside.env_file = Some(root.path().join("secrets.env"));
+    let error = fixture
+        .control_plane
+        .apply(inside)
+        .await
+        .expect_err("an explicit secret file inside the mount is still rejected");
+    assert!(matches!(error, Error::Invalid(_)));
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    let link_holder = tempfile::tempdir().expect("link holder");
+    let alias = link_holder.path().join("alias");
+    std::os::unix::fs::symlink(checkout.path(), &alias).expect("symlink");
+    let source_directory = checkout.path().join("examples/worktree");
+    std::fs::create_dir_all(&source_directory).expect("source directory");
+    let mut request = apply_request_in("worker", source_directory);
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+    // Neither the file nor its two parent directories exist yet, and the path enters the
+    // mounted checkout through a symlink.
+    request.env_file = Some(alias.join("secrets/not-yet/worker.env"));
+
+    let error = fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("the secret file would land inside the mounted checkout");
+    assert!(matches!(error, Error::Invalid(_)), "{error}");
+}
+
+#[tokio::test(flavor = "local")]
+async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
+    let fixture = fixture();
+    let root = tempfile::tempdir().expect("temporary checkout");
+    let with_secrets = root.path().join("agents/full");
+    std::fs::create_dir_all(&with_secrets).expect("secret Agent source directory");
+    let mut secret_agent = apply_request_in("full", with_secrets);
+    secret_agent.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    fixture.control_plane.apply(secret_agent).await.expect("secret Agent");
+
+    let mounted = root.path().join("agents/worktree");
+    std::fs::create_dir_all(&mounted).expect("mounted Agent source directory");
+    let mut worktree = apply_request_in("worktree", mounted);
+    worktree.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: root.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let error = fixture
+        .control_plane
+        .apply(worktree)
+        .await
+        .expect_err("the mount would expose the other Agent's .env");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("Agent \"full\"")),
+        "{error}"
+    );
 }
 
 #[tokio::test(flavor = "local")]

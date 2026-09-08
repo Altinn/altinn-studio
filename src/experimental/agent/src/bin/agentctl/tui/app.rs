@@ -1250,6 +1250,7 @@ mod tests {
                 agent.status.provenance = Some(agent::Provenance {
                     source_directory: PathBuf::from("/sources/worker"),
                     manifest_path: None,
+                    env_file: None,
                 });
             }
         }

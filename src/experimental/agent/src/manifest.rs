@@ -543,6 +543,9 @@ pub struct Provenance {
     /// Absolute path of the manifest last applied, when the client reported it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest_path: Option<std::path::PathBuf>,
+    /// Absolute path of the secret file, when it is not `.env` beside the manifest.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub env_file: Option<std::path::PathBuf>,
 }
 
 impl Provenance {

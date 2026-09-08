@@ -25,10 +25,27 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         },
     );
 
+    let secrets = if agent.spec.secrets.is_empty() {
+        "-".to_owned()
+    } else {
+        agent.status.provenance.as_ref().map_or_else(
+            || "-".into(),
+            |provenance| {
+                provenance
+                    .env_file
+                    .clone()
+                    .unwrap_or_else(|| provenance.source_directory.join(agent::control_plane::ENV_FILE))
+                    .display()
+                    .to_string()
+            },
+        )
+    };
+
     let mut lines = vec![
         format!("Name:       {}", agent.metadata.name),
         format!("Generation: {}", agent.metadata.generation),
         format!("Source:     {source}"),
+        format!("Secrets:    {secrets}"),
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),

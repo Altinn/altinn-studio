@@ -77,7 +77,7 @@ struct HostPaths {
 async fn main() -> Result<(), Box<dyn Error>> {
     let arguments = Arguments::parse();
     let host_home = host_home()?;
-    let repository = self_dev_repository()?;
+    let repository = worktree_repository()?;
     let sandbox_name = arguments
         .name
         .clone()
@@ -194,7 +194,7 @@ fn sandbox_environment() -> BTreeMap<String, String> {
         ("CARGO_HOME".to_string(), format!("{SANDBOX_HOME}/.cargo")),
         (
             "CARGO_TARGET_DIR".to_string(),
-            format!("{SANDBOX_HOME}/.cache/sandbox-self-dev/target"),
+            format!("{SANDBOX_HOME}/.cache/sandbox-worktree/target"),
         ),
         ("CODEX_HOME".to_string(), format!("{SANDBOX_HOME}/.codex")),
         ("CLAUDE_CONFIG_DIR".to_string(), format!("{SANDBOX_HOME}/.claude")),
@@ -212,7 +212,7 @@ fn resolve_host_paths(host_home: &Path, repository: PathBuf) -> Result<HostPaths
     })
 }
 
-fn self_dev_repository() -> Result<PathBuf, Box<dyn Error>> {
+fn worktree_repository() -> Result<PathBuf, Box<dyn Error>> {
     let repository = current_git_repository()?;
     if !repository.join("Cargo.toml").is_file() {
         return Err(io::Error::new(
@@ -235,7 +235,7 @@ fn worktree_sandbox_name(repository: &Path) -> Result<SandboxName, sandbox::Inva
         suffix.push(char::from(DIGITS[usize::from(byte >> 4)]));
         suffix.push(char::from(DIGITS[usize::from(byte & 0x0f)]));
     }
-    SandboxName::new(format!("self-dev-{suffix}"))
+    SandboxName::new(format!("worktree-{suffix}"))
 }
 
 fn harness_home(variable: &str, default: &str, label: &str, host_home: &Path) -> Result<PathBuf, io::Error> {
@@ -245,7 +245,7 @@ fn harness_home(variable: &str, default: &str, label: &str, host_home: &Path) ->
 }
 
 fn resolve_state_home(host_home: &Path) -> Result<PathBuf, io::Error> {
-    let state_home = host_home.join(".sandbox/self-dev");
+    let state_home = host_home.join(".sandbox/worktree");
     std::fs::create_dir_all(&state_home)?;
     canonical_directory(&state_home, "Sandbox state home")
 }

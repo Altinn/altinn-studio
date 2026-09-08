@@ -1,6 +1,6 @@
 [package]
-name = "sandbox-self-dev"
-description = "Self-development example for the backend-neutral Sandbox SDK"
+name = "sandbox-worktree"
+description = "Runs a coding harness in a retained Microsandbox VM with the current worktree bind-mounted"
 edition.workspace = true
 license.workspace = true
 publish = false

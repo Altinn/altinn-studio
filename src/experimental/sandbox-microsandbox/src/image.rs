@@ -58,6 +58,18 @@ impl MicrosandboxImageBackend {
         self.docker.as_ref().map_err(|failure| Error::Backend(failure.clone()))
     }
 
+    /// Scratch directory for image and build-context archives, inside the Microsandbox cache.
+    ///
+    /// The system temporary directory is often a small tmpfs (a Sandbox guest gives `/tmp`
+    /// 512 MiB), while an exported image archive is as large as the image itself.
+    async fn scratch_dir(&self) -> Result<PathBuf, Error> {
+        let scratch = self.client.local().cache_dir().join("tmp");
+        tokio::fs::create_dir_all(&scratch)
+            .await
+            .map_err(|source| error::io("create image scratch directory", source))?;
+        Ok(scratch)
+    }
+
     async fn build_image(
         &self,
         request: &image::ResolveRequest,
@@ -67,7 +79,9 @@ impl MicrosandboxImageBackend {
     ) -> Result<image::ResolvedImage, Error> {
         let platform = platform::require_supported(&request.platform)?;
         self.check_docker(progress).await?;
-        let prepared = Self::prepare_context(context, dockerfile, &request.platform, progress).await?;
+        let prepared = self
+            .prepare_context(context, dockerfile, &request.platform, progress)
+            .await?;
         let build_id = Uuid::new_v4().simple().to_string();
         let temporary_tag = format!("sandbox-microsandbox-build:{build_id}");
         self.build_docker_image(&prepared, &temporary_tag, &build_id, &platform, progress)
@@ -101,6 +115,7 @@ impl MicrosandboxImageBackend {
     }
 
     async fn prepare_context(
+        &self,
         source_context: &Path,
         source_dockerfile: &Path,
         platform: &sandbox::Platform,
@@ -121,7 +136,7 @@ impl MicrosandboxImageBackend {
         let dockerfile_parameter = archive_path(&relative_dockerfile)?;
 
         let cache_tag = cache_tag(&context, &dockerfile_parameter, platform);
-        let archive = create_context_archive(context, relative_dockerfile).await?;
+        let archive = create_context_archive(self.scratch_dir().await?, context, relative_dockerfile).await?;
         step.complete(started.elapsed()).await;
         Ok(PreparedBuild {
             archive,
@@ -335,7 +350,7 @@ impl MicrosandboxImageBackend {
     }
 
     async fn export_image(&self, reference: &str, step: &ProgressStep) -> Result<tempfile::TempPath, Error> {
-        let archive = tempfile::NamedTempFile::new()
+        let archive = tempfile::NamedTempFile::new_in(self.scratch_dir().await?)
             .map_err(|source| error::io("create Docker image archive", source))?
             .into_temp_path();
         let mut file = tokio::fs::File::create(&archive)
@@ -744,9 +759,13 @@ impl image::ImageBackend for MicrosandboxImageBackend {
     }
 }
 
-async fn create_context_archive(context: PathBuf, dockerfile: PathBuf) -> Result<tempfile::TempPath, Error> {
+async fn create_context_archive(
+    scratch: PathBuf,
+    context: PathBuf,
+    dockerfile: PathBuf,
+) -> Result<tempfile::TempPath, Error> {
     tokio::task::spawn_blocking(move || {
-        let archive = tempfile::NamedTempFile::new()?;
+        let archive = tempfile::NamedTempFile::new_in(scratch)?;
         let path = archive.into_temp_path();
         let file = File::create(&path)?;
         let ignore = dockerignore(&context)?;
@@ -846,10 +865,13 @@ mod tests {
         fs::write(context.path().join("nested/included.txt"), "included").expect("re-included file should be written");
         fs::write(context.path().join("nested/ignored.txt"), "ignored").expect("nested ignored file should be written");
 
-        let archive =
-            super::create_context_archive(context.path().to_path_buf(), Path::new("Dockerfile").to_path_buf())
-                .await
-                .expect("context archive should be created");
+        let archive = super::create_context_archive(
+            std::env::temp_dir(),
+            context.path().to_path_buf(),
+            Path::new("Dockerfile").to_path_buf(),
+        )
+        .await
+        .expect("context archive should be created");
         let file = fs::File::open(archive).expect("context archive should open");
         let entries = tar::Archive::new(file)
             .entries()
