@@ -236,7 +236,7 @@ async fn create(
 }
 
 async fn create_agent(client: &Client, manifest: PathBuf, name: String) -> Result<String, Error> {
-    let mut request = crate::read_apply_request(manifest).await?;
+    let mut request = crate::read_apply_request(manifest, None).await?;
     request.agent.metadata.name = name;
     request.create_only = true;
     let applied = client.apply(request).await?;
@@ -382,6 +382,7 @@ mod tests {
         agent.status.provenance = source.map(|directory| agent::Provenance {
             source_directory: directory.to_path_buf(),
             manifest_path: None,
+            env_file: None,
         });
         agent
     }

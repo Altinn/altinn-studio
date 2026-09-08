@@ -1,37 +1,31 @@
 apiVersion: agents.platform/v1alpha1
 kind: Agent
 metadata:
-  name: agent-dev
+  name: agent-dev-nested
 spec:
   sandbox:
     image:
       type: build
-      context: .
+      context: ..
       dockerfile: Dockerfile
     platform:
       os: linux
     resources:
-      cpu: "4"
-      memory: "8Gi"
+      cpu: "2"
+      memory: "3Gi"
       rootFilesystem:
-        capacity: "64Gi"
+        capacity: "16Gi"
         mode: direct
     initSystem: image
-    mounts:
-      - type: bind
-        source: ../../../../..
-        target: /home/agent/code/altinn-studio
-        readOnly: false
   home:
     source: home
   instructions:
-    source: instructions.md
+    source: ../instructions.md
+  # Claude only: nested login chains the Claude placeholder, but Codex has no equivalent yet.
   harnesses:
     - type: claudeCode
       auth: mediated
       default: true
-    - type: codex
-      auth: mediated
   secrets:
     - environment: GITHUB_TOKEN
       allowedHosts:

@@ -60,6 +60,11 @@ To work directly on the current checkout without cloning it, apply `agents/workt
 the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
 worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
 
+Because ignored files are visible too, a `.env` inside the checkout would expose its real values to the Agent.
+`agentctl apply` therefore refuses the worktree variant while another Agent applied from this checkout, such as
+`agents/full`, keeps its `.env` beside its manifest. Move that secret file outside the checkout and point the
+other Agent at it with `agentctl apply --env-file <path>`.
+
 Create or reattach to a Session:
 
 ```sh

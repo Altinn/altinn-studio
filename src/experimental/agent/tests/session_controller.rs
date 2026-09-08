@@ -217,6 +217,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
         manifest_path: None,
+        env_file: None,
         agent: resource,
     }
 }
@@ -548,6 +549,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
                 id: agent_id,
                 source_directory: PathBuf::from("/source"),
                 manifest_path: None,
+                env_file: None,
                 agent: resource,
             },
             0,

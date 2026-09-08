@@ -62,6 +62,10 @@ enum Command {
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
+        /// File supplying manifest secret values; defaults to `.env` beside the manifest. Use a
+        /// path outside any bind-mounted directory so real values never enter the Sandbox.
+        #[arg(long)]
+        env_file: Option<PathBuf>,
     },
     /// Display one or more resources.
     Get {
@@ -168,7 +172,13 @@ type CommandResult<T> = Result<T, CommandError>;
 #[derive(Subcommand)]
 enum ClaudeCommand {
     /// Mint a long-lived Claude token on the host and store it for agents.
-    Login,
+    Login {
+        /// Read an existing setup token from standard input instead of minting one. Inside an
+        /// Agent this accepts the mediated placeholder, so a nested `agentd` chains through the
+        /// outer mediation without ever holding a real credential.
+        #[arg(long)]
+        token_stdin: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -200,9 +210,13 @@ fn run() -> CommandResult<ExitCode> {
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
         Command::Claude {
-            command: ClaudeCommand::Login,
+            command: ClaudeCommand::Login { token_stdin },
         } => {
-            let token = agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?;
+            let token = if token_stdin {
+                read_token_from_stdin()?
+            } else {
+                agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?
+            };
             let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
             println!("{} authentication stored", imported.provider);
         }
@@ -213,8 +227,12 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
             println!("{} authentication stored", imported.provider);
         }
-        Command::Apply { filename, name } => {
-            let mut request = read_apply_request(filename).await?;
+        Command::Apply {
+            filename,
+            name,
+            env_file,
+        } => {
+            let mut request = read_apply_request(filename, env_file).await?;
             if let Some(name) = name {
                 request.agent.metadata.name = name;
             }
@@ -760,8 +778,9 @@ fn daemon_executable(agentctl: &Path) -> PathBuf {
     agentctl.with_file_name(format!("agentd{}", std::env::consts::EXE_SUFFIX))
 }
 
-async fn read_apply_request(filename: PathBuf) -> Result<ApplyRequest, Error> {
+async fn read_apply_request(filename: PathBuf, env_file: Option<PathBuf>) -> Result<ApplyRequest, Error> {
     let filename = absolute(filename)?;
+    let env_file = env_file.map(absolute).transpose()?;
     let bytes = tokio::fs::read(&filename).await?;
     let agent = manifest::decode(&bytes)?;
     let source_directory = filename
@@ -771,9 +790,22 @@ async fn read_apply_request(filename: PathBuf) -> Result<ApplyRequest, Error> {
     Ok(ApplyRequest {
         source_directory,
         manifest_path: Some(filename),
+        env_file,
         create_only: false,
         agent,
     })
+}
+
+fn read_token_from_stdin() -> Result<zeroize::Zeroizing<String>, Error> {
+    let mut line = zeroize::Zeroizing::new(String::new());
+    std::io::stdin()
+        .read_line(&mut line)
+        .map_err(|error| Error::Invalid(format!("could not read the token from standard input: {error}")))?;
+    let token = zeroize::Zeroizing::new(line.trim().to_owned());
+    if token.is_empty() {
+        return Err(Error::Invalid("no token was provided on standard input".into()));
+    }
+    Ok(token)
 }
 
 fn absolute(path: PathBuf) -> Result<PathBuf, Error> {
@@ -881,6 +913,35 @@ mod tests {
     }
 
     #[test]
+    fn claude_login_accepts_a_token_on_standard_input() {
+        let arguments = Arguments::try_parse_from(["agentctl", "claude", "login", "--token-stdin"])
+            .expect("Claude login arguments");
+        assert!(matches!(
+            arguments.command,
+            Command::Claude {
+                command: ClaudeCommand::Login { token_stdin: true }
+            }
+        ));
+    }
+
+    #[test]
+    fn apply_accepts_a_secret_file_outside_the_manifest_directory() {
+        let arguments = Arguments::try_parse_from([
+            "agentctl",
+            "apply",
+            "-f",
+            "agent.yaml",
+            "--env-file",
+            "/srv/secrets/worker.env",
+        ])
+        .expect("apply arguments");
+        assert!(matches!(
+            arguments.command,
+            Command::Apply { env_file: Some(path), .. } if path == Path::new("/srv/secrets/worker.env")
+        ));
+    }
+
+    #[test]
     fn wait_durations_are_bounded_and_explicit() {
         assert_eq!(parse_duration("30s").expect("seconds"), Duration::from_secs(30));
         assert_eq!(parse_duration("10m").expect("minutes"), Duration::from_mins(10));
@@ -944,7 +1005,7 @@ mod tests {
 
         let result = LocalRuntime::new()
             .expect("local runtime")
-            .block_on(read_apply_request(PathBuf::from("agent.yaml")));
+            .block_on(read_apply_request(PathBuf::from("agent.yaml"), None));
 
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");

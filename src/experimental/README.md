@@ -101,8 +101,10 @@ A secret is any protected host-owned value. Credentials are the subset used for 
 mediation therefore use the `SecretStore` concept, while harness login remains an authentication concern.
 
 Manifest secret bindings name a guest environment variable and the hosts where its value may be substituted. The
-matching real value is loaded from the manifest directory's `.env` file and retained only in the owner-protected host
-database. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
+matching real value is loaded from the manifest directory's `.env` file, or the file named by
+`agentctl apply --env-file`, and retained only in the owner-protected host database. A bind mount whose source
+contains any active Agent's secret file is refused at apply time, because the Sandbox would otherwise read the real
+values from the mounted directory. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
 the current real value only for an authorized request to an allowed host; rotation does not require copying new
 material into the Sandbox. A custom placeholder is optional for clients that validate token shape.
 

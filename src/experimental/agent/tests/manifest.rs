@@ -114,10 +114,10 @@ fn decodes_the_minimal_manifest() {
 
 #[test]
 fn decodes_the_self_development_manifest() {
-    let bytes = include_bytes!("../examples/self-dev/agent.yaml");
+    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
     let agent = manifest::decode(bytes).expect("self-development manifest should decode");
 
-    assert_eq!(agent.metadata.name, "agent-dev");
+    assert_eq!(agent.metadata.name, "agent-dev-worktree");
     assert_eq!(agent.spec.sandbox.platform.architecture, None);
     assert_eq!(agent.spec.secrets.len(), 1);
     assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
@@ -137,7 +137,7 @@ fn decodes_the_self_development_manifest() {
 
 #[test]
 fn self_development_mounts_the_host_checkout_instead_of_cloning() {
-    let bytes = include_bytes!("../examples/self-dev/agent.yaml");
+    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
     let agent = manifest::decode(bytes).expect("self-development manifest should decode");
     let dockerfile = include_str!("../examples/self-dev/Dockerfile");
 
@@ -146,12 +146,21 @@ fn self_development_mounts_the_host_checkout_instead_of_cloning() {
     assert!(matches!(
         &mounts[0],
         manifest::MountSpec::Bind { source, target, read_only }
-            if source == std::path::Path::new("../../../../..")
+            if source == std::path::Path::new("../../../../../..")
                 && target.as_str() == "/home/agent/code/altinn-studio"
                 && !read_only
     ));
-    assert!(!dockerfile.contains("workspace-init"));
     assert!(!dockerfile.contains("gh repo clone"));
+
+    let checkout = manifest::decode(include_bytes!("../examples/self-dev/checkout/agent.yaml"))
+        .expect("checkout manifest should decode");
+    assert_eq!(checkout.metadata.name, "agent-dev");
+    assert!(checkout.spec.sandbox.mounts.is_empty());
+    let nested = manifest::decode(include_bytes!("../examples/self-dev/nested/agent.yaml"))
+        .expect("nested manifest should decode");
+    assert_eq!(nested.metadata.name, "agent-dev-nested");
+    assert!(nested.spec.sandbox.mounts.is_empty());
+    assert!(nested.spec.sandbox.resources.memory() < agent.spec.sandbox.resources.memory());
 }
 
 #[test]
