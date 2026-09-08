@@ -1979,6 +1979,371 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- RemovedEFormidlingClientApiDetector -----------------------------------------------------
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheDeletedHttpClientExtension()
+    {
+        // Observed in the wild against unrelated APIs, which is why it is named rather than dropped.
+        _app.Write(
+            "logic/Clients/BevillingsregisterClient.cs",
+            """
+            using Altinn.App.Core.Extensions;
+            using Altinn.EFormidlingClient.Extensions;
+            public class BevillingsregisterClient
+            {
+                public async Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    await client.GetAsync(query, headers);
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using Altinn.EFormidlingClient.Extensions", StringComparison.Ordinal)
+        );
+        Assert.Contains(Summaries(result), w => w.Contains("HttpClientExtension", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsRemovedEndpointsAndModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusPoller.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class StatusPoller
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Poll()
+                {
+                    Capabilities capabilities = await _client.GetCapabilities("991825827", null);
+                    await _client.SubscribeeFormidling(new CreateSubscription(), null);
+                    await _client.FindOutGoingMessages("DPO", null);
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("GetCapabilities", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("SubscribeeFormidling", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("FindOutGoingMessages", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("CreateSubscription", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresTheEndpointsThatSurvived()
+    {
+        // The four the shipment flow is built from keep working; only their namespace changes, and
+        // that is rewritten automatically rather than reported.
+        _app.Write(
+            "logic/Eformidling/Shipment.cs",
+            """
+            using Altinn.App.Core.EFormidling.Interface;
+            public class Shipment
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Send(StandardBusinessDocument sbd, Stream file)
+                {
+                    await _client.CreateMessage(sbd);
+                    await _client.UploadAttachment(file, "id", "name.pdf");
+                    await _client.SendMessage("id");
+                    await _client.GetMessageStatusById("id");
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNestedStatusModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusReader.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class StatusReader
+            {
+                public bool Delivered(Statuses statuses) =>
+                    statuses.Content.Exists((Content entry) => entry.Status == "levert");
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Content", StringComparison.Ordinal));
+        // Statuses itself keeps its name, so it must not be reported as changed.
+        Assert.DoesNotContain(Summaries(result), w => w.Contains("Statuses is ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNowRepeatableArkivmeldingProperties()
+    {
+        _app.Write(
+            "logic/EFormidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Basisregistrering Build() =>
+                    new Basisregistrering
+                    {
+                        Dokumentbeskrivelse = new Dokumentbeskrivelse { Dokumentnummer = 1 },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Basisregistrering", StringComparison.Ordinal));
+        Assert.Contains(Locations(result), w => w.Contains("Dokumentbeskrivelse", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("maxOccurs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheRenamedSbdArkivmelding()
+    {
+        _app.Write(
+            "logic/Eformidling/Envelope.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models.SBD;
+            public class Envelope
+            {
+                public StandardBusinessDocument Build() =>
+                    new StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding
+                        {
+                            Sikkerhetsnivaa = 3,
+                            DPF = new DPF { ForsendelsesType = "annet" },
+                        },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("Sikkerhetsnivaa", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("DPF", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagTheNoarkArkivmelding()
+    {
+        // The Noark 5 Arkivmelding keeps its name. Matching on the type name would report every app
+        // that generates one, which is nearly all of them.
+        _app.Write(
+            "logic/Eformidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Arkivmelding Build() => new Arkivmelding { AntallFiler = 1, System = "app" };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Arkivmelding", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsReferencesTheNamespaceRewriteCannotReach()
+    {
+        // The rewrite only touches plain `using A.B;`. An alias and a fully-qualified name both
+        // survive it, so they are reported rather than silently left broken.
+        _app.Write(
+            "logic/Eformidling/Aliased.cs",
+            """
+            using Client = Altinn.Common.EFormidlingClient;
+            public class Aliased
+            {
+                private Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(
+            locations,
+            w => w.Contains("using Client = Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            locations,
+            w => w.Contains("Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsGlobalQualifiedReferences()
+    {
+        // `global::` is a legal way to write either form, and the rewrite misses both just the same.
+        _app.Write(
+            "logic/Eformidling/Global.cs",
+            """
+            using Legacy = global::Altinn.Common.EFormidlingClient;
+            public class Global
+            {
+                private global::Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("using Legacy = global::", StringComparison.Ordinal));
+        Assert.Contains(
+            locations,
+            w => w.Contains("global::Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsAPlainUsingWrittenWithGlobal()
+    {
+        // Not aliased, so it looks rewritable - but the rewrite compares the name exactly, and
+        // "global::Altinn.Common.EFormidlingClient" is not "Altinn.Common.EFormidlingClient".
+        _app.Write(
+            "logic/Eformidling/PlainGlobal.cs",
+            """
+            using global::Altinn.Common.EFormidlingClient;
+            public class PlainGlobal
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using global::Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_ScopesTheModelChecksByQualifiedNamesToo()
+    {
+        // No `using` anywhere, so scoping on imports alone would give this file only the generic
+        // "repoint these references" warning - and none of the guidance it actually needs about the
+        // nested status types, the list cardinality, or the SBD rename.
+        _app.Write(
+            "logic/Eformidling/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Altinn.Common.EFormidlingClient.Models.Content Entry;
+                public Altinn.Common.EFormidlingClient.Models.Basisregistrering Registration;
+
+                public Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument Build() =>
+                    new Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
+                    };
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("Statuses.Entry", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("maxOccurs", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_GivesTheExtensionsItsOwnGuidanceWhenWrittenInFull()
+    {
+        // The extensions namespace sits under a reported prefix, so without de-duplication this would
+        // arrive only as the generic warning, which does not say what to write instead.
+        _app.Write(
+            "logic/Clients/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(client, query, headers);
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("HttpClientExtension", StringComparison.Ordinal));
+        Assert.DoesNotContain(summaries, s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
+    {
+        // A plain using is rewritten automatically, so reporting it would be noise.
+        _app.Write(
+            "logic/Eformidling/Plain.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class Plain
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(
+            Summaries(result),
+            s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
+    {
+        // "Content" is an everyday identifier. Only files reaching into the eFormidling models
+        // namespace can plausibly mean the nested status type.
+        _app.Write(
+            "logic/Clients/SomeClient.cs",
+            """
+            using System.Net.Http;
+            public class SomeClient
+            {
+                public async Task<string> Read(HttpResponseMessage response) =>
+                    await response.Content.ReadAsStringAsync();
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- Scanner ---------------------------------------------------------------------------------
 
     [Fact]

@@ -1,5 +1,0 @@
-{
-  "name": "Simple greaterThan test (2)",
-  "expression": ["compare", 5, "greaterThan", 8],
-  "expects": false
-}

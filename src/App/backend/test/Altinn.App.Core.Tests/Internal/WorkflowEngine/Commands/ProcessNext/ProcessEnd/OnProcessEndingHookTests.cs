@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -29,10 +30,10 @@ public class OnProcessEndingHookTests
             {
                 CommandKey = OnProcessEndingHook.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
     }

@@ -7,14 +7,13 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.Process;
-using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,16 +34,13 @@ public class ProcessController : ControllerBase
 
     private readonly ILogger<ProcessController> _logger;
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessClient _processClient;
     private readonly IProcessEngine _processEngine;
     private readonly IProcessReader _processReader;
-    private readonly IProcessEngineAuthorizer _processEngineAuthorizer;
-    private readonly IValidationService _validationService;
-    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly ProcessStateEnricher _processStateEnricher;
     private readonly IRegisterClient _registerClient;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
-    private readonly IInstanceLocker _instanceLocker;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -64,14 +60,15 @@ public class ProcessController : ControllerBase
         _instanceClient = instanceClient;
         _processClient = processClient;
         _processReader = processReader;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _processEngine = serviceProvider.GetRequiredService<IProcessEngine>();
-        _processEngineAuthorizer = processEngineAuthorizer;
-        _validationService = validationService;
-        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
+        // Retain these public constructor parameters for compatibility. ProcessEngine owns both checks so that
+        // workflow recovery and process-status dispositions precede action and validation execution.
+        _ = validationService;
+        _ = processEngineAuthorizer;
         _processStateEnricher = processStateEnricher;
         _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
-        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
     /// <summary>
@@ -147,7 +144,12 @@ public class ProcessController : ControllerBase
     [HttpPost("start")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        "application/json"
+    )]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_INSTANTIATE)]
     public async Task<ActionResult<AppProcessState>> StartProcess(
@@ -162,7 +164,7 @@ public class ProcessController : ControllerBase
 
         try
         {
-            instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -170,6 +172,12 @@ public class ProcessController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            instance = fetchedInstance.Instance;
+
+            if (ProcessStatusHelper.GetMutationProblem(instance) is { } processStatusProblem)
+            {
+                return ProcessStatusProblemResult.Create(processStatusProblem);
+            }
 
             var request = new ProcessStartRequest()
             {
@@ -185,13 +193,10 @@ public class ProcessController : ControllerBase
 
             if (result.ProcessStateChange is not null)
             {
-                await using var instanceLock = _instanceLocker.InitLock(instanceOwnerPartyId, instanceGuid);
-                await instanceLock.Lock();
                 instance = await _processEngine.SubmitInitialProcessState(
                     instance,
-                    result.ProcessStateChange,
-                    _instanceLocker.CurrentLockToken
-                        ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock")
+                    fetchedInstance.Metadata,
+                    result.ProcessStateChange
                 );
             }
 
@@ -225,7 +230,7 @@ public class ProcessController : ControllerBase
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}"
             );
         }
-        catch (Exception startException)
+        catch (Exception startException) when (startException is not InstanceStateConflictException)
         {
             _logger.LogError(
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}. Due to {startException}"
@@ -324,7 +329,12 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        "application/json"
+    )]
     public async Task<ActionResult> NextElement(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -339,7 +349,7 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -347,11 +357,13 @@ public class ProcessController : ControllerBase
                 null,
                 ct
             );
+            Instance instance = fetchedInstance.Instance;
 
             var processNextRequest = new ProcessNextRequest
             {
                 User = User,
                 Instance = instance,
+                InstanceVersions = fetchedInstance.Metadata,
                 Action = processNext?.Action,
                 ActionOnBehalfOf = processNext?.ActionOnBehalfOf,
                 Language = language,
@@ -408,12 +420,16 @@ public class ProcessController : ControllerBase
 
             return Ok(appProcessState);
         }
+        catch (WorkflowSubmissionFailedException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            return ConcurrentTransitionConflict(exception);
+        }
         catch (PlatformHttpException e)
         {
             _logger.LogError("Platform exception when processing next. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Process next failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             return ExceptionResponse(exception, "Process next failed.");
         }
@@ -425,7 +441,7 @@ public class ProcessController : ControllerBase
     [HttpPost("resume")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppProcessState>> ResumeCurrentTask(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -436,7 +452,7 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -444,12 +460,14 @@ public class ProcessController : ControllerBase
                 null,
                 ct
             );
+            Instance instance = fetchedInstance.Instance;
 
             ProcessChangeResult result = await _processEngine.ResumeCurrentTask(
                 new ProcessNextRequest
                 {
                     User = User,
                     Instance = instance,
+                    InstanceVersions = fetchedInstance.Metadata,
                     Action = null,
                     Language = null,
                 },
@@ -476,7 +494,7 @@ public class ProcessController : ControllerBase
             _logger.LogError("Platform exception when resuming current task. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Resume current task failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             return ExceptionResponse(exception, "Resume current task failed.");
         }
@@ -495,7 +513,12 @@ public class ProcessController : ControllerBase
     [HttpPut("completeProcess")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        "application/json"
+    )]
     public async Task<ActionResult<AppProcessState>> CompleteProcess(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -505,10 +528,11 @@ public class ProcessController : ControllerBase
     )
     {
         Instance instance;
+        StorageVersionMetadata versions;
 
         try
         {
-            instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -516,6 +540,8 @@ public class ProcessController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            instance = fetchedInstance.Instance;
+            versions = fetchedInstance.Metadata;
         }
         catch (PlatformHttpException e)
         {
@@ -556,44 +582,42 @@ public class ProcessController : ControllerBase
             && counter++ < MaxIterationsAllowed
         )
         {
-            bool authorizeProcessNext = await _processEngineAuthorizer.AuthorizeProcessNext(instance);
-
-            if (!authorizeProcessNext)
-            {
-                return Forbid();
-            }
-
-            var validationProblem = await GetValidationProblemDetails(
-                instance,
-                instance.Process.CurrentTask.ElementId,
-                language
-            );
-            if (validationProblem is not null)
-            {
-                return Conflict(validationProblem);
-            }
-
             try
             {
                 ProcessNextRequest request = new()
                 {
                     Instance = instance,
+                    InstanceVersions = versions,
                     User = User,
                     Action = Altinn.App.Core.Internal.Process.ProcessEngine.ConvertTaskTypeToAction(
                         instance.Process.CurrentTask.AltinnTaskType
                     ),
                     Language = language,
+                    Mode = ProcessNextMode.CompleteProcess,
                 };
                 ProcessChangeResult result = await _processEngine.Next(request);
 
                 if (!result.Success)
                 {
+                    if (result.CompleteProcessAuthorizationFailed)
+                    {
+                        return Forbid();
+                    }
+
                     return GetResultForError(result);
                 }
 
-                instance = result.MutatedInstance ?? instance;
+                if (result.MutatedInstance is { } mutatedInstance)
+                {
+                    instance = mutatedInstance;
+                    versions = result.MutatedInstanceVersions;
+                }
             }
-            catch (Exception ex)
+            catch (WorkflowSubmissionFailedException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+            {
+                return ConcurrentTransitionConflict(exception);
+            }
+            catch (Exception ex) when (ex is not InstanceStateConflictException)
             {
                 return ExceptionResponse(ex, "Complete process failed.");
             }
@@ -656,12 +680,19 @@ public class ProcessController : ControllerBase
 
     private ActionResult GetResultForError(ProcessChangeResult result)
     {
+        if (result.BlockingProcessStatus is { } blockingProcessStatus)
+        {
+            return ProcessStatusProblemResult.Create(blockingProcessStatus);
+        }
+
         if (result.WorkflowFailure is not null)
         {
-            int statusCode =
-                result.WorkflowFailure.Kind == WorkflowFailureKind.Timeout
-                    ? StatusCodes.Status504GatewayTimeout
-                    : StatusCodes.Status500InternalServerError;
+            int statusCode = result.WorkflowFailure.Kind switch
+            {
+                WorkflowFailureKind.AcquireConflict => StatusCodes.Status409Conflict,
+                WorkflowFailureKind.Timeout => StatusCodes.Status504GatewayTimeout,
+                _ => StatusCodes.Status500InternalServerError,
+            };
 
             // The raw failure detail originates from exception/callback messages and can carry
             // internal infrastructure text, so it is logged server-side and never serialized to
@@ -677,7 +708,10 @@ public class ProcessController : ControllerBase
             {
                 Detail = CreateClientWorkflowFailureDetail(result.WorkflowFailure.Kind),
                 Status = statusCode,
-                Title = "Something went wrong while moving to the next task.",
+                Title =
+                    result.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict
+                        ? "The instance changed before the transition started."
+                        : "Something went wrong while moving to the next task.",
             };
             problemDetails.Extensions["workflowFailure"] = SanitizeWorkflowFailureForClient(result.WorkflowFailure);
             if (result.ProcessStateOnFailure is not null)
@@ -746,11 +780,16 @@ public class ProcessController : ControllerBase
         string message
     )
     {
+        bool concurrentTransition = exception.StatusCode == HttpStatusCode.Conflict;
         // Derive the (state, action) pair together so they cannot drift apart. NotAccepted means the engine
         // rejected the submission and the existing instance was left untouched, so retrying the start is safe.
         // Unknown means we could not confirm whether it was accepted, so retrying could double-apply: inspect first.
         (WorkflowInitializationState state, WorkflowRecommendedAction recommendedAction) = exception.Kind switch
         {
+            WorkflowSubmissionFailureKind.NotAccepted when concurrentTransition => (
+                WorkflowInitializationState.WorkflowNotAccepted,
+                WorkflowRecommendedAction.InspectInstance
+            ),
             WorkflowSubmissionFailureKind.NotAccepted => (
                 WorkflowInitializationState.WorkflowNotAccepted,
                 WorkflowRecommendedAction.RetryStartProcess
@@ -768,7 +807,8 @@ public class ProcessController : ControllerBase
             recommendedAction,
             submissionFailureKind: exception.Kind,
             submissionStatusCode: exception.StatusCode,
-            collectionKey: exception.CollectionKey
+            collectionKey: exception.CollectionKey,
+            statusCode: concurrentTransition ? StatusCodes.Status409Conflict : StatusCodes.Status500InternalServerError
         );
     }
 
@@ -779,6 +819,23 @@ public class ProcessController : ControllerBase
         string app
     )
     {
+        if (exception.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict)
+        {
+            return WorkflowInitializationProblem.Create(
+                _logger,
+                WorkflowInitializationFlow.ProcessStart,
+                exception,
+                message,
+                state: WorkflowInitializationState.WorkflowFailed,
+                instance: exception.Instance,
+                recommendedAction: WorkflowRecommendedAction.RetryStartProcess,
+                workflowFailure: exception.WorkflowFailure,
+                workflowAccepted: true,
+                processStateChanged: false,
+                statusCode: StatusCodes.Status409Conflict
+            );
+        }
+
         return WorkflowInitializationProblem.Create(
             _logger,
             WorkflowInitializationFlow.ProcessStart,
@@ -791,6 +848,23 @@ public class ProcessController : ControllerBase
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,
             processStateChanged: exception.ProcessStateChanged
+        );
+    }
+
+    private ObjectResult ConcurrentTransitionConflict(WorkflowSubmissionFailedException exception)
+    {
+        _logger.LogWarning(
+            exception,
+            "Workflow engine rejected a process transition because the enqueue idempotency key was already used with different transition content."
+        );
+        return Conflict(
+            new ProblemDetails
+            {
+                Title = "Concurrent process transition attempt.",
+                Detail =
+                    "Another process transition was submitted from the same instance version. Refresh the instance and try again.",
+                Status = StatusCodes.Status409Conflict,
+            }
         );
     }
 
@@ -835,38 +909,6 @@ public class ProcessController : ControllerBase
         );
     }
 
-    private async Task<ProblemDetails?> GetValidationProblemDetails(
-        Instance instance,
-        string currentTaskId,
-        string? language
-    )
-    {
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, currentTaskId, language);
-
-        var validationIssues = await _validationService.ValidateInstanceAtTask(
-            dataAccessor,
-            currentTaskId, // run full validation
-            ignoredValidators: null,
-            onlyIncrementalValidators: null,
-            language: language
-        );
-        var success = validationIssues.TrueForAll(v => v.Severity != ValidationIssueSeverity.Error);
-
-        if (!success)
-        {
-            var errorCount = validationIssues.Count(v => v.Severity == ValidationIssueSeverity.Error);
-            return new ProblemDetails()
-            {
-                Detail = $"{errorCount} validation errors found for task {currentTaskId}",
-                Status = StatusCodes.Status409Conflict,
-                Title = "Validation failed for task",
-                Extensions = new Dictionary<string, object?>() { { "validationIssues", validationIssues } },
-            };
-        }
-
-        return null;
-    }
-
     private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
     {
         if (e.Response.StatusCode == HttpStatusCode.Forbidden)
@@ -903,6 +945,8 @@ public class ProcessController : ControllerBase
     private static string CreateClientWorkflowFailureDetail(WorkflowFailureKind kind) =>
         kind switch
         {
+            WorkflowFailureKind.AcquireConflict =>
+                "The instance changed before the process transition could start. Refresh the instance and try again.",
             WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
             WorkflowFailureKind.DependencyFailed => "A workflow failed because a workflow it depends on failed.",
             WorkflowFailureKind.EngineFault => "The workflow engine failed while performing the process action.",

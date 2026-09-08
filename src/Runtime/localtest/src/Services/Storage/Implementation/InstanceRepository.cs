@@ -1,6 +1,7 @@
 #nullable disable
 
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
@@ -53,7 +54,11 @@ namespace LocalTest.Services.Storage.Implementation
             Directory.CreateDirectory(GetInstanceFolder());
             PreProcess(instance);
             await File.WriteAllTextAsync(path, instance.ToString(), cancellationToken);
-            await PostProcess(instance);
+            await InstanceVersionMetadataStore.Initialize(
+                _localPlatformSettings,
+                instanceGuid,
+                cancellationToken);
+            await PostProcess(instance, cancellationToken);
             return instance;
         }
 
@@ -76,34 +81,50 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<(Instance Instance, long InternalId)> GetOne(Guid instanceGuid, bool includeElements, CancellationToken cancellationToken)
         {
-            string instancesPath = GetInstanceFolder();
-
-            if (Directory.Exists(instancesPath))
+            string path = FindInstancePath(instanceGuid);
+            if (path is not null)
             {
-                string[] files = Directory.GetFiles(instancesPath, $"*_{instanceGuid}.json");
-                if (files.Length > 0)
-                {
-                    string path = files[0];
-                    using var _ = await Lock(path);
-                    string content = await File.ReadAllTextAsync(path, cancellationToken);
-                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-
-                    if (includeElements)
-                    {
-                        await PostProcess(instance);
-                    }
-                    else
-                    {
-                        Guid instanceGuidValue = Guid.Parse(instance.Id);
-                        string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
-                        instance.Id = instanceId;
-                    }
-
-                    return (instance, 0);
-                }
+                using var _ = await Lock(path);
+                return await ReadInstanceFile(path, includeElements, cancellationToken);
             }
 
             return (null, 0);
+        }
+
+        // Caller must already hold this instance's file lock.
+        internal async Task<(Instance Instance, long InternalId)> GetOneWithoutLock(
+            Guid instanceGuid,
+            bool includeElements,
+            CancellationToken cancellationToken)
+        {
+            string path = FindInstancePath(instanceGuid);
+            return path is null
+                ? (null, 0)
+                : await ReadInstanceFile(path, includeElements, cancellationToken);
+        }
+
+        public Task<InstanceVersionResult> ReadVersions(
+            Guid instanceGuid,
+            CancellationToken cancellationToken = default)
+        {
+            return InstanceVersionMetadataStore.Read(
+                _localPlatformSettings,
+                instanceGuid,
+                cancellationToken);
+        }
+
+        public Task<InstanceVersionResult> CheckVersions(
+            Guid instanceGuid,
+            int? expectedInstanceVersion,
+            int? expectedProcessStateVersion,
+            CancellationToken cancellationToken = default)
+        {
+            return InstanceVersionMetadataStore.Check(
+                _localPlatformSettings,
+                instanceGuid,
+                expectedInstanceVersion,
+                expectedProcessStateVersion,
+                cancellationToken);
         }
 
         public async Task<InstanceQueryResponse> GetInstancesFromQuery(
@@ -219,7 +240,7 @@ namespace LocalTest.Services.Storage.Implementation
                 await Task.WhenAll(instances.Select(async i =>
                 {
                     using var _ = await Lock(i);
-                    await PostProcess(i);
+                    await PostProcess(i, cancellationToken);
                 }));
             }
             else
@@ -276,14 +297,91 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        public async Task<Instance> Update(Instance instance, List<string> updateProperties, CancellationToken cancellationToken)
+        public async Task<Instance> Update(
+            Instance instance,
+            List<string> updateProperties,
+            CancellationToken cancellationToken,
+            int? expectedInstanceVersion = null,
+            int? expectedProcessStateVersion = null)
         {
             using var _ = await Lock(instance);
-            string path = GetInstancePath(instance.Id);
-            Directory.CreateDirectory(GetInstanceFolder());
-            PreProcess(instance);
-            await File.WriteAllTextAsync(path, instance.ToString(), cancellationToken);
-            await PostProcess(instance);
+            Guid instanceGuid = GetInstanceGuid(instance);
+            bool bumpsProcessStateVersion = updateProperties.Contains(nameof(instance.Process));
+
+            await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                instanceGuid,
+                expectedInstanceVersion,
+                expectedProcessStateVersion,
+                bumpInstanceVersion: true,
+                bumpProcessStateVersion: bumpsProcessStateVersion,
+                async () =>
+                {
+                    await EnsureIdleProcessStatus(instanceGuid, cancellationToken);
+                    await WriteInstance(instance, cancellationToken);
+                },
+                cancellationToken);
+
+            await PostProcess(instance, cancellationToken);
+            return instance;
+        }
+
+        // Callers hand in an instance they have already mutated, so the guard has to read the
+        // persisted process status, as updateinstance_v4 reads it off the locked row.
+        private async Task EnsureIdleProcessStatus(
+            Guid instanceGuid,
+            CancellationToken cancellationToken)
+        {
+            (Instance current, _) = await GetOneWithoutLock(instanceGuid, false, cancellationToken);
+            ProcessStatus currentProcessStatus = current?.Process?.Status ?? ProcessStatus.Idle;
+            if (currentProcessStatus != ProcessStatus.Idle)
+            {
+                throw new ProcessStatusConflictException(currentProcessStatus);
+            }
+        }
+
+        internal async Task<T> RunWithInstanceLock<T>(Instance instance, Func<Task<T>> operation)
+        {
+            using var _ = await Lock(instance);
+            return await operation();
+        }
+
+        // Aggregate mutations call this while RunWithInstanceLock is active so they can keep
+        // the same instance-file-lock -> version-lock ordering as ordinary instance updates.
+        internal async Task<Instance> UpdateWithoutVersionBumpUnderExistingLock(
+            Instance instance,
+            List<string> updateProperties,
+            CancellationToken cancellationToken)
+        {
+            await WriteInstance(instance, cancellationToken);
+            await PostProcess(instance, cancellationToken);
+            return instance;
+        }
+
+        public async Task<Instance> UpdateReadStatus(
+            Instance instance,
+            CancellationToken cancellationToken)
+        {
+            using var _ = await Lock(instance);
+            Guid instanceGuid = GetInstanceGuid(instance);
+
+            await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                instanceGuid,
+                expectedInstanceVersion: null,
+                expectedProcessStateVersion: null,
+                bumpInstanceVersion: false,
+                bumpProcessStateVersion: false,
+                async () =>
+                {
+                    string path = GetInstancePath(instance.Id);
+                    Directory.CreateDirectory(GetInstanceFolder());
+                    PreProcess(instance);
+                    await File.WriteAllTextAsync(path, instance.ToString(), cancellationToken);
+                },
+                cancellationToken);
+
+            await PostProcess(instance, cancellationToken);
             return instance;
         }
 
@@ -297,19 +395,66 @@ namespace LocalTest.Services.Storage.Implementation
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.InstanceCollectionFolder;
         }
 
+        private string FindInstancePath(Guid instanceGuid)
+        {
+            string instancesPath = GetInstanceFolder();
+            return Directory.Exists(instancesPath)
+                ? Directory.GetFiles(instancesPath, $"*_{instanceGuid}.json").FirstOrDefault()
+                : null;
+        }
+
+        private async Task<(Instance Instance, long InternalId)> ReadInstanceFile(
+            string path,
+            bool includeElements,
+            CancellationToken cancellationToken)
+        {
+            string content = await File.ReadAllTextAsync(path, cancellationToken);
+            Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+
+            if (includeElements)
+            {
+                await PostProcess(instance, cancellationToken);
+            }
+            else
+            {
+                string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+                instance.Id = instanceId;
+            }
+
+            return (instance, 0);
+        }
+
+        private async Task WriteInstance(Instance instance, CancellationToken cancellationToken)
+        {
+            string path = GetInstancePath(instance.Id);
+            Directory.CreateDirectory(GetInstanceFolder());
+            PreProcess(instance);
+            await File.WriteAllTextAsync(path, instance.ToString(), cancellationToken);
+        }
+
+        private static Guid GetInstanceGuid(Instance instance)
+        {
+            return instance.Id.Contains("/")
+                ? Guid.Parse(instance.Id.Split("/")[1])
+                : Guid.Parse(instance.Id);
+        }
+
         private static void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
             instance.Data = new List<DataElement>();
         }
 
-        private async Task PostProcess(Instance instance)
+        private async Task PostProcess(Instance instance, CancellationToken cancellationToken)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-            instance.Data = await ((DataRepository)_dataRepository).ReadAll(instanceGuid);
+            instance.Data = await ((DataRepository)_dataRepository).ReadAll(
+                instanceGuid,
+                cancellationToken
+            );
 
             if (instance.Data != null && instance.Data.Any())
             {

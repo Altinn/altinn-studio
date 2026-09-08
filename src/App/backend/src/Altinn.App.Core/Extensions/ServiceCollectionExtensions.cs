@@ -48,7 +48,6 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Files;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
@@ -111,8 +110,17 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
         services.AddHttpClient<IAuthorizationClient, AuthorizationClient>();
         services.AddHttpClient<IDataClient, DataClient>();
+        services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+            (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+        );
+        services.AddTransient<IInstanceMutationClient>(sp =>
+            (IInstanceMutationClient)sp.GetRequiredService<IDataClient>()
+        );
         services.AddHttpClient<IOrganizationClient, RegisterERClient>();
         services.AddHttpClient<IInstanceClient, InstanceClient>();
+        services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+        );
         services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();
@@ -123,7 +131,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IText, TextClient>();
 #pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
-        services.AddSingleton<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
 
@@ -368,8 +375,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ProcessStateEnricher>();
 
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
-
-        services.AddSingleton<IInstanceLocker, InstanceLocker>();
 
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();

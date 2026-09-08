@@ -130,6 +130,10 @@ Response:
     "status": "Completed",
     "processingOrder": 3,
     "retryCount": 0,
+    "deferCount": 0,
+    "firstDeferredAt": "ISO | null",
+    "lastDeferredAt": "ISO | null",
+    "lastDeferReason": "string | null",
     "errorHistory": [
         { "timestamp": "ISO", "message": "string", "httpStatusCode": 500, "wasRetryable": true }
     ],
@@ -306,19 +310,20 @@ All workflows with future `startAt`. Response: `Workflow[]`
 
 Distinct values for a label key. Response: `string[]`
 
-### `POST /dashboard/retry`
+### Workflow actions
 
-Reset a failed workflow back to Enqueued.
+The dashboard has no mutation endpoints of its own. The Retry, Retry now / Check now and Fail buttons call the
+engine's public API directly, so the same contract that external callers use is what the UI exercises:
 
-Body: `{ "workflowId": "<guid>" }`
+| Button                        | Request                                                              |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Retry** (Failed step)       | `POST /api/v1/{namespace}/workflows/{id}/resume`                     |
+| **Retry now** / **Check now** | `POST /api/v1/{namespace}/workflows/{id}/nudge`                      |
+| **Fail** (parked step)        | `POST /api/v1/{namespace}/workflows/{id}/fail` with a fixed `reason` naming the dashboard |
 
-### `POST /dashboard/nudge`
-
-Clear the pending backoff of a parked workflow (Requeued or Waiting), making it immediately eligible for
-processing. The dashboard face of `POST /api/v1/{namespace}/workflows/{id}/nudge` — same primitive, and
-the workflow is re-executed rather than skipped.
-
-Body: `{ "workflowId": "<guid>" }`
+The namespace and workflow id are URL-encoded route segments. Both 200 and 202 count as success; a refusal
+(409 for the wrong state, 400 for a bad request) carries problem details, whose `detail` becomes the button's
+tooltip. The contracts are documented in the technical guide's [API reference](../../../docs/technical-guide.md#api-reference).
 
 ---
 
@@ -358,7 +363,7 @@ Horizontal row of step circles connected by SVG lines.
 **Below each circle:**
 
 - Command detail label (e.g. "StartTask", "WebhookCall")
-- Sub-label (if applicable)
+- Sub-label — for a Waiting step, the reason its command gave for deferring (`lastDeferReason`), ellipsised to the node's width with the full text in the tooltip
 - Command type badge (`app`, `webhook`, etc.)
 - Retry count (if > 0)
 - Backoff countdown (if requeued with future backoffUntil)
@@ -376,7 +381,7 @@ don't jump as retry/backoff/timing rows appear mid-processing; static pipelines
 drop the reservation. The phase-bracket headroom (`.pipeline-grouped`) applies only when at least
 one step maps to a phase.
 
-**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing, Requeued or Waiting step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
+**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing, Requeued or Waiting step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found. A rebuild that does not move the active step (a retry or deferral write-back of the same step, a relation landing) keeps the pipeline where the operator scrolled it: the card's HTML is swapped through `setCardHTMLKeepingPipelineScroll`, which carries the old `.pipeline` element's `scrollLeft` over to the new one.
 
 **BPMN grouping:** Steps are grouped by task phase using `stepPhase()` which maps command detail names to `start`/`end`/`process-end` phases. Groups show bracket lines and task labels from `parseTransition()`. The transition is parsed from `operationId` (format: `"Process next: TaskA → TaskB"`).
 
@@ -433,12 +438,14 @@ The modal has four distinct DOM zones:
 ### Tabs
 
 1. **Details** (default) — Rows top to bottom:
-    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued / Check now for Waiting, with >5s backoff remaining). All elements flex-aligned in a single row.
+    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action buttons (Retry for Failed; Retry now for Requeued / Check now for Waiting, with >5s backoff remaining; Fail for Requeued or Waiting, always). All elements flex-aligned in a single row.
     - Idempotency Key
     - Created (formatted time + relative age)
     - Execution Started (if set)
     - Last Updated (if set)
     - Backoff Until (if set)
+    - Deferrals (if > 0), First Deferred and Last Deferred (formatted time + relative age, if set)
+    - Defer Reason — the step's `lastDeferReason`, the command's own words for what it is waiting for (if set)
     - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
     - Command Type
     - Max Execution Time (formatted duration, if set)
@@ -457,11 +464,12 @@ The modal has four distinct DOM zones:
 
 ### Action Buttons
 
-- **Retry** — Shown for Failed steps in the status row. Calls `POST /dashboard/retry`.
-- **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/nudge`.
+- **Retry** — Shown for Failed steps in the status row. Calls the public `resume` endpoint.
+- **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls the public `nudge` endpoint.
 - **Check now** (nudge) — The same control on a Waiting step, relabelled: the step is polling, not retrying. Same endpoint; only the wording changes, because "retry" misdescribes a step that never failed.
+- **Fail** — Shown for Requeued and Waiting steps in the status row (and as a `fail` button on parked pipeline steps, next to the nudge button when one is shown). Calls the public `fail` endpoint with a fixed reason naming the dashboard: the step is marked Failed with that reason as its final error entry, after which the Retry button applies. Red, to mark it as the give-up action.
 
-**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped" with success CSS class (stays disabled). On failure, text changes to "Failed" with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
+**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped"/"Marked failed" with success CSS class (stays disabled). On failure, text changes to "Failed" ("Rejected" for the Fail action, whose success outcome _is_ a failed step) with error CSS class and the response's problem-details `detail` as the tooltip, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
 
 ### SSE-Driven Refresh
 
@@ -725,6 +733,9 @@ interface Step {
     status: StepStatus;
     processingOrder: number;
     retryCount: number;
+    deferCount: number;
+    firstDeferredAt: string | null;
+    lastDeferReason: string | null;
     backoffUntil: string | null;
     createdAt: string;
     executionStartedAt: string | null;
@@ -781,8 +792,10 @@ interface Workflow {
 
 Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
 
-Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
-Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z|Completed||"`
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.deferCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
+Example: `"Processing|Completed:0:0:,Processing:0:0:,Enqueued:1:0:2024-01-15T10:30:45Z|Completed||"`
+`deferCount` is in the formula so a Waiting step's card re-renders on every deferral, refreshing its
+reason sub-label and its backoff countdown.
 The trailing relation-status segments keep relation chip dot colors fresh when only a related
 workflow's status changed.
 
@@ -844,6 +857,7 @@ Phases drive the bracket lines and task name labels shown on the pipeline. The `
 The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappings:
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
+- **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

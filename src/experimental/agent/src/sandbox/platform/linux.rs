@@ -95,7 +95,7 @@ impl PlatformAdapter for Linux {
 impl Linux {
     async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
         for installation in &record.agent.spec.harnesses {
-            harness::verify_linux(installation.kind, sandbox, &installation.version).await?;
+            harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
         }
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
         configure_podman(sandbox).await?;

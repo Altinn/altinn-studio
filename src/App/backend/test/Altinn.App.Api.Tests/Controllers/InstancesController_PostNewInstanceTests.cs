@@ -7,16 +7,28 @@ using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Tests.Common.Mocks;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -88,9 +100,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         string filename = "validfile.png";
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
 
         OverrideServicesForThisTest = services =>
         {
+            UseHttpDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
             services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
@@ -126,7 +143,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         // Verify the file data element was created - filename validation passed
         var dataElement = Assert.Single(createResponseParsed.Data, d => d.DataType == "specificFileType");
         Assert.Equal("image/png", dataElement.ContentType);
-
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
@@ -179,6 +195,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
+        OverrideServicesForThisTest = services =>
+        {
+            UseHttpDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
+        };
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
@@ -276,7 +300,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "permissive-app";
         int instanceOwnerPartyId = token.PartyId;
-
         OverrideServicesForThisTest = services =>
         {
             services.AddTelemetrySink(
@@ -401,6 +424,116 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
         Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
         storedInstance.Status?.IsHardDeleted.Should().BeTrue();
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstance_Simplified_EnqueueConflictRetainsInstanceAndRequiresInspection()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineClient>();
+                services.AddSingleton<IWorkflowEngineClient>(
+                    new RejectingWorkflowEngineClient(HttpStatusCode.Conflict)
+                );
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using var content = new StringContent(
+            $$"""
+            {
+              "instanceOwner": {
+                "partyId": "{{instanceOwnerPartyId}}"
+              }
+            }
+            """,
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
+        root.GetProperty("title").GetString().Should().Be("Instance initialization failed.");
+        root.GetProperty("initializationState").GetString().Should().Be("workflowNotAccepted");
+        root.GetProperty("instanceDeleted").GetBoolean().Should().BeFalse();
+        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
+        root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be("notAccepted");
+        root.GetProperty("workflowSubmissionStatusCode").GetInt32().Should().Be(StatusCodes.Status409Conflict);
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstance_Simplified_AcquireConflictRetainsInstanceWithoutResumeAction()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineClient>();
+                services.AddSingleton<IWorkflowEngineClient>(
+                    new AcceptedFailingWorkflowEngineClient(acquireConflict: true)
+                );
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using var content = new StringContent(
+            $$"""
+            {
+              "instanceOwner": {
+                "partyId": "{{instanceOwnerPartyId}}"
+              }
+            }
+            """,
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
+        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
+        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
+        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
@@ -817,6 +950,98 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
+    public async Task CopyInstance_WhenValidatorReadsStaleSourceContent_ReturnsConflictProblemDetails()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var storageMetadata = new ApiTestStorageMetadata();
+        var copyInstanceValidatorMock = new Mock<ICopyInstanceValidator>();
+        var pdpMock = new Mock<IPDP>();
+        pdpMock
+            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
+        copyInstanceValidatorMock
+            .Setup(validator => validator.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .Returns(
+                async (IInstanceDataAccessor sourceData) =>
+                {
+                    DataElement dataElement = Assert.Single(
+                        sourceData.Instance.Data,
+                        element => element.DataType == "default"
+                    );
+                    _ = await sourceData.GetFormData(new DataElementIdentifier(Guid.Parse(dataElement.Id)));
+                    return null;
+                }
+            );
+        OverrideServicesForThisTest = services =>
+        {
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+            services.AddSingleton(copyInstanceValidatorMock.Object);
+            services.RemoveAll<IPDP>();
+            services.AddSingleton(pdpMock.Object);
+        };
+        using HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: org);
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            orgToken
+        );
+
+        try
+        {
+            DataElement dataElement = Assert.Single(sourceInstance.Data, element => element.DataType == "default");
+            var patch = new JsonPatch(
+                PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+            );
+            await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataElement.Id, patch);
+            await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+            var sourceIdentifier = new InstanceIdentifier(sourceInstance.Id);
+            storageMetadata.BumpDataElementBeforeNextContentRead(sourceIdentifier, Guid.Parse(dataElement.Id));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                AuthorizationSchemes.Bearer,
+                userToken
+            );
+
+            using HttpResponseMessage response = await client.GetAsync(
+                $"/{org}/{app}/legacy/instances/{sourceIdentifier.InstanceOwnerPartyId}/{sourceIdentifier.InstanceGuid}/copy"
+            );
+            string responseContent = await response.Content.ReadAsStringAsync();
+            OutputHelper.WriteLine(responseContent);
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            ProblemDetails? problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+                responseContent,
+                JsonSerializerOptions
+            );
+            Assert.NotNull(problemDetails);
+            Assert.Equal(StatusCodes.Status409Conflict, problemDetails.Status);
+            Assert.Equal("Data element content conflict", problemDetails.Title);
+            Assert.Contains(dataElement.Id, problemDetails.Detail, StringComparison.Ordinal);
+            Assert.Contains(
+                "Reload the instance data and retry the request.",
+                problemDetails.Detail,
+                StringComparison.Ordinal
+            );
+            copyInstanceValidatorMock.Verify(
+                validator => validator.Validate(It.IsAny<IInstanceDataAccessor>()),
+                Times.Once
+            );
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        }
+    }
+
+    [Fact]
     public async Task CopyInstance_CopyInstanceValidator_Returns_Forbidden_When_Validation_Fails()
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
@@ -934,6 +1159,246 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         Assert.Equal(HttpStatusCode.OK, nextResponse.StatusCode);
     }
 
+    private void RouteStorageRequestsToFileBackedInterceptor(
+        string org,
+        string app,
+        StorageClientInterceptor storage,
+        HttpMessageInvoker storageInvoker
+    )
+    {
+        var seededInstances = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        SendAsync = async message =>
+        {
+            if (TryParseStorageMutationRequest(message.RequestUri, out int partyId, out Guid instanceGuid))
+            {
+                await EnsureStorageInterceptorHasInstance(org, app, storage, seededInstances, partyId, instanceGuid);
+                var response = await storageInvoker.SendAsync(message, CancellationToken.None);
+                if (response.IsSuccessStatusCode)
+                {
+                    await PersistStorageInterceptorData(org, app, storage, partyId, instanceGuid);
+                }
+
+                return response;
+            }
+
+            if (
+                message.Method == HttpMethod.Get
+                && TryParseStorageDataRequest(message.RequestUri, out partyId, out instanceGuid)
+            )
+            {
+                await EnsureStorageInterceptorHasInstance(org, app, storage, seededInstances, partyId, instanceGuid);
+                return await storageInvoker.SendAsync(message, CancellationToken.None);
+            }
+
+            throw new NotImplementedException(
+                $"Unexpected real HTTP request in test: {message.Method} {message.RequestUri}"
+            );
+        };
+    }
+
+    private static void ReplaceProcessEngineForStorePartsTest(IServiceCollection services)
+    {
+        services.RemoveAll<IProcessEngine>();
+        services.AddSingleton<IProcessEngine, StorePartsTestProcessEngine>();
+    }
+
+    private static void UseHttpDataClient(IServiceCollection services)
+    {
+        services.RemoveAll<IDataClient>();
+        services.AddHttpClient<IDataClient, DataClient>();
+    }
+
+    private static StorageClientInterceptor CreateStorageInterceptor(string org, string app)
+    {
+        var metadataJson = File.ReadAllText(TestData.GetApplicationMetadataPath(org, app));
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(metadataJson, JsonSerializerOptions)!;
+        foreach (var dataType in applicationMetadata.DataTypes.Where(dataType => dataType.AllowedContentTypes is null))
+        {
+            dataType.AllowedContentTypes = ["application/octet-stream", "application/pdf", "image/png"];
+        }
+
+        return new StorageClientInterceptor(applicationMetadata);
+    }
+
+    private static bool TryParseStorageMutationRequest(Uri? uri, out int instanceOwnerPartyId, out Guid instanceGuid)
+    {
+        string[]? path = uri?.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (
+            path is ["storage", "api", "v1", "instances", var partyId, var guid, "mutations"]
+            && int.TryParse(partyId, out instanceOwnerPartyId)
+            && Guid.TryParse(guid, out instanceGuid)
+        )
+        {
+            return true;
+        }
+
+        instanceOwnerPartyId = 0;
+        instanceGuid = Guid.Empty;
+        return false;
+    }
+
+    private static bool TryParseStorageDataRequest(Uri? uri, out int instanceOwnerPartyId, out Guid instanceGuid)
+    {
+        string[]? path = uri?.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (
+            path is ["storage", "api", "v1", "instances", var partyId, var guid, "data", _]
+            && int.TryParse(partyId, out instanceOwnerPartyId)
+            && Guid.TryParse(guid, out instanceGuid)
+        )
+        {
+            return true;
+        }
+
+        instanceOwnerPartyId = 0;
+        instanceGuid = Guid.Empty;
+        return false;
+    }
+
+    private static async Task EnsureStorageInterceptorHasInstance(
+        string org,
+        string app,
+        StorageClientInterceptor storage,
+        HashSet<string> seededInstances,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+        if (!seededInstances.Add(instanceId))
+        {
+            return;
+        }
+
+        var instance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        instance.Data = ReadDataElementsFromTestFiles(org, app, instanceOwnerPartyId, instanceGuid);
+        storage.AddInstance(instance);
+
+        foreach (var dataElement in instance.Data)
+        {
+            var dataElementGuid = Guid.Parse(dataElement.Id);
+            var blobPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataElementGuid);
+            if (File.Exists(blobPath))
+            {
+                storage.AddDataRaw(
+                    dataElementGuid,
+                    await File.ReadAllBytesAsync(blobPath),
+                    StorageClientInterceptor.CreateBlobVersionId(1)
+                );
+            }
+        }
+    }
+
+    private static List<DataElement> ReadDataElementsFromTestFiles(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        string dataDirectory = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
+        if (!Directory.Exists(dataDirectory))
+        {
+            return [];
+        }
+
+        return Directory
+            .GetFiles(dataDirectory, "*.json")
+            .Where(file => !file.Contains(".pretest", StringComparison.Ordinal))
+            .Select(file => JsonSerializer.Deserialize<DataElement>(File.ReadAllText(file), JsonSerializerOptions)!)
+            .ToList();
+    }
+
+    private static async Task PersistStorageInterceptorData(
+        string org,
+        string app,
+        StorageClientInterceptor storage,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        var (instance, data) = storage.GetInstanceAndData(instanceOwnerPartyId, instanceGuid);
+        string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        await InstanceClientMockSi.WriteJsonFile(instancePath, instance);
+
+        foreach (var dataElement in instance.Data)
+        {
+            string dataElementPath = TestData.GetDataElementPath(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                Guid.Parse(dataElement.Id)
+            );
+            Directory.CreateDirectory(Path.GetDirectoryName(dataElementPath)!);
+            await InstanceClientMockSi.WriteJsonFile(dataElementPath, dataElement);
+
+            string blobPath = TestData.GetDataBlobPath(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                Guid.Parse(dataElement.Id)
+            );
+            Directory.CreateDirectory(Path.GetDirectoryName(blobPath)!);
+            await File.WriteAllBytesAsync(blobPath, data[dataElement.Id]);
+        }
+    }
+
+    private sealed class StorePartsTestProcessEngine : IProcessEngine
+    {
+        public Task<ProcessChangeResult> CreateInitialProcessState(ProcessStartRequest request)
+        {
+            ProcessState? oldProcessState = request.Instance.Process;
+            request.Instance.Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+            };
+
+            return Task.FromResult(
+                new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange
+                    {
+                        OldProcessState = oldProcessState,
+                        NewProcessState = request.Instance.Process,
+                        Events = [],
+                    },
+                }
+            );
+        }
+
+        public Task<Instance> SubmitInitialProcessState(
+            Instance instance,
+            StorageVersionMetadata versions,
+            ProcessStateChange processStateChange,
+            bool isInstantiation = false,
+            Dictionary<string, string>? prefill = null,
+            InstantiationNotification? notification = null,
+            CancellationToken ct = default
+        ) => Task.FromResult(instance);
+
+        public Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
+        public Task<ProcessChangeResult> ResumeCurrentTask(
+            ProcessNextRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task EnqueueProcessNext(
+            Instance instance,
+            Actor actor,
+            Guid dependsOnWorkflowId,
+            string collectionKey,
+            string state,
+            string? action = null,
+            string? idempotencyKey = null,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+    }
+
     private sealed class RejectingWorkflowEngineClient(HttpStatusCode statusCode) : IWorkflowEngineClient
     {
         public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
@@ -991,7 +1456,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
     }
 
-    private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
+    private sealed class AcceptedFailingWorkflowEngineClient(bool acquireConflict = false) : IWorkflowEngineClient
     {
         private readonly Guid _workflowId = Guid.NewGuid();
         private string? _collectionKey;
@@ -1061,7 +1526,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                         new StepStatusResponse
                         {
                             DatabaseId = Guid.NewGuid(),
-                            OperationId = "StartTask",
+                            OperationId = acquireConflict ? AcquireProcessingStatus.Key : "StartTask",
                             ProcessingOrder = 0,
                             Command = new StepStatusResponse.CommandDetails { Type = "app" },
                             Status = PersistentItemStatus.Failed,
@@ -1070,9 +1535,15 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                             [
                                 new ErrorEntry(
                                     DateTimeOffset.UtcNow,
-                                    "Simulated workflow callback failure.",
-                                    StatusCodes.Status500InternalServerError,
-                                    WasRetryable: true
+                                    acquireConflict
+                                        ? "AppCommand failed with client error Conflict: "
+                                            + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
+                                            + "\"detail\":\"Refresh and retry.\"}"
+                                        : "Simulated workflow callback failure.",
+                                    acquireConflict
+                                        ? StatusCodes.Status409Conflict
+                                        : StatusCodes.Status500InternalServerError,
+                                    WasRetryable: !acquireConflict
                                 ),
                             ],
                         },
@@ -1094,7 +1565,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
+            acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,

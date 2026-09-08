@@ -292,3 +292,74 @@ func assertCallNotRecorded(t *testing.T, calls []containermock.Call, method stri
 		}
 	}
 }
+
+func TestResetWorkflowEngineData_KeepsLocaltestStorage(t *testing.T) {
+	dataDir := t.TempDir()
+	localtestDataDir := filepath.Join(dataDir, "AltinnPlatformLocal")
+	workflowEngineDataDir := components.WorkflowEngineDbDataPath(dataDir)
+	createDir(t, localtestDataDir)
+	createDir(t, workflowEngineDataDir)
+
+	client := containermock.New()
+	client.VolumeRemoveFunc = func(_ context.Context, name string, force bool) error {
+		if name != components.WorkflowEngineDbVolume {
+			t.Fatalf("VolumeRemove() name = %q, want %q", name, components.WorkflowEngineDbVolume)
+		}
+		if !force {
+			t.Fatal("VolumeRemove() force = false, want true")
+		}
+		return nil
+	}
+
+	env := NewEnv(
+		&config.Config{
+			DataDir: dataDir,
+			Images:  testResetImages(),
+		},
+		ui.NewOutput(io.Discard, io.Discard, false),
+		client,
+	)
+	if err := env.ResetWorkflowEngineData(context.Background()); err != nil {
+		t.Fatalf("ResetWorkflowEngineData() error = %v", err)
+	}
+
+	assertCallRecorded(t, client.Calls, "VolumeRemove")
+	assertCallNotRecorded(t, client.Calls, "NetworkRemove")
+	assertNotExists(t, workflowEngineDataDir)
+	if _, err := os.Stat(localtestDataDir); err != nil {
+		t.Fatalf("Stat(%q) error = %v, want localtest storage kept", localtestDataDir, err)
+	}
+}
+
+func TestResetWorkflowEngineData_StopsManagedResourcesFirst(t *testing.T) {
+	dataDir := t.TempDir()
+	createDir(t, filepath.Join(dataDir, "AltinnPlatformLocal"))
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (containertypes.ContainerInfo, error) {
+		return containertypes.ContainerInfo{
+			Labels: map[string]string{containerbackend.GraphIDLabel: graphID},
+		}, nil
+	}
+	client.NetworkInspectFunc = func(context.Context, string) (containertypes.NetworkInfo, error) {
+		return containertypes.NetworkInfo{
+			Labels: map[string]string{containerbackend.GraphIDLabel: graphID},
+		}, nil
+	}
+
+	env := NewEnv(
+		&config.Config{
+			DataDir: dataDir,
+			Images:  testResetImages(),
+		},
+		ui.NewOutput(io.Discard, io.Discard, false),
+		client,
+	)
+	if err := env.ResetWorkflowEngineData(context.Background()); err != nil {
+		t.Fatalf("ResetWorkflowEngineData() error = %v", err)
+	}
+
+	assertCallRecorded(t, client.Calls, "ContainerRemove")
+	assertCallRecorded(t, client.Calls, "NetworkRemove")
+	assertCallRecorded(t, client.Calls, "VolumeRemove")
+}
