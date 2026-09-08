@@ -17,6 +17,11 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { makePointerFromArray } from './pointerUtils';
 import { isFieldOrCombination, isReference } from './utils';
 
+// Local experiment: how to serialise a combination that has no subschemas yet.
+// 'placeholder-subschema' writes `"anyOf": [{}]`, 'no-keyword' writes `{}`.
+export const EMPTY_COMBINATION_OUTPUT: 'placeholder-subschema' | 'no-keyword' =
+  'placeholder-subschema';
+
 export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const out: JsonSchema = {};
   const rootNode = getRootNode(nodes);
@@ -61,7 +66,9 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
 
       // Adding combination root array to start
       if (node.objectKind === ObjectKind.Combination) {
-        startValue[node.combinationType] = [];
+        if (node.children.length || EMPTY_COMBINATION_OUTPUT === 'placeholder-subschema') {
+          startValue[node.combinationType] = node.children.length ? [] : [{}];
+        }
       }
 
       JSONPointer.set(out, jsonPointer, startValue);

@@ -64,11 +64,13 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
     // Combinations
     if (uiNode.objectKind === ObjectKind.Combination) {
       const kind = getCombinationKind(schemaNode);
-      schemaNode[kind].forEach((childNode: KeyValuePairs, index: number) => {
-        const child = createNodeBase(pointerBase, kind, index.toString());
-        uiNode.children.push(child.schemaPointer);
-        uiSchemaNodes.push(...createUiNode(childNode, child));
-      });
+      withoutPlaceholderSubSchema(schemaNode[kind]).forEach(
+        (childNode: KeyValuePairs, index: number) => {
+          const child = createNodeBase(pointerBase, kind, index.toString());
+          uiNode.children.push(child.schemaPointer);
+          uiSchemaNodes.push(...createUiNode(childNode, child));
+        },
+      );
     }
 
     if (isFieldOrCombination(uiNode)) {
@@ -93,6 +95,11 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
     return uiSchemaNodes;
   }
 };
+
+// Local experiment: counterpart of the placeholder that build-json-schema writes for
+// combinations without subschemas.
+const withoutPlaceholderSubSchema = (subSchemas: KeyValuePairs[]): KeyValuePairs[] =>
+  subSchemas.length === 1 && Object.keys(subSchemas[0]).length === 0 ? [] : subSchemas;
 
 export const buildUiSchema = (jsonSchema: JsonSchema): UiSchemaNodes =>
   createUiNode(jsonSchema, createNodeBase(ROOT_POINTER));
