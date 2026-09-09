@@ -5386,7 +5386,7 @@
               "properties": {
                 "title": {
                   "title": "Title",
-                  "description": "The title of the paragraph",
+                  "description": "The title of the payment details",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "description": {
@@ -5458,7 +5458,7 @@
                   "properties": {
                     "title": {
                       "title": "Title",
-                      "description": "The title of the paragraph",
+                      "description": "The title of the payment component",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
@@ -6466,7 +6466,7 @@
               }
             },
             "zebra": {
-              "title": "Size",
+              "title": "Zebra striping",
               "description": "If true, the table will have zebra striping",
               "type": "boolean"
             },
@@ -6476,7 +6476,7 @@
               "type": "boolean"
             },
             "enableEdit": {
-              "title": "Enable delete",
+              "title": "Enable edit",
               "description": "If true, will allow user to edit row",
               "type": "boolean"
             },

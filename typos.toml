@@ -46,7 +46,7 @@ extend-exclude = [
     # in src/bin/. The presentation HTML embeds minified reveal.js.
     "**/bin/[Dd]ebug/**", "**/bin/[Rr]elease/**", "**/obj/**", "**/dist/**",
     "**/node_modules/**", "**/.yarn/**",
-    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.generated.ts", "*.generated.tsx",
+    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.generated.ts",
     "*.verified.*", "**/Migrations/**",
     "src/common/ts/layout-contract/docs/**/*.generated.md",
     "src/Runtime/workflow-engine/docs/presentation/**",

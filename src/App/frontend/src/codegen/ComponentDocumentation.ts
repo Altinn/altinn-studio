@@ -73,24 +73,30 @@ function renderComponent(
   const properties = Object.fromEntries(
     Object.entries(component.properties).filter(([name]) => !commonPropertyNames.has(name)),
   );
+  if (commonPropertyNames.size === 0) {
+    return renderTable(properties, locale);
+  }
   const commonPropertiesText =
     locale === 'nb'
-      ? `Komponenten støtter også de felles egenskapene ${renderCommonPropertyLinks(locale)}.`
-      : `The component also supports the common properties ${renderCommonPropertyLinks(locale)}.`;
+      ? `Komponenten støtter også de felles egenskapene ${renderCommonPropertyLinks(commonPropertyNames, locale)}.`
+      : `The component also supports the common properties ${renderCommonPropertyLinks(commonPropertyNames, locale)}.`;
   return [commonPropertiesText, '', renderTable(properties, locale)].join('\n');
 }
 
-function renderCommonPropertyLinks(locale: DocumentationLocale): string {
-  const links: PropertyLink[] = [
-    { path: 'id', target: 'common-properties' },
-    { path: 'hidden', target: 'common-properties' },
-    { path: 'grid', target: 'grid' },
-    { path: 'pageBreak', target: 'page-break' },
-  ];
-  const rendered = links.map(({ path, target }) => renderPropertyLink(path, target, locale));
+function renderCommonPropertyLinks(names: ReadonlySet<string>, locale: DocumentationLocale): string {
+  const rendered = [...names].map((name) =>
+    renderPropertyLink(
+      name,
+      name === 'grid' ? 'grid' : name === 'pageBreak' ? 'page-break' : 'common-properties',
+      locale,
+    ),
+  );
+  if (rendered.length <= 1) {
+    return rendered.join('');
+  }
   return locale === 'nb'
     ? `${rendered.slice(0, -1).join(', ')} og ${rendered.at(-1)}`
-    : `${rendered.slice(0, -1).join(', ')}, and ${rendered.at(-1)}`;
+    : `${rendered.slice(0, -1).join(', ')}${rendered.length > 2 ? ',' : ''} and ${rendered.at(-1)}`;
 }
 
 function renderTable(

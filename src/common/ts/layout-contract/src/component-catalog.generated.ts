@@ -223,6 +223,8 @@ const AllowedValidationMasks = {
       'All',
     ],
   },
+  minItems: undefined,
+  maxItems: undefined,
   title: { en: 'Validation types', nb: 'Valideringstyper' },
   description: {
     en: 'List of validation types to show',
@@ -258,6 +260,8 @@ const FormComponentProps = {
     showValidations: {
       type: 'array',
       items: AllowedValidationMasks['items'],
+      minItems: undefined,
+      maxItems: undefined,
       title: AllowedValidationMasks['title'],
       description: AllowedValidationMasks['description'],
       required: false,
@@ -690,6 +694,8 @@ const CardConfig = {
     children: {
       type: 'array',
       items: { type: 'string' },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Children', nb: 'Underkomponenter' },
       description: {
         en: 'Child component IDs to show inside the card',
@@ -871,6 +877,8 @@ const ISelectionComponent = {
         description: IRawOption['description'],
         examples: IRawOption['examples'],
       },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Static options', nb: 'Statiske alternativer' },
       description: { en: 'List of static options', nb: 'Liste over statiske alternativer.' },
       required: false,
@@ -1063,6 +1071,8 @@ const PageValidation = {
     show: {
       type: 'array',
       items: AllowedValidationMasks['items'],
+      minItems: undefined,
+      maxItems: undefined,
       title: AllowedValidationMasks['title'],
       description: AllowedValidationMasks['description'],
       required: true,
@@ -1480,6 +1490,8 @@ const GridRow = {
     cells: {
       type: 'array',
       items: { type: 'union', variants: GridCell['variants'] },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Cells in table row', nb: 'Celler i tabellraden' },
       description: { en: 'The list of cells in this row', nb: 'Listen over cellene i raden.' },
       required: true,
@@ -1491,6 +1503,8 @@ const GridRow = {
 const GridRows = {
   type: 'array',
   items: { type: 'object', properties: GridRow['properties'], additionalProperties: false },
+  minItems: undefined,
+  maxItems: undefined,
   title: { en: 'Rows in Grid or Grid-like component', nb: 'Rader i Grid eller lignende komponent' },
   description: { en: 'The list of rows in this grid', nb: 'Listen over radene i rutenettet.' },
   examples: [
@@ -1691,7 +1705,10 @@ const PatternFormatProps = {
     format: { type: 'string', expression: true, required: true },
     mask: {
       type: 'union',
-      variants: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+      variants: [
+        { type: 'string' },
+        { type: 'array', items: { type: 'string' }, minItems: undefined, maxItems: undefined },
+      ],
       required: false,
     },
     allowEmptyFormatting: { type: 'boolean', required: false },
@@ -1712,7 +1729,13 @@ const NumberFormatProps = {
       required: false,
     },
     decimalSeparator: { type: 'string', expression: true, required: false },
-    allowedDecimalSeparators: { type: 'array', items: { type: 'string' }, required: false },
+    allowedDecimalSeparators: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: undefined,
+      maxItems: undefined,
+      required: false,
+    },
     thousandsGroupStyle: {
       type: 'string',
       allowedValues: ['thousand', 'lakh', 'wan', 'none'],
@@ -2033,6 +2056,8 @@ const ILikertColumnProperties = {
         },
         additionalProperties: false,
       },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Columns', nb: 'Kolonner' },
       description: {
         en: 'Add customization to the columns of the likert component',
@@ -2087,10 +2112,12 @@ const ILikertFilter = {
     },
     additionalProperties: false,
   },
+  minItems: undefined,
+  maxItems: undefined,
   title: { en: 'Filter', nb: 'Filter' },
   description: {
     en: 'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)',
-    nb: 'Filtrerer radene i Likert-gruppen med start- og stoppindekser.',
+    nb: 'Filtrerer radene i Likert-gruppen med start- og stoppindekser. Startindeksen teller fra null, og stoppindeksen teller fra én. For eksempel viser {start, stop} = {0, 3} tre rader, ikke fire.',
   },
 } as const;
 
@@ -2148,6 +2175,8 @@ const IPagination = {
     alternatives: {
       type: 'array',
       items: { type: 'number' },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Alternatives', nb: 'Alternativer' },
       description: {
         en: 'List of page sizes the user can choose from. Make sure to test the performance of the largest number of items per page you are allowing.',
@@ -2275,6 +2304,8 @@ const MapTileLayer = {
     subdomains: {
       type: 'array',
       items: { type: 'string' },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Subdomains', nb: 'Subdomener' },
       description: {
         en: 'List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.',
@@ -2327,7 +2358,13 @@ const MapWMSLayer = {
       required: true,
     },
     attribution: { type: 'string', required: false },
-    subdomains: { type: 'array', items: { type: 'string' }, required: false },
+    subdomains: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: undefined,
+      maxItems: undefined,
+      required: false,
+    },
     type: { type: 'constant', value: 'WMS', required: true },
     layers: {
       type: 'string',
@@ -2677,7 +2714,7 @@ const IGroupEditProperties = {
       title: { en: 'Multi page functionality', nb: 'Flersidefunksjonalitet' },
       description: {
         en: 'Turning this on makes it possible to display the edit mode for a repeating group with multiple inner pages. Every component referenced in the "children" property should have a prefix with the page number it should be displayed on (e.g. "1:component1", "2:component2", etc.)',
-        nb: 'Gjør det mulig å redigere en repeterende gruppe over flere interne sider.',
+        nb: 'Gjør det mulig å redigere en repeterende gruppe over flere interne sider. Hver komponent i "children" må ha et prefiks med sidenummeret den skal vises på, for eksempel "1:component1" eller "2:component2".',
       },
       default: false,
       required: false,
@@ -2692,7 +2729,7 @@ const IGroupEditProperties = {
       title: { en: 'Open by default', nb: 'Åpen som standard' },
       description: {
         en: 'If set to true, a row of the repeating group will be opened by default, if the group has no rows already. If set to "first" or "last", the first or last row will be opened by default',
-        nb: 'Åpner en rad som standard når gruppen er tom.',
+        nb: 'Hvis satt til true, åpnes en rad som standard når gruppen er tom. Hvis satt til "first" eller "last", åpnes henholdsvis den første eller siste raden som standard.',
       },
       default: false,
       required: false,
@@ -2815,6 +2852,8 @@ const Columns = {
     accessors: {
       type: 'array',
       items: { type: 'string' },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Accessors', nb: 'Tilgangsfunksjoner' },
       description: {
         en: 'List of fields that should be included in the cell',
@@ -2866,6 +2905,8 @@ const Columns = {
                 },
                 additionalProperties: false,
               },
+              minItems: undefined,
+              maxItems: undefined,
               required: false,
             },
           },
@@ -4319,6 +4360,8 @@ const TabConfig = {
     children: {
       type: 'array',
       items: { type: 'string' },
+      minItems: undefined,
+      maxItems: undefined,
       title: { en: 'Children', nb: 'Underkomponenter' },
       description: {
         en: 'List of component IDs that should be displayed in the Tab',
@@ -4524,6 +4567,8 @@ const generatedContract = {
         children: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Children', nb: 'Underkomponenter' },
           description: {
             en: 'List of child component IDs to show inside the Accordion (limited to a few component types)',
@@ -4615,6 +4660,8 @@ const generatedContract = {
         children: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Children', nb: 'Underkomponenter' },
           description: {
             en: 'List of child component IDs to show inside the accordion group (limited to other Accordion components)',
@@ -5060,6 +5107,8 @@ const generatedContract = {
         dataTypeIds: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Data type IDs', nb: 'Datatype-ID-er' },
           description: {
             en: 'List of data type IDs for the attachment list to show',
@@ -5181,7 +5230,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Send inn', en: 'Button' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Knapp', en: 'Button' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5298,6 +5347,8 @@ const generatedContract = {
         children: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Children', nb: 'Underkomponenter' },
           description: {
             en: 'Child component IDs of button-like components to be rendered in this group',
@@ -5395,7 +5446,13 @@ const generatedContract = {
           description: CardsColor['description'],
           required: true,
         },
-        cards: { type: 'array', items: CardConfig, required: true },
+        cards: {
+          type: 'array',
+          items: CardConfig,
+          minItems: undefined,
+          maxItems: undefined,
+          required: true,
+        },
       },
     },
     Checkboxes: {
@@ -5662,6 +5719,8 @@ const generatedContract = {
         actions: {
           type: 'array',
           items: CustomAction,
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Actions', nb: 'Handlinger' },
           description: {
             en: 'Actions to run when the user selects the button.',
@@ -5740,7 +5799,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Date', en: 'Date' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Dato', en: 'Date' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6269,7 +6328,10 @@ const generatedContract = {
         },
         validFileEndings: {
           type: 'union',
-          variants: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+          variants: [
+            { type: 'string' },
+            { type: 'array', items: { type: 'string' }, minItems: undefined, maxItems: undefined },
+          ],
           title: { en: 'Valid file endings', nb: 'Tillatte filendelser' },
           description: {
             en: 'A separated string of valid file endings to upload. If not set all endings are accepted.',
@@ -6348,6 +6410,8 @@ const generatedContract = {
         rows: {
           type: 'array',
           items: GridRows['items'],
+          minItems: undefined,
+          maxItems: undefined,
           title: GridRows['title'],
           description: GridRows['description'],
           examples: GridRows['examples'],
@@ -6448,6 +6512,8 @@ const generatedContract = {
         children: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Children', nb: 'Underkomponenter' },
           description: {
             en: 'Array of component IDs that should be displayed in the group',
@@ -6485,7 +6551,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Tittel', en: 'Header' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Tittel', en: 'Heading' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -7285,6 +7351,8 @@ const generatedContract = {
         filter: {
           type: 'array',
           items: ILikertFilter['items'],
+          minItems: undefined,
+          maxItems: undefined,
           title: ILikertFilter['title'],
           description: ILikertFilter['description'],
           required: false,
@@ -7477,6 +7545,8 @@ const generatedContract = {
         sortableColumns: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Sortable columns', nb: 'Sorterbare kolonner' },
           description: {
             en: 'An array of column keys that can be sorted (note that your API backend needs to support this as well). The column has to be represented by the the header name that is written in tableHeaders.',
@@ -7534,6 +7604,8 @@ const generatedContract = {
         tableHeadersMobile: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Table Headers Mobile', nb: 'Tabelloverskrifter på mobil' },
           description: {
             en: 'An array of strings representing the columns that is chosen to be shown in the mobile view.',
@@ -7624,7 +7696,13 @@ const generatedContract = {
           description: IDataModelBindingsForMap['description'],
           required: true,
         },
-        layers: { type: 'array', items: MapLayer, required: false },
+        layers: {
+          type: 'array',
+          items: MapLayer,
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
         centerLocation: {
           type: 'object',
           properties: Location['properties'],
@@ -7937,7 +8015,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Number', en: 'Number' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Tall', en: 'Number' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -8432,7 +8510,10 @@ const generatedContract = {
               type: 'string',
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
-              description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
+              description: {
+                en: 'The title of the payment component',
+                nb: 'Ledeteksten til betalingskomponenten.',
+              },
               required: false,
             },
             description: {
@@ -8510,7 +8591,10 @@ const generatedContract = {
               type: 'string',
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
-              description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
+              description: {
+                en: 'The title of the payment details',
+                nb: 'Ledeteksten til betalingsdetaljene.',
+              },
               required: false,
             },
             description: {
@@ -9134,6 +9218,8 @@ const generatedContract = {
         rowsBefore: {
           type: 'array',
           items: GridRows['items'],
+          minItems: undefined,
+          maxItems: undefined,
           title: GridRows['title'],
           description: GridRows['description'],
           examples: GridRows['examples'],
@@ -9142,6 +9228,8 @@ const generatedContract = {
         rowsAfter: {
           type: 'array',
           items: GridRows['items'],
+          minItems: undefined,
+          maxItems: undefined,
           title: GridRows['title'],
           description: GridRows['description'],
           examples: GridRows['examples'],
@@ -9171,6 +9259,8 @@ const generatedContract = {
         showValidations: {
           type: 'array',
           items: AllowedValidationMasks['items'],
+          minItems: undefined,
+          maxItems: undefined,
           title: AllowedValidationMasks['title'],
           description: AllowedValidationMasks['description'],
           required: false,
@@ -9178,6 +9268,8 @@ const generatedContract = {
         validateOnSaveRow: {
           type: 'array',
           items: AllowedValidationMasks['items'],
+          minItems: undefined,
+          maxItems: undefined,
           title: AllowedValidationMasks['title'],
           description: AllowedValidationMasks['description'],
           required: false,
@@ -9223,6 +9315,8 @@ const generatedContract = {
         tableHeaders: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Table headers', nb: 'Tabelloverskrifter' },
           description: {
             en: 'Array of component IDs that should be displayed as table headers. If not defined, all components referenced in the "children" property will be displayed as table headers',
@@ -9280,6 +9374,8 @@ const generatedContract = {
         children: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Children', nb: 'Underkomponenter' },
           description: {
             en: 'List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)',
@@ -9830,10 +9926,16 @@ const generatedContract = {
           description: IDataModelBindingsForTable['description'],
           required: false,
         },
-        columns: { type: 'array', items: Columns, required: true },
+        columns: {
+          type: 'array',
+          items: Columns,
+          minItems: undefined,
+          maxItems: undefined,
+          required: true,
+        },
         zebra: {
           type: 'boolean',
-          title: { en: 'Size', nb: 'Størrelse' },
+          title: { en: 'Zebra striping', nb: 'Stripete rader' },
           description: {
             en: 'If true, the table will have zebra striping',
             nb: 'Viser tabellen med stripete rader.',
@@ -9851,7 +9953,7 @@ const generatedContract = {
         },
         enableEdit: {
           type: 'boolean',
-          title: { en: 'Enable delete', nb: 'Tillat sletting' },
+          title: { en: 'Enable edit', nb: 'Tillat redigering' },
           description: {
             en: 'If true, will allow user to edit row',
             nb: 'Lar brukeren redigere raden.',
@@ -10016,6 +10118,8 @@ const generatedContract = {
             },
             additionalProperties: false,
           },
+          minItems: undefined,
+          maxItems: undefined,
           required: true,
         },
         summaryDelimiter: {
@@ -10092,6 +10196,8 @@ const generatedContract = {
         excludedChildren: {
           type: 'array',
           items: { type: 'string' },
+          minItems: undefined,
+          maxItems: undefined,
           title: { en: 'Excluded child components', nb: 'Utelatte underkomponenter' },
           description: {
             en: "Array of component IDs that should not be shown in a repeating group's summary",
@@ -10193,6 +10299,8 @@ const generatedContract = {
               SummaryOverrideForPage,
             ],
           },
+          minItems: undefined,
+          maxItems: undefined,
           required: false,
         },
       },
@@ -10254,7 +10362,13 @@ const generatedContract = {
           required: false,
         },
         defaultTab: { type: 'string', required: false },
-        tabs: { type: 'array', items: TabConfig, required: true },
+        tabs: {
+          type: 'array',
+          items: TabConfig,
+          minItems: undefined,
+          maxItems: undefined,
+          required: true,
+        },
       },
     },
     Text: {
