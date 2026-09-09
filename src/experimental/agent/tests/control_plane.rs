@@ -135,6 +135,7 @@ impl Provider for MemoryProvider {
                 .service
                 .ensure(
                     &EnsureSandboxRequest::new(record.sandbox_name()?, spec)
+                        .with_hostname(record.sandbox_hostname()?)
                         .with_mounts(record.agent.spec.sandbox.resolved_mounts()),
                 )
                 .await
