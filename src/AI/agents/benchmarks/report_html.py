@@ -84,8 +84,6 @@ def _payload(report: Report) -> dict:
                 "issue": behavior.issue,
                 "see": list(behavior.see),
                 "verdict": view.verdict,
-                "attributable": view.attributable,
-                "role": manifest.component(behavior.component).role,
                 "verdict_word": VERDICT_WORDS.get(view.verdict, view.verdict),
                 "verdict_class": VERDICT_CLASS.get(view.verdict, "unpinned"),
                 "baseline": view.baseline,
@@ -188,10 +186,7 @@ def _payload(report: Report) -> dict:
         "components": components,
         "behaviors": behaviors,
         "runs": runs,
-        "open_work": [v.behavior.id for v in report.open_work()],
         "short_of_full_marks": [v.behavior.id for v in report.short_of_full_marks()],
-        "moved_in_this_run": sorted(report.moved_in_this_run()),
-        "unattributable": [v.behavior.id for v in report.unattributable()],
         "unclaimed_evals": list(manifest.evals_with_no_behavior()),
     }
 
@@ -235,17 +230,18 @@ TEMPLATE = r"""<!doctype html>
 <style>
 :root{--bg:#f7f6f3;--panel:#fff;--panel-2:#fbfaf8;--ink:#1a1d21;--ink-2:#4d545c;--muted:#767c85;
 --rule:#e3e0d9;--rule-2:#efece6;--accent:#1f4470;--accent-br:#2e6bb0;--hold:#17715b;--moved:#9a6410;
---broken:#a32a20;--unpinned:#8a8f98;--hold-bg:#e8f2ee;--moved-bg:#f8efdd;--broken-bg:#f8e8e5;
+--broken:#a32a20;--unpinned:#8a8f98;--unknown:#4a5a72;--hold-bg:#e8f2ee;--moved-bg:#f8efdd;--broken-bg:#f8e8e5;--unknown-bg:#e7ebf1;
 --unpinned-bg:#f0efec;--sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
 --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14161a;--panel:#1b1e23;
 --panel-2:#20242a;--ink:#e9e7e2;--ink-2:#b6bcc4;--muted:#8d949d;--rule:#2c3037;--rule-2:#262a30;
 --accent:#9dc4ea;--accent-br:#6fa8dc;--hold:#4fbf9a;--moved:#e0a94b;--broken:#e8756a;--unpinned:#7c838c;
---hold-bg:#14302a;--moved-bg:#33290f;--broken-bg:#351c19;--unpinned-bg:#23262b}}
+--unknown:#8fa6c4;--hold-bg:#14302a;--moved-bg:#33290f;--broken-bg:#351c19;--unpinned-bg:#23262b;
+--unknown-bg:#1c232d}}
 :root[data-theme=dark]{--bg:#14161a;--panel:#1b1e23;--panel-2:#20242a;--ink:#e9e7e2;--ink-2:#b6bcc4;
 --muted:#8d949d;--rule:#2c3037;--rule-2:#262a30;--accent:#9dc4ea;--accent-br:#6fa8dc;--hold:#4fbf9a;
---moved:#e0a94b;--broken:#e8756a;--unpinned:#7c838c;--hold-bg:#14302a;--moved-bg:#33290f;
---broken-bg:#351c19;--unpinned-bg:#23262b}
+--moved:#e0a94b;--broken:#e8756a;--unpinned:#7c838c;--unknown:#8fa6c4;--hold-bg:#14302a;
+--moved-bg:#33290f;--broken-bg:#351c19;--unpinned-bg:#23262b;--unknown-bg:#1c232d}
 *{box-sizing:border-box}html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;
 -webkit-font-smoothing:antialiased}
@@ -268,6 +264,7 @@ border-radius:4px;padding:15px 18px;margin-top:22px}
 .chip.hold{color:var(--hold);background:var(--hold-bg)}.chip.moved{color:var(--moved);background:var(--moved-bg)}
 .chip.broken{color:var(--broken);background:var(--broken-bg)}
 .chip.unpinned{color:var(--unpinned);background:var(--unpinned-bg)}
+.chip.unknown{color:var(--unknown);background:var(--unknown-bg)}
 .panel{background:var(--panel);border:1px solid var(--rule);border-radius:4px}
 .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:13px 16px;
 border-bottom:1px solid var(--rule-2)}
@@ -282,7 +279,7 @@ section{margin-top:26px}
 .guide dd b{color:var(--ink-2);font-weight:600}
 .guide dd code{font-family:var(--mono);font-size:11px}
 .guide dd i{font-style:normal;color:var(--ink-2)}
-.axis-row{display:grid;grid-template-columns:170px 1fr 1fr 108px;gap:14px;align-items:center;
+.axis-row{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) minmax(0,1fr) minmax(0,132px);gap:14px;align-items:center;
 padding:9px 16px;border-bottom:1px solid var(--rule-2);font-size:12.5px}
 .axis-row:last-child{border-bottom:0}.axis-row .name{color:var(--ink-2)}
 .axis-row .val{font-family:var(--mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
@@ -292,54 +289,57 @@ text-transform:uppercase;text-align:right;color:var(--muted)}
 .axis-row.differs .axis-flag{color:var(--moved)}
 .axis-row.under-test{background:var(--panel-2)}.axis-row.under-test .axis-flag{color:var(--accent)}
 .axis-row.blocking .axis-flag{color:var(--broken)}
-.cols{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:22px;align-items:start}
-@media (max-width:980px){.cols{grid-template-columns:1fr}}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:10px 16px;border-bottom:1px solid var(--rule-2);
 background:var(--panel-2)}
 .legend span{font-family:var(--mono);font-size:10.5px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
 .legend i{width:14px;height:4px;border-radius:2px;flex:none}
-.path{padding:6px 0 10px 22px}
-.station{position:relative;display:block;width:100%;text-align:left;background:none;border:0;
-border-left:2px solid var(--rule);padding:11px 14px 11px 18px;cursor:pointer;font:inherit;color:inherit}
-.station:hover{background:var(--panel-2)}
-.station.sel{background:var(--panel-2);border-left-color:var(--accent)}
-.station:focus-visible{outline:2px solid var(--accent-br);outline-offset:-2px}
-.station::before{content:"";position:absolute;left:-6px;top:15px;width:10px;height:10px;border-radius:50%;
-background:var(--bg);border:2.5px solid var(--st,var(--unpinned))}
-.station.sel::before{background:var(--st,var(--unpinned))}
-.station .st-name{font-size:13px;font-weight:600;display:flex;align-items:baseline;gap:10px;min-width:0}
-.station .st-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.station .st-file{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px;
-overflow-wrap:anywhere;display:block}
-.st-sum{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-left:auto;font-weight:400;
-white-space:nowrap;flex:none}
+.cov{padding:2px 0 6px}
+.covrow{display:grid;grid-template-columns:minmax(0,190px) minmax(120px,1fr) 130px 150px;
+gap:14px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--rule-2)}
+.covrow:last-child{border-bottom:0}
+.covrow .cn{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.covrow .cw,.covrow .cp{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+text-transform:uppercase;color:var(--muted)}
+.covrow .cw.hold{color:var(--hold)}.covrow .cw.moved{color:var(--moved)}
+.covrow .cw.broken{color:var(--broken)}.covrow .cw.unknown{color:var(--unknown)}
+.covrow .cw.unpinned{color:var(--unpinned)}
+@media (max-width:820px){.covrow{grid-template-columns:minmax(0,1fr) 130px}.covrow .bars,.covrow .cp{display:none}}
 .bars{display:flex;gap:3px;margin-top:8px}
 .bar{height:4px;flex:1;border-radius:2px;min-width:6px}
 .bar.hold{background:var(--hold)}.bar.moved{background:var(--moved)}.bar.broken{background:var(--broken)}
 .bar.unpinned{background:transparent;box-shadow:inset 0 0 0 1px var(--unpinned)}
+.bar.unknown{background:var(--unknown-bg);box-shadow:inset 0 0 0 1px var(--unknown)}
 .beh{border-bottom:1px solid var(--rule)}.beh:last-child{border-bottom:0}
 .beh-head{width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left;
 padding:15px 16px 14px;cursor:pointer;display:block}
 .beh-head:hover{background:var(--panel-2)}
 .beh-head:focus-visible{outline:2px solid var(--accent-br);outline-offset:-2px}
-.beh-top{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;justify-content:space-between}
+.beh-top{display:grid;grid-template-columns:58px 64px minmax(0,1fr) minmax(0,auto);
+gap:14px;align-items:baseline}
+.beh-top.solo{grid-template-columns:58px minmax(0,1fr) minmax(0,auto)}
+.bscore{font-family:var(--mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.bscore.na{color:var(--muted);font-weight:400}
+.bdelta{font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums;text-align:right}
+.bdelta.up{color:var(--hold)}.bdelta.down{color:var(--broken)}.bdelta.flat{color:var(--muted)}
+@media (max-width:760px){.beh-top{grid-template-columns:58px 64px minmax(0,1fr)}
+.beh-top .pill{display:none}.beh-top.solo{grid-template-columns:58px minmax(0,1fr)}}
 .beh-text{font-size:14px;font-weight:600}
 .pill{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
 padding:3px 8px;border-radius:3px;white-space:nowrap}
 .pill.hold{color:var(--hold);background:var(--hold-bg)}.pill.moved{color:var(--moved);background:var(--moved-bg)}
 .pill.broken{color:var(--broken);background:var(--broken-bg)}
 .pill.unpinned{color:var(--unpinned);background:var(--unpinned-bg)}
+.pill.unknown{color:var(--unknown);background:var(--unknown-bg)}
 .beh-checks{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:82ch;display:block}
-.runs{display:grid;grid-template-columns:repeat(3,minmax(112px,1fr)) minmax(128px,1fr);gap:1px;
-margin-top:14px;background:var(--rule-2);border:1px solid var(--rule-2);border-radius:4px;overflow:hidden}
-.runs>div{background:var(--panel);padding:9px 11px}
-.runs .rl{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
-color:var(--muted);display:block;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.runs .rv{font-family:var(--mono);font-size:17px;font-weight:500;font-variant-numeric:tabular-nums;display:block}
-.runs .rn{font-size:11.5px;color:var(--muted);margin-top:2px;display:block}
-.runs .cur .rv{color:var(--ink);font-weight:600}
-.runs .ch{background:var(--panel-2)}.runs .ch .rv{font-size:15px}
-.runs .ch .rv.up{color:var(--hold)}.runs .ch .rv.down{color:var(--broken)}.runs .ch .rv.flat{color:var(--muted)}
+.beh-where{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-right:8px}
+.intro{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:18px 22px 20px}
+.intro h2{margin:0 0 8px;font-size:15px;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;font-size:13px;color:var(--ink-2);max-width:78ch}
+.intro p:last-child{margin-bottom:0}
+.intro code{font-family:var(--mono);font-size:11.5px}
+.intro-do{color:var(--ink)}
+.axisintro{margin:0;padding:0 16px 14px;font-size:12.5px;color:var(--ink-2);max-width:80ch}
+.lede{margin:2px 16px 14px;font-size:13px;color:var(--ink-2);max-width:80ch}
 .beh-body{padding:0 16px 18px}
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--rule-2);
 border:1px solid var(--rule-2);border-radius:4px;overflow:hidden;margin-bottom:14px}
@@ -362,24 +362,12 @@ margin-left:5px;color:var(--ink)}
 .sp em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:5px}
 .sp.weakest b,.sp.weakest em{color:var(--broken)}
 .snote{display:block;margin-top:6px;font-size:11.5px;color:var(--broken);line-height:1.5}
-.weak{margin-top:14px;border:1px solid var(--rule-2);border-radius:4px;overflow:hidden;
-background:var(--panel)}
-.weak-hd{padding:8px 12px;background:var(--panel-2);border-bottom:1px solid var(--rule-2);
-font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
-color:var(--muted)}
-.weak-row{display:grid;grid-template-columns:56px minmax(0,1fr) minmax(0,150px);gap:12px;
-align-items:baseline;width:100%;padding:8px 12px;background:none;border:0;
-border-bottom:1px solid var(--rule-2);text-align:left;font:inherit;color:inherit;cursor:pointer}
-.weak-row:last-child{border-bottom:0}
-.weak-row:hover{background:var(--panel-2)}
-.wv{font-family:var(--mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;
-color:var(--broken)}
-.wt{font-size:12.5px;color:var(--ink)}
-.wr{font-size:11.5px;color:var(--muted);text-align:right}
-@media (max-width:760px){.weak-row{grid-template-columns:56px minmax(0,1fr)}.wr{display:none}}
 .where{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--muted)}
-.refbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 18px}
-.refbar .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+.refbar{margin:18px 0}
+.refsent{margin:0 0 10px;font-size:13px;color:var(--ink-2);max-width:78ch}
+.refsent b{color:var(--ink)}
+.refbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.refbtns .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
 text-transform:uppercase;color:var(--muted);margin-right:2px}
 .refbtn{font:inherit;font-size:12px;padding:6px 11px;border:1px solid var(--rule);
 border-radius:4px;background:var(--panel);color:var(--ink-2);cursor:pointer;
@@ -391,8 +379,35 @@ background:var(--panel-2)}
 text-transform:uppercase;color:var(--muted)}
 .refbtn[aria-pressed="true"] em{color:var(--accent-br)}
 .refbtn .rd{font-family:var(--mono);font-size:11px;color:var(--muted)}
-.axis-row.unknown .axis-flag{color:var(--moved)}
+.axis-row.unknown .axis-flag{color:var(--unknown)}
 .same-as{color:var(--muted)}
+.fx{display:grid;align-items:baseline;width:100%;padding:8px 12px;background:none;
+border:0;border-bottom:1px solid var(--rule-2);text-align:left;font:inherit;color:inherit;cursor:pointer;
+grid-template-columns:106px minmax(0,240px) minmax(0,1fr) minmax(0,240px);gap:12px}
+.fx:last-child{border-bottom:0}
+.fx:hover{background:var(--panel-2)}
+.fxb{font-size:11.5px;color:var(--muted)}
+.fxgroup{border-bottom:1px solid var(--rule)}
+.fxgroup:last-child{border-bottom:0}
+.fxhd{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+color:var(--muted);padding:11px 12px 7px;background:var(--panel-2)}
+.fxid{font-family:var(--mono);font-size:11.5px;color:var(--ink);overflow-wrap:anywhere}
+.fxsaid{font-size:11.5px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:900px){.fx{grid-template-columns:106px minmax(0,1fr)}
+.fxsaid,.fxb{display:none}}
+.more{width:100%;padding:9px 12px;background:var(--panel-2);border:0;
+border-top:1px solid var(--rule-2);font:inherit;font-size:11.5px;color:var(--muted);
+text-align:left;cursor:pointer}
+.more:hover{color:var(--ink)}
+.note.attrib{margin-top:12px}
+.ap-why{font-size:11px;color:var(--muted)}
+.axis-hd .name,.axis-hd .val,.axis-hd .axis-flag{font-family:var(--mono);font-size:9.5px;
+letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.axis-hd{background:var(--panel-2)}
+.ixw{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+text-transform:uppercase;margin-left:9px;white-space:nowrap}
+.ixw.hold{color:var(--hold)}.ixw.moved{color:var(--moved)}.ixw.broken{color:var(--broken)}
+.ixw.unpinned{color:var(--unpinned)}.ixw.unknown{color:var(--unknown)}
 .chip.total{color:var(--muted);background:var(--panel-2);border:1px solid var(--rule-2)}
 .itemhead{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;
 justify-content:space-between;margin:16px 0 7px}
@@ -401,11 +416,11 @@ justify-content:space-between;margin:16px 0 7px}
 .items{border:1px solid var(--rule-2);border-radius:4px;overflow:hidden}
 .item{border-bottom:1px solid var(--rule-2)}
 .item:last-child{border-bottom:0}
-.ihead{display:grid;grid-template-columns:88px minmax(0,auto) minmax(0,1fr) auto 14px;
+.ihead{display:grid;grid-template-columns:106px minmax(0,auto) minmax(0,1fr) auto 14px;
 gap:11px;align-items:baseline;width:100%;padding:9px 12px;background:none;border:0;
 text-align:left;font:inherit;color:inherit;cursor:pointer}
 .ihead:hover{background:var(--panel-2)}
-@media (max-width:760px){.ihead{grid-template-columns:88px minmax(0,1fr) auto 14px}
+@media (max-width:760px){.ihead{grid-template-columns:106px minmax(0,1fr) auto 14px}
 .ihead .isum{grid-column:1/-1}}
 .st{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;
 text-transform:uppercase;padding:3px 0;white-space:nowrap}
@@ -425,7 +440,8 @@ white-space:nowrap;text-align:right}
 border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
 transform:rotate(-45deg)}
 .ihead[aria-expanded="true"] .ichev::before{transform:rotate(45deg)}
-.item.fail,.item.partial,.item.error{background:var(--broken-bg)}
+.item.fail,.item.error{background:var(--broken-bg)}
+.item.partial{background:var(--moved-bg)}
 .item.fail .ihead:hover,.item.partial .ihead:hover,.item.error .ihead:hover{background:none}
 .item.not-applicable .iid{color:var(--muted)}
 .irec{padding:2px 12px 12px;display:flex;flex-direction:column;gap:9px}
@@ -451,7 +467,7 @@ font-size:11.5px;color:var(--muted)}
 font-variant-numeric:tabular-nums}
 .stats .ok b{color:var(--hold)}.stats .bad b{color:var(--broken)}.stats .na b{color:var(--muted)}
 .sens{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:12px;padding-left:2px}
-.sens.warn{color:var(--broken);border-left:2px solid var(--broken);padding-left:9px}
+.sens.warn{color:var(--moved)}
 .why{font-size:11.5px;color:var(--muted);display:block;margin-top:4px;font-family:var(--mono)}
 .warnpill{display:inline-block;font-size:11px;color:var(--broken);background:var(--broken-bg);
 padding:1px 6px;border-radius:3px;margin-left:4px}
@@ -514,39 +530,83 @@ font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--ink-2);whit
 .cmd pre{margin:8px 0 0;font-family:var(--mono);font-size:12.5px;overflow-x:auto}
 .cmd pre span{color:var(--muted)}
 .foot{margin-top:22px;font-size:12px;color:var(--muted);max-width:80ch}
-@media (prefers-reduced-motion:no-preference){.station,.beh-head{transition:background .12s ease}}
+@media (prefers-reduced-motion:no-preference){.beh-head{transition:background .12s ease}}
 </style></head><body><div class="wrap">
 <header><div><div class="eyebrow">Altinn Studio Assistant &middot; eval workbench</div><h1>Workbench</h1></div>
 <div class="sources" id="sources"></div></header>
+<section class="intro">
+<h2>What this page is</h2>
+<p>The Altinn Studio Assistant is an agent that builds Altinn apps from a description in
+plain language. This page is the record of one <b>run</b> of its test suite: every
+<b>behavior</b> we have written down that the agent must get right, what an automated
+check measured for each one, and the individual cases behind every number.</p>
+<p>Behaviors are declared in <code>benchmarks/manifest.py</code> and reviewed like code, so
+this list is fixed by that file rather than by whichever checks happen to exist. A behavior
+nothing checks still appears here, marked <b>nothing measures this</b>, because an untested
+part of the agent should read as a gap rather than as silence. Every <b>score</b> runs 0 to
+1, and each behavior says how its score was arrived at.</p>
+<p class="intro-do">Start with <b>What needs attention</b>. It lists every individual case
+that scored below full marks, and each row opens the behavior it came from.</p>
+</section>
 <div class="refbar" id="refbar"></div>
 <div id="verdict"></div>
-<section><div class="panel"><div class="panel-head"><h3>How to read this page</h3>
-<span class="panel-note">the words on this page, defined</span></div>
+<section><div class="panel"><div class="panel-head"><h3>Coverage by component</h3>
+<span class="panel-note" id="covnote"></span></div>
+<div class="legend"><span><i class="bar hold"></i> holding or improved</span>
+<span><i class="bar moved"></i> moved, worth a look</span>
+<span><i class="bar broken"></i> regressed or failing</span>
+<span><i class="bar unknown"></i> ran, but no score to read</span>
+<span><i class="bar unpinned"></i> nothing measures this</span></div>
+<div class="cov" id="coverage"></div></div></section>
+<section><div class="panel"><div class="panel-head"><h3>What needs attention</h3>
+<span class="panel-note" id="failnote"></span></div><div id="failures"></div></div></section>
+<section><div class="panel"><div class="panel-head"><h3>Every behavior</h3>
+<span class="panel-note" id="behnote"></span></div><div id="behaviors"></div></div></section>
+__JUDGE__
+<section><div class="panel"><div class="panel-head"><h3>The words on this page</h3>
+<span class="panel-note">everything above, defined</span></div>
 <dl class="guide">
-<div><dt>Behavior</dt><dd>Something the agent must do, written down in <code>manifest.py</code> and reviewed like code. The list is fixed by that file, not by which evals happen to exist.</dd></div>
-<div><dt>Pinned</dt><dd>An eval scores this behavior, so a change to it shows up here. <b>Not pinned</b> means no eval covers it: the agent may do it correctly or not, and nothing would notice. Each unpinned behavior says why and what would pin it.</dd></div>
-<div><dt>Score</dt><dd>What the eval measured, always 0 to 1. Either the share of items that pass, or the mean of a per-item ratio. Each behavior says which, under <i>Scored as</i>.</dd></div>
-<div><dt>Change</dt><dd>Current minus baseline. Inside the noise floor it reads as no change. On a small dataset one item can be a large share of the score.</dd></div>
+<div><dt>Change</dt><dd>This run's score minus the score of whichever run is selected at the
+top. Inside the noise floor it reads as no change. On a small dataset one item can be a large
+share of the score, so each behavior states what one item is worth.</dd></div>
+<div><dt>Noise floor</dt><dd>How far a score can move between two runs of identical code and
+identical models, measured by running exactly that. Movement smaller than this is not
+evidence of anything.</dd></div>
+<div><dt>Resolution</dt><dd>The smallest change a behavior's score can show, which is one
+item divided by the number of items scored. A behavior with seven items cannot resolve
+anything finer than 0.143, so its score is coarse and moves in visible jumps.</dd></div>
+<div><dt>Naming</dt><dd>A behavior id reads
+<code>component.what-it-must-do</code>. A dataset reads <code>Area/name</code>, so
+<code>Gates/scope</code> is the dataset for the scope gate. The name beside <i>Items</i> is
+the function in the code that produced the score.</dd></div>
 </dl>
 <dl class="guide" style="border-top:1px solid var(--rule-2)">
-<div><dt>Holding</dt><dd>Scored, and did not move past the noise floor. The output may be worded differently; that is not a change.</dd></div>
-<div><dt>Regressed, improved</dt><dd>The score moved. If the behavior's own model did not change between the runs, the report says so: that movement is variance or a code change, not evidence about a model.</dd></div>
-<div><dt>Output changed</dt><dd>The score held and the <b>shape</b> of the output moved: a different field, id, binding, type or option value. Rewording never counts.</dd></div>
-<div><dt>Failing, ran but scored nothing</dt><dd><b>Failing</b> is zero, including when it has always been zero, which a model comparison alone reports as no change. <b>Ran but scored nothing</b> means the evaluator emitted no score, so its name is wrong or it is not registered.</dd></div>
+<div><dt>Holding</dt><dd>Scored, and did not move past the noise floor. The output may be
+worded differently; that is not a change.</dd></div>
+<div><dt>Regressed, improved</dt><dd>The score moved. If the behavior's own model did not
+change between the runs, the report says so: that movement is variance or a code change, not
+evidence about a model.</dd></div>
+<div><dt>Moved by one item on an unchanged model</dt><dd>A single item flipped on a behavior
+whose model is the same in both runs, on a set too coarse to resolve anything smaller. Real
+movement, but not a finding.</dd></div>
+<div><dt>Output changed</dt><dd>The score held and the <b>shape</b> of the output moved: a
+different field, id, binding, type or option value. Rewording never counts.</dd></div>
+<div><dt>Failing</dt><dd>Zero, including when it has always been zero, which a comparison
+between two models alone reports as no change.</dd></div>
+<div><dt>Ran but scored nothing</dt><dd>The check emitted no score, so its name is wrong or
+it is not registered. This is a fault in the test harness, not a verdict about the agent,
+which is why it is neither green nor red.</dd></div>
 </dl></div></section>
-<section><div class="panel"><div class="panel-head"><h3>What changed between the two runs</h3>
-<span class="panel-note" id="axisnote"></span></div><div id="axes"></div></div></section>
-<section class="cols">
-<div class="panel"><div class="panel-head"><h3>The agent</h3><span class="panel-note" id="pathnote"></span></div>
-<div class="legend"><span><i style="background:var(--hold)"></i> holding</span>
-<span><i style="background:var(--moved)"></i> moved</span>
-<span><i style="background:var(--broken)"></i> failing</span>
-<span><i style="box-shadow:inset 0 0 0 1px var(--unpinned)"></i> not pinned</span></div>
-<div class="path" id="path"></div></div>
-<div class="panel"><div class="panel-head"><h3 id="dethead">Behaviors</h3>
-<span class="panel-note" id="detnote"></span></div><div id="detail"></div></div>
-</section>
-__JUDGE__
+<section><div class="panel"><div class="panel-head"><h3>How the two runs were configured</h3>
+<span class="panel-note" id="axisnote"></span></div>
+<p class="axisintro">An <b>axis</b> is one thing about a run that could move a score: the
+code, the models, the prompts, the dataset, the checks themselves. Every run records all ten.
+Seven of them block a comparison outright: if one of those differs and nobody declared it as
+the change being tested, a difference in the scores cannot be attributed to anything, and
+this page refuses to print deltas rather than guess. Values shown as a short hex string are
+digests, so two runs agreeing on one means the underlying text was byte for byte
+identical.</p>
+<div id="axes"></div></div></section>
 <div class="cmd"><div class="eyebrow">How this page was produced</div><pre id="cmd"></pre></div>
 <p class="foot" id="foot"></p>
 </div>
@@ -557,8 +617,7 @@ const AXIS_LABELS = {code:"Agent code",environment:"Environment",models:"Models 
 sampling:"Sampling",actor_prompt:"Actor system prompt",prompts:"Prompt versions",
 tools:"Tool schemas",dataset:"Dataset version",evaluators:"Evaluator versions",
 judge:"Judge model"};
-// One copy, emitted from Python, so the behavior pill and the component station
-// cannot word the same verdict differently.
+// Emitted from Python so a verdict cannot be worded two ways.
 const CLS = D.verdict_class;
 const WORD = D.verdict_words;
 const KIND = D.fix_kinds;
@@ -566,14 +625,30 @@ const esc = t => String(t == null ? "" : t).replace(/[&<>]/g, c => ({"&":"&amp;"
 const fmt = v => v == null ? "\u2013" : v.toFixed(3);
 
 // The reference the page is read against; each one is compared in Python.
-let refName = D.adopted_reference
-  || (D.references.length ? D.references[0].name : null);
+let refName = (() => {
+  const has = name => D.references.some(r => r.name === name);
+  if (has(D.adopted_reference)) return D.adopted_reference;
+  const prev = D.references.find(r => r.kind === "previous");
+  return prev ? prev.name : (D.references.length ? D.references[0].name : null);
+})();
 
 function reference() {
   return D.references.find(r => r.name === refName) || null;
 }
 
-// A behavior with the selected reference's numbers laid over it.
+function absoluteState(b) {
+  if (!b.pinned) return {word: "nothing measures this", cls: "unpinned"};
+  if (b.current == null) return {word: "ran, no score", cls: "unknown"};
+  return b.current >= 1
+    ? {word: "every item passes", cls: "hold"}
+    : {word: "below full marks", cls: "broken"};
+}
+
+function manifestName(id) {
+  const c = D.components.find(x => x.id === id);
+  return c ? c.name : id;
+}
+
 function withRef(b) {
   const r = reference();
   const o = r && r.behaviors[b.id];
@@ -594,7 +669,6 @@ function withRef(b) {
     verdict: o.verdict,
     verdict_word: o.verdict_word,
     verdict_class: o.verdict_class,
-    attributable: o.attributable,
     evidence: o.evidence,
     prompt: o.prompt,
     readings: Object.assign({}, b.readings, {baseline: o.reading}),
@@ -609,12 +683,12 @@ function tally(counts) {
   const chips = [
     ["hold", counts.holding, "holding"],
     ["moved", counts.moved, "moved"],
-    ["hold", counts.variance, "within one item"],
+    ["moved", counts.variance, "moved by one item"],
     ["broken", counts.failing, "failing"],
-    ["broken", counts.no_score, "scored nothing"],
-    ["unpinned", counts.not_run, "not run"],
-    ["hold", counts.recorded, "recorded"],
-    ["unpinned", counts.unpinned, "nothing pins these"],
+    ["unknown", counts.no_score, "ran but scored nothing"],
+    ["unknown", counts.not_run, "not run"],
+    ["unknown", counts.recorded, "recorded, nothing to compare"],
+    ["unpinned", counts.unpinned, "nothing measures these"],
   ].filter(c => c[1]);
   const shown = chips.reduce((n, c) => n + c[1], 0);
   return '<div class="tally">' +
@@ -640,37 +714,113 @@ function refRefused() {
   return r ? r.refused : [];
 }
 
+function jumpTo(id) {
+  const head = document.querySelector('[data-beh="' + id + '"]');
+  if (!head) return;
+  if (head.getAttribute("aria-expanded") !== "true") head.click();
+  if (head.scrollIntoView) head.scrollIntoView({block: "center"});
+}
+
+const STATE = {pass: "passed", fail: "failed", partial: "partial credit",
+  "not-applicable": "not scored", error: "errored"};
+
+const RANK = {error: 0, fail: 1, partial: 2, pass: 3, "not-applicable": 4};
+
+const SEVERITY = ["failing", "no-score", "regressed", "improved", "output-changed",
+  "variance", "not-run", "new", "holding", "unpinned"];
+
+function bySeverity(a, z) {
+  return (SEVERITY.indexOf(a.verdict) - SEVERITY.indexOf(z.verdict)) ||
+    ((a.current ?? 2) - (z.current ?? 2)) || a.id.localeCompare(z.id);
+}
+
+function failures() {
+  const moved = new Set(reference() ? reference().moved : []);
+  const rows = [];
+  for (const b of D.behaviors.filter(x => x.pinned).map(withRef)) {
+    for (const i of b.items) {
+      if (RANK[i.state] <= 2) rows.push({b: b, i: i});
+    }
+  }
+  rows.sort((x, z) => (RANK[x.i.state] - RANK[z.i.state]) || x.i.id.localeCompare(z.i.id));
+  document.getElementById("failnote").textContent = rows.length
+    ? rows.length + " individual case" + (rows.length === 1 ? "" : "s") +
+      " scored below full marks, across " + new Set(rows.map(r => r.b.id)).size +
+      " behaviors. Click a row to open it."
+    : "Every case that was scored is at full marks.";
+  const row = r =>
+    '<button class="fx" data-go="' + esc(r.b.id) + '">' +
+    '<span class="st ' + r.i.state + '">' + esc(STATE[r.i.state] || r.i.state) + "</span>" +
+    '<code class="fxid">' + esc(r.i.id) + "</code>" +
+    '<span class="fxsaid">' + esc(r.i.said || "") + "</span>" +
+    '<span class="fxb">' + esc(r.b.text) + "</span></button>";
+  const fresh = rows.filter(r => moved.has(r.b.id));
+  const standing = rows.filter(r => !moved.has(r.b.id));
+  const group = (heading, list) => list.length
+    ? '<div class="fxgroup"><div class="fxhd">' + heading + "</div>" + list.map(row).join("") + "</div>"
+    : "";
+  document.getElementById("failures").innerHTML = rows.length
+    ? (moved.size || !reference()
+        ? group("Moved in this run, so these are findings about this change", fresh) +
+          group("Already like this before this run, so not a finding about this change", standing)
+        : group("Every case below full marks", rows))
+    : '<div class="gap"><p>Nothing scored below full marks in this run.</p></div>';
+}
+
+const REF_KIND = {
+  baseline: "the adopted baseline, the run this project agreed to measure against",
+  previous: "the run recorded immediately before this one",
+  other: "another run on record",
+};
+
 function refbar() {
   const el = document.getElementById("refbar");
-  if (!D.references.length) { el.innerHTML = ""; return; }
+  if (!D.references.length) {
+    el.innerHTML = '<p class="refsent">This is the only run on record, so there is nothing ' +
+      "to read it against. Every score below is absolute: what passed in this run, and " +
+      "nothing about whether it changed.</p>";
+    return;
+  }
+  const r = reference();
+  const keys = Object.keys(D.runs.current.axes);
+  const differ = r ? keys.filter(k => (r.axes[k] || "not recorded") !== D.runs.current.axes[k]) : [];
+  const sentence = r
+    ? "Every score below is read against <b>" + esc(r.label) + "</b>, " +
+      esc(REF_KIND[r.kind] || r.kind) + ", recorded " +
+      esc(r.recorded.slice(0, 16).replace("T", " ")) + ". " +
+      (differ.length
+        ? differ.length + " of the " + keys.length + " recorded settings" +
+          (differ.length === 1 ? " differs" : " differ") +
+          " between the two runs, listed at the foot of this page."
+        : "The two runs were configured identically.")
+    : "No run is selected to compare against, so every score below is absolute: what passed " +
+      "in this run, and nothing about whether it changed.";
   const button = (name, label, kind, recorded) =>
     '<button class="refbtn" data-ref="' + esc(name || "") + '" aria-pressed="' +
     (refName === name ? "true" : "false") + '">' +
     "<em>" + esc(kind) + "</em><span>" + esc(label) + "</span>" +
-    (recorded ? '<span class="rd">' + esc(recorded.slice(0, 10)) + "</span>" : "") +
+    (recorded ? '<span class="rd">' + esc(recorded.slice(0, 16).replace("T", " ")) + "</span>" : "") +
     "</button>";
-  el.innerHTML = '<span class="rl">read against</span>' +
+  el.innerHTML = '<p class="refsent">' + sentence + "</p>" +
+    '<div class="refbtns"><span class="rl">read against</span>' +
     D.references.map(r => button(r.name, r.label, r.kind, r.recorded)).join("") +
-    button(null, "nothing", "absolute", "");
+    button(null, "nothing, show absolute scores", "no comparison", "") + "</div>";
   el.querySelectorAll(".refbtn").forEach(btn => btn.addEventListener("click", () => {
     refName = btn.dataset.ref || null;
     render();
   }));
 }
 
-let sel = (() => {
-  const first = D.behaviors.find(b => D.open_work.includes(b.id));
-  return first ? first.component : (D.components[0] || {}).id;
-})();
-
 function header() {
   const cur = D.runs.current, base = D.runs.baseline;
+  const dirty = / dirty$/.test(cur.axes.code);
   document.getElementById("sources").innerHTML =
-    "<span>git <b>" + esc(cur.axes.code) + "</b></span>" +
-    "<span>env <b>" + esc(cur.axes.environment) + "</b></span>" +
-    "<span><b>" + esc(cur.label) + "</b> " + esc(cur.recorded) + "</span>" +
-    (base ? "<span>baseline <b>" + esc(base.label) + "</b></span>"
-          : "<span><b>no baseline set</b></span>");
+    "<span>agent code <b>" + esc(cur.axes.code.replace(/ dirty$/, "")) + "</b>" +
+      (dirty ? ", plus changes that were never committed" : "") + "</span>" +
+    "<span>ran on <b>" + esc(cur.axes.environment) + "</b></span>" +
+    "<span>this run <b>" + esc(cur.label) + "</b> " + esc(cur.recorded) + "</span>" +
+    (base ? "<span>adopted baseline <b>" + esc(base.label) + "</b></span>"
+          : "<span><b>no baseline adopted yet</b></span>");
   const scored = D.behaviors.filter(b => b.pinned && b.current != null).length;
   const pinned = D.behaviors.filter(b => b.pinned).length;
   const items = D.scored_items;
@@ -678,15 +828,17 @@ function header() {
     "$ python -m benchmarks.runner report\n" +
     "<span>  run     " + esc(cur.name) +
     (D.duration ? "          [" + D.duration + "s]" : "") +
-    "\n  scored  " + scored + " of " + pinned + " pinned behaviors over " + items +
+    "\n  scored  " + scored + " of " + pinned + " measured behaviors over " + items +
     " distinct dataset items" +
-    (cur.notes && cur.notes.length ? "\n  note    " + esc(cur.notes.join("; ")) : "") +
     "\n  wrote   benchmarks/runs/" + esc(cur.name) + ".json and this page</span>";
   document.getElementById("foot").textContent =
-    "Generated " + D.generated_at + ". Noise floor " + D.noise_floor + ". " +
+    "Generated " + D.generated_at + ". Noise floor " + D.noise_floor +
+    ", the largest move seen between two runs of identical code and models. " +
     (D.unclaimed_evals.length
-      ? "Live evals no behavior claims: " + D.unclaimed_evals.join(", ") + "."
-      : "Every live eval is claimed by a behavior.");
+      ? "These evals score something no behavior in the manifest claims, so their results " +
+        "appear nowhere on this page: " + D.unclaimed_evals.join(", ") + "."
+      : "Every eval that runs is claimed by a behavior in the manifest, so nothing scored " +
+        "is missing from this page.");
 }
 
 function verdict() {
@@ -701,26 +853,6 @@ function verdict() {
   const byId = Object.fromEntries(D.behaviors.map(b => [b.id, b]));
   const weak = (D.short_of_full_marks || []).map(id => byId[id]).filter(Boolean);
 
-  // A score that has never been good holds steady, so movement alone misses it.
-  const chosenRef = reference();
-  const movedNow = new Set(chosenRef ? chosenRef.moved : []);
-  const rows = list => list.map(b =>
-    '<button class="weak-row" data-go="' + esc(b.id) + '">' +
-    '<span class="wv">' + fmt(b.current) + "</span>" +
-    '<span class="wt">' + esc(b.text) + "</span>" +
-    '<span class="wr">' + esc(b.readings.current) + "</span></button>").join("");
-  const fresh = weak.filter(b => movedNow.has(b.id));
-  const standing = weak.filter(b => !movedNow.has(b.id));
-  const weakList = weak.length
-    ? '<div class="weak">' +
-      (fresh.length ? '<div class="weak-hd">Moved in this run</div>' + rows(fresh) : "") +
-      (standing.length
-        ? '<div class="weak-hd">Already like this before this run, so not a finding ' +
-          'about this change</div>' + rows(standing)
-        : "") +
-      "</div>"
-    : '<div class="weak"><div class="weak-hd">Every scored behavior is at full marks</div></div>';
-
   const refused = refRefused();
   if (refused.length) {
     el.className = "verdict refused";
@@ -730,8 +862,7 @@ function verdict() {
       " differ that were not declared as the change under test, so any difference in the scores could " +
       "come from any of them. Line them up, or re-run the baseline against today's state, then compare again.</p>" +
       '<div class="tally">' + refused.map(k =>
-        '<span class="chip broken">' + esc(AXIS_LABELS[k] || k) + "</span>").join("") + "</div>" +
-      weakList;
+        '<span class="chip broken">' + esc(AXIS_LABELS[k] || k) + "</span>").join("") + "</div>";
     return;
   }
   el.className = "verdict";
@@ -742,11 +873,12 @@ function verdict() {
       "<p>Nothing here is a regression or an improvement, because there is nothing to " +
       "compare to yet. What the page can show is the absolute state: which items pass, " +
       "which do not, and what the evaluator computed for each. Adopt this run as the " +
-      "baseline once it is what main does today.</p>" + weakList +
+      "baseline once it is what main does today.</p>" +
       '<div class="tally">' +
-      '<span class="chip hold">' + counts.recorded + " recorded</span>" +
-      '<span class="chip broken">' + weak.length + " short of full marks</span>" +
-      '<span class="chip unpinned">' + counts.unpinned + " nothing pins these</span></div>";
+      '<span class="chip hold">' + (counts.recorded - weak.length) +
+        " with every item passing</span>" +
+      '<span class="chip broken">' + weak.length + " below full marks</span>" +
+      '<span class="chip unpinned">' + counts.unpinned + " nothing measures these</span></div>";
     return;
   }
   el.innerHTML = '<div class="eyebrow">' +
@@ -758,7 +890,6 @@ function verdict() {
       : "Nothing was declared as under test. ") +
     failing + " behavior" + (failing === 1 ? " is" : "s are") +
     " failing on both runs, which a comparison between two models alone would report as no change.</p>" +
-    weakList +
     tally(counts);
 }
 
@@ -788,7 +919,7 @@ function axes() {
     if (differs && D.under_test.indexOf(k) >= 0) { cls.push("under-test"); flag = "under test"; }
     if (refRefused().indexOf(k) >= 0) { cls.push("blocking"); flag = "refuses the comparison"; }
     return '<div class="' + cls.join(" ") + '"><div class="name">' + esc(AXIS_LABELS[k] || k) + "</div>" +
-      '<div class="val b">' + esc(a) + '</div><div class="val a">' +
+      '<div class="val">' + esc(a) + '</div><div class="val a">' +
       (differs || blind ? esc(z) : '<span class="same-as">identical</span>') + "</div>" +
       '<div class="axis-flag">' + flag + "</div></div>";
   }).join("");
@@ -800,68 +931,82 @@ function worstOf(component) {
   return D.behaviors.some(b => b.component === component && b.pinned) ? "new" : "unpinned";
 }
 
-function path() {
-  const color = {hold:"var(--hold)",moved:"var(--moved)",broken:"var(--broken)",unpinned:"var(--unpinned)"};
-  document.getElementById("path").innerHTML = D.components.map(c =>
-    '<button class="station ' + (sel === c.id ? "sel" : "") + '" style="--st:' +
-    (color[CLS[worstOf(c.id)]] || "var(--unpinned)") + '" data-c="' + c.id + '">' +
-    '<span class="st-name"><span class="st-label">' + esc(c.name) + '</span>' +
-    '<span class="st-sum">' + (WORD[worstOf(c.id)] || worstOf(c.id)) + "</span></span>" +
-    '<span class="st-file">' + esc(c.where) + "</span>" +
-    '<span class="bars">' + D.behaviors.filter(b => b.component === c.id)
-      .map(withRef).map(b =>
-      '<i class="bar ' + (CLS[b.verdict] || "unpinned") + '"></i>').join("") + "</span>" +
-    '<span class="st-file">' + c.pinned + " of " + c.total + " behaviors pinned</span></button>").join("");
-  document.querySelectorAll(".station").forEach(b =>
-    b.addEventListener("click", () => { sel = b.dataset.c; render(); }));
+function coverage() {
+  const byId = Object.fromEntries(D.behaviors.map(b => [b.id, withRef(b)]));
+  const comparing = reference() != null;
+  document.getElementById("coverage").innerHTML = D.components.map(c => {
+    const mine = D.behaviors.filter(b => b.component === c.id).map(b => byId[b.id]);
+    const state = b => comparing
+      ? {cls: CLS[b.verdict] || "unpinned", word: WORD[b.verdict] || b.verdict}
+      : absoluteState(b);
+    const rank = ["broken", "moved", "unknown", "hold", "unpinned"];
+    const worst = mine.map(state).sort((a, z) =>
+      rank.indexOf(a.cls) - rank.indexOf(z.cls))[0] || {cls: "unpinned", word: "no behaviors"};
+    return '<div class="covrow"><span class="cn">' + esc(c.name) + "</span>" +
+      '<span class="bars">' + mine.map(b => {
+        const st = state(b);
+        return '<i class="bar ' + st.cls + '" title="' +
+          esc(b.text + " \u2013 " + st.word) + '"></i>';
+      }).join("") + "</span>" +
+      '<span class="cp">' + c.pinned + " of " + c.total + " measured</span>" +
+      '<span class="cw ' + worst.cls + '">' + esc(worst.word) + "</span></div>";
+  }).join("");
   const pinned = D.behaviors.filter(b => b.pinned).length;
-  document.getElementById("pathnote").textContent =
-    pinned + " of " + D.behaviors.length + " behaviors pinned";
+  document.getElementById("covnote").textContent =
+    D.components.length + " components, " + D.behaviors.length + " behaviors, " +
+    pinned + " of them measured by an eval. Each mark is one behavior.";
 }
 
+const showAll = new Set();
+const open = new Set();
 let apSeq = 0;
 function promptBlock(b) {
   const id = "ap" + (++apSeq);
   return '<div class="ap"><div class="ap-bar">' +
     '<button class="ap-toggle" aria-expanded="false" aria-controls="' + id + '">' +
     '<span class="ap-kind ' + esc(b.fix.kind) + '">' + esc(b.fix.kind) + "</span>" +
+    '<span class="ap-why">' + esc(KIND[b.fix.kind] || "") + "</span>" +
     '<span class="ap-title">Prompt for a coding agent &middot; ' + esc(b.fix.title) + "</span>" +
     '<span class="ap-chev">show</span></button>' +
     '<button class="ap-copy" data-for="' + id + '">Copy</button></div>' +
     '<pre id="' + id + '" hidden>' + esc(b.prompt) + "</pre></div>";
 }
 
-function detail() {
-  const c = D.components.find(x => x.id === sel);
-  document.getElementById("dethead").textContent = c.name;
-  document.getElementById("detnote").innerHTML =
-    esc(c.does) + '<code class="where">' + esc(c.where) + "</code>";
+function behaviors() {
+  const all = D.behaviors.map(withRef);
+  const comparing = all.some(b => b.pinned && b.verdict !== "new");
+  const changed = all.filter(b => b.pinned && b.verdict !== "holding" && b.verdict !== "new").length;
+  document.getElementById("behnote").textContent = comparing
+    ? changed + " of " + all.filter(b => b.pinned).length +
+      " measured behaviors read as something other than holding. Worst first."
+    : "No run selected to compare against, so these are absolute scores. Worst first.";
   apSeq = 0;
-  document.getElementById("detail").innerHTML = D.behaviors
-    .filter(b => b.component === sel)
-    .map(withRef)
+  document.getElementById("behaviors").innerHTML = all
+    .slice()
+    .sort(bySeverity)
     .map(b => {
+      const where = manifestName(b.component);
       if (!b.pinned) {
-        return '<div class="beh"><div class="gap">' +
-          '<span class="pill unpinned">not pinned</span>' +
+        return '<div class="beh"><button class="beh-head" data-beh="' + esc(b.id) +
+          '" aria-expanded="false">' +
+          '<span class="beh-top' + (comparing ? "" : " solo") + '">' +
+          '<span class="bscore na">\u2013</span>' +
+          (comparing ? '<span class="bdelta flat"></span>' : "") +
           '<span class="beh-text">' + esc(b.text) + "</span>" +
-          (b.skipped ? '<span class="why">' + esc(b.skipped) + "</span>" : "") +
-          "<p>" + esc(b.blind) + "</p>" + promptBlock(b) + "</div></div>";
+          '<span class="pill unpinned">nothing measures this</span></span>' +
+          '<span class="beh-checks"><span class="beh-where">' + esc(where) + "</span>" +
+          esc(b.skipped || "No eval covers this behavior, so nothing here would notice if it broke.") +
+          "</span></button>" +
+          '<div class="beh-body" hidden><div class="gap">' +
+          "<p>" + esc(b.blind) + "</p>" + promptBlock(b) + "</div></div></div>";
       }
       const d = b.delta;
       const flat = d == null || Math.abs(d) <= D.noise_floor;
       const dCls = flat ? "flat" : (d > 0 ? "up" : "down");
-      const dWord = d == null ? "nothing to compare"
-        : flat ? (b.verdict === "output-changed" ? "score held" : "no change")
-        : (d > 0 ? "improved" : "regressed");
       const cell = v => v == null ? '<span class="num na">\u2013</span>'
         : (b.metric === "rate"
             ? (v >= 1 ? '<span class="pass">pass</span>' : '<span class="fail">fail</span>')
             : '<span class="num">' + fmt(v) + "</span>");
-      const STATE = {pass: "passed", fail: "failed", partial: "partial credit",
-        "not-applicable": "not scored", error: "errored"};
-      // Worst first: with thirty items nobody reads dataset order looking for a failure.
-      const RANK = {error: 0, fail: 1, partial: 2, pass: 3, "not-applicable": 4};
       const ordered = b.items.slice().sort((x, y) =>
         (RANK[x.state] - RANK[y.state]) || x.id.localeCompare(y.id));
       const openByDefault = new Set(
@@ -878,7 +1023,9 @@ function detail() {
         : '<div class="fld"><span class="fname">' + esc(name) + "</span>" +
           '<div class="fval na">not captured by the run that produced this page</div></div>';
 
-      const items = ordered.map(i => {
+      const quiet = ordered.filter(i => i.state === "pass" || i.state === "not-applicable");
+      const loud = ordered.filter(i => i.state !== "pass" && i.state !== "not-applicable");
+      const items = loud.concat(showAll.has(b.id) ? quiet : []).map(i => {
         const open = openByDefault.has(i.id);
         const sibs = (i.siblings || []).map(s =>
           '<div class="sib"><code>' + esc(s.name) + "</code>" +
@@ -911,7 +1058,7 @@ function detail() {
           '<button class="ihead" aria-expanded="' + (open ? "true" : "false") + '">' +
           '<span class="st ' + i.state + '">' + STATE[i.state] + "</span>" +
           '<code class="iid">' + esc(i.id) + "</code>" +
-          '<span class="isum">' + esc(i.said || "") + "</span>" +
+          '<span class="isum">' + esc(i.label || i.said || "") + "</span>" +
           '<span class="ival">' + (moved ? cell(i.before) + '<span class="arrow">\u2192</span>' : "") +
           cell(i.after) + "</span>" +
           '<span class="ichev" aria-hidden="true"></span></button>' +
@@ -987,27 +1134,37 @@ function detail() {
       const cntFor = b.counts || {};
       const means = esc(b.readings.current) +
         (!flat ? ", a change of " + (d > 0 ? "+" : "") + fmt(d) + " against " +
-                 esc(chosenLabel()) + "."
+                 esc(chosenLabel()) + " which read " + fmt(b.baseline) + "."
                : d == null
-                 ? ". There is no baseline yet, so the only thing this number can say is " +
-                   "the absolute state: " + cntFor.passed + " of " + cntFor.scored +
+                 ? ". Nothing is selected to compare against, so the only thing this number " +
+                   "can say is the absolute state: " + cntFor.passed + " of " + cntFor.scored +
                    " scored items at full marks."
-                 : ", unchanged past the noise floor.");
-      return '<div class="beh"><button class="beh-head" aria-expanded="true">' +
-        '<span class="beh-top"><span class="beh-text">' + esc(b.text) + "</span>" +
-        '<span class="pill ' + b.verdict_class + '">' + esc(b.verdict_word) + "</span></span>" +
-        '<span class="beh-checks">' + esc(b.checks) + "</span>" +
-        '<span class="runs">' +
-        '<div><span class="rl">' + esc(chosenLabel()) + '</span><span class="rv">' + fmt(b.baseline) +
-        '</span><span class="rn">' + esc(b.readings.baseline) + "</span></div>" +
-        '<div><span class="rl">previous</span><span class="rv">' + fmt(b.previous) +
-        '</span><span class="rn">' + esc(b.readings.previous) + "</span></div>" +
-        '<div class="cur"><span class="rl">current</span><span class="rv">' + fmt(b.current) +
-        '</span><span class="rn">' + esc(b.readings.current) + "</span></div>" +
-        '<div class="ch"><span class="rl">change vs ' + esc(chosenLabel()) + '</span><span class="rv ' + dCls + '">' +
-        (d == null ? "\u2013" : (d > 0 ? "+" : "") + fmt(d)) + '</span><span class="rn">' + dWord +
-        "</span></div></span></button>" +
-        '<div class="beh-body"><dl class="meta">' +
+                 : ", unchanged against " + esc(chosenLabel()) + " past the noise floor.") +
+        (b.previous != null && b.previous !== b.baseline
+          ? " The run before this one read " + fmt(b.previous) + "."
+          : "");
+      const pill = comparing
+        ? {cls: b.verdict_class, word: b.verdict_word}
+        : absoluteState(b);
+      const worthOpening = open.has(b.id) ||
+        (!open.size && (b.current == null || b.current < 1 ||
+          (b.verdict !== "holding" && b.verdict !== "new")));
+      return '<div class="beh"><button class="beh-head" data-beh="' + esc(b.id) +
+        '" aria-expanded="' + (worthOpening ? "true" : "false") + '">' +
+        '<span class="beh-top' + (comparing ? "" : " solo") + '">' +
+        '<span class="bscore">' + fmt(b.current) + "</span>" +
+        (comparing
+          ? '<span class="bdelta ' + dCls + '">' +
+            (d == null ? "" : (d > 0 ? "+" : "") + fmt(d)) + "</span>"
+          : "") +
+        '<span class="beh-text">' + esc(b.text) + "</span>" +
+        '<span class="pill ' + pill.cls + '">' + esc(pill.word) + "</span></span>" +
+        '<span class="beh-checks"><span class="beh-where">' + esc(where) + "</span>" +
+        esc(b.checks) + "</span>" +
+        "</button>" +
+        '<div class="beh-body"' + (worthOpening ? "" : " hidden") + '>' +
+        '<p class="lede">' + means + "</p>" +
+        '<dl class="meta">' +
         "<div><dt>Measured by</dt><dd>" + esc(b.measured_by) + "</dd></div>" +
         "<div><dt>Scored as</dt><dd>" + (b.metric === "rate"
           ? "The mean of a per-item pass or fail, so it is the share of items that pass."
@@ -1018,12 +1175,18 @@ function detail() {
             : "") + "</dd></div>" +
         "<div><dt>Dataset</dt><dd>" + esc(b.eval) + "</dd></div></dl>" +
         stats + sens + splitBlock +
-        '<div class="itemhead"><h4>Every item, worst first</h4>' +
-        '<span>' + cnt.scored + " of " + cnt.items + " scored by " +
-        esc(b.recorded_evaluator) + ". Anything below full marks is already open.</span></div>" +
-        '<div class="items">' + items + "</div>" +
+        '<div class="itemhead"><h4>Items</h4>' +
+        '<span>scored by ' + esc(b.recorded_evaluator) + "</span></div>" +
+        '<div class="items">' + items +
+        (quiet.length && !showAll.has(b.id)
+          ? '<button class="more" data-more="' + esc(b.id) + '">' + quiet.length +
+            " further item" + (quiet.length === 1 ? "" : "s") + ": " +
+            quiet.filter(i => i.state === "pass").length + " at full marks, " +
+            quiet.filter(i => i.state === "not-applicable").length +
+            " not scored. Show them.</button>"
+          : "") + "</div>" +
         diffHtml +
-        '<div class="reading"><div><dt>What this number means</dt><dd>' + means + "</dd></div>" +
+        '<div class="reading">' +
         '<div class="lim"><dt>What this eval cannot see</dt><dd>' + esc(b.blind) + "</dd></div></div>" +
         (b.issue
           ? '<div class="note">Known and filed as <a href="https://github.com/' +
@@ -1034,22 +1197,20 @@ function detail() {
         promptBlock(b) + "</div></div>";
     }).join("");
 
-  // The weakness list jumps to the behavior it names, opening its component.
-  document.querySelectorAll(".weak-row").forEach(row => row.addEventListener("click", () => {
-    const target = D.behaviors.find(b => b.id === row.dataset.go);
-    if (!target) return;
-    sel = target.component;
-    render();
-    const panel = document.getElementById("detail");
-    const heads = panel ? panel.querySelectorAll(".beh-head") : [];
-    const ids = D.behaviors.filter(b => b.component === sel).map(b => b.id);
-    const at = ids.indexOf(target.id);
-    if (at >= 0 && heads[at]) heads[at].scrollIntoView({block: "center"});
-  }));
+  document.querySelectorAll(".fx").forEach(row =>
+    row.addEventListener("click", () => jumpTo(row.dataset.go)));
   document.querySelectorAll(".beh-head, .ihead").forEach(h => h.addEventListener("click", () => {
-    const open = h.getAttribute("aria-expanded") === "true";
-    h.setAttribute("aria-expanded", String(!open));
-    h.nextElementSibling.hidden = open;
+    const was = h.getAttribute("aria-expanded") === "true";
+    const body = h.parentElement.querySelector(".beh-body") || h.nextElementSibling;
+    h.setAttribute("aria-expanded", String(!was));
+    body.hidden = was;
+    const id = h.dataset.beh;
+    if (id) { was ? open.delete(id) : open.add(id); }
+  }));
+  document.querySelectorAll(".more").forEach(btn => btn.addEventListener("click", () => {
+    showAll.add(btn.dataset.more);
+    open.add(btn.dataset.more);
+    render();
   }));
   document.querySelectorAll(".ap-toggle").forEach(t => t.addEventListener("click", () => {
     const pre = document.getElementById(t.getAttribute("aria-controls"));
@@ -1080,7 +1241,7 @@ function detail() {
   }));
 }
 
-function render() { refbar(); header(); verdict(); axes(); path(); detail(); }
+function render() { refbar(); header(); verdict(); coverage(); failures(); axes(); behaviors(); }
 render();
 </script></body></html>
 """

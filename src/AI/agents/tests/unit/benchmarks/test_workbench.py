@@ -604,6 +604,67 @@ class TestNoiseIsNotReportedAsARegression:
         assert "scope.declines-out-of-scope" in built.moved_in_this_run()
 
 
+class TestThePageLeadsWithFindings:
+
+    def _page(self, tmp_path):
+        run = _run("20260909T100000Z-now", "now", {**HOLDING, "spec.parses": 0.5})
+        runstore.save(run, directory=tmp_path)
+        return report_html.render(report.build(directory=tmp_path))
+
+    def test_every_behavior_sits_in_one_list(self, tmp_path):
+        page = self._page(tmp_path)
+
+        assert 'id="behaviors"' in page
+        assert "Every behavior" in page
+
+    def test_no_component_selection_gates_the_behavior_list(self, tmp_path):
+        """Picking a component to see its behaviors hid the other seven."""
+        page = self._page(tmp_path)
+
+        assert "b.component === sel" not in page
+        assert 'id="detail"' not in page
+
+    def test_failures_are_listed_across_behaviors(self, tmp_path):
+        page = self._page(tmp_path)
+
+        assert 'id="failures"' in page
+        assert "What needs attention" in page
+
+    def test_the_glossary_follows_the_findings(self, tmp_path):
+        """Two screens of setup used to sit between the reader and the findings."""
+        page = self._page(tmp_path)
+
+        assert page.index('id="failures"') < page.index("The words on this page")
+        assert page.index('id="behaviors"') < page.index("How the two runs were configured")
+
+    def test_the_run_before_this_one_is_named_even_once_adopted(self, tmp_path):
+        """Adopting the newest run left every reference reading "other", so three runs
+        sharing a label and a date were four indistinguishable buttons."""
+        old = _run("20260901T100000Z-old", "three weeks ago", HOLDING)
+        cand = _run("20260922T100000Z-cand", "candidate", HOLDING)
+        for run in (old, cand):
+            runstore.save(run, directory=tmp_path)
+        runstore.set_baseline(cand.name, directory=tmp_path, why="adopted")
+
+        built = report.build(directory=tmp_path)
+
+        assert [r.kind for r in built.references] == ["previous"]
+
+    def test_the_reading_names_the_run_it_compares_against(self, tmp_path):
+        """A four-cell strip restated the header's own score and delta, and its last
+        cell read "not compared" whatever the previous run had scored."""
+        page = self._page(tmp_path)
+
+        assert "chosenLabel()" in page
+        assert '<span class="rn">' not in page
+        assert 'The run before this one read " + fmt(b.previous)' in page
+
+    def test_variance_is_not_styled_as_holding(self):
+        """It is a real movement the page chose not to treat as a finding, and it
+        was green while being the two worst scores on the page."""
+        assert report.VERDICT_CLASS["variance"] == "moved"
+
+
 class TestTheReportCarriesEveryReference:
     """The page switches between precomputed comparisons. Recomputing a verdict in
     JavaScript would put the noise floor and the refusal rules in two places."""
