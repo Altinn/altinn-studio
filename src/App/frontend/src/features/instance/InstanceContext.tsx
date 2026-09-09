@@ -44,12 +44,13 @@ export const INSTANCE_POLL_FAILURE_ESCALATION_CYCLES = 3;
  * the engine has the workflow rather than when the response finally returns.
  *
  * Tight on purpose: the cadence only lasts until the first read that observes `processing` (the
- * ordinary processing cadence takes over from there), and the timer starts when the mutation becomes
- * pending, i.e. before the client-side validation and save that precede the request - so the first
- * useful read lands a second or two after the request goes out. No jitter: individual submissions
- * are not synchronized across users the way a shared engine stall is.
+ * ordinary processing cadence takes over from there), the timer starts when the mutation becomes
+ * pending (before the client-side save and validation that precede the request, so early ticks read
+ * idle and cost little), and TanStack joins a tick onto a read still in flight rather than stacking
+ * requests - so the effective rate is bounded by the read's own round trip. No jitter: individual
+ * submissions are not synchronized across users the way a shared engine stall is.
  */
-export const PROCESS_NEXT_IN_FLIGHT_POLL_MS = 1000;
+export const PROCESS_NEXT_IN_FLIGHT_POLL_MS = 250;
 
 /**
  * Number of consecutive failed instance refetch cycles since the last successful fetch.

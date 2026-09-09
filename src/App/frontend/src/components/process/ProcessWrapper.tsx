@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Button, Flex } from '@app/form-component';
-import { useQueryClient } from '@tanstack/react-query';
+import { useIsMutating, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -81,8 +81,14 @@ function NavigationError({ label }: NavigationErrorProps) {
  * Synchronizes a URL that was parked on a transition's previous task. Navigation happens only
  * after this session observed a busy workflow settle, preserving the manual recovery path for a
  * stale URL opened after the transition already completed.
+ *
+ * Stands down while this session's own process/next call is in flight: the response's handlers
+ * navigate onto the task the call settles on, and a poll that reads idle in the meantime is not
+ * necessarily a settle - the gap between two chained workflows (transition committed to a service
+ * task, auto-advance not yet enqueued) reads as idle on the service task. Still tracks the busy
+ * state through that window, so a call that ends without settling (timeout) converges here after.
  */
-function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) {
+function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean, processNextInFlight: boolean) {
   const { data: process } = useProcessQuery();
   const status = process?.workflow?.status;
   const navigateToTask = useNavigateToTask();
@@ -95,6 +101,9 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
     }
     if (status === 'processing' || (status === 'failed' && !failedOnCurrentServiceTask)) {
       wasBusyRef.current = true;
+      return;
+    }
+    if (processNextInFlight) {
       return;
     }
     if (failedOnCurrentServiceTask) {
@@ -121,7 +130,7 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
     if (settledTask && settledTask !== taskId) {
       navigateToTask(settledTask);
     }
-  }, [enabled, status, failedOnCurrentServiceTask, process, taskId, navigateToTask]);
+  }, [enabled, status, failedOnCurrentServiceTask, processNextInFlight, process, taskId, navigateToTask]);
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
@@ -130,6 +139,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
+  const isProcessNextInFlight = useIsProcessNextInFlight();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
@@ -137,7 +147,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const { data: process } = useProcessQuery();
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
-  useNavigateToSettledTask(taskId, !isPdfMode);
+  useNavigateToSettledTask(taskId, !isPdfMode, isProcessNextInFlight);
 
   // A process parked on a service task advances out-of-band (the task is waiting for an external
   // outcome), so nothing in this session would otherwise observe the advance: the live workflow
@@ -151,6 +161,30 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
+  }
+
+  // This session's own process/next call is in flight and a poll (see InstanceProvider) has already
+  // read a committed task other than the one in the URL: either the settled target ahead of the
+  // response, or the idle gap between two chained workflows (transition committed to a service task,
+  // auto-advance not yet enqueued), which reads as idle on the service task and is no settle at all.
+  // Keep the advancing view either way - the response's handlers navigate onto the settled task, and
+  // useNavigateToSettledTask stands down for the same reason - so no task UI flashes in between. A
+  // terminal failure still falls through to the failed views below. Subscribing to the mutation here
+  // is safe (unlike useIsRunningProcessNext): the swap needs a committed task, which exists only after
+  // the pre-request phase and any validation 409 that still need the form providers mounted.
+  const holdAdvancingViewForInFlightTransition =
+    !isPdfMode &&
+    isProcessNextInFlight &&
+    workflow?.status !== 'failed' &&
+    taskId !== undefined &&
+    process?.currentTask?.elementId !== taskId;
+
+  if (holdAdvancingViewForInFlightTransition) {
+    return (
+      <PresentationComponent showNavigation={false}>
+        <WorkflowProcessing />
+      </PresentationComponent>
+    );
   }
 
   if (taskType === ProcessTaskType.Archived && taskId !== TaskKeys.CustomReceipt) {
@@ -267,6 +301,11 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
 function isRunningProcessNext(queryClient: QueryClient) {
   return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
+}
+
+/** Live subscription to this session's own pending process/next call (any action variant). */
+function useIsProcessNextInFlight() {
+  return useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
 }
 
 function useIsRunningProcessNext() {

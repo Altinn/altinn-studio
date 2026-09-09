@@ -188,14 +188,33 @@ function getSettledOnTask2(): IInstanceWithProcess {
 }
 
 /**
+ * The read between two chained workflows: the transition has committed to the service task and its
+ * auto-advance workflow is not enqueued yet, so the collection has no active head and the read path
+ * reports idle ON the service task - indistinguishable from a parked task, and not a settle.
+ */
+function getIdleGapOnServiceTask(): IInstanceWithProcess {
+  const instance = getInstanceWithProcessMock();
+  instance.process.processTasks = [
+    { altinnTaskType: 'data', elementId: 'Task_1' },
+    { altinnTaskType: 'data', elementId: 'Task_2' },
+  ];
+  instance.process.currentTask!.elementId = 'Task_Service';
+  instance.process.currentTask!.name = 'Task_Service';
+  instance.process.currentTask!.elementType = 'ServiceTask';
+  instance.process.workflow = { status: 'idle' };
+  return instance;
+}
+
+/**
  * Renders the production provider order (InstanceProvider > ProcessWrapper) around a submit probe,
  * with a process/next call that stays in flight until the test settles it, and an instance read
  * that reports what the backend's read path would: no annotation before the call, `processing`
- * while it is in flight, and the settled Task_2 once the test flips `phase.settled`.
+ * while it is in flight, the idle gap on the service task once the test flips `phase.gap`, and the
+ * settled Task_2 once it flips `phase.settled`.
  */
 async function renderInFlightProcessNext() {
   const pending = deferred<ProcessNextResponse>();
-  const phase = { inFlight: false, settled: false };
+  const phase = { inFlight: false, gap: false, settled: false };
   vi.mocked(doProcessNext).mockImplementation(() => {
     phase.inFlight = true;
     return pending.promise;
@@ -217,6 +236,9 @@ async function renderInFlightProcessNext() {
         getInstance: async () => {
           if (phase.settled) {
             return getSettledOnTask2();
+          }
+          if (phase.gap) {
+            return getIdleGapOnServiceTask();
           }
           return getInstanceWithWorkflow(phase.inFlight ? { status: 'processing', targetTask: 'Task_2' } : undefined);
         },
@@ -264,6 +286,40 @@ describe('useProcessNext in-flight live status', () => {
     // The call returns with the settled instance: the session lands on Task_2 like any successful
     // process/next, with the task UI back.
     phase.settled = true;
+    await act(async () => {
+      pending.resolve({ data: getSettledOnTask2() } as ProcessNextResponse);
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
+    expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it('keeps the advancing view when polls read a committed task ahead of the response, and lets the response navigate', async () => {
+    // Two reads can precede the response in the submitting session: the idle gap between two chained
+    // workflows (idle ON the service task - a false settle), and the genuinely settled target. Neither
+    // may tear down the advancing view or steer the URL - the response's handlers navigate - so the
+    // user never sees a stray task UI or a blank frame between the advancing view and Task_2.
+    const { pending, phase, routerRef } = await renderInFlightProcessNext();
+
+    await clickSubmitAndAwaitFirstPoll();
+    expect(screen.getByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+
+    phase.gap = true;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4_000);
+    });
+    expect(screen.getByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_1');
+
+    phase.settled = true;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4_000);
+    });
+    expect(screen.getByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_1');
+
     await act(async () => {
       pending.resolve({ data: getSettledOnTask2() } as ProcessNextResponse);
       await vi.advanceTimersByTimeAsync(500);
