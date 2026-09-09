@@ -16,15 +16,6 @@
         "textResourceBindings": {
           "title": "Prøv igjen"
         }
-      },
-      {
-        "id": "reject-button",
-        "type": "ActionButton",
-        "textResourceBindings": {
-          "title": "Gå tilbake"
-        },
-        "action": "reject",
-        "buttonStyle": "secondary"
       }
     ]
   }

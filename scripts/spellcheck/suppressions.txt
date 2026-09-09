@@ -96,6 +96,10 @@ vertexes
 axe
 Axe
 
+# Norwegian translation passed alongside English metadata in component code.
+@paths src/App/frontend/src/layout/Subform/config.ts
+celler
+
 # --------------------------------------------------- codes and slugs ---
 
 # Altinn service-owner org slugs (als, staf) used as config/test values

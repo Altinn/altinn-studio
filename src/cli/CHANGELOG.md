@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `studioctl app upgrade v9` removes obsolete Fiks Arkiv `moveToNextTask` settings and reports process changes required for v9.
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
 
 ### Fixed

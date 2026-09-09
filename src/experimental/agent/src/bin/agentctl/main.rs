@@ -6,9 +6,10 @@ use std::{
 };
 
 use agent::{
-    Agent, ConditionStatus, Error,
+    Agent, Error,
     control_api::Client,
     control_plane::ApplyRequest,
+    control_plane::WaitPolicy,
     local::home::ControlPlaneHome,
     manifest,
     sessions::{Session, SessionName},
@@ -17,6 +18,7 @@ use clap::{Parser, Subcommand};
 
 mod format;
 mod forward;
+mod progress;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
@@ -62,6 +64,16 @@ enum Command {
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
+        /// File supplying manifest secret values; defaults to `.env` beside the manifest. Use a
+        /// path outside any bind-mounted directory so real values never enter the Sandbox.
+        #[arg(long)]
+        env_file: Option<PathBuf>,
+        /// Stay attached after applying and show provisioning progress until the Agent is Ready.
+        #[arg(long)]
+        wait: bool,
+        /// Maximum wait with `--wait`, written as seconds, minutes, or hours (for example `10m`).
+        #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
+        timeout: Duration,
     },
     /// Display one or more resources.
     Get {
@@ -168,18 +180,35 @@ type CommandResult<T> = Result<T, CommandError>;
 #[derive(Subcommand)]
 enum ClaudeCommand {
     /// Mint a long-lived Claude token on the host and store it for agents.
-    Login,
+    Login {
+        /// Read an existing credential from standard input instead of signing in. Inside an Agent
+        /// this accepts the mediated placeholder, so a nested `agentd` chains through the outer
+        /// mediation without ever holding a real credential.
+        #[arg(long)]
+        from_stdin: bool,
+    },
 }
 
 #[derive(Subcommand)]
 enum CodexCommand {
     /// Sign in with `ChatGPT` and store an Agent-only grant.
-    Login,
+    Login {
+        /// Read the harness's credential file from standard input instead of signing in. Inside
+        /// an Agent this accepts the file the harness already has, whose placeholders let a nested
+        /// `agentd` chain through the outer mediation without ever holding a real credential.
+        #[arg(long)]
+        from_stdin: bool,
+    },
 }
 
 fn main() -> ExitCode {
     match run() {
         Ok(code) => code,
+        // The daemon rejected the desired state; the message is the whole story.
+        Err(CommandError::Agent(Error::Rpc(error))) if error.is_invalid_params() => {
+            eprintln!("agentctl: {}", error.message);
+            ExitCode::FAILURE
+        }
         Err(error) => {
             eprintln!("agentctl: {error}");
             ExitCode::FAILURE
@@ -200,26 +229,49 @@ fn run() -> CommandResult<ExitCode> {
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
         Command::Claude {
-            command: ClaudeCommand::Login,
+            command: ClaudeCommand::Login { from_stdin },
         } => {
-            let token = agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?;
-            let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
+            let token = if from_stdin {
+                read_token_from_stdin()?
+            } else {
+                agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?
+            };
+            let imported = client
+                .auth_login(agent::Harness::ClaudeCode, token.to_string(), from_stdin)
+                .await?;
             println!("{} authentication stored", imported.provider);
         }
         Command::Codex {
-            command: CodexCommand::Login,
+            command: CodexCommand::Login { from_stdin },
         } => {
-            let credential = agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?;
-            let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
+            let credential = if from_stdin {
+                read_stdin_to_end()?
+            } else {
+                agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?
+            };
+            let imported = client
+                .auth_login(agent::Harness::Codex, credential.to_string(), from_stdin)
+                .await?;
             println!("{} authentication stored", imported.provider);
         }
-        Command::Apply { filename, name } => {
-            let mut request = read_apply_request(filename).await?;
+        Command::Apply {
+            filename,
+            name,
+            env_file,
+            wait,
+            timeout,
+        } => {
+            let mut request = read_apply_request(filename, env_file).await?;
             if let Some(name) = name {
                 request.agent.metadata.name = name;
             }
             let applied = client.apply(request).await?;
-            println!("agent/{} applied", applied.metadata.name);
+            let name = applied.metadata.name;
+            println!("agent/{name} applied");
+            if wait {
+                wait_for_ready(client, &name, timeout).await?;
+                println!("agent/{name} ready");
+            }
         }
         Command::Get {
             resource,
@@ -317,11 +369,10 @@ async fn attach(
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
-        session = session.as_str()
-    );
-    let target = client.ensure_session(&agent, session, harness).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client.ensure_session(&agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
 }
@@ -339,16 +390,10 @@ async fn exec_command(
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
-    let current = client.get(&agent).await?;
-    if !current
-        .status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True)
-    {
-        eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    }
-    let target = client.ensure_execution(&agent).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
         match agent::sandbox::attach_terminal(
@@ -402,8 +447,10 @@ async fn port_forward(
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
-    eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(&agent).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
     let mut forwards = Vec::new();
     for spec in specs {
         let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
@@ -569,7 +616,7 @@ async fn resolve_agent_name(client: &Client, explicit: Option<String>) -> Comman
 
 fn inference_error(error: Error) -> CommandError {
     match error {
-        Error::Rpc(error) if error.code == -32004 => {
+        Error::Rpc(error) if error.is_not_found() => {
             CommandError::Message("no Agent was applied from the current directory; specify --agent".into())
         }
         Error::Rpc(error) => CommandError::Message(error.message),
@@ -577,31 +624,24 @@ fn inference_error(error: Error) -> CommandError {
     }
 }
 
-async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Result<(), Error> {
-    const POLL_INTERVAL: Duration = Duration::from_secs(2);
-
-    let deadline = tokio::time::Instant::now() + timeout;
-    let mut last_ready = None;
-    loop {
-        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
-        if remaining.is_zero() {
-            return Err(Error::Invalid(wait_timeout_message(name, last_ready.as_ref())));
+/// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
+async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
+    let wait = progress::Wait::start();
+    let waited = wait
+        .until(tokio::time::timeout(
+            timeout,
+            client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut wait.sink())),
+        ))
+        .await;
+    match waited {
+        Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
+        Err(_elapsed) => {
+            let ready = match client.get(name).await {
+                Ok(agent) => agent.status.ready_condition().cloned(),
+                Err(_) => None,
+            };
+            Err(CommandError::Message(wait_timeout_message(name, ready.as_ref())))
         }
-        let agent = match tokio::time::timeout(remaining, client.get(name)).await {
-            Ok(result) => result?,
-            Err(_) => return Err(Error::Invalid(wait_timeout_message(name, last_ready.as_ref()))),
-        };
-        let ready = agent
-            .status
-            .conditions
-            .iter()
-            .find(|condition| condition.kind == "Ready");
-        if ready.is_some_and(|condition| condition.status == ConditionStatus::True) {
-            return Ok(());
-        }
-        last_ready = ready.cloned();
-        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
-        tokio::time::sleep(remaining.min(POLL_INTERVAL)).await;
     }
 }
 
@@ -609,19 +649,10 @@ fn wait_timeout_message(name: &str, ready: Option<&agent::Condition>) -> String 
     let Some(ready) = ready else {
         return format!("timed out waiting for Agent {name:?} to become Ready; no Ready condition was reported");
     };
-    let reason = if ready.reason.is_empty() {
-        "Unknown"
-    } else {
-        ready.reason.as_str()
-    };
-    if ready.message.is_empty() {
-        format!("timed out waiting for Agent {name:?} to become Ready: {reason}")
-    } else {
-        format!(
-            "timed out waiting for Agent {name:?} to become Ready: {reason}: {}",
-            ready.message
-        )
-    }
+    format!(
+        "timed out waiting for Agent {name:?} to become Ready: {}",
+        ready.summary()
+    )
 }
 
 fn parse_duration(value: &str) -> Result<Duration, String> {
@@ -648,11 +679,7 @@ fn print_agents(agents: &[Agent]) {
     let rows = agents
         .iter()
         .map(|agent| {
-            let ready = agent
-                .status
-                .conditions
-                .iter()
-                .find(|condition| condition.kind == "Ready");
+            let ready = agent.status.ready_condition();
             let ready_value = ready.map_or("Unknown", |condition| condition_status(condition.status));
             let status = if agent.metadata.deletion_timestamp.is_some() {
                 "Terminating"
@@ -753,6 +780,7 @@ fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
         .stdout(Stdio::null())
         .stderr(log);
     agent::local::process::configure_detached(&mut command);
+    agent::local::process::configure_logging(&mut command);
     command.spawn().map_err(Error::from)
 }
 
@@ -760,8 +788,9 @@ fn daemon_executable(agentctl: &Path) -> PathBuf {
     agentctl.with_file_name(format!("agentd{}", std::env::consts::EXE_SUFFIX))
 }
 
-async fn read_apply_request(filename: PathBuf) -> Result<ApplyRequest, Error> {
+async fn read_apply_request(filename: PathBuf, env_file: Option<PathBuf>) -> Result<ApplyRequest, Error> {
     let filename = absolute(filename)?;
+    let env_file = env_file.map(absolute).transpose()?;
     let bytes = tokio::fs::read(&filename).await?;
     let agent = manifest::decode(&bytes)?;
     let source_directory = filename
@@ -770,8 +799,36 @@ async fn read_apply_request(filename: PathBuf) -> Result<ApplyRequest, Error> {
         .to_path_buf();
     Ok(ApplyRequest {
         source_directory,
+        manifest_path: Some(filename),
+        env_file,
+        create_only: false,
         agent,
     })
+}
+
+fn read_token_from_stdin() -> Result<zeroize::Zeroizing<String>, Error> {
+    let mut line = zeroize::Zeroizing::new(String::new());
+    std::io::stdin()
+        .read_line(&mut line)
+        .map_err(|error| Error::Invalid(format!("could not read the token from standard input: {error}")))?;
+    let token = zeroize::Zeroizing::new(line.trim().to_owned());
+    if token.is_empty() {
+        return Err(Error::Invalid("no token was provided on standard input".into()));
+    }
+    Ok(token)
+}
+
+fn read_stdin_to_end() -> Result<zeroize::Zeroizing<String>, Error> {
+    use std::io::Read as _;
+
+    let mut text = zeroize::Zeroizing::new(String::new());
+    std::io::stdin()
+        .read_to_string(&mut text)
+        .map_err(|error| Error::Invalid(format!("could not read the credential from standard input: {error}")))?;
+    if text.trim().is_empty() {
+        return Err(Error::Invalid("no credential was provided on standard input".into()));
+    }
+    Ok(text)
 }
 
 fn absolute(path: PathBuf) -> Result<PathBuf, Error> {
@@ -872,10 +929,60 @@ mod tests {
         assert!(matches!(
             arguments.command,
             Command::Codex {
-                command: CodexCommand::Login
+                command: CodexCommand::Login { from_stdin: false }
             }
         ));
         assert!(Arguments::try_parse_from(["agentctl", "codex", "login", "--with-api-key"]).is_err());
+        let nested = Arguments::try_parse_from(["agentctl", "codex", "login", "--from-stdin"])
+            .expect("Codex credential-file login arguments");
+        assert!(matches!(
+            nested.command,
+            Command::Codex {
+                command: CodexCommand::Login { from_stdin: true }
+            }
+        ));
+    }
+
+    #[test]
+    fn claude_login_accepts_a_token_on_standard_input() {
+        let arguments =
+            Arguments::try_parse_from(["agentctl", "claude", "login", "--from-stdin"]).expect("Claude login arguments");
+        assert!(matches!(
+            arguments.command,
+            Command::Claude {
+                command: ClaudeCommand::Login { from_stdin: true }
+            }
+        ));
+    }
+
+    #[test]
+    fn apply_accepts_a_secret_file_outside_the_manifest_directory() {
+        let arguments = Arguments::try_parse_from([
+            "agentctl",
+            "apply",
+            "-f",
+            "agent.yaml",
+            "--env-file",
+            "/srv/secrets/worker.env",
+        ])
+        .expect("apply arguments");
+        assert!(matches!(
+            arguments.command,
+            Command::Apply { env_file: Some(path), .. } if path == Path::new("/srv/secrets/worker.env")
+        ));
+    }
+
+    #[test]
+    fn apply_wait_is_opt_in_and_owns_the_timeout() {
+        let plain = Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml"]).expect("plain apply");
+        assert!(matches!(plain.command, Command::Apply { wait: false, .. }));
+        let waited = Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml", "--wait", "--timeout", "2m"])
+            .expect("apply --wait");
+        assert!(matches!(
+            waited.command,
+            Command::Apply { wait: true, timeout, .. } if timeout == Duration::from_mins(2)
+        ));
+        assert!(Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml", "--timeout", "2m"]).is_err());
     }
 
     #[test]
@@ -891,7 +998,7 @@ mod tests {
     fn wait_timeout_reports_the_last_ready_diagnostic() {
         let condition = agent::Condition {
             kind: "Ready".into(),
-            status: ConditionStatus::False,
+            status: agent::ConditionStatus::False,
             reason: "SecretMissing".into(),
             message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
         };
@@ -942,7 +1049,7 @@ mod tests {
 
         let result = LocalRuntime::new()
             .expect("local runtime")
-            .block_on(read_apply_request(PathBuf::from("agent.yaml")));
+            .block_on(read_apply_request(PathBuf::from("agent.yaml"), None));
 
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");

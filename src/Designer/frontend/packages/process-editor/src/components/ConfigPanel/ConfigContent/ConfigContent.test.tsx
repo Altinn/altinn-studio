@@ -14,7 +14,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
-import { screen } from '@studio/ui-test';
+import { screen, within } from '@studio/ui-test';
 
 const tasks = [
   {
@@ -143,14 +143,13 @@ describe('ConfigContent', () => {
   it('should display the connected data model as selected by default when data type is connected to task', () => {
     const connectedDataType = mockBpmnApiContextValue.layoutSets[0].dataType;
     renderConfigContent();
-    expect(
-      screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_data_model', {
-          dataModelName: connectedDataType,
-        }),
+
+    const [dataModelButton] = screen.getAllByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_data_model', {
+        dataModelName: connectedDataType,
       }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(connectedDataType)).toBeInTheDocument();
+    });
+    expect(within(dataModelButton).getByText(connectedDataType)).toBeInTheDocument();
   });
 
   it('should render the Policy accordion', async () => {

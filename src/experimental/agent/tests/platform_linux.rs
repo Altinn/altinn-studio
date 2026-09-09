@@ -41,6 +41,14 @@ fn is_podman_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_systemd_readiness_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo" && args == &["-n", "/usr/bin/systemctl", "is-system-running", "--wait"]
+    )
+}
+
 fn completed(code: i32) -> Vec<ExecutionEvent> {
     vec![
         ExecutionEvent::Started { process_id: None },
@@ -58,14 +66,10 @@ env = [
   "NPM_CONFIG_CAFILE=/run/agent/tls/ca-bundle.pem",
 ]
 "#;
-const PODMAN_RUNTIME_CONF: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\ncompat_api_enforce_docker_hub = true\n";
+const PODMAN_RUNTIME_CONF: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\ncompat_api_enforce_docker_hub = true\nhooks_dir = [\"/etc/containers/oci/hooks.d\"]\n";
 const PODMAN_REGISTRIES_CONF: &[u8] =
     b"unqualified-search-registries = [\"docker.io\"]\nshort-name-mode = \"enforcing\"\n";
-const PODMAN_MOUNTS_CONF: &[u8] = br"/etc/ssl/certs/ca-certificates.crt:/run/agent/tls/ca-bundle.pem
-/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
-/etc/ssl/certs/ca-certificates.crt:/etc/pki/tls/certs/ca-bundle.crt
-/etc/ssl/certs/ca-certificates.crt:/etc/ssl/cert.pem
-";
+const PODMAN_MOUNTS_CONF: &[u8] = b"/etc/ssl/certs/ca-certificates.crt:/run/agent/tls/ca-bundle.pem\n";
 const PODMAN_SOCKET_DROP_IN: &[u8] = b"[Socket]\nDirectoryMode=0755\nSocketGroup=agent\nSocketMode=0660\n";
 
 async fn read_file(sandbox: &sandbox::SandboxHandle, path: &str) -> Vec<u8> {
@@ -94,11 +98,28 @@ fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]
             .count()
     };
     assert_eq!(count(&["-n", "/usr/bin/systemctl", "daemon-reload"]), 2);
+    // systemd readiness is confirmed before the first systemctl call of a setup pass.
+    let daemon_reload = executions
+        .iter()
+        .position(|spec| matches!(spec.program(), Program::Command { args, .. } if args.contains(&"daemon-reload".to_owned())))
+        .expect("daemon-reload runs");
+    assert!(executions.iter().take(daemon_reload).any(is_systemd_readiness_check));
+    assert!(
+        executions
+            .iter()
+            .filter(|spec| is_systemd_readiness_check(spec))
+            .count()
+            >= 2
+    );
     assert_eq!(
         count(&["-n", "/usr/bin/systemctl", "enable", "--now", "podman.socket"]),
         2
     );
     assert_eq!(count(&["-n", "/usr/bin/install", "-d", "-m", "0755", "/run/podman"]), 2);
+    assert_eq!(
+        count(&["-n", "/bin/chmod", "0755", "/usr/local/libexec/agent-container-ca"]),
+        2
+    );
     assert!(!executions.iter().any(|spec| {
         match spec.program() {
             Program::Command { args, .. } => args
@@ -130,6 +151,8 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let record = AgentRecord {
         id: agent_id,
         source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
         agent: resource,
     };
 
@@ -245,6 +268,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
 }
 
 #[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
 async fn linux_setup_convergently_configures_podman_container_trust() {
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
@@ -257,6 +281,8 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
     let record = AgentRecord {
         id: agent_id,
         source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
         agent: resource,
     };
     let backend = Rc::new(memory::Provider::new());
@@ -285,6 +311,25 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         .await
         .expect("Sandbox");
 
+    // The first setup pass races the image init: systemd is not PID 1 yet, then boots degraded.
+    backend.queue_execution_events_matching(
+        is_systemd_readiness_check,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stderr(
+                "System has not been booted with systemd as init system (PID 1). Can't operate.\n".into(),
+            ),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
+    backend.queue_execution_events_matching(
+        is_systemd_readiness_check,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("degraded\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
     Linux.setup(&record, &sandbox).await.expect("first setup");
     sandbox
         .write_file(
@@ -315,8 +360,44 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         read_file(&sandbox, "/etc/systemd/system/podman.socket.d/50-agent-access.conf").await,
         PODMAN_SOCKET_DROP_IN
     );
+    let hook_configuration: serde_json::Value =
+        serde_json::from_slice(&read_file(&sandbox, "/etc/containers/oci/hooks.d/50-agent-ca.json").await)
+            .expect("OCI hook JSON");
+    assert_eq!(
+        hook_configuration["hook"]["path"],
+        "/usr/local/libexec/agent-container-ca"
+    );
+    assert_eq!(hook_configuration["stages"], serde_json::json!(["createRuntime"]));
+    let hook =
+        String::from_utf8(read_file(&sandbox, "/usr/local/libexec/agent-container-ca").await).expect("hook script");
+    assert!(hook.starts_with("#!/bin/sh\n"));
+    // Distro trust paths are copied, never bind-mounted, so package managers can replace them.
+    assert!(
+        !PODMAN_MOUNTS_CONF
+            .windows(b"/etc/ssl/certs/ca-certificates.crt:/etc/".len())
+            .any(|w| w == b"/etc/ssl/certs/ca-certificates.crt:/etc/")
+    );
+    for path in [
+        "etc/ssl/certs/ca-certificates.crt",
+        "etc/pki/tls/certs/ca-bundle.crt",
+        "etc/ssl/cert.pem",
+        "usr/local/share/ca-certificates/agent-mediator.crt",
+        "etc/pki/ca-trust/source/anchors/agent-mediator.crt",
+    ] {
+        assert!(hook.contains(path), "{path}");
+    }
+    assert!(hook.contains("/.msb/tls/ca.pem"));
 
     assert_podman_setup_commands(&backend.execution_specs());
+    // Two setup passes; the first retried once while systemd was not yet PID 1.
+    assert_eq!(
+        backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_systemd_readiness_check(spec))
+            .count(),
+        3
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -333,6 +414,8 @@ async fn linux_setup_accepts_any_installed_version_when_none_is_declared() {
     let record = AgentRecord {
         id: agent_id,
         source_directory: PathBuf::from(directory.path()),
+        manifest_path: None,
+        env_file: None,
         agent: resource,
     };
     let backend = Rc::new(memory::Provider::new());
@@ -387,6 +470,8 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
     let record = AgentRecord {
         id: agent_id,
         source_directory: PathBuf::from(directory.path()),
+        manifest_path: None,
+        env_file: None,
         agent: resource,
     };
     let backend = Rc::new(memory::Provider::new());

@@ -2,13 +2,19 @@
 
 mod support;
 
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
     Error,
     control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
+    control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
+    progress::Reporter,
 };
 use sandbox::LocalFuture;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -18,7 +24,9 @@ use support::agent;
 struct IgnoreNotifications;
 
 struct FakeAuthentication;
-struct FakeExecutions;
+struct FakeExecutions {
+    progress_ensures: Rc<Cell<usize>>,
+}
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
 }
@@ -32,6 +40,7 @@ impl AuthenticationApi for FakeAuthentication {
         &'a self,
         _harness: agent::Harness,
         _token: &'a str,
+        _imported: bool,
     ) -> LocalFuture<'a, Result<ImportedAuthentication, Error>> {
         Box::pin(async {
             Ok(ImportedAuthentication {
@@ -48,6 +57,8 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         harness: Option<agent::Harness>,
+        _wait: WaitPolicy,
+        _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
         self.ensured_harnesses.borrow_mut().push(harness);
         Box::pin(async { Err(Error::NotFound) })
@@ -67,7 +78,19 @@ impl SessionApi for FakeSessions {
 }
 
 impl ExecutionApi for FakeExecutions {
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        name: &'a str,
+        _wait: WaitPolicy,
+        progress: Option<Reporter>,
+    ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+        if let Some(progress) = progress {
+            self.progress_ensures.set(self.progress_ensures.get() + 1);
+            progress(agent::progress::Event::PhaseStarted {
+                phase: agent::progress::Phase::ImagePrepare,
+                message: "Prepare Sandbox Image".into(),
+            });
+        }
         Box::pin(async move {
             if name != "worker" {
                 return Err(Error::NotFound);
@@ -89,10 +112,15 @@ struct InProcessConnector {
     server: Rc<Server>,
 }
 
+struct ScriptedConnector {
+    frames: &'static str,
+}
+
 struct ApiFixture {
     server: Rc<Server>,
     client: Client,
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    progress_ensures: Rc<Cell<usize>>,
 }
 
 impl Connector for InProcessConnector {
@@ -108,6 +136,22 @@ impl Connector for InProcessConnector {
     }
 }
 
+impl Connector for ScriptedConnector {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            let (client, server) = tokio::io::duplex(16 * 1024);
+            let frames = self.frames;
+            tokio::task::spawn_local(async move {
+                let mut server = BufReader::new(server);
+                let mut request = String::new();
+                server.read_line(&mut request).await.expect("request");
+                server.get_mut().write_all(frames.as_bytes()).await.expect("responses");
+            });
+            Ok(Box::new(client) as Box<dyn Connection>)
+        })
+    }
+}
+
 fn api() -> ApiFixture {
     let control_plane = Rc::new(ControlPlane::new(
         Rc::new(InMemoryAgentStore::new()),
@@ -115,10 +159,13 @@ fn api() -> ApiFixture {
     ));
     let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
+    let progress_ensures = Rc::new(Cell::new(0));
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
-        Rc::new(FakeExecutions),
+        Rc::new(FakeExecutions {
+            progress_ensures: progress_ensures.clone(),
+        }),
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
         }),
@@ -129,6 +176,7 @@ fn api() -> ApiFixture {
         server,
         client,
         ensured_harnesses,
+        progress_ensures,
     }
 }
 
@@ -137,7 +185,7 @@ async fn login_returns_only_non_secret_readiness() {
     let fixture = api();
     let imported = fixture
         .client
-        .auth_login(agent::Harness::ClaudeCode, "sk-ant-oat01-canary".into())
+        .auth_login(agent::Harness::ClaudeCode, "sk-ant-oat01-canary".into(), false)
         .await
         .expect("login");
     assert_eq!(imported.provider, "claude");
@@ -154,6 +202,9 @@ async fn health_reports_a_compatible_daemon() {
 fn request(name: &str) -> ApplyRequest {
     ApplyRequest {
         source_directory: std::env::temp_dir().join("agent-platform-source"),
+        manifest_path: None,
+        env_file: None,
+        create_only: false,
         agent: agent(name),
     }
 }
@@ -173,7 +224,11 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             .expect("resolve source"),
         applied
     );
-    let execution = client.ensure_execution("worker").await.expect("execution target");
+    let execution = client
+        .ensure_execution("worker", WaitPolicy::FirstPass, None)
+        .await
+        .expect("execution target");
+    assert_eq!(fixture.progress_ensures.get(), 0);
     assert_eq!(execution.operating_system, "linux");
     assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
@@ -182,6 +237,8 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             "worker",
             agent::sessions::SessionName::new("s1").expect("Session name"),
             Some(agent::Harness::ClaudeCode),
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -199,6 +256,64 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     client.delete("worker").await.expect("delete request");
     let deleting = client.get("worker").await.expect("marked resource");
     assert!(deleting.metadata.deletion_timestamp.is_some());
+}
+
+#[tokio::test(flavor = "local")]
+async fn opted_in_ensure_routes_notifications_before_the_matching_response() {
+    let fixture = api();
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let target = fixture
+        .client
+        .ensure_execution(
+            "worker",
+            WaitPolicy::UntilReady,
+            Some(&mut |event| observed.borrow_mut().push(event)),
+        )
+        .await
+        .expect("streaming execution target");
+
+    assert_eq!(target.operating_system, "linux");
+    assert_eq!(fixture.progress_ensures.get(), 1);
+    assert_eq!(
+        events.borrow().as_slice(),
+        &[agent::progress::Event::PhaseStarted {
+            phase: agent::progress::Phase::ImagePrepare,
+            message: "Prepare Sandbox Image".into(),
+        }]
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn unknown_notifications_are_skipped_but_malformed_frames_fail_the_call() {
+    let unknown = ScriptedConnector {
+        frames: concat!(
+            r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{"type":"fromTheFuture"}}"#,
+            "\n",
+            r#"{"jsonrpc":"2.0","method":"telemetry.v2.sample","params":{}}"#,
+            "\n",
+            r#"{"jsonrpc":"2.0","id":1,"result":{"sandbox":{"state":"materialized","provider":"memory","id":"ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"},"operatingSystem":"linux"}}"#,
+            "\n",
+        ),
+    };
+    let client = Client::new(Rc::new(unknown));
+    let mut event_count = 0;
+    let target = client
+        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| event_count += 1))
+        .await
+        .expect("response after unknown notifications");
+    assert_eq!(event_count, 0);
+    assert_eq!(target.operating_system, "linux");
+
+    let malformed = ScriptedConnector {
+        frames: concat!(r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{"#, "\n"),
+    };
+    let client = Client::new(Rc::new(malformed));
+    let error = client
+        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| {}))
+        .await
+        .expect_err("corrupted frame is a protocol error");
+    assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
 }
 
 #[tokio::test(flavor = "local")]

@@ -10,6 +10,16 @@ use super::{AgentRecord, SharedAgentStore, Wakeup};
 pub struct ApplyRequest {
     /// Absolute directory against which local manifest sources are resolved.
     pub source_directory: PathBuf,
+    /// Absolute path of the manifest being applied, recorded for discovery.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest_path: Option<PathBuf>,
+    /// Absolute path of the file supplying manifest secret values. Defaults to `.env` beside the
+    /// manifest; omitted on an update keeps the recorded path.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub env_file: Option<PathBuf>,
+    /// Fail instead of updating when the name already identifies an Agent.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub create_only: bool,
     /// Agent manifest to store.
     pub agent: Agent,
 }
@@ -46,9 +56,7 @@ impl ControlPlane {
     /// Returns an error when the request is invalid, changes an immutable field, conflicts with deletion,
     /// or cannot be stored.
     pub async fn apply(&self, request: ApplyRequest) -> Result<Agent, Error> {
-        if !request.source_directory.is_absolute() {
-            return Err(Error::Invalid("sourceDirectory must be absolute".into()));
-        }
+        validate_request_paths(&request)?;
 
         let mut desired = request.agent;
         desired.clear_managed_fields();
@@ -58,13 +66,34 @@ impl ControlPlane {
         loop {
             let result = match self.store.get_by_name(&desired.metadata.name).await {
                 Ok(current) => {
+                    if request.create_only {
+                        return Err(Error::Invalid(format!(
+                            "an Agent named {:?} already exists",
+                            desired.metadata.name
+                        )));
+                    }
                     if current.agent.metadata.deletion_timestamp.is_some() {
                         return Err(Error::Conflict);
                     }
-                    validate_immutable_fields(&current, &desired, &request.source_directory)?;
-                    if current.agent.spec == desired.spec && current.source_directory == request.source_directory {
+                    if current.source_directory != request.source_directory {
+                        return Err(Error::Immutable("sourceDirectory"));
+                    }
+                    validate_immutable_fields(&current, &desired)?;
+                    let manifest_path = request.manifest_path.clone().or_else(|| current.manifest_path.clone());
+                    let env_file = request.env_file.clone().or_else(|| current.env_file.clone());
+                    self.reject_exposed_secret_files(
+                        current.id,
+                        &request.source_directory,
+                        env_file.as_deref(),
+                        &desired,
+                    )
+                    .await?;
+                    if current.agent.spec == desired.spec
+                        && current.manifest_path == manifest_path
+                        && current.env_file == env_file
+                    {
                         self.notifier.notify(current.id);
-                        return Ok(current.agent);
+                        return Ok(resource(current));
                     }
 
                     let expected_generation = current.agent.metadata.generation;
@@ -75,27 +104,38 @@ impl ControlPlane {
                             AgentRecord {
                                 id: current.id,
                                 source_directory: request.source_directory.clone(),
+                                manifest_path: manifest_path.clone(),
+                                env_file: env_file.clone(),
                                 agent: desired.clone(),
                             },
                             expected_generation,
                         )
                         .await
-                        .map(|()| current.id)
+                        .map(|()| (current.id, manifest_path, env_file))
                 }
                 Err(Error::NotFound) => {
                     let id = AgentId::generate();
                     desired.metadata.generation = 1;
+                    self.reject_exposed_secret_files(
+                        id,
+                        &request.source_directory,
+                        request.env_file.as_deref(),
+                        &desired,
+                    )
+                    .await?;
                     self.store
                         .put(
                             AgentRecord {
                                 id,
                                 source_directory: request.source_directory.clone(),
+                                manifest_path: request.manifest_path.clone(),
+                                env_file: request.env_file.clone(),
                                 agent: desired.clone(),
                             },
                             0,
                         )
                         .await
-                        .map(|()| id)
+                        .map(|()| (id, request.manifest_path.clone(), request.env_file.clone()))
                 }
                 Err(error) => return Err(error),
             };
@@ -103,12 +143,70 @@ impl ControlPlane {
             match result {
                 Err(Error::Conflict) => {}
                 Err(error) => return Err(error),
-                Ok(id) => {
+                Ok((id, manifest_path, env_file)) => {
                     self.notifier.notify(id);
+                    desired.status.provenance = Some(crate::Provenance {
+                        source_directory: request.source_directory,
+                        manifest_path,
+                        env_file,
+                    });
                     return Ok(desired);
                 }
             }
         }
+    }
+
+    /// Rejects desired state that would expose a real secret file inside a Sandbox.
+    ///
+    /// Secret files hold the real values that mediation exists to keep out of Sandboxes. A bind
+    /// mount whose source contains this Agent's secret file, or another active Agent's, would hand
+    /// those values to the guest, so the combination is refused at apply time. Bind mount sources
+    /// are canonical by this point.
+    async fn reject_exposed_secret_files(
+        &self,
+        id: AgentId,
+        source_directory: &std::path::Path,
+        env_file: Option<&std::path::Path>,
+        desired: &Agent,
+    ) -> Result<(), Error> {
+        let mut secret_files = Vec::new();
+        if !desired.spec.secrets.is_empty() {
+            let path = env_file.map_or_else(|| source_directory.join(super::resource::ENV_FILE), PathBuf::from);
+            secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
+        }
+        let mut mounts = bind_mount_sources(desired);
+        for other in self.store.list().await? {
+            if other.id == id || other.agent.metadata.deletion_timestamp.is_some() {
+                continue;
+            }
+            if !other.agent.spec.secrets.is_empty() {
+                secret_files.push((
+                    other.agent.metadata.name.clone(),
+                    canonical_secret_file(&other.env_file_path()).await,
+                ));
+            }
+            if !desired.spec.secrets.is_empty() {
+                mounts.extend(
+                    bind_mount_sources(&other.agent)
+                        .into_iter()
+                        .map(|(_, source)| (format!("Agent {:?}", other.agent.metadata.name), source)),
+                );
+            }
+        }
+        for (owner, secret_file) in &secret_files {
+            for (mount, source) in &mounts {
+                if secret_file.starts_with(source) {
+                    return Err(Error::Invalid(format!(
+                        "{mount} bind-mounts {} which contains the secret file {} of Agent {owner:?}; \
+                         the Sandbox would see its real values. Keep secret files outside mounted directories, \
+                         for example with `agentctl apply --env-file`",
+                        source.display(),
+                        secret_file.display(),
+                    )));
+                }
+            }
+        }
+        Ok(())
     }
 
     /// Gets desired and most recently observed state.
@@ -117,7 +215,7 @@ impl ControlPlane {
     ///
     /// Returns an error when the Agent does not exist or storage fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.store.get_by_name(name).await.map(|record| record.agent)
+        self.store.get_by_name(name).await.map(resource)
     }
 
     /// Lists every active Agent ordered by name.
@@ -129,7 +227,7 @@ impl ControlPlane {
         self.store
             .list()
             .await
-            .map(|records| records.into_iter().map(|record| record.agent).collect())
+            .map(|records| records.into_iter().map(resource).collect())
     }
 
     /// Resolves the closest Agent source directory containing `directory`.
@@ -161,11 +259,17 @@ impl ControlPlane {
         };
         matches.retain(|(_, candidate_depth)| *candidate_depth == depth);
         if matches.len() != 1 {
-            return Err(Error::Invalid(
-                "multiple Agents were applied from this directory; specify --agent".into(),
-            ));
+            let mut names = matches
+                .iter()
+                .map(|(record, _)| record.agent.metadata.name.clone())
+                .collect::<Vec<_>>();
+            names.sort();
+            return Err(Error::Invalid(format!(
+                "multiple Agents were applied from this directory ({}); specify --agent",
+                names.join(", ")
+            )));
         }
-        matches.pop().map(|(record, _)| record.agent).ok_or(Error::NotFound)
+        matches.pop().map(|(record, _)| resource(record)).ok_or(Error::NotFound)
     }
 
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
@@ -185,12 +289,19 @@ impl ControlPlane {
     }
 }
 
-fn validate_immutable_fields(
-    current: &AgentRecord,
-    desired: &Agent,
-    source_directory: &std::path::Path,
-) -> Result<(), Error> {
-    if current.agent.spec.sandbox.image != desired.spec.sandbox.image || current.source_directory != source_directory {
+/// Converts a stored record to its API representation, projecting provenance into status.
+fn resource(record: AgentRecord) -> Agent {
+    let mut agent = record.agent;
+    agent.status.provenance = Some(crate::Provenance {
+        source_directory: record.source_directory,
+        manifest_path: record.manifest_path,
+        env_file: record.env_file,
+    });
+    agent
+}
+
+fn validate_immutable_fields(current: &AgentRecord, desired: &Agent) -> Result<(), Error> {
+    if current.agent.spec.sandbox.image != desired.spec.sandbox.image {
         return Err(Error::Immutable("spec.sandbox.image"));
     }
     if current.agent.spec.sandbox.platform != desired.spec.sandbox.platform {
@@ -275,10 +386,68 @@ async fn resolve_mount_sources(agent: &mut Agent, source_directory: &std::path::
     Ok(())
 }
 
+fn validate_request_paths(request: &ApplyRequest) -> Result<(), Error> {
+    if !request.source_directory.is_absolute() {
+        return Err(Error::Invalid("sourceDirectory must be absolute".into()));
+    }
+    if let Some(manifest) = &request.manifest_path
+        && manifest.parent() != Some(request.source_directory.as_path())
+    {
+        return Err(Error::Invalid(
+            "manifestPath must name a file in sourceDirectory".into(),
+        ));
+    }
+    if let Some(env_file) = &request.env_file
+        && !env_file.is_absolute()
+    {
+        return Err(Error::Invalid("envFile must be absolute".into()));
+    }
+    Ok(())
+}
+
+fn bind_mount_sources(agent: &Agent) -> Vec<(String, PathBuf)> {
+    agent
+        .spec
+        .sandbox
+        .mounts
+        .iter()
+        .enumerate()
+        .filter_map(|(index, mount)| match mount {
+            MountSpec::Bind { source, .. } => Some((format!("spec.sandbox.mounts[{index}]"), source.clone())),
+            MountSpec::Tmpfs { .. } => None,
+        })
+        .collect()
+}
+
 async fn canonical_or_original(path: &std::path::Path) -> PathBuf {
     tokio::fs::canonicalize(path)
         .await
         .unwrap_or_else(|_| path.to_path_buf())
+}
+
+/// Canonical form of a secret file for comparison against canonical bind mount sources.
+///
+/// The file, and any number of its parent directories, may not exist yet. The nearest existing
+/// ancestor is canonicalized and the missing components appended, so a symlink anywhere above
+/// the file still compares equal to the resolved mount source.
+async fn canonical_secret_file(path: &std::path::Path) -> PathBuf {
+    let mut missing = Vec::new();
+    let mut ancestor = path;
+    loop {
+        if let Ok(canonical) = tokio::fs::canonicalize(ancestor).await {
+            return missing
+                .iter()
+                .rev()
+                .fold(canonical, |joined, component| joined.join(component));
+        }
+        match (ancestor.parent(), ancestor.file_name()) {
+            (Some(parent), Some(name)) => {
+                missing.push(name);
+                ancestor = parent;
+            }
+            _ => return path.to_path_buf(),
+        }
+    }
 }
 
 fn association_directories(record: &AgentRecord) -> impl Iterator<Item = &std::path::Path> {
