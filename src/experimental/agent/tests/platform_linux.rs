@@ -41,6 +41,14 @@ fn is_podman_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_systemd_readiness_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo" && args == &["-n", "/usr/bin/systemctl", "is-system-running", "--wait"]
+    )
+}
+
 fn completed(code: i32) -> Vec<ExecutionEvent> {
     vec![
         ExecutionEvent::Started { process_id: None },
@@ -90,6 +98,19 @@ fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]
             .count()
     };
     assert_eq!(count(&["-n", "/usr/bin/systemctl", "daemon-reload"]), 2);
+    // systemd readiness is confirmed before the first systemctl call of a setup pass.
+    let daemon_reload = executions
+        .iter()
+        .position(|spec| matches!(spec.program(), Program::Command { args, .. } if args.contains(&"daemon-reload".to_owned())))
+        .expect("daemon-reload runs");
+    assert!(executions.iter().take(daemon_reload).any(is_systemd_readiness_check));
+    assert!(
+        executions
+            .iter()
+            .filter(|spec| is_systemd_readiness_check(spec))
+            .count()
+            >= 2
+    );
     assert_eq!(
         count(&["-n", "/usr/bin/systemctl", "enable", "--now", "podman.socket"]),
         2
@@ -247,6 +268,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
 }
 
 #[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
 async fn linux_setup_convergently_configures_podman_container_trust() {
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
@@ -289,6 +311,25 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         .await
         .expect("Sandbox");
 
+    // The first setup pass races the image init: systemd is not PID 1 yet, then boots degraded.
+    backend.queue_execution_events_matching(
+        is_systemd_readiness_check,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stderr(
+                "System has not been booted with systemd as init system (PID 1). Can't operate.\n".into(),
+            ),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
+    backend.queue_execution_events_matching(
+        is_systemd_readiness_check,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("degraded\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
     Linux.setup(&record, &sandbox).await.expect("first setup");
     sandbox
         .write_file(
@@ -348,6 +389,15 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
     assert!(hook.contains("/.msb/tls/ca.pem"));
 
     assert_podman_setup_commands(&backend.execution_specs());
+    // Two setup passes; the first retried once while systemd was not yet PID 1.
+    assert_eq!(
+        backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_systemd_readiness_check(spec))
+            .count(),
+        3
+    );
 }
 
 #[tokio::test(flavor = "local")]

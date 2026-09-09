@@ -16,6 +16,9 @@ const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
 const UTF8_LOCALE: &str = "C.UTF-8";
 const PORTABLE_TERMINAL: &str = "xterm-256color";
 const PODMAN: &str = "/usr/bin/podman";
+const SETUP_STDERR_LINES: usize = 3;
+const SYSTEMD_READY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
+const SYSTEMD_READY_POLL: std::time::Duration = std::time::Duration::from_secs(1);
 // Podman reads these files when it creates containers. The default mount also
 // reaches Buildah RUN containers and exposes the guest's superset bundle at a
 // path no distro package owns. Distro trust paths are populated by an OCI hook
@@ -173,6 +176,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
         }
     }
 
+    wait_for_systemd(sandbox).await?;
     run_checked(
         sandbox,
         "/usr/bin/sudo",
@@ -213,6 +217,43 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
         ["-n", "/usr/bin/systemctl", "enable", "--now", "podman.socket"],
     )
     .await
+}
+
+/// Waits until systemd is PID 1 and has finished booting the guest.
+///
+/// Sandbox setup starts as soon as the Sandbox accepts Executions, which on an
+/// image-init guest is before the image entrypoint has become systemd; `systemctl`
+/// then reports "System has not been booted with systemd". `is-system-running
+/// --wait` blocks until startup finishes once systemd is up. It runs as root
+/// because the guest has no D-Bus system bus and only root reaches systemd's
+/// private socket. A `degraded` system counts as ready: a failed optional unit,
+/// such as a best-effort workspace clone, must not block the Podman configuration.
+async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
+    let deadline = tokio::time::Instant::now() + SYSTEMD_READY_TIMEOUT;
+    loop {
+        let output = sandbox
+            .run_execution(ExecutionSpec::command(
+                SandboxPath::new("/usr/bin/sudo"),
+                ["-n", "/usr/bin/systemctl", "is-system-running", "--wait"].map(str::to_owned),
+            ))
+            .await?;
+        let state = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        if output.status.success() || matches!(state.as_str(), "running" | "degraded") {
+            return Ok(());
+        }
+        if tokio::time::Instant::now() >= deadline {
+            let last = if state.is_empty() {
+                String::from_utf8_lossy(&output.stderr).trim().to_owned()
+            } else {
+                state
+            };
+            return Err(Error::SandboxSetup(format!(
+                "systemd did not become ready within {}s: {last}",
+                SYSTEMD_READY_TIMEOUT.as_secs()
+            )));
+        }
+        tokio::time::sleep(SYSTEMD_READY_POLL).await;
+    }
 }
 
 async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Result<(), Error> {
@@ -286,7 +327,16 @@ async fn sync_home(sandbox: &SandboxHandle, archive: Vec<u8>) -> Result<(), Erro
     run_checked(sandbox, "/usr/bin/tar", ["-xf", HOME_ARCHIVE, "-C", HOME]).await
 }
 
-async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, args: [&str; N]) -> Result<(), Error> {
+/// Runs one setup command in the Sandbox and fails with what it ran and what it printed.
+///
+/// # Errors
+///
+/// Returns an error when the Execution cannot start or exits unsuccessfully.
+pub(crate) async fn run_checked<const N: usize>(
+    sandbox: &SandboxHandle,
+    executable: &str,
+    args: [&str; N],
+) -> Result<(), Error> {
     let output = sandbox
         .run_execution(ExecutionSpec::command(
             SandboxPath::new(executable),
@@ -294,13 +344,29 @@ async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, 
         ))
         .await?;
     if output.status.success() {
-        Ok(())
-    } else {
-        Err(Error::SandboxSetup(format!(
-            "command {executable:?} exited with code {}",
-            output.status.code
-        )))
+        return Ok(());
     }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stderr = stderr.trim();
+    let detail = if stderr.is_empty() {
+        String::new()
+    } else {
+        let tail = stderr
+            .lines()
+            .rev()
+            .take(SETUP_STDERR_LINES)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect::<Vec<_>>()
+            .join(" | ");
+        format!(": {tail}")
+    };
+    Err(Error::SandboxSetup(format!(
+        "command `{executable} {}` exited with code {}{detail}",
+        args.join(" "),
+        output.status.code
+    )))
 }
 
 fn resolve_source(manifest_directory: &Path, source: &Path) -> Result<std::path::PathBuf, Error> {
