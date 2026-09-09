@@ -24,14 +24,16 @@ class ScopeCheckResult(BaseModel):
     reason: Optional[str] = None
 
 
-async def check_scope_async(query: str) -> ScopeCheckResult:
-    """Classify whether a chat question is about Altinn Studio/apps.
+def build_scope_check_message(query: str) -> str:
+    """The user message the scope classifier sees, as a value so a dataset can
+    send exactly what production sends."""
+    return f"Classify this question: {query}"
 
-    Fails open (in_scope=True) if the classifier call itself fails, so a
-    broken/timed-out classifier never blocks legitimate users.
-    """
+
+async def check_scope_async(query: str) -> ScopeCheckResult:
+    """Classify whether a chat question is about Altinn Studio/apps."""
     system_prompt, lf_prompt = get_prompt_with_langfuse("scope_check")
-    user_prompt = f"Classify this question: {query}"
+    user_prompt = build_scope_check_message(query)
 
     client = get_llm_client()
     try:

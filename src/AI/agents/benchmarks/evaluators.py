@@ -21,6 +21,16 @@ class Score:
     comment: str
 
 
+SCORE_NAMES = (
+    "bench_pages",
+    "bench_order_integrity",
+    "bench_navigation",
+    "bench_field_coverage",
+    "bench_input_count",
+    "bench_texts_bound",
+)
+
+
 def evaluate(app: AppModel, rubric: dict[str, Any]) -> list[Score]:
     return [
         _pages(app, rubric),
