@@ -38,8 +38,8 @@ impl Observers {
         Self::default()
     }
 
-    pub(crate) fn observe_sandbox(&self, id: AgentId, agent: String) -> SandboxObserver {
-        self.telemetry.observe_sandbox(id, agent)
+    pub(crate) fn observe_sandbox(&self, id: AgentId) -> SandboxObserver {
+        self.telemetry.observe_sandbox(id)
     }
 
     pub(crate) fn publish_status(&self, id: AgentId, status: ObservedStatus) {
@@ -77,26 +77,15 @@ impl Convergence {
     /// Returns `Error::Invalid` when desired state must change, the first pass's
     /// failure under [`WaitPolicy::FirstPass`], `Error::Conflict` when the Agent
     /// is deleted while observed, or a daemon error when observation stops.
-    pub async fn converge(
-        &self,
-        id: AgentId,
-        agent: &str,
-        wait: WaitPolicy,
-        progress: Option<&Reporter>,
-    ) -> Result<(), Error> {
-        let Some(reporter) = progress else {
-            if wait == WaitPolicy::FirstPass {
-                return self.wakeup.reconcile(id).await.map_err(Error::from);
-            }
-            let silent: Reporter = std::rc::Rc::new(|_| {});
-            return self.follow(id, agent, wait, &silent).await;
-        };
-        self.follow(id, agent, wait, reporter).await
+    pub async fn converge(&self, id: AgentId, wait: WaitPolicy, progress: Option<&Reporter>) -> Result<(), Error> {
+        if wait == WaitPolicy::FirstPass && progress.is_none() {
+            return self.wakeup.reconcile(id).await.map_err(Error::from);
+        }
+        self.follow(id, wait, progress).await
     }
 
-    async fn follow(&self, id: AgentId, agent: &str, wait: WaitPolicy, reporter: &Reporter) -> Result<(), Error> {
+    async fn follow(&self, id: AgentId, wait: WaitPolicy, reporter: Option<&Reporter>) -> Result<(), Error> {
         let mut observer = Observer {
-            agent,
             reporter,
             telemetry: self.observers.telemetry.subscribe(id),
             statuses: self.observers.statuses.subscribe(id),
@@ -149,8 +138,7 @@ impl Convergence {
 }
 
 struct Observer<'a> {
-    agent: &'a str,
-    reporter: &'a Reporter,
+    reporter: Option<&'a Reporter>,
     telemetry: Subscription,
     statuses: watch::Receiver<ObservedStatus>,
     last: ObservedStatus,
@@ -159,7 +147,11 @@ struct Observer<'a> {
 impl Observer<'_> {
     fn forward(&self, event: Receive) -> Result<(), Error> {
         match event {
-            Receive::Event(event) => (self.reporter)(event),
+            Receive::Event(event) => {
+                if let Some(reporter) = self.reporter {
+                    reporter(event);
+                }
+            }
             Receive::Lagged => {}
             Receive::Closed => return Err(Error::Daemon("Agent progress observation stopped".into())),
         }
@@ -175,8 +167,11 @@ impl Observer<'_> {
     }
 
     fn emit(&self, current: &ObservedStatus) {
+        let Some(reporter) = self.reporter else {
+            return;
+        };
         for condition in current.changed_since(&self.last) {
-            (self.reporter)(Event::condition(self.agent, condition, current.failure));
+            reporter(Event::condition(condition, current.failure));
         }
     }
 

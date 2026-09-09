@@ -75,9 +75,7 @@ impl Reconciler {
             record.agent.status = status;
         }
 
-        let observer = self
-            .observers
-            .observe_sandbox(record.id, record.agent.metadata.name.clone());
+        let observer = self.observers.observe_sandbox(record.id);
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {

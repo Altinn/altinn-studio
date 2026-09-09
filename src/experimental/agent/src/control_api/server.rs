@@ -9,9 +9,9 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, pro
 
 use super::outbox::Outbox;
 use super::protocol::{
-    CODE_AGENT_NOT_FOUND, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST,
-    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
+    CODE_PARSE_ERROR, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
+    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
     NameParams, Notification, PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams,
     SessionParams, error_response, read_message,
@@ -394,7 +394,7 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
                 error: None,
             },
         ),
-        Err(Error::NotFound) => error_response(id, CODE_AGENT_NOT_FOUND, Error::NotFound.to_string()),
+        Err(Error::NotFound) => error_response(id, CODE_NOT_FOUND, Error::NotFound.to_string()),
         Err(Error::Immutable(field)) => error_response(id, CODE_IMMUTABLE, Error::Immutable(field).to_string()),
         Err(Error::Conflict) => error_response(id, CODE_IMMUTABLE, Error::Conflict.to_string()),
         Err(Error::Invalid(message)) => error_response(id, CODE_INVALID_PARAMS, message),

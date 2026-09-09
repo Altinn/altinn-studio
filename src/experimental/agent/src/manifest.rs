@@ -558,6 +558,27 @@ impl Condition {
     pub fn any_ready(conditions: &[Self]) -> bool {
         Self::find_ready(conditions).is_some_and(|condition| condition.status == ConditionStatus::True)
     }
+
+    /// Returns `reason: message`, or whichever of the two is present, or `Unknown`.
+    #[must_use]
+    pub fn summary(&self) -> String {
+        match (self.reason.is_empty(), self.message.is_empty()) {
+            (false, false) => format!("{}: {}", self.reason, self.message),
+            (false, true) => self.reason.clone(),
+            (true, false) => self.message.clone(),
+            (true, true) => "Unknown".to_owned(),
+        }
+    }
+
+    /// Returns the human-readable message, falling back to the reason.
+    #[must_use]
+    pub fn detail(&self) -> String {
+        if self.message.is_empty() {
+            self.reason.clone()
+        } else {
+            self.message.clone()
+        }
+    }
 }
 
 /// Conventional Agent manifest filename, used when a record predates path recording.

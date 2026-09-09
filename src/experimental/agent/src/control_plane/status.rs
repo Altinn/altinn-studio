@@ -36,13 +36,7 @@ impl ObservedStatus {
         }
         Condition::find_ready(&self.conditions)
             .or_else(|| self.conditions.first())
-            .map(|condition| {
-                if condition.message.is_empty() {
-                    condition.reason.clone()
-                } else {
-                    condition.message.clone()
-                }
-            })
+            .map(Condition::detail)
     }
 
     /// Returns the conditions in `self` that differ from the same-typed condition in `previous`.

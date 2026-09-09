@@ -23,7 +23,7 @@ pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
 pub(crate) const CODE_METHOD_NOT_FOUND: i32 = -32601;
 pub(crate) const CODE_INVALID_PARAMS: i32 = -32602;
 pub(crate) const CODE_INTERNAL: i32 = -32603;
-pub(crate) const CODE_AGENT_NOT_FOUND: i32 = -32004;
+pub(crate) const CODE_NOT_FOUND: i32 = -32004;
 pub(crate) const CODE_IMMUTABLE: i32 = -32009;
 pub(crate) const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
@@ -83,7 +83,7 @@ impl ResponseError {
     /// Returns whether the addressed resource does not exist.
     #[must_use]
     pub const fn is_not_found(&self) -> bool {
-        self.code == CODE_AGENT_NOT_FOUND
+        self.code == CODE_NOT_FOUND
     }
 }
 

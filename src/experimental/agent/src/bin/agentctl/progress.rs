@@ -1,10 +1,13 @@
-//! Terminal rendering of streamed Agent provisioning progress.
+//! Following an Agent ensure from a plain terminal.
 //!
-//! On a terminal the current phase and step live on one updating line and only
-//! work that took noticeable time leaves a permanent line, so a warm ensure
-//! prints nothing. Without a terminal every completion is printed once.
+//! [`Wait`] runs one Control API call with streamed progress rendered to
+//! stderr and stops on Ctrl-C. On a terminal the current phase and step live
+//! on one updating line and only work that took noticeable time leaves a
+//! permanent line, so a warm ensure prints nothing. Without a terminal every
+//! completion is printed once.
 
 use std::{
+    cell::RefCell,
     io::{self, IsTerminal as _, Write},
     time::{Duration, Instant},
 };
@@ -24,17 +27,59 @@ const FALLBACK_WIDTH: usize = 80;
 /// Output lines kept per step for the failure report.
 const RECENT_OUTPUT_LINES: usize = 5;
 
-/// Runs `ensure` until it completes or the user presses Ctrl-C.
+/// The user stopped waiting; the daemon keeps reconciling the Agent.
+#[derive(Debug, thiserror::Error)]
+#[error("stopped waiting; agentd keeps reconciling Agent {agent:?} in the background")]
+pub(crate) struct Interrupted {
+    agent: String,
+}
+
+/// One followed ensure: owns the renderer for its duration.
 ///
-/// Returns `None` when interrupted. Awaiting Ctrl-C installs a process-wide
-/// handler that outlives this call, so a command that afterwards runs something
-/// the user must be able to interrupt, and that does not watch Ctrl-C itself,
-/// calls [`exit_on_next_interrupt`].
-pub(crate) async fn until_interrupted<T>(ensure: impl Future<Output = T>) -> Option<T> {
-    tokio::select! {
-        biased;
-        result = ensure => Some(result),
-        _ = tokio::signal::ctrl_c() => None,
+/// ```ignore
+/// let wait = Wait::start(&agent);
+/// let target = wait
+///     .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+///     .await??;
+/// ```
+pub(crate) struct Wait<'a> {
+    agent: &'a str,
+    renderer: RefCell<Renderer>,
+}
+
+impl<'a> Wait<'a> {
+    pub(crate) fn start(agent: &'a str) -> Self {
+        Self {
+            agent,
+            renderer: RefCell::new(Renderer::stderr()),
+        }
+    }
+
+    /// Returns the progress sink to hand to the client call.
+    pub(crate) fn sink(&self) -> impl FnMut(Event) + '_ {
+        move |event| self.renderer.borrow_mut().render(event)
+    }
+
+    /// Runs the ensure call until it completes or the user presses Ctrl-C.
+    ///
+    /// Awaiting Ctrl-C installs a process-wide handler that outlives this call,
+    /// so a command that afterwards runs something the user must be able to
+    /// interrupt, and that does not watch Ctrl-C itself, calls
+    /// [`exit_on_next_interrupt`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Interrupted`] when the user pressed Ctrl-C before the call completed.
+    pub(crate) async fn until<T>(&self, ensure: impl Future<Output = T>) -> Result<T, Interrupted> {
+        let waited = tokio::select! {
+            biased;
+            result = ensure => Some(result),
+            _ = tokio::signal::ctrl_c() => None,
+        };
+        self.renderer.borrow_mut().finish();
+        waited.ok_or_else(|| Interrupted {
+            agent: self.agent.to_owned(),
+        })
     }
 }
 
@@ -326,8 +371,8 @@ fn format_progress(completed: u64, total: Option<u64>, unit: ProgressUnit) -> St
     match (unit, total) {
         (ProgressUnit::Bytes, Some(total)) => format!("{} / {}", bytes(completed), bytes(total)),
         (ProgressUnit::Bytes, None) => bytes(completed),
-        (ProgressUnit::Items | ProgressUnit::Unknown, Some(total)) => format!("{completed} / {total}"),
-        (ProgressUnit::Items | ProgressUnit::Unknown, None) => completed.to_string(),
+        (ProgressUnit::Items, Some(total)) => format!("{completed} / {total}"),
+        (ProgressUnit::Items, None) => completed.to_string(),
     }
 }
 
@@ -372,7 +417,6 @@ mod tests {
 
     fn started(message: &str) -> Event {
         Event::PhaseStarted {
-            agent: "worker".into(),
             phase: Phase::SandboxStart,
             message: message.into(),
         }
@@ -380,7 +424,6 @@ mod tests {
 
     fn completed(message: &str, outcome: PhaseOutcome, elapsed_ms: u64) -> Event {
         Event::PhaseCompleted {
-            agent: "worker".into(),
             phase: Phase::SandboxStart,
             message: message.into(),
             outcome,
@@ -390,7 +433,6 @@ mod tests {
 
     fn step_completed(message: &str, elapsed_ms: u64) -> Event {
         Event::StepCompleted {
-            agent: "worker".into(),
             phase: Phase::SandboxStart,
             step_id: "1".into(),
             message: message.into(),
@@ -400,7 +442,6 @@ mod tests {
 
     fn failed(message: &str, detail: &str) -> Event {
         Event::PhaseFailed {
-            agent: "worker".into(),
             phase: Phase::SandboxStart,
             message: message.into(),
             detail: detail.into(),
@@ -462,13 +503,11 @@ mod tests {
                 completed("Resolve Sandbox Image", PhaseOutcome::Completed, 87_000),
                 started("Start Sandbox"),
                 Event::StepStarted {
-                    agent: "worker".into(),
                     phase: Phase::SandboxStart,
                     step_id: "1".into(),
                     message: "Start Microsandbox VM".into(),
                 },
                 Event::StepOutput {
-                    agent: "worker".into(),
                     phase: Phase::SandboxStart,
                     step_id: "1".into(),
                     message: "Start Microsandbox VM".into(),
@@ -524,7 +563,6 @@ mod tests {
         let mut renderer = Renderer::new(Vec::new(), Mode::Terminal { width: 24 });
         renderer.render(started("Resolve Sandbox Image"));
         renderer.render(Event::StepStarted {
-            agent: "worker".into(),
             phase: Phase::ImageResolve,
             step_id: "1".into(),
             message: "Build Docker image".into(),

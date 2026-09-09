@@ -87,7 +87,6 @@ impl ExecutionApi for FakeExecutions {
         if let Some(progress) = progress {
             self.progress_ensures.set(self.progress_ensures.get() + 1);
             progress(agent::progress::Event::PhaseStarted {
-                agent: name.into(),
                 phase: agent::progress::Phase::ImagePrepare,
                 message: "Prepare Sandbox Image".into(),
             });
@@ -279,7 +278,6 @@ async fn opted_in_ensure_routes_notifications_before_the_matching_response() {
     assert_eq!(
         events.borrow().as_slice(),
         &[agent::progress::Event::PhaseStarted {
-            agent: "worker".into(),
             phase: agent::progress::Phase::ImagePrepare,
             message: "Prepare Sandbox Image".into(),
         }]

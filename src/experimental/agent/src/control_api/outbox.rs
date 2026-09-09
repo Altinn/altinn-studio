@@ -67,7 +67,6 @@ mod tests {
 
     fn progress(step: &str, completed: u64) -> Event {
         Event::StepProgress {
-            agent: "worker".into(),
             phase: Phase::ImagePrepare,
             step_id: step.into(),
             message: "pull".into(),
@@ -79,7 +78,6 @@ mod tests {
 
     fn output(line: &str) -> Event {
         Event::StepOutput {
-            agent: "worker".into(),
             phase: Phase::ImagePrepare,
             step_id: "1".into(),
             message: "pull".into(),
@@ -110,12 +108,10 @@ mod tests {
             outbox.push(output(&line.to_string()));
         }
         let phase = Event::PhaseStarted {
-            agent: "worker".into(),
             phase: Phase::SandboxStart,
             message: "Start Sandbox".into(),
         };
         let condition = Event::Condition {
-            agent: "worker".into(),
             condition: "Ready".into(),
             status: crate::ConditionStatus::False,
             reason: "SandboxReconcileFailed".into(),

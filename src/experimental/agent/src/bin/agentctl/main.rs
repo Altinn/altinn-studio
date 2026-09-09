@@ -23,7 +23,6 @@ mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
 use futures_util::StreamExt as _;
-use progress::Renderer as ProgressRenderer;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
@@ -175,8 +174,8 @@ enum CommandError {
     #[error("{0}")]
     Message(String),
     /// The user stopped waiting for convergence; the daemon keeps reconciling.
-    #[error("stopped waiting; agentd keeps reconciling Agent {0:?} in the background")]
-    Interrupted(String),
+    #[error(transparent)]
+    Interrupted(#[from] progress::Interrupted),
 }
 
 type CommandResult<T> = Result<T, CommandError>;
@@ -377,17 +376,10 @@ async fn attach(
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
-    let mut progress = ProgressRenderer::stderr();
-    let waited = progress::until_interrupted(client.ensure_session(
-        &agent,
-        session,
-        harness,
-        WaitPolicy::UntilReady,
-        Some(&mut |event| progress.render(event)),
-    ))
-    .await;
-    progress.finish();
-    let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
+    let wait = progress::Wait::start(&agent);
+    let target = wait
+        .until(client.ensure_session(&agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await??;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
 }
@@ -405,15 +397,10 @@ async fn exec_command(
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
-    let mut progress = ProgressRenderer::stderr();
-    let waited = progress::until_interrupted(client.ensure_execution(
-        &agent,
-        WaitPolicy::UntilReady,
-        Some(&mut |event| progress.render(event)),
-    ))
-    .await;
-    progress.finish();
-    let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
+    let wait = progress::Wait::start(&agent);
+    let target = wait
+        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await??;
     // A streamed (non-terminal) Execution has no Ctrl-C handling of its own.
     progress::exit_on_next_interrupt();
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
@@ -469,15 +456,10 @@ async fn port_forward(
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
-    let mut progress = ProgressRenderer::stderr();
-    let waited = progress::until_interrupted(client.ensure_execution(
-        &agent,
-        WaitPolicy::UntilReady,
-        Some(&mut |event| progress.render(event)),
-    ))
-    .await;
-    progress.finish();
-    let target = waited.ok_or_else(|| CommandError::Interrupted(agent.clone()))??;
+    let wait = progress::Wait::start(&agent);
+    let target = wait
+        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await??;
     let mut forwards = Vec::new();
     for spec in specs {
         let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
@@ -653,17 +635,17 @@ fn inference_error(error: Error) -> CommandError {
 
 /// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
 async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
-    let mut progress = ProgressRenderer::stderr();
-    let waited = progress::until_interrupted(tokio::time::timeout(
-        timeout,
-        client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut |event| progress.render(event))),
-    ))
-    .await;
-    progress.finish();
+    let wait = progress::Wait::start(name);
+    let waited = wait
+        .until(tokio::time::timeout(
+            timeout,
+            client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut wait.sink())),
+        ))
+        .await;
     match waited {
-        None => Err(CommandError::Interrupted(name.to_owned())),
-        Some(Ok(result)) => result.map(|_target| ()).map_err(CommandError::from),
-        Some(Err(_elapsed)) => {
+        Err(interrupted) => Err(interrupted.into()),
+        Ok(Ok(result)) => result.map(|_target| ()).map_err(CommandError::from),
+        Ok(Err(_elapsed)) => {
             let ready = match client.get(name).await {
                 Ok(agent) => agent.status.ready_condition().cloned(),
                 Err(_) => None,
@@ -677,19 +659,10 @@ fn wait_timeout_message(name: &str, ready: Option<&agent::Condition>) -> String 
     let Some(ready) = ready else {
         return format!("timed out waiting for Agent {name:?} to become Ready; no Ready condition was reported");
     };
-    let reason = if ready.reason.is_empty() {
-        "Unknown"
-    } else {
-        ready.reason.as_str()
-    };
-    if ready.message.is_empty() {
-        format!("timed out waiting for Agent {name:?} to become Ready: {reason}")
-    } else {
-        format!(
-            "timed out waiting for Agent {name:?} to become Ready: {reason}: {}",
-            ready.message
-        )
-    }
+    format!(
+        "timed out waiting for Agent {name:?} to become Ready: {}",
+        ready.summary()
+    )
 }
 
 fn parse_duration(value: &str) -> Result<Duration, String> {

@@ -58,11 +58,10 @@ impl Hub {
 
     /// Observes one Sandbox ensure for an Agent, forwarding SDK progress as telemetry.
     #[must_use]
-    pub fn observe_sandbox(&self, id: AgentId, agent: String) -> SandboxObserver {
+    pub fn observe_sandbox(&self, id: AgentId) -> SandboxObserver {
         SandboxObserver {
             hub: self.clone(),
             id,
-            agent,
             open_phase: Rc::new(Cell::new(None)),
         }
     }
@@ -72,7 +71,6 @@ impl Hub {
 pub struct SandboxObserver {
     hub: Hub,
     id: AgentId,
-    agent: String,
     open_phase: Rc<Cell<Option<(super::Phase, String, Instant)>>>,
 }
 
@@ -82,10 +80,9 @@ impl SandboxObserver {
     pub fn reporter(&self) -> SandboxReporter {
         let hub = self.hub.clone();
         let id = self.id;
-        let agent = self.agent.clone();
         let open_phase = self.open_phase.clone();
         Rc::new(move |event| {
-            if let Some(event) = super::event::sandbox_event(&agent, event) {
+            if let Some(event) = super::event::sandbox_event(event) {
                 match &event {
                     Event::PhaseStarted { phase, message, .. } => {
                         open_phase.set(Some((*phase, message.clone(), Instant::now())));
@@ -104,7 +101,6 @@ impl SandboxObserver {
             self.hub.publish(
                 self.id,
                 Event::PhaseFailed {
-                    agent: self.agent.clone(),
                     phase,
                     message,
                     detail: failure.message.clone(),

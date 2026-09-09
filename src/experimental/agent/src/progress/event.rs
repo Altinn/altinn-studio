@@ -8,8 +8,6 @@ use crate::{ConditionStatus, FailureKind};
 pub enum Event {
     /// A stable Sandbox lifecycle phase started.
     PhaseStarted {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable phase identifier.
         phase: Phase,
         /// Human-readable phase label.
@@ -17,8 +15,6 @@ pub enum Event {
     },
     /// A stable Sandbox lifecycle phase completed.
     PhaseCompleted {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable phase identifier.
         phase: Phase,
         /// Human-readable phase label.
@@ -33,8 +29,6 @@ pub enum Event {
     /// The reconciler records the failure as a condition; this event closes
     /// the open phase for renderers and fires on every failed pass.
     PhaseFailed {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable phase identifier.
         phase: Phase,
         /// Human-readable phase label.
@@ -48,8 +42,6 @@ pub enum Event {
     },
     /// An implementation-specific step started inside a phase.
     StepStarted {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable containing phase.
         phase: Phase,
         /// Opaque step correlation identity.
@@ -59,8 +51,6 @@ pub enum Event {
     },
     /// Numeric progress for an implementation-specific step.
     StepProgress {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable containing phase.
         phase: Phase,
         /// Opaque step correlation identity.
@@ -77,8 +67,6 @@ pub enum Event {
     },
     /// Diagnostic output from an implementation-specific step.
     StepOutput {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable containing phase.
         phase: Phase,
         /// Opaque step correlation identity.
@@ -92,8 +80,6 @@ pub enum Event {
     },
     /// An implementation-specific step completed.
     StepCompleted {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable containing phase.
         phase: Phase,
         /// Opaque step correlation identity.
@@ -105,8 +91,6 @@ pub enum Event {
     },
     /// One durable Agent condition changed.
     Condition {
-        /// User-facing Agent name.
-        agent: String,
         /// Stable condition type.
         condition: String,
         /// Current condition status.
@@ -122,24 +106,8 @@ pub enum Event {
 }
 
 impl Event {
-    /// Returns the Agent name associated with this event.
-    #[must_use]
-    pub fn agent(&self) -> &str {
-        match self {
-            Self::PhaseStarted { agent, .. }
-            | Self::PhaseCompleted { agent, .. }
-            | Self::PhaseFailed { agent, .. }
-            | Self::StepStarted { agent, .. }
-            | Self::StepProgress { agent, .. }
-            | Self::StepOutput { agent, .. }
-            | Self::StepCompleted { agent, .. }
-            | Self::Condition { agent, .. } => agent,
-        }
-    }
-
-    pub(crate) fn condition(agent: &str, condition: &crate::Condition, failure: Option<FailureKind>) -> Self {
+    pub(crate) fn condition(condition: &crate::Condition, failure: Option<FailureKind>) -> Self {
         Self::Condition {
-            agent: agent.into(),
             condition: condition.kind.clone(),
             status: condition.status,
             reason: condition.reason.clone(),
@@ -183,8 +151,6 @@ pub enum Phase {
     NetworkStart,
     SandboxStart,
     Inspect,
-    /// A phase introduced by a newer SDK.
-    Unknown,
 }
 
 /// How a successful phase reached its desired state.
@@ -193,8 +159,6 @@ pub enum Phase {
 pub enum PhaseOutcome {
     Completed,
     Reused,
-    /// An outcome introduced by a newer SDK.
-    Unknown,
 }
 
 /// Unit attached to numeric progress.
@@ -203,8 +167,6 @@ pub enum PhaseOutcome {
 pub enum ProgressUnit {
     Bytes,
     Items,
-    /// A unit introduced by a newer SDK.
-    Unknown,
 }
 
 /// Output stream associated with a provisioning step.
@@ -213,19 +175,18 @@ pub enum ProgressUnit {
 pub enum OutputStream {
     Stdout,
     Stderr,
-    /// A stream introduced by a newer SDK.
-    Unknown,
 }
 
 pub(super) fn milliseconds(duration: std::time::Duration) -> u64 {
     u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
 
-pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Option<Event> {
+/// Translates one SDK event; values this build does not know are skipped rather
+/// than surfaced, since the SDK and its consumers are versioned together.
+pub(super) fn sandbox_event(event: ::sandbox::SandboxEvent) -> Option<Event> {
     Some(match event {
         ::sandbox::SandboxEvent::PhaseStarted { phase } => Event::PhaseStarted {
-            agent: agent.into(),
-            phase: phase.into(),
+            phase: phase_of(phase)?,
             message: phase.to_string(),
         },
         ::sandbox::SandboxEvent::PhaseCompleted {
@@ -233,15 +194,13 @@ pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Opti
             outcome,
             elapsed,
         } => Event::PhaseCompleted {
-            agent: agent.into(),
-            phase: phase.into(),
+            phase: phase_of(phase)?,
             message: phase.to_string(),
-            outcome: outcome.into(),
+            outcome: outcome_of(outcome)?,
             elapsed_ms: milliseconds(elapsed),
         },
         ::sandbox::SandboxEvent::StepStarted { phase, id, name } => Event::StepStarted {
-            agent: agent.into(),
-            phase: phase.into(),
+            phase: phase_of(phase)?,
             step_id: id.to_string(),
             message: name,
         },
@@ -253,13 +212,12 @@ pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Opti
             total,
             unit,
         } => Event::StepProgress {
-            agent: agent.into(),
-            phase: phase.into(),
+            phase: phase_of(phase)?,
             step_id: id.to_string(),
             message: name,
             completed,
             total,
-            unit: unit.into(),
+            unit: unit_of(unit)?,
         },
         ::sandbox::SandboxEvent::StepOutput {
             phase,
@@ -268,11 +226,10 @@ pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Opti
             stream,
             bytes,
         } => Event::StepOutput {
-            agent: agent.into(),
-            phase: phase.into(),
+            phase: phase_of(phase)?,
             step_id: id.to_string(),
             message: name,
-            stream: stream.into(),
+            stream: stream_of(stream)?,
             detail: String::from_utf8_lossy(&bytes).into_owned(),
         },
         ::sandbox::SandboxEvent::StepCompleted {
@@ -281,8 +238,7 @@ pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Opti
             name,
             elapsed,
         } => Event::StepCompleted {
-            agent: agent.into(),
-            phase: phase.into(),
+            phase: phase_of(phase)?,
             step_id: id.to_string(),
             message: name,
             elapsed_ms: milliseconds(elapsed),
@@ -291,50 +247,42 @@ pub(super) fn sandbox_event(agent: &str, event: ::sandbox::SandboxEvent) -> Opti
     })
 }
 
-impl From<::sandbox::SandboxPhase> for Phase {
-    fn from(value: ::sandbox::SandboxPhase) -> Self {
-        match value {
-            ::sandbox::SandboxPhase::Validate => Self::Validate,
-            ::sandbox::SandboxPhase::Lookup => Self::Lookup,
-            ::sandbox::SandboxPhase::FeatureDiscovery => Self::FeatureDiscovery,
-            ::sandbox::SandboxPhase::ImageResolve => Self::ImageResolve,
-            ::sandbox::SandboxPhase::ImagePrepare => Self::ImagePrepare,
-            ::sandbox::SandboxPhase::SandboxCreate => Self::SandboxCreate,
-            ::sandbox::SandboxPhase::SandboxUpdate => Self::SandboxUpdate,
-            ::sandbox::SandboxPhase::NetworkStart => Self::NetworkStart,
-            ::sandbox::SandboxPhase::SandboxStart => Self::SandboxStart,
-            ::sandbox::SandboxPhase::Inspect => Self::Inspect,
-            _ => Self::Unknown,
-        }
-    }
+const fn phase_of(value: ::sandbox::SandboxPhase) -> Option<Phase> {
+    Some(match value {
+        ::sandbox::SandboxPhase::Validate => Phase::Validate,
+        ::sandbox::SandboxPhase::Lookup => Phase::Lookup,
+        ::sandbox::SandboxPhase::FeatureDiscovery => Phase::FeatureDiscovery,
+        ::sandbox::SandboxPhase::ImageResolve => Phase::ImageResolve,
+        ::sandbox::SandboxPhase::ImagePrepare => Phase::ImagePrepare,
+        ::sandbox::SandboxPhase::SandboxCreate => Phase::SandboxCreate,
+        ::sandbox::SandboxPhase::SandboxUpdate => Phase::SandboxUpdate,
+        ::sandbox::SandboxPhase::NetworkStart => Phase::NetworkStart,
+        ::sandbox::SandboxPhase::SandboxStart => Phase::SandboxStart,
+        ::sandbox::SandboxPhase::Inspect => Phase::Inspect,
+        _ => return None,
+    })
 }
 
-impl From<::sandbox::PhaseOutcome> for PhaseOutcome {
-    fn from(value: ::sandbox::PhaseOutcome) -> Self {
-        match value {
-            ::sandbox::PhaseOutcome::Completed => Self::Completed,
-            ::sandbox::PhaseOutcome::Reused => Self::Reused,
-            _ => Self::Unknown,
-        }
-    }
+const fn outcome_of(value: ::sandbox::PhaseOutcome) -> Option<PhaseOutcome> {
+    Some(match value {
+        ::sandbox::PhaseOutcome::Completed => PhaseOutcome::Completed,
+        ::sandbox::PhaseOutcome::Reused => PhaseOutcome::Reused,
+        _ => return None,
+    })
 }
 
-impl From<::sandbox::ProgressUnit> for ProgressUnit {
-    fn from(value: ::sandbox::ProgressUnit) -> Self {
-        match value {
-            ::sandbox::ProgressUnit::Bytes => Self::Bytes,
-            ::sandbox::ProgressUnit::Items => Self::Items,
-            _ => Self::Unknown,
-        }
-    }
+const fn unit_of(value: ::sandbox::ProgressUnit) -> Option<ProgressUnit> {
+    Some(match value {
+        ::sandbox::ProgressUnit::Bytes => ProgressUnit::Bytes,
+        ::sandbox::ProgressUnit::Items => ProgressUnit::Items,
+        _ => return None,
+    })
 }
 
-impl From<::sandbox::OutputStream> for OutputStream {
-    fn from(value: ::sandbox::OutputStream) -> Self {
-        match value {
-            ::sandbox::OutputStream::Stdout => Self::Stdout,
-            ::sandbox::OutputStream::Stderr => Self::Stderr,
-            _ => Self::Unknown,
-        }
-    }
+const fn stream_of(value: ::sandbox::OutputStream) -> Option<OutputStream> {
+    Some(match value {
+        ::sandbox::OutputStream::Stdout => OutputStream::Stdout,
+        ::sandbox::OutputStream::Stderr => OutputStream::Stderr,
+        _ => return None,
+    })
 }

@@ -46,9 +46,7 @@ impl ExecutionService {
         progress: Option<Reporter>,
     ) -> Result<ExecutionTarget, Error> {
         let record = self.load_active(name).await?;
-        self.convergence
-            .converge(record.id, &record.agent.metadata.name, wait, progress.as_ref())
-            .await?;
+        self.convergence.converge(record.id, wait, progress.as_ref()).await?;
         self.target(record.id, name).await
     }
 
@@ -69,13 +67,7 @@ impl ExecutionService {
         if !record.agent.status.is_ready() {
             let detail = ready.map_or_else(
                 || "no Ready condition was reported".to_owned(),
-                |condition| {
-                    if condition.message.is_empty() {
-                        condition.reason.clone()
-                    } else {
-                        format!("{}: {}", condition.reason, condition.message)
-                    }
-                },
+                crate::Condition::summary,
             );
             return Err(Error::Invalid(format!("Agent {name:?} is not Ready: {detail}")));
         }

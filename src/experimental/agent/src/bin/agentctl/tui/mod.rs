@@ -14,7 +14,7 @@ use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
-use crate::progress::{Renderer as ProgressRenderer, until_interrupted};
+use crate::progress::{Interrupted, Wait};
 use agent::manifest::MANIFEST_FILE;
 use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal};
 use terminal::Tui;
@@ -307,10 +307,9 @@ async fn suspended(
     Ok(())
 }
 
-fn interrupted(agent: &str) -> Error {
-    Error::Session(format!(
-        "stopped waiting; agentd keeps reconciling Agent {agent:?} in the background"
-    ))
+/// The TUI shows a stopped wait as an ordinary error in its status area.
+fn interrupted(interrupted: &Interrupted) -> Error {
+    Error::Session(interrupted.to_string())
 }
 
 async fn attach(
@@ -320,30 +319,20 @@ async fn attach(
     session: SessionName,
     harness: Option<Harness>,
 ) -> Result<(), Error> {
-    let mut progress = ProgressRenderer::stderr();
-    let waited = until_interrupted(client.ensure_session(
-        agent,
-        session,
-        harness,
-        WaitPolicy::UntilReady,
-        Some(&mut |event| progress.render(event)),
-    ))
-    .await;
-    progress.finish();
-    let target = waited.ok_or_else(|| interrupted(agent))??;
+    let wait = Wait::start(agent);
+    let target = wait
+        .until(client.ensure_session(agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await
+        .map_err(|interrupted| self::interrupted(&interrupted))??;
     agent::sessions::attach(home.path(), &target).await
 }
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
-    let mut progress = ProgressRenderer::stderr();
-    let waited = until_interrupted(client.ensure_execution(
-        agent,
-        WaitPolicy::UntilReady,
-        Some(&mut |event| progress.render(event)),
-    ))
-    .await;
-    progress.finish();
-    let target = waited.ok_or_else(|| interrupted(agent))??;
+    let wait = Wait::start(agent);
+    let target = wait
+        .until(client.ensure_execution(agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await
+        .map_err(|interrupted| self::interrupted(&interrupted))??;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
     match agent::sandbox::attach_terminal(

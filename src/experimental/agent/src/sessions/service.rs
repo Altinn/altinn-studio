@@ -44,9 +44,7 @@ impl Service {
         progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, requested_harness).await?;
-        self.convergence
-            .converge(owner.id, &owner.agent.metadata.name, wait, progress.as_ref())
-            .await?;
+        self.convergence.converge(owner.id, wait, progress.as_ref()).await?;
         self.wakeup.reconcile(session.id).await?;
         self.store.session_attach_target(session.id).await
     }
