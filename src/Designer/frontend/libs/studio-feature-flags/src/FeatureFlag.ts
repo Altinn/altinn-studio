@@ -6,5 +6,6 @@ export enum FeatureFlag {
   CustomTemplates = 'customTemplates',
   NewCodeLists = 'newCodeLists',
   NextV9 = 'nextV9',
+  EnableAltinn2RolesPolicyEditor = 'enableAltinn2RolesPolicyEditor',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
 }

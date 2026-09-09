@@ -185,6 +185,8 @@ export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
 export const resourceListPath = (org, skipGiteaFields, skipParseJson) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}&skipParseJson=${skipParseJson}`; // Get
+export const altinn2ResourcePoliciesPath = (org, env) => `${apiBasePath}/${org}/resources/altinn2resourcepolicies/${env}`; // Get
+export const publishResourcePolicyPath = (org, repo, id, env) => `${apiBasePath}/${org}/resources/publish/${repo}/${id}/${env}/policy`; // Post
 export const resourceCreatePath = (org) => `${apiBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${apiBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${apiBasePath}/${org}/resources/updateresource/${id}`; // Put
