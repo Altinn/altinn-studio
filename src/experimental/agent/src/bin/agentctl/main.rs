@@ -173,9 +173,6 @@ enum CommandError {
     Agent(#[from] Error),
     #[error("{0}")]
     Message(String),
-    /// The user stopped waiting for convergence; the daemon keeps reconciling.
-    #[error(transparent)]
-    Interrupted(#[from] progress::Interrupted),
 }
 
 type CommandResult<T> = Result<T, CommandError>;
@@ -207,10 +204,6 @@ enum CodexCommand {
 fn main() -> ExitCode {
     match run() {
         Ok(code) => code,
-        Err(error @ CommandError::Interrupted(_)) => {
-            eprintln!("agentctl: {error}");
-            exit_code(130)
-        }
         // The daemon rejected the desired state; the message is the whole story.
         Err(CommandError::Agent(Error::Rpc(error))) if error.is_invalid_params() => {
             eprintln!("agentctl: {}", error.message);
@@ -376,10 +369,10 @@ async fn attach(
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
     let agent = resolve_agent_name(client, agent).await?;
-    let wait = progress::Wait::start(&agent);
+    let wait = progress::Wait::start();
     let target = wait
         .until(client.ensure_session(&agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
-        .await??;
+        .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
 }
@@ -397,10 +390,10 @@ async fn exec_command(
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
-    let wait = progress::Wait::start(&agent);
+    let wait = progress::Wait::start();
     let target = wait
         .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
-        .await??;
+        .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
         match agent::sandbox::attach_terminal(
@@ -454,11 +447,10 @@ async fn port_forward(
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
-    // The forwarding loop below watches Ctrl-C itself to stop the forwards cleanly.
-    let wait = progress::Wait::start(&agent).keep_interrupts();
+    let wait = progress::Wait::start();
     let target = wait
         .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
-        .await??;
+        .await?;
     let mut forwards = Vec::new();
     for spec in specs {
         let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
@@ -634,7 +626,7 @@ fn inference_error(error: Error) -> CommandError {
 
 /// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
 async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
-    let wait = progress::Wait::start(name);
+    let wait = progress::Wait::start();
     let waited = wait
         .until(tokio::time::timeout(
             timeout,
@@ -642,9 +634,8 @@ async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Comma
         ))
         .await;
     match waited {
-        Err(interrupted) => Err(interrupted.into()),
-        Ok(Ok(result)) => result.map(|_target| ()).map_err(CommandError::from),
-        Ok(Err(_elapsed)) => {
+        Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
+        Err(_elapsed) => {
             let ready = match client.get(name).await {
                 Ok(agent) => agent.status.ready_condition().cloned(),
                 Err(_) => None,

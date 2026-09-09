@@ -14,7 +14,7 @@ use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
-use crate::progress::{Interrupted, Wait};
+use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
 use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal};
 use terminal::Tui;
@@ -307,11 +307,6 @@ async fn suspended(
     Ok(())
 }
 
-/// The TUI shows a stopped wait as an ordinary error in its status area.
-fn interrupted(interrupted: &Interrupted) -> Error {
-    Error::Session(interrupted.to_string())
-}
-
 async fn attach(
     home: &ControlPlaneHome,
     client: &Client,
@@ -319,20 +314,18 @@ async fn attach(
     session: SessionName,
     harness: Option<Harness>,
 ) -> Result<(), Error> {
-    let wait = Wait::start(agent);
+    let wait = Wait::start();
     let target = wait
         .until(client.ensure_session(agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
-        .await
-        .map_err(|interrupted| self::interrupted(&interrupted))??;
+        .await?;
     agent::sessions::attach(home.path(), &target).await
 }
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
-    let wait = Wait::start(agent);
+    let wait = Wait::start();
     let target = wait
         .until(client.ensure_execution(agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
-        .await
-        .map_err(|interrupted| self::interrupted(&interrupted))??;
+        .await?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
     match agent::sandbox::attach_terminal(
