@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Avsnitt', en: 'Paragraph' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -20,15 +26,18 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The title of the paragraph',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'help',
-      title: 'Help text',
-      description: 'Help text, optionally shown in a tooltip',
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'Help text, optionally shown in a tooltip',
+        nb: 'Valgfri hjelpetekst som vises i et hjelpetekstvindu.',
+      },
     }),
   )
   .addSummaryOverrides();

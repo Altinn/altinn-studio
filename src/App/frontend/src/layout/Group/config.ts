@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Gruppe', en: 'Group' },
+    lifecycle: { status: 'stable' },
+  },
   directRendering: true,
   capabilities: {
     renderInTable: false,
@@ -20,15 +26,18 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The title of the group (shown above the group)',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title of the group (shown above the group)', nb: 'Ledeteksten som vises over gruppen.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'description',
-      title: 'Description',
-      description: 'The description text shown underneath the title',
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: {
+        en: 'The description text shown underneath the title',
+        nb: 'Beskrivelsen som vises under ledeteksten.',
+      },
     }),
   )
   .addTextResource(
@@ -43,16 +52,22 @@ export const Config = new CG.component({
       'groupingIndicator',
       new CG.enum('indented', 'panel')
         .optional()
-        .setTitle('Set grouping indicator')
-        .setDescription('Can visually group components together by indenting them or by putting them in a panel. '),
+        .setTitle('Set grouping indicator', 'Vis grupperingsmarkør')
+        .setDescription(
+          'Can visually group components together by indenting them or by putting them in a panel. ',
+          'Grupperer komponenter visuelt med innrykk eller et panel.',
+        ),
     ),
   )
   .addProperty(
     new CG.prop(
       'children',
       new CG.arr(new CG.str())
-        .setTitle('Children')
-        .setDescription('Array of component IDs that should be displayed in the group'),
+        .setTitle('Children', 'Underkomponenter')
+        .setDescription(
+          'Array of component IDs that should be displayed in the group',
+          'Liste over komponent-ID-er som skal vises i gruppen.',
+        ),
     ),
   )
   .addProperty(
@@ -60,8 +75,8 @@ export const Config = new CG.component({
       'headingLevel',
       new CG.enum(2, 3, 4, 5, 6)
         .optional()
-        .setTitle('Heading level')
-        .setDescription('The heading level of the group title.'),
+        .setTitle('Heading level', 'Overskriftsnivå')
+        .setDescription('The heading level of the group title.', 'Overskriftsnivået for gruppetittelen.'),
     ),
   )
   .addSummaryOverrides();
