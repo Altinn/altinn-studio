@@ -231,12 +231,27 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
 async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
     let deadline = tokio::time::Instant::now() + SYSTEMD_READY_TIMEOUT;
     loop {
-        let output = sandbox
-            .run_execution(ExecutionSpec::command(
-                SandboxPath::new("/usr/bin/sudo"),
-                ["-n", "/usr/bin/systemctl", "is-system-running", "--wait"].map(str::to_owned),
+        // `--wait` blocks for as long as boot takes, so the deadline bounds the wait itself
+        // and a still-running check is killed rather than left behind in the guest.
+        let started = sandbox
+            .start_execution(::sandbox::execution::StartExecutionRequest::new(
+                ExecutionSpec::command(
+                    SandboxPath::new("/usr/bin/sudo"),
+                    ["-n", "/usr/bin/systemctl", "is-system-running", "--wait"].map(str::to_owned),
+                ),
             ))
             .await?;
+        let execution_id = started.id.clone();
+        let output = match tokio::time::timeout_at(deadline, started.collect()).await {
+            Ok(output) => output?,
+            Err(_elapsed) => {
+                let _ = sandbox.kill_execution(&execution_id).await;
+                return Err(Error::SandboxSetup(format!(
+                    "systemd did not finish booting within {}s",
+                    SYSTEMD_READY_TIMEOUT.as_secs()
+                )));
+            }
+        };
         let state = String::from_utf8_lossy(&output.stdout).trim().to_owned();
         if output.status.success() || matches!(state.as_str(), "running" | "degraded") {
             return Ok(());
