@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features;
 /// Validator for data elements.
 /// See <see cref="IFormDataValidator"/> for an alternative validator for data elements with app logic.
 /// and that support incremental validation on save.
-/// For validating the content of files, see <see cref="IFileAnalyser"/> and <see cref="IFileValidator"/>
+/// For validating the content of files, see <see cref="IFileAnalyzer"/> and <see cref="IFileValidator"/>
 /// </summary>
 [ImplementableByApps]
 public interface IDataElementValidator

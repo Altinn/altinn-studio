@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Action,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Egendefinert knapp', en: 'CustomButton' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: true,
@@ -52,15 +58,20 @@ export const Config = new CG.component({
             new CG.prop('validation', CG.common('PageValidation').optional()),
           ).exportAs('ServerAction'),
         ).exportAs('CustomAction'),
-      ),
+      )
+        .setTitle('Actions', 'Handlinger')
+        .setDescription(
+          'Actions to run when the user selects the button.',
+          'Handlingene som kjøres når brukeren velger knappen.',
+        ),
     ),
   )
   .addProperty(
     new CG.prop(
       'buttonStyle',
       new CG.enum('primary', 'secondary', 'tertiary')
-        .setTitle('Button style')
-        .setDescription('The style/color scheme of the button.')
+        .setTitle('Button style', 'Knappestil')
+        .setDescription('The style/color scheme of the button.', 'Knappens stil eller fargepalett.')
         .optional({ default: 'secondary' })
         .exportAs('ButtonStyle'),
     ),
@@ -69,8 +80,8 @@ export const Config = new CG.component({
     new CG.prop(
       'buttonColor',
       new CG.enum('first', 'second', 'success', 'danger')
-        .setTitle('Button color override')
-        .setDescription('The color scheme of the button.')
+        .setTitle('Button color override', 'Overstyr knappens farge')
+        .setDescription('The color scheme of the button.', 'Knappens fargepalett.')
         .optional({ default: undefined })
         .exportAs('ButtonColor'),
     ),
@@ -79,17 +90,26 @@ export const Config = new CG.component({
     new CG.prop(
       'buttonSize',
       new CG.enum('sm', 'md', 'lg', 'small', 'medium', 'large')
-        .setTitle('Button size override')
-        .setDescription('The size of the button.')
+        .setTitle('Button size override', 'Overstyr knappens størrelse')
+        .setDescription('The size of the button.', 'Knappens størrelse.')
         .optional({ default: undefined })
         .exportAs('CustomButtonSize'),
     ),
   )
-  .addTextResource(new CG.trb({ name: 'title', title: 'Title', description: 'The title/text on the button' }))
+  .addTextResource(
+    new CG.trb({
+      name: 'title',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
+    }),
+  )
   .addTextResource(
     new CG.trb({
       name: 'tableTitle',
-      title: 'Table title',
-      description: 'The title/text for the button when rendered in a table',
+      title: { en: 'Table title', nb: 'Tabelltittel' },
+      description: {
+        en: 'The title/text for the button when rendered in a table',
+        nb: 'Knappeteksten når knappen vises i en tabell.',
+      },
     }),
   );

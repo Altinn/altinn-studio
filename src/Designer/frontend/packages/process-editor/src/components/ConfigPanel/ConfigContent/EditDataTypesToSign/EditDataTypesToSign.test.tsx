@@ -44,13 +44,13 @@ describe('EditDataTypesToSign', () => {
     jest.clearAllMocks();
   });
 
-  it('should display a combobox with an error message when task has no data type', () => {
+  it('should display a suggestion input with an error message when task has no data type', () => {
     renderEditDataType();
 
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
-    expect(combobox).toBeInvalid();
+    expect(suggestionInput).toBeInvalid();
 
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_data_types_to_sign_required')),
@@ -60,17 +60,17 @@ describe('EditDataTypesToSign', () => {
     expect(closeButton).toBeDisabled();
   });
 
-  it('should display a combobox without value and a description that data types are missing when there are no data types', async () => {
+  it('should display a suggestion input without value and a description that data types are missing when there are no data types', async () => {
     const user = userEvent.setup();
 
     renderEditDataType();
 
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
 
-    await user.click(combobox);
-    expect(combobox).not.toHaveValue();
+    await user.click(suggestionInput);
+    expect(suggestionInput).not.toHaveValue();
 
     const noAvailableDataTypesOption = screen.getByText(
       textMock('process_editor.configuration_panel_no_data_types_to_sign_to_select'),
@@ -92,7 +92,7 @@ describe('EditDataTypesToSign', () => {
 
     await user.click(updateDataTypeButton);
     existingDataTypeIds.forEach((existingDataTypeId) => {
-      expect(screen.getByText(existingDataTypeId)).toBeInTheDocument();
+      expect(screen.getAllByText(existingDataTypeId).length).toBeGreaterThan(0);
     });
   });
 
@@ -125,16 +125,16 @@ describe('EditDataTypesToSign', () => {
     });
     await user.click(updateDataTypeButton);
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
-    });
-    await user.click(combobox);
+    const suggestionInput = screen.getByRole('combobox');
+    await user.click(suggestionInput);
 
     existingDataTypeIds.forEach((existingDataTypeId) => {
-      expect(screen.getByRole('option', { name: existingDataTypeId })).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: existingDataTypeId, hidden: true }),
+      ).toBeInTheDocument();
     });
     availableDataTypeIds.forEach((dataType) =>
-      expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
+      expect(screen.getByRole('option', { name: dataType, hidden: true })).toBeInTheDocument(),
     );
   });
 });

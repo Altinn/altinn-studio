@@ -30,6 +30,8 @@ const (
 	CellStyleWarning
 	// CellStyleInfo renders text with the info terminal color.
 	CellStyleInfo
+	// CellStyleAction renders text with the color for "user action required", distinct from a warning.
+	CellStyleAction
 	// CellStyleBold renders text in bold.
 	CellStyleBold
 )
@@ -368,6 +370,8 @@ func renderStyled(text string, style CellStyle) string {
 		return warningStyle().Render(text)
 	case CellStyleInfo:
 		return infoStyle().Render(text)
+	case CellStyleAction:
+		return actionStyle().Render(text)
 	case CellStyleBold:
 		return BoldStyle().Render(text)
 	default:

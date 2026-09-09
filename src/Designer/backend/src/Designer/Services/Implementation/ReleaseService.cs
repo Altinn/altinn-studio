@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,7 +109,7 @@ public class ReleaseService : IReleaseService
 
         // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
         // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
-        // This particular multi-step process starts mutating state by queueing the ADO build
+        // This particular multi-step process starts mutating state by queuing the ADO build
         cancellationToken = CancellationToken.None;
         Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(
             queueBuildParameters,
@@ -267,7 +266,7 @@ public class ReleaseService : IReleaseService
 
         try
         {
-            string csprojContent = Encoding.UTF8.GetString(Convert.FromBase64String(appCsproj.Content));
+            byte[] csprojContent = Convert.FromBase64String(appCsproj.Content);
             string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
             return PackageVersionHelper.TryGetPackageVersionFromCsprojContent(

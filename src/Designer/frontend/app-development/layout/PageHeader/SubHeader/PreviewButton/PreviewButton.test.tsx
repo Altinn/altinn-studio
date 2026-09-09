@@ -1,15 +1,15 @@
 import { screen } from '@testing-library/react';
 import { PreviewButton } from './PreviewButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { pageHeaderContextMock, previewContextMock } from 'app-development/test/headerMocks';
-import { PreviewContext } from 'app-development/contexts/PreviewContext';
+import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 jest.mock('app-shared/navigation/PackagesRouter');
 
 const layoutMock: string = 'layout1';

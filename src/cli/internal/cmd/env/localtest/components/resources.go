@@ -38,6 +38,7 @@ type Options struct {
 	Paths             Paths
 	Topology          envtopology.Local
 	ImageMode         ImageMode
+	PrebuiltDevImages bool
 	DevWorkflowEngine bool
 	IncludeMonitoring bool
 	IncludePgAdmin    bool

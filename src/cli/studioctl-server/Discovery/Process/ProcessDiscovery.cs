@@ -4,6 +4,8 @@ namespace Altinn.Studio.StudioctlServer.Discovery.Process;
 
 internal sealed class ProcessDiscovery : IAppDiscovery
 {
+    public TimeSpan PassivePollInterval => TimeSpan.FromSeconds(5);
+
     private readonly PortListeners _portListeners;
 
     public ProcessDiscovery(PortListeners portListeners)
@@ -11,7 +13,13 @@ internal sealed class ProcessDiscovery : IAppDiscovery
         _portListeners = portListeners;
     }
 
-    public async Task<IReadOnlyList<AppDiscoveryCandidate>> Discover(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<AppDiscoveryCandidate>> Discover(CancellationToken cancellationToken) =>
+        Discover(null, cancellationToken);
+
+    public async Task<IReadOnlyList<AppDiscoveryCandidate>> Discover(
+        IReadOnlySet<int>? knownProcessIds,
+        CancellationToken cancellationToken
+    )
     {
         var candidates = new List<AppDiscoveryCandidate>();
         var listeners = await _portListeners.Get(cancellationToken);
@@ -21,15 +29,17 @@ internal sealed class ProcessDiscovery : IAppDiscovery
                 continue;
 
             var name = StudioAppName(listener);
-            if (name is null)
+            if (name is null && knownProcessIds?.Contains(listener.ProcessId) != true)
                 continue;
+
+            var description = name ?? $"process {listener.ProcessId}";
 
             candidates.Add(
                 new AppDiscoveryCandidate(
                     "process",
                     baseUri,
                     listener.ProcessId,
-                    name,
+                    description,
                     Name: name,
                     HostPort: listener.Port
                 )

@@ -43,7 +43,7 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -122,7 +122,7 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, XsdTotalDigitsKeyword value, JsonSerializerOptions options)
         {
-            writer.WriteNumber(Name, value.Value);
+            writer.WriteNumberValue(value.Value);
         }
     }
 }

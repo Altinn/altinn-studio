@@ -8,7 +8,6 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -25,8 +24,6 @@ public class InstanceEventClient : IInstanceEventClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly HttpClient _client;
-    private readonly IInstanceLocker _instanceLocker;
-
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
@@ -37,8 +34,6 @@ public class InstanceEventClient : IInstanceEventClient
     public InstanceEventClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
         _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
-        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
-
         var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
         httpClient.BaseAddress = new Uri(platformSettings.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
@@ -82,7 +77,7 @@ public class InstanceEventClient : IInstanceEventClient
             apiUrl += $"{paramSeparator}from={from}&to={to}";
         }
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
         if (response.IsSuccessStatusCode)
         {
@@ -94,7 +89,7 @@ public class InstanceEventClient : IInstanceEventClient
             return instanceEvents.InstanceEvents;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 
     /// <inheritdoc/>
@@ -112,11 +107,10 @@ public class InstanceEventClient : IInstanceEventClient
             authenticationMethod ?? _defaultAuthenticationMethod
         );
 
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
-            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"),
-            lockToken: _instanceLocker.CurrentLockToken
+            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json")
         );
 
         if (response.IsSuccessStatusCode)
@@ -132,6 +126,6 @@ public class InstanceEventClient : IInstanceEventClient
             return id;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 }

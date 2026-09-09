@@ -27,7 +27,7 @@ When writing or running tests, follow these guidelines.
 
 - **Arrange-Act-Assert** with explicit `// Arrange`, `// Act`, `// Assert` comment markers.
 - Prefer `[Theory]` with `[InlineData]` or `[MemberData]` (returning `TheoryData<>`) when inputs vary but logic is the same.
-- Use `[Fact]` only for single meaningful scenarios with no parameterisation.
+- Use `[Fact]` only for single meaningful scenarios with no parameterization.
 - Test naming: `MethodName_Scenario_ExpectedResult`.
 - **Cancellation tokens:** Always pass `TestContext.Current.CancellationToken` to async calls that accept a `CancellationToken`. This includes `Task.Delay`, `HttpClient` methods, EF queries, polling loops, etc. xUnit v3 analyzer rule `xUnit1051` enforces this.
 
@@ -90,8 +90,7 @@ public partial class EngineTests
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [...steps...]),
-            lockToken: InstanceLockToken
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [...steps...])
         );
 
         // Act
@@ -108,7 +107,6 @@ The base `EngineTests.cs` class handles fixture injection, `IAsyncLifetime`, and
 - `_client` — `EngineApiClient` for the test host
 - `_testHelpers` — builders for steps, workflows, enqueue requests
 - `_instanceGuid` — fresh GUID per test
-- `InstanceLockToken` — constant from fixture
 
 ## Snapshot testing (Verify)
 

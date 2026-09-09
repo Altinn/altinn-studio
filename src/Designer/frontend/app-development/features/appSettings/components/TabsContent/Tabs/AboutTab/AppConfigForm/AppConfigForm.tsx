@@ -152,12 +152,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const onChangeVisible = (e: ChangeEvent<HTMLInputElement>): void => {
     const isVisible = e.target.checked;
-    setUpdatedAppConfig(
-      (oldVal: ApplicationMetadata): ApplicationMetadata => ({
-        ...oldVal,
-        access: { ...oldVal.access, visible: isVisible, ...(isVisible ? { delegable: true } : {}) },
-      }),
-    );
+    setUpdatedAppConfig((oldVal: ApplicationMetadata): ApplicationMetadata => ({
+      ...oldVal,
+      access: { ...oldVal.access, visible: isVisible, ...(isVisible ? { delegable: true } : {}) },
+    }));
   };
 
   return (

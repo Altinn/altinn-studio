@@ -135,6 +135,9 @@ spec:
         # linkerd provides automatic mTLS and some nice features
         # such as topology aware routing
         linkerd.io/inject: enabled
+        # Linkerd uses regular sidecars; mirror the proxy's 5s readiness drain + 45s connection drain.
+        config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "5"
+        config.linkerd.io/shutdown-grace-period: "45s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:

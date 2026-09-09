@@ -36,6 +36,7 @@ internal sealed class DirectFileRestorer
 
         // Get file path relative to repo root
         var fullFilePath = Path.Combine(repoRoot, diffFile.FilePath);
+        var hadBom = File.ReadAllBytes(fullFilePath).AsSpan().StartsWith(Encoding.UTF8.Preamble);
 
         // Read original content from HEAD
         string originalContent = _gitService.GetFileContentFromHead(repoRoot, diffFile.FilePath);
@@ -55,7 +56,11 @@ internal sealed class DirectFileRestorer
             resultContent += lineEnding;
         }
 
-        File.WriteAllText(fullFilePath, resultContent, Encoding.UTF8);
+        // Encoding.UTF8 emits a byte order mark, which would add one to every file that never had it -
+        // the opposite of restoring. Keep whatever the file on disk had: the migrators preserve the
+        // original state when they rewrite, and ChunkClassifier already counts a BOM change as
+        // whitespace to be restored.
+        File.WriteAllText(fullFilePath, resultContent, new UTF8Encoding(encoderShouldEmitUTF8Identifier: hadBom));
     }
 
     /// <summary>

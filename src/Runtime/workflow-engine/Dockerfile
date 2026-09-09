@@ -1,15 +1,18 @@
-FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:1fa23fc4872d95fd71c2833ebe65d7e84a43b2d51a31d119516852f13d9505a7 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:f1126d438ccc359f51cc6d4701a8deae513856cf10f5fe645d29ea6403dcac6b AS base
 USER $APP_UID
 WORKDIR /app
 ENV ASPNETCORE_HTTP_PORTS=9090
 EXPOSE 9090
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:ed034a8bf0b24ded0cbbac07e17825d8e9ebfe21e308191d0f7421eaf5ad4664 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:72dd743782f2ae7e5476fd64f6a460045e3998dc862218b80e6944cba79a01b0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /build
 
-COPY common/ common/
+COPY common/dotnet/Altinn.Studio.Common/ common/dotnet/Altinn.Studio.Common/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
+
+# Prune host build artifacts, including literal backslash dirs such as `bin\Debug`.
+RUN find common Runtime -type d \( -name 'bin*' -o -name 'obj*' \) -prune -exec rm -rf '{}' +
 
 WORKDIR /build/Runtime/workflow-engine/tests/WorkflowEngine.TestApp
 RUN dotnet restore "WorkflowEngine.TestApp.csproj"

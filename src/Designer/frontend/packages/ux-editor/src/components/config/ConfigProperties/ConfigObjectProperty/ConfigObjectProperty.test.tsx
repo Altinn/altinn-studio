@@ -55,7 +55,7 @@ describe('ConfigObjectProperties', () => {
       },
     });
     await openCard();
-    const readOnlySwitch = screen.getByRole('checkbox', {
+    const readOnlySwitch = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.readOnly'),
     });
     await user.click(readOnlySwitch);

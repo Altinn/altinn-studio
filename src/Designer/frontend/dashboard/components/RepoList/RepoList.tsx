@@ -3,13 +3,16 @@ import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUti
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
+import {
+  StudioTableLocalPagination,
+  StudioTableRemotePagination,
+  StudioParagraph,
+} from '@studio/components';
 import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export type RepoListProps = {
@@ -44,7 +47,6 @@ export const RepoList = ({
   sortColumn,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
-  const tableSize = 'small';
 
   const columns: Columns = [
     {
@@ -98,7 +100,7 @@ export const RepoList = ({
   }));
 
   const emptyTableFallback = (
-    <Paragraph size={tableSize}>{t('dashboard.no_repos_result')}</Paragraph>
+    <StudioParagraph data-size='sm'>{t('dashboard.no_repos_result')}</StudioParagraph>
   );
 
   const paginationTexts: PaginationTexts = {
@@ -126,7 +128,7 @@ export const RepoList = ({
         <StudioTableRemotePagination
           columns={columns}
           rows={rows}
-          data-size={tableSize}
+          data-size='sm'
           isLoading={isLoading}
           loadingText={t('dashboard.loading')}
           emptyTableFallback={emptyTableFallback}
@@ -137,7 +139,7 @@ export const RepoList = ({
         <StudioTableLocalPagination
           columns={columns}
           rows={rows}
-          size={tableSize}
+          data-size='sm'
           isLoading={isLoading}
           loadingText={t('general.loading')}
           emptyTableFallback={emptyTableFallback}

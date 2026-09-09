@@ -1,20 +1,12 @@
 .formatFieldsRowContent {
-  align-items: center;
   display: flex;
-  gap: 1rem;
+  gap: var(--ds-size-2);
+}
+
+.includeMinMaxSwitch {
+  margin-top: var(--ds-size-13);
 }
 
 .formatFieldsRowContent :first-child {
   flex: 1;
-}
-
-.minNumberErrorMassage {
-  margin-top: 5px;
-}
-
-.lengthFields {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  justify-content: space-between;
 }

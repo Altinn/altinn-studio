@@ -7,12 +7,16 @@ import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
   combinationNodeMock,
+  objectNodeMock,
+  stringDefinitionNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
+import type { RenderWithProvidersData } from '../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { getSavedModel } from '../../../test/test-utils';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 
 const user = userEvent.setup();
 
@@ -20,13 +24,17 @@ const user = userEvent.setup();
 const saveDataModel = jest.fn();
 const defaultNode: UiSchemaNode = combinationNodeMock;
 
-const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
+const renderItemDataComponent = (
+  schemaNode: UiSchemaNode = defaultNode,
+  appContextProps: RenderWithProvidersData['appContextProps'] = {},
+) => {
   const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
     appContextProps: {
       schemaModel,
       save: saveDataModel,
       selectedUniquePointer: schemaNode.schemaPointer,
+      ...appContextProps,
     },
   })(<ItemDataComponent schemaNode={schemaNode} />);
 };
@@ -115,6 +123,59 @@ describe('ItemDataComponent', () => {
   it('Renders custom properties section if there are custom properties', async () => {
     renderItemDataComponent(nodeWithCustomPropsMock);
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
+  });
+
+  it('Renders the prefill section for a value-type field', async () => {
+    renderItemDataComponent(fieldNode1Mock);
+    expect(
+      await screen.findByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).toBeInTheDocument();
+  });
+
+  it('Does not render the prefill section for an object-type field', async () => {
+    renderItemDataComponent(objectNodeMock);
+    await screen.findByText(textMock('schema_editor.title'));
+    expect(
+      screen.queryByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('Does not render the prefill section for a type definition field', async () => {
+    renderItemDataComponent(stringDefinitionNodeMock);
+    await screen.findByText(textMock('schema_editor.title'));
+    expect(
+      screen.queryByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('Updates the prefill config mapping when the field is renamed', async () => {
+    const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'toggable' } };
+    const savePrefillConfig = jest.fn();
+    renderItemDataComponent(toggableNodeMock, { prefillConfig, savePrefillConfig });
+
+    const nameInput = screen.getByRole('textbox', {
+      name: (accessibleName) => accessibleName.includes(textMock('schema_editor.name')),
+    });
+    await user.clear(nameInput);
+    await user.type(nameInput, 'renamedField');
+    await user.tab();
+
+    expect(savePrefillConfig).toHaveBeenCalledWith({ ER: { OrgNumber: 'renamedField' } });
+  });
+
+  it('Does not touch the prefill config when the renamed field has no prefill mapping', async () => {
+    const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'someOtherField' } };
+    const savePrefillConfig = jest.fn();
+    renderItemDataComponent(toggableNodeMock, { prefillConfig, savePrefillConfig });
+
+    const nameInput = screen.getByRole('textbox', {
+      name: (accessibleName) => accessibleName.includes(textMock('schema_editor.name')),
+    });
+    await user.clear(nameInput);
+    await user.type(nameInput, 'renamedField');
+    await user.tab();
+
+    expect(savePrefillConfig).not.toHaveBeenCalled();
   });
 
   test('Does not render an error message when there is no change in text', async () => {

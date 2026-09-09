@@ -1,11 +1,11 @@
-import type { CodeListEditorTexts, ValueErrorMessages } from '../types/CodeListEditorTexts';
+import type { StudioCodeListEditorTexts, ValueErrorMessages } from '../types/CodeListEditorTexts';
 import { texts as languagePickerTexts } from '../../StudioLanguagePicker/test-data/props';
 
 const valueErrors: ValueErrorMessages = {
   duplicateValue: 'The code must be unique.',
 };
 
-export const texts: CodeListEditorTexts = {
+export const texts: StudioCodeListEditorTexts = {
   add: 'Add item',
   codeList: 'Code list',
   delete: 'Delete',

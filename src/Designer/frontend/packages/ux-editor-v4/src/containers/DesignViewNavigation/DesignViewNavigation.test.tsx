@@ -26,12 +26,6 @@ describe('DesignViewNavigation', () => {
     expect(menuButton).toBeInTheDocument();
   });
 
-  it('should have aria-haspopup attribute set to "menu"', () => {
-    renderDesignViewNavigation({});
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    expect(menuButton).toHaveAttribute('aria-haspopup', 'menu');
-  });
-
   it('should be possible to toggle dropdown menu', async () => {
     const user = userEvent.setup();
     renderDesignViewNavigation({});

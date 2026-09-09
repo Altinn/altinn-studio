@@ -2,14 +2,14 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserProfileMenu, type UserProfileMenuProps } from './UserProfileMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { type Repository, type User } from 'app-shared/types/Repository';
 import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
 import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

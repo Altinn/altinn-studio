@@ -89,4 +89,14 @@ internal sealed record CollectionHeadStatus
     [JsonPropertyName("createdAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? CreatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the waiting step's own words for what it is waiting for (its most recent deferral
+    /// reason). The engine populates it only while <see cref="Status"/> is
+    /// <see cref="PersistentItemStatus.Waiting"/>; also null when no reason was given or the engine
+    /// predates the field.
+    /// </summary>
+    [JsonPropertyName("waitingReason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WaitingReason { get; init; }
 }

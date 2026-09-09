@@ -8,10 +8,16 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock, queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { appValidationAreaId } from '@studio/testing/testids';
+import type { AppValidationArea } from 'app-shared/utils/appValidationUtils';
 
 const org = 'test-org';
 const app = 'test-app';
 const initialPath = `/${org}/${app}/overview`;
+
+function getArea(area: AppValidationArea): HTMLElement {
+  return screen.getByTestId(appValidationAreaId(area));
+}
 
 function renderAppValidationDialog(validationData: {
   isValid?: boolean;
@@ -51,11 +57,60 @@ describe('AppValidationDialog', () => {
     expect(screen.getByText(/general\.updatedAt/)).toBeInTheDocument();
   });
 
+  it('renders a details section only for the areas with findings', () => {
+    renderAppValidationDialog({
+      isValid: false,
+      errors: { 'title.nn': ['required'], 'unknown.key': ['some-error'] },
+    });
+    expect(screen.getByText(textMock('app_settings.heading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_validation.area_other'))).toBeInTheDocument();
+    expect(screen.queryByText(textMock('top_menu.create'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('top_menu.data_model'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('top_menu.texts'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('top_menu.process_editor'))).not.toBeInTheDocument();
+  });
+
   it('does not render error summary when there are no validation errors', () => {
     renderAppValidationDialog({});
+    expect(screen.queryByText(textMock('app_validation.errors_lead'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('app_validation.warnings_lead'))).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('app_validation.no_issues'))).toBeInTheDocument();
+  });
+
+  it('renders error and warning counts', () => {
+    renderAppValidationDialog({
+      isValid: false,
+      errors: { 'title.nn': ['required'], 'title.en': ['required'] },
+    });
+    expect(screen.getByText(textMock('app_validation.errors_tag'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_validation.warnings_tag'))).toBeInTheDocument();
     expect(
-      screen.queryByText(textMock('app_validation.app_metadata.warnings')),
-    ).not.toBeInTheDocument();
+      screen.getByLabelText(textMock('app_validation.error_count', { count: 1 })),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('app_validation.warning_count', { count: 1 })),
+    ).toBeInTheDocument();
+  });
+
+  it('renders app settings errors inside the settings area', () => {
+    renderAppValidationDialog({
+      isValid: false,
+      errors: { 'title.nn': ['required'] },
+    });
+    const settingsArea = getArea('settings');
+    expect(settingsArea).toHaveTextContent(textMock('app_validation.errors_lead'));
+    expect(settingsArea).toHaveTextContent(
+      textMock('app_validation.app_metadata.title.nn.required'),
+    );
+  });
+
+  it('renders unknown error keys inside the other area', () => {
+    renderAppValidationDialog({
+      isValid: false,
+      errors: { 'unknown.key': ['some-error'] },
+    });
+    const otherArea = getArea('other');
+    expect(otherArea).toHaveTextContent(textMock('unknown.key'));
   });
 
   it('renders error summary item and navigates to app-settings with focus when link is clicked', async () => {

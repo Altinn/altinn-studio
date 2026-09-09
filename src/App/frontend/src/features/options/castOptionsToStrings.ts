@@ -1,4 +1,4 @@
-import type { IDataModelReference, IRawOption } from 'src/layout/common.generated';
+import type { IDataModelReference, IRawOption } from '@app/layout-contract/generated/common.generated';
 
 export interface IOptionInternal extends Omit<IRawOption, 'value'> {
   value: string;

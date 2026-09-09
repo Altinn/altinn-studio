@@ -28,14 +28,22 @@ internal static class StepRequestStepOptionsExtensions
 
     /// <summary>
     /// Resolves the effective step options for a single step (via <paramref name="resolver"/>) and maps
-    /// them onto the wire request.
+    /// them onto the wire request. Resolution keys off the step's <see cref="StepRequest.CommandKey"/>,
+    /// falling back to its OperationId for a step assembled without one (where the two are the same
+    /// string): an OperationId can be a display identity — a service-task stage or the mailbox mint carries
+    /// its item index there — and keying off it would silently miss the command's own tier-2 default. A
+    /// service-task step additionally resolves the options of the one pipeline item it runs by
+    /// <see cref="StepRequest.ServiceTaskItemIndex"/>.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
         ProcessStepOptionsResolver resolver,
         string? taskId,
         string? serviceTaskType
-    ) => step.WithStepOptions(resolver.Resolve(step.OperationId, taskId, serviceTaskType));
+    ) =>
+        step.WithStepOptions(
+            resolver.Resolve(step.CommandKey ?? step.OperationId, taskId, serviceTaskType, step.ServiceTaskItemIndex)
+        );
 
     /// <summary>
     /// Maps already-resolved options onto the wire request. A null <paramref name="options"/> leaves the
@@ -48,12 +56,14 @@ internal static class StepRequestStepOptionsExtensions
 
         return step with
         {
-            Command = options.MaxExecutionTime is not null
-                ? step.Command with
-                {
-                    MaxExecutionTime = options.MaxExecutionTime,
-                }
-                : step.Command,
+            Command =
+                options.MaxExecutionTime is not null || options.WaitBudget is not null
+                    ? step.Command with
+                    {
+                        MaxExecutionTime = options.MaxExecutionTime ?? step.Command.MaxExecutionTime,
+                        WaitBudget = options.WaitBudget ?? step.Command.WaitBudget,
+                    }
+                    : step.Command,
             RetryStrategy = options.RetryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
         };
     }

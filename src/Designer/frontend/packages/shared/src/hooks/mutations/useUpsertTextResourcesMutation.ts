@@ -51,9 +51,8 @@ export const useUpsertTextResourcesMutation = (
           return console.error(err.toString());
         });
       }
-      queryClient.setQueryData(
-        queryKey,
-        (oldTexts: ITextResources): ITextResources => updateEntireLanguage(oldTexts, response),
+      queryClient.setQueryData(queryKey, (oldTexts: ITextResources): ITextResources =>
+        updateEntireLanguage(oldTexts, response),
       );
     },
   });

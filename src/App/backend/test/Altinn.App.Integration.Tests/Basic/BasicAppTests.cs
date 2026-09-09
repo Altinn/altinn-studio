@@ -97,7 +97,13 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
             }
         );
         using var readPatchResponse = await patchResponse.Read<DataPatchResponseMultiple>();
-        await verifier.Verify(readPatchResponse, snapshotName: "PatchFormData", scrubbers: scrubbers);
+        // The patch mints a new blob version, so the instantiation-time scrubber cannot scrub it.
+        var patchedInstance = readPatchResponse.Data.Model?.Instance ?? instance;
+        await verifier.Verify(
+            readPatchResponse,
+            snapshotName: "PatchFormData",
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(patchedInstance))
+        );
 
         using var processNextResponse = await fixture.Instances.ProcessNext(token, readInstantiationResponse);
         using var readProcessNextResponse = await processNextResponse.Read<AppProcessState>();
@@ -160,11 +166,11 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         {
             TestCase.SimplifiedNoPrefill => await fixture.Instances.PostSimplified(
                 token,
-                new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+                new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
             ),
             TestCase.SimplifiedWithPrefill => await fixture.Instances.PostSimplified(
                 token,
-                new InstansiationInstance
+                new InstantiationInstance
                 {
                     InstanceOwner = new InstanceOwner { PartyId = "501337" },
                     Prefill = new() { { "property1", "1" }, { "property2", "1" } },
@@ -207,7 +213,12 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         Assert.NotNull(port);
         var response = await fixture.Connectivity.Pdf();
         await Verify(response).AddScrubber(sb => sb.Replace(port, "<pdfPort>"));
-        Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+        if (!response.Success)
+        {
+            _output.WriteLine(response.ResponseContent ?? "null");
+            _output.WriteLine(response.Exception ?? "null");
+            Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+        }
     }
 
     [Fact]
@@ -238,7 +249,7 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         // Create instance
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
 

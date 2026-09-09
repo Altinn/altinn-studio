@@ -1,7 +1,7 @@
 version: '3.6'
 
 services:
-  webpack:
+  vite:
     container_name: app-frontend-react
     image: node:24
     volumes:

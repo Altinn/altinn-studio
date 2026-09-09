@@ -240,7 +240,6 @@ describe('Hide row in group', () => {
 
     const errorMessage = '9044622 er et magisk tall som ikke er tillatt!';
     cy.get(appFrontend.fieldValidation('sum-all')).should('contain.text', errorMessage);
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
-    cy.get(appFrontend.errorReport).findByRole('listitem').should('contain.text', errorMessage);
+    cy.get(appFrontend.errorReport).should('not.exist');
   });
 });

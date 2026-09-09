@@ -13,7 +13,6 @@
       },
       {
         "id": "NavigationButtons-important",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

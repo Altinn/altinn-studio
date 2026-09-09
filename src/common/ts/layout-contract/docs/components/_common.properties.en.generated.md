@@ -1,0 +1,6 @@
+| Property                      | Type                             | Required | Default | Description                                                                                                           |
+| ----------------------------- | -------------------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `id`                          | `string`                         | Yes      |         | The component ID. It must be unique across all pages in a layout set and cannot end with a dash followed by a number. |
+| `hidden`                      | `boolean \| expression<boolean>` | No       | `false` | Boolean value or expression indicating whether the component should be hidden.                                        |
+| [`grid`](../grid/)            | `object`                         | No       |         | Grid settings controlling the component's horizontal placement and width.                                             |
+| [`pageBreak`](../page-break/) | `object`                         | No       |         | Settings for optional page breaks before or after the component when rendered in PDF.                                 |

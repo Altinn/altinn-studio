@@ -62,7 +62,6 @@ export const ComponentMainConfig = ({
         />
       );
     case ComponentType.FileUpload:
-    case ComponentType.FileUploadWithTag:
       return (
         <FileUploadMainConfig
           component={component}
@@ -94,7 +93,7 @@ export const ComponentMainConfig = ({
           className={classes.mainConfigWrapper}
         />
       );
-    case ComponentType.Header:
+    case ComponentType.Heading:
       return (
         <TitleMainConfig
           component={component}

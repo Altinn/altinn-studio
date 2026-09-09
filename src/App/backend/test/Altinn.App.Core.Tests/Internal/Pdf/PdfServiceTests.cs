@@ -135,6 +135,98 @@ public class PdfServiceTests
         await func.Should().ThrowAsync<PdfGenerationException>();
     }
 
+    // The stream GeneratePdf returns owns the HTTP response behind it. These two tests pin both halves of
+    // that contract: the response survives until the caller disposes the stream, and it is not leaked when
+    // generation fails and no stream is returned at all.
+
+    [Fact]
+    public async Task GeneratePdf_stream_is_readable_after_the_call_returned_and_owns_the_response()
+    {
+        DisposeTrackingContent? content = null;
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response("a pdf, honest");
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var httpClient = new HttpClient(delegatingHandler);
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authenticationTokenResolver.Object
+        );
+
+        // Deliberately read after GeneratePdf has returned: this is the case a `using` on the response
+        // inside GeneratePdf would break, and it would break here rather than there.
+        Stream pdf = await pdfGeneratorClient.GeneratePdf(
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
+            CancellationToken.None
+        );
+
+        Assert.NotNull(content);
+        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
+
+        using (StreamReader reader = new(pdf, leaveOpen: true))
+        {
+            var read = await reader.ReadToEndAsync();
+            Assert.Equal("a pdf, honest", read);
+        }
+
+        await pdf.DisposeAsync();
+        Assert.True(content.IsDisposed, "the returned stream owns the response");
+    }
+
+    [Fact]
+    public async Task GeneratePdf_disposes_the_response_when_generation_fails()
+    {
+        DisposeTrackingContent? content = null;
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response(
+                    "pdf generator exploded",
+                    HttpStatusCode.RequestTimeout
+                );
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var httpClient = new HttpClient(delegatingHandler);
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authenticationTokenResolver.Object
+        );
+
+        var thrown = await Assert.ThrowsAsync<PdfGenerationException>(async () =>
+            await pdfGeneratorClient.GeneratePdf(
+                new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
+                CancellationToken.None
+            )
+        );
+
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
+
+        // The diagnostic content is copied onto the exception, so disposing the response does not empty it.
+        Assert.Equal("pdf generator exploded", thrown.Data["responseContent"]);
+        Assert.Equal(nameof(HttpStatusCode.RequestTimeout), thrown.Data["responseStatusCode"]);
+    }
+
     [Fact]
     public async Task GeneratePdf_WithServiceOwnerAuthentication_UsesServiceOwnerToken()
     {
@@ -490,7 +582,7 @@ public class PdfServiceTests
                 m.AddBinaryDataElement(
                     It.Is<string>(s => s == "ref-data-as-pdf"),
                     It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "My%20Custom%20Receipt.pdf"),
+                    It.Is<string>(s => s == "My Custom Receipt.pdf"),
                     It.IsAny<ReadOnlyMemory<byte>>(),
                     It.Is<string?>(s => s == "Task_1"),
                     It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
@@ -559,7 +651,66 @@ public class PdfServiceTests
                 m.AddBinaryDataElement(
                     It.Is<string>(s => s == "ref-data-as-pdf"),
                     It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "My%20Custom%20Receipt.pdf"),
+                    It.Is<string>(s => s == "My Custom Receipt.pdf"),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.Is<string?>(s => s == "Task_1"),
+                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_DefaultFileName_KeepsSpaces()
+    {
+        var mockAppResources = new Mock<IAppResources>();
+        var resource = new TextResource()
+        {
+            Id = "digdir-not-really-an-app-nb",
+            Language = LanguageConst.Nb,
+            Org = "digdir",
+            Resources = [new() { Id = "appName", Value = "Not Really An App" }],
+        };
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(resource);
+
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            appResources: mockAppResources,
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        var mutatorMock = CreateMutatorMock(instance);
+
+        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+
+        mutatorMock.Verify(
+            m =>
+                m.AddBinaryDataElement(
+                    It.Is<string>(s => s == "ref-data-as-pdf"),
+                    It.Is<string>(s => s == "application/pdf"),
+                    It.Is<string>(s => s == "Not Really An App.pdf"),
                     It.IsAny<ReadOnlyMemory<byte>>(),
                     It.Is<string?>(s => s == "Task_1"),
                     It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
@@ -962,8 +1113,9 @@ public class PdfServiceTests
     {
         // Setup a mock service provider with InstanceDataUnitOfWorkInitializer (used by hideAppNameInPdf evaluation)
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var mockDataClient = new Mock<IDataClient>();
-        var mockInstanceClient = new Mock<IInstanceClient>();
+        var mockDataClient = new Mock<IDataClientWithStorageMetadata>();
+        var mockMutationClient = mockDataClient.As<IInstanceMutationClient>();
+        var mockInstanceClient = new Mock<IInstanceClientWithStorageMetadata>();
         var mockAppMetadata = new Mock<IAppMetadata>();
 
         var dataType = new DataType() { Id = "Model" };
@@ -977,6 +1129,7 @@ public class PdfServiceTests
 
         var initializer = new InstanceDataUnitOfWorkInitializer(
             mockDataClient.Object,
+            mockMutationClient.Object,
             mockInstanceClient.Object,
             mockAppMetadata.Object,
             new TranslationService(

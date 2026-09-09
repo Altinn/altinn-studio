@@ -108,7 +108,7 @@ const querySpinner = (): HTMLElement | null =>
   screen.queryByLabelText(textMock('dashboard.loading'));
 
 const getFavouriteAppListHeading = (): HTMLElement =>
-  screen.getByRole('heading', { name: textMock('dashboard.favourites') });
+  screen.getByRole('heading', { name: textMock('dashboard.favorites') });
 
 const getLibraryHeading = (): HTMLElement =>
   screen.getByRole('heading', { name: textMock('org_content_library.library_heading') });

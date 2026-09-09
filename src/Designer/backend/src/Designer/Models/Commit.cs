@@ -17,9 +17,9 @@ public class Commit
     public Signature Author { get; set; }
 
     /// <summary>
-    /// The comitter
+    /// The committer
     /// </summary>
-    public Signature Comitter { get; set; }
+    public Signature Committer { get; set; }
 
     /// <summary>
     /// The Sha

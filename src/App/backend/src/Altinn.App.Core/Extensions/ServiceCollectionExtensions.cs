@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
@@ -7,7 +8,7 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
-using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Features.Notifications.Cancellation;
 using Altinn.App.Core.Features.Notifications.Email;
@@ -47,7 +48,6 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Files;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
@@ -110,8 +110,17 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
         services.AddHttpClient<IAuthorizationClient, AuthorizationClient>();
         services.AddHttpClient<IDataClient, DataClient>();
+        services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+            (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+        );
+        services.AddTransient<IInstanceMutationClient>(sp =>
+            (IInstanceMutationClient)sp.GetRequiredService<IDataClient>()
+        );
         services.AddHttpClient<IOrganizationClient, RegisterERClient>();
         services.AddHttpClient<IInstanceClient, InstanceClient>();
+        services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+        );
         services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();
@@ -122,7 +131,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IText, TextClient>();
 #pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
-        services.AddSingleton<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
 
@@ -221,11 +229,10 @@ public static class ServiceCollectionExtensions
         AddPdfServices(services);
         AddPaymentServices(services, configuration, env);
         AddSignatureServices(services);
-        AddEventServices(services);
         AddNotificationServices(services);
         AddProcessServices(services);
         services.AddWorkflowEngineIntegration();
-        AddFileAnalyserServices(services);
+        AddFileAnalyzerServices(services);
         AddFileValidatorServices(services);
 
         if (!env.IsDevelopment())
@@ -273,24 +280,6 @@ public static class ServiceCollectionExtensions
     public static bool IsAdded(this IServiceCollection services, Type serviceType)
     {
         return services.Any(x => x.ServiceType == serviceType);
-    }
-
-    private static void AddEventServices(IServiceCollection services)
-    {
-        services.AddTransient<IEventHandler, SubscriptionValidationHandler>();
-        services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
-        services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
-
-        // TODO: Event subs could be handled by the new automatic Maskinporten auth, once implemented.
-        // The event subscription client depends upon a Maskinporten message handler being
-        // added to the client during setup. As of now this needs to be done in the apps
-        // if subscription is to be added. This registration is to prevent the DI container
-        // from failing for the apps not using event subscription. If you try to use
-        // event subscription with this client you will get a 401 Unauthorized.
-        if (!services.IsAdded(typeof(IEventsSubscription)))
-        {
-            services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
-        }
     }
 
     private static void AddNotificationServices(IServiceCollection services)
@@ -387,8 +376,6 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
 
-        services.AddSingleton<IInstanceLocker, InstanceLocker>();
-
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();
         services.AddTransient<IProcessTask, ConfirmationProcessTask>();
@@ -398,8 +385,12 @@ public static class ServiceCollectionExtensions
 
         // Service tasks
         services.AddTransient<IServiceTask, PdfServiceTask>();
-        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
+
+        // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
+        // eFormidling task but never called it is told at startup instead of mid-process.
+        services.AddHostedService<EFormidlingConfigValidationService>();
     }
 
     private static void AddActionServices(IServiceCollection services)
@@ -409,10 +400,10 @@ public static class ServiceCollectionExtensions
         services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");
     }
 
-    private static void AddFileAnalyserServices(IServiceCollection services)
+    private static void AddFileAnalyzerServices(IServiceCollection services)
     {
         services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
-        services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        services.TryAddTransient<IFileAnalyzerFactory, FileAnalyzerFactory>();
     }
 
     private static void AddFileValidatorServices(IServiceCollection services)

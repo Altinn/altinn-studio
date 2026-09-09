@@ -11,7 +11,7 @@ export const useDeleteAppAttachmentMetadataMutation = (org: string, app: string)
       return id;
     },
     onSuccess: () => {
-      // Issue: this is a workaround to reset the query to get the updated app metadata after deleting an attachment where combobox value is not updated immidiately
+      // Issue: this is a workaround to reset the query to get the updated app metadata after deleting an attachment where combobox value is not updated immediately
       // Todo: this may be solved and can be removed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
       queryClient.resetQueries({ queryKey: [QueryKey.AppMetadata, org, app] });
     },

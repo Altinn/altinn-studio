@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 namespace Altinn.App.Core.Internal.Process.Elements.Base;
 
 /// <summary>
-/// Base for all flow elements in BPMN (startevent, taks, gateways, endevents)
+/// Base for all flow elements in BPMN (start events, tasks, gateways, end events)
 /// </summary>
 public abstract class ProcessElement
 {

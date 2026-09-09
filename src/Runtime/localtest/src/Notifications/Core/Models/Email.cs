@@ -27,12 +27,12 @@ public class Email
     public string Body { get; set; }
 
     /// <summary>
-    /// Gets or sets the to fromAdress of the email.
+    /// Gets or sets the to fromAddress of the email.
     /// </summary>
     public string FromAddress { get; set; }
 
     /// <summary>
-    /// Gets or sets the to adress of the email.
+    /// Gets or sets the to address of the email.
     /// </summary>
     public string ToAddress { get; set; }
 

@@ -16,7 +16,7 @@ import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
-} from './PageRouterErrorBoundry';
+} from './PageRouterErrorBoundary';
 import { GiteaRoutePaths } from '../enums/GiteaRoutePaths';
 import { NavigateToLatestCommitInGitea } from '../features/navigateToLatestCommitInGitea';
 import { StudioPageSpinner } from '@studio/components';

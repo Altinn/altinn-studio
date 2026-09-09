@@ -8,7 +8,7 @@ namespace Altinn.Codelists.RestCountries.Models;
 public class Currency(string name, string symbol)
 {
     /// <summary>
-    /// The name of the curreny eg. Norwegian krone, United States dollar, Pound sterling
+    /// The name of the currency e.g. Norwegian krone, United States dollar, Pound sterling
     /// </summary>
     [JsonPropertyName("name")]
     public string Name { get; set; } = name;

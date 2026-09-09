@@ -27,12 +27,8 @@ export const SelectCustomReceiptDataModelId = ({
     existingDataModelId,
   );
 
-  const selectedItems: StudioSuggestionItem = selectedValue
-    ? { value: selectedValue, label: selectedValue }
-    : undefined;
-
-  const handleSelectedChange = (item: StudioSuggestionItem) => {
-    const newValue = item.value || '';
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    const newValue = item?.value ?? '';
     setSelectedValue(newValue);
     onChange(newValue);
   };
@@ -45,7 +41,7 @@ export const SelectCustomReceiptDataModelId = ({
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
       error={error}
-      selected={selectedItems}
+      selected={selectedValue || undefined}
       onSelectedChange={handleSelectedChange}
     >
       {allDataModelIds.map((option) => (

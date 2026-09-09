@@ -56,7 +56,7 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
-  it.each([ComponentType.FileUpload, ComponentType.FileUploadWithTag])(
+  it.each([ComponentType.FileUpload])(
     'should render file upload config when the component type is %s',
     (type) => {
       renderComponentMainConfig(mainConfigComponentMock(type), true);
@@ -86,7 +86,7 @@ describe('ComponentMainConfig', () => {
   });
 
   it('should render header config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Header), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Heading), true);
     const titleConfigSize = screen.getByText(textMock('ux_editor.component_properties.size'));
     expect(titleConfigSize).toBeInTheDocument();
   });

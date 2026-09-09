@@ -223,6 +223,7 @@ func TestWorkflowRun_ErrorCases(t *testing.T) {
 			setupRepo: func(t *testing.T, repo *repoFixture, _ internal.Logger) {
 				t.Helper()
 				runGit(t, nil, repo.dir, "tag", component+"/"+previewVersion)
+				runGit(t, nil, repo.dir, "push", "origin", component+"/"+previewVersion)
 			},
 			expectErr: internal.ErrTagExists,
 		},
@@ -630,7 +631,7 @@ func (s *workflowScenario) backportAndMerge(commitSHA, branch, expectedBase, mer
 	if err := internal.RunBackportWithDeps(s.t.Context(), internal.BackportRequest{
 		Component:     studioctlComponent,
 		Commit:        commitSHA,
-		Branch:        branch,
+		Line:          branch,
 		ChangelogPath: "CHANGELOG.md",
 		DryRun:        false,
 	}, s.git, s.gh, s.log); err != nil {
@@ -950,6 +951,13 @@ func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) (
 }
 
 func (g *fakeGH) SetWorkdir(_ string) {}
+
+func (g *fakeGH) Repository(
+	_ context.Context,
+	remoteURL string,
+) (internal.Repository, *internal.Repository, error) {
+	return internal.Repository{URL: remoteURL}, nil, nil
+}
 
 func (g *fakeGH) reset() {
 	g.releaseTag = ""

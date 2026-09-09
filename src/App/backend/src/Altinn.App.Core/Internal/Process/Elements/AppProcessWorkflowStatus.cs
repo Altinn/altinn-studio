@@ -39,6 +39,18 @@ public sealed class AppProcessWorkflowStatus
     public bool? Retrying { get; init; }
 
     /// <summary>
+    /// The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
+    /// awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
+    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the
+    /// transition is parked on a deferring task that gave a reason. Presentation-only, like
+    /// <see cref="Retrying"/>: a waiting UI may display it (treating it as a text-resource key
+    /// first, falling back to the literal text), but nothing about the wait changes.
+    /// </summary>
+    [JsonPropertyName("waitingReason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WaitingReason { get; init; }
+
+    /// <summary>
     /// Progress through the in-flight transition's workflow steps. Present only while
     /// <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the engine
     /// reported step counts. Presentation-only: a waiting UI can show "step x of y" movement, but
@@ -122,7 +134,7 @@ public sealed class AppProcessWorkflowFailure
 /// <summary>
 /// The consumer-facing activity status of a task's workflow transition. Deliberately coarse:
 /// <see cref="Processing"/> covers the first attempt and every automatic retry, because the
-/// consumer behaviour (wait) is identical. The presentation-only
+/// consumer behavior (wait) is identical. The presentation-only
 /// <see cref="AppProcessWorkflowStatus.Retrying"/> hint is the one place retries surface.
 /// </summary>
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]

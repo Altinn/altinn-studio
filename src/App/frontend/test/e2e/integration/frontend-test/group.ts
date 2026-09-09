@@ -214,7 +214,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.currentValue).type('456');
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.fieldValidation('newValue-1')).should('have.text', texts.requiredFieldToValue456);
-    cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldToValue456);
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.group.newValue).type('1');
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
@@ -222,6 +222,9 @@ describe('Group', () => {
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.newValue).type('789');
     cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
 
     cy.get(appFrontend.errorReport)
       .should('contain.text', texts.requiredFieldFromValue)
@@ -455,6 +458,11 @@ describe('Group', () => {
     cy.get(appFrontend.group.currentValue).type('88889');
     cy.get(appFrontend.group.newValue).type('55554');
 
+    cy.get(appFrontend.fieldValidation('currentValue-5')).should('contain.text', 'Det er teit å endre fra 88889');
+    cy.get(appFrontend.fieldValidation('newValue-5')).should('contain.text', 'Det er teit å endre til 55554');
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Det er teit å endre fra 88889');
     cy.get(appFrontend.errorReport).should('contain.text', 'Det er teit å endre til 55554');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 4);
@@ -645,7 +653,7 @@ describe('Group', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.changeLayout((c) => {
       if (c.type === 'RepeatingGroup' && c.id === 'mainGroup' && c.textResourceBindings) {
-        c.textResourceBindings.add_button_full = 'Hello World';
+        c.textResourceBindings.addButtonFull = 'Hello World';
       }
     });
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
@@ -658,10 +666,10 @@ describe('Group', () => {
         // A bit special for repeating groups and these text resource bindings: They should use the default texts when
         // set to empty strings, so as to make it easy to default to conditionally set the text so something else, but
         // still be able to fall back to the default texts. This is usually not expected behavior for other components.
-        c.textResourceBindings.save_and_next_button = 'next-btn-text';
-        c.textResourceBindings.save_button = '';
-        c.textResourceBindings.edit_button_open = '';
-        c.textResourceBindings.edit_button_close = '';
+        c.textResourceBindings.saveAndNextButton = 'next-btn-text';
+        c.textResourceBindings.saveButton = '';
+        c.textResourceBindings.editButtonOpen = '';
+        c.textResourceBindings.editButtonClose = '';
         c.edit.saveAndNextButton = true;
       }
       if (c.id === 'currentValue' && c.type === 'Input' && c.textResourceBindings) {
@@ -704,7 +712,7 @@ describe('Group', () => {
 
     cy.changeLayout((c) => {
       if (c.type === 'RepeatingGroup' && c.id === 'mainGroup' && c.textResourceBindings) {
-        c.textResourceBindings.save_and_next_button = '';
+        c.textResourceBindings.saveAndNextButton = '';
       }
     });
     cy.findAllByRole('button', { name: /Rediger/ })
@@ -1044,8 +1052,8 @@ describe('Group', () => {
           '4:subGroup',
         ];
         if (component.textResourceBindings) {
-          component.textResourceBindings.multipage_back_button = 'Forrige side';
-          component.textResourceBindings.multipage_next_button = 'Neste side';
+          component.textResourceBindings.multipageBackButton = 'Forrige side';
+          component.textResourceBindings.multipageNextButton = 'Neste side';
         }
       }
       if (

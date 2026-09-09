@@ -17,7 +17,6 @@
       },
       {
         "id": "NavigationButtons-brand",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

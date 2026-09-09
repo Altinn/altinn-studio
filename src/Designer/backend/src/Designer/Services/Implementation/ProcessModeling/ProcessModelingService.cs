@@ -189,7 +189,7 @@ public class ProcessModelingService : IProcessModelingService
                 altinnRepoEditingContext,
                 layoutSetId
             );
-            string? taskId = layoutSet.Tasks?.First();
+            string? taskId = layoutSet.Tasks?.FirstOrDefault();
             ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
             return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
         }

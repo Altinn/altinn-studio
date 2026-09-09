@@ -1,6 +1,6 @@
 using Altinn.App.Core.EFormidling.Interface;
-using Altinn.Common.EFormidlingClient.Models.SBD;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.EFormidling.Models.SBD;
+using Altinn.App.Core.Features;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
@@ -10,9 +10,9 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 public class DefaultEFormidlingReceivers : IEFormidlingReceivers
 {
     /// <inheritdoc />
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)
+    public Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig)
     {
-        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(dataAccessor);
 
         if (string.IsNullOrWhiteSpace(receiverFromConfig))
         {
@@ -28,7 +28,7 @@ public class DefaultEFormidlingReceivers : IEFormidlingReceivers
     {
         var identifier = new Identifier
         {
-            // 0192 prefix for all Norwegian organisations.
+            // 0192 prefix for all Norwegian organizations.
             Value = $"0192:{receiver}",
             Authority = "iso6523-actorid-upis",
         };

@@ -26,11 +26,11 @@ public class MaskinportenDelegatingHandlerTest
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["scope1", "scope2"],
-                    ConsumerOrg = OrganisationNumber.Parse("991825827"),
+                    ConsumerOrg = OrganizationNumber.Parse("991825827"),
                     Resource = "https://api.example.com",
                     SystemUser = new MaskinportenSystemUser
                     {
-                        Organisation = OrganisationNumber.Parse("311169963"),
+                        Organization = OrganizationNumber.Parse("311169963"),
                         ExternalRef = "ref",
                     },
                 }
@@ -40,7 +40,7 @@ public class MaskinportenDelegatingHandlerTest
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["scope1", "scope2"],
-                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+                    SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("311169963") },
                 }
             },
         };

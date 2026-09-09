@@ -111,6 +111,15 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
+        // An instance fetch that raced the mutation can resolve after this handler and overwrite
+        // the fresh cache with a pre-transition snapshot. Cancel in-flight fetches so the
+        // response instance is the newest write.
+        if (instanceOwnerPartyId && instanceGuid) {
+          await queryClient.cancelQueries({
+            queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
+          });
+        }
+
         // Atomic flip: cache and navigate dispatch in the same task so React 18 batches both
         // into one commit. ProcessWrapper covers the cache/URL gap during the router's loading
         // state via useNavigation() and the useIsMutating() guard on this mutation.
@@ -178,7 +187,7 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
  * Resumes the terminally failed workflow that owns the current task (POST process/resume). This is
  * the engine-era analogue of "retry the service task": the engine re-runs the failed step (and its
  * dependents) in place, whereas a plain process/next is rejected with 409/resumeRequired while the
- * workflow is failed. The mutation shares the process/next scope so a retry and a reject can never
+ * workflow is failed. The mutation shares the process/next scope so resuming and advancing can never
  * run concurrently, but deliberately not its mutation key: the key gates ProcessWrapper's
  * full-screen loader, and the failed task view should stay mounted (button spinner) while resuming.
  */

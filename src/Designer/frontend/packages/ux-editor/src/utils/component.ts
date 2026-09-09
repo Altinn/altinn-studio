@@ -1,5 +1,5 @@
-import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs } from '../data/formItemConfig';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { type SupportedComponentType, formItemConfigs } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
@@ -86,7 +86,7 @@ export const getSupportedPropertyKeysForPropertyType = (
  * @param id The id of the component to generate.
  * @returns A component of the given type.
  */
-export const generateFormItem = <T extends ComponentType | CustomComponentType>(
+export const generateFormItem = <T extends SupportedComponentType>(
   type: T,
   id: string,
 ): FormItem<T> => {

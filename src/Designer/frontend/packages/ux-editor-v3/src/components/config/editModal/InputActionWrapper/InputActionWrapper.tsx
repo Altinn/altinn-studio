@@ -1,9 +1,8 @@
 import React, { useEffect, useState, type JSX } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import type { ButtonProps } from '@digdir/designsystemet-react';
 import classes from './InputActionWrapper.module.css';
-import { StudioButton } from '@studio/components';
+import { StudioButton, type StudioButtonProps } from '@studio/components';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
 export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';
@@ -90,7 +89,7 @@ export const InputActionWrapper = ({
     save: t('general.save'),
   };
 
-  const actionToColorMap: Record<AvailableAction, ButtonProps['color']> = {
+  const actionToColorMap: Record<AvailableAction, StudioButtonProps['color']> = {
     edit: 'first',
     save: 'success',
     delete: 'danger',

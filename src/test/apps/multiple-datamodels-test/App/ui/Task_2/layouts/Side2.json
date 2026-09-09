@@ -4,7 +4,7 @@
     "layout": [
       {
         "id": "Header-prefill-test",
-        "type": "Header",
+        "type": "Heading",
         "size": "L",
         "textResourceBindings": {
           "title": "Test av delt modell med prefill"
@@ -62,7 +62,6 @@
       {
         "id": "nav2",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "back": "Forrige"
         }

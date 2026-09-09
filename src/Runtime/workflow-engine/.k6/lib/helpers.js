@@ -39,23 +39,33 @@ export const WEBHOOK_URL = __ENV.WEBHOOK_URL || 'http://wiremock:8080/webhook-ca
 /**
  * Builds request params with unique metadata headers for each request.
  * Returns a k6 params object with Content-Type, Idempotency-Key, and Collection-Key headers.
+ *
+ * @param {object} [overrides] - optional fixed values
+ * @param {string} [overrides.collectionKey] - collection to enqueue into, instead of a fresh one.
+ *   Pass this when several workflows belong to one exchange.
+ * @param {string} [overrides.idempotencyKey] - enqueue key, instead of a fresh one
  */
-export function buildRequestParams() {
+export function buildRequestParams(overrides) {
     const guid = uuidv4();
     return {
         headers: {
             'Content-Type': 'application/json',
-            'Idempotency-Key': `k6-${guid}`,
-            'Collection-Key': guid,
+            'Idempotency-Key': overrides?.idempotencyKey ?? `k6-${guid}`,
+            'Collection-Key': overrides?.collectionKey ?? guid,
         },
     };
 }
 
 /**
- * Deep-clones the payload template.
+ * Deep-clones the payload template, pointing every webhook step at `WEBHOOK_URL` and merging any
+ * extra labels into the request's label set.
  * Returns the serialized JSON string ready for POST.
+ *
+ * @param {object} template - parsed payload template
+ * @param {Record<string, string>} [extraLabels] - labels merged into the request, so a run can tell
+ *   its own workloads apart on the list endpoint (`?label=key:value`)
  */
-export function buildPayload(template) {
+export function buildPayload(template, extraLabels) {
     const payload = JSON.parse(JSON.stringify(template));
 
     for (const workflow of payload.workflows ?? []) {
@@ -65,6 +75,10 @@ export function buildPayload(template) {
                 step.command.data.uri = WEBHOOK_URL;
             }
         }
+    }
+
+    if (extraLabels) {
+        payload.labels = Object.assign({}, payload.labels, extraLabels);
     }
 
     return JSON.stringify(payload);
@@ -81,7 +95,7 @@ function parseEngineHealth(res) {
 
 /**
  * Polls the workflows list endpoint until it returns 204 No Content (no active workflows).
- * Uses pageSize=1 to minimise data transfer — only the totalCount matters.
+ * Uses pageSize=1 to minimize data transfer — only the totalCount matters.
  * @param {number} pollIntervalMs - milliseconds between polls
  */
 export function waitForQueueDrain(pollIntervalMs = 500) {

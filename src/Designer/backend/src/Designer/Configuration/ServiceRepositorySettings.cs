@@ -108,7 +108,7 @@ public class ServiceRepositorySettings : ISettingsMarker
     /// <summary>
     /// Gets the full path to the org directory
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="developer">The current user, app developer</param>
     /// <returns>The full path, ending with "/"</returns>
     public string GetOrgPath(string org, string developer = null)
@@ -122,8 +122,8 @@ public class ServiceRepositorySettings : ISettingsMarker
     /// <summary>
     /// Gets the full path to the app directory.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="developer">the developer for the current app.</param>
     /// <returns>The full path, ending with "/"</returns>
     public string GetServicePath(string org, string app, string developer = null)
@@ -138,8 +138,8 @@ public class ServiceRepositorySettings : ISettingsMarker
     /// <summary>
     /// Gets the full path to ResourceDirectory
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="developer">the developer for the current app.</param>
     /// <returns>The full path, ending with "/"</returns>
     public string GetLanguageResourcePath(string org, string app, string developer)
@@ -173,8 +173,8 @@ public class ServiceRepositorySettings : ISettingsMarker
     /// <summary>
     /// Gets the path to widgets in app repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="developer">The current user, app developer.</param>
     /// <returns>The path to widget settings in the app repo, ending with "/"</returns>
     public string GetWidgetSettingsPath(string org, string app, string developer)

@@ -910,15 +910,6 @@
         }
       },
       {
-        endpoint: POST {org}/{app}/api/v1/eventsreceiver,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: POST {org}/{app}/api/v1/lookup/person,
         metadata: {
           errorMessageTextResourceKeyUser: null,

@@ -1,0 +1,4 @@
+.textfieldCell:has(input:invalid) {
+  background-color: var(--ds-color-danger-surface-tinted);
+  --dsc-input-border-color: var(--ds-color-danger-border-default);
+}

@@ -1,7 +1,7 @@
+import { breakpoints } from '@app/form-component';
+
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
-
-import { breakpoints } from 'src/hooks/useDeviceWidths';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -19,7 +19,7 @@ it('is possible to submit app instance from mobile', () => {
 });
 
 it('is possible to submit app instance from a tablet', () => {
-  cy.viewport(breakpoints.tablet - 5, 1024);
+  cy.viewport(breakpoints.md - 5, 1024);
   testChangeName();
   cy.get('html.viewport-is-tablet').should('be.visible');
   testGroup('tablet');

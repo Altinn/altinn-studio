@@ -1,15 +1,16 @@
 import React from 'react';
 
+import { useIsMobileOrTablet } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -17,11 +18,8 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
-  const component = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    targetBaseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  );
-  const hasTag = component.type === 'FileUploadWithTag';
+  const component = useItemWhenType<'FileUpload'>(targetBaseComponentId, (t) => t === 'FileUpload');
+  const hasTag = fileUploadHasTag(component);
   const { options, isFetching } = useOptionsFor(targetBaseComponentId, 'single');
   const mobileView = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();

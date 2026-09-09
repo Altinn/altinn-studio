@@ -298,7 +298,7 @@ describe('OrgContentLibraryPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('Renders with the organisation library heading', () => {
+  it('Renders with the organization library heading', () => {
     renderOrgContentLibraryWithData();
     expect(retrieveConfig().heading).toBe(textMock('org_content_library.library_heading'));
   });

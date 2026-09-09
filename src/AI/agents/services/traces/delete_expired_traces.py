@@ -5,7 +5,11 @@ from datetime import datetime, timedelta, timezone
 import httpx
 
 from shared.config import get_config
-from shared.utils.langfuse_public_api import PAGE_SIZE, create_public_api_client
+from shared.utils.langfuse_public_api import (
+    create_public_api_client,
+    fetch_observations,
+    root_span_filter,
+)
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -13,6 +17,8 @@ log = get_logger(__name__)
 # Langfuse docs advises against more than 30-50 trace ids per DELETE request.
 DELETE_BATCH_SIZE = 30
 TRACES_PATH = "/api/public/traces"
+# The listing API requires a lower bound; the cutoff drives what is deleted.
+EARLIEST_START_TIME = "2020-01-01T00:00:00Z"
 
 
 async def delete_expired_traces() -> int:
@@ -39,31 +45,23 @@ async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> 
 async def _fetch_expired_trace_ids(
     client: httpx.AsyncClient, cutoff: datetime
 ) -> list[str]:
-    trace_ids: list[str] = []
-    page_number = 1
-    while True:
-        page_trace_ids = await _fetch_trace_id_page(client, cutoff, page_number)
-        trace_ids.extend(page_trace_ids)
-        if len(page_trace_ids) < PAGE_SIZE:
-            return trace_ids
-        page_number += 1
-
-
-async def _fetch_trace_id_page(
-    client: httpx.AsyncClient, cutoff: datetime, page_number: int
-) -> list[str]:
-    response = await client.get(
-        TRACES_PATH,
-        params={
-            "toTimestamp": cutoff.isoformat(),
-            "limit": PAGE_SIZE,
-            "page": page_number,
+    """One id per expired trace. Root spans repeat per trace, so dedupe."""
+    root_spans = await fetch_observations(
+        client,
+        {
+            "filter": root_span_filter(),
+            "fields": "core",
+            "fromStartTime": EARLIEST_START_TIME,
+            "toStartTime": cutoff.isoformat(),
             "environment": ["prod", "production"],
         },
     )
-    response.raise_for_status()
-    page_items = response.json().get("data") or []
-    return [item["id"] for item in page_items]
+    seen: dict[str, None] = {}
+    for span in root_spans:
+        trace_id = span.get("traceId")
+        if trace_id:
+            seen.setdefault(trace_id, None)
+    return list(seen)
 
 
 async def _delete_trace_batch(client: httpx.AsyncClient, trace_ids: list[str]) -> None:

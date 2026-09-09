@@ -151,7 +151,7 @@ internal sealed class LegacyCorrespondenceCodeDetector
     private const string RecipientOverrideSummary =
         "The Correspondence notification recipient-override API changed in v9. Notifications now carry a list: "
         + "CorrespondenceNotification.CustomRecipients replaces the singular CustomRecipient, and "
-        + "CorrespondenceNotificationRecipientWrapper plus CustomNotificationRecipients are gone (the API honoured "
+        + "CorrespondenceNotificationRecipientWrapper plus CustomNotificationRecipients are gone (the API honored "
         + "only that list's first entry). Set recipients with WithRecipientOverride(recipient), which now accumulates "
         + "and can be chained, WithRecipientOverrides(recipients) for several at once, or "
         + "WithRecipientOverrideIfConfigured(recipient) to skip a null. Build each recipient with "

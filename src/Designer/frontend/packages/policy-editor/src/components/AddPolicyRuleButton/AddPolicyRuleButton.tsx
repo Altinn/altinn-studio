@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './AddPolicyRuleButton.module.css';
 import { PlusIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph } from '@studio/components';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import type { PolicyRuleResource, PolicyRuleCard } from '../../types';
 import { emptyPolicyRule, createNewPolicyResource, getNewRuleId } from '../../utils';
@@ -38,7 +38,7 @@ export const AddPolicyRuleButton = ({ onClick }: AddPolicyRuleButtonProps): Reac
 
   return (
     <button className={classes.button} type='button' onClick={handleAddCardClick}>
-      <Paragraph size='small'>{t('policy_editor.card_button_text')}</Paragraph>
+      <StudioParagraph>{t('policy_editor.card_button_text')}</StudioParagraph>
       <PlusIcon className={classes.icon} />
     </button>
   );

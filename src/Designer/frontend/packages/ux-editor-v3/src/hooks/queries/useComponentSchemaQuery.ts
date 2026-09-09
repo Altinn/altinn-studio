@@ -13,7 +13,7 @@ export interface UseComponentSchemaQueryResult {
 
 // Currently use local mocks rather than fetching from CDN. This is because the CDN schemas are not ready to use, and
 // we also have made some modifications locally to the schemas.
-// When the schemas are available on CDN, we can remove the mocks and use the querys instead.
+// When the schemas are available on CDN, we can remove the mocks and use the queries instead.
 export const useComponentSchemaQuery = (component: string): UseQueryResult<any> => {
   const queryClient = useQueryClient();
 

@@ -212,7 +212,7 @@ public class TenorDataRepository
     }
 }
 
-public static class ListExtentions
+public static class ListExtensions
 {
     public static T? FirstErGjeldende<T>(this List<T> list)
     {

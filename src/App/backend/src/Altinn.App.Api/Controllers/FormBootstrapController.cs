@@ -27,7 +27,7 @@ namespace Altinn.App.Api.Controllers;
 public class FormBootstrapController : ControllerBase
 {
     private readonly FormBootstrapService _formBootstrapService;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
@@ -50,7 +50,7 @@ public class FormBootstrapController : ControllerBase
     {
         _formBootstrapService = serviceProvider.GetRequiredService<FormBootstrapService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
-        _instanceClient = instanceClient;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _appResources = appResources;
         _appMetadata = appMetadata;
         _pdp = pdp;
@@ -61,8 +61,8 @@ public class FormBootstrapController : ControllerBase
     /// <summary>
     /// Gets all data needed to bootstrap a form for an instance.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The unique identifier of the instance.</param>
     /// <param name="uiFolder">The UI folder to use (matches the task ID or subform folder name).</param>
@@ -76,6 +76,7 @@ public class FormBootstrapController : ControllerBase
     [ProducesResponseType(typeof(FormBootstrapResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder}")]
     public async Task<ActionResult<FormBootstrapResponse>> GetInstanceFormBootstrap(
@@ -90,7 +91,15 @@ public class FormBootstrapController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
+        var instance = fetchedInstance.Instance;
 
         var layoutSettings = GetLayoutSettings(uiFolder);
         if (layoutSettings is null)
@@ -108,6 +117,7 @@ public class FormBootstrapController : ControllerBase
         {
             var response = await _formBootstrapService.GetInstanceFormBootstrap(
                 instance,
+                fetchedInstance.Metadata,
                 uiFolder,
                 dataElementId,
                 pdf,
@@ -148,8 +158,8 @@ public class FormBootstrapController : ControllerBase
     /// <summary>
     /// Gets all data needed to bootstrap a stateless form.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="uiFolder">The layout set ID to use.</param>
     /// <param name="language">Language code for text resources.</param>
     /// <param name="prefill">Optional JSON object containing query param prefill, either for the default data type or keyed by data type.</param>

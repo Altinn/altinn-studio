@@ -15,6 +15,8 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
     private async Task<IReadOnlyList<string>> Migrate() => (await MigrateResult()).Warnings;
 
+    private async Task<IReadOnlyList<string>> MigrateTodos() => (await MigrateResult()).Todos;
+
     private XElement ProcessAfter()
     {
         var doc = XDocument.Parse(_app.Read("config/process/process.bpmn"));
@@ -116,11 +118,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
         );
 
-        var warnings = await Migrate();
+        var result = await MigrateResult();
 
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
-        Assert.Contains(warnings, w => w.Contains("Task_Ghost", StringComparison.Ordinal));
-        Assert.Contains(warnings, w => w.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+        Assert.Contains(result.Warnings, w => w.Contains("Task_Ghost", StringComparison.Ordinal));
+        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -324,9 +326,9 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         _app.WriteBytes("config/process/process.bpmn", System.Text.Encoding.Latin1.GetBytes(bpmn));
         var processBytesBefore = _app.ReadBytes("config/process/process.bpmn");
 
-        var warnings = await Migrate();
+        var todos = await MigrateTodos();
 
-        Assert.Contains(warnings, w => w.Contains("not valid UTF-8", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("not valid UTF-8", StringComparison.Ordinal));
         Assert.Equal(processBytesBefore, _app.ReadBytes("config/process/process.bpmn"));
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
     }
@@ -343,9 +345,9 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var metadataBytesBefore = _app.ReadBytes("config/applicationmetadata.json");
         var processBefore = _app.Read("config/process/process.bpmn");
 
-        var warnings = await Migrate();
+        var todos = await MigrateTodos();
 
-        Assert.Contains(warnings, w => w.Contains("not valid UTF-8", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("not valid UTF-8", StringComparison.Ordinal));
         Assert.Equal(metadataBytesBefore, _app.ReadBytes("config/applicationmetadata.json"));
         Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
     }
@@ -508,9 +510,9 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
         );
 
-        var warnings = await Migrate();
+        var todos = await MigrateTodos();
 
-        Assert.Contains(warnings, w => w.Contains("not valid JSON", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("not valid JSON", StringComparison.Ordinal));
         Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
     }
 
@@ -525,9 +527,9 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var bpmn = "<root><child></root>";
         _app.Write("config/process/process.bpmn", bpmn);
 
-        var warnings = await Migrate();
+        var todos = await MigrateTodos();
 
-        Assert.Contains(warnings, w => w.Contains("not valid XML", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("not valid XML", StringComparison.Ordinal));
         Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
     }
@@ -546,7 +548,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         var result = await MigrateResult();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -565,7 +567,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         var result = await MigrateResult();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
     }
 
     [Fact]
@@ -581,7 +583,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         var result = await MigrateResult();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -639,7 +641,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     {
         // A freshly-scaffolded app's applicationmetadata.json has no enablePdfCreation, so the
         // migrator must do nothing and leave the file byte-for-byte untouched. The fixture is a
-        // verbatim copy of src/App/template/src/App/config/applicationmetadata.json; its [ORG]/[APP]
+        // verbatim copy of src/App/template/v8/src/App/config/applicationmetadata.json; its [ORG]/[APP]
         // placeholders are valid JSON string values and irrelevant to this migrator.
         var metadata = await File.ReadAllTextAsync(
             Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-appmetadata.json"),
@@ -650,7 +652,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var result = await MigrateResult();
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
     }
 

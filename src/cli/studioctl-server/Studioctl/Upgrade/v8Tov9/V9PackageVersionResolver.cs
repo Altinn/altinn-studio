@@ -29,7 +29,8 @@ internal static class V9PackageVersionResolver
             .Select(NuGetPackageVersion.TryParse)
             .OfType<NuGetPackageVersion>()
             .Where(v => v.Major == targetMajorVersion)
-            .OrderDescending()
+            .OrderBy(v => v.Prerelease.Count > 0)
+            .ThenByDescending(v => v)
             .FirstOrDefault();
 
         if (latest is null)

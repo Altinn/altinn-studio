@@ -15,7 +15,6 @@ export const expressionPropertiesOnFormItem = <T extends ComponentType>(
     case ComponentType.Datepicker:
     case ComponentType.Dropdown:
     case ComponentType.FileUpload:
-    case ComponentType.FileUploadWithTag:
     case ComponentType.Input:
     case ComponentType.Likert:
     case ComponentType.List:

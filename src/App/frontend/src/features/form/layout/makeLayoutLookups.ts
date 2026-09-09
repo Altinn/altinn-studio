@@ -1,7 +1,8 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
 

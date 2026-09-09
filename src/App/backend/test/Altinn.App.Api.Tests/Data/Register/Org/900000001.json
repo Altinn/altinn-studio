@@ -7,10 +7,10 @@
   "FaxNumber": "12345678",
   "EMailAddress": "email@email.com",
   "InternetAddress": "http://example.com",
-  "MailingAddress": "Postadresse 9",
+  "MailingAddress": "Postadresse 9 0000 By",
   "MailingPostalCode": "0000",
   "MailingPostalCity": "By",
-  "BusinessAddress": "Forretningsadresse 9",
+  "BusinessAddress": "Forretningsadresse 9 0000 By",
   "BusinessPostalCode": "0000",
   "BusinessPostalCity": "By"
 }

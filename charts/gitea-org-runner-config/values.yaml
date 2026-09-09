@@ -15,7 +15,5 @@ shareWorkspace:
 # `maxConcurrentDefault` applies to every org; `maxConcurrentOverrides` keys
 # named exceptions per org. Overrides for orgs absent from the active
 # environment's runners list are harmlessly ignored.
-maxConcurrentDefault: 2
-maxConcurrentOverrides:
-  brg: 5
-  ssb: 5
+maxConcurrentDefault: 4
+maxConcurrentOverrides: {}

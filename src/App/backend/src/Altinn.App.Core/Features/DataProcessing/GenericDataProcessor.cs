@@ -12,7 +12,7 @@ public abstract class GenericDataProcessor<TModel> : IDataProcessor
     /// Do changes to the model after it has been read from storage, but before it is returned to the app.
     /// this only executes on page load and not for subsequent updates.
     /// </summary>
-    public abstract Task ProcessDataRead(Instance instance, Guid? dataId, TModel model, string? langauge);
+    public abstract Task ProcessDataRead(Instance instance, Guid? dataId, TModel model, string? language);
 
     /// <summary>
     /// Do changes to the model before it is written to storage, and report back to frontend.

@@ -77,7 +77,7 @@ function assertPath(lines: number, closed: boolean) {
   cy.get(selectors.path)
     .invoke('attr', 'd')
     .should((path) => {
-      const commands = path?.match(/[MLZ]/gi) ?? [];
+      const commands: string[] = path?.match(/[MLZ]/gi) ?? [];
       const drawnLines = commands.filter((command) => command.toUpperCase() === 'L').length;
       const isClosed = commands.at(-1)?.toUpperCase() === 'Z';
 

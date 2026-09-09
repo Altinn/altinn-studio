@@ -1,3 +1,5 @@
+@value mediaOnlyScreenSmUp from '@app/form-component/styles/breakpoints.module.css';
+
 .footer {
   max-width: var(--page-max-width);
   padding: 60px var(--footer-padding);
@@ -13,7 +15,7 @@
   gap: 30px 50px;
 }
 
-@media only screen and (min-width: 600px) {
+@media mediaOnlyScreenSmUp {
   .elements {
     flex-direction: row;
   }

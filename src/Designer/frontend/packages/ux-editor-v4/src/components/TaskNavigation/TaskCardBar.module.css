@@ -3,9 +3,9 @@
   display: flex;
   align-items: flex-start;
   font-family: var(--studio-font-family);
-  margin: var(--fds-spacing-1);
-  padding: var(--fds-spacing-5);
-  gap: var(--fds-spacing-3);
+  margin: var(--ds-size-1);
+  padding: var(--ds-size-5);
+  gap: var(--ds-size-3);
 
   overflow-x: scroll;
   background-color: #e6eff8;
@@ -15,8 +15,8 @@
 .wrapper {
   display: flex;
   flex-direction: row;
-  gap: var(--fds-spacing-1);
-  padding-bottom: var(--fds-spacing-4);
+  gap: var(--ds-size-1);
+  padding-bottom: var(--ds-size-4);
 }
 
 .addCardsContainer {
@@ -25,8 +25,8 @@
   min-height: 320px;
   height: fit-content;
   flex-direction: column;
-  gap: var(--fds-spacing-3);
-  padding-left: var(--fds-spacing-1);
+  gap: var(--ds-size-3);
+  padding-left: var(--ds-size-1);
 }
 
 .addCardsContainer > * {

@@ -87,7 +87,7 @@ public sealed record CorrespondenceNotification
     /// <p>Despite the name of the builder methods that set it, this does <em>not</em> replace the
     /// correspondence recipient: the Correspondence API notifies the correspondence recipient's registered
     /// contact information <em>and</em> everyone listed here. Leaving it unset notifies the correspondence
-    /// recipient only. The API de-duplicates byte-identical entries, but note that it keys organisation and
+    /// recipient only. The API de-duplicates byte-identical entries, but note that it keys organization and
     /// person recipients on the bare number while this client sends them URN-formatted, so listing the
     /// correspondence recipient here again yields two notifications rather than one.</p>
     /// <p>Set <see cref="OverrideRegisteredContactInformation"/> to notify only these recipients.</p>

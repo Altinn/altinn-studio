@@ -2,7 +2,7 @@ import type { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeL
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export const coloursFile = codeListFile('colours');
+export const colorsFile = codeListFile('colours');
 export const fruitsFile = codeListFile('fruits');
 export const countriesFile = codeListFile('countries');
 
@@ -14,4 +14,4 @@ function codeListFile(codeListName: string): OrdinaryCodeListFile {
   };
 }
 
-export const codeLists: CodeListFile[] = [coloursFile, fruitsFile, countriesFile];
+export const codeLists: CodeListFile[] = [colorsFile, fruitsFile, countriesFile];

@@ -26,7 +26,7 @@
 }
 
 .container > div:not(:last-child) {
-  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border-right: 1px solid var(--ds-color-neutral-border-subtle);
 }
 
 .warningMessage {

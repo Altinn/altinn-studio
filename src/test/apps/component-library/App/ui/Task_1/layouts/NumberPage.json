@@ -9,7 +9,7 @@
       },
       {
         "id": "NumberPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Number"
@@ -142,7 +142,6 @@
       {
         "id": "Number-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

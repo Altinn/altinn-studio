@@ -6,8 +6,8 @@ import {
   updateCodeListFileInMap,
   validateCodeListMap,
 } from './utils';
-import { codeListMap, coloursKey, countriesKey, fruitsKey } from './test-data/codeListMap';
-import { codeLists, coloursFile, countriesFile, fruitsFile } from './test-data/codeLists';
+import { codeListMap, colorsKey, countriesKey, fruitsKey } from './test-data/codeListMap';
+import { codeLists, colorsFile, countriesFile, fruitsFile } from './test-data/codeLists';
 import type { CodeListMapError } from './types/CodeListMapError';
 import type {
   CodeListFile,
@@ -35,9 +35,9 @@ describe('CodeListsPage utils', () => {
           { value: '2', label: { nb: 'To', en: 'Two' } },
         ] satisfies CodeList),
       };
-      const result = updateCodeListFileInMap(codeListMap, coloursKey, updatedCodeListData);
+      const result = updateCodeListFileInMap(codeListMap, colorsKey, updatedCodeListData);
       expect(result.size).toBe(codeListMap.size);
-      expect(result.get(coloursKey)).toEqual(updatedCodeListData);
+      expect(result.get(colorsKey)).toEqual(updatedCodeListData);
     });
   });
 
@@ -54,9 +54,9 @@ describe('CodeListsPage utils', () => {
 
   describe('deleteCodeListFromMap', () => {
     it('Deletes the code list data for the given id', () => {
-      const result = deleteCodeListFromMap(codeListMap, coloursKey);
+      const result = deleteCodeListFromMap(codeListMap, colorsKey);
       expect(result.size).toBe(codeListMap.size - 1);
-      expect(result.has(coloursKey)).toBe(false);
+      expect(result.has(colorsKey)).toBe(false);
     });
   });
 
@@ -70,7 +70,7 @@ describe('CodeListsPage utils', () => {
       const map: CodeListFileMap = new Map<string, CodeListFile>([
         [countriesKey, { ...countriesFile, name: '.json' }],
         [fruitsKey, fruitsFile],
-        [coloursKey, coloursFile],
+        [colorsKey, colorsFile],
       ]);
       const result = validateCodeListMap(map);
       const expectedResult: CodeListMapError[] = ['missing_name'];
@@ -81,7 +81,7 @@ describe('CodeListsPage utils', () => {
       const map: CodeListFileMap = new Map<string, CodeListFile>([
         [countriesKey, countriesFile],
         [fruitsKey, fruitsFile],
-        [coloursKey, { ...coloursFile, name: fruitsFile.name }],
+        [colorsKey, { ...colorsFile, name: fruitsFile.name }],
       ]);
       const result = validateCodeListMap(map);
       const expectedResult: CodeListMapError[] = ['duplicate_name'];
@@ -92,7 +92,7 @@ describe('CodeListsPage utils', () => {
       const map: CodeListFileMap = new Map<string, CodeListFile>([
         [countriesKey, { ...countriesFile, name: '' }],
         [fruitsKey, fruitsFile],
-        [coloursKey, { ...coloursFile, name: fruitsFile.name }],
+        [colorsKey, { ...colorsFile, name: fruitsFile.name }],
       ]);
       const result = validateCodeListMap(map);
       const expectedResult: CodeListMapError[] = ['missing_name', 'duplicate_name'];
@@ -114,14 +114,14 @@ describe('CodeListsPage utils', () => {
     it('Returns false when one of the files has different names', () => {
       const map1 = codeListMap;
       const map2 = createMutableCodeListFileMapClone(map1);
-      map2.set(coloursKey, { ...coloursFile, name: 'something-else.json' });
+      map2.set(colorsKey, { ...colorsFile, name: 'something-else.json' });
       expect(areFileMapsEqual(map1, map2)).toBe(false);
     });
 
     it('Returns false when one of the files has different content', () => {
       const map1 = codeListMap;
       const map2 = createMutableCodeListFileMapClone(map1);
-      map2.set(coloursKey, { ...coloursFile, content: '[]' });
+      map2.set(colorsKey, { ...colorsFile, content: '[]' });
       expect(areFileMapsEqual(map1, map2)).toBe(false);
     });
 

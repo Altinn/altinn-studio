@@ -20,7 +20,7 @@ public class NotificationTextsTests
             instanceOwnerName: "John Doe",
             serviceOwnerName: "TestDepartementet",
             orgNumber: "123456789",
-            nationalIndentityNumber: "01010112345",
+            nationalIdentityNumber: "01010112345",
             dueDateTime: DateTime.SpecifyKind(new DateTime(2024, 12, 31), DateTimeKind.Utc)
         );
 
@@ -43,7 +43,7 @@ public class NotificationTextsTests
             instanceOwnerName: null,
             serviceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDateTime: null
         );
 
@@ -60,7 +60,7 @@ public class NotificationTextsTests
             instanceOwnerName: null,
             serviceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDateTime: null
         );
 
@@ -77,7 +77,7 @@ public class NotificationTextsTests
             instanceOwnerName: null,
             serviceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDateTime: null
         );
 
@@ -94,7 +94,7 @@ public class NotificationTextsTests
             instanceOwnerName: null,
             serviceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDateTime: DateTime.SpecifyKind(new DateTime(2026, 3, 12, 16, 15, 44), DateTimeKind.Utc)
         );
 
@@ -113,7 +113,7 @@ public class NotificationTextsTests
             instanceOwnerName: "Someone",
             serviceOwnerName: "Owner",
             orgNumber: "999",
-            nationalIndentityNumber: "12345",
+            nationalIdentityNumber: "12345",
             dueDateTime: DateTime.SpecifyKind(new DateTime(2024, 6, 1), DateTimeKind.Utc)
         );
 
@@ -155,7 +155,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: null
         );
 
@@ -175,7 +175,7 @@ public class NotificationTextsTests
             serviceOwnerName: "Acme",
             instanceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: null
         );
 
@@ -191,7 +191,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: null
         );
 
@@ -207,7 +207,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: "John Doe",
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: null
         );
 
@@ -223,7 +223,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: "Acme AS",
             orgNumber: "123456789",
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: null
         );
 
@@ -242,7 +242,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: null,
             orgNumber: "123456789",
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: null
         );
 
@@ -261,7 +261,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: "Jane Doe",
             orgNumber: null,
-            nationalIndentityNumber: "01010112345",
+            nationalIdentityNumber: "01010112345",
             dueDate: null
         );
 
@@ -281,7 +281,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: null,
             orgNumber: "123456789",
-            nationalIndentityNumber: "01010112345",
+            nationalIdentityNumber: "01010112345",
             dueDate: null
         );
 
@@ -298,7 +298,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: DateTime.SpecifyKind(new DateTime(2025, 7, 3), DateTimeKind.Utc)
         );
 
@@ -317,7 +317,7 @@ public class NotificationTextsTests
             serviceOwnerName: null,
             instanceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: DateTime.SpecifyKind(new DateTime(2025, 7, 3), DateTimeKind.Utc)
         );
 
@@ -336,7 +336,7 @@ public class NotificationTextsTests
             serviceOwnerName: "Tax Authority",
             instanceOwnerName: "Acme AS",
             orgNumber: "987654321",
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: DateTime.SpecifyKind(new DateTime(2025, 12, 31), DateTimeKind.Utc)
         );
 
@@ -355,7 +355,7 @@ public class NotificationTextsTests
             serviceOwnerName: "Skatteetaten",
             instanceOwnerName: "Acme AS",
             orgNumber: "987654321",
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDate: DateTime.SpecifyKind(new DateTime(2025, 12, 31), DateTimeKind.Utc)
         );
 
@@ -417,7 +417,7 @@ public class NotificationTextsTests
             instanceOwnerName: null,
             serviceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDateTime: null
         );
 
@@ -434,7 +434,7 @@ public class NotificationTextsTests
             instanceOwnerName: null,
             serviceOwnerName: null,
             orgNumber: null,
-            nationalIndentityNumber: null,
+            nationalIdentityNumber: null,
             dueDateTime: null
         );
 
@@ -454,7 +454,7 @@ public class NotificationTextsTests
             instanceOwnerName: "John Doe",
             serviceOwnerName: "TestDepartementet",
             orgNumber: "123456789",
-            nationalIndentityNumber: "01010112345",
+            nationalIdentityNumber: "01010112345",
             dueDateTime: DateTime.SpecifyKind(new DateTime(2024, 12, 31), DateTimeKind.Utc)
         );
 

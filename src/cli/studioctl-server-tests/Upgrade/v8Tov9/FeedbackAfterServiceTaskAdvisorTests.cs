@@ -30,10 +30,10 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        var warning = Assert.Single(result.Warnings);
-        Assert.Contains("'Task_Wait'", warning, StringComparison.Ordinal);
-        Assert.Contains("'Task_Send'", warning, StringComparison.Ordinal);
-        Assert.True(result.ManualActionRequired);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("'Task_Wait'", todo, StringComparison.Ordinal);
+        Assert.Contains("'Task_Send'", todo, StringComparison.Ordinal);
+        Assert.Empty(result.Warnings);
     }
 
     [Fact]
@@ -49,8 +49,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Single(result.Warnings);
-        Assert.True(result.ManualActionRequired);
+        Assert.Single(result.Todos);
     }
 
     [Fact]
@@ -63,7 +62,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
         );
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -83,7 +82,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Single(result.Warnings);
+        Assert.Single(result.Todos);
     }
 
     [Fact]
@@ -101,7 +100,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
         );
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -110,7 +109,46 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
         var result = Analyze(bpmn: null);
 
         Assert.Empty(result.Warnings);
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public void EFormidlingPredecessor_WarnsThatRemovalIsRequired()
+    {
+        // Not a "may be redundant" case: the v9 eFormidling service task waits for the delivery
+        // confirmation itself, and the Altinn Events reminder that used to move the process past the
+        // feedback task is gone - so a trailing feedback task strands the instance.
+        var eFormidling = Analyze(
+            Process(
+                ServiceTask("Task_Send", "eFormidling"),
+                Task("Task_Wait", "feedback"),
+                Flow("f1", "Task_Send", "Task_Wait")
+            )
+        );
+
+        var todo = Assert.Single(eFormidling.Todos);
+        Assert.Contains("must be removed", todo, StringComparison.Ordinal);
+        Assert.Contains("indefinitely", todo, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OtherServiceTaskPredecessor_WarnsThatReviewIsNeeded()
+    {
+        using var app = new TempAppFolder();
+        app.Write(
+            "config/process/process.bpmn",
+            Process(
+                ServiceTask("Task_Archive", "fiksArkiv"),
+                Task("Task_Wait", "feedback"),
+                Flow("f1", "Task_Archive", "Task_Wait")
+            )
+        );
+
+        var result = new FeedbackAfterServiceTaskAdvisor(app.Root).Analyze();
+
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("may be a redundant", todo, StringComparison.Ordinal);
+        Assert.DoesNotContain("must be removed", todo, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -127,6 +165,6 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Equal(2, result.Warnings.Count);
+        Assert.Equal(2, result.Todos.Count);
     }
 }

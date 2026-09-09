@@ -11,22 +11,22 @@ import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
-import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
+import { clientLoader } from 'src/routes/instance-selection/instance-selection.loader';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 import type { InstanceSelectionLoaderResult } from 'src/routes/instance-selection/instance-selection.loader';
 
 // react-router's redirect() requires the Fetch API Response class, which jsdom doesn't provide.
 // We mock it to return a plain object with the same shape.
-jest.mock('react-router', () => ({
-  ...jest.requireActual('react-router'),
-  redirect: jest.fn((url: string, init?: number | ResponseInit) => {
+vi.mock('react-router', async () => ({
+  ...(await vi.importActual('react-router')),
+  redirect: vi.fn((url: string, init?: number | ResponseInit) => {
     const status = typeof init === 'number' ? init : (init?.status ?? 302);
     return { status, headers: new Map([['Location', url]]) };
   }),
 }));
 
-jest.mock('src/core/api-client/instance.api');
-jest.mock('src/core/api-client/party.api');
+vi.mock('src/core/api-client/instance.api');
+vi.mock('src/core/api-client/party.api');
 
 const mockParty = getPartyMock();
 const mockInstance = {
@@ -48,9 +48,9 @@ function createLoaderArgs(): LoaderFunctionArgs {
   return createLoaderFunctionArgs({ context });
 }
 
-describe('instanceSelectionLoader', () => {
+describe('instance-selection clientLoader', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     GlobalData.setSelectedParty(mockParty);
   });
 
@@ -63,19 +63,19 @@ describe('instanceSelectionLoader', () => {
       { id: '12345/guid-1', lastChanged: '2021-10-05T07:51:57Z', lastChangedBy: 'Test User' },
       { id: '12345/guid-2', lastChanged: '2021-05-13T07:51:57Z', lastChangedBy: 'Other User' },
     ];
-    jest.mocked(instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
 
-    const result = await instanceSelectionLoader(createLoaderArgs());
+    const result = await clientLoader(createLoaderArgs());
 
     expect(result).toBeNull();
     expect(instanceApi.create).not.toHaveBeenCalled();
   });
 
   it('should create instance and redirect when no active instances exist', async () => {
-    jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
-    jest.mocked(instanceApi.create).mockResolvedValue(mockInstance);
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(instanceApi.create).mockResolvedValue(mockInstance);
 
-    await instanceSelectionLoader(createLoaderArgs());
+    await clientLoader(createLoaderArgs());
 
     expect(instanceApi.create).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
     expect(redirect).toHaveBeenCalledWith(expect.stringContaining('some-instance-guid'));
@@ -92,10 +92,10 @@ describe('instanceSelectionLoader', () => {
       response: { status: 403, data: validationResult },
     });
 
-    jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
-    jest.mocked(instanceApi.create).mockRejectedValue(error);
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const result = (await instanceSelectionLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
+    const result = (await clientLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'forbidden-validation');
@@ -110,10 +110,10 @@ describe('instanceSelectionLoader', () => {
       response: { status: 403, data: {} },
     });
 
-    jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
-    jest.mocked(instanceApi.create).mockRejectedValue(error);
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const result = await instanceSelectionLoader(createLoaderArgs());
+    const result = await clientLoader(createLoaderArgs());
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'forbidden');
@@ -122,10 +122,10 @@ describe('instanceSelectionLoader', () => {
   it('should return instantiation-failed error when instantiation fails with non-403 error', async () => {
     const error = new Error('Server error');
 
-    jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
-    jest.mocked(instanceApi.create).mockRejectedValue(error);
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const result = await instanceSelectionLoader(createLoaderArgs());
+    const result = await clientLoader(createLoaderArgs());
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'instantiation-failed');
@@ -139,7 +139,7 @@ describe('instanceSelectionLoader', () => {
     const originalSelectedParty = window.altinnAppGlobalData.selectedParty;
     window.altinnAppGlobalData.selectedParty = undefined;
 
-    await instanceSelectionLoader(createLoaderArgs());
+    await clientLoader(createLoaderArgs());
 
     window.altinnAppGlobalData.selectedParty = originalSelectedParty;
 

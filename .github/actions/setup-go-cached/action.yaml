@@ -1,0 +1,72 @@
+name: "Set up Go with shared caches"
+description: "setup-go plus restore-only Go module/build caches seeded from main by cache-warm.yml"
+inputs:
+  module:
+    description: "Path to the Go module directory (contains go.mod)"
+    required: true
+  populate-cache:
+    description: "Build the module and save the cache on a primary-key miss (cache-warm.yml only)"
+    required: false
+    default: "false"
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      id: setup
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      with:
+        go-version-file: ${{ inputs.module }}/go.mod
+        cache: false
+
+    - name: Resolve Go cache locations and key
+      id: config
+      shell: bash
+      env:
+        # runner.environment + ImageOS separate the independently maintained
+        # runner images (self-hosted vs GitHub-hosted, and image versions
+        # within each lineage): Go build-cache entries hash the C toolchain
+        # for cgo packages, so entries built on one image can silently never
+        # hit on another. go.sum is hashed together with go.mod; a module
+        # without external dependencies has no go.sum, and a hashFiles
+        # pattern that matches nothing simply contributes nothing.
+        KEY_PREFIX: go-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ runner.environment }}
+        KEY_SUFFIX: go${{ steps.setup.outputs.go-version }}-${{ inputs.module }}
+        SOURCE_HASH: ${{ hashFiles(format('{0}/go.sum', inputs.module), format('{0}/go.mod', inputs.module)) }}
+      run: |
+        echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+        echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+        echo "restore-prefix=${KEY_PREFIX}-${ImageOS:-none}-${KEY_SUFFIX}-" >> "$GITHUB_OUTPUT"
+        echo "key=${KEY_PREFIX}-${ImageOS:-none}-${KEY_SUFFIX}-${SOURCE_HASH}" >> "$GITHUB_OUTPUT"
+
+    # Restore only: the shared entries are saved from main by cache-warm.yml.
+    # PR-ref saves cannot be restored by other PRs or main and just evict the
+    # shared entries, so PR jobs never save. The restore-keys prefix gives
+    # dependency-update PRs a partial hit on the latest main entry, so only
+    # the changed modules are downloaded.
+    - name: Restore Go caches
+      id: restore
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ steps.config.outputs.gomodcache }}
+          ${{ steps.config.outputs.gocache }}
+        key: ${{ steps.config.outputs.key }}
+        restore-keys: |
+          ${{ steps.config.outputs.restore-prefix }}
+
+    - name: Warm Go module and build caches
+      if: ${{ inputs.populate-cache == 'true' && steps.restore.outputs.cache-hit != 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.module }}
+      run: |
+        go mod download
+        go build ./...
+
+    - name: Save Go caches
+      if: ${{ inputs.populate-cache == 'true' && steps.restore.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ steps.config.outputs.gomodcache }}
+          ${{ steps.config.outputs.gocache }}
+        key: ${{ steps.config.outputs.key }}

@@ -19,7 +19,7 @@ describe('Preview', () => {
     const previewIframeRef = createRef<HTMLIFrameElement>();
     renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);
 
-    const switchButton = screen.getByRole('checkbox', {
+    const switchButton = screen.getByRole('switch', {
       name: textMock('ux_editor.mobilePreview'),
     });
 

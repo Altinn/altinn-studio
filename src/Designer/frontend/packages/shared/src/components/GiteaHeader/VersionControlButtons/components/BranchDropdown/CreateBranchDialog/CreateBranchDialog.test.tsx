@@ -77,20 +77,62 @@ describe('CreateBranchDialog', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('should display error when pressing create button with invalid name', async () => {
+  it('should display a validation error in real time as the user types an invalid name', async () => {
     const user = userEvent.setup();
     renderCreateBranchDialog();
 
-    const textField = getBranchNameTextfield();
-    const createButton = queryCreateButton();
-    await user.type(textField, 'name with spaces');
-    await user.click(createButton);
+    await user.type(getBranchNameTextfield(), 'name with spaces');
 
     const errorMessage = screen.getByText(
       textMock('branching.new_branch_dialog.error_invalid_chars'),
     );
     expect(errorMessage).toBeInTheDocument();
-    expect(onCreateBranch).not.toHaveBeenCalled();
+  });
+
+  it('should disable the create button while the branch name is empty', () => {
+    renderCreateBranchDialog();
+    expect(queryCreateButton()).toBeDisabled();
+  });
+
+  it('should display an error when the branch name already exists', async () => {
+    const user = userEvent.setup();
+    renderCreateBranchDialog({ existingBranchNames: ['existing-branch'] });
+
+    await user.type(getBranchNameTextfield(), 'existing-branch');
+
+    const errorMessage = screen.getByText(
+      textMock('branching.new_branch_dialog.error_already_exists'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+    expect(queryCreateButton()).toBeDisabled();
+  });
+
+  it('should disable the create button while the branch name is invalid', async () => {
+    const user = userEvent.setup();
+    renderCreateBranchDialog();
+
+    await user.type(getBranchNameTextfield(), 'name with spaces');
+
+    expect(queryCreateButton()).toBeDisabled();
+  });
+
+  it('should clear the validation error once the name becomes valid again', async () => {
+    const user = userEvent.setup();
+    renderCreateBranchDialog();
+
+    const textField = getBranchNameTextfield();
+    await user.type(textField, 'name with spaces');
+    expect(
+      screen.getByText(textMock('branching.new_branch_dialog.error_invalid_chars')),
+    ).toBeInTheDocument();
+
+    await user.clear(textField);
+    await user.type(textField, 'valid-branch-name');
+
+    expect(
+      screen.queryByText(textMock('branching.new_branch_dialog.error_invalid_chars')),
+    ).not.toBeInTheDocument();
+    expect(queryCreateButton()).not.toBeDisabled();
   });
 
   it('should alter create button text when isLoading is true', () => {
@@ -109,6 +151,7 @@ const defaultProps: CreateBranchDialogProps = {
   isOpen: true,
   onClose,
   currentBranch: 'master',
+  existingBranchNames: [],
   createError: '',
   isLoading: false,
   onCreateBranch,

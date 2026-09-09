@@ -1,6 +1,5 @@
 {
   "name": "pdf3",
-  "packageManager": "yarn@4.16.0",
   "devDependencies": {
     "@types/k6": "^1.3.1"
   }

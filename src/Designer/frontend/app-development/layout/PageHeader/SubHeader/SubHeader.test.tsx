@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import { LeftContent, type LeftContentProps, SubHeader, type SubHeaderProps } from './SubHeader';
 import { renderWithProviders } from '../../../test/mocks';
-import { PreviewContext } from '../../../contexts/PreviewContext';
+import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { pageHeaderContextMock, previewContextMock } from '../../../test/headerMocks';
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
 import { app, org } from '@studio/testing/testids';

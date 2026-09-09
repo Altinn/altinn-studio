@@ -1,12 +1,11 @@
 import classes from './Overview.module.css';
-import { Link } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
 import { Navigation } from './Navigation';
 import { News } from './News';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
-import { StudioPageImageBackgroundContainer } from '@studio/components';
+import { StudioLink, StudioPageImageBackgroundContainer } from '@studio/components';
 
 export default function Overview() {
   const { t } = useTranslation();
@@ -36,7 +35,7 @@ export default function Overview() {
             </aside>
           </div>
           <footer className={classes.footer}>
-            <Link href='/info/contact'>{t('general.contact')}</Link>
+            <StudioLink href='/info/contact'>{t('general.contact')}</StudioLink>
           </footer>
         </div>
       </main>

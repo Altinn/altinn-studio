@@ -160,6 +160,54 @@ internal static class QueryPlanHelper
         }
     }
 
+    /// <summary>
+    /// Bitmap-tolerant sibling of <see cref="AssertUsesIndexScan"/>: a query with no matching <c>ORDER BY</c>
+    /// is answered with a Bitmap Index Scan, whose nodes carry the index name but no relation name — so the
+    /// index and the table's scan nodes are checked separately.
+    /// </summary>
+    public static void AssertUsesIndex(JsonElement plan, string tableName, string indexName)
+    {
+        AssertNoSeqScan(plan, tableName);
+
+        var nodes = GetAllNodes(plan);
+        if (!nodes.Any(n => n.IndexName == indexName))
+        {
+            var actual = string.Join(
+                ", ",
+                nodes.Where(n => n.IndexName is not null).Select(n => $"{n.NodeType}({n.IndexName})")
+            );
+            throw new Xunit.Sdk.XunitException(
+                $"Expected the plan to read \"{indexName}\" but it does not. Indexes read: [{actual}]"
+            );
+        }
+    }
+
+    /// <summary>
+    /// Asserts that some node reading <paramref name="indexName"/> carries an <c>Index Cond</c> mentioning every
+    /// one of <paramref name="fragments"/>. Stronger than the index-name assertions: a column that only appears
+    /// in a node's <c>Filter</c> narrows nothing, so the scan reads every row the remaining columns match. Name
+    /// the join alias in a fragment when several scans share an index.
+    /// </summary>
+    public static void AssertIndexCondContains(JsonElement plan, string indexName, params string[] fragments)
+    {
+        var candidates = GetAllNodes(plan).Where(n => n.IndexName == indexName).ToList();
+        var matching = candidates
+            .Where(n =>
+                n.IndexCond is not null && fragments.All(f => n.IndexCond.Contains(f, StringComparison.Ordinal))
+            )
+            .ToList();
+
+        if (matching.Count == 0)
+        {
+            var expected = string.Join(" and ", fragments);
+            var actual = string.Join(", ", candidates.Select(n => $"{n.NodeType}: {n.IndexCond ?? "-"}"));
+            throw new Xunit.Sdk.XunitException(
+                $"Expected a scan of \"{indexName}\" whose Index Cond mentions {expected} but found none. "
+                    + $"Index Conds on this index: [{actual}]"
+            );
+        }
+    }
+
     private static void CollectNodes(JsonElement node, List<PlanNode> nodes)
     {
         var nodeType = node.GetProperty("Node Type").GetString()!;
@@ -171,7 +219,11 @@ internal static class QueryPlanHelper
         if (node.TryGetProperty("Index Name", out var idx))
             indexName = idx.GetString();
 
-        nodes.Add(new PlanNode(nodeType, relationName, indexName));
+        string? indexCond = null;
+        if (node.TryGetProperty("Index Cond", out var cond))
+            indexCond = cond.GetString();
+
+        nodes.Add(new PlanNode(nodeType, relationName, indexName, indexCond));
 
         if (node.TryGetProperty("Plans", out var plans))
         {
@@ -183,4 +235,4 @@ internal static class QueryPlanHelper
     }
 }
 
-internal sealed record PlanNode(string NodeType, string? RelationName, string? IndexName);
+internal sealed record PlanNode(string NodeType, string? RelationName, string? IndexName, string? IndexCond);

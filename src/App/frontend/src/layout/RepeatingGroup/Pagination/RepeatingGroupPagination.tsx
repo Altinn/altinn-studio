@@ -1,13 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { ConditionalWrapper } from '@app/form-component';
+import { ConditionalWrapper, useIsMobile, useIsMobileOrTablet } from '@app/form-component';
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useVisibleValidationsDeep } from 'src/features/validation/validationHooks';
-import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {
   RepGroupContext,
@@ -24,7 +23,7 @@ interface RepeatingGroupPaginationProps {
 }
 /**
  * Simple wrapper to prevent running any hooks unless pagination is actually going to be used
- * Specifically, usePagesWithErrors and useRowStructure would be doing unecessary work
+ * Specifically, usePagesWithErrors and useRowStructure would be doing unnecessary work
  */
 export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
   const { visibleRows } = useRepeatingGroupRowState();
@@ -41,7 +40,6 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const pagesWithErrors = usePagesWithErrors(rowsPerPage, baseComponentId);
   const isTablet = useIsMobileOrTablet();
   const isMobile = useIsMobile();
-  const isMini = useIsMini();
   const textResourceBindings = useItemWhenType(baseComponentId, 'RepeatingGroup').textResourceBindings || {};
   const indexedId = useIndexedId(baseComponentId);
   const getScrollPosition = useCallback(
@@ -80,8 +78,8 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
       )}
     >
       <PaginationComponent
-        nextTextKey={textResourceBindings?.pagination_next_button ?? 'general.next'}
-        backTextKey={textResourceBindings?.pagination_back_button ?? 'general.back'}
+        nextTextKey={textResourceBindings?.paginationNextButton ?? 'general.next'}
+        backTextKey={textResourceBindings?.paginationBackButton ?? 'general.back'}
         data-pagination-id={indexedId}
         className={classes.pagination}
         currentPage={currentPage + 1}
@@ -90,7 +88,7 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
         onChange={() => onChange}
         setCurrentPage={setCurrentPage}
         hideLabels={isMobile}
-        size={isMini ? 'sm' : 'md'}
+        size={isMobile ? 'sm' : 'md'}
       />
     </ConditionalWrapper>
   );

@@ -17,9 +17,7 @@ export type InstanceSelectionLoaderError =
 
 export type InstanceSelectionLoaderResult = null | InstanceSelectionLoaderError;
 
-export async function instanceSelectionLoader({
-  context,
-}: LoaderFunctionArgs): Promise<InstanceSelectionLoaderResult | Response> {
+export async function clientLoader({ context }: LoaderFunctionArgs): Promise<InstanceSelectionLoaderResult | Response> {
   const queryClient = context.get(queryClientContext);
   const { partyApi, instanceApi } = context.get(apiClientsContext);
   prefetchPartiesAllowedToInstantiate({ queryClient, partyApi });

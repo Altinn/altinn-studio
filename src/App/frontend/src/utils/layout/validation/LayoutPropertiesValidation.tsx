@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { Loader } from 'src/core/loading/Loader';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { getComponentDef, implementsDataModelBindingValidation } from 'src/layout';
+import { getComponentDef, implementsDataModelBindingValidation, isExternallyConfigurableComponent } from 'src/layout';
 import {
   shouldValidateLayoutConfiguration,
   useLayoutSchemaValidator,
@@ -13,7 +15,6 @@ import {
 import { duplicateStringFilter } from 'src/utils/stringHelper';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
 import type { LayoutValidationResult, ValidateFunc } from 'src/utils/layout/validation/LayoutValidationContext';
@@ -78,7 +79,10 @@ function ComponentLayoutValidators({ bootstrap }: { bootstrap: FormBootstrapCont
       {Object.values(bootstrap.layoutLookups.allComponents)
         .filter((component): component is CompExternal => component !== undefined)
         .map((component) => {
-          const def = getComponentDef(component.type) as unknown as AnyComponent<CompTypes>;
+          const def = getComponentDef(component.type) as unknown as AnyComponent<CompTypes> | undefined;
+          if (!def) {
+            return null;
+          }
           const Component = def.renderLayoutValidators;
           return (
             <Component
@@ -104,6 +108,16 @@ export function validateLayoutProperties({
     }
 
     const def = getComponentDef(component.type);
+    if (!def) {
+      addNodeError(
+        errors,
+        component.id,
+        `No component definition found for type '${component.type}'`,
+        `Unknown component type for component '/${component.id}'`,
+      );
+      continue;
+    }
+
     if (implementsDataModelBindingValidation(def, component) && window.forceLayoutPropertiesValidation !== 'off') {
       const validateDataModelBindings = def.validateDataModelBindings as DataModelBindingsValidator;
       for (const error of validateDataModelBindings(component.id, component.dataModelBindings, context)) {
@@ -111,7 +125,7 @@ export function validateLayoutProperties({
       }
     }
 
-    if (schemaValidator) {
+    if (schemaValidator && isExternallyConfigurableComponent(component.type)) {
       const schemaErrors = def.validateLayoutConfig(component as never, schemaValidator);
       if (schemaErrors) {
         for (const error of schemaErrors

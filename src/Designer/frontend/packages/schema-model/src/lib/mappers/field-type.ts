@@ -11,7 +11,7 @@ import { getCombinationKind, getObjectKind, isField } from '../utils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ArrayUtils } from '@studio/pure-functions';
 
-export const isCompundFieldType = (schemaNodeType: string | string[]) =>
+export const isCompoundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
 
 export const findUiFieldType = (schemaNode: KeyValuePairs) => {
@@ -27,7 +27,7 @@ export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   } else if (objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);
     return schemaNode.type ?? kind; // For some weird reason some combination items might have a type set, and apparently that is ok.
-  } else if (isCompundFieldType(schemaNode.type)) {
+  } else if (isCompoundFieldType(schemaNode.type)) {
     // @see SeresNillable.json, we need to support types where stuff can be null.
     return schemaNode.type.filter((t: FieldType) => t !== FieldType.Null).pop();
   } else if (ArrayUtils.intersection(keys, Object.values(IntRestrictionKey)).length) {

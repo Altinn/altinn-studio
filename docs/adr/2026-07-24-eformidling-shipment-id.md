@@ -11,6 +11,11 @@ the fixed id: duplicate-create self-healing in `DefaultEFormidlingService`, plus
 shipment-ownership claim (`eFormidlingShipmentWorkflowId` instance data value) gating
 `EFormidlingServiceTask`.
 
+Later note (Aug 2026): driver B5 - "no changes to the status-check event loop" - lapsed in #19827,
+which deleted that loop and moved the delivery wait into the service task. The decision itself is
+unaffected: the poll queries status by the same instance guid, so *shipment id == instance id* remains
+the only correlation the app keeps, and both idempotency layers survive the move unchanged.
+
 ## Problem context
 
 The app sends eFormidling shipments with the instance guid as the message id

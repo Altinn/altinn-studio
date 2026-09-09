@@ -56,13 +56,21 @@ describe('Dynamics', () => {
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
-    cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'contain.text',
+      texts.testIsNotValidValue,
+    );
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.changeOfName.newLastName).type('hideFirstName');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.changeOfName.newFirstName).should('not.exist');
     cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
-    cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'contain.text',
+      texts.testIsNotValidValue,
+    );
+    cy.get(appFrontend.errorReport).should('not.exist');
   });
 
   it('Page interdependent dynamics with component lookups', () => {
@@ -130,11 +138,11 @@ describe('Dynamics', () => {
       // for the last field to be shown in some cases. This is because the component lookup returns null when the
       // field is hidden, and the expression is not run again when the field is shown again.
       if (component.type === 'Dropdown') {
-        // We'll reset these dropdown fields to have basic A, B, C options, removing mapping, so that changing the
-        // first field does not reset the second field to have other options.
+        // We'll reset these dropdown fields to have basic A, B, C options, removing query parameters, so that
+        // changing the first field does not reset the second field to have other options.
         component.source = undefined;
         component.optionsId = undefined;
-        component.mapping = undefined;
+        component.queryParameters = undefined;
         component.preselectedOptionIndex = undefined;
         component.options = [
           { label: 'Value A', value: 'a' },

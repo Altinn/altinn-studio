@@ -29,7 +29,6 @@ var (
 	ErrCategoryOrder      = errors.New("categories not in standard order")
 	ErrDuplicateVersion   = errors.New("duplicate released version in changelog")
 	ErrVersionOrder       = errors.New("released versions are not in descending semver order")
-	ErrPrereleaseConflict = errors.New("multiple active prerelease release-lines in changelog")
 	ErrNoReleasedVersions = errors.New("no released versions found in changelog")
 	ErrNoMatchingVersion  = errors.New("no matching released version found in changelog")
 )
@@ -175,38 +174,9 @@ func validateVersionSections(sections []*Section) error {
 		prev = current
 	}
 
-	return validateActivePrereleaseLine(sections)
-}
-
-func validateActivePrereleaseLine(sections []*Section) error {
-	var activeMajor, activeMinor int
-	lineInitialized := false
-
-	for _, section := range sections {
-		if section == nil || section.Version == nil {
-			continue
-		}
-		if !section.Version.IsPrerelease {
-			break
-		}
-		if !lineInitialized {
-			activeMajor = section.Version.Major
-			activeMinor = section.Version.Minor
-			lineInitialized = true
-			continue
-		}
-		if section.Version.Major != activeMajor || section.Version.Minor != activeMinor {
-			return fmt.Errorf(
-				"%w: saw v%d.%d and v%d.%d at top of changelog",
-				ErrPrereleaseConflict,
-				activeMajor,
-				activeMinor,
-				section.Version.Major,
-				section.Version.Minor,
-			)
-		}
-	}
-
+	// Stable releases live on release branches, so main retains contiguous
+	// prerelease histories from older lines. Descending SemVer order keeps the
+	// newest line deterministic without requiring stable sections on main.
 	return nil
 }
 

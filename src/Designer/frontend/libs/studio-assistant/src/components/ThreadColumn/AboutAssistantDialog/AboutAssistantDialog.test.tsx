@@ -1,17 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AboutAssistantDialog, hasSeenDialogStorageKey } from './AboutAssistantDialog';
+import {
+  AboutAssistantDialog,
+  assistantDocsUrl,
+  hasSeenDialogStorageKey,
+} from './AboutAssistantDialog';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 
 const mockDialogTexts: AboutAssistantDialogTexts = {
   heading: 'Om assistenten',
   intro: 'Assistenten er en KI-agent.',
-  howToHeading: 'Hvordan bruke assistenten',
-  description: 'Beskrivelse av assistenten.',
-  branchInfo: 'Grener info',
-  branchDocsLink: 'dokumentasjonen',
+  assistantDocsInfo: 'Du kan lese mer i',
+  assistantDocsLink: 'veiledningen for assistenten',
   disclaimer: 'Assistenten er under utvikling.',
-  privacyHeading: 'Personvern',
   privacyDataHandling: 'Ikke send sensitiv informasjon. Alt lagres i 90 dager.',
 };
 
@@ -62,12 +63,16 @@ describe('AboutAssistantDialog', () => {
     expect(dialog).toBeInTheDocument();
   });
 
-  it('should render the privacy section', () => {
+  it('should render a link to the assistant documentation', () => {
+    renderAboutAssistantDialog();
+    const docsLink = screen.getByRole('link', { name: mockDialogTexts.assistantDocsLink });
+
+    expect(docsLink).toHaveAttribute('href', assistantDocsUrl);
+  });
+
+  it('should render the privacy information', () => {
     renderAboutAssistantDialog();
 
-    expect(
-      screen.getByRole('heading', { name: mockDialogTexts.privacyHeading }),
-    ).toBeInTheDocument();
     expect(screen.getByText(mockDialogTexts.privacyDataHandling)).toBeInTheDocument();
   });
 });

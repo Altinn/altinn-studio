@@ -53,6 +53,9 @@ function cleanSourcesFromContent(content: string): string {
   cleaned = cleaned.replace(/^Sources:?\s*\n(?:\[Source:.*?\]\s*\n?)+/gim, '');
   cleaned = cleaned.replace(/^\[Source:.*?\]\s*$/gim, '');
   cleaned = cleaned.replace(/^Sources:?\s*\n(?:[-•]\s*.*?\n?)+/gim, '');
+  // Single-line `SOURCES: ...` — the old prompt convention. Structured
+  // sources render as chips instead; the raw line is noise.
+  cleaned = cleaned.replace(/^SOURCES:.*$/gim, '');
   return cleaned.trim();
 }
 

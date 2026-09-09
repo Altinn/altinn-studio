@@ -11,6 +11,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.Utils;
+using Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -127,7 +128,10 @@ public class DataValidationWithModelPopulatingTests
             }
         );
         var jsonNode = JsonNode.Parse(json);
-        var validationResults = ConvertedJsonSchema.Evaluate(jsonNode);
+        var validationResults = ConvertedJsonSchema.Evaluate(
+            jsonNode,
+            new EvaluationOptions { ProcessCustomKeywords = true }
+        );
 
         Assert.True(validationResults.IsValid);
     }

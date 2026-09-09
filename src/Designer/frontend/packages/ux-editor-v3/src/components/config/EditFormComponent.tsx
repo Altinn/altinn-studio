@@ -1,14 +1,12 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
-
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Fieldset, Heading, Switch } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioFieldset, StudioSpinner, StudioSwitch, StudioHeading } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
@@ -78,13 +76,16 @@ export const EditFormComponent = ({
   }
 
   return (
-    <Fieldset className={classes.root} legend=''>
-      <Switch onChange={toggleShowBetaFunc} checked={showComponentConfigBeta} size='small'>
-        {t('ux_editor.edit_component.show_beta_func')}
-      </Switch>
-      <Heading level={2} size='xsmall'>
+    <StudioFieldset className={classes.root}>
+      <StudioSwitch
+        data-size='sm'
+        onChange={toggleShowBetaFunc}
+        checked={showComponentConfigBeta}
+        label={t('ux_editor.edit_component.show_beta_func')}
+      />
+      <StudioHeading level={2} data-size='sm'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
-      </Heading>
+      </StudioHeading>
       {showComponentConfigBeta && isPending && (
         <StudioSpinner aria-hidden spinnerTitle={t('ux_editor.edit_component.loading_schema')} />
       )}
@@ -107,6 +108,6 @@ export const EditFormComponent = ({
           />
         </>
       )}
-    </Fieldset>
+    </StudioFieldset>
   );
 };

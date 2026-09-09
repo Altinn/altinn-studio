@@ -1,29 +1,26 @@
 import React from 'react';
 
-import { DisplayDate, getLabelId } from '@app/form-component';
-import cn from 'classnames';
+import { Date } from '@app/form-component';
 import { isValid, parseISO } from 'date-fns';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Date/Date.module.css';
 import { formatDateLocale } from 'src/utils/dateUtils';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Date'>) => {
-  const item = useItemWhenType(baseComponentId, 'Date');
-  const { textResourceBindings, direction: _direction, value, icon, format } = item;
-  const direction = _direction ?? 'horizontal';
+export const DateComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Date'>) => {
+  const { textResourceBindings, direction, value, icon, format, grid } = useItemWhenType(baseComponentId, 'Date');
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
   const language = useCurrentLanguage();
-  const { langAsString } = useLanguage();
-  const parsedValue = parseISO(value);
-  const indexedId = useIndexedId(baseComponentId);
+
+  const renderLabel = overrideDisplay?.renderLabel ?? true;
+  const inTable = overrideDisplay?.renderedInTable === true;
+  const showLabel = renderLabel && !inTable;
 
   let displayData: string | null = null;
   try {
+    const parsedValue = parseISO(value);
     displayData = isValid(parsedValue) ? formatDateLocale(language, parsedValue, format) : null;
     if (displayData?.includes('Unsupported: ')) {
       displayData = null;
@@ -37,29 +34,18 @@ export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Da
     }
   }
 
-  if (!textResourceBindings?.title) {
-    return <DisplayDate value={displayData} />;
-  }
-
   return (
-    <ComponentStructureWrapper
-      baseComponentId={baseComponentId}
-      label={{
-        baseComponentId,
-        renderLabelAs: 'span',
-        className: cn(
-          classes.label,
-          classes.dateComponent,
-          direction === 'vertical' ? classes.vertical : classes.horizontal,
-        ),
-      }}
-    >
-      <DisplayDate
-        value={displayData}
-        iconUrl={icon}
-        iconAltText={langAsString(textResourceBindings.title)}
-        labelId={getLabelId(indexedId)}
-      />
-    </ComponentStructureWrapper>
+    <Date
+      componentId={componentId}
+      value={displayData}
+      title={textResourceBindings?.title}
+      description={showLabel ? textResourceBindings?.description : undefined}
+      help={showLabel ? textResourceBindings?.help : undefined}
+      hideLabel={!showLabel}
+      icon={icon}
+      direction={direction ?? 'horizontal'}
+      labelGrid={grid?.labelGrid}
+      innerGrid={innerGrid}
+    />
   );
 };

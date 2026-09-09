@@ -1,8 +1,8 @@
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
-
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
 type ReqCounter = { count: number };
@@ -238,9 +238,13 @@ describe('Auto save behavior', () => {
         ];
       }
 
-      cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', expectedErrors.length);
-      for (const error of expectedErrors) {
-        cy.get(appFrontend.errorReport).should('contain.text', error);
+      if (validateOnNext === undefined) {
+        cy.get(appFrontend.errorReport).should('not.exist');
+      } else {
+        cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', expectedErrors.length);
+        for (const error of expectedErrors) {
+          cy.get(appFrontend.errorReport).should('contain.text', error);
+        }
       }
 
       cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName))

@@ -46,8 +46,8 @@ namespace Altinn.ResourceRegistry.Core
         /// <summary>
         /// Allows for searching for resources in the resource registry
         /// </summary>
-        /// <param name="resourceSearch">The search model defining the search filter criterias</param>
-        /// <returns>A list of service resources found to match the search criterias</returns>
+        /// <param name="resourceSearch">The search model defining the search filter criteria</param>
+        /// <returns>A list of service resources found to match the search criteria</returns>
         Task<List<ServiceResource>> Search(ResourceSearch resourceSearch);
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Altinn.ResourceRegistry.Core
         /// </summary>
         /// <param name="serviceResource">The resource</param>
         /// <param name="fileStream">The file stream to the policy file</param>
-        /// <returns>Bool if storing the policy was successfull</returns>
+        /// <returns>Bool if storing the policy was successful</returns>
         Task<bool> StorePolicy(ServiceResource serviceResource, Stream fileStream);
 
         /// <summary>

@@ -46,7 +46,7 @@ describe('EditGridForGivenViewSize', () => {
     expect(slider).toHaveValue('3');
     expect(slider).toHaveAttribute('disabled');
 
-    const switchLaptop = screen.getByRole('checkbox', {
+    const switchLaptop = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_grid_use_default'),
     });
     expect(switchLaptop).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('EditGridForGivenViewSize', () => {
     expect(sliderMobile).toHaveValue('12');
     expect(sliderMobile).toHaveAttribute('disabled');
 
-    const switchLaptop = screen.getByRole('checkbox', {
+    const switchLaptop = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_grid_use_default'),
     });
     expect(switchLaptop).toBeInTheDocument();

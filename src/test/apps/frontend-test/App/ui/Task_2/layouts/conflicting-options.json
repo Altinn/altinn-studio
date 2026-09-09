@@ -135,8 +135,8 @@
           "simpleBinding": "ConflictingOptions.Animals.Color"
         },
         "optionsId": "animalColors",
-        "mapping": {
-          "ConflictingOptions.IsForeign": "foreign"
+        "queryParameters": {
+          "foreign": ["dataModel", "ConflictingOptions.IsForeign"]
         }
       },
       {
@@ -246,7 +246,6 @@
           "back": "Tilbake",
           "next": "Neste"
         },
-        "showBackButton": true
       }
     ]
   }

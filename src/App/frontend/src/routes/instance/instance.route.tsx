@@ -1,13 +1,17 @@
 import React from 'react';
 import { Outlet, useRouteError } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
 
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { clientLoader } from 'src/routes/instance/instance.loader';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { isAuthenticationRedirectError } from 'src/utils/maybeAuthenticationRedirect';
 
-export function Component() {
+export { clientLoader };
+
+export default function Instance() {
   return (
     <InstanceProvider>
       <Outlet />
@@ -29,3 +33,9 @@ export function ErrorBoundary() {
   const displayError = error instanceof Error || isAxiosError(error) ? error : new Error(String(error));
   return <DisplayError error={displayError} />;
 }
+
+// Only the instance identity decides whether the instance data has to be loaded again. Navigating
+// between the tasks and pages of the same instance keeps the already loaded data.
+export const shouldRevalidate: ShouldRevalidateFunction = ({ currentParams, nextParams }) =>
+  currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
+  currentParams.instanceGuid !== nextParams.instanceGuid;

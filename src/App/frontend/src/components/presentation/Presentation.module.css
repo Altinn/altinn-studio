@@ -1,3 +1,5 @@
+@value mediaOnlyScreenSmUp, mediaOnlyScreenMdUp from '@app/form-component/styles/breakpoints.module.css';
+
 .container {
   --modal-padding-x: 24px;
   --modal-padding-y: 24px;
@@ -12,7 +14,7 @@
   padding-bottom: 1rem;
 }
 
-@media only screen and (min-width: 768px) {
+@media mediaOnlyScreenSmUp {
   .container {
     --page-padding-x: 24px;
     --modal-padding-y: 36px;
@@ -29,7 +31,7 @@
   }
 }
 
-@media only screen and (min-width: 993px) {
+@media mediaOnlyScreenMdUp {
   .container:not(.with-navigation) {
     --modal-padding-x: 96px;
   }
@@ -53,7 +55,7 @@
   --page-max-width: none;
 }
 
-@media only screen and (min-width: 768px) {
+@media mediaOnlyScreenSmUp {
   .container.expanded {
     --page-padding-x: 24px;
   }

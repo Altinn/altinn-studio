@@ -1,4 +1,4 @@
-import type * as CBTypes from 'src/layout/CustomButton/config.generated';
+import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
 /**
  * A map containing all defined frontend actions from config and

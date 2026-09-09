@@ -343,9 +343,8 @@ public class TextsServiceTest : IDisposable
         );
         GeneralSettings generalSettings = new()
         {
-            TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
-            DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
-            AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App",
+            TemplateLocation = @"../../../../../../testdata/AppTemplates",
+            DefaultAppTemplate = "AspNet",
         };
         PlatformSettings platformSettings = new() { AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}" };
         EnvironmentsService environmentsService = new(

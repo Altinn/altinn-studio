@@ -15,8 +15,7 @@ export enum NumberRestrictionsReducerActionType {
 
 interface SetMinMaxInclusiveAction {
   type:
-    | NumberRestrictionsReducerActionType.setMinIncl
-    | NumberRestrictionsReducerActionType.setMaxIncl;
+    NumberRestrictionsReducerActionType.setMinIncl | NumberRestrictionsReducerActionType.setMaxIncl;
   value: boolean;
   changeCallback: ChangeCallback;
 }
@@ -41,10 +40,7 @@ interface SetRestrictionAction {
 }
 
 export type NumberRestrictionsReducerAction =
-  | SetMinMaxInclusiveAction
-  | SetMinMaxAction
-  | SetMultipleOf
-  | SetRestrictionAction;
+  SetMinMaxInclusiveAction | SetMinMaxAction | SetMultipleOf | SetRestrictionAction;
 
 export type NumberRestrictionsReducerState = {
   isInteger: boolean;

@@ -1,25 +1,22 @@
 import type { ReactElement } from 'react';
-import { StudioSpinner } from '@studio/components';
+import type { TrailStep } from '../../../../types/WorkflowStatus';
 import { MessageRow } from '../MessageRow';
-import classes from './AssistantLoadingBubble.module.css';
+import { ActivityTrail } from '../ActivityTrail';
 
 export type AssistantLoadingBubbleProps = {
-  content: string;
+  steps: TrailStep[];
   assistantName: string;
   assistantAvatarUrl?: string;
 };
 
 export function AssistantLoadingBubble({
-  content,
+  steps,
   assistantName,
   assistantAvatarUrl,
 }: AssistantLoadingBubbleProps): ReactElement {
   return (
     <MessageRow label={assistantName} variant='assistant' avatarSrc={assistantAvatarUrl}>
-      <div className={classes.assistantBody}>
-        <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
-        <div className={classes.loadingText}>{content}</div>
-      </div>
+      <ActivityTrail steps={steps} />
     </MessageRow>
   );
 }

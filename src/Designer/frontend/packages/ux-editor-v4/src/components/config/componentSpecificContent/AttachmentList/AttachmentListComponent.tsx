@@ -9,7 +9,7 @@ import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getTaskIdForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
-import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
+import type { AvailableAttachmentLists, InternalDataTypesFormat } from './types';
 import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
@@ -35,7 +35,7 @@ export const AttachmentListComponent = ({
   if (appMetadataPending)
     return <StudioSpinner aria-label={t('ux_editor.component_properties.loading')} />;
 
-  const availableAttachments: AvailableAttachementLists = getAvailableAttachments(
+  const availableAttachments: AvailableAttachmentLists = getAvailableAttachments(
     layoutSets,
     layoutSet,
     appMetadata.dataTypes,
@@ -75,7 +75,7 @@ const getAvailableAttachments = (
   layoutSets: LayoutSets,
   selectedFormLayoutSetName: string,
   availableDataTypes: DataTypeElement[],
-): AvailableAttachementLists => {
+): AvailableAttachmentLists => {
   const attachmentsCurrentTasks = getAttachments(
     currentTasks(layoutSets, selectedFormLayoutSetName),
     availableDataTypes,

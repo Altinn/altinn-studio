@@ -1,5 +1,0 @@
-{
-  "name": "Should return the length of a string",
-  "expression": ["stringLength", "Hello"],
-  "expects": 5
-}

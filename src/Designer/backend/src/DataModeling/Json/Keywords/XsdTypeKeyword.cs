@@ -39,7 +39,7 @@ public sealed class XsdTypeKeyword : IJsonSchemaKeyword, IEquatable<XsdTypeKeywo
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -107,7 +107,7 @@ public sealed class XsdTypeKeyword : IJsonSchemaKeyword, IEquatable<XsdTypeKeywo
         /// </summary>
         public override void Write(Utf8JsonWriter writer, XsdTypeKeyword value, JsonSerializerOptions options)
         {
-            writer.WriteString(Name, value.Value);
+            writer.WriteStringValue(value.Value);
         }
     }
 }

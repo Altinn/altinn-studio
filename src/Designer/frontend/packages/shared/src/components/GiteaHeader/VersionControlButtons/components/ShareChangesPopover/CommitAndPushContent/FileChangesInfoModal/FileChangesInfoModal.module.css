@@ -7,15 +7,6 @@
   width: var(--studio-file-changes-modal-width);
 }
 
-.dialog .table {
-  width: 100%;
-}
-
-.dialog .table .fileStatusCell {
-  vertical-align: top;
-  width: 1%;
-}
-
 .openDialogButton {
-  margin-bottom: var(--fds-spacing-4);
+  margin-bottom: var(--ds-size-4);
 }

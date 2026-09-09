@@ -50,9 +50,7 @@
           "description": "Instance document, formData and attachments\n\nAny mime type that is not ``\"application/json\"`` or ``\"multipart/form-data\"`` with an instance document\nwill require the ``instanceOwnerPartyId`` parameter. Otherwise you must use the simplified instance document to specify instance owner.\nEither using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organisationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).",
           "content": {
             "empty": {
-              "schema": {
-                "nullable": true
-              }
+              "schema": {}
             },
             "application/json": {
               "schema": {
@@ -2319,6 +2317,13 @@
         },
         "additionalProperties": false
       },
+      "ProcessStatus": {
+        "enum": [
+          "idle",
+          "processing"
+        ],
+        "type": "string"
+      },
       "ValidationStatus": {
         "type": "object",
         "properties": {
@@ -2376,6 +2381,9 @@
       "ProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProcessStatus"
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -2594,6 +2602,10 @@
             "format": "int64"
           },
           "contentHash": {
+            "type": "string",
+            "nullable": true
+          },
+          "blobVersionId": {
             "type": "string",
             "nullable": true
           },
@@ -2967,6 +2979,9 @@
       "AppProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProcessStatus"
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -3976,7 +3991,7 @@
       "instanceOwnerPartyId": {
         "name": "instanceOwnerPartyId",
         "in": "path",
-        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
+        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organization, person or self registered user. Might be the current user, or a party the user has rights to represent.",
         "required": true,
         "schema": {
           "type": "integer"

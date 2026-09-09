@@ -8,7 +8,7 @@
       },
       {
         "id": "contactInformation",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "contactInformation"
         },
@@ -156,7 +156,6 @@
         "textResourceBindings": {
           "next": "next"
         },
-        "showBackButton": true,
         "validateOnNext": {
           "page": "current",
           "show": [

@@ -1,5 +1,7 @@
 package components
 
+import "altinn.studio/devenv/pkg/resource"
+
 // ImageMode specifies whether to use pre-built images or build from source.
 type ImageMode int
 
@@ -25,4 +27,15 @@ func (m ImageMode) String() string {
 // DevImageConfig holds the source repository root for dev image builds.
 type DevImageConfig struct {
 	RepoRoot string // Path to the repository root
+}
+
+func localDevImage(prebuilt bool, image *resource.BuiltImage) resource.ImageResource {
+	if prebuilt {
+		return &resource.PulledImage{
+			Enabled:    nil,
+			Ref:        image.Tag,
+			PullPolicy: resource.PullNever,
+		}
+	}
+	return image
 }

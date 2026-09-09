@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "Grid-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Grid"
         }
@@ -17,7 +17,7 @@
       {
         "size": "h3",
         "id": "GridPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Component"
         }
@@ -187,7 +187,7 @@
       },
       {
         "id": "grid-example-header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header example"
         },
@@ -533,7 +533,7 @@
       {
         "size": "h3",
         "id": "GridPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
@@ -551,7 +551,7 @@
       {
         "size": "h3",
         "id": "GridPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }
@@ -566,7 +566,6 @@
       },
       {
         "id": "NavigationButtons-nkqJlY",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

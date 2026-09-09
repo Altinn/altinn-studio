@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -141,16 +143,25 @@ public class GiteaContentLibraryServiceTests
         );
     }
 
-    [Fact]
-    public async Task GetCodeList_ShouldReturnCodeList()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetCodeList_WithOptionalUtf8Bom_ShouldReturnCodeList(bool includeUtf8Bom)
     {
         // Arrange
         const string CodeListId = "codeListString";
         string filePath = CodeListUtils.FilePathWithTextResources(CodeListId);
+        byte[] codeListBytes = Encoding.UTF8.GetBytes(
+            TestDataHelper.GetFileFromRepo(OrgName, RepoName, Developer, filePath)
+        );
+        if (includeUtf8Bom)
+        {
+            codeListBytes = [.. Encoding.UTF8.GetPreamble(), .. codeListBytes];
+        }
         FileSystemObject codeListFileObject = new()
         {
             Name = CodeListId,
-            Content = TestDataHelper.GetFileAsBase64StringFromRepo(OrgName, RepoName, Developer, filePath),
+            Content = Convert.ToBase64String(codeListBytes),
         };
         _giteaClientMock
             .Setup(service =>

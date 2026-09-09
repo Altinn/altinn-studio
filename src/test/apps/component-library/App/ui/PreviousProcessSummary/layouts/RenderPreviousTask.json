@@ -9,7 +9,7 @@
       {
         "size": "M",
         "id": "page3summarytask",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Her skal vi rendre hele Task_1:"
         }

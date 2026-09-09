@@ -393,6 +393,7 @@ public class InstancesController : ControllerBase
             }
 
             result.SetPlatformSelfLinks(_storageBaseAndHost);
+            await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
 
             return Ok(result);
         }
@@ -533,6 +534,10 @@ public class InstancesController : ControllerBase
                 storedInstance.Id.RemoveNewlines()
             );
             storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+            await WriteVersionResponseHeaders(
+                Guid.Parse(storedInstance.Id.Split("/")[1]),
+                cancellationToken
+            );
 
             await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
             return Created(storedInstance.SelfLinks.Platform, storedInstance);
@@ -645,17 +650,35 @@ public class InstancesController : ControllerBase
         updateProperties.Add(nameof(instance.LastChanged));
         updateProperties.Add(nameof(instance.LastChangedBy));
 
+        (VersionPreconditions preconditions, ActionResult versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
+        {
+            return versionError;
+        }
+
         try
         {
             Instance deletedInstance = await _instanceRepository.Update(
                 instance,
                 updateProperties,
-                cancellationToken
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
             );
 
             await _instanceEventService.DispatchEvent(InstanceEventType.Deleted, deletedInstance);
+            await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
 
             return Ok(deletedInstance);
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
         catch (Exception e)
         {
@@ -702,10 +725,31 @@ public class InstancesController : ControllerBase
 
         string org = User.GetOrg();
 
+        (VersionPreconditions preconditions, ActionResult versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
+        {
+            return versionError;
+        }
+
         instance.CompleteConfirmations ??= new List<CompleteConfirmation>();
         if (instance.CompleteConfirmations.Exists(cc => cc.StakeholderId == org))
         {
+            try
+            {
+                await _instanceRepository.CheckVersions(
+                    instanceGuid,
+                    preconditions.InstanceVersion,
+                    preconditions.ProcessStateVersion,
+                    cancellationToken);
+            }
+            catch (StorageVersionMismatchException exception)
+            {
+                return VersionPreconditionHelper.VersionMismatch(Response, exception);
+            }
+
             instance.SetPlatformSelfLinks(_storageBaseAndHost);
+            await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
             return Ok(instance);
         }
 
@@ -725,9 +769,20 @@ public class InstancesController : ControllerBase
             updatedInstance = await _instanceRepository.Update(
                 instance,
                 updateProperties,
-                cancellationToken
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
             );
             updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+            await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
         catch (Exception e)
         {
@@ -803,13 +858,13 @@ public class InstancesController : ControllerBase
 
             updatedInstance =
                 (oldStatus == null || oldStatus != newStatus)
-                    ? await _instanceRepository.Update(
+                    ? await _instanceRepository.UpdateReadStatus(
                         instance,
-                        updateProperties,
                         cancellationToken
                     )
                     : instance;
             updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+            await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
         }
         catch (Exception e)
         {
@@ -866,6 +921,13 @@ public class InstancesController : ControllerBase
             return Forbid();
         }
 
+        (VersionPreconditions preconditions, ActionResult versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
+        {
+            return versionError;
+        }
+
         Instance updatedInstance;
         try
         {
@@ -887,15 +949,26 @@ public class InstancesController : ControllerBase
             updatedInstance = await _instanceRepository.Update(
                 instance,
                 updateProperties,
-                cancellationToken
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
             );
             updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+            await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
         catch (Exception e)
         {
             _logger.LogError(
                 e,
-                "Unable to update sub status for instance {instaneOwnerPartyId}/{instanceGuid}",
+                "Unable to update sub status for instance {instanceOwnerPartyId}/{instanceGuid}",
                 instanceOwnerPartyId,
                 instanceGuid
             );
@@ -933,7 +1006,7 @@ public class InstancesController : ControllerBase
     {
         if (presentationTexts?.Texts == null)
         {
-            return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
+            return BadRequest($"Missing parameter value: presentationTexts is malformed or empty");
         }
 
         (Instance instance, _) = await _instanceRepository.GetOne(
@@ -945,6 +1018,13 @@ public class InstancesController : ControllerBase
         if (!await _processAuthorizer.AuthorizePresentationTextsUpdate(instance))
         {
             return Forbid();
+        }
+
+        (VersionPreconditions preconditions, ActionResult versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
+        {
+            return versionError;
         }
 
         if (instance.PresentationTexts == null)
@@ -966,11 +1046,27 @@ public class InstancesController : ControllerBase
             }
         }
 
-        Instance updatedInstance = await _instanceRepository.Update(
-            instance,
-            updateProperties,
-            cancellationToken
-        );
+        Instance updatedInstance;
+        try
+        {
+            updatedInstance = await _instanceRepository.Update(
+                instance,
+                updateProperties,
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
+            );
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
+
+        await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
         return updatedInstance;
     }
 
@@ -998,7 +1094,7 @@ public class InstancesController : ControllerBase
     {
         if (dataValues?.Values == null)
         {
-            return BadRequest($"Missing parameter value: dataValues is misformed or empty");
+            return BadRequest($"Missing parameter value: dataValues is malformed or empty");
         }
 
         (Instance instance, _) = await _instanceRepository.GetOne(
@@ -1010,6 +1106,13 @@ public class InstancesController : ControllerBase
         if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance))
         {
             return Forbid();
+        }
+
+        (VersionPreconditions preconditions, ActionResult versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
+        {
+            return versionError;
         }
 
         instance.DataValues ??= new Dictionary<string, string>();
@@ -1028,12 +1131,39 @@ public class InstancesController : ControllerBase
             }
         }
 
-        var updatedInstance = await _instanceRepository.Update(
-            instance,
-            updateProperties,
-            cancellationToken
-        );
+        Instance updatedInstance;
+        try
+        {
+            updatedInstance = await _instanceRepository.Update(
+                instance,
+                updateProperties,
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
+            );
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
+
+        await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
         return Ok(updatedInstance);
+    }
+
+    private async Task WriteVersionResponseHeaders(
+        Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        VersionPreconditionHelper.WriteVersionResponseHeaders(
+            Response,
+            await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
+        );
     }
 
     private static Instance CreateInstanceFromTemplate(

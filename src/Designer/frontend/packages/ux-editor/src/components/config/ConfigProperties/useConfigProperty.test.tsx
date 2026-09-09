@@ -8,7 +8,7 @@ jest.mock('../../../hooks', () => ({ useComponentPropertyLabel: jest.fn() }));
 
 describe('useConfigProperty', () => {
   const propertyKey = 'size';
-  const initialComponent = componentMocks[ComponentType.Header];
+  const initialComponent = componentMocks[ComponentType.Heading];
 
   it('should initialize property values and label correctly', () => {
     (useComponentPropertyLabel as jest.Mock).mockReturnValue(

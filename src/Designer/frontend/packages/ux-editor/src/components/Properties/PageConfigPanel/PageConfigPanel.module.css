@@ -1,6 +1,6 @@
 .pdf,
 .text {
-  padding: var(--fds-spacing-5) 0;
+  margin-inline: 0;
 }
 
 .mainConfig {

@@ -33,7 +33,7 @@ function handleRequest(r) {
   var apiKey = getApiKey(r);
   r.variables.auth_api_key = apiKey;
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
-    if (reply.status === 401 || reply.status === 403) {
+    if (reply.status === 204 || reply.status === 401 || reply.status === 403) {
       r.internalRedirect('@proxy_to_gitea_clean');
       return;
     }

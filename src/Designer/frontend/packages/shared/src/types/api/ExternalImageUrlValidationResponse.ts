@@ -1,5 +1,2 @@
 export type ExternalImageUrlValidationResponse =
-  | 'Ok'
-  | 'NotAnImage'
-  | 'Unauthorized'
-  | 'NotValidUrl';
+  'Ok' | 'NotAnImage' | 'Unauthorized' | 'NotValidUrl';

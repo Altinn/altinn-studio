@@ -1,23 +1,16 @@
 import React from 'react';
 import classes from './PolicyEditorDropdownMenu.module.css';
-import { DropdownMenu } from '@digdir/designsystemet-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioDropdown } from '@studio/components';
 
 export type PolicyEditorDropdownMenuProps = {
-  isOpen: boolean;
-  handleClickMoreIcon: () => void;
-  handleCloseMenu: () => void;
   handleClone: () => void;
   handleDelete: () => void;
   isError?: boolean;
 };
 
 export const PolicyEditorDropdownMenu = ({
-  isOpen,
-  handleClickMoreIcon,
-  handleCloseMenu,
   handleClone,
   handleDelete,
   isError = false,
@@ -25,31 +18,33 @@ export const PolicyEditorDropdownMenu = ({
   const { t } = useTranslation();
 
   return (
-    <DropdownMenu onClose={handleCloseMenu} placement='bottom-end' size='small' open={isOpen}>
-      <DropdownMenu.Trigger asChild>
-        <StudioButton
-          aria-expanded={isOpen}
-          aria-haspopup='menu'
-          className={isError && classes.errorButton}
-          data-color={isError ? 'danger' : 'second'}
-          icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
-          onClick={handleClickMoreIcon}
-          title={t('policy_editor.more')}
-          variant='tertiary'
-        />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
-        <DropdownMenu.Group>
-          <DropdownMenu.Item onClick={handleClone}>
+    <StudioDropdown
+      icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
+      triggerButtonVariant='tertiary'
+      triggerButtonTitle={t('policy_editor.more')}
+      triggerButtonClassName={isError ? classes.errorButton : undefined}
+      data-color={isError ? 'danger' : 'second'}
+      data-size='sm'
+      placement='bottom-end'
+    >
+      <StudioDropdown.List>
+        <StudioDropdown.Item>
+          <StudioDropdown.Button role='menuitem' onClick={handleClone}>
             <TabsIcon className={classes.icon} />
             {t('policy_editor.expandable_card_dropdown_copy')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item className={classes.deleteButton} onClick={handleDelete}>
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.Button
+            role='menuitem'
+            className={classes.deleteButton}
+            onClick={handleDelete}
+          >
             <TrashIcon className={classes.icon} />
             {t('general.delete')}
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+      </StudioDropdown.List>
+    </StudioDropdown>
   );
 };

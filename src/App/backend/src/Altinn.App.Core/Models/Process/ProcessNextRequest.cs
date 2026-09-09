@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.Process;
@@ -13,6 +14,10 @@ public sealed record ProcessNextRequest
     /// </summary>
     public required Instance Instance { get; init; }
 
+    internal StorageVersionMetadata InstanceVersions { get; init; } = StorageVersionMetadata.Empty;
+
+    internal ProcessNextMode Mode { get; init; }
+
     /// <summary>
     /// The user that is performing the action
     /// </summary>
@@ -24,7 +29,7 @@ public sealed record ProcessNextRequest
     public required string? Action { get; init; }
 
     /// <summary>
-    /// The organisation number of the party the user is acting on behalf of
+    /// The organization number of the party the user is acting on behalf of
     /// </summary>
     public string? ActionOnBehalfOf { get; set; }
 
@@ -32,4 +37,10 @@ public sealed record ProcessNextRequest
     /// The language the user sent with process/next (not required)
     /// </summary>
     public required string? Language { get; init; }
+}
+
+internal enum ProcessNextMode
+{
+    Standard,
+    CompleteProcess,
 }

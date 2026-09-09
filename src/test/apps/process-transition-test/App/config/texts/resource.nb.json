@@ -184,6 +184,46 @@
     {
       "id": "back.title",
       "value": "Tilbake til Task 1"
+    },
+    {
+      "id": "deferrals.title",
+      "value": "Antall utsettelser"
+    },
+    {
+      "id": "deferrals.help",
+      "value": "Hvor mange ganger tjenestesteget svarer «kjørte fint, men svaret er ikke klart ennå» før det avgjør. En utsettelse er ikke en feil: prosessen parkeres i Waiting og steget kjøres på nytt av seg selv. Ikke det samme som «Antall forsøk», som tvinger fram feil."
+    },
+    {
+      "id": "deferrals.none",
+      "value": "0 – ingen utsettelser"
+    },
+    {
+      "id": "deferrals.one",
+      "value": "1 utsettelse"
+    },
+    {
+      "id": "deferrals.three",
+      "value": "3 utsettelser"
+    },
+    {
+      "id": "deferDelayMs.title",
+      "value": "Tid mellom utsettelser"
+    },
+    {
+      "id": "deferDelayMs.help",
+      "value": "Hvor lenge motoren venter før tjenestesteget kjøres på nytt. Steget velger dette selv per sjekk; ventebudsjettet begrenser summen."
+    },
+    {
+      "id": "deferDelayMs.fast",
+      "value": "2 sekunder"
+    },
+    {
+      "id": "deferDelayMs.slow",
+      "value": "5 sekunder"
+    },
+    {
+      "id": "endState.waitExpired",
+      "value": "Svaret kommer aldri (ventebudsjettet brukes opp)"
     }
   ]
 }

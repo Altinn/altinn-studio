@@ -17,75 +17,57 @@ export type CyUser =
 type UserInfo = {
   firstName: string;
   displayName: string;
-  userName: string;
-  userPassword: string;
   localPartyId: string;
 };
 
-export const cyUserCredentials: { [K in CyUser]: UserInfo } = {
+export const cyUserInfo: { [K in CyUser]: UserInfo } = {
   default: {
-    firstName: Cypress.env('defaultFirstName'),
-    displayName: Cypress.env('defaultFullName'),
-    userName: Cypress.env('defaultUserName'),
-    userPassword: Cypress.env('defaultUserPwd'),
-    localPartyId: Cypress.env('defaultPartyId'),
+    firstName: Cypress.expose('defaultFirstName'),
+    displayName: Cypress.expose('defaultFullName'),
+    localPartyId: Cypress.expose('defaultPartyId'),
   },
   manager: {
-    firstName: Cypress.env('managerFirstName'),
-    displayName: Cypress.env('managerFullName'),
-    userName: Cypress.env('managerUserName'),
-    userPassword: Cypress.env('managerUserPwd'),
-    localPartyId: Cypress.env('managerPartyId'),
+    firstName: Cypress.expose('managerFirstName'),
+    displayName: Cypress.expose('managerFullName'),
+    localPartyId: Cypress.expose('managerPartyId'),
   },
   accountant: {
-    firstName: Cypress.env('accountantFirstName'),
-    displayName: Cypress.env('accountantFullName'),
-    userName: Cypress.env('accountantUserName'),
-    userPassword: Cypress.env('accountantUserPwd'),
-    localPartyId: Cypress.env('accountantPartyId'),
+    firstName: Cypress.expose('accountantFirstName'),
+    displayName: Cypress.expose('accountantFullName'),
+    localPartyId: Cypress.expose('accountantPartyId'),
   },
   auditor: {
-    firstName: Cypress.env('auditorFirstName'),
-    displayName: Cypress.env('auditorFullName'),
-    userName: Cypress.env('auditorUserName'),
-    userPassword: Cypress.env('auditorUserPwd'),
-    localPartyId: Cypress.env('auditorPartyId'),
+    firstName: Cypress.expose('auditorFirstName'),
+    displayName: Cypress.expose('auditorFullName'),
+    localPartyId: Cypress.expose('auditorPartyId'),
   },
   selfIdentified: {
-    firstName: Cypress.env('selfIdentifiedFirstName'),
-    displayName: Cypress.env('selfIdentifiedFullName'),
-    userName: Cypress.env('selfIdentifiedUserName'),
-    userPassword: Cypress.env('selfIdentifiedUserPwd'),
-    localPartyId: Cypress.env('selfIdentifiedPartyId'),
+    firstName: Cypress.expose('selfIdentifiedFirstName'),
+    displayName: Cypress.expose('selfIdentifiedFullName'),
+    localPartyId: Cypress.expose('selfIdentifiedPartyId'),
   },
   multiPartyPrompt: {
-    firstName: Cypress.env('multiPartyPromptFirstName'),
-    displayName: Cypress.env('multiPartyPromptFullName'),
-    userName: Cypress.env('multiPartyPromptUserName'),
-    userPassword: Cypress.env('multiPartyPromptUserPwd'),
-    localPartyId: Cypress.env('multiPartyPromptPartyId'),
+    firstName: Cypress.expose('multiPartyPromptFirstName'),
+    displayName: Cypress.expose('multiPartyPromptFullName'),
+    localPartyId: Cypress.expose('multiPartyPromptPartyId'),
   },
   multiPartyPrompt2: {
-    firstName: Cypress.env('multiPartyPrompt2FirstName'),
-    displayName: Cypress.env('multiPartyPrompt2FullName'),
-    userName: Cypress.env('multiPartyPrompt2UserName'),
-    userPassword: Cypress.env('multiPartyPrompt2UserPwd'),
-    localPartyId: Cypress.env('multiPartyPrompt2PartyId'),
+    firstName: Cypress.expose('multiPartyPrompt2FirstName'),
+    displayName: Cypress.expose('multiPartyPrompt2FullName'),
+    localPartyId: Cypress.expose('multiPartyPrompt2PartyId'),
   },
   doNotPromptParty: {
-    firstName: Cypress.env('doNotPromptPartyFirstName'),
-    displayName: Cypress.env('doNotPromptPartyFullName'),
-    userName: Cypress.env('doNotPromptPartyUserName'),
-    userPassword: Cypress.env('doNotPromptPartyUserPwd'),
-    localPartyId: Cypress.env('doNotPromptPartyPartyId'),
+    firstName: Cypress.expose('doNotPromptPartyFirstName'),
+    displayName: Cypress.expose('doNotPromptPartyFullName'),
+    localPartyId: Cypress.expose('doNotPromptPartyPartyId'),
   },
 };
 
-export const getDisplayName = (user: CyUser) => cyUserCredentials[user].displayName;
-export const getLocalPartyId = (user: CyUser) => cyUserCredentials[user].localPartyId;
+export const getDisplayName = (user: CyUser) => cyUserInfo[user].displayName;
+export const getLocalPartyId = (user: CyUser) => cyUserInfo[user].localPartyId;
 
 Cypress.Commands.add('assertUser', (user: CyUser, tenorUser: TenorUser) => {
-  if (Cypress.env('type') === 'localtest') {
+  if (Cypress.expose('type') === 'localtest') {
     cy.get('[data-testid=AppHeader]').should('contain.text', getDisplayName(user));
   } else {
     cy.get('[data-testid=AppHeader]').should('contain.text', tenorUser.reverseName.toUpperCase());
@@ -141,13 +123,14 @@ function getPermissions(format: string): MinimalTask {
 }
 
 Cypress.Commands.add('setPermissions', (permissionFormat: string) => {
-  Cypress.env('authPermissions', permissionFormat);
+  authPermissions = permissionFormat;
 });
+
+let authPermissions = '';
 
 Cypress.Commands.add('interceptPermissions', () => {
   const interceptor: RouteHandler = (req) => {
-    const permissionFormat = Cypress.env('authPermissions') ?? '';
-    const permissions = getPermissions(permissionFormat);
+    const permissions = getPermissions(authPermissions);
     req.on('response', (res) => {
       const body = res.body as IProcess;
       if (body.currentTask) {
@@ -168,15 +151,18 @@ type CyUserLoginParams = {
 
 export function cyUserLogin({ cyUser, authenticationLevel }: CyUserLoginParams) {
   cy.log(`Logging in as user: ${cyUser}`);
-  const user = cyUserCredentials[cyUser];
+  const user = cyUserInfo[cyUser];
 
-  if (Cypress.env('type') === 'localtest') {
+  if (Cypress.expose('type') === 'localtest') {
     return localLogin({ partyId: user.localPartyId, authenticationLevel });
   }
 
-  const { userName, userPassword } = user;
-  if (userName === cyUserCredentials.selfIdentified.userName) {
-    return loginSelfIdentifiedTt02Login(userName, userPassword);
+  if (cyUser === 'selfIdentified') {
+    return cy
+      .env(['selfIdentifiedUserName', 'selfIdentifiedUserPwd'])
+      .then(({ selfIdentifiedUserName, selfIdentifiedUserPwd }) =>
+        loginSelfIdentifiedTt02Login(selfIdentifiedUserName, selfIdentifiedUserPwd),
+      );
   }
 
   throw new Error(`Login not implemented for user: ${cyUser}`);
@@ -269,7 +255,7 @@ export type AppResponseRef = { current: ((res: CyHttpMessages.IncomingHttpRespon
 export function tenorUserLogin(props: TenorLoginParams) {
   cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
 
-  if (Cypress.env('type') === 'localtest') {
+  if (Cypress.expose('type') === 'localtest') {
     return localLogin({ displayName: props.tenorUser.name, authenticationLevel: props.authenticationLevel });
   }
 

@@ -93,13 +93,15 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
 
     renderSelectDataTypes(existingDataTypesProps);
 
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
     });
-    await user.click(combobox);
+    await user.click(suggestionInput);
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
-    await user.click(screen.getByRole('option', { name: signingTasks[0].businessObject.name }));
+    await user.click(
+      screen.getByRole('option', { name: signingTasks[0].businessObject.name, hidden: true }),
+    );
 
     await waitFor(() => expect(createMock).toHaveBeenCalled());
     expect(updateModdlePropertiesMock).toHaveBeenCalled();

@@ -37,7 +37,7 @@ public class ReleasesController : ControllerBase
     /// <summary>
     /// Gets releases based on a query
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <returns>SearchResults of type ReleaseEntity</returns>
@@ -64,7 +64,7 @@ public class ReleasesController : ControllerBase
     /// <summary>
     /// Creates a release
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="createRelease">Release model</param>
     /// <returns>Created release</returns>

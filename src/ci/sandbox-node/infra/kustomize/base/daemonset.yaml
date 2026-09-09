@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sandbox-node
+  namespace: kube-system
+  annotations:
+    altinn.studio/image: sandbox-node:latest
+    altinn.studio/image-tag: latest
+    altinn.studio/init-image: sandbox-node-init:latest
+    altinn.studio/init-image-tag: latest
+  labels:
+    app.kubernetes.io/name: sandbox-node
+    app.kubernetes.io/part-of: altinn-studio
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sandbox-node
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sandbox-node
+        app.kubernetes.io/part-of: altinn-studio
+    spec:
+      automountServiceAccountToken: false
+      priorityClassName: system-node-critical
+      securityContext:
+        runAsGroup: 0
+        runAsNonRoot: false
+        runAsUser: 0
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        kubernetes.io/os: linux
+        purpose: sandbox
+      tolerations:
+        - key: purpose
+          operator: Equal
+          value: sandbox
+          effect: NoSchedule
+      initContainers:
+        - name: prepare-storage
+          image: ''
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+            seccompProfile:
+              type: Unconfined
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: host-dev
+              mountPath: /dev
+            - name: host-sys
+              mountPath: /sys
+              readOnly: true
+            - name: host-altinn
+              mountPath: /var/lib/altinn
+              mountPropagation: Bidirectional
+      containers:
+        - name: plugin
+          image: ''
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: device-plugins
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: kvm
+              mountPath: /dev/kvm
+              readOnly: true
+      volumes:
+        - name: host-dev
+          hostPath:
+            path: /dev
+            type: Directory
+        - name: host-sys
+          hostPath:
+            path: /sys
+            type: Directory
+        - name: host-altinn
+          hostPath:
+            path: /var/lib/altinn
+            type: DirectoryOrCreate
+        - name: device-plugins
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+            type: Directory
+        - name: kvm
+          hostPath:
+            path: /dev/kvm
+            type: CharDevice

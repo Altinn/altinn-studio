@@ -36,12 +36,12 @@ public sealed record CorrespondenceRequest
     public DateTimeOffset? DueDateTime { get; init; }
 
     /// <summary>
-    /// The recipients of the correspondence. Either Norwegian organisation numbers or national identity numbers.
+    /// The recipients of the correspondence. Either Norwegian organization numbers or national identity numbers.
     /// </summary>
-    public required IReadOnlyList<OrganisationOrPersonIdentifier> Recipients { get; init; }
+    public required IReadOnlyList<OrganizationOrPersonIdentifier> Recipients { get; init; }
 
     /// <summary>
-    /// An alternative name for the sender of the correspondence. The name will be displayed instead of the organisation name.
+    /// An alternative name for the sender of the correspondence. The name will be displayed instead of the organization name.
     /// </summary>
     public string? MessageSender { get; init; }
 
@@ -127,10 +127,10 @@ public sealed record CorrespondenceRequest
 
         if (DueDateTime is not null)
         {
-            var normalisedDueDate = NormaliseDateTime(DueDateTime.Value);
-            if (normalisedDueDate < DateTimeOffset.UtcNow)
+            var normalizedDueDate = NormalizeDateTime(DueDateTime.Value);
+            if (normalizedDueDate < DateTimeOffset.UtcNow)
                 ValidationError($"{nameof(DueDateTime)} cannot be a time in the past");
-            if (normalisedDueDate < RequestedPublishTime)
+            if (normalizedDueDate < RequestedPublishTime)
                 ValidationError($"{nameof(DueDateTime)} cannot be prior to {nameof(RequestedPublishTime)}");
         }
     }
@@ -144,7 +144,7 @@ public sealed record CorrespondenceRequest
     /// <summary>
     /// Removes the <see cref="DateTimeOffset.Ticks"/> portion of a <see cref="DateTimeOffset"/>.
     /// </summary>
-    internal static DateTimeOffset NormaliseDateTime(DateTimeOffset dateTime)
+    internal static DateTimeOffset NormalizeDateTime(DateTimeOffset dateTime)
     {
         return dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerSecond));
     }

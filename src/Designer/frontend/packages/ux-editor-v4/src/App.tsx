@@ -8,7 +8,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor-v4/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useLayoutSetsExtendedQuery } from './hooks/queries/useLayoutSetsExtendedQuery';

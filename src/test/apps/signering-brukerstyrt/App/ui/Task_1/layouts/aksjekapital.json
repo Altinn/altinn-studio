@@ -5,7 +5,7 @@
       {
         "size": "L",
         "id": "Header-fwRDii",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "aksjekapital.Header-fwRDii.title"
         }
@@ -55,7 +55,6 @@
       },
       {
         "id": "NavigationButtons-pc5iGc",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

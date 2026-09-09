@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, ComponentLayoutValidationProps } from 'src/layout/layout';
 
 export function FileUploadLayoutValidator({
   externalItem,
-}: ComponentLayoutValidationProps<'FileUpload' | 'FileUploadWithTag'>): JSX.Element | null {
+}: ComponentLayoutValidationProps<'FileUpload'>): JSX.Element | null {
   const allPages = FormStore.bootstrap.useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
@@ -22,7 +23,7 @@ export function FileUploadLayoutValidator({
         if (component.id === externalItem.id) {
           continue;
         }
-        if (component.type !== 'FileUpload' && component.type !== 'FileUploadWithTag') {
+        if (component.type !== 'FileUpload') {
           continue;
         }
         const otherBinding = extractBinding(component);
@@ -51,7 +52,7 @@ export function FileUploadLayoutValidator({
   return null;
 }
 
-function extractBinding(component: CompExternal<'FileUpload' | 'FileUploadWithTag'>): IDataModelReference | undefined {
+function extractBinding(component: CompExternal<'FileUpload'>): IDataModelReference | undefined {
   if (component.dataModelBindings && 'simpleBinding' in component.dataModelBindings) {
     return component.dataModelBindings.simpleBinding;
   } else if (component.dataModelBindings && 'list' in component.dataModelBindings) {

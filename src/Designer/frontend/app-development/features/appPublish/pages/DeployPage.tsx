@@ -6,10 +6,9 @@ import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queri
 import { Trans, useTranslation } from 'react-i18next';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Link } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
-import { StudioError, StudioPageSpinner } from '@studio/components';
+import { StudioError, StudioLink, StudioPageSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export default function DeployPage() {
@@ -37,7 +36,7 @@ export default function DeployPage() {
       <InfoCard headerText={t('app_deployment.no_env_title')} shadow={true}>
         <div>
           <Trans i18nKey='app_deployment.no_env_1'>
-            <Link href={contactByEmail.url('serviceOwner')}> </Link>
+            <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
           </Trans>
         </div>
         <div style={{ paddingTop: '2.4rem' }}>

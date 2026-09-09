@@ -2,7 +2,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
-import type { properties } from '../../../../testing/schemas/json/component/Header.schema.v1.json';
+import type { properties } from '../../../../testing/schemas/json/component/Heading.schema.v1.json';
 
 import type { JSX } from 'react';
 
@@ -10,7 +10,7 @@ type TitleMainProperties = (keyof typeof properties)[];
 export const titleMainProperties: TitleMainProperties = ['size'];
 
 export type TitleMainConfigProps = {
-  component: FormItem<ComponentType.Header>;
+  component: FormItem<ComponentType.Heading>;
   handleComponentChange: (component: FormItem) => void;
   className?: string;
 };

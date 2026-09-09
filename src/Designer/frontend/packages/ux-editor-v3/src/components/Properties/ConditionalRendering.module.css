@@ -18,7 +18,7 @@
 
 .alert {
   border-top: var(--studio-legacy-border-divider);
-  padding-block: var(--fds-spacing-8);
+  padding-block: var(--ds-size-8);
 }
 
 .conditionalRenderingWrapper {

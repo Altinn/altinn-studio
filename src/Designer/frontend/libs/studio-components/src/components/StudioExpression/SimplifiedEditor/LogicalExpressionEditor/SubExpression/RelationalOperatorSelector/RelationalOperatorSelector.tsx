@@ -1,10 +1,10 @@
 import type { RelationalOperator } from '../../../../types/RelationalOperator';
 import { NumberRelationOperator } from '../../../../enums/NumberRelationOperator';
 import { GeneralRelationOperator } from '../../../../enums/GeneralRelationOperator';
-import { Paragraph } from '@digdir/designsystemet-react';
 import React from 'react';
 import { useStudioExpressionContext } from '../../../../StudioExpressionContext';
 import { StudioSelect } from '../../../../../StudioSelect';
+import { StudioParagraph } from '../../../../../StudioParagraph';
 
 export type RelationalOperatorSelectorProps = {
   className?: string;
@@ -27,7 +27,7 @@ export const RelationalOperatorSelector = ({
   const { texts } = useStudioExpressionContext();
   const { relationalOperators } = texts;
 
-  if (!isInEditMode) return <Paragraph>{relationalOperators[operator]}</Paragraph>;
+  if (!isInEditMode) return <StudioParagraph>{relationalOperators[operator]}</StudioParagraph>;
 
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (event) =>
     onChange(event.target.value as RelationalOperator);

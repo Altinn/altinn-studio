@@ -6,6 +6,7 @@ import type { DragAndDropComponents } from '../types/DragAndDropComponents';
 import { expect } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
 import type { LanguageCode } from '../enum/LanguageCode';
+import { accordionHeaderId } from '@studio/testing/testids';
 
 const dataModelBindingButtonTextMap: Record<string, TextKey> = {
   Input: 'ux_editor.component_title.Input',
@@ -54,7 +55,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).click();
+    await this.getPageAccordion(pageName).click();
   }
 
   public async clickOnComponentTextConfigAccordion(): Promise<void> {
@@ -105,16 +106,12 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
-  public async verifyThatNewPageIsHidden(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).isHidden();
-  }
-
   public async clickOnAddNewPage(): Promise<void> {
     await this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') }).click();
   }
 
   public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).isVisible();
+    await expect(this.getPageAccordion(pageName)).toBeVisible();
   }
 
   public async verifyThatPageEmptyMessageIsHidden(): Promise<void> {
@@ -130,11 +127,16 @@ export class UiEditorPage extends BasePage {
   }
 
   public async openTextComponentSection(): Promise<void> {
+    const headingToolbarItem = this.page
+      .getByTestId(DataTestId.DraggableToolbarItem as string)
+      .filter({
+        hasText: this.textMock('ux_editor.component_title.Heading'),
+      });
+
     await this.page
-      .getByRole('heading', { level: 3 })
-      .getByRole('button', {
-        name: this.textMock('ux_editor.collapsable_text_components'),
-      })
+      .locator('details')
+      .filter({ has: headingToolbarItem })
+      .locator('summary')
       .click();
   }
 
@@ -293,6 +295,10 @@ export class UiEditorPage extends BasePage {
   public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
     const addButton = this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') });
     await expect(addButton).toBeVisible();
+  }
+
+  private getPageAccordion(pageName: string): Locator {
+    return this.page.getByTestId(accordionHeaderId(pageName));
   }
 
   private getDroppableList(): Locator {

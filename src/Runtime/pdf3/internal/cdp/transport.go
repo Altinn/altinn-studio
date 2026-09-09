@@ -254,10 +254,10 @@ func (c *connection) watchdog() {
 		select {
 		case <-ticker.C:
 			c.logger.Info("CDP connection watchdog tick")
-			const treshold int = 32
-			c.assert(c.cmdIDToBatchID.Len() <= treshold, "CDP connection batch datastructure overflowing")
-			c.assert(c.pendingBatches.Len() <= treshold, "CDP connection batch datastructure overflowing")
-			c.assert(c.pendingCmds.Len() <= treshold, "CDP connection cmd datastructure overflowing")
+			const threshold int = 32
+			c.assert(c.cmdIDToBatchID.Len() <= threshold, "CDP connection batch datastructure overflowing")
+			c.assert(c.pendingBatches.Len() <= threshold, "CDP connection batch datastructure overflowing")
+			c.assert(c.pendingCmds.Len() <= threshold, "CDP connection cmd datastructure overflowing")
 		case <-c.ctx.Done():
 			c.logger.Info("CDP connection watchdog shutting down")
 			return

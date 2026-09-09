@@ -1,6 +1,5 @@
 import classes from './VersionHelpText.module.css';
-import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioHelpText } from '@studio/components';
+import { StudioHelpText, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
@@ -18,16 +17,16 @@ export const VersionHelpText = (): JSX.Element => {
 
   return (
     <div className={classes.helpTextWrapper}>
-      <Paragraph size='medium'>{t('process_editor.too_old_version_title')}</Paragraph>
+      <StudioParagraph>{t('process_editor.too_old_version_title')}</StudioParagraph>
       <StudioHelpText
         aria-label={t('process_editor.too_old_version_helptext_title')}
         placement='bottom'
       >
-        <Paragraph spacing size='small' className={classes.helpTextContent}>
+        <StudioParagraph spacing className={classes.helpTextContent}>
           {t('process_editor.too_old_version_helptext_content', {
             version: appVersion?.backendVersion,
           })}
-        </Paragraph>
+        </StudioParagraph>
         {/*
           Temporarily hidden until v8 becomes available.
           TODO: Add back the below text/links when v8 is available.

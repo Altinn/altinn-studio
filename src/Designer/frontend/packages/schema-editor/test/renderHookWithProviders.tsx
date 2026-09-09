@@ -21,6 +21,8 @@ export const renderHookWithProviders =
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
       name: 'Test',
+      prefillConfig: {},
+      savePrefillConfig: jest.fn(),
       ...appContextProps,
     };
 

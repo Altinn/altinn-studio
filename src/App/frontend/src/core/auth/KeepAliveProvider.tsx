@@ -13,8 +13,13 @@ import { getEnvironmentLoginUrl } from 'src/utils/urls/appUrlHelper';
 const ONE_MINUTE_IN_MILLISECONDS = 60000;
 const TEN_MINUTE_IN_MILLISECONDS = ONE_MINUTE_IN_MILLISECONDS * 10;
 
-const redirectToLogin = (appOidcProvider: string | null): void => {
-  window.location.href = getEnvironmentLoginUrl(appOidcProvider);
+const redirectToLogin = (appOidcProvider: string | null): boolean => {
+  const loginUrl = getEnvironmentLoginUrl(appOidcProvider);
+  if (!loginUrl) {
+    return false;
+  }
+  window.location.href = loginUrl;
+  return true;
 };
 
 const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, enabled: boolean) => {
@@ -29,12 +34,8 @@ const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, ena
   });
 
   useEffect(() => {
-    if (utils.error) {
-      try {
-        redirectToLogin(appOidcProvider || null);
-      } catch {
-        console.error(utils.error);
-      }
+    if (utils.error && !redirectToLogin(appOidcProvider || null)) {
+      console.error(utils.error);
     }
   }, [appOidcProvider, utils.error]);
 

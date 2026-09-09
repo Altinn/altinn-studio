@@ -1,10 +1,10 @@
 .pdfConfig {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-3);
-  padding-inline: var(--fds-spacing-5);
-  margin-top: var(--fds-spacing-3);
-  margin-bottom: var(--fds-spacing-3);
+  gap: var(--ds-size-3);
+  padding-inline: var(--ds-size-5);
+  margin-top: var(--ds-size-3);
+  margin-bottom: var(--ds-size-3);
   list-style-type: none;
 }
 
@@ -15,11 +15,11 @@ ol > li::marker {
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-5);
+  gap: var(--ds-size-5);
 }
 
 .displayTile {
-  padding-inline: var(--fds-spacing-5);
+  padding-inline: var(--ds-size-5);
 }
 
 .boldFont {
@@ -27,5 +27,5 @@ ol > li::marker {
 }
 
 .description {
-  margin-top: calc(var(--fds-spacing-2) * -1);
+  margin-top: calc(var(--ds-size-2) * -1);
 }

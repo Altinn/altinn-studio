@@ -1,12 +1,12 @@
 .createServiceContainer {
-  margin-top: var(--fds-spacing-12);
+  margin-top: var(--ds-size-12);
 }
 
 .topBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--fds-spacing-10);
+  margin-bottom: var(--ds-size-10);
 }
 
 .search {

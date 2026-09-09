@@ -27,8 +27,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         new GeneralSettings()
     );
 
-    private static OrganisationNumber GetOrgNumber(int index) =>
-        IdentificationNumberProvider.OrganisationNumbers.GetValidNumber(index);
+    private static OrganizationNumber GetOrgNumber(int index) =>
+        IdentificationNumberProvider.OrganizationNumbers.GetValidNumber(index);
 
     private static NationalIdentityNumber GetSsn(int index) =>
         IdentificationNumberProvider.NationalIdentityNumbers.GetValidNumber(index);
@@ -157,7 +157,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         Assert.Null(capturedPayload.CorrespondenceRequest.Notification.EmailSubject);
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);
         // Assert.Equal(orgNo.ToString(), capturedPayload.CorrespondenceRequest.Sender.ToString());
-        Assert.IsType<OrganisationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
+        Assert.IsType<OrganizationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.True(ssn == capturedPayload.CorrespondenceRequest.Recipients[0]);
     }
 
@@ -250,7 +250,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         Assert.Equal("Custom email subject", capturedPayload.CorrespondenceRequest.Notification.EmailSubject);
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);
         // Assert.Equal(orgNo.ToString(), capturedPayload.CorrespondenceRequest.Sender.ToString());
-        Assert.IsType<OrganisationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
+        Assert.IsType<OrganizationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.True(ssn == capturedPayload.CorrespondenceRequest.Recipients[0]);
     }
 
@@ -366,7 +366,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         );
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);
         // Assert.Equal(orgNo, capturedPayload.CorrespondenceRequest.Sender);
-        Assert.IsType<OrganisationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
+        Assert.IsType<OrganizationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.True(ssn == capturedPayload.CorrespondenceRequest.Recipients[0]);
     }
 
@@ -455,7 +455,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         );
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);
         // Assert.Equal(orgNo, capturedPayload.CorrespondenceRequest.Sender.ToString()); Builder mapping removed, sender is now determined from resource registry
-        Assert.IsType<OrganisationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
+        Assert.IsType<OrganizationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.True(ssn == capturedPayload.CorrespondenceRequest.Recipients[0]);
     }
 

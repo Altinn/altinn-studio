@@ -86,7 +86,7 @@
       },
       {
         "id": "yourChanges",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "DineEndringer"
         },

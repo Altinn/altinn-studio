@@ -24,13 +24,13 @@ public partial class AppFixture : IAsyncDisposable
     {
         private readonly AppFixture _fixture = fixture;
 
-        public async Task<ApiResponse> PostSimplified(string token, InstansiationInstance instansiation)
+        public async Task<ApiResponse> PostSimplified(string token, InstantiationInstance instantiation)
         {
             var client = _fixture.GetAppClient();
             var endpoint = $"{_fixture.AppPath}/instances/create";
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var payload = JsonSerializer.Serialize(instansiation, _jsonSerializerOptions);
+            var payload = JsonSerializer.Serialize(instantiation, _jsonSerializerOptions);
             request.Content = new StringContent(payload, new MediaTypeHeaderValue("application/json"));
             var response = await client.SendAsync(request);
             return new ApiResponse(_fixture, response);

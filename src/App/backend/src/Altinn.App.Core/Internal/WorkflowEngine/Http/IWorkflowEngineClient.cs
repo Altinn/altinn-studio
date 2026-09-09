@@ -82,4 +82,35 @@ internal interface IWorkflowEngineClient
     /// concurrent resume revived it.
     /// </returns>
     Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Mints a mailbox, idempotent on <see cref="MailboxCreateRequest.IdempotencyKey"/> within the namespace —
+    /// a retried step is handed the address it already published.
+    /// </summary>
+    /// <returns>
+    /// <see cref="MailboxMintResult.Minted"/>, or <see cref="MailboxMintResult.Rejected"/> when the engine
+    /// refused the request as invalid. Every other unsuccessful status throws.
+    /// </returns>
+    Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default);
+
+    /// <summary>Closes a mailbox. Terminal and idempotent: a repeat close reports the original closure.</summary>
+    /// <returns>
+    /// The closed mailbox, or <see langword="null"/> on <c>404</c>. Every other unsuccessful status throws.
+    /// </returns>
+    Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Delivers one message, idempotent on <see cref="MailboxDeliveryRequest.IdempotencyKey"/> within the
+    /// mailbox.
+    /// </summary>
+    /// <returns>
+    /// The engine's status (plus the delivery on <c>202</c>/<c>200</c>) as a value rather than an exception —
+    /// each status means something different to the forwarding channel. Only a transport failure throws.
+    /// </returns>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    );
 }

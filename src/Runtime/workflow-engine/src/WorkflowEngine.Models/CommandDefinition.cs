@@ -31,6 +31,17 @@ public sealed record CommandDefinition
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
+    /// The step's total wait allowance: the maximum <em>cumulative</em> time it may spend in
+    /// <see cref="PersistentItemStatus.Waiting"/> across all deferrals, measured from its first one
+    /// (<see cref="Step.FirstDeferredAt"/>). Not the delay between polls — the command chooses that per
+    /// <see cref="ExecutionResult.Defer"/>; this caps the sum. When <c>null</c>,
+    /// <see cref="EngineSettings.DefaultStepWaitBudget"/> applies; above
+    /// <see cref="EngineSettings.MaxStepWaitBudget"/> the enqueue is rejected.
+    /// </summary>
+    [JsonPropertyName("waitBudget")]
+    public TimeSpan? WaitBudget { get; init; }
+
+    /// <summary>
     /// Command configuration. The engine deserializes this into the type
     /// declared by the matching <see cref="ICommand.CommandDataType"/>.
     /// </summary>
@@ -40,20 +51,35 @@ public sealed record CommandDefinition
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> with typed data, serialized via <see cref="SerializerOptions"/>.
     /// </summary>
-    public static CommandDefinition Create<TData>(string type, TData data, TimeSpan? maxExecutionTime = null)
+    public static CommandDefinition Create<TData>(
+        string type,
+        TData data,
+        TimeSpan? maxExecutionTime = null,
+        TimeSpan? waitBudget = null
+    )
         where TData : class =>
         new()
         {
             Type = type,
             MaxExecutionTime = maxExecutionTime,
+            WaitBudget = waitBudget,
             Data = JsonSerializer.SerializeToElement(data, SerializerOptions),
         };
 
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> without data.
     /// </summary>
-    public static CommandDefinition Create(string type, TimeSpan? maxExecutionTime = null) =>
-        new() { Type = type, MaxExecutionTime = maxExecutionTime };
+    public static CommandDefinition Create(
+        string type,
+        TimeSpan? maxExecutionTime = null,
+        TimeSpan? waitBudget = null
+    ) =>
+        new()
+        {
+            Type = type,
+            MaxExecutionTime = maxExecutionTime,
+            WaitBudget = waitBudget,
+        };
 
     /// <inheritdoc/>
     public override string ToString() => Type;

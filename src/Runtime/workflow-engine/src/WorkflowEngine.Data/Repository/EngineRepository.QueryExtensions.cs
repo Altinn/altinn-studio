@@ -30,6 +30,35 @@ internal static class EngineRepositoryQueryExtensions
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow);
 
+        /// <summary>
+        /// Incomplete workflows the fetch gate could claim right now — nothing parked behind a future
+        /// <c>StartAt</c> or <c>BackoffUntil</c>. This is the set that can hold (or imminently take)
+        /// a database transaction; a workflow waiting out a timer holds no lease and no transaction,
+        /// and cannot become runnable on its own until the timer elapses. A pending cancellation
+        /// makes a parked workflow runnable regardless of its timer, mirroring the fetch gate's
+        /// cancellation bypass.
+        /// </summary>
+        /// <remarks>
+        /// Mirrors the fetch gate's own conditions — <see cref="PersistentItemStatusMap.Fetchable"/>, the timer
+        /// gate, and the dependency gate. Getting any of them wrong turns the harness's "wait until nothing can
+        /// start" into a wait that never ends.
+        /// </remarks>
+        public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
+            dbContext.Workflows.Where(wf =>
+                wf.Status == PersistentItemStatus.Processing
+                || (
+                    PersistentItemStatusMap.Fetchable.Contains(wf.Status)
+                    && (
+                        wf.CancellationRequestedAt != null
+                        || (
+                            (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
+                            && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+                        )
+                    )
+                    && !wf.Dependencies.Any(dep => !PersistentItemStatusMap.Finished.Contains(dep.Status))
+                )
+            );
+
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
             string? collectionKeyFilter = null,

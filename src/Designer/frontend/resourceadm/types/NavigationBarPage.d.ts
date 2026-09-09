@@ -1,7 +1,2 @@
 export type NavigationBarPage =
-  | 'about'
-  | 'policy'
-  | 'deploy'
-  | 'migration'
-  | 'accesslists'
-  | 'back';
+  'about' | 'policy' | 'deploy' | 'migration' | 'accesslists' | 'back';

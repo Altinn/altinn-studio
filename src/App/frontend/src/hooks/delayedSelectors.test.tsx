@@ -235,7 +235,7 @@ function TestSingleDelayedSelector({ onGetValue }: Props) {
 
 describe('useDelayedSelector', () => {
   it('should cache according to cache key', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     render(<TestComponent onGetValue={fn} />);
 
     expect(screen.getByTestId('test1-1').textContent).toMatch(stringResult('test1'));
@@ -282,7 +282,7 @@ describe('useDelayedSelector', () => {
   });
 
   it('delayed selector behaves as expected', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     render(<TestComponent onGetValue={fn} />);
 
     expect(screen.getByTestId('single-selector-render-count').textContent).toBe('1');

@@ -6,6 +6,7 @@ import {
   extractCategoryFromPointer,
   extractNameFromPointer,
   makePointerFromArray,
+  schemaPointerToDataBindingName,
 } from './pointerUtils';
 import {
   allOfNodeMock,
@@ -87,6 +88,26 @@ describe('pointerUtils', () => {
 
     it('Returns undefined when the pointer is the root pointer', () => {
       expect(extractCategoryFromPointer('#')).toBe(undefined);
+    });
+  });
+
+  describe('schemaPointerToDataBindingName', () => {
+    it('Converts a top-level property pointer to its name', () => {
+      expect(schemaPointerToDataBindingName('#/properties/foo')).toBe('foo');
+    });
+
+    it('Converts a nested property pointer to a dot-separated path', () => {
+      expect(schemaPointerToDataBindingName('#/properties/foo/properties/bar')).toBe('foo.bar');
+    });
+
+    it('Strips "items" segments for properties nested within arrays', () => {
+      expect(schemaPointerToDataBindingName('#/properties/list/items/properties/name')).toBe(
+        'list.name',
+      );
+    });
+
+    it('Returns an empty string for the root pointer', () => {
+      expect(schemaPointerToDataBindingName('#')).toBe('');
     });
   });
 

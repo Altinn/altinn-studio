@@ -13,6 +13,6 @@
 .changeTaskIcon,
 .groupPagesIcon,
 .deleteGroupIcon {
-  font-size: var(--fds-sizing-4);
-  padding-right: var(--fds-sizing-1);
+  font-size: var(--ds-size-4);
+  padding-right: var(--ds-size-1);
 }

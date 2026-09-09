@@ -46,7 +46,7 @@ public class ApplicationClient : IApplicationClient
         Application? application = null;
         string getApplicationMetadataUrl = $"applications/{appId}";
 
-        HttpResponseMessage response = await _client.GetAsync(getApplicationMetadataUrl);
+        using HttpResponseMessage response = await _client.GetAsync(getApplicationMetadataUrl);
         if (response.StatusCode == HttpStatusCode.OK)
         {
             string applicationData = await response.Content.ReadAsStringAsync();

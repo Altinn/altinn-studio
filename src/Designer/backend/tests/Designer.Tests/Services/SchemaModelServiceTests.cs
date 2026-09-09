@@ -471,6 +471,6 @@ public class SchemaModelServiceTests
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
             WriteIndented = true,
         };
-        return System.Text.Json.JsonSerializer.Serialize(Json.Schema.JsonSchema.FromText(jsonContent), options);
+        return System.Text.Json.JsonSerializer.Serialize(JsonSchemaKeywords.FromText(jsonContent), options);
     }
 }

@@ -21,6 +21,7 @@ import {
   textResourcesPath,
   userStarredRepoPath,
   dataModelPath,
+  dataModelPrefillPath,
   resourcePolicyPath,
   resourceCreatePath,
   resourceEditPath,
@@ -102,6 +103,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '../types/Policy';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
@@ -168,6 +170,7 @@ export const publishCodeList = (org: string, payload: PublishCodeListPayload) =>
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
+export const saveDataModelPrefill = (org: string, app: string, modelPath: string, payload: PrefillConfig) => put<void, PrefillConfig>(dataModelPrefillPath(org, app, modelPath), payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
@@ -240,17 +243,17 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
 
-// Organisation library
+// Organization library
 export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);
 
-// Organisation library code lists:
+// Organization library code lists:
 export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
-// Organisation text resources:
+// Organization text resources:
 export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
 
@@ -286,3 +289,4 @@ export const deleteChatThread = (org: string, app: string, threadId: string) => 
 export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post<ChatMessage, CreateChatMessagePayload>(chatMessagesPath(org, app, threadId), payload);
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
 export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);
+export const clearChatFeedback = (org: string, app: string, traceId: string) => del(chatFeedbackPath(org, app, traceId));

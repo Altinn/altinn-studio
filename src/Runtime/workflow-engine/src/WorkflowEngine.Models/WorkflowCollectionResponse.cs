@@ -129,4 +129,14 @@ public sealed record CollectionHeadStatus
     [JsonPropertyName("createdAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? CreatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the waiting step's own words for what it is waiting for — its most recent deferral
+    /// reason (<see cref="Step.LastDeferReason"/>). Populated only while <see cref="Status"/> is
+    /// <see cref="PersistentItemStatus.Waiting"/> and the deferring command gave a reason, so a
+    /// consumer never sees a stale reason on a head that has moved on.
+    /// </summary>
+    [JsonPropertyName("waitingReason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WaitingReason { get; init; }
 }

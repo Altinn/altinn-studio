@@ -13,7 +13,7 @@ export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericCom
   const orderDetails = useOrderDetails();
   const refetchOrderDetails = useRefetchOrderDetails();
   const { mapping, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
-  const { title, description } = textResourceBindings || {};
+  const { title, description, help } = textResourceBindings || {};
   const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
 
   const mappedValues = FormStore.data.useMapping(mapping, FormStore.bootstrap.useDefaultDataType());
@@ -33,6 +33,7 @@ export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericCom
         orderDetails={orderDetails}
         tableTitle={title}
         description={description}
+        help={help}
       />
     </ComponentStructureWrapper>
   );

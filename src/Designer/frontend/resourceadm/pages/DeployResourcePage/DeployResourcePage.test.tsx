@@ -91,7 +91,7 @@ describe('DeployResourcePage', () => {
   });
 
   it.each(['getResourcePublishStatus', 'getValidatePolicy', 'getValidateResource'])(
-    'shows a page error message if an error occured on the %s query',
+    'shows a page error message if an error occurred on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
       renderDeployResourcePage({

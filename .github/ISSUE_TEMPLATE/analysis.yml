@@ -6,7 +6,7 @@ body:
     id: description
     attributes:
       label: Description
-      description: Description of the the problem or area that is to be analysed. 
+      description: Description of the the problem or area that is to be analyzed. 
     validations:
       required: true
 

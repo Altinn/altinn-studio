@@ -7,11 +7,11 @@ using Moq;
 
 namespace Altinn.FileAnalyzers.Tests.MimeType;
 
-public class MimeTypeAnalyserTests
+public class MimeTypeAnalyzerTests
 {
     private readonly IContentInspector _contentInspector;
 
-    public MimeTypeAnalyserTests()
+    public MimeTypeAnalyzerTests()
     {
         IServiceCollection services = new ServiceCollection();
         services.AddMimeTypeValidation();
@@ -23,7 +23,7 @@ public class MimeTypeAnalyserTests
     public async Task Analyse_ValidPdf_ShouldReturnCorrectMimeType()
     {
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        var mimeTypeAnalyser = new MimeTypeAnalyser(
+        var mimeTypeAnalyser = new MimeTypeAnalyzer(
             httpContextAccessorMock.Object,
             _contentInspector
         );
@@ -31,7 +31,7 @@ public class MimeTypeAnalyserTests
             "Altinn.FileAnalyzers.Tests.MimeType.example.pdf"
         );
 
-        FileAnalysisResult analysisResult = await mimeTypeAnalyser.Analyse(stream);
+        FileAnalysisResult analysisResult = await mimeTypeAnalyser.Analyze(stream);
 
         Assert.Equal("application/pdf", analysisResult.MimeType);
     }
@@ -40,7 +40,7 @@ public class MimeTypeAnalyserTests
     public async Task Analyse_InvalidPdf_ShouldReturnCorrectMimeType()
     {
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        var mimeTypeAnalyser = new MimeTypeAnalyser(
+        var mimeTypeAnalyser = new MimeTypeAnalyzer(
             httpContextAccessorMock.Object,
             _contentInspector
         );
@@ -48,7 +48,7 @@ public class MimeTypeAnalyserTests
             "Altinn.FileAnalyzers.Tests.MimeType.example.jpg.pdf"
         );
 
-        FileAnalysisResult analysisResult = await mimeTypeAnalyser.Analyse(stream);
+        FileAnalysisResult analysisResult = await mimeTypeAnalyser.Analyze(stream);
 
         Assert.Equal("image/jpeg", analysisResult.MimeType);
     }

@@ -1230,7 +1230,7 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 			wantErrType: changelog.ErrVersionOrder,
 		},
 		{
-			name: "multiple active prerelease release-lines are not allowed",
+			name: "historical prerelease line without stable section is allowed",
 			content: `# Changelog
 
 ## [Unreleased]
@@ -1256,8 +1256,6 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ### Added
 
 - Stable release`,
-			wantErr:     true,
-			wantErrType: changelog.ErrPrereleaseConflict,
 		},
 	}
 

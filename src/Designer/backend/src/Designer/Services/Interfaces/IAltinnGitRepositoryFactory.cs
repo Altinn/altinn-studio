@@ -35,7 +35,7 @@ public interface IAltinnGitRepositoryFactory
     /// <summary>
     /// Gets the full path to a repository.
     /// </summary>
-    /// <param name="org">The organisation owning the repository, identified by its short name.</param>
+    /// <param name="org">The organization owning the repository, identified by its short name.</param>
     /// <param name="repository">The name of the repository</param>
     /// <param name="developer">The developer's user name associated with the repository.</param>
     /// <returns>The full, OS-normalized path to the root directory of the repository.</returns>

@@ -15,6 +15,13 @@ export const esc = (s) => {
 export const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
+ * Escape for a double-quoted HTML attribute: `esc()` leaves quotes intact, so a quote in a
+ * caller-supplied value would end the attribute.
+ * @param {string|null|undefined} s
+ */
+export const escAttr = (s) => esc(String(s ?? '')).replace(/"/g, '&quot;');
+
+/**
  * Escape a value for use as a single-quoted string argument inside an inline `onclick`
  * attribute. `esc()` alone HTML-escapes but leaves quotes intact, so an apostrophe in a
  * caller-controlled value (namespace, collection key, step names) would terminate the JS
@@ -62,6 +69,18 @@ export const formatElapsed = (seconds) => {
     if (seconds < 60) return `${seconds.toFixed(1)}s`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
     return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+};
+
+/**
+ * Day-scale span label (`formatElapsed` tops out at hours); delegates below an hour.
+ * @param {number} seconds
+ */
+export const formatSpan = (seconds) => {
+    if (!Number.isFinite(seconds)) return '';
+    if (seconds < 3600) return formatElapsed(seconds);
+    const hours = Math.floor(seconds / 3600);
+    if (hours < 24) return `${hours}h ${Math.floor((seconds % 3600) / 60)}m`;
+    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
 };
 
 /* ── Timestamp formatting & UTC toggle ─────────────────────────────────── */

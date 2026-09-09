@@ -159,4 +159,13 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
 
         return instanceDetails;
     }
+
+    public async Task DeleteInstance(string org, string env, string app, string instanceId, CancellationToken ct)
+    {
+        var platformUri = await _environmentsService.CreatePlatformUri(env);
+        var uri = $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}/{instanceId}";
+
+        using var response = await _httpClient.DeleteAsync(uri, ct);
+        response.EnsureSuccessStatusCode();
+    }
 }

@@ -1,10 +1,12 @@
+import type { LocalizedText, PropertyMetadata, PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7, JSONSchema7Type } from 'json-schema';
 
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
+import { ComponentCatalogContext } from 'src/codegen/ComponentCatalogContext';
 
 export interface JsonSchemaExt<T> {
-  title: string | undefined;
-  description: string | undefined;
+  title: LocalizedText | undefined;
+  description: LocalizedText | undefined;
   examples: T[];
   deprecated: boolean | undefined;
   deprecationWarning: string | undefined;
@@ -54,7 +56,7 @@ export abstract class CodeGenerator<T> {
    * Gets the schemas description, and prepends a deprecation warning if the property is deprecated
    */
   private getSchemaDescription(): string | undefined {
-    const description = this.internal.jsonSchema.description;
+    const description = this.internal.jsonSchema.description?.en;
     if (this.internal.jsonSchema.deprecated) {
       const deprecationMessage = `**Deprecated**: ${this.internal.jsonSchema.deprecationWarning}`;
       return description ? [deprecationMessage, description].join('\n') : deprecationMessage;
@@ -65,7 +67,7 @@ export abstract class CodeGenerator<T> {
   protected getInternalJsonSchema(): JSONSchema7 {
     this.freeze('getInternalJsonSchema');
     return {
-      title: this.internal.jsonSchema.title || this.internal.symbol?.name || undefined,
+      title: this.internal.jsonSchema.title?.en || this.internal.symbol?.name || undefined,
       description: this.getSchemaDescription(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       examples: this.internal.jsonSchema.examples.length ? (this.internal.jsonSchema.examples as any) : undefined,
@@ -91,6 +93,7 @@ export abstract class CodeGenerator<T> {
 
   abstract toJsonSchema(): JSONSchema7;
   abstract toTypeScript(): string;
+  abstract toComponentCatalog(): PropertyValueDefinition;
 }
 
 export abstract class MaybeSymbolizedCodeGenerator<T> extends CodeGenerator<T> {
@@ -168,9 +171,28 @@ export abstract class MaybeSymbolizedCodeGenerator<T> extends CodeGenerator<T> {
     return this.toJsonSchemaDefinition();
   }
 
+  toComponentCatalog(): PropertyValueDefinition {
+    return ComponentCatalogContext.describe(this);
+  }
+
   abstract toJsonSchemaDefinition(): JSONSchema7;
 
   abstract toTypeScriptDefinition(symbol: string | undefined): string;
+
+  abstract toComponentCatalogDefinition(): PropertyValueDefinition;
+
+  protected componentCatalogMetadata(): PropertyMetadata {
+    const metadata = this.internal.jsonSchema;
+    return {
+      ...(metadata.title ? { title: metadata.title } : {}),
+      ...(metadata.description ? { description: metadata.description } : {}),
+      ...(this.internal.optional && this.internal.optional.default !== undefined
+        ? { default: this.internal.optional.default }
+        : {}),
+      ...(metadata.examples.length ? { examples: metadata.examples } : {}),
+      ...(metadata.deprecated ? { deprecated: true } : {}),
+    };
+  }
 }
 
 export abstract class MaybeOptionalCodeGenerator<T> extends MaybeSymbolizedCodeGenerator<T> {
@@ -193,15 +215,15 @@ export abstract class DescribableCodeGenerator<T> extends MaybeOptionalCodeGener
     return this;
   }
 
-  setTitle(title: string): this {
+  setTitle(en: string, nb: string): this {
     this.ensureMutable();
-    this.internal.jsonSchema.title = title;
+    this.internal.jsonSchema.title = { en, nb };
     return this;
   }
 
-  setDescription(description: string): this {
+  setDescription(en: string, nb: string): this {
     this.ensureMutable();
-    this.internal.jsonSchema.description = description;
+    this.internal.jsonSchema.description = { en, nb };
     return this;
   }
 

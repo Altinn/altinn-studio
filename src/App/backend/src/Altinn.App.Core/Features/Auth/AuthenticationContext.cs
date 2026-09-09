@@ -52,7 +52,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
     // at which point we won't always have a HTTP context available.
     // At that point we probably want to implement something like an `IExecutionContext`, `IExecutionContextAccessor`
     // to decouple ourselves from the ASP.NET request context.
-    // TODO: consider removing dependcy on HTTP context
+    // TODO: consider removing dependency on HTTP context
     private HttpContext _httpContext =>
         _httpContextAccessor.HttpContext ?? throw new AuthenticationContextException("No HTTP context available");
 
@@ -75,7 +75,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                     var handler = new JwtSecurityTokenHandler();
                     parsedToken = handler.ReadJwtToken(token);
                     // Only the new (more correctly formed) localtest tokens has this claim
-                    // In these casees we don't have to special case token parsing as they
+                    // In these cases we don't have to special case token parsing as they
                     // now look like the ones that come from real environments/altinn-authentication
                     isNewLocaltestToken =
                         parsedToken.Payload.TryGetValue("actual_iss", out var actualIss) && actualIss is "localtest";

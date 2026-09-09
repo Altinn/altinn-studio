@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -200,7 +201,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
@@ -231,7 +232,7 @@ public class SigningUserActionTests
             .SignClient.Setup(x =>
                 x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>())
             )
-            .ThrowsAsync(new PlatformHttpException(new HttpResponseMessage(), "Failed to sign dataelements"));
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.OK, "Failed to sign dataelements"));
 
         var userActionContext = new UserActionContext(
             fixture.InstanceDataMutatorMock.Object,
@@ -261,7 +262,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
@@ -310,7 +311,7 @@ public class SigningUserActionTests
                         new InstanceIdentifier(instance),
                         instance.Process.CurrentTask.ElementId,
                         "signature",
-                        new Signee() { SystemUserId = systemUser.SystemUserId[0], OrganisationNumber = null },
+                        new Signee() { SystemUserId = systemUser.SystemUserId[0], OrganizationNumber = null },
                         new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
                     );
                     signClient.Verify(
@@ -345,7 +346,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];

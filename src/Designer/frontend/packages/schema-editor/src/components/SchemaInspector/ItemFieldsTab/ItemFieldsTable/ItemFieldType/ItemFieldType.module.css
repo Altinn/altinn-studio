@@ -1,7 +1,4 @@
-.linkButton {
-  border: none;
-  background-color: inherit;
-  font-size: inherit;
-  font-family: inherit;
+.referenceButton {
   padding: 0;
+  text-decoration: underline;
 }

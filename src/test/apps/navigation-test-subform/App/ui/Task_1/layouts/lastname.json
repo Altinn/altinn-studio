@@ -15,7 +15,6 @@
       },
       {
         "id": "NavigationButtons-IsqrZb",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

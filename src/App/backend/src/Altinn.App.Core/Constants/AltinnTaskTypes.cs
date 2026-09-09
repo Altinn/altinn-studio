@@ -31,7 +31,8 @@ internal static class AltinnTaskTypes
     public const string Pdf = "pdf";
 
     /// <summary>
-    /// The eFormidling task type when waiting for confirmation that the instance has been sent to eFormidling.
+    /// The eFormidling task type: sends the instance's eFormidling shipment and waits for the
+    /// integrasjonspunkt to confirm its delivery.
     /// </summary>
     public const string EFormidling = "eFormidling";
 

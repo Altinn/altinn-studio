@@ -101,6 +101,7 @@
         OccurredAt: DateTimeOffset_1
       }
     },
+    Status: processing,
     Started: DateTime_2,
     StartEvent: StartEvent_1
   }

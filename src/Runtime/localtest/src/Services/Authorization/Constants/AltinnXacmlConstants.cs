@@ -34,57 +34,57 @@ namespace Altinn.Platform.Authorization.Constants
         public static class MatchAttributeIdentifiers
         {
             /// <summary>
-            /// Org attribute match indentifier 
+            /// Org attribute match identifier 
             /// </summary>
             public const string OrgAttribute = "urn:altinn:org";
 
             /// <summary>
-            /// Org number attribute match indentifier 
+            /// Org number attribute match identifier 
             /// </summary>
             public const string OrgNumberAttribute = "urn:altinn:organizationnumber";
 
             /// <summary>
-            /// App attribute match indentifier 
+            /// App attribute match identifier 
             /// </summary>
             public const string AppAttribute = "urn:altinn:app";
 
             /// <summary>
-            /// Resource registry match identifer
+            /// Resource registry match identifier
             /// </summary>
             public const string ResourceRegistry = "urn:altinn:resource";
 
             /// <summary>
-            /// Instance attribute match indentifier 
+            /// Instance attribute match identifier 
             /// </summary>
             public const string InstanceAttribute = "urn:altinn:instance-id";
 
             /// <summary>
-            /// App resource attribute match indentifier 
+            /// App resource attribute match identifier 
             /// </summary>
             public const string AppResourceAttribute = "urn:altinn:appresource";
 
             /// <summary>
-            /// Task attribute match indentifier 
+            /// Task attribute match identifier 
             /// </summary>
             public const string TaskAttribute = "urn:altinn:task";
 
             /// <summary>
-            /// End-event attribute match indentifier 
+            /// End-event attribute match identifier 
             /// </summary>
             public const string EndEventAttribute = "urn:altinn:end-event";
 
             /// <summary>
-            /// Party Id attribute match indentifier 
+            /// Party Id attribute match identifier 
             /// </summary>
             public const string PartyAttribute = "urn:altinn:partyid";
 
             /// <summary>
-            /// User Id attribute match indentifier 
+            /// User Id attribute match identifier 
             /// </summary>>
             public const string UserAttribute = "urn:altinn:userid";
 
             /// <summary>
-            /// Role Code attribute match indentifier 
+            /// Role Code attribute match identifier 
             /// </summary>
             public const string RoleAttribute = "urn:altinn:rolecode";
 

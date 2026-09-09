@@ -40,12 +40,12 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Application> FindOne(string appId, string org, CancellationToken cancellationToken = default)
         {
-            var applications = await _localApp.GetApplications();
-            if (applications.ContainsKey(appId))
+            var application = await _localApp.GetApplicationMetadata(appId, cancellationToken);
+            if (application != null && string.Equals(application.Id, appId, StringComparison.OrdinalIgnoreCase))
             {
-                return applications[appId];
+                return application;
             }
-            throw new Exception($"applicationmetadata for '{appId} not found'");
+            throw new Exception($"applicationmetadata for '{appId}' not found");
         }
 
         public Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)

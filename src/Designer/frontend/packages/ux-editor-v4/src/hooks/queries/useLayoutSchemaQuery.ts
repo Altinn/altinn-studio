@@ -14,7 +14,7 @@ export const useLayoutSchemaQuery = (): UseQueryResult<any>[] => {
 
   // Currently use local mocks rather than fetching from CDN. This is because the CDN schemas are not ready to use, and
   // we also have made some modifications locally to the schemas.
-  // When the schemas are available on CDN, we can remove the mocks and use the querys instead.
+  // When the schemas are available on CDN, we can remove the mocks and use the queries instead.
   const [expressionSchemaQuery, numberFormatSchemaQuery, commonDefsSchemaQuery, layoutSchemaQuery] =
     useQueries({
       queries: [

@@ -2,8 +2,8 @@ import type { SimpleLogicalExpression } from '../../../types/SimplifiedExpressio
 import React from 'react';
 import { useStudioExpressionContext } from '../../../StudioExpressionContext';
 import { LogicalTupleOperator } from '../../../enums/LogicalTupleOperator';
-import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './OperatorBetweenSubexpressions.module.css';
+import { StudioParagraph } from '../../../../StudioParagraph';
 
 export type OperatorBetweenSubexpressionsProps = {
   logicalExpression: SimpleLogicalExpression;
@@ -21,5 +21,5 @@ export const OperatorBetweenSubexpressions = ({
         : texts.or
       : texts.andOr;
 
-  return <Paragraph className={classes.operator}>{text}</Paragraph>;
+  return <StudioParagraph className={classes.operator}>{text}</StudioParagraph>;
 };

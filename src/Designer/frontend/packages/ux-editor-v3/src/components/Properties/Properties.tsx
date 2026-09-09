@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
-import { Accordion } from '@digdir/designsystemet-react';
+import { StudioDetails } from '@studio/components';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
@@ -31,30 +31,27 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      <Accordion color='subtle'>
-        <Accordion.Item open={openList.includes('content')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
-            {t('right_menu.content')}
-          </Accordion.Header>
-          <Accordion.Content>
-            <Content />
-          </Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item open={openList.includes('dynamics')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
-            {t('right_menu.dynamics')}
-          </Accordion.Header>
-          <Accordion.Content>{formId && <Dynamics />}</Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item open={openList.includes('calculations')}>
-          <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>
-            {t('right_menu.calculations')}
-          </Accordion.Header>
-          <Accordion.Content>
-            <Calculations />
-          </Accordion.Content>
-        </Accordion.Item>
-      </Accordion>
+      <StudioDetails open={openList.includes('content')} onToggle={() => toggleOpen('content')}>
+        <StudioDetails.Summary>{t('right_menu.content')}</StudioDetails.Summary>
+        <StudioDetails.Content className={classes.accordionContent}>
+          <Content />
+        </StudioDetails.Content>
+      </StudioDetails>
+      <StudioDetails open={openList.includes('dynamics')} onToggle={() => toggleOpen('dynamics')}>
+        <StudioDetails.Summary>{t('right_menu.dynamics')}</StudioDetails.Summary>
+        <StudioDetails.Content className={classes.accordionContent}>
+          {formId && <Dynamics />}
+        </StudioDetails.Content>
+      </StudioDetails>
+      <StudioDetails
+        open={openList.includes('calculations')}
+        onToggle={() => toggleOpen('calculations')}
+      >
+        <StudioDetails.Summary>{t('right_menu.calculations')}</StudioDetails.Summary>
+        <StudioDetails.Content className={classes.accordionContent}>
+          <Calculations />
+        </StudioDetails.Content>
+      </StudioDetails>
     </div>
   );
 };

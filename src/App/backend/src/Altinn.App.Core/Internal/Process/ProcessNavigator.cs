@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,8 +109,9 @@ public class ProcessNavigator : IProcessNavigator
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
                 };
 
-                IInstanceDataAccessor dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
                     instance,
+                    StorageVersionMetadata.Empty,
                     taskId: null,
                     language: null
                 );

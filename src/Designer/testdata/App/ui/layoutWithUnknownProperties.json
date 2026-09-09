@@ -5,7 +5,7 @@
     "layout": [
       {
         "id": "component-id",
-        "type": "Header",
+        "type": "Heading",
         "layoutUnknownProperty": "val",
         "textResourceBindings": {
           "title": "some-old-id",

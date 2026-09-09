@@ -38,7 +38,7 @@ const (
 	foregroundContainerCleanupTimeout = 15 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
 	studioctlServerCleanupTimeout     = 2 * time.Second
-	defaultAppStartupTimeout          = 15 * time.Second
+	defaultAppStartupTimeout          = 30 * time.Second
 	appStartupPollInterval            = 500 * time.Millisecond
 	maxAppLogCreateAttempts           = 3
 )
@@ -815,7 +815,7 @@ func registerPortAppWithStartupMonitor(
 
 func portAppRegistrationTimeoutError(appID string, port int, startupTimeout time.Duration) error {
 	return fmt.Errorf(
-		"%w: app %s was not discovered on port %d within %s",
+		"%w: app %s did not become reachable through Localtest on port %d within %s",
 		errAppStartupTimedOut,
 		appID,
 		port,
@@ -892,7 +892,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 
 func registerProcessAppWithStartupMonitor(
 	ctx context.Context,
-	client *studioctlserver.Client,
+	client appStartupClient,
 	appID string,
 	processID int,
 	runInfo studioctlserver.AppRegistration,
@@ -929,7 +929,7 @@ func applyAppRunInfo(registration *studioctlserver.AppRegistration, runInfo stud
 
 func registerAppWithStartupMonitor(
 	ctx context.Context,
-	client *studioctlserver.Client,
+	client appStartupClient,
 	registration studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 	startupTimeout time.Duration,
@@ -939,7 +939,7 @@ func registerAppWithStartupMonitor(
 	defer cancel()
 
 	if err := monitor(waitCtx); err != nil {
-		return "", startupMonitorError(ctx, waitCtx, err, timeoutErr)
+		return "", startupMonitorError(ctx, waitCtx, client, registration, err, timeoutErr)
 	}
 
 	registrationDone := make(chan appRegistrationResult, 1)
@@ -952,32 +952,24 @@ func registerAppWithStartupMonitor(
 	defer ticker.Stop()
 
 	for {
-		if err := startupContextError(ctx, waitCtx, timeoutErr); err != nil {
-			return "", err
+		if ctx.Err() != nil {
+			return "", errAppRunStopped
+		}
+		if waitCtx.Err() != nil {
+			return "", appStartupTimeoutError(ctx, client, registration, timeoutErr)
 		}
 
 		select {
 		case result := <-registrationDone:
-			if result.err == nil {
-				return result.baseURL, nil
-			}
-			if errors.Is(result.err, studioctlserver.ErrAppEndpointNotFound) ||
-				errors.Is(result.err, context.DeadlineExceeded) ||
-				waitCtx.Err() != nil {
-				return "", timeoutErr
-			}
-			if ctx.Err() != nil {
-				return "", errAppRunStopped
-			}
-			return "", startupOperationError(ctx, "register app with studioctl-server", result.err)
+			return resolveAppRegistrationResult(ctx, waitCtx, client, registration, result, timeoutErr)
 		case <-ticker.C:
 			if err := monitor(waitCtx); err != nil {
-				return "", startupMonitorError(ctx, waitCtx, err, timeoutErr)
+				return "", startupMonitorError(ctx, waitCtx, client, registration, err, timeoutErr)
 			}
 		case <-ctx.Done():
 			return "", errAppRunStopped
 		case <-waitCtx.Done():
-			return "", timeoutErr
+			return "", appStartupTimeoutError(ctx, client, registration, timeoutErr)
 		}
 	}
 }
@@ -987,29 +979,107 @@ type appRegistrationResult struct {
 	baseURL string
 }
 
-func startupMonitorError(ctx, waitCtx context.Context, err, timeoutErr error) error {
+func resolveAppRegistrationResult(
+	ctx context.Context,
+	waitCtx context.Context,
+	client appStartupClient,
+	registration studioctlserver.AppRegistration,
+	result appRegistrationResult,
+	timeoutErr error,
+) (string, error) {
+	if result.err == nil {
+		return result.baseURL, nil
+	}
+	if errors.Is(result.err, studioctlserver.ErrAppEndpointNotFound) ||
+		errors.Is(result.err, context.DeadlineExceeded) ||
+		waitCtx.Err() != nil {
+		return "", appStartupTimeoutError(ctx, client, registration, timeoutErr)
+	}
+	if ctx.Err() != nil {
+		return "", errAppRunStopped
+	}
+	return "", startupOperationError(ctx, "register app with studioctl-server", result.err)
+}
+
+func startupMonitorError(
+	ctx context.Context,
+	waitCtx context.Context,
+	client appStartupClient,
+	registration studioctlserver.AppRegistration,
+	err error,
+	timeoutErr error,
+) error {
 	if ctx.Err() != nil {
 		return errAppRunStopped
 	}
 	if waitCtx.Err() != nil {
-		return timeoutErr
+		return appStartupTimeoutError(ctx, client, registration, timeoutErr)
 	}
 	return err
 }
 
-func startupContextError(ctx, waitCtx context.Context, timeoutErr error) error {
+type appStartupClient interface {
+	RegisterApp(ctx context.Context, registration studioctlserver.AppRegistration) (string, error)
+	Status(ctx context.Context) (*studioctlserver.Status, error)
+}
+
+func appStartupTimeoutError(
+	ctx context.Context,
+	client appStartupClient,
+	registration studioctlserver.AppRegistration,
+	timeoutErr error,
+) error {
 	if ctx.Err() != nil {
 		return errAppRunStopped
 	}
-	if waitCtx.Err() != nil {
-		return timeoutErr
+	status, err := client.Status(ctx)
+	if ctx.Err() != nil {
+		return errAppRunStopped
 	}
-	return nil
+	if err != nil {
+		return fmt.Errorf("%w: could not inspect studioctl-server status: %w", timeoutErr, err)
+	}
+	return appStartupTimeoutErrorFromStatus(registration, status, timeoutErr)
+}
+
+func appStartupTimeoutErrorFromStatus(
+	registration studioctlserver.AppRegistration,
+	status *studioctlserver.Status,
+	timeoutErr error,
+) error {
+	for _, app := range status.Apps {
+		if !appMatchesRegistration(app, registration) {
+			continue
+		}
+		return fmt.Errorf(
+			"%w: endpoint %s was discovered, but Localtest Storage did not return metadata for %s",
+			timeoutErr,
+			app.BaseURL,
+			registration.AppID,
+		)
+	}
+	return fmt.Errorf("%w: no matching app metadata endpoint was discovered", timeoutErr)
+}
+
+func appMatchesRegistration(
+	app studioctlserver.DiscoveredApp,
+	registration studioctlserver.AppRegistration,
+) bool {
+	if !strings.EqualFold(app.AppID, registration.AppID) {
+		return false
+	}
+	if registration.ProcessID > 0 && (app.ProcessID == nil || *app.ProcessID != registration.ProcessID) {
+		return false
+	}
+	if registration.ContainerID != "" && app.ContainerID != registration.ContainerID {
+		return false
+	}
+	return registration.HostPort <= 0 || (app.HostPort != nil && *app.HostPort == registration.HostPort)
 }
 
 func processAppRegistrationTimeoutError(appID string, processID int, startupTimeout time.Duration) error {
 	return fmt.Errorf(
-		"%w: app %s was not discovered in process %d within %s",
+		"%w: app %s did not become reachable through Localtest from process %d within %s",
 		errAppStartupTimedOut,
 		appID,
 		processID,

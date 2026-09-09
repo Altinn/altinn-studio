@@ -34,4 +34,18 @@ internal enum PersistentItemStatus
     /// failure for dependency evaluation: workflows enqueued afterwards may depend on it and run.
     /// </summary>
     Abandoned = 7,
+
+    /// <summary>
+    /// A step ran without error but the outcome it awaits is not available yet, so the engine parked
+    /// it until its next poll. Non-terminal and not a failure — the work is still in flight, so this
+    /// counts as active: a caller must never read a waiting workflow as settled.
+    /// </summary>
+    Waiting = 8,
+
+    /// <summary>
+    /// The workflow was created parked and has not started: it is held until an external event releases it. Today
+    /// that event is a mailbox rendezvous. Non-terminal, so workflows depending on it stay blocked; no worker
+    /// fetches it, and it has no timer of its own.
+    /// </summary>
+    Held = 9,
 }

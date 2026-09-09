@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Features.Correspondence.Models;
 
 /// <summary>
-/// Request body for <c>POST /correspondence/attachment</c> — initialises a new attachment.
+/// Request body for <c>POST /correspondence/attachment</c> — initializes a new attachment.
 /// The binary data is uploaded separately via <c>POST /correspondence/attachment/{id}/upload</c>.
 /// </summary>
 internal sealed record InitializeAttachmentRequest

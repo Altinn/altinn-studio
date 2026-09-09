@@ -1,3 +1,5 @@
+@value mediaOnlyScreenSmUp from '@app/form-component/styles/breakpoints.module.css';
+
 .button {
   margin-left: -12px;
 }
@@ -11,7 +13,7 @@
   padding: 8px 0;
 }
 
-@media only screen and (min-width: 768px) {
+@media mediaOnlyScreenSmUp {
   .spinner {
     margin-left: 8px;
   }

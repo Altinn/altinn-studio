@@ -12,8 +12,6 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
-import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
@@ -70,13 +68,12 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
   const requiredFieldsMissing = usePageHasVisibleRequiredValidations(currentPageId);
-  const allAttachments = AttachmentReadModel.useAllAttachments();
   const textResources = useTextResources();
-
-  const hasInfectedFiles = Object.values(allAttachments || {}).some((attachments) =>
-    (attachments || []).some(
-      (attachment) => attachment.uploaded && attachment.data.fileScanResult === FileScanResults.Infected,
-    ),
+  const validationBoundaryActive = FormStore.raw.useSelector(
+    (state) =>
+      state.validation.formMask > 0 ||
+      state.validation.showAllUnboundValidations ||
+      Object.values(state.validation.pageMasks).some((mask) => mask > 0),
   );
 
   useRedirectToStoredPage();
@@ -127,7 +124,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           className={classes.errorReport}
         >
           <ErrorReport
-            show={formErrors.length > 0 || taskErrors.length > 0 || hasInfectedFiles}
+            show={validationBoundaryActive && (formErrors.length > 0 || taskErrors.length > 0)}
             errors={
               <ErrorReportList
                 formErrors={formErrors}

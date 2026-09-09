@@ -38,7 +38,6 @@ export function DeleteWarningPopover({
         {children}
       </Popover.Trigger>
       <Popover
-        data-testid='delete-warning-popover'
         id={popoverId}
         open={open}
         placement={placement}

@@ -69,6 +69,66 @@
       }
     ]
   },
+  "AppCallbackDeferral": {
+    "Name": "AppCallbackDeferral",
+    "Fields": [
+      {
+        "Name": "delay",
+        "Kind": "timespan",
+        "Nullable": false
+      },
+      {
+        "Name": "reason",
+        "Kind": "string",
+        "Nullable": true
+      }
+    ]
+  },
+  "AppCallbackMailbox": {
+    "Name": "AppCallbackMailbox",
+    "Fields": [
+      {
+        "Name": "delivery",
+        "Kind": "object<AppCallbackMailboxDelivery>",
+        "Nullable": true
+      },
+      {
+        "Name": "disposedReason",
+        "Kind": "enum<string>{Request=0,Deadline=1}",
+        "Nullable": true
+      },
+      {
+        "Name": "id",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "seq",
+        "Kind": "long",
+        "Nullable": false
+      }
+    ]
+  },
+  "AppCallbackMailboxDelivery": {
+    "Name": "AppCallbackMailboxDelivery",
+    "Fields": [
+      {
+        "Name": "acceptedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "payload",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
   "AppCallbackPayload": {
     "Name": "AppCallbackPayload",
     "Fields": [
@@ -83,9 +143,29 @@
         "Nullable": false
       },
       {
-        "Name": "lockToken",
-        "Kind": "string",
+        "Name": "deferCount",
+        "Kind": "int",
         "Nullable": false
+      },
+      {
+        "Name": "executionDeadline",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "executionReferenceTime",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "firstDeferredAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "mailbox",
+        "Kind": "object<AppCallbackMailbox>",
+        "Nullable": true
       },
       {
         "Name": "payload",
@@ -93,8 +173,23 @@
         "Nullable": true
       },
       {
+        "Name": "retryCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
         "Name": "state",
         "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "stepId",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "waitDeadline",
+        "Kind": "datetimeoffset",
         "Nullable": true
       },
       {
@@ -107,6 +202,11 @@
   "AppCallbackResponse": {
     "Name": "AppCallbackResponse",
     "Fields": [
+      {
+        "Name": "defer",
+        "Kind": "object<AppCallbackDeferral>",
+        "Nullable": true
+      },
       {
         "Name": "state",
         "Kind": "string",
@@ -158,11 +258,6 @@
         "Nullable": false
       },
       {
-        "Name": "lockToken",
-        "Kind": "string",
-        "Nullable": false
-      },
-      {
         "Name": "org",
         "Kind": "string",
         "Nullable": false
@@ -209,7 +304,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
       },
       {
@@ -220,6 +315,11 @@
       {
         "Name": "stepsTotal",
         "Kind": "int",
+        "Nullable": true
+      },
+      {
+        "Name": "waitingReason",
+        "Kind": "string",
         "Nullable": true
       }
     ]
@@ -241,6 +341,11 @@
         "Name": "type",
         "Kind": "string",
         "Nullable": false
+      },
+      {
+        "Name": "waitBudget",
+        "Kind": "timespan",
+        "Nullable": true
       }
     ]
   },
@@ -275,6 +380,161 @@
       {
         "Name": "wasRetryable",
         "Kind": "bool",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxCreateRequest": {
+    "Name": "MailboxCreateRequest",
+    "Fields": [
+      {
+        "Name": "collectionKey",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "timeout",
+        "Kind": "timespan",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxDeliveryRequest": {
+    "Name": "MailboxDeliveryRequest",
+    "Fields": [
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "payload",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxDeliveryResponse": {
+    "Name": "MailboxDeliveryResponse",
+    "Fields": [
+      {
+        "Name": "acceptedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "idx",
+        "Kind": "long",
+        "Nullable": false
+      },
+      {
+        "Name": "mailboxId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxReference": {
+    "Name": "MailboxReference",
+    "Fields": [
+      {
+        "Name": "id",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxResponse": {
+    "Name": "MailboxResponse",
+    "Fields": [
+      {
+        "Name": "collectionKey",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "deadline",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "disposedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "disposedReason",
+        "Kind": "enum<string>{Request=0,Deadline=1}",
+        "Nullable": true
+      },
+      {
+        "Name": "id",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "nextIdx",
+        "Kind": "long",
+        "Nullable": false
+      },
+      {
+        "Name": "nextSeq",
+        "Kind": "long",
+        "Nullable": false
+      },
+      {
+        "Name": "status",
+        "Kind": "enum<string>{Open=0,Disposed=1}",
+        "Nullable": false
+      },
+      {
+        "Name": "timeout",
+        "Kind": "timespan",
+        "Nullable": false
+      },
+      {
+        "Name": "unpairedDeliveries",
+        "Kind": "long",
+        "Nullable": false
+      }
+    ]
+  },
+  "NudgeWorkflowResponse": {
+    "Name": "NudgeWorkflowResponse",
+    "Fields": [
+      {
+        "Name": "nudgedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "workflowId",
+        "Kind": "guid",
         "Nullable": false
       }
     ]
@@ -398,13 +658,28 @@
         "Nullable": false
       },
       {
+        "Name": "deferCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
         "Name": "errorHistory",
         "Kind": "array<object<ErrorEntry>>",
         "Nullable": true
       },
       {
+        "Name": "firstDeferredAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "labels",
         "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
+        "Name": "lastDeferReason",
+        "Kind": "string",
         "Nullable": true
       },
       {
@@ -434,7 +709,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
       },
       {
@@ -518,6 +793,11 @@
         "Nullable": true
       },
       {
+        "Name": "mailbox",
+        "Kind": "object<MailboxReference>",
+        "Nullable": true
+      },
+      {
         "Name": "operationId",
         "Kind": "string",
         "Nullable": false
@@ -594,12 +874,12 @@
       },
       {
         "Name": "dependencies",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
         "Nullable": true
       },
       {
         "Name": "dependents",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
         "Nullable": true
       },
       {
@@ -624,7 +904,7 @@
       },
       {
         "Name": "links",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
         "Nullable": true
       },
       {
@@ -639,7 +919,7 @@
       },
       {
         "Name": "overallStatus",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
       },
       {

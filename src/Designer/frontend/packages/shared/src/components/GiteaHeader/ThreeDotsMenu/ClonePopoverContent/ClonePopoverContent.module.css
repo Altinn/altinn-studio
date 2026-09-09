@@ -3,11 +3,6 @@
   cursor: auto;
 }
 
-.link {
-  margin-bottom: var(--ds-size-2);
-  padding: 0%;
-}
-
 .button {
   justify-content: center;
   margin-top: var(--ds-size-4);

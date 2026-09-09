@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 COPY NuGet.config .
 COPY _packages _packages/
@@ -14,7 +14,7 @@ RUN dotnet publish App.csproj --configuration Release --output /app_output
 # Ensure that the config folder is copied to the output folder (policy.xml was missing)
 RUN cp -R config /app_output/
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 EXPOSE 5005
 EXPOSE 5006
 WORKDIR /App

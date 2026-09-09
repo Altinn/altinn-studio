@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
-import { Tabs } from '@digdir/designsystemet-react';
+import { StudioTabs } from '../StudioTabs';
 import { SimplifiedEditor } from './SimplifiedEditor';
 import { StudioManualExpression } from '../StudioManualExpression';
 import { isExpressionSimple } from './validators/isExpressionSimple';
@@ -10,7 +10,6 @@ import {
   useStudioExpressionContext,
 } from './StudioExpressionContext';
 import type { DataLookupOptions } from './types/DataLookupOptions';
-import classes from './StudioExpression.module.css';
 import type { ExpressionTexts } from './types/ExpressionTexts';
 import { StudioError } from '../StudioError';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
@@ -90,26 +89,26 @@ const ValidExpression = ({
   };
 
   return (
-    <Tabs className={classes.validExpression} onChange={handleChangeTab} value={selectedTab}>
-      <Tabs.List>
-        <Tabs.Tab value={TabId.Simplified}>{texts.simplified}</Tabs.Tab>
-        <Tabs.Tab value={TabId.Manual}>{texts.manual}</Tabs.Tab>
-      </Tabs.List>
-      <Tabs.Panel value={TabId.Simplified} className={classes.tabContent}>
+    <StudioTabs onChange={handleChangeTab} value={selectedTab}>
+      <StudioTabs.List>
+        <StudioTabs.Tab value={TabId.Simplified}>{texts.simplified}</StudioTabs.Tab>
+        <StudioTabs.Tab value={TabId.Manual}>{texts.manual}</StudioTabs.Tab>
+      </StudioTabs.List>
+      <StudioTabs.Panel value={TabId.Simplified}>
         <SimplifiedEditor
           expression={expression}
           onChange={onChange}
           showAddSubexpression={showAddSubexpression}
         />
-      </Tabs.Panel>
-      <Tabs.Panel value={TabId.Manual} className={classes.tabContent}>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={TabId.Manual}>
         <StudioManualExpression
           expression={expression}
           onValidExpressionChange={onChange}
           onValidityChange={setIsValid}
           texts={texts}
         />
-      </Tabs.Panel>
-    </Tabs>
+      </StudioTabs.Panel>
+    </StudioTabs>
   );
 };

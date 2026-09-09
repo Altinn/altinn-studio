@@ -12,7 +12,7 @@
       },
       {
         "id": "header-rep2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": [
             "concat",
@@ -206,7 +206,6 @@
           "next": "Neste",
           "back": "Forrige"
         },
-        "showBackButton": true
       }
     ]
   }

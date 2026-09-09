@@ -22,17 +22,15 @@ public class UserService : IUserService
 
     public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
     {
+        if (altinnOrgEditingContext.IsPersonalProfile)
+        {
+            return new UserOrgPermission { CanCreateOrgRepo = true, IsOrgOwner = false };
+        }
+
         List<Team> teams = await _giteaClient.GetTeams();
-        bool canCreateOrgRepo =
-            IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org)
-            || teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
+        bool canCreateOrgRepo = teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
         bool isOrgOwner = teams.Any(team => IsOwnerTeamForOrg(team, altinnOrgEditingContext.Org));
         return new UserOrgPermission { CanCreateOrgRepo = canCreateOrgRepo, IsOrgOwner = isOrgOwner };
-    }
-
-    private bool IsUserSelfOrg(string developerName, string org)
-    {
-        return developerName == org;
     }
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)

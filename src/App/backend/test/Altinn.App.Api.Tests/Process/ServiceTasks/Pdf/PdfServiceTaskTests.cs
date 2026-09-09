@@ -5,7 +5,10 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Maskinporten;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
@@ -30,6 +33,21 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         : base(factory, outputHelper)
     {
         var eFormidlingServiceMock = new Mock<IEFormidlingService>();
+        // This app's process runs the eFormidling task after the PDF one, and that task now waits for
+        // a delivery confirmation before the process moves on. Report the shipment as delivered so
+        // these tests keep exercising the PDF task rather than parking on the wait behind it.
+        eFormidlingServiceMock
+            .Setup(x =>
+                x.GetEFormidlingShipmentStatus(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new EFormidlingShipmentStatus { State = EFormidlingDeliveryState.Delivered, Status = "levert" }
+            );
+
         var maskinportenClientMock = new Mock<IMaskinportenClient>();
         OverrideServicesForAllTests = (services) =>
         {
@@ -93,10 +111,11 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         rejectProblem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.Conflict);
         rejectProblem["processNextState"]!.Value<string>().Should().Be("resumeRequired");
 
-        // Double check that process stays on the failed service task until resume
+        // The target service task is committed before its side effects run. A failure leaves
+        // that durable task in place so resume retries ExecuteServiceTask without reacquiring.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
-        instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Pdf);
+        instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");
     }
 
     [Fact]
@@ -176,7 +195,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         problem["processStateChanged"]!.Value<bool>().Should().BeTrue();
         problem["processState"]!["currentTask"]!["elementId"]!.Value<string>().Should().Be("Task_2");
 
-        // Double check that process did not move to the next task
+        // The target service task was committed with processing ownership before execution failed.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
         instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");

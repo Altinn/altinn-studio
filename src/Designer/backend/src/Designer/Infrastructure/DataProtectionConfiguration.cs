@@ -64,7 +64,7 @@ internal static class DataProtectionConfiguration
         // Return a key directory based on the current operating system
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            // This is the default behaviour for keys in Windows.
+            // This is the default behavior for keys in Windows.
             return Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
                 "ASP.NET",
@@ -74,7 +74,7 @@ internal static class DataProtectionConfiguration
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            // This is the default behaviour for keys in OSX.
+            // This is the default behavior for keys in OSX.
             return Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
                 "ASP.NET",

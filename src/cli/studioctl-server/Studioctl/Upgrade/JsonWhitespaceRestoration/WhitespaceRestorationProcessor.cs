@@ -28,7 +28,7 @@ internal sealed class WhitespaceRestorationProcessor
     /// <summary>
     /// Main entry point: Restore whitespace-only changes in modified layout files
     /// </summary>
-    public WhitespaceRestorationResult RestoreWhitespaceOnlyChanges()
+    public WhitespaceRestorationResult RestoreWhitespaceOnlyChanges(IEnumerable<string>? filePaths = null)
     {
         var result = new WhitespaceRestorationResult { Success = true };
 
@@ -36,6 +36,13 @@ internal sealed class WhitespaceRestorationProcessor
         {
             // Get modified layout files using LibGit2Sharp
             var modifiedFiles = _gitService.GetModifiedFiles(_repositoryRoot, _layoutsPathRelativeToRepo).ToList();
+            if (filePaths is not null)
+            {
+                var includedFiles = filePaths
+                    .Select(path => Path.GetRelativePath(_repositoryRoot, Path.GetFullPath(path)).Replace('\\', '/'))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                modifiedFiles = modifiedFiles.Where(path => includedFiles.Contains(path.Replace('\\', '/'))).ToList();
+            }
             result.TotalFilesProcessed = modifiedFiles.Count;
 
             if (modifiedFiles.Count == 0)

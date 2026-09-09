@@ -1,3 +1,5 @@
+@value mediaOnlyScreenSmUp from '@app/form-component/styles/breakpoints.module.css';
+
 .devToolsButton {
   z-index: 1000;
   position: fixed;
@@ -58,7 +60,7 @@
   padding: 16px;
 }
 
-@media only screen and (min-width: 768px) {
+@media mediaOnlyScreenSmUp {
   .message {
     width: 400px;
   }

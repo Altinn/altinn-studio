@@ -135,7 +135,11 @@ public class DataClientTestsXmlJson
                             <Name>ivar</Name>
                             <Age>36</Age>
                         </TestData>
-                        """.Replace("\r\n", "", StringComparison.Ordinal).Replace("  ", "", StringComparison.Ordinal),
+                        """.Replace("\r\n", "", StringComparison.Ordinal).Replace(
+                            "\n",
+                            "",
+                            StringComparison.Ordinal
+                        ).Replace("  ", "", StringComparison.Ordinal),
                         requestResponse.RequestBody
                     );
                 }
@@ -259,7 +263,11 @@ public class DataClientTestsXmlJson
                             <Name>ivar</Name>
                             <Age>36</Age>
                         </TestData>
-                        """.Replace("\r\n", "", StringComparison.Ordinal).Replace("  ", "", StringComparison.Ordinal),
+                        """.Replace("\r\n", "", StringComparison.Ordinal).Replace(
+                            "\n",
+                            "",
+                            StringComparison.Ordinal
+                        ).Replace("  ", "", StringComparison.Ordinal),
                         requestResponse.RequestBody
                     );
                 }
@@ -306,7 +314,11 @@ public class DataClientTestsXmlJson
                         <Name>ivar</Name>
                         <Age>36</Age>
                     </TestData>
-                    """.Replace("\r\n", "", StringComparison.Ordinal).Replace("  ", "", StringComparison.Ordinal),
+                    """.Replace("\r\n", "", StringComparison.Ordinal).Replace(
+                        "\n",
+                        "",
+                        StringComparison.Ordinal
+                    ).Replace("  ", "", StringComparison.Ordinal),
                     request.RequestBody
                 );
             }

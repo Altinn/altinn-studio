@@ -22,7 +22,8 @@
             type: webhook
           },
           status: Processing,
-          retryCount: 0
+          retryCount: 0,
+          deferCount: 0
         }
       ]
     }

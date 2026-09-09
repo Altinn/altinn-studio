@@ -69,7 +69,7 @@ public class AuthorizationClient : IAuthorizationClient
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
         try
         {
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -98,7 +98,7 @@ public class AuthorizationClient : IAuthorizationClient
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
@@ -192,7 +192,7 @@ public class AuthorizationClient : IAuthorizationClient
             return [];
         }
 
-        List<string> organisations =
+        List<string> organizations =
         [
             .. response
                 .Response.Where(result => result.Decision == "Permit")
@@ -202,7 +202,7 @@ public class AuthorizationClient : IAuthorizationClient
                 .Select(attribute => attribute.Value),
         ];
 
-        return organisations;
+        return organizations;
     }
 
     private static XacmlJsonRequestRoot CreateXacmlJsonRequest(int userId, List<string> orgNumbers)

@@ -2,25 +2,21 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
 public class DeployEventRepository : IDeployEventRepository
 {
     private readonly DesignerdbContext _dbContext;
-    private readonly IFeatureManager _featureManager;
     private readonly TimeProvider _timeProvider;
 
-    public DeployEventRepository(DesignerdbContext dbContext, IFeatureManager featureManager, TimeProvider timeProvider)
+    public DeployEventRepository(DesignerdbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
-        _featureManager = featureManager;
         _timeProvider = timeProvider;
     }
 
@@ -31,11 +27,6 @@ public class DeployEventRepository : IDeployEventRepository
         CancellationToken cancellationToken = default
     )
     {
-        if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-        {
-            return;
-        }
-
         long deploymentSequenceNo = await _dbContext
             .Deployments.Include(d => d.Build)
             .AsNoTracking()

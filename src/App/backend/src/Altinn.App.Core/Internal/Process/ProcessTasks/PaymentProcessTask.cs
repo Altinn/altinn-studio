@@ -10,7 +10,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 
@@ -25,7 +24,6 @@ internal sealed class PaymentProcessTask : IProcessTask
 
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
-    private readonly IPaymentService _paymentService;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAppMetadata _appMetadata;
     private readonly IHostEnvironment _hostEnvironment;
@@ -47,7 +45,6 @@ internal sealed class PaymentProcessTask : IProcessTask
     {
         _pdfService = pdfService;
         _processReader = processReader;
-        _paymentService = paymentService;
         _appImplementationFactory = appImplementationFactory;
         _appMetadata = appMetadata;
         _hostEnvironment = hostEnvironment;
@@ -78,11 +75,10 @@ internal sealed class PaymentProcessTask : IProcessTask
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         CancellationToken ct = context.CancellationToken;
-        Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
-        PaymentStatus paymentStatus = await _paymentService.GetPaymentStatus(instance, paymentConfiguration.Validate());
+        PaymentStatus paymentStatus = await GetPaymentStatus(dataMutator, paymentConfiguration.Validate());
 
         if (paymentStatus == PaymentStatus.Skipped)
             return;
@@ -90,18 +86,17 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, ct: ct);
+        await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
         using var memoryStream = new MemoryStream();
         await pdfStream.CopyToAsync(memoryStream, ct);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
-        UpsertTaskGeneratedBinaryDataElement(
-            dataMutator,
+        dataMutator.AddBinaryDataElement(
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
             memoryStream.ToArray(),
-            taskId
+            generatedFromTask: taskId
         );
     }
 
@@ -119,6 +114,27 @@ internal sealed class PaymentProcessTask : IProcessTask
         dataAccessor.TaskId
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
+
+    private static async Task<PaymentStatus> GetPaymentStatus(
+        IInstanceDataAccessor dataAccessor,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    )
+    {
+        DataElement? paymentDataElement = dataAccessor
+            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
+            .SingleOrDefault();
+        if (paymentDataElement is null)
+        {
+            throw new PaymentException("Payment information not found.");
+        }
+
+        ReadOnlyMemory<byte> paymentData = await dataAccessor.GetBinaryData(paymentDataElement);
+        PaymentInformation paymentInformation =
+            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
+            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
+
+        return paymentInformation.Status;
+    }
 
     private async Task CleanupAnyExistingPayment(
         IInstanceDataMutator dataMutator,
@@ -163,42 +179,6 @@ internal sealed class PaymentProcessTask : IProcessTask
         }
 
         dataMutator.RemoveDataElement(paymentDataElement);
-    }
-
-    /// <summary>
-    /// Adds the element, or updates it if one tagged with this task already exists. The update branch
-    /// is retry idempotency, not re-entry protection: a re-run of a partially completed transition
-    /// (this command succeeded and committed the element, a later command in the transition failed)
-    /// finds the earlier attempt's element and overwrites it instead of duplicating it. Stale elements
-    /// from previous visits never reach this point - CleanupGeneratedFromTask removes them when the
-    /// task is entered.
-    /// </summary>
-    private static void UpsertTaskGeneratedBinaryDataElement(
-        IInstanceDataMutator dataMutator,
-        string dataTypeId,
-        string contentType,
-        string fileName,
-        ReadOnlyMemory<byte> bytes,
-        string taskId
-    )
-    {
-        DataElement? existingDataElement = dataMutator.Instance.Data.SingleOrDefault(de =>
-            de.DataType == dataTypeId
-            && de.References?.Exists(reference =>
-                reference.Relation == RelationType.GeneratedFrom
-                && reference.ValueType == ReferenceType.Task
-                && reference.Value == taskId
-            )
-                is true
-        );
-
-        if (existingDataElement is not null)
-        {
-            dataMutator.UpdateBinaryDataElement(existingDataElement, contentType, bytes);
-            return;
-        }
-
-        dataMutator.AddBinaryDataElement(dataTypeId, contentType, fileName, bytes, generatedFromTask: taskId);
     }
 
     private AltinnPaymentConfiguration GetAltinnPaymentConfiguration(string taskId)

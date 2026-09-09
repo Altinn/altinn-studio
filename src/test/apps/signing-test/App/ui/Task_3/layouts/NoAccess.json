@@ -5,7 +5,7 @@
     "layout": [
       {
         "id": "Header-noaccess",
-        "type": "Header",
+        "type": "Heading",
         "size": "L",
         "textResourceBindings": {
           "title": "Header-noaccess.title"

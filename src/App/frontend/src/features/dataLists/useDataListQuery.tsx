@@ -4,12 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IDataList } from 'src/features/dataLists/index';
-import type { IMapping } from 'src/layout/common.generated';
 
 type SortDirection = 'asc' | 'desc' | 'notSortable' | 'notActive';
 
@@ -24,21 +22,16 @@ export const useDataListQuery = (
   filter: Filter,
   dataListId: string,
   secure?: boolean,
-  mapping?: IMapping,
   queryParameters?: Record<string, string>,
 ): UseQueryResult<IDataList> => {
   const { fetchDataList } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
-  const mappingResult = FormStore.data.useMapping(mapping, FormStore.bootstrap.useDefaultDataType());
   const { pageSize, pageNumber, sortColumn, sortDirection } = filter || {};
 
   const url = getDataListsUrl({
     dataListId,
-    queryParameters: {
-      ...mappingResult,
-      ...queryParameters,
-    },
+    queryParameters,
     language: selectedLanguage,
     secure,
     instanceId,

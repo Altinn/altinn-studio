@@ -1,3 +1,4 @@
+import type { PropertyDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -20,6 +21,7 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
     public type: Val,
   ) {
     super();
+    this.assertCamelCase(name);
   }
 
   protected ensureMutable(): void {
@@ -86,7 +88,21 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
     throw new Error('Do not call this directly, generate JsonSchema for the object (or property type) instead');
   }
 
+  toComponentCatalog(): PropertyDefinition {
+    const optional = this.type instanceof MaybeOptionalCodeGenerator && this.type.isOptional();
+    return { ...this.type.toComponentCatalog(), required: !optional };
+  }
+
   setAsAdded() {
     this._added = true;
+  }
+
+  protected assertCamelCase(name: string) {
+    if (name === '$schema') {
+      return;
+    }
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) {
+      throw new Error(`Property name must be camelCase: ${name}`);
+    }
   }
 }

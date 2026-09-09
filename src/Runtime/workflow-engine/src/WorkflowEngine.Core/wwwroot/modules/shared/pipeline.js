@@ -1,7 +1,7 @@
 /* Pipeline rendering — step circles, connectors, phase labels */
 
 import { parseTransition, stepPhase, stepSubLabel } from '../core/state.js';
-import { esc, escHtml } from '../core/helpers.js';
+import { esc, escAttr, escHtml, escJsArg } from '../core/helpers.js';
 
 /**
  * @param {import('../core/state.js').StepStatus} status
@@ -17,6 +17,8 @@ const stepIcon = (status) => {
             return '&#10007;';
         case 'Requeued':
             return '&#8635;';
+        case 'Waiting':
+            return '&#8987;';
         case 'Canceled':
             return '&#8212;';
         default:
@@ -68,35 +70,48 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     html +=
         `<div class="step-circle ${step.status}"` +
         ` style="cursor:pointer${isStatic ? ';animation:none;box-shadow:none' : ''}"` +
-        ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')">` +
+        ` onclick="openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(step.idempotencyKey)}','${escJsArg(step.commandDetail)}')">` +
         `${stepIcon(step.status)}</div>`;
 
     if (step.stateChanged) {
         html +=
             `<div class="step-state-badge"` +
             ` title="State mutated"` +
-            ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','state')">` +
+            ` onclick="openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(step.idempotencyKey)}','${escJsArg(step.commandDetail)}','state')">` +
             `</div>`;
     }
 
     const sub = stepSubLabel(step);
     html += `<div class="step-label-wrap">`;
-    html += `<div class="step-label" title="${esc(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
-    if (sub) html += `<div class="step-sublabel">${esc(sub)}</div>`;
+    html += `<div class="step-label" title="${escAttr(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
+    if (sub) html += `<div class="step-sublabel" title="${escAttr(sub)}">${esc(sub)}</div>`;
     html += `</div>`;
 
     html += `<div class="step-meta">`;
-    html += `<span class="step-type ${esc(step.commandType)}">${esc(step.commandType)}</span>`;
+    html += `<span class="step-type ${escAttr(step.commandType)}">${esc(step.commandType)}</span>`;
     if (step.retryCount > 0) {
         html += `<div class="step-retry">&#8635;${step.retryCount}</div>`;
     }
-    const backoff = step.backoffUntil || (step.status === 'Requeued' ? wf.backoffUntil : null);
-    if (step.status === 'Requeued' && backoff) {
-        html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry now (skip backoff timer)">retry now</button>`;
+    const isBackedOff = step.status === 'Requeued' || step.status === 'Waiting';
+    const backoff = step.backoffUntil || (isBackedOff ? wf.backoffUntil : null);
+    if (isBackedOff && backoff) {
+        const action =
+            step.status === 'Waiting'
+                ? 'check now (skip wait timer)'
+                : 'Retry now (skip backoff timer)';
+        const label = step.status === 'Waiting' ? 'check now' : 'retry now';
+        html += `<span class="step-backoff" data-backoff="${escAttr(backoff)}"></span>`;
+        html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${action}">${label}</button>`;
+    }
+    if (isBackedOff) {
+        const failTitle =
+            step.status === 'Waiting'
+                ? 'Fail now (stop waiting, mark the step Failed)'
+                : 'Fail now (stop retrying, mark the step Failed)';
+        html += `<button class="fail-btn" onclick="failWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${failTitle}">fail</button>`;
     }
     if (step.status === 'Failed') {
-        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
+        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
     }
     html += buildStepTimingHTML(step, isStatic);
     html += `</div></div>`;
@@ -112,7 +127,8 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
  */
 const buildConnectorHTML = (prev, cur, isStatic) => {
     const prevDone = prev.status === 'Completed';
-    const curActive = cur.status === 'Processing' || cur.status === 'Requeued';
+    const curActive =
+        cur.status === 'Processing' || cur.status === 'Requeued' || cur.status === 'Waiting';
     const isLeadingEdge = prevDone && curActive;
 
     const lineClass = isStatic
@@ -211,12 +227,32 @@ export const buildPipelineHTML = (wf, isStatic) => {
     return html;
 };
 
+/**
+ * Replaces a card's inner HTML while keeping its pipeline scrolled where the operator left it.
+ * A rebuild swaps the `.pipeline` element, and a fresh element starts at scrollLeft 0 — so without
+ * this every retry or deferral write-back snapped a sideways-scrolled pipeline back to its start.
+ * Callers that want the active step centered instead call {@link scrollPipelineToActive} afterwards.
+ * @param {HTMLElement} card
+ * @param {string} html
+ */
+export const setCardHTMLKeepingPipelineScroll = (card, html) => {
+    const before = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+    const scrollLeft = before ? before.scrollLeft : 0;
+    card.innerHTML = html;
+    if (scrollLeft > 0) {
+        const after = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+        if (after) after.scrollLeft = scrollLeft;
+    }
+};
+
 /** @param {HTMLElement} card */
 export const scrollPipelineToActive = (card) => {
     const p = card.querySelector('.pipeline');
     if (!p) return;
     const active =
-        p.querySelector('.step-circle.Processing') || p.querySelector('.step-circle.Requeued');
+        p.querySelector('.step-circle.Processing') ||
+        p.querySelector('.step-circle.Requeued') ||
+        p.querySelector('.step-circle.Waiting');
     if (active) {
         const node = /** @type {HTMLElement | null} */ (active.closest('.step-node'));
         if (node) {

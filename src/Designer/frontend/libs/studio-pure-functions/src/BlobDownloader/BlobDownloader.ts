@@ -10,7 +10,7 @@ export class BlobDownloader {
   }
 
   public getDownloadURL(): string {
-    const blob = this.generateBlobToDownlaod();
+    const blob = this.generateBlobToDownload();
     return this.generateDownloadUrl(blob);
   }
 
@@ -26,7 +26,7 @@ export class BlobDownloader {
     this.revokeDownloadURL(link.href);
   }
 
-  private generateBlobToDownlaod(): Blob {
+  private generateBlobToDownload(): Blob {
     return new Blob([this.data], { type: this.fileType });
   }
 

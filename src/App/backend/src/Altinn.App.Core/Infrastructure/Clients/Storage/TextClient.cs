@@ -73,7 +73,7 @@ public class TextClient : IText
                 _settings.RuntimeCookieName
             );
 
-            HttpResponseMessage response = await _client.GetAsync(token, url);
+            using HttpResponseMessage response = await _client.GetAsync(token, url);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 textResource = await JsonSerializerPermissive.DeserializeAsync<TextResource>(response.Content);

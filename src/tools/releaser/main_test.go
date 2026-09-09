@@ -63,10 +63,10 @@ func TestCLIArgValidation(t *testing.T) {
 		}
 	})
 
-	t.Run("backport requires commit and branch", func(t *testing.T) {
+	t.Run("backport requires commit and line", func(t *testing.T) {
 		err := runBackport([]string{"-component", "studioctl"})
-		if !errors.Is(err, errReleaseCommitBranchRequired) {
-			t.Fatalf("runBackport() error = %v, want %v", err, errReleaseCommitBranchRequired)
+		if !errors.Is(err, errReleaseCommitLineRequired) {
+			t.Fatalf("runBackport() error = %v, want %v", err, errReleaseCommitLineRequired)
 		}
 	})
 

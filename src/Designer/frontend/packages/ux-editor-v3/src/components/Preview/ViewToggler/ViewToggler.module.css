@@ -3,7 +3,7 @@
   justify-content: flex-end;
   padding: var(--ds-size-3) 2rem;
   box-sizing: border-box;
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
 }
 
 .toggler {

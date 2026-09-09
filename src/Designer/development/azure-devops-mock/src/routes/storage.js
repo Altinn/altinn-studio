@@ -249,3 +249,20 @@ export const storageInstanceDetailsRoute = (req, res) => {
 
   res.json({ org, app, ...instance });
 };
+
+export const storageInstanceDeleteRoute = (req, res) => {
+  const { instanceId } = req.params;
+  const instance = randomInstances.find((i) => i.id === instanceId);
+
+  if (!instance) {
+    res.sendStatus(404);
+    return;
+  }
+
+  if (!instance.softDeletedAt) {
+    instance.softDeletedAt = new Date();
+    instance.lastChangedAt = instance.softDeletedAt;
+  }
+
+  res.sendStatus(204);
+};

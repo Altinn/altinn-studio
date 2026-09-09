@@ -1,4 +1,5 @@
 import { GIT_BRANCH_VALIDATION } from 'app-shared/constants/gitBranchValidation';
+import { StringUtils } from '@studio/pure-functions';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -6,7 +7,7 @@ export interface ValidationResult {
 }
 
 export class BranchNameValidator {
-  public static validate(name: string): ValidationResult {
+  public static validate(name: string, existingNames: string[] = []): ValidationResult {
     if (!name || name.length === 0) {
       return { isValid: false, errorKey: 'branching.new_branch_dialog.error_empty' };
     }
@@ -23,10 +24,16 @@ export class BranchNameValidator {
       return { isValid: false, errorKey: 'branching.new_branch_dialog.error_reserved_ending' };
     }
 
+    if (this.alreadyExists(name, existingNames)) {
+      return { isValid: false, errorKey: 'branching.new_branch_dialog.error_already_exists' };
+    }
+
     return { isValid: true, errorKey: '' };
   }
 
-  public static isValid(name: string): boolean {
-    return this.validate(name).isValid;
+  private static alreadyExists(name: string, existingNames: string[]): boolean {
+    return existingNames.some((existingName) =>
+      StringUtils.areCaseInsensitiveEqual(existingName, name),
+    );
   }
 }

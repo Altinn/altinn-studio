@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/dom';
 import { render as renderRtl } from '@testing-library/react';
-import { randomUUID } from 'crypto';
+const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
 import { ITextResourceBindings } from 'src/layout/layout';
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
@@ -30,41 +30,41 @@ const mockDocumentList: SigningDocument[] = [
   },
 ];
 
-jest.mock('src/utils/layout/useNodeItem', () => ({}));
+vi.mock('src/utils/layout/useNodeItem', () => ({}));
 
-jest.mock('src/utils/layout/DataModelLocation', () => ({
+vi.mock('src/utils/layout/DataModelLocation', () => ({
   useIndexedId: (baseId: string) => baseId,
 }));
 
-jest.mock('react-router', () => ({
-  useParams: jest.fn(() => ({
+vi.mock('react-router', () => ({
+  useParams: vi.fn(() => ({
     partyId: 'partyId',
     instanceGuid: randomUUID(),
   })),
 }));
 
-jest.mock('src/features/language/useLanguage', () => ({
-  useLanguage: jest.fn(() => ({
+vi.mock('src/features/language/useLanguage', () => ({
+  useLanguage: vi.fn(() => ({
     langAsString: (inputString: string) => inputString,
   })),
 }));
 
-jest.mock('src/features/language/Lang', () => ({
+vi.mock('src/features/language/Lang', () => ({
   Lang: ({ id }: { id: string }) => id,
 }));
 
-jest.mock('src/features/instance/useProcessQuery', () => ({
-  useTaskTypeFromBackend: jest.fn(() => ProcessTaskType.Signing),
+vi.mock('src/features/instance/useProcessQuery', () => ({
+  useTaskTypeFromBackend: vi.fn(() => ProcessTaskType.Signing),
 }));
 
-jest.mock('src/layout/SigningDocumentList/api');
+vi.mock('src/layout/SigningDocumentList/api');
 
-jest.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
-  SigningDocumentListError: jest.fn(({ error }: { error: Error }) => error.message),
+vi.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
+  SigningDocumentListError: vi.fn(({ error }: { error: Error }) => error.message),
 }));
 
 describe('SigningDocumentList', () => {
-  const mockedUseDocumentList = jest.mocked(useDocumentList);
+  const mockedUseDocumentList = vi.mocked(useDocumentList);
   const baseComponentId = 'signing-document-list';
 
   const textResourceBindings: ITextResourceBindings<'SigningDocumentList'> = {
@@ -74,8 +74,8 @@ describe('SigningDocumentList', () => {
   };
 
   beforeEach(() => {
-    // resets all mocked functions to jest.fn()
-    jest.clearAllMocks();
+    // resets all mocked functions to vi.fn()
+    vi.clearAllMocks();
 
     mockedUseDocumentList.mockReturnValue({
       data: mockDocumentList,

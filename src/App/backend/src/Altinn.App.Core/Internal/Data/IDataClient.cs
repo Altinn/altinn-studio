@@ -19,8 +19,8 @@ public interface IDataClient
     /// <param name="dataToSerialize">The app model to serialize</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
@@ -46,8 +46,8 @@ public interface IDataClient
     /// <param name="dataToSerialize">The app model to serialize</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
     [Obsolete("Use InsertFormData with Instance parameter instead")]
@@ -141,8 +141,8 @@ public interface IDataClient
     /// <param name="dataToSerialize">The form data to serialize</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
@@ -168,8 +168,8 @@ public interface IDataClient
     /// <param name="dataToSerialize">The form data to serialize</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
     [Obsolete("Use the UpdateFormData method with Instance parameter instead")]
@@ -215,8 +215,8 @@ public interface IDataClient
     /// </summary>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
@@ -238,8 +238,8 @@ public interface IDataClient
     /// </summary>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
     [Obsolete("Use the overload with Instance parameter instead")]
@@ -280,8 +280,8 @@ public interface IDataClient
     /// Gets the data as is. Note: This method buffers the entire response in memory before returning the stream.
     /// For memory-efficient processing of large files, use <see cref="GetBinaryDataStream(int, Guid, Guid, StorageAuthenticationMethod?, TimeSpan?, CancellationToken)"/> instead.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
@@ -302,8 +302,8 @@ public interface IDataClient
     /// Gets the data as is. Note: This method buffers the entire response in memory before returning the stream.
     /// For memory-efficient processing of large files, use <see cref="GetBinaryDataStream(int,Guid,Guid,Altinn.App.Core.Features.StorageAuthenticationMethod?,TimeSpan?,CancellationToken)"/> instead.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
@@ -319,6 +319,11 @@ public interface IDataClient
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns>
+    /// A stream over the data. The caller owns the stream and should dispose it: it holds the underlying
+    /// HTTP response, which is released with it.
+    /// </returns>
+    /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryData(
         int instanceOwnerPartyId,
         Guid instanceGuid,
@@ -333,6 +338,11 @@ public interface IDataClient
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
+    /// <returns>
+    /// A stream over the data. The caller owns the stream and should dispose it: it holds the underlying
+    /// HTTP response, which is released with it.
+    /// </returns>
+    /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId) =>
         GetBinaryData(instanceOwnerPartyId, instanceGuid, dataId, null, default);
 
@@ -346,6 +356,10 @@ public interface IDataClient
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="timeout">Optional timeout for the operation. Defaults to 100 seconds if not specified.</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns>
+    /// An unbuffered stream over the data. The caller owns the stream and must dispose it: it holds the
+    /// underlying HTTP response — and with it a connection — open until it is disposed.
+    /// </returns>
     /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryDataStream(
         int instanceOwnerPartyId,
@@ -363,6 +377,10 @@ public interface IDataClient
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
+    /// <returns>
+    /// An unbuffered stream over the data. The caller owns the stream and must dispose it: it holds the
+    /// underlying HTTP response — and with it a connection — open until it is disposed.
+    /// </returns>
     /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryDataStream(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId) =>
         GetBinaryDataStream(instanceOwnerPartyId, instanceGuid, dataId, null, null, default);
@@ -370,8 +388,8 @@ public interface IDataClient
     /// <summary>
     /// Similar to GetBinaryData, but returns the raw bytes instead of a cached stream
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
@@ -392,8 +410,8 @@ public interface IDataClient
     /// <summary>
     /// Similar to GetBinaryData, but returns the raw bytes instead of a cached stream
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
@@ -432,8 +450,8 @@ public interface IDataClient
     /// <summary>
     /// Method that gets metadata on form attachments ordered by attachmentType
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
@@ -452,8 +470,8 @@ public interface IDataClient
     /// <summary>
     /// Method that gets metadata on form attachments ordered by attachmentType
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <returns>A list with attachments metadata ordered by attachmentType</returns>
@@ -488,8 +506,8 @@ public interface IDataClient
     /// <summary>
     /// Method that removes a form attachments from disk/storage
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
@@ -500,8 +518,8 @@ public interface IDataClient
     /// <summary>
     /// Method that removes a data element from disk/storage immediately or marks it as deleted.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
@@ -523,8 +541,8 @@ public interface IDataClient
     /// <summary>
     /// Method that removes a data element from disk/storage immediately or marks it as deleted.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
@@ -570,8 +588,8 @@ public interface IDataClient
     /// <summary>
     /// Method that saves a form attachments to disk/storage and returns the new data element.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
@@ -593,8 +611,8 @@ public interface IDataClient
     /// <summary>
     /// Method that saves a form attachments to disk/storage and returns the new data element.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
@@ -612,8 +630,8 @@ public interface IDataClient
     /// <summary>
     /// Method that updates a form attachments to disk/storage and returns the updated data element.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The data id</param>
@@ -638,8 +656,8 @@ public interface IDataClient
     /// <summary>
     /// Method that updates a form attachments to disk/storage and returns the updated data element.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The data id</param>

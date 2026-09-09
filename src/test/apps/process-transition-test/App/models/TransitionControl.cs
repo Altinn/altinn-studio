@@ -60,5 +60,22 @@ namespace Altinn.App.Models.TransitionControl
         [JsonProperty("serviceView")]
         [JsonPropertyName("serviceView")]
         public string serviceView { get; set; }
+
+        /// <summary>How many times the service task DEFERS before it settles. A deferral is not a
+        /// failure: the step reports "ran fine, the outcome isn't here yet", the engine parks the
+        /// workflow in Waiting and re-runs the task after deferDelayMs. Distinct from `attempts`,
+        /// which forces retryable FAILURES. 0 means no deferrals. Only meaningful on the postCommit
+        /// path.</summary>
+        [XmlElement("deferrals", Order = 7)]
+        [JsonProperty("deferrals")]
+        [JsonPropertyName("deferrals")]
+        public int? deferrals { get; set; }
+
+        /// <summary>How long the engine waits between deferrals. The service task picks this per
+        /// re-check; the step's wait budget caps the total.</summary>
+        [XmlElement("deferDelayMs", Order = 8)]
+        [JsonProperty("deferDelayMs")]
+        [JsonPropertyName("deferDelayMs")]
+        public int? deferDelayMs { get; set; }
     }
 }

@@ -467,7 +467,7 @@ public static partial class ExpressionEvaluator
         if (a.HasValue && b.HasValue && aHasTimezone != bHasTimezone)
         {
             throw new ExpressionEvaluatorTypeErrorException(
-                "Can not compare timestamps with timezone info against timestamps withou timezone info",
+                "Can not compare timestamps with timezone info against timestamps without timezone info",
                 ExpressionFunction.compare,
                 args
             );
@@ -932,7 +932,7 @@ public static partial class ExpressionEvaluator
 
         if (a is null || b is null)
         {
-            return false; // error handeling
+            return false; // error handling
         }
         return a < b; // Actual implementation
     }
@@ -967,7 +967,7 @@ public static partial class ExpressionEvaluator
 
         if (a is null || b is null)
         {
-            return false; // error handeling
+            return false; // error handling
         }
         return a <= b; // Actual implementation
     }

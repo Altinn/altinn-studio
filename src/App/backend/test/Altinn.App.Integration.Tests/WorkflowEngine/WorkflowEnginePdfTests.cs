@@ -27,7 +27,7 @@ public class WorkflowEnginePdfTests(ITestOutputHelper output, AppFixtureClassFix
 
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         Assert.Equal(HttpStatusCode.Created, readInstantiationResponse.Response.StatusCode);

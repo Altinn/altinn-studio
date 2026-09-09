@@ -7,7 +7,7 @@ import type { AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types
 /**
  * Mutation to remove a member from a access list
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param listIdentifier the identifier of access list to remove member from
  * @param env the list environment
  */

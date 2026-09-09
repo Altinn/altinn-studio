@@ -1,4 +1,11 @@
-import { filterFunction, getLangName, getRandNumber, mapResourceFilesToTableRows } from './utils';
+import {
+  filterFunction,
+  filterRows,
+  getLangName,
+  getRandNumber,
+  mapResourceFilesToTableRows,
+} from './utils';
+import type { TextTableRow } from './types';
 import type { ITextResources } from 'app-shared/types/global';
 
 describe('getLangName', () => {
@@ -160,5 +167,21 @@ describe('mapResourceFilesToTableRows', () => {
     const rows = mapResourceFilesToTableRows(textResources, true);
     expect(rows).toHaveLength(2);
     expect(rows[1].variables).toHaveLength(1);
+  });
+});
+
+describe('filterRows', () => {
+  const rows: TextTableRow[] = [
+    { textKey: 'first', translations: [{ lang: 'nb', translation: 'Norsk tekst' }] },
+    { textKey: 'second', translations: [{ lang: 'nb', translation: 'Annen tekst' }] },
+  ];
+
+  it('returns the rows whose key or translation matches the search', () => {
+    expect(filterRows(rows, 'first')).toEqual([rows[0]]);
+    expect(filterRows(rows, 'annen')).toEqual([rows[1]]);
+  });
+
+  it('returns every row when the search is empty', () => {
+    expect(filterRows(rows, '')).toEqual(rows);
   });
 });

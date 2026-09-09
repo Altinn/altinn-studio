@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -21,8 +22,8 @@ internal interface IProcessEngine
     /// </summary>
     Task<Instance> SubmitInitialProcessState(
         Instance instance,
+        StorageVersionMetadata versions,
         ProcessStateChange processStateChange,
-        string lockToken,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
@@ -45,14 +46,19 @@ internal interface IProcessEngine
     /// until that workflow completes.
     /// Does not mutate the <paramref name="instance"/>.
     /// </summary>
+    /// <remarks>
+    /// <c>idempotencyKey</c> defaults to one derived from <c>dependsOnWorkflowId</c>; the mailbox
+    /// relay passes its own, derived from the step that concluded the exchange, so every call it
+    /// makes from inside one callback keys off the same executing step.
+    /// </remarks>
     Task EnqueueProcessNext(
         Instance instance,
         Actor actor,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,
         string? action = null,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     );
 }

@@ -1,8 +1,8 @@
 .button {
   display: flex;
   justify-content: center;
-  padding-top: var(--fds-spacing-5);
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  padding-top: var(--ds-size-5);
+  background-color: var(--ds-color-neutral-surface-tinted);
 }
 
 .wrapper {
@@ -12,7 +12,7 @@
   overflow-wrap: anywhere;
   border-bottom: 1px solid #d2d5d8;
 
-  --background-color: var(--fds-semantic-surface-neutral-subtle);
+  --background-color: var(--ds-color-neutral-surface-tinted);
   background-color: var(--background-color);
 }
 

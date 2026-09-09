@@ -12,7 +12,7 @@
     <ProjectReference Include="../../src/WorkflowEngine.Commands/WorkflowEngine.Commands.csproj" />
     <ProjectReference Include="../../src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
     <ProjectReference Include="../../src/WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
-    <ProjectReference Include="../../../../common/Altinn.Studio.Runtime.Common.csproj" />
+    <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
   </ItemGroup>
 
 </Project>

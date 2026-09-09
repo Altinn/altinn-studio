@@ -23,6 +23,7 @@ See the root [`/AGENTS.md`](../../AGENTS.md) for how this fits into Altinn 3 as 
 - `workflow-engine` (library) and `workflow-engine-app` (host) are a matched pair — read the library's
   `AGENTS.md` first; the host inherits its conventions. The app-side integration lives in
   [`src/App/backend/.../WorkflowEngine`](../App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md).
-- Several services share hosting helpers from [`src/common`](../common/AGENTS.md).
+- Several services share repository-wide hosting helpers from [`src/common`](../common/AGENTS.md).
+- Local-runtime services and studioctl share .NET capabilities from [`Runtime/common`](common/AGENTS.md).
 - Go services (`operator`, `pdf3`, `devenv`) and .NET services differ in build/test tooling — follow the
   project's own `AGENTS.md`/`README.md`/`Makefile`.

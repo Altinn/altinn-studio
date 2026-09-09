@@ -96,7 +96,7 @@ public class JsonSchemaSeresAnalyzerTests
     [InlineData(
         @"Model/JsonSchema/General/ComplexContentExtension_negative.json",
         "#/properties/Root/allOf/[0]",
-        "Schema has allOf keyword with multiple sub schemas, but they don't fullfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)"
+        "Schema has allOf keyword with multiple sub schemas, but they don't fulfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)"
     )]
     public void IsValidComplexContentExtension_NotComplexContentExtention_ShouldReturnFalse(
         string path,

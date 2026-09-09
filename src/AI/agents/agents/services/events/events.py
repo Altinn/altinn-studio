@@ -12,6 +12,8 @@ class AgentEvent(BaseModel):
         "error",
         "status",
         "assistant_message",
+        "assistant_message_chunk",
+        "permission_request",
         "done"
     ]
     session_id: str

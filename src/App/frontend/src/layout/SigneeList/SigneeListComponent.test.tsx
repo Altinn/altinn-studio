@@ -11,15 +11,15 @@ import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
-jest.mock('src/utils/layout/useNodeItem');
-jest.mock('src/utils/layout/DataModelLocation', () => ({
+vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/DataModelLocation', () => ({
   useIndexedId: (baseId: string) => baseId,
 }));
-jest.mock('react-router');
-jest.mock('src/features/language/useLanguage');
-jest.mock('src/features/language/Lang');
-jest.mock('src/layout/SigneeList/api');
-jest.mock('src/layout/SigneeList/SigneeListError');
+vi.mock('react-router');
+vi.mock('src/features/language/useLanguage');
+vi.mock('src/features/language/Lang');
+vi.mock('src/layout/SigneeList/api');
+vi.mock('src/layout/SigneeList/SigneeListError');
 
 const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [
   {
@@ -60,26 +60,26 @@ const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [
   },
 ];
 
-const mockedUseSigneeList = jest.mocked(useSigneeList);
+const mockedUseSigneeList = vi.mocked(useSigneeList);
 
 describe('SigneeListComponent', () => {
   beforeEach(() => {
-    // resets all mocked functions to jest.fn()
-    jest.resetAllMocks();
+    // resets all mocked functions to vi.fn()
+    vi.resetAllMocks();
 
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    jest.mocked(SigneeListError).mockImplementation(({ error }: { error: Error }) => <>{error.message}</>);
+    vi.mocked(SigneeListError).mockImplementation(({ error }: { error: Error }) => <>{error.message}</>);
 
-    jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
-    jest.mocked(useLanguage).mockReturnValue({
+    vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    vi.mocked(useLanguage).mockReturnValue({
       langAsString: (inputString: string) => inputString,
     } as unknown as ReturnType<typeof useLanguage>);
-    jest.mocked(useParams).mockReturnValue({
+    vi.mocked(useParams).mockReturnValue({
       instanceOwnerPartyId: 'partyId',
       instanceGuid: 'instanceGuid',
       taskId: 'taskId',
     });
-    jest.mocked(useItemWhenType).mockReturnValue({
+    vi.mocked(useItemWhenType).mockReturnValue({
       textResourceBindings: {
         title: 'Signee List',
         description: 'description',

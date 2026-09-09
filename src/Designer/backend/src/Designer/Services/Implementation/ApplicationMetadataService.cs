@@ -123,8 +123,8 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <summary>
     /// Creates the application metadata file
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation., e.g. "app-name-with-spaces".</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization., e.g. "app-name-with-spaces".</param>
     /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
     public async Task CreateApplicationMetadata(string org, string app, string appTitle)
     {
@@ -284,8 +284,8 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <summary>
     /// Returns the application metadata for an application on a specific commitId
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="referenceId">The name of the commit/branch/tag. Default the repository’s default branch</param>
     /// <returns>The application metadata for an application.</returns>
     public async Task<string> GetApplicationMetadataJsonFromSpecificReference(

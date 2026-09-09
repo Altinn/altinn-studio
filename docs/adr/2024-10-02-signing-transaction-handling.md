@@ -6,7 +6,7 @@
 
 ## Result
 
-A2: State - We store transaction state. We retry, skipping the previously succesful steps.
+A2: State - We store transaction state. We retry, skipping the previously successful steps.
 
 ## Problem context
 
@@ -41,8 +41,8 @@ We will refer to step 1 as the **action** and step 2 as the **message**
 
 ## Alternatives considered
 
-- A1: Rollback - We use a transaction scope. If a step fails then we rollback the previous steps. We retry the transction.
-- A2: State - We store transaction state. We retry, skipping the previously succesful steps.
+- A1: Rollback - We use a transaction scope. If a step fails then we rollback the previous steps. We retry the transaction.
+- A2: State - We store transaction state. We retry, skipping the previously successful steps.
 
 ## Pros and cons
 
@@ -50,8 +50,8 @@ List the pros and cons with the alternatives. This should be in regards to the d
 
 ### A1
 
-- Good, because this alternative adheres to all descision drivers
-- Bad, because it does not fullfill the B4 decision driver, leading to unnecessary traffic.
+- Good, because this alternative adheres to all decision drivers
+- Bad, because it does not fulfill the B4 decision driver, leading to unnecessary traffic.
 
 ### A2
 

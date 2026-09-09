@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'app-libs/form-component/**'
+      - 'src/common/ts/form-component/**'
       - '.github/workflows/apps-storybook-preview.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -22,12 +22,12 @@ jobs:
       pull-requests: write # Required for the Azure action to comment the preview URL on the PR
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Use node LTS and yarn cache
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           cache: 'yarn'
           node-version: '22'
@@ -36,7 +36,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build Storybook
-        working-directory: app-libs/form-component
+        working-directory: src/common/ts/form-component
         run: yarn build-storybook
 
       - name: Deploy preview to Azure Static Web Apps
@@ -45,7 +45,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.APPS_DEV_STORYBOOK }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "app-libs/form-component/storybook-static"
+          app_location: "src/common/ts/form-component/storybook-static"
           api_location: ""
           output_location: ""
           skip_app_build: true

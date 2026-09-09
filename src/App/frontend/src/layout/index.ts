@@ -1,5 +1,7 @@
 import type { ReactNode, RefObject } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { DisplayData } from 'src/features/displayData';
@@ -7,7 +9,6 @@ import type { ExpressionDataSources } from 'src/features/expressions/runtime/use
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation, ComponentValidation } from 'src/features/validation';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
@@ -63,6 +64,10 @@ export function getComponentBehaviors<T extends CompTypes>(type: T): ComponentCo
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return undefined as any;
+}
+
+export function isExternallyConfigurableComponent<T extends CompTypes>(type: T): boolean {
+  return getComponentConfigs()[type].availability === 'configurable';
 }
 
 export function implementsAnyValidation<Def extends CompDef>(
@@ -134,7 +139,7 @@ export function implementsDataModelBindingValidation<T extends CompTypes>(
     context: DataModelBindingValidationContext,
   ) => string[];
 } {
-  return 'validateDataModelBindings' in def;
+  return !!def && 'validateDataModelBindings' in def;
 }
 
 export function implementsIsDataModelBindingsRequired<T extends CompTypes>(
@@ -142,7 +147,7 @@ export function implementsIsDataModelBindingsRequired<T extends CompTypes>(
 ): def is CompDef<T> & {
   isDataModelBindingsRequired: (baseComponentId: string, lookups: LayoutLookups) => boolean;
 } {
-  return 'isDataModelBindingsRequired' in def;
+  return !!def && 'isDataModelBindingsRequired' in def;
 }
 
 export function isDataModelBindingsRequired(baseComponentId: string, lookups: LayoutLookups): boolean {

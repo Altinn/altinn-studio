@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import type { AriaAttributes } from 'react';
 
-import { Description, getLabelId, Pagination as CustomPagination, RequiredIndicator } from '@app/form-component';
+import {
+  Description,
+  getLabelId,
+  Pagination as CustomPagination,
+  RequiredIndicator,
+  useIsMobile,
+} from '@app/form-component';
 import {
   Checkbox,
   Fieldset,
@@ -12,6 +18,7 @@ import {
   useRadioGroup,
 } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
 import { RadioButton } from 'src/components/form/RadioButton';
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
@@ -20,7 +27,6 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSaveObjectToGroup } from 'src/features/saveToGroup/useSaveToGroup';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/List/ListComponent.module.css';
 import utilClasses from 'src/styles/utils.module.css';
@@ -28,7 +34,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
 
 type Row = Record<string, string | number | boolean>;
 type SelectionMode = 'readonly' | 'single' | 'multiple';
@@ -52,7 +57,6 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     pagination,
     sortableColumns,
     tableHeadersMobile,
-    mapping,
     queryParameters,
     secure,
     dataListId,
@@ -71,7 +75,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     sortDirection,
   };
 
-  const { data } = useDataListQuery(filter, dataListId, secure, mapping, queryParameters);
+  const { data } = useDataListQuery(filter, dataListId, secure, queryParameters);
   const bindings = item.dataModelBindings ?? ({} as IDataModelBindingsForList);
 
   // Determine selection mode based on bindings

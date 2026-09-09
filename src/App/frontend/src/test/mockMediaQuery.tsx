@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 export const mockMediaQuery = (maxWidth: number) => {
   const setScreenWidth = (width: number) => {
@@ -7,16 +7,16 @@ export const mockMediaQuery = (maxWidth: number) => {
       configurable: true,
       value: width,
     });
-    window.matchMedia = jest.fn(
+    window.matchMedia = vi.fn(
       (query: string) =>
         ({
           matches: width <= maxWidth,
           media: query,
           onchange: null,
-          addListener: jest.fn(),
-          removeListener: jest.fn(),
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
         }) as unknown as MediaQueryList,
     );
   };

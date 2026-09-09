@@ -9,7 +9,7 @@ export const getRootNode = (uiSchemaNodes: UiSchemaNodes): FieldNode =>
   getNodeByPointer(uiSchemaNodes, ROOT_POINTER) as FieldNode;
 
 /**
- * This little trick is what is making it possible to work with very large models. It's a needed complexity to beeing able
+ * This little trick is what is making it possible to work with very large models. It's a needed complexity to being able
  * to handle very large models in an array. React and probably other SPA-frameworks will have problems dealing with the
  * Map datastructure directly, so that is why wee keep these pointers in an internal cache that we can access when
  * doing mutations.

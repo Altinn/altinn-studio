@@ -16,6 +16,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const user = userEvent.setup();
 
@@ -36,7 +39,11 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       setSelectedTypePointer,
       selectedUniquePointer: selectedItem?.schemaPointer,
     },
-  })(<SchemaInspector />);
+  })(
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <SchemaInspector />
+    </ServicesContextProvider>,
+  );
 };
 
 describe('SchemaInspector', () => {

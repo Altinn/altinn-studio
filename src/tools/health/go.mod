@@ -5,10 +5,10 @@ go 1.26.4
 require (
 	github.com/fluxcd/helm-controller/api v1.5.5
 	github.com/fluxcd/kustomize-controller/api v1.8.5
-	k8s.io/api v0.35.6
-	k8s.io/apimachinery v0.35.6
-	k8s.io/client-go v0.35.6
-	k8s.io/metrics v0.35.6
+	k8s.io/api v0.35.7
+	k8s.io/apimachinery v0.35.7
+	k8s.io/client-go v0.35.7
+	k8s.io/metrics v0.35.7
 	sigs.k8s.io/gateway-api v1.4.1
 )
 
@@ -53,7 +53,7 @@ require (
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.47.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/apiextensions-apiserver v0.35.6 // indirect

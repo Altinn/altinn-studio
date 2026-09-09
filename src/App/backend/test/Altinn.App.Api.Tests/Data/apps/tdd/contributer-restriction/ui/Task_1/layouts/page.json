@@ -4,7 +4,7 @@
     "layout": [
       {
         "id": "Heading2-2d1ba9d7-e284-4acd-a37b-e4c8ce45142a",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Brukeropp-side-overskrift"

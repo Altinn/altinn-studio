@@ -21,6 +21,23 @@ async def handle(state: AgentState) -> AgentState:
         state.next_action = "scan"
         return state
 
+    # Spec extraction is a single 20-90s blocking LLM call against the
+    # attached file(s).  Without an explicit status the UI sits on the
+    # last-known message for the whole duration and looks frozen.
+    attachment_count = len(state.attachments)
+    pre_status = (
+        "Leser vedlegg og henter ut feltlister…"
+        if attachment_count == 1
+        else f"Leser {attachment_count} vedlegg og henter ut feltlister…"
+    )
+    sink.send(
+        AgentEvent(
+            type="status",
+            session_id=state.session_id,
+            data={"message": pre_status, "phase": "reading"},
+        )
+    )
+
     try:
         import asyncio
         loop = asyncio.get_running_loop()

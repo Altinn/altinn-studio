@@ -9,7 +9,7 @@
       },
       {
         "id": "MultipleSelectPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "CheckboxesPage"
@@ -17,7 +17,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -54,7 +54,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -68,7 +68,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary2"
@@ -76,7 +76,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary2-Display-Auto",
-        "type": "Header",
+        "type": "Heading",
         "size": "h4",
         "textResourceBindings": {
           "title": "displayType: NULL (Auto)"
@@ -93,7 +93,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary2-Display-String",
-        "type": "Header",
+        "type": "Heading",
         "size": "h4",
         "textResourceBindings": {
           "title": "displayType: String"
@@ -116,7 +116,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary2-Display-List",
-        "type": "Header",
+        "type": "Heading",
         "size": "h4",
         "textResourceBindings": {
           "title": "displayType: List"
@@ -139,7 +139,7 @@
       },
       {
         "id": "MultipleSelectPage-Header2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Avkryssningsbokser mot datamodell"
@@ -196,7 +196,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary-Component2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -209,7 +209,7 @@
       },
       {
         "id": "MultipleSelectPage-Header-Summary2-Component2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary2"
@@ -226,7 +226,6 @@
       },
       {
         "id": "MultipleSelectPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

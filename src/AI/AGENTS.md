@@ -2,7 +2,7 @@
 
 ## Context
 
-The `/AI` folder contains three projects:
+The `/AI` folder contains four projects:
 
 | Project         | Description                                                                      | Path                |
 | --------------- | -------------------------------------------------------------------------------- | ------------------- |

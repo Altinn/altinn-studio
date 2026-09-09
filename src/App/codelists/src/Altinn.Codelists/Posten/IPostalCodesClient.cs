@@ -3,7 +3,7 @@
 namespace Altinn.Codelists.Posten;
 
 /// <summary>
-/// Client for getting the offical list of post codes in Norway.
+/// Client for getting the official list of post codes in Norway.
 /// </summary>
 public interface IPostalCodesClient
 {

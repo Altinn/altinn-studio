@@ -29,7 +29,6 @@ import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGrou
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
-import { Accordion } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
@@ -124,7 +123,7 @@ export const PageGroupAccordion = ({
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>
-              <StudioPopover.Trigger variant='tertiary' className={classes.elipsisIcon}>
+              <StudioPopover.Trigger variant='tertiary' className={classes.ellipsisIcon}>
                 <MenuElipsisVerticalIcon />
               </StudioPopover.Trigger>
               <StudioPopover placement='bottom'>
@@ -162,7 +161,7 @@ export const PageGroupAccordion = ({
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
           return (
-            <Accordion key={page.id} className={classes.groupPageAccordionWrapper}>
+            <div className={classes.pageAccordionWrapper} key={page.id}>
               <PageAccordion
                 pageId={page.id}
                 isOpen={page.id === selectedFormLayoutName}
@@ -179,7 +178,7 @@ export const PageGroupAccordion = ({
                   />
                 )}
               </PageAccordion>
-            </Accordion>
+            </div>
           );
         })}
         <StudioButton

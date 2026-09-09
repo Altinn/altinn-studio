@@ -187,7 +187,7 @@ public class AppSettings
     /// </summary>
     /// <remarks>
     /// If overriding for testing purposes, ensure to only update appsettings.Development.
-    /// Integration will not work if value is overrided in staging or prodution.
+    /// Integration will not work if value is overridden in staging or production.
     /// </remarks>
     public string EFormidlingSender { get; set; } = "910075918";
 
@@ -238,7 +238,7 @@ public class AppSettings
     public string RuntimeSecretsDirectory { get; set; } = DefaultRuntimeSecretsDirectory;
 
     /// <summary>
-    /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutatable (using app apis) when the instance is in this task.
+    /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutable (using app apis) when the instance is in this task.
     /// This is a temporary setting to help identify components with incorrect data bindings, and will be removed in the next major version.
     /// </summary>
     public bool EnforceDataTypeTaskId { get; set; } = false;

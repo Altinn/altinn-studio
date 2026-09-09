@@ -67,7 +67,7 @@ export interface IToolbarElement {
   type: ComponentTypeV3;
 }
 
-export enum CollapsableMenus {
+export enum CollapsibleMenus {
   Components = 'standard',
   Texts = 'texts',
   AdvancedComponents = 'advanced',

@@ -38,7 +38,7 @@ public sealed class XsdMaxOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMaxO
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -91,7 +91,7 @@ public sealed class XsdMaxOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMaxO
         /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, XsdMaxOccursKeyword value, JsonSerializerOptions options)
         {
-            writer.WriteString(Name, value.Value);
+            writer.WriteStringValue(value.Value);
         }
     }
 }

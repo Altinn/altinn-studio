@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
@@ -35,7 +36,6 @@ import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from '
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 

@@ -1,5 +1,4 @@
 import classes from './DeploymentEnvironmentLogList.module.css';
-import { Link, Table } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
 import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
@@ -13,7 +12,7 @@ import {
   XMarkOctagonFillIcon,
   ExternalLinkIcon,
 } from '@studio/icons';
-import { StudioLink, StudioSpinner } from '@studio/components';
+import { StudioLink, StudioSpinner, StudioTable } from '@studio/components';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
@@ -61,30 +60,30 @@ export const DeploymentEnvironmentLogList = ({
         </div>
       ) : (
         <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
-          <Table size='small' stickyHeader className={classes.table}>
-            <Table.Head>
-              <Table.Row>
-                <Table.HeaderCell
+          <StudioTable data-size='sm' stickyHeader className={classes.table}>
+            <StudioTable.Head>
+              <StudioTable.Row>
+                <StudioTable.HeaderCell
                   className={classNames(classes.tableHeaderCell, classes.tableIconCell)}
                 />
-                <Table.HeaderCell className={classes.tableHeaderCell}>
+                <StudioTable.HeaderCell className={classes.tableHeaderCell}>
                   {t('app_deployment.table.status')}
-                </Table.HeaderCell>
-                <Table.HeaderCell className={classes.tableHeaderCell}>
+                </StudioTable.HeaderCell>
+                <StudioTable.HeaderCell className={classes.tableHeaderCell}>
                   {t('app_deployment.table.version_col')}
-                </Table.HeaderCell>
-                <Table.HeaderCell className={classes.tableHeaderCell}>
+                </StudioTable.HeaderCell>
+                <StudioTable.HeaderCell className={classes.tableHeaderCell}>
                   {t('app_deployment.table.available_version_col')}
-                </Table.HeaderCell>
-                <Table.HeaderCell className={classes.tableHeaderCell}>
+                </StudioTable.HeaderCell>
+                <StudioTable.HeaderCell className={classes.tableHeaderCell}>
                   {t('app_deployment.table.deployed_by_col')}
-                </Table.HeaderCell>
-                <Table.HeaderCell className={classes.tableHeaderCell}>
+                </StudioTable.HeaderCell>
+                <StudioTable.HeaderCell className={classes.tableHeaderCell}>
                   {t('app_deployment.table.build_log')}
-                </Table.HeaderCell>
-              </Table.Row>
-            </Table.Head>
-            <Table.Body>
+                </StudioTable.HeaderCell>
+              </StudioTable.Row>
+            </StudioTable.Head>
+            <StudioTable.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const deploymentStatus = getDeployStatus(deploy);
                 const areLogsAvailable =
@@ -94,11 +93,11 @@ export const DeploymentEnvironmentLogList = ({
                 const tableCellStatusClassName = classes[deploymentStatus];
 
                 return (
-                  <Table.Row
+                  <StudioTable.Row
                     key={deploy.build?.id ?? deploy.created}
                     className={tableCellStatusClassName}
                   >
-                    <Table.Cell
+                    <StudioTable.Cell
                       className={classNames(
                         classes.tableCell,
                         classes.tableIconCell,
@@ -106,8 +105,8 @@ export const DeploymentEnvironmentLogList = ({
                       )}
                     >
                       {getIcon(deploymentStatus)}
-                    </Table.Cell>
-                    <Table.Cell
+                    </StudioTable.Cell>
+                    <StudioTable.Cell
                       className={classNames(
                         classes.tableCell,
                         tableCellStatusClassName,
@@ -189,8 +188,8 @@ export const DeploymentEnvironmentLogList = ({
                           </ul>
                         </details>
                       )}
-                    </Table.Cell>
-                    <Table.Cell
+                    </StudioTable.Cell>
+                    <StudioTable.Cell
                       className={classNames(
                         classes.tableCell,
                         tableCellStatusClassName,
@@ -198,8 +197,8 @@ export const DeploymentEnvironmentLogList = ({
                       )}
                     >
                       {deploy.tagName}
-                    </Table.Cell>
-                    <Table.Cell
+                    </StudioTable.Cell>
+                    <StudioTable.Cell
                       className={classNames(
                         classes.tableCell,
                         tableCellStatusClassName,
@@ -208,8 +207,8 @@ export const DeploymentEnvironmentLogList = ({
                     >
                       {(deploy.build?.finished ?? deploy.created) &&
                         DateUtils.formatDateTime(deploy.build?.finished ?? deploy.created)}
-                    </Table.Cell>
-                    <Table.Cell
+                    </StudioTable.Cell>
+                    <StudioTable.Cell
                       className={classNames(
                         classes.tableCell,
                         tableCellStatusClassName,
@@ -217,8 +216,8 @@ export const DeploymentEnvironmentLogList = ({
                       )}
                     >
                       {deploy.createdBy}
-                    </Table.Cell>
-                    <Table.Cell
+                    </StudioTable.Cell>
+                    <StudioTable.Cell
                       className={classNames(
                         classes.tableCell,
                         tableCellStatusClassName,
@@ -227,22 +226,22 @@ export const DeploymentEnvironmentLogList = ({
                     >
                       {deploy.build?.started &&
                         (areLogsAvailable ? (
-                          <Link
+                          <StudioLink
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                             target='_newTab'
                             rel='noopener noreferrer'
                           >
                             {t('app_deployment.table.build_log_active_link')}
-                          </Link>
+                          </StudioLink>
                         ) : (
                           t('app_deployment.table.build_log_expired_link')
                         ))}
-                    </Table.Cell>
-                  </Table.Row>
+                    </StudioTable.Cell>
+                  </StudioTable.Row>
                 );
               })}
-            </Table.Body>
-          </Table>
+            </StudioTable.Body>
+          </StudioTable>
         </div>
       )}
     </>

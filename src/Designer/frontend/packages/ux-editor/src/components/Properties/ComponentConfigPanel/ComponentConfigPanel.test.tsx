@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -54,12 +54,18 @@ const editFormComponentSpy = jest.spyOn(
 
 const expressionsTestId = 'expressions';
 
+const getAccordionSummary = (name: string): HTMLElement => screen.getByText(name);
+
+const getAccordion = (name: string): HTMLElement =>
+  screen.getAllByRole('group').find((accordion) => within(accordion).queryByText(name));
+
 const expectToggleAccordion = async (name: string, user: UserEvent) => {
-  const button = screen.getByRole('button', { name });
-  await user.click(button);
-  expect(button).toHaveAttribute('aria-expanded', 'true');
-  await user.click(button);
-  expect(button).toHaveAttribute('aria-expanded', 'false');
+  const summary = getAccordionSummary(name);
+  const accordion = getAccordion(name);
+  await user.click(summary);
+  expect(accordion).toHaveAttribute('open');
+  await user.click(summary);
+  expect(accordion).not.toHaveAttribute('open');
 };
 
 describe('ComponentConfigPanel', () => {
@@ -132,18 +138,10 @@ describe('ComponentConfigPanel', () => {
     it('has all accordion items closed by default', async () => {
       const { rerender } = renderComponentConfig();
       rerender(getComponent());
-      const textAccordion = screen.getByRole('button', { name: textMock('right_menu.text') });
-      expect(textAccordion).toHaveAttribute('aria-expanded', 'false');
-      const dataModelBindingsAccordion = screen.getByRole('button', {
-        name: textMock('right_menu.data_model_bindings'),
-      });
-      expect(dataModelBindingsAccordion).toHaveAttribute('aria-expanded', 'false');
-      const contentAccordion = screen.getByRole('button', { name: textMock('right_menu.content') });
-      expect(contentAccordion).toHaveAttribute('aria-expanded', 'false');
-      const dynamicsAccordion = screen.getByRole('button', {
-        name: textMock('right_menu.dynamics'),
-      });
-      expect(dynamicsAccordion).toHaveAttribute('aria-expanded', 'false');
+      expect(getAccordion(textMock('right_menu.text'))).not.toHaveAttribute('open');
+      expect(getAccordion(textMock('right_menu.data_model_bindings'))).not.toHaveAttribute('open');
+      expect(getAccordion(textMock('right_menu.content'))).not.toHaveAttribute('open');
+      expect(getAccordion(textMock('right_menu.dynamics'))).not.toHaveAttribute('open');
     });
   });
 
@@ -194,10 +192,10 @@ describe('ComponentConfigPanel', () => {
 
     it('should not render summary overrides accordion when formItem is not a Summary2 component', () => {
       renderComponentConfig();
-      const button = screen.queryByRole('button', {
-        name: textMock('ux_editor.component_properties.summary.override.title'),
-      });
-      expect(button).not.toBeInTheDocument();
+      const summary = screen.queryByText(
+        textMock('ux_editor.component_properties.summary.override.title'),
+      );
+      expect(summary).not.toBeInTheDocument();
     });
   });
 
@@ -211,9 +209,7 @@ describe('ComponentConfigPanel', () => {
 
     it('Sets accordion title to include images when component is image', async () => {
       renderComponentConfig({ formItem: componentMocks[ComponentType.Image] });
-      const accordionTitle = screen.queryByRole('button', {
-        name: textMock('right_menu.text_and_image'),
-      });
+      const accordionTitle = screen.queryByText(textMock('right_menu.text_and_image'));
       expect(accordionTitle).toBeInTheDocument();
     });
   });
@@ -230,8 +226,7 @@ describe('ComponentConfigPanel', () => {
   describe('Content', () => {
     it('Closes content on load', () => {
       renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(getAccordion(textMock('right_menu.content'))).not.toHaveAttribute('open');
     });
 
     it('Toggles content when clicked', async () => {
@@ -245,8 +240,7 @@ describe('ComponentConfigPanel', () => {
   describe('Dynamics', () => {
     it('Closes dynamics on load', () => {
       renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.dynamics') });
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(getAccordion(textMock('right_menu.dynamics'))).not.toHaveAttribute('open');
     });
 
     it('Toggles dynamics when clicked', async () => {

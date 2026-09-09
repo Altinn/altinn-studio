@@ -37,8 +37,14 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["CancelWorkflow"] = "immediate-vs-distributed-cancellation",
         ["ResumeWorkflow"] = "resume",
         ["AbandonWorkflow"] = "abandon",
+        ["NudgeWorkflow"] = "nudge",
+        ["FailWorkflow"] = "fail",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
+        ["MintMailbox"] = "mint-mailbox",
+        ["GetMailbox"] = "get-mailbox",
+        ["CloseMailbox"] = "close-mailbox",
+        ["DeliverToMailbox"] = "deliver-to-mailbox",
     };
 
     private static readonly Dictionary<string, string> _listWorkflowParamDescriptions = new()

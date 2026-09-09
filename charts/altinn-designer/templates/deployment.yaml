@@ -21,6 +21,7 @@ spec:
         azure.workload.identity/use: "true"
       {{- end }}
     spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- if .Values.serviceAccount.enabled }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}

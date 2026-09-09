@@ -321,7 +321,7 @@ internal static class FrontendUpgrade
 
         if (!File.Exists(Path.Combine(uiFolder, "layout-sets.json")))
         {
-            PrintError("Converting to layout sets is required before upgrading schema refereces.");
+            PrintError("Converting to layout sets is required before upgrading schema references.");
             return 1;
         }
 

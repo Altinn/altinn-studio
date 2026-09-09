@@ -36,12 +36,12 @@ export function SelectAllowedPartyTypes({
 
   const initialValues: AllowedPartyTypes[] = getSelectedPartyTypes(partyTypesAllowed);
   const title: string = t('app_settings.access_control_tab_option_all_types');
-  const minimimumRequiredCheckboxes: number = 1;
+  const minimumRequiredCheckboxes: number = 1;
 
   const { hasError, getCheckboxProps, selectedValues, setSelectedValues } = useStudioCheckboxTable(
     initialValues,
     title,
-    minimimumRequiredCheckboxes,
+    minimumRequiredCheckboxes,
   );
 
   return (

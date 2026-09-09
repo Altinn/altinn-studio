@@ -21,6 +21,16 @@ public sealed class CSharpApiMigrationTests : IDisposable
     private static IEnumerable<string> Locations(MigrationResult result) =>
         result.Warnings.Where(static w => w.Contains(".cs:", StringComparison.Ordinal));
 
+    /// <summary>
+    /// The guidance summaries only, excluding the <c>path:line: symbol</c> location lines. Assertions that
+    /// a summary does or does not pair two ideas must use these: a summary and its locations are separate
+    /// elements, so searching all warnings for two substrings at once can never match.
+    /// </summary>
+    private static IEnumerable<string> Summaries(MigrationResult result) =>
+        result
+            .Messages.Select(static message => message.Text)
+            .Where(static t => !t.Contains(".cs:", StringComparison.Ordinal));
+
     // --- RemovedTaskEventInterfaceDetector -------------------------------------------------------
 
     [Fact]
@@ -46,7 +56,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("MyTaskEnd.cs") && w.Contains("MyTaskEnd : IProcessTaskEnd"));
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IProcessTaskEnd"));
     }
@@ -65,7 +75,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Wrapper.cs") && w.Contains("IProcessTaskEnd"));
     }
 
@@ -84,7 +94,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -109,7 +119,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("ServiceTaskErrorHandling"));
         Assert.Contains(result.Warnings, w => w.Contains("FailedContinueProcessNext"));
     }
@@ -131,12 +141,103 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("MyServiceTask.cs:3") && w.Contains("ServiceTaskResult.Failed")
         );
         Assert.DoesNotContain(result.Warnings, w => w.Contains("MyServiceTask.cs:5"));
+    }
+
+    // --- RemovedEventsReceiveStackDetector -------------------------------------------------------
+
+    [Fact]
+    public void EventsReceiveStackDetector_FlagsHandlerImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyEventHandler.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyEventHandler : IEventHandler
+            {
+                public string EventType => "app.my-org.something-happened";
+                public Task<bool> ProcessEvent(CloudEvent cloudEvent) => Task.FromResult(true);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IEventHandler, MyEventHandler>();
+            builder.Services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+            builder.Services.AddSingleton<IEventSecretCodeProvider, MySecretCodeProvider>();
+            """
+        );
+        _app.Write(
+            "logic/MyReceiver.cs",
+            """
+            using Altinn.App.Api.Controllers;
+            public class MyReceiver : EventsReceiverController
+            {
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyEventHandler.cs") && w.Contains("MyEventHandler : IEventHandler")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventsSubscription"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventSecretCodeProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyReceiver.cs") && w.Contains("MyReceiver : EventsReceiverController")
+        );
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_DoesNotFlagEventPublishing()
+    {
+        _app.Write(
+            "logic/MyPublisher.cs",
+            """
+            using Altinn.App.Core.Internal.Events;
+            public class MyPublisher
+            {
+                private readonly IEventsClient _eventsClient;
+                public MyPublisher(IEventsClient eventsClient) => _eventsClient = eventsClient;
+                public Task Publish() => _eventsClient.AddEvent("app.my-org.something-happened", new Instance());
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
     }
 
     // --- LegacyEFormidlingCodeDetector -----------------------------------------------------------
@@ -156,7 +257,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("LegacyProvider : IEFormidlingLegacyConfigurationProvider"));
         Assert.Contains(result.Warnings, w => w.Contains("EnableEFormidling"));
     }
@@ -188,7 +289,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("LegacySender.cs") && w.Contains("SendEFormidlingShipment"));
         Assert.DoesNotContain(result.Warnings, w => w.Contains("MigratedSender.cs"));
     }
@@ -210,7 +311,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
     }
 
@@ -231,7 +332,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
     }
 
@@ -252,7 +353,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedInternalProcessTypeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
     }
 
@@ -276,7 +377,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             projectNullableAnnotationsEnabled: true
         ).Migrate();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.NotEmpty(result.Warnings);
         var migrated = File.ReadAllText(path);
         Assert.Contains("GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)", migrated);
@@ -481,7 +582,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("SendLetter.cs:5") && w.Contains("CorrespondenceAuthorisation")
@@ -490,7 +591,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             result.Warnings,
             w => w.Contains("SendLetter.cs:8") && w.Contains("new GetCorrespondenceStatusPayload(.., lambda)")
         );
-        Assert.Contains(result.Warnings, w => w.Contains("CorrespondenceAuthenticationMethod"));
+        Assert.Contains(Summaries(result), s => s.Contains("CorrespondenceAuthenticationMethod"));
     }
 
     [Fact]
@@ -515,7 +616,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -543,7 +644,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:7") && w.Contains("WithSender"));
         Assert.Contains(
             result.Warnings,
@@ -581,7 +682,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Letter.cs:6") && w.Contains("CorrespondenceRequest.Sender"));
         Assert.Contains(
             result.Warnings,
@@ -619,7 +720,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -657,7 +758,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Override.cs:6") && w.Contains("WithRecipientToOverride"));
         Assert.Contains(
             result.Warnings,
@@ -709,7 +810,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
@@ -729,7 +830,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Attach.cs:3") && w.Contains("CorrespondenceDataLocationType")
@@ -755,7 +856,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("SendLetter.cs:6") && w.Contains("CorrespondenceAuthorisation")
@@ -778,7 +879,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Steps.cs:3") && w.Contains("ICorrespondenceRequestBuilderSender")
@@ -800,19 +901,21 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
     }
 
     // --- CorrespondenceApiMigration --------------------------------------------------------------
 
     private IReadOnlyList<string> _lastMigrationWarnings = [];
+    private IReadOnlyList<string> _lastMigrationTodos = [];
 
     private string MigrateCorrespondence(string relativePath, string source)
     {
         var path = _app.Write(relativePath, source);
         var result = new CorrespondenceApiMigration(Scanner()).Migrate();
         _lastMigrationWarnings = result.Warnings;
+        _lastMigrationTodos = result.Todos;
 
         var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
 
@@ -953,7 +1056,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains("WithData(payload)", File.ReadAllText(pathB));
         Assert.DoesNotContain("new MemoryStream(payload)", File.ReadAllText(pathB));
         Assert.Contains("new MemoryStream(payload)", File.ReadAllText(Path.Combine(_app.Root, "App", "logic", "A.cs")));
-        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -978,8 +1081,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.Contains("WithData(vedlegg.Innhold)", File.ReadAllText(path));
         Assert.DoesNotContain("new MemoryStream(", File.ReadAllText(path));
-        Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("could not be classified"));
+        Assert.Contains(result.Todos, t => t.Contains("could not be rewritten automatically"));
     }
 
     [Fact]
@@ -1020,7 +1122,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // The detector is the fallback for exactly these.
         var detected = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
-        Assert.True(detected.ManualActionRequired);
+        Assert.NotEmpty(detected.Todos);
         Assert.Contains(Locations(detected), w => w.Contains("WithSender"));
         Assert.Contains(Locations(detected), w => w.Contains("WithRequestedSendTime"));
     }
@@ -1241,16 +1343,18 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // Provably bytes - wrapped.
         Assert.Contains("WithData(new MemoryStream(raw))", migrated);
-        Assert.Contains("WithData(new MemoryStream(vedlegg.Innhold))", migrated);
         Assert.Contains("WithData(new MemoryStream(Encoding.UTF8.GetBytes(_text)))", migrated);
         Assert.Contains("WithData(new MemoryStream(\"literal\"u8.ToArray()))", migrated);
+
+        // Provably ReadOnlyMemory<byte> (declared in the app) - reported, never wrapped: the
+        // MemoryStream constructor takes an array, so the wrap would not compile.
+        Assert.Contains("WithData(vedlegg.Innhold);", migrated);
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("cannot be wrapped in a MemoryStream directly"));
 
         // Provably a stream - untouched. Wrapping either of these would not compile.
         Assert.Contains("WithData(new MemoryStream(_bytes));", migrated);
         Assert.DoesNotContain("new MemoryStream(new MemoryStream", migrated);
         Assert.Contains("WithData(open);", migrated);
-
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
     }
 
     [Fact]
@@ -1273,7 +1377,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         // `var` writes out no type, but its initializer settles it - the common shape for a payload
         // fetched from a client, and the one real-world case that would otherwise need a hand edit.
         Assert.Contains("WithData(new MemoryStream(bytes))", migrated);
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        Assert.Empty(_lastMigrationTodos);
     }
 
     [Fact]
@@ -1293,8 +1397,8 @@ public sealed class CSharpApiMigrationTests : IDisposable
             """
         );
 
-        // `var` with an unrecognisable initializer stays unknown, so guessing would risk wrapping a Stream.
-        Assert.Contains(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        // `var` with an unrecognizable initializer stays unknown, so guessing would risk wrapping a Stream.
+        Assert.Contains(_lastMigrationTodos, t => t.Contains("could not be rewritten automatically"));
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
     }
 
@@ -1334,9 +1438,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(Locations(result), w => w.Contains("Purring.cs:6") && w.Contains("Tokenkilde"));
-        Assert.Contains(result.Warnings, w => w.Contains("held in a variable"));
+        Assert.Contains(Summaries(result), s => s.Contains("held in a variable"));
     }
 
     [Fact]
@@ -1365,7 +1469,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
 
-        Assert.True(result.ManualActionRequired);
+        Assert.NotEmpty(result.Todos);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Varsel.cs:8") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
@@ -1396,6 +1500,848 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.DoesNotContain("RequestedSendTime", migrated);
         Assert.Contains("CustomRecipients = [_recipient]", migrated);
+    }
+
+    // --- RemovedMaskinportenShimDetector ---------------------------------------------------------
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsRemovedProviderAndRegistration()
+    {
+        _app.Write(
+            "logic/TokenLookup.cs",
+            """
+            using Altinn.App.Core.Internal.Maskinporten;
+            public class TokenLookup
+            {
+                private readonly IMaskinportenTokenProvider _provider;
+                public Task<string> Fetch() => _provider.GetToken("some:scope");
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddMaskinportenJwkTokenProvider("my-secret");
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("TokenLookup.cs") && w.Contains("IMaskinportenTokenProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("AddMaskinportenJwkTokenProvider")
+        );
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsCertificateProviderAndLegacyEformidlingHandler()
+    {
+        _app.Write(
+            "logic/Certs.cs",
+            """
+            public class Certs : IX509CertificateProvider
+            {
+                public Task<X509Certificate2> GetCertificate() => Task.FromResult(_cert);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Certs.cs") && w.Contains("Certs : IX509CertificateProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler")
+        );
+
+        // The eFormidling handler is not replaced by the Maskinporten client, so it must carry its own
+        // guidance. Warnings are emitted as a summary line followed by separate location lines, so this
+        // asserts on the two summaries rather than looking for both strings in one element.
+        var summaries = Summaries(result).ToList();
+        Assert.Contains(
+            summaries,
+            s =>
+                s.Contains("EformidlingStatusCheckEventHandler")
+                && s.Contains("services.AddEFormidling().WithMetadata<T>()")
+        );
+        // The v8 registration methods are gone in v9, so the guidance must never name one.
+        Assert.DoesNotContain(summaries, s => s.Contains("AddEFormidlingServices"));
+        Assert.DoesNotContain(
+            summaries,
+            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("IMaskinportenClient")
+        );
+    }
+
+    /// <summary>
+    /// <c>EformidlingStatusCheckEventHandler2</c> was public in v8 and is deleted in v9, so an app naming it
+    /// fails to compile and must be told - it is not a surviving public API.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_FlagsTheRemovedSecondStatusCheckHandler()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler2>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler2")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("services.AddEFormidling().WithMetadata<T>()"));
+    }
+
+    /// <summary>
+    /// The replacement client shares the <c>GetAltinnExchangedToken</c> method name with the removed
+    /// provider, and must not be flagged: it is the API apps are being migrated towards.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_IgnoresTheReplacementClient()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+                public Task<JwtToken> Fetch() => _client.GetAltinnExchangedToken(["some:scope"]);
+            }
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(Locations(result));
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write("logic/MyService.cs", "public class MyService { }");
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- ExternalMaskinportenPackageDetector -----------------------------------------------------
+
+    private string WriteProject(string packageReferences) =>
+        _app.Write(
+            "App.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api" Version="8.0.0" />
+                {packageReferences}
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+    [Fact]
+    public void ExternalPackageDetector_WithoutOwnReference_ReportsBrokenBuild()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Client.cs") && w.Contains("using Altinn.ApiClients.Maskinporten.Interfaces")
+        );
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_WithOwnReference_AdvisesWithoutBlocking()
+    {
+        var project = WriteProject(
+            """<PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />"""
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("my-client", settings);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("AddMaskinportenHttpClient"));
+    }
+
+    /// <summary>
+    /// <c>MaskinportenService</c> is the obvious name for an app's own wrapper around the v9 built-in
+    /// client. Flagging it would tell an app whose build is fine to install a package it never used.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresAnAppsOwnWrapperNamedLikeTheExternalService()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/MaskinportenService.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class MaskinportenService
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+        _app.Write("Program.cs", "services.AddScoped<MaskinportenService>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// The same ambiguous name does count once the file imports the package's namespace.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FlagsAmbiguousNamesAlongsideThePackageImport()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Client.cs") && w.Contains("IMaskinportenService"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FlagsDistinctiveClientDefinitionsWithoutAnImport()
+    {
+        var project = WriteProject("");
+        _app.Write("Program.cs", "services.AddSingleton<Pkcs12ClientDefinition>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Pkcs12ClientDefinition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FindsAReferenceInANamespacedProjectFile()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <ItemGroup>
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// The built-in client exposes an <c>AddMaskinportenHttpMessageHandler</c> of its own, so correct v9
+    /// code must not be mistaken for external-package usage.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresBuiltInClientUsage()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "Program.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            services.AddHttpClient<MyClient>().AddMaskinportenHttpMessageHandler(["some:scope"]);
+            services.AddHttpClient<Other>().UseMaskinportenAuthorization(["some:scope"]);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// A reference nested below the top-level ItemGroup is still a declaration, so it must be found - but
+    /// being gated by a condition does not make the app safe, because the code using it compiles in every
+    /// configuration. Both halves matter, so they are asserted together.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalReferenceAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When Condition="'$(Configuration)' == 'Release'">
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("behind an MSBuild condition"));
+    }
+
+    /// <summary>
+    /// The same nesting, unconditional this time: found, and genuinely sufficient.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FindsAnUnconditionalReferenceNestedBelowTheTopLevelItemGroup()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When>
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// A conditional ItemGroup at the top level is the same hazard as a nested one.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalItemGroupAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("behind an MSBuild condition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_UnreadableProject_PrefersTheLouderMessage()
+    {
+        var project = _app.Write("App.csproj", "<Project><not-closed>");
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+    }
+
+    // --- MaskinportenClientOverrideDetector ------------------------------------------------------
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsACustomSectionPath()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+            {
+                services.ConfigureMaskinportenClient("MyOwnMaskinporten");
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient"));
+        Assert.Contains(Summaries(result), s => s.Contains("process transitions fail once deployed"));
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsAConfigurationLambda()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.ConfigureMaskinportenClient(config =>
+            {
+                config.ClientId = "my-client";
+                config.Authority = "https://maskinporten.no/";
+            });
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
+    }
+
+    /// <summary>
+    /// Binding the provisioned section by name is what the default registration does anyway, so it changes
+    /// nothing and must not be reported.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_IgnoresRebindingTheProvisionedSection()
+    {
+        _app.Write("Program.cs", """services.ConfigureMaskinportenClient("MaskinportenSettings");""");
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- RemovedEFormidlingClientApiDetector -----------------------------------------------------
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheDeletedHttpClientExtension()
+    {
+        // Observed in the wild against unrelated APIs, which is why it is named rather than dropped.
+        _app.Write(
+            "logic/Clients/BevillingsregisterClient.cs",
+            """
+            using Altinn.App.Core.Extensions;
+            using Altinn.EFormidlingClient.Extensions;
+            public class BevillingsregisterClient
+            {
+                public async Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    await client.GetAsync(query, headers);
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using Altinn.EFormidlingClient.Extensions", StringComparison.Ordinal)
+        );
+        Assert.Contains(Summaries(result), w => w.Contains("HttpClientExtension", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsRemovedEndpointsAndModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusPoller.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class StatusPoller
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Poll()
+                {
+                    Capabilities capabilities = await _client.GetCapabilities("991825827", null);
+                    await _client.SubscribeeFormidling(new CreateSubscription(), null);
+                    await _client.FindOutGoingMessages("DPO", null);
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("GetCapabilities", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("SubscribeeFormidling", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("FindOutGoingMessages", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("CreateSubscription", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresTheEndpointsThatSurvived()
+    {
+        // The four the shipment flow is built from keep working; only their namespace changes, and
+        // that is rewritten automatically rather than reported.
+        _app.Write(
+            "logic/Eformidling/Shipment.cs",
+            """
+            using Altinn.App.Core.EFormidling.Interface;
+            public class Shipment
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Send(StandardBusinessDocument sbd, Stream file)
+                {
+                    await _client.CreateMessage(sbd);
+                    await _client.UploadAttachment(file, "id", "name.pdf");
+                    await _client.SendMessage("id");
+                    await _client.GetMessageStatusById("id");
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNestedStatusModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusReader.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class StatusReader
+            {
+                public bool Delivered(Statuses statuses) =>
+                    statuses.Content.Exists((Content entry) => entry.Status == "levert");
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Content", StringComparison.Ordinal));
+        // Statuses itself keeps its name, so it must not be reported as changed.
+        Assert.DoesNotContain(Summaries(result), w => w.Contains("Statuses is ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNowRepeatableArkivmeldingProperties()
+    {
+        _app.Write(
+            "logic/EFormidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Basisregistrering Build() =>
+                    new Basisregistrering
+                    {
+                        Dokumentbeskrivelse = new Dokumentbeskrivelse { Dokumentnummer = 1 },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Basisregistrering", StringComparison.Ordinal));
+        Assert.Contains(Locations(result), w => w.Contains("Dokumentbeskrivelse", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("maxOccurs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheRenamedSbdArkivmelding()
+    {
+        _app.Write(
+            "logic/Eformidling/Envelope.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models.SBD;
+            public class Envelope
+            {
+                public StandardBusinessDocument Build() =>
+                    new StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding
+                        {
+                            Sikkerhetsnivaa = 3,
+                            DPF = new DPF { ForsendelsesType = "annet" },
+                        },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("Sikkerhetsnivaa", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("DPF", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagTheNoarkArkivmelding()
+    {
+        // The Noark 5 Arkivmelding keeps its name. Matching on the type name would report every app
+        // that generates one, which is nearly all of them.
+        _app.Write(
+            "logic/Eformidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Arkivmelding Build() => new Arkivmelding { AntallFiler = 1, System = "app" };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Arkivmelding", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsReferencesTheNamespaceRewriteCannotReach()
+    {
+        // The rewrite only touches plain `using A.B;`. An alias and a fully-qualified name both
+        // survive it, so they are reported rather than silently left broken.
+        _app.Write(
+            "logic/Eformidling/Aliased.cs",
+            """
+            using Client = Altinn.Common.EFormidlingClient;
+            public class Aliased
+            {
+                private Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(
+            locations,
+            w => w.Contains("using Client = Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            locations,
+            w => w.Contains("Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsGlobalQualifiedReferences()
+    {
+        // `global::` is a legal way to write either form, and the rewrite misses both just the same.
+        _app.Write(
+            "logic/Eformidling/Global.cs",
+            """
+            using Legacy = global::Altinn.Common.EFormidlingClient;
+            public class Global
+            {
+                private global::Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("using Legacy = global::", StringComparison.Ordinal));
+        Assert.Contains(
+            locations,
+            w => w.Contains("global::Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsAPlainUsingWrittenWithGlobal()
+    {
+        // Not aliased, so it looks rewritable - but the rewrite compares the name exactly, and
+        // "global::Altinn.Common.EFormidlingClient" is not "Altinn.Common.EFormidlingClient".
+        _app.Write(
+            "logic/Eformidling/PlainGlobal.cs",
+            """
+            using global::Altinn.Common.EFormidlingClient;
+            public class PlainGlobal
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using global::Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_ScopesTheModelChecksByQualifiedNamesToo()
+    {
+        // No `using` anywhere, so scoping on imports alone would give this file only the generic
+        // "repoint these references" warning - and none of the guidance it actually needs about the
+        // nested status types, the list cardinality, or the SBD rename.
+        _app.Write(
+            "logic/Eformidling/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Altinn.Common.EFormidlingClient.Models.Content Entry;
+                public Altinn.Common.EFormidlingClient.Models.Basisregistrering Registration;
+
+                public Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument Build() =>
+                    new Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
+                    };
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("Statuses.Entry", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("maxOccurs", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_GivesTheExtensionsItsOwnGuidanceWhenWrittenInFull()
+    {
+        // The extensions namespace sits under a reported prefix, so without de-duplication this would
+        // arrive only as the generic warning, which does not say what to write instead.
+        _app.Write(
+            "logic/Clients/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(client, query, headers);
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("HttpClientExtension", StringComparison.Ordinal));
+        Assert.DoesNotContain(summaries, s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
+    {
+        // A plain using is rewritten automatically, so reporting it would be noise.
+        _app.Write(
+            "logic/Eformidling/Plain.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class Plain
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(
+            Summaries(result),
+            s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
+    {
+        // "Content" is an everyday identifier. Only files reaching into the eFormidling models
+        // namespace can plausibly mean the nested status type.
+        _app.Write(
+            "logic/Clients/SomeClient.cs",
+            """
+            using System.Net.Http;
+            public class SomeClient
+            {
+                public async Task<string> Read(HttpResponseMessage response) =>
+                    await response.Content.ReadAsStringAsync();
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
     }
 
     // --- Scanner ---------------------------------------------------------------------------------

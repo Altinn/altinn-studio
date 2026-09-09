@@ -8,7 +8,7 @@ namespace Altinn.Notifications.Models;
 /// Class representing a notification recipient
 /// </summary>
 /// <remarks>
-/// External representaion to be used in the API.
+/// External representation to be used in the API.
 /// </remarks>
 public class RecipientExt
 {

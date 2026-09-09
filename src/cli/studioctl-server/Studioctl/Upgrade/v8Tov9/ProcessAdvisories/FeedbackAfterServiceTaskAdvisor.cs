@@ -9,7 +9,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.ProcessAdvisories;
 /// task is usually a leftover v8 waiting pattern that now adds a second gate only an authorized
 /// out-of-band process/next can clear.
 ///
-/// Deliberately warn-only: removing a BPMN task is not mechanical (flows, policy rules, ui
+/// Deliberately never rewritten: removing a BPMN task is not mechanical (flows, policy rules, ui
 /// folders and app code may reference it, and live instances may be parked on it), and the
 /// pattern can be legitimate when the feedback task models a separate decision gate (e.g. a
 /// service-owner review) rather than the service task's own outcome. Only the app team can tell
@@ -26,17 +26,16 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
     }
 
     /// <summary>
-    /// Scans process.bpmn and returns one warning per feedback task that follows a service task.
-    /// Never modifies anything; <see cref="MigrationResult.ManualActionRequired"/> is set when
-    /// there is something for the developer to review.
+    /// Scans process.bpmn and returns one to-do per feedback task that follows a service task: each one
+    /// names the task and what to weigh up. Never modifies anything - only the app team can decide.
     /// </summary>
     public MigrationResult Analyze()
     {
-        var warnings = new List<string>();
+        var messages = new List<UpgradeMessage>();
 
         var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
         if (processFile is null)
-            return new MigrationResult(ManualActionRequired: false, warnings);
+            return new MigrationResult(messages);
 
         // Strict decode, same as the process rewriters: refuse non-UTF-8 rather than misread it,
         // and strip the BOM XDocument.Parse rejects.
@@ -45,13 +44,13 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
 
         foreach (var process in doc.Root?.Elements().Where(e => e.Name.LocalName == "process") ?? [])
         {
-            AnalyzeProcess(process, warnings);
+            AnalyzeProcess(process, messages);
         }
 
-        return new MigrationResult(ManualActionRequired: warnings.Count > 0, warnings);
+        return new MigrationResult(messages);
     }
 
-    private static void AnalyzeProcess(XElement process, List<string> warnings)
+    private static void AnalyzeProcess(XElement process, List<UpgradeMessage> messages)
     {
         var elementsById = new Dictionary<string, XElement>(StringComparer.Ordinal);
         foreach (var element in process.Elements())
@@ -82,7 +81,29 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
         {
             foreach (var serviceTaskId in FindUpstreamServiceTasks(feedbackTaskId, elementsById, flows))
             {
-                warnings.Add(
+                var serviceTaskType = elementsById.TryGetValue(serviceTaskId, out var serviceTask)
+                    ? GetAltinnTaskType(serviceTask)
+                    : null;
+
+                // eFormidling is not a "may be redundant" case: in v8 the feedback task held the
+                // instance while delivery was pending, and the Altinn Events reminder loop that
+                // moved the process past it no longer exists. The v9 service task waits for the
+                // delivery confirmation itself, so a trailing feedback task strands the instance.
+                if (string.Equals(serviceTaskType, "eFormidling", StringComparison.OrdinalIgnoreCase))
+                {
+                    messages.Todo(
+                        $"The feedback task '{feedbackTaskId}' follows the eFormidling service task "
+                            + $"'{serviceTaskId}' and must be removed. It exists to hold the instance while the "
+                            + "shipment is delivered, which the v9 eFormidling service task now does itself - and "
+                            + "the Altinn Events reminder that used to move the process past the feedback task is "
+                            + "gone, so nothing will advance it. Instances would wait there indefinitely. Keep it "
+                            + "only if it models a decision gate of its own (e.g. a service-owner review), in "
+                            + "which case something must advance it."
+                    );
+                    continue;
+                }
+
+                messages.Todo(
                     $"The feedback task '{feedbackTaskId}' follows the service task '{serviceTaskId}'. In v9 "
                         + "the process parks on a service task while its work is pending and the frontend shows "
                         + "a waiting step automatically, so the feedback task may be a redundant v8 waiting "

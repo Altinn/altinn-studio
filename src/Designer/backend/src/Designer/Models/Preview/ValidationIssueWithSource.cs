@@ -94,7 +94,7 @@ public class ValidationIssueWithSource
     /// </summary>
     /// <example>
     /// The localized text for the key might be "Date must be between {0} and {1}"
-    /// and the param will provide the dynamical range of allowable dates (eg teh reporting period)
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
     /// </example>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("customTextParams")]

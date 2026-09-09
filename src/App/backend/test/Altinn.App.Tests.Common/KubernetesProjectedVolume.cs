@@ -7,9 +7,12 @@ internal sealed class KubernetesProjectedVolume
 {
     // Kubernetes writes Secret/projected volume payloads into timestamped hidden directories and keeps the
     // visible files pointing through ..data. Updates are published by renaming the ..data_tmp symlink over ..data.
-    // The exact timestamp-like directory names below are representative fixtures; the symlink swap is the behavior under test.
+    // The exact timestamps below are representative fixtures. PollingFileChangeToken compares target mtimes, so the
+    // version files need distinct mtimes for the symlink swap to be observable on filesystems with coarse timestamps.
     public const string InitialVersionDirectoryName = "..2026_06_15_10_00_00.000000001";
     public const string UpdatedVersionDirectoryName = "..2026_06_15_10_00_10.000000002";
+    public static DateTime InitialVersionLastWriteTimeUtc { get; } = new(2026, 6, 15, 10, 0, 0, DateTimeKind.Utc);
+    public static DateTime UpdatedVersionLastWriteTimeUtc { get; } = new(2026, 6, 15, 10, 0, 10, DateTimeKind.Utc);
 
     private const string DataSymlinkName = "..data";
 
@@ -21,11 +24,13 @@ internal sealed class KubernetesProjectedVolume
 
     public string Path { get; }
 
-    public void WriteVersion(string versionDirectoryName, string fileName, string content)
+    public void WriteVersion(string versionDirectoryName, string fileName, string content, DateTime lastWriteTimeUtc)
     {
         string versionDirectory = System.IO.Path.Join(Path, versionDirectoryName);
         Directory.CreateDirectory(versionDirectory);
-        File.WriteAllText(System.IO.Path.Join(versionDirectory, fileName), content);
+        string filePath = System.IO.Path.Join(versionDirectory, fileName);
+        File.WriteAllText(filePath, content);
+        File.SetLastWriteTimeUtc(filePath, lastWriteTimeUtc);
     }
 
     public void CreateSymlinks(string versionDirectoryName, string fileName)

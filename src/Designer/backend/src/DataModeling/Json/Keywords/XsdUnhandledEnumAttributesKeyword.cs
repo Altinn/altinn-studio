@@ -55,7 +55,7 @@ public sealed class XsdUnhandledEnumAttributesKeyword
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -141,7 +141,6 @@ public sealed class XsdUnhandledEnumAttributesKeyword
             JsonSerializerOptions options
         )
         {
-            writer.WritePropertyName(Name);
             writer.WriteStartObject();
 
             foreach (var item in value.Properties)

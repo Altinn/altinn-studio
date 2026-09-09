@@ -1,5 +1,6 @@
+import type { GridRows } from '@app/layout-contract/generated/common.generated';
+
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { GridRows } from 'src/layout/common.generated';
 import type { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
 
 type Comp = ReturnType<RepeatingGroupDef['evalDefaultExpressions']>;
@@ -9,12 +10,12 @@ type RepGroupEdit = Exclude<Comp['edit'], undefined>;
 // These types define the properties in a repeating group config that will have their expressions resolved
 // per row instead of for the entire repeating group component at once.
 type PerRowTrb =
-  | 'save_and_next_button'
-  | 'save_button'
-  | 'edit_button_close'
-  | 'edit_button_open'
-  | 'multipage_next_button'
-  | 'multipage_back_button';
+  | 'saveAndNextButton'
+  | 'saveButton'
+  | 'editButtonClose'
+  | 'editButtonOpen'
+  | 'multipageNextButton'
+  | 'multipageBackButton';
 type PerRowEdit = 'deleteButton' | 'saveButton' | 'editButton' | 'alertOnDelete' | 'saveAndNextButton';
 export type GroupExpressions = ExprResolved<{
   textResourceBindings?: Pick<RepGroupTrb, PerRowTrb>;

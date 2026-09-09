@@ -1,38 +1,98 @@
 name: "App Stop Local Environment"
 description: "Stops localtest and app containers"
+inputs:
+  collect-diagnostics:
+    description: "Whether to collect local environment diagnostics before stopping it"
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
-    - name: Log localtest diagnostics
-      if: failure()
+    - name: Collect local environment diagnostics
+      if: ${{ inputs.collect-diagnostics == 'true' }}
       shell: bash
       run: |
-        if command -v studioctl > /dev/null 2>&1; then
-          studioctl server status || true
-          studioctl app ps || true
+        diagnostics_dir="${GITHUB_WORKSPACE}/src/App/frontend"
+        diagnostics_log="${diagnostics_dir}/local-env-diagnostics.log"
+        localtest_log="${diagnostics_dir}/localtest-container.log"
+        frontend_pid_file="${diagnostics_dir}/frontend-server.pid"
 
-          apps_json="$(mktemp)"
-          if studioctl app ps --json > "$apps_json"; then
-            node -e '
-              const fs = require("fs");
-              const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-              for (const app of data.apps ?? []) {
-                if (app.id) console.log(app.id);
-              }
-            ' "$apps_json" | while IFS= read -r id; do
-              echo "::group::studioctl app logs --id $id"
-              studioctl app logs --id "$id" --tail 200 --follow=false || true
-              echo "::endgroup::"
-            done || true
+        mkdir -p "$diagnostics_dir"
+        set +e
+        {
+          echo "Collected at: $(date --iso-8601=seconds)"
+          echo "Runner: $(uname -a)"
+
+          run_diagnostic() {
+            echo
+            echo "### $*"
+            timeout 30 "$@"
+            echo "Exit code: $?"
+          }
+
+          run_diagnostic curl -v --max-time 10 --output /dev/null \
+            --write-out $'HTTP %{http_code}; connect %{time_connect}s; first byte %{time_starttransfer}s; total %{time_total}s\n' \
+            http://localhost:8080/
+          run_diagnostic curl -v --max-time 10 --output /dev/null \
+            --write-out $'HTTP %{http_code}; connect %{time_connect}s; first byte %{time_starttransfer}s; total %{time_total}s\n' \
+            http://app-frontend.local.altinn.cloud:8000/
+          run_diagnostic curl -v --max-time 10 --output /dev/null \
+            --write-out $'HTTP %{http_code}; connect %{time_connect}s; first byte %{time_starttransfer}s; total %{time_total}s\n' \
+            http://local.altinn.cloud:8000/ttd/frontend-test
+
+          if [[ -f "$frontend_pid_file" ]]; then
+            frontend_pid="$(<"$frontend_pid_file")"
+            run_diagnostic ps -o pid,ppid,nlwp,rss,stat,lstart,cmd -p "$frontend_pid"
+            run_diagnostic ls -l "/proc/${frontend_pid}/fd"
+            run_diagnostic cat "/proc/${frontend_pid}/limits"
+          else
+            echo
+            echo "Frontend PID file not found: $frontend_pid_file"
           fi
-          rm -f "$apps_json"
 
-          echo "::group::studioctl-server logs"
-          studioctl server logs --tail 200 --follow=false || true
-          echo "::endgroup::"
-        fi
+          run_diagnostic ss -antp
+          run_diagnostic docker ps --no-trunc
+          run_diagnostic docker inspect --format '{{json .State}}' localtest
+          run_diagnostic docker stats --no-stream
+          run_diagnostic df -h
+          run_diagnostic free -h
+          run_diagnostic ps -eLf
+          run_diagnostic sh -c 'printf "Runner thread count: "; ps -eLf --no-headers | wc -l'
+          run_diagnostic sh -c 'printf "Open system file handles: "; cat /proc/sys/fs/file-nr'
+          run_diagnostic sh -c 'printf "PID limit: "; cat /proc/sys/kernel/pid_max'
+
+          if command -v studioctl > /dev/null 2>&1; then
+            run_diagnostic studioctl doctor
+            run_diagnostic studioctl server status
+            run_diagnostic studioctl app ps
+
+            apps_json="$(mktemp)"
+            if timeout 30 studioctl app ps --json > "$apps_json"; then
+              node -e '
+                const fs = require("fs");
+                const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+                for (const app of data.apps ?? []) {
+                  if (app.id) console.log(app.id);
+                }
+              ' "$apps_json" | while IFS= read -r id; do
+                echo
+                echo "### studioctl app logs --id $id"
+                timeout 30 studioctl app logs --id "$id" --tail 200 --follow=false
+              done
+            fi
+            rm -f "$apps_json"
+
+            echo
+            echo "### studioctl server logs"
+            timeout 30 studioctl server logs --tail 200 --follow=false
+          fi
+        } 2>&1 | tee "$diagnostics_log"
+
+        timeout 30 docker logs --timestamps localtest > "$localtest_log" 2>&1 || true
+        exit 0
 
     - name: Stop localtest
+      if: always()
       shell: bash
       run: |
         if command -v studioctl > /dev/null 2>&1; then

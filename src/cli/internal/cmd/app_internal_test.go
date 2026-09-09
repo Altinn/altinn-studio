@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -169,6 +170,160 @@ func TestParseAppUpgradeFlagsRejectsUnsupportedKind(t *testing.T) {
 	_, _, err := (&AppCommand{}).parseAppUpgradeFlags([]string{"backend-v9"})
 	if err == nil {
 		t.Fatal("parseAppUpgradeFlags() error = nil, want error")
+	}
+}
+
+func TestParseCloneSource(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    string
+		wantOrg  string
+		wantRepo string
+		wantEnv  string
+	}{
+		{name: "org and repo", input: "ttd/my-app", wantOrg: "ttd", wantRepo: "my-app"},
+		{
+			name:     "production browser URL",
+			input:    "https://altinn.studio/repos/ttd/my-app",
+			wantOrg:  "ttd",
+			wantRepo: "my-app",
+			wantEnv:  "prod",
+		},
+		{
+			name:     "production clone URL",
+			input:    "https://altinn.studio/repos/ttd/my-app.git",
+			wantOrg:  "ttd",
+			wantRepo: "my-app",
+			wantEnv:  "prod",
+		},
+		{
+			name:     "development URL",
+			input:    "https://dev.altinn.studio/repos/ttd/my-app.git",
+			wantOrg:  "ttd",
+			wantRepo: "my-app",
+			wantEnv:  "dev",
+		},
+		{
+			name:     "staging URL",
+			input:    "https://staging.altinn.studio/repos/ttd/my-app",
+			wantOrg:  "ttd",
+			wantRepo: "my-app",
+			wantEnv:  "staging",
+		},
+		{
+			name:     "local URL",
+			input:    "http://studio.localhost/repos/ttd/my-app.git",
+			wantOrg:  "ttd",
+			wantRepo: "my-app",
+			wantEnv:  "local",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := parseCloneSource(tt.input)
+			if err != nil {
+				t.Fatalf("parseCloneSource() error = %v", err)
+			}
+			if got.org != tt.wantOrg || got.repo != tt.wantRepo || got.env != tt.wantEnv {
+				t.Errorf(
+					"parseCloneSource() = %+v, want org=%q repo=%q env=%q",
+					got,
+					tt.wantOrg,
+					tt.wantRepo,
+					tt.wantEnv,
+				)
+			}
+		})
+	}
+}
+
+func TestParseCloneSourceRejectsInvalidURLs(t *testing.T) {
+	t.Parallel()
+
+	inputs := []string{
+		"https://example.com/repos/ttd/my-app",
+		"http://altinn.studio/repos/ttd/my-app",
+		"https://altinn.studio/ttd/my-app",
+		"https://altinn.studio/repos/ttd/my-app/extra",
+		"https://altinn.studio/repos/ttd/.git",
+		"https://altinn.studio/repos/ttd/my-app?ref=main",
+		"https://altinn.studio:/repos/ttd/my-app",
+	}
+
+	for _, input := range inputs {
+		t.Run(input, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := parseCloneSource(input); err == nil {
+				t.Errorf("parseCloneSource(%q) error = nil, want error", input)
+			}
+		})
+	}
+}
+
+func TestRunCloneRejectsFlagsAfterRepository(t *testing.T) {
+	t.Parallel()
+
+	inputs := [][]string{
+		{"https://altinn.studio/repos/ttd/my-app", "--env", "prod"},
+		{"https://altinn.studio/repos/ttd/my-app", "--env=prod"},
+		{"ttd/my-app", "destination", "extra"},
+	}
+
+	for _, input := range inputs {
+		t.Run(strings.Join(input, " "), func(t *testing.T) {
+			t.Parallel()
+
+			err := (&AppCommand{}).runClone(t.Context(), input)
+			if !errors.Is(err, ErrInvalidFlagValue) {
+				t.Errorf("runClone() error = %v, want ErrInvalidFlagValue", err)
+			}
+		})
+	}
+}
+
+func TestIsCloneFlagAllowsHyphenPrefixedDestination(t *testing.T) {
+	t.Parallel()
+
+	if isCloneFlag("-scratch") {
+		t.Error("isCloneFlag(-scratch) = true, want false")
+	}
+}
+
+func TestResolveCloneEnvironment(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		flagEnv     string
+		inferredEnv string
+		want        string
+		envSet      bool
+		wantErr     bool
+	}{
+		{name: "default", flagEnv: "prod", want: "prod"},
+		{name: "inferred", flagEnv: "prod", inferredEnv: "dev", want: "dev"},
+		{name: "matching explicit", flagEnv: "dev", inferredEnv: "dev", envSet: true, want: "dev"},
+		{name: "conflicting explicit", flagEnv: "prod", inferredEnv: "dev", envSet: true, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := resolveCloneEnvironment(tt.flagEnv, tt.envSet, tt.inferredEnv)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("resolveCloneEnvironment() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("resolveCloneEnvironment() = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 

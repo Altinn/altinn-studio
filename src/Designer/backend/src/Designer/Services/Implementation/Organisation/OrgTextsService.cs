@@ -63,7 +63,7 @@ public class OrgTextsService : IOrgTextsService
         );
 
         string[] duplicateKeys = textResource
-            .Resources.GroupBy(tre => tre.Id)
+            .Resources.GroupBy(resource => resource.Id)
             .Where(grp => grp.Count() > 1)
             .Select(grp => grp.Key)
             .ToArray();

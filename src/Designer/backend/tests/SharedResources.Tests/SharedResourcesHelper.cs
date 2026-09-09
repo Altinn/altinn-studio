@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
 using Json.Schema;
@@ -30,7 +31,7 @@ public static class SharedResourcesHelper
     public static JsonSchema LoadJsonSchemaTestData(string resourceName)
     {
         var jsonString = LoadTestDataAsString(resourceName);
-        return JsonSchema.FromText(jsonString);
+        return JsonSchema.FromText(jsonString, new JsonSerializerOptions());
     }
 
     public static XmlSchema LoadXmlSchemaTestData(string resourceName)

@@ -66,7 +66,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parentFromContext = FormStore.raw.useLaxStore();
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
-  const { error, bootstrap, enabled } = useBoostrapQuery(props);
+  const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
   const dataSliceProps = useFormDataSliceProps(bootstrap);
@@ -173,7 +173,7 @@ function useHasProcess() {
   return !!(instanceOwnerPartyId && instanceGuid);
 }
 
-function useBoostrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProviderProps) {
+function useBootstrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProviderProps) {
   const taskOverrides = useTaskOverrides();
   const folderNameFromUrl = useCurrentUiFolderNameFromUrl();
   const isStateless = useIsStateless();

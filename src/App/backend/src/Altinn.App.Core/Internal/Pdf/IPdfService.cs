@@ -87,4 +87,15 @@ public interface IPdfService
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    /// Generate a PDF using an existing instance data accessor.
+    /// </summary>
+    internal Task<Stream> GeneratePdf(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        bool isPreview,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken ct = default
+    ) => GeneratePdf(dataAccessor.Instance, taskId, isPreview, authenticationMethod, ct);
 }

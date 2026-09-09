@@ -56,8 +56,9 @@ describe('PageConfigPanel', () => {
   it('render all accordion items when layout is selected', async () => {
     const newSelectedPage = layout1NameMock;
     renderPageConfigPanel(newSelectedPage);
-    screen.getByRole('button', { name: textMock('right_menu.text') });
-    screen.getByRole('button', { name: textMock('right_menu.dynamics') });
+    screen.getByText(textMock('right_menu.text'));
+    screen.getByText(textMock('right_menu.dynamics'));
+    screen.getByText(textMock('right_menu.pdf'));
   });
 
   it('render warning when layout is selected and has duplicated ids', () => {

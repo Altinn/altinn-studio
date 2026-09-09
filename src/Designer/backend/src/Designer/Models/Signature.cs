@@ -14,7 +14,7 @@ public class Signature
     public Signature() { }
 
     /// <summary>
-    /// The email adress to the user
+    /// The email address to the user
     /// </summary>
     public string Email { get; set; }
 
@@ -24,7 +24,7 @@ public class Signature
     public string Name { get; set; }
 
     /// <summary>
-    /// When signture was created
+    /// When signature was created
     /// </summary>
     public DateTimeOffset When { get; set; }
 }

@@ -5,7 +5,7 @@
     "layout": [
       {
         "id": "Header-form",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Form.Header-form.title"
         },

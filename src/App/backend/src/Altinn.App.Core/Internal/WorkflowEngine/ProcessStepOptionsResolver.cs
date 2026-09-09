@@ -40,28 +40,45 @@ internal sealed class ProcessStepOptionsResolver
     /// Resolves the effective, validated options for the step, or <c>null</c> when no tier sets anything
     /// (so the caller leaves the wire fields unset and the engine applies its own global defaults).
     /// </summary>
-    /// <param name="operationId">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
+    /// <param name="commandKey">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    public ProcessStepOptions? Resolve(string operationId, string? taskId, string? serviceTaskType)
+    /// <param name="serviceTaskItemIndex">
+    /// For a service-task pipeline step: the index of the item the step runs — a stage, a reply handler or the
+    /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
+    /// step, including the mailbox mint, which must not inherit the declaring stage's options.
+    /// </param>
+    public ProcessStepOptions? Resolve(
+        string commandKey,
+        string? taskId,
+        string? serviceTaskType,
+        int? serviceTaskItemIndex = null
+    )
     {
-        ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(operationId);
+        ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
-            operationId,
+            commandKey,
             taskId,
-            serviceTaskType
+            serviceTaskType,
+            serviceTaskItemIndex
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
         ProcessStepRetryStrategy? retryStrategy =
             implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
+        TimeSpan? waitBudget = implementationOverride?.WaitBudget ?? commandDefault?.WaitBudget;
 
-        if (maxExecutionTime is null && retryStrategy is null)
+        if (maxExecutionTime is null && retryStrategy is null && waitBudget is null)
         {
             return null;
         }
 
-        var resolved = new ProcessStepOptions { MaxExecutionTime = maxExecutionTime, RetryStrategy = retryStrategy };
+        var resolved = new ProcessStepOptions
+        {
+            MaxExecutionTime = maxExecutionTime,
+            RetryStrategy = retryStrategy,
+            WaitBudget = waitBudget,
+        };
 
         // Validate the merged result: a misconfigured handler fails fast here (at enqueue) rather than
         // producing a degenerate timeout/retry loop in the engine. Startup validation catches the common
@@ -77,20 +94,43 @@ internal sealed class ProcessStepOptionsResolver
     /// handler selection each command performs at execute time so build-time and run-time agree.
     /// </summary>
     private ProcessStepOptions? ResolveImplementationStepOptions(
-        string operationId,
+        string commandKey,
         string? taskId,
-        string? serviceTaskType
+        string? serviceTaskType,
+        int? serviceTaskItemIndex
     )
     {
-        if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
+        if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
-            return _appImplementationFactory
-                .GetAll<IServiceTask>()
-                .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
-                ?.StepOptions;
+            IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
+            if (serviceTask is null)
+            {
+                return null;
+            }
+
+            // Options declared for one step win field-wise over the task's own, mirroring how the merged
+            // result then wins over the command default in Resolve.
+            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            ProcessStepOptions? stepOptions = serviceTaskItemIndex is { } itemIndex
+                ? pipeline.Items.ElementAtOrDefault(itemIndex)?.StepOptions
+                : null;
+            ProcessStepOptions? taskOptions = serviceTask.StepOptions;
+            if (stepOptions is null && taskOptions is null)
+            {
+                return null;
+            }
+
+            // Every field is listed deliberately: the merge is the only thing standing between a new
+            // ProcessStepOptions field and being silently dropped for service tasks.
+            return new ProcessStepOptions
+            {
+                MaxExecutionTime = stepOptions?.MaxExecutionTime ?? taskOptions?.MaxExecutionTime,
+                RetryStrategy = stepOptions?.RetryStrategy ?? taskOptions?.RetryStrategy,
+                WaitBudget = stepOptions?.WaitBudget ?? taskOptions?.WaitBudget,
+            };
         }
 
-        if (operationId == OnTaskStartingHook.Key && taskId is not null)
+        if (commandKey == OnTaskStartingHook.Key && taskId is not null)
         {
             return _appImplementationFactory
                 .GetAll<IOnTaskStartingHandler>()
@@ -98,7 +138,7 @@ internal sealed class ProcessStepOptionsResolver
                 ?.StepOptions;
         }
 
-        if (operationId == OnTaskEndingHook.Key && taskId is not null)
+        if (commandKey == OnTaskEndingHook.Key && taskId is not null)
         {
             return _appImplementationFactory
                 .GetAll<IOnTaskEndingHandler>()
@@ -106,7 +146,7 @@ internal sealed class ProcessStepOptionsResolver
                 ?.StepOptions;
         }
 
-        if (operationId == OnTaskAbandonHook.Key && taskId is not null)
+        if (commandKey == OnTaskAbandonHook.Key && taskId is not null)
         {
             return _appImplementationFactory
                 .GetAll<IOnTaskAbandonHandler>()
@@ -114,7 +154,7 @@ internal sealed class ProcessStepOptionsResolver
                 ?.StepOptions;
         }
 
-        if (operationId == OnProcessEndingHook.Key)
+        if (commandKey == OnProcessEndingHook.Key)
         {
             return _appImplementationFactory.GetAll<IOnProcessEndingHandler>().FirstOrDefault()?.StepOptions;
         }

@@ -7,7 +7,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const TextComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Text'>) => {
-  const { textResourceBindings, value, icon, direction } = useItemWhenType(baseComponentId, 'Text');
+  const { textResourceBindings, value, icon, direction, grid } = useItemWhenType(baseComponentId, 'Text');
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   const renderLabel = overrideDisplay?.renderLabel ?? true;
@@ -23,6 +23,7 @@ export const TextComponent = ({ baseComponentId, overrideDisplay }: PropsFromGen
       help={showLabel ? textResourceBindings?.help : undefined}
       icon={icon}
       direction={direction ?? 'horizontal'}
+      labelGrid={grid?.labelGrid}
       innerGrid={innerGrid}
     />
   );

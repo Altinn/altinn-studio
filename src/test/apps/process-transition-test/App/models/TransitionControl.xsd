@@ -14,6 +14,8 @@
         <xs:element name="endState" type="xs:string" minOccurs="0" />
         <xs:element name="advance" type="xs:string" minOccurs="0" />
         <xs:element name="serviceView" type="xs:string" minOccurs="0" />
+        <xs:element name="deferrals" type="xs:int" minOccurs="0" />
+        <xs:element name="deferDelayMs" type="xs:int" minOccurs="0" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

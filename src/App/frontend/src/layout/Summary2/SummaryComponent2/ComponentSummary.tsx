@@ -2,11 +2,11 @@ import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
+import { CompCategory } from '@app/layout-contract';
 import cn from 'classnames';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { getComponentDef } from 'src/layout';
-import { CompCategory } from 'src/layout/common';
 import { useHasOnlyEmptyChildren, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import classes from 'src/layout/Summary2/Summary2.module.css';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
@@ -38,7 +38,7 @@ export enum SummaryContains {
   // components should be hidden but it will only be hidden from the summary if there are 1+ form components (i.e.
   // components that report either emptyValue or SomeUserContent) within the same EmptyChildrenBoundary, and all of them
   // are empty. This means that if you have a group that only contains presentational components, that group will never
-  // be hidden. But a Header alongside a set of Input components will be hidden if all the Input components are empty.
+  // be hidden. But a Heading alongside a set of Input components will be hidden if all the Input components are empty.
   Presentational = 'presentational',
 }
 

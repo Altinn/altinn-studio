@@ -1,4 +1,5 @@
-import type { CompAttachmentListExternal } from 'src/layout/AttachmentList/config.generated';
+import type { CompAttachmentListExternal } from '@app/layout-contract/generated/components/AttachmentList/config.generated';
+
 import type { ILayout } from 'src/layout/layout';
 
 function generateAttachmentLists({
@@ -7,14 +8,14 @@ function generateAttachmentLists({
   title,
 }: Pick<CompAttachmentListExternal, 'dataTypeIds' | 'id'> & { title: string }): ILayout {
   return [
-    { id: `${id}-header`, type: 'Header', size: 'M', textResourceBindings: { title } },
+    { id: `${id}-header`, type: 'Heading', size: 'M', textResourceBindings: { title } },
     { id, type: 'AttachmentList', dataTypeIds },
   ];
 }
 
 export const customReceiptPageReceipt: ILayout = [
   { id: 'r-instance', type: 'InstanceInformation' },
-  { id: 'r-header1', type: 'Header', textResourceBindings: { title: 'Custom kvittering' }, size: 'L' },
+  { id: 'r-header1', type: 'Heading', textResourceBindings: { title: 'Custom kvittering' }, size: 'L' },
   {
     id: 'r-paragraph',
     type: 'Paragraph',
@@ -42,7 +43,7 @@ export const customReceiptPageReceipt: ILayout = [
 ];
 
 export const customReceiptPageAnother: ILayout = [
-  { id: 'r-header2', type: 'Header', textResourceBindings: { title: 'Dette er neste side' }, size: 'L' },
+  { id: 'r-header2', type: 'Heading', textResourceBindings: { title: 'Dette er neste side' }, size: 'L' },
   {
     id: 'NavigationButtons2',
     type: 'NavigationButtons',

@@ -109,14 +109,26 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of workflows parked in <c>Waiting</c> because a step deferred (not a failure signal).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsDeferred = Meter.CreateCounter<long>(
+        "engine.workflows.execution.deferred",
+        description: "Number of workflow attempts that ended in Waiting because a step deferred"
+    );
+
+    /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
-    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c>) and <c>is_head</c>
-    /// (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in (<c>execution</c>,
-    /// <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a routing/severity
-    /// dimension, not the filter - <c>"false"</c> marks deliberately invisible workflows
-    /// (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
+    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c> / <c>manual</c>) and
+    /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
+    /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
+    /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
+    /// workflows (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
     /// <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
-    /// fires the alert in its own right, and is expected noise.
+    /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
+    /// the default alert: a step's wait budget running out means the awaited external outcome
+    /// never arrived, not that the engine or command failed — route it to the owning team instead.
+    /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose through the fail
+    /// endpoint (the dashboard's Fail button included).
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
@@ -143,6 +155,16 @@ public static class Metrics
     public static readonly Counter<long> WorkflowsAbandoned = Meter.CreateCounter<long>(
         "engine.workflows.execution.abandoned",
         description: "Number of unsuccessful terminal workflows whose failure was written off by a caller"
+    );
+
+    /// <summary>
+    /// Counter of parked workflows (<c>Requeued</c> or <c>Waiting</c>) whose pending backoff was cleared
+    /// by a caller asking for an immediate re-check. For a <c>Waiting</c> step this is the push signal
+    /// that accelerates a poll; it is an optimization, never load-bearing for correctness.
+    /// </summary>
+    public static readonly Counter<long> WorkflowsNudged = Meter.CreateCounter<long>(
+        "engine.workflows.execution.nudged",
+        description: "Number of parked workflows whose pending backoff was cleared for an immediate re-check"
     );
 
     /// <summary>
@@ -222,6 +244,12 @@ public static class Metrics
     public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
 
     /// <summary>
+    /// Counter of step deferrals (successful executions whose awaited outcome was not available yet).
+    /// Deliberately separate from <see cref="StepsRequeued"/>/<see cref="StepsFailed"/>: a deferral is not a failure.
+    /// </summary>
+    public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
+
+    /// <summary>
     /// Counter of steps that terminated in failure.
     /// </summary>
     public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.steps.execution.failed");
@@ -254,6 +282,81 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Histogram of wait budget consumed by a deferring step, from its first deferral to the moment it
+    /// resolved (completed, expired, or failed). The only signal that shows budgets being approached
+    /// rather than blown — compare upper percentiles against the configured <c>command.waitBudget</c>.
+    /// </summary>
+    public static readonly Histogram<double> StepWaitDuration = Meter.CreateHistogram<double>(
+        "engine.steps.wait.duration",
+        "s",
+        "Wait budget consumed by a deferring step, from first deferral to resolution (seconds). Recorded once per deferring step."
+    );
+
+    /// <summary>An idempotent replay creates nothing, so counting it would overstate how many exchanges are open.</summary>
+    public static readonly Counter<long> MailboxesCreated = Meter.CreateCounter<long>(
+        "engine.mailboxes.created",
+        description: "Number of mailboxes minted (idempotent replays excluded — they create nothing)"
+    );
+
+    /// <summary>Counts the close that actually happened, so an idempotent repeat does not count twice.</summary>
+    public static readonly Counter<long> MailboxesClosed = Meter.CreateCounter<long>(
+        "engine.mailboxes.closed",
+        description: "Number of mailboxes closed for deliveries, tagged by reason (request or deadline)"
+    );
+
+    /// <summary>
+    /// Every outcome, pre-lock refusals included. <c>closed</c> is the one to watch: a counterparty answered
+    /// after the exchange gave up on it.
+    /// </summary>
+    public static readonly Counter<long> MailboxDeliveriesReceived = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.received",
+        description: "Number of messages offered to the mailbox delivery endpoint, tagged with the outcome"
+    );
+
+    /// <summary>The deadline is the one closure with no caller to report the number to.</summary>
+    public static readonly Counter<long> MailboxDeliveriesUnpaired = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.unpaired",
+        description: "Number of accepted deliveries no receiver was ever enqueued for, counted when a mailbox closes at its deadline"
+    );
+
+    /// <summary>
+    /// The birth state separates "the relay is running" from "the relay is parked". Counted after commit, so a
+    /// rolled-back birth is not counted.
+    /// </summary>
+    public static readonly Counter<long> MailboxReceiversCreated = Meter.CreateCounter<long>(
+        "engine.mailboxes.receivers.created",
+        description: "Number of mailbox receive workflows created, tagged by the state they were born in"
+    );
+
+    /// <summary>
+    /// <c>delivered</c> and <c>closed</c> are the only two causes, so the tags partition it. Counted once per
+    /// receiver: both release paths skip stamped rows.
+    /// </summary>
+    public static readonly Counter<long> MailboxReceiversReleased = Meter.CreateCounter<long>(
+        "engine.mailboxes.receivers.released",
+        description: "Number of parked mailbox receivers released to run, tagged by cause (delivered or closed)"
+    );
+
+    /// <summary>
+    /// The part <c>NOTIFY</c> accelerates and the fetch cycle bounds. A receiver born runnable is excluded via
+    /// <c>held_at</c>. Clamped at zero: the two ends come from two pods' clocks.
+    /// </summary>
+    public static readonly Histogram<double> MailboxReceiverWakeLatency = Meter.CreateHistogram<double>(
+        "engine.mailboxes.receivers.wake_latency",
+        "s",
+        "Seconds between a mailbox receiver being released and a worker first claiming it. Recorded once per release."
+    );
+
+    /// <summary>
+    /// Alert on any value above zero: both <c>unregistered</c> and <c>undecided</c> mean the engine is violating
+    /// its own rendezvous invariant, which the ordinary execution-failed counter would not distinguish.
+    /// </summary>
+    public static readonly Counter<long> MailboxRendezvousViolations = Meter.CreateCounter<long>(
+        "engine.mailboxes.rendezvous.violations",
+        description: "Number of receive workflows the rendezvous could not answer for, tagged by the state that could not be answered"
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(
@@ -278,6 +381,34 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of mailbox <b>requests</b> answered by a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// <c>close</c> or <c>delivery</c>) — requests rather than flushes, counted once the batch's database work has
+    /// returned without faulting. Divide by <see cref="MailboxBufferFlushedBatches"/> over the same window and
+    /// tag for the mean batch size.
+    /// </summary>
+    public static readonly Counter<long> MailboxBufferFlushedItems = Meter.CreateCounter<long>(
+        "engine.mailbox_buffer.flushed",
+        description: "Number of mailbox requests answered by a batch flush — one per request, not per flush — tagged by operation (mint, close, delivery). Divide by engine.mailbox_buffer.batches for the mean batch size"
+    );
+
+    /// <summary>
+    /// Counter of mailbox <b>batch flushes</b>, one per flush whatever its size, tagged with <c>operation</c>
+    /// (<c>mint</c>, <c>close</c> or <c>delivery</c>). The denominator of
+    /// <see cref="MailboxBufferFlushedItems"/> ÷ this, the mean batch size — the only thing the engine emits that
+    /// says whether requests are actually being batched. Recorded at exactly the same point as the numerator, so
+    /// a flush that faulted answers nobody and counts in neither.
+    /// </summary>
+    /// <remarks>
+    /// Named <c>batches</c> rather than <c>flushes</c> on purpose: it counts what
+    /// <see cref="MailboxBufferFlushedItems"/> counts the contents of, and a name one letter from <c>flushed</c>
+    /// carrying different units is a ratio silently misread as 1.00.
+    /// </remarks>
+    public static readonly Counter<long> MailboxBufferFlushedBatches = Meter.CreateCounter<long>(
+        "engine.mailbox_buffer.batches",
+        description: "Number of mailbox batch flushes — one per flush whatever its size, not per request — tagged by operation (mint, close, delivery). The denominator of engine.mailbox_buffer.flushed for the mean batch size"
+    );
+
+    /// <summary>
     /// Counter of database operations that succeeded.
     /// </summary>
     public static readonly Counter<long> DbOperationsSucceeded = Meter.CreateCounter<long>(
@@ -295,6 +426,63 @@ public static class Metrics
     /// Counter of database operations that failed terminally.
     /// </summary>
     public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>("engine.db.operations.failed");
+
+    /// <summary>
+    /// Counter of namespace circuit breaker trips, tagged with <c>namespace</c> — including
+    /// re-trips from a failed recovery. Namespace is a safe tag here: trips are rare events whose
+    /// cardinality is bounded by incident count, not fleet size (a documented decision in the
+    /// failure-throttling ADR).
+    /// </summary>
+    public static readonly Counter<long> ThrottleTripped = Meter.CreateCounter<long>(
+        "engine.throttle.tripped",
+        description: "Number of namespace circuit breaker trips, including re-trips from failed recovery"
+    );
+
+    /// <summary>
+    /// Counter of throttle window extensions (every canary failed its probe), tagged with <c>namespace</c>.
+    /// </summary>
+    public static readonly Counter<long> ThrottleExtended = Meter.CreateCounter<long>(
+        "engine.throttle.extended",
+        description: "Number of throttle window extensions after unanimous canary failure"
+    );
+
+    /// <summary>
+    /// Counter of workflows released from throttling in recovery cohorts, tagged with <c>namespace</c>.
+    /// Incremented by the cohort size actually released, not by 1 per cohort.
+    /// </summary>
+    public static readonly Counter<long> ThrottleCohortReleased = Meter.CreateCounter<long>(
+        "engine.throttle.released",
+        description: "Number of workflows released from throttling in recovery cohorts"
+    );
+
+    /// <summary>
+    /// Counter of namespace circuit breakers cleared after successful recovery, tagged with <c>namespace</c>.
+    /// </summary>
+    public static readonly Counter<long> ThrottleCleared = Meter.CreateCounter<long>(
+        "engine.throttle.cleared",
+        description: "Number of namespace circuit breakers cleared after successful recovery"
+    );
+
+    /// <summary>
+    /// Counter of workflows parked cooperatively by the workflow handler — a retryable failure in
+    /// a namespace whose breaker was tripped in the handler's snapshot — tagged with <c>namespace</c>.
+    /// The sweep's own parking is not counted here.
+    /// </summary>
+    public static readonly Counter<long> ThrottleHandlerParked = Meter.CreateCounter<long>(
+        "engine.throttle.handler_parked",
+        description: "Number of workflows parked by the workflow handler on retryable failure in a tripped namespace"
+    );
+
+    private static long _trippedThrottleBreakersCount;
+
+    /// <summary>
+    /// Gauge of namespace circuit breakers currently in the Tripped state.
+    /// </summary>
+    public static readonly ObservableGauge<long> TrippedThrottleBreakers = Meter.CreateObservableGauge(
+        "engine.throttle.breakers.tripped",
+        static () => _trippedThrottleBreakersCount,
+        description: "Number of namespace circuit breakers currently tripped"
+    );
 
     private static long _maintenanceConsecutiveFailures;
 
@@ -338,6 +526,16 @@ public static class Metrics
         static () => _scheduledWorkflowsCount
     );
 
+    private static long _waitingWorkflowsCount;
+
+    /// <summary>
+    /// Gauge of workflows currently parked in <c>Waiting</c> (deferred steps awaiting an external outcome).
+    /// </summary>
+    public static readonly ObservableGauge<long> WaitingWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.waiting",
+        static () => _waitingWorkflowsCount
+    );
+
     private static long _failedWorkflowsCount;
 
     /// <summary>
@@ -366,6 +564,42 @@ public static class Metrics
     public static readonly ObservableGauge<long> FinishedWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.finished",
         static () => _finishedWorkflowsCount
+    );
+
+    private static long _overdueOpenMailboxesCount;
+
+    /// <summary>
+    /// The cutoff is the deadline plus one <c>MailboxSweepInterval</c> — the grace the sweep's cadence entitles
+    /// it to. Zero is the only healthy value; alert on it staying above zero.
+    /// </summary>
+    public static readonly ObservableGauge<long> OverdueOpenMailboxes = Meter.CreateObservableGauge(
+        "engine.mailboxes.open.overdue",
+        static () => _overdueOpenMailboxesCount,
+        description: "Number of mailboxes still open more than one sweep cadence past their deadline (0 = healthy)"
+    );
+
+    private static long _mailboxMintBufferDepth;
+    private static long _mailboxCloseBufferDepth;
+    private static long _mailboxDeliveryBufferDepth;
+
+    /// <summary>
+    /// Gauge of mailbox requests waiting for a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// <c>close</c> or <c>delivery</c>). Read it as latency rather than as capacity — the queues wait rather than
+    /// refuse when full — and read only the sustained value: it is a coarse sample, written once per
+    /// <c>MetricsCollectionInterval</c> over a queue that fills and drains between flushes, so a zero is no
+    /// evidence the queue never filled and this cannot show whether requests are being batched at all.
+    /// <see cref="MailboxBufferFlushedItems"/> ÷ <see cref="MailboxBufferFlushedBatches"/> is what shows that.
+    /// </summary>
+    public static readonly ObservableGauge<long> MailboxBufferDepth = Meter.CreateObservableGauge(
+        "engine.mailbox_buffer.depth",
+        static () =>
+            new Measurement<long>[]
+            {
+                new(_mailboxMintBufferDepth, new KeyValuePair<string, object?>("operation", "mint")),
+                new(_mailboxCloseBufferDepth, new KeyValuePair<string, object?>("operation", "close")),
+                new(_mailboxDeliveryBufferDepth, new KeyValuePair<string, object?>("operation", "delivery")),
+            },
+        description: "Number of mailbox requests waiting for a batch flush, tagged by operation (mint, close, delivery)"
     );
 
     private static long _availableInboxSlotsCount;
@@ -454,6 +688,11 @@ public static class Metrics
     public static void SetMaintenanceConsecutiveFailures(int count) => _maintenanceConsecutiveFailures = count;
 
     /// <summary>
+    /// Sets the value reported by <see cref="TrippedThrottleBreakers"/>.
+    /// </summary>
+    public static void SetTrippedThrottleBreakersCount(long count) => _trippedThrottleBreakersCount = count;
+
+    /// <summary>
     /// Sets the value reported by <see cref="HealthStatus"/>.
     /// </summary>
     public static void SetHealthStatus(long status) => _healthStatus = status;
@@ -469,6 +708,11 @@ public static class Metrics
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
 
     /// <summary>
+    /// Sets the value reported by <see cref="WaitingWorkflows"/>.
+    /// </summary>
+    public static void SetWaitingWorkflowsCount(long count) => _waitingWorkflowsCount = count;
+
+    /// <summary>
     /// Sets the value reported by <see cref="FailedWorkflows"/>.
     /// </summary>
     public static void SetFailedWorkflowsCount(long count) => _failedWorkflowsCount = count;
@@ -482,6 +726,19 @@ public static class Metrics
     /// Sets the value reported by <see cref="FinishedWorkflows"/>.
     /// </summary>
     public static void SetFinishedWorkflowsCount(long count) => _finishedWorkflowsCount = count;
+
+    /// <summary>Sets the value reported by <see cref="OverdueOpenMailboxes"/>.</summary>
+    public static void SetOverdueOpenMailboxesCount(long count) => _overdueOpenMailboxesCount = count;
+
+    /// <summary>
+    /// Sets the three values reported by <see cref="MailboxBufferDepth"/>.
+    /// </summary>
+    public static void SetMailboxBufferDepths(int mint, int close, int delivery)
+    {
+        _mailboxMintBufferDepth = mint;
+        _mailboxCloseBufferDepth = close;
+        _mailboxDeliveryBufferDepth = delivery;
+    }
 
     /// <summary>
     /// Sets the value reported by <see cref="AvailableInboxSlots"/>.

@@ -16,9 +16,18 @@ internal sealed class MetricsCollector(
     IEngineRepository engineRepository,
     IConcurrencyLimiter concurrencyLimiter,
     IOptions<EngineSettings> engineSettings,
-    TimeProvider timeProvider
+    TimeProvider timeProvider,
+    MailboxMintBuffer mailboxMintBuffer,
+    MailboxCloseBuffer mailboxCloseBuffer,
+    MailboxDeliveryBuffer mailboxDeliveryBuffer
 ) : BackgroundService
 {
+    /// <summary>
+    /// High enough that no healthy engine reaches it, low enough that the statement stays bounded during the
+    /// mass timeout the gauge exists to report.
+    /// </summary>
+    private const int _overdueMailboxCountCap = 10_000;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.StartingUp();
@@ -33,10 +42,12 @@ internal sealed class MetricsCollector(
                 var counts = await engineRepository.CountWorkflowsByStatus(stoppingToken);
                 var active = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Incomplete);
                 var scheduled = counts.Scheduled;
+                var waiting = counts.ByStatus.GetValueOrDefault(PersistentItemStatus.Waiting);
                 var failed = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Failed);
                 var successful = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Successful);
                 Metrics.SetActiveWorkflowsCount(active);
                 Metrics.SetScheduledWorkflowsCount(scheduled);
+                Metrics.SetWaitingWorkflowsCount(waiting);
                 Metrics.SetFailedWorkflowsCount(failed);
                 Metrics.SetSuccessfulWorkflowsCount(successful);
                 Metrics.SetFinishedWorkflowsCount(failed + successful);
@@ -59,6 +70,26 @@ internal sealed class MetricsCollector(
                 Metrics.SetUsedHttpSlots(httpSlotStatus.Used);
                 Metrics.SetAvailableWorkerSlots(workerSlotStatus.Available);
                 Metrics.SetUsedWorkerSlots(workerSlotStatus.Used);
+
+                Metrics.SetMailboxBufferDepths(
+                    mailboxMintBuffer.QueueDepth,
+                    mailboxCloseBuffer.QueueDepth,
+                    mailboxDeliveryBuffer.QueueDepth
+                );
+
+                // Deliberately last: one try/catch covers the whole pass, so a throw here costs this gauge alone
+                // rather than suppressing engine health below it.
+
+                // The grace is the sweep's own cadence — counting a mailbox the sweep has not had a tick to reach
+                // would leave the gauge permanently non-zero on a healthy engine.
+                var overdueCutoff = timeProvider.GetUtcNow() - engineSettings.Value.MailboxSweepInterval;
+                Metrics.SetOverdueOpenMailboxesCount(
+                    await engineRepository.CountOverdueOpenMailboxes(
+                        overdueCutoff,
+                        _overdueMailboxCountCap,
+                        stoppingToken
+                    )
+                );
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

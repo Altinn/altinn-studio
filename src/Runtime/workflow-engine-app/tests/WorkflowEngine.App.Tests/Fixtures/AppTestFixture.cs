@@ -10,8 +10,6 @@ namespace WorkflowEngine.App.Tests.Fixtures;
 /// </summary>
 public sealed class AppTestFixture : EngineAppFixture<Program>
 {
-    public const string DefaultInstanceLockToken = "e2e-lock-token-abc123";
-
     private string AppCommandEndpoint =>
         $"http://localhost:{WireMock.Port}/{{Org}}/{{App}}/instances/{{InstanceOwnerPartyId}}/{{InstanceGuid}}/workflow-engine-callbacks/";
 

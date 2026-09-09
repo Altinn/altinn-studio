@@ -87,7 +87,7 @@ func (e *Executor) Destroy(ctx context.Context, g *resource.Graph, opts ...Destr
 	return e.executeDestroyPlan(ctx, actual, plan.destroy)
 }
 
-// Status returns observed state for the requested graph and any labelled runtime resources it owns.
+// Status returns observed state for the requested graph and any labeled runtime resources it owns.
 func (e *Executor) Status(ctx context.Context, g *resource.Graph, opts ...StatusOption) (Snapshot, error) {
 	if err := validateGraphID(g); err != nil {
 		return Snapshot{}, err

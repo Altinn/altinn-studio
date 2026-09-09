@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-top: var(--fds-spacing-4);
+  padding-top: var(--ds-size-4);
 }
 
 .viewSizeButtons {

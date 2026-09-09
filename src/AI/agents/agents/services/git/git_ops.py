@@ -297,7 +297,7 @@ def apply(patch: dict, repo_path: str = None):
                     search_text = old_text
                     replacement_text = new_text
                 elif pattern and text is not None:
-                    # Format 2: Pattern-based replacement (MCP server format)
+                    # Format 2: Pattern-based replacement
                     # Extract the replacement from pattern format like: "key": "old" -> "key": "new"
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:

@@ -3,7 +3,7 @@
   padding: 24px 24px;
   min-height: 100%;
   background: rgba(224, 224, 224, 0.3);
-  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border-right: 1px solid var(--ds-color-neutral-border-subtle);
 }
 
 .types {

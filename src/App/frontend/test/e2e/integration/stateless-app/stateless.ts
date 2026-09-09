@@ -42,8 +42,8 @@ describe('Stateless', () => {
 
   it('is possible to start app instance from stateless app', () => {
     const userFirstName =
-      Cypress.env('type') === 'localtest'
-        ? Cypress.env('defaultFirstName')
+      Cypress.expose('type') === 'localtest'
+        ? Cypress.expose('defaultFirstName')
         : Tenor.users.saligBlomsterplante.firstName.toUpperCase();
 
     cy.startStatefulFromStateless();

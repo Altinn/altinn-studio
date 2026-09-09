@@ -9,7 +9,7 @@ export const initialPartyTypes: PartyTypesAllowed = {
 
 export const partyTypesAllowedMap: Record<AllowedPartyTypes, string> = {
   person: 'app_settings.access_control_tab_option_person',
-  organisation: 'app_settings.access_control_tab_option_organisation',
+  organisation: 'app_settings.access_control_tab_option_organization',
   subUnit: 'app_settings.access_control_tab_option_sub_unit',
   bankruptcyEstate: 'app_settings.access_control_tab_option_bankruptcy_estate',
 };

@@ -88,13 +88,13 @@ describe('SelectDataTypesToSign', () => {
 
     renderSelectDataTypesToSign(existingDataTypesProps);
 
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
-    await user.click(combobox);
+    await user.click(suggestionInput);
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
-    await user.click(screen.getByRole('option', { name: availableDataTypeIds[2] }));
+    await user.click(screen.getByRole('option', { name: availableDataTypeIds[2], hidden: true }));
 
     await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
     expect(updateModdlePropertiesMock).toHaveBeenCalledTimes(1);
@@ -118,15 +118,15 @@ describe('SelectDataTypesToSign', () => {
 
     renderSelectDataTypesToSign(existingDataTypesProps);
 
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
-    await user.click(combobox);
+    await user.click(suggestionInput);
 
-    expect(screen.queryByRole('option', { name: availableDataTypeIds[0] })).not.toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: availableDataTypeIds[1] })).not.toBeInTheDocument();
-    expect(screen.getByRole('option', { name: availableDataTypeIds[2] })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: availableDataTypeIds[3] })).toBeInTheDocument();
+    availableDataTypeIds.forEach((id, index) => {
+      const option = screen.queryByRole('option', { name: id, hidden: true });
+      index < 2 ? expect(option).not.toBeInTheDocument() : expect(option).toBeInTheDocument();
+    });
   });
 });
 

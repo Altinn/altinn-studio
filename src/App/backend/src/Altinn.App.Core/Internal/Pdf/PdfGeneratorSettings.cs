@@ -26,7 +26,7 @@ public class PdfGeneratorSettings
     public int WaitForTime { get; set; } = 5000;
 
     /// <summary>
-    /// Shows a footer on each page in the PDF with the date, altinn-referance, page number and total pages.
+    /// Shows a footer on each page in the PDF with the date, altinn-reference, page number and total pages.
     /// </summary>
     public bool DisplayFooter { get; set; }
 }

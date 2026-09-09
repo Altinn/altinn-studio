@@ -1,11 +1,14 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using WorkflowEngine.Resilience.Constants;
 using WorkflowEngine.Resilience.Models;
 
 // CA2208: Instantiate argument exceptions correctly
 // S3928: Parameter names used into ArgumentException constructors should match an existing one
+// CA5394: Random is an insecure random number generator — the jitter here spreads retry scheduling, it is not security-sensitive
 #pragma warning disable S3928
 #pragma warning disable CA2208
+#pragma warning disable CA5394
 
 namespace WorkflowEngine.Resilience.Extensions;
 
@@ -42,7 +45,10 @@ public static class RetryStrategyExtensions
             if (now >= deadline)
                 return false;
 
-            TimeSpan delay = strategy.CalculateDelay(iteration);
+            // The admissibility gate judges the nominal schedule: jitter spreads the actual
+            // waits but must never change whether a retry is allowed — a jittered roll here
+            // would make the verdict near the deadline a coin toss.
+            TimeSpan delay = TimeSpan.FromSeconds(strategy.NominalDelaySeconds(iteration));
             DateTimeOffset nextRun = now.Add(delay);
 
             if (nextRun >= deadline)
@@ -65,8 +71,27 @@ public static class RetryStrategyExtensions
 
         /// <summary>
         /// Calculates the delay before the next retry attempt based on the backoff strategy.
+        /// The result carries uniform ±<see cref="Defaults.RetryDelayJitterFraction"/> jitter so that
+        /// workflows failing on the same cause de-synchronize instead of retrying in waves, and never
+        /// exceeds <see cref="RetryStrategy.MaxDelay"/>.
         /// </summary>
-        public TimeSpan CalculateDelay(int iteration)
+        public TimeSpan CalculateDelay(int iteration, Random? random = null)
+        {
+            var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
+            var delaySeconds = strategy.NominalDelaySeconds(iteration);
+
+            var jitterFactor =
+                1 + (Defaults.RetryDelayJitterFraction * ((2 * (random ?? Random.Shared).NextDouble()) - 1));
+
+            return TimeSpan.FromSeconds(Math.Clamp(delaySeconds * jitterFactor, 0, maxDelaySeconds));
+        }
+
+        /// <summary>
+        /// The nominal (jitter-free) delay in seconds for the given iteration, clamped to
+        /// <see cref="RetryStrategy.MaxDelay"/>. This is the schedule that admissibility is judged
+        /// on; <see cref="CalculateDelay"/> applies the jitter on top of it.
+        /// </summary>
+        private double NominalDelaySeconds(int iteration)
         {
             var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
 
@@ -79,7 +104,7 @@ public static class RetryStrategyExtensions
                 _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
             };
 
-            return TimeSpan.FromSeconds(Math.Min(delaySeconds, maxDelaySeconds));
+            return Math.Min(delaySeconds, maxDelaySeconds);
         }
 
         /// <summary>
@@ -158,15 +183,15 @@ public static class RetryStrategyExtensions
                         throw;
                     }
 
+                    // One jittered roll, clamped rather than re-checked: CanRetry already
+                    // admitted this attempt on the nominal schedule, so a high roll must not
+                    // reject it (or start it past the deadline) — the final attempt within the
+                    // budget runs at the deadline instead of being lost to jitter.
                     TimeSpan delay = strategy.CalculateDelay(attempt);
                     DateTimeOffset deadline = strategy.GetDeadline(startTime);
                     DateTimeOffset now = timeProvider.GetUtcNow();
-                    if (now.Add(delay) >= deadline)
-                    {
-                        logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
-                        logger?.NextRetryUnreachable(ex);
-                        throw;
-                    }
+                    if (deadline != DateTimeOffset.MaxValue && now.Add(delay) > deadline)
+                        delay = deadline > now ? deadline - now : TimeSpan.Zero;
 
                     logger?.RetryDelay(
                         operationName,
@@ -212,12 +237,6 @@ internal static partial class RetryStrategyExtensionsLogs
         "All available retries are exhausted or the deadline for this operation has been exceeded, giving up"
     )]
     internal static partial void MaxRetriesReached(this ILogger logger, Exception ex);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "The next retry attempt is unreachable because it will exceed the deadline for this operation, giving up"
-    )]
-    internal static partial void NextRetryUnreachable(this ILogger logger, Exception ex);
 
     [LoggerMessage(
         LogLevel.Warning,

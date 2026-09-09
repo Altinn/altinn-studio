@@ -19,7 +19,6 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Files;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
@@ -29,6 +28,7 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -122,10 +122,19 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddOptions<AppSettings>().Configure(_ => { });
         services.AddAppImplementationFactory();
 
+        var instanceClientMock = new Mock<IInstanceClient>(MockBehavior.Strict);
+        var metadataInstanceClientMock = instanceClientMock.As<IInstanceClientWithStorageMetadata>();
+        var dataClientMock = new Mock<IDataClient>(MockBehavior.Strict);
+        var metadataDataClientMock = dataClientMock.As<IDataClientWithStorageMetadata>();
+        var mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
+
         services.AddSingleton(new Mock<IAltinnPartyClient>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IRegisterClient>(MockBehavior.Strict).Object);
-        services.AddSingleton(new Mock<IInstanceClient>(MockBehavior.Strict).Object);
-        services.AddSingleton(new Mock<IDataClient>(MockBehavior.Strict).Object);
+        services.AddSingleton<IInstanceClient>(instanceClientMock.Object);
+        services.AddSingleton<IInstanceClientWithStorageMetadata>(metadataInstanceClientMock.Object);
+        services.AddSingleton<IDataClient>(dataClientMock.Object);
+        services.AddSingleton<IDataClientWithStorageMetadata>(metadataDataClientMock.Object);
+        services.AddSingleton<IInstanceMutationClient>(mutationClientMock.Object);
         services.AddSingleton(new Mock<IAppMetadata>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IInstantiationProcessor>(MockBehavior.Loose).Object);
@@ -141,7 +150,6 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IValidationService>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IDataElementAccessChecker>(MockBehavior.Strict).Object);
-        services.AddSingleton<IInstanceLocker>(new InstanceLockerMock());
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IProcessReader>(MockBehavior.Loose).Object);
         services.AddSingleton(new Mock<IAuthorizationService>(MockBehavior.Loose).Object);

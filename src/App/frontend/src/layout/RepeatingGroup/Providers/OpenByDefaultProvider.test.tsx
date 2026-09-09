@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -17,11 +18,10 @@ import {
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { ILayout } from 'src/layout/layout';
-import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 // Mocking so that we can predict the UUIDs for new rows
 const nextUuids: string[] = [];
-jest.mock('uuid', () => ({
+vi.mock('uuid', () => ({
   v4: () => {
     if (nextUuids.length === 0) {
       throw new Error('No more UUIDs');
@@ -159,7 +159,7 @@ describe('openByDefault', () => {
           instance: getInstanceDataMock(),
         } satisfies IDataModelMultiPatchResponse,
       });
-      (mutations.doPatchMultipleFormData.mock as jest.Mock).mockClear();
+      (mutations.doPatchMultipleFormData.mock as Mock).mockClear();
     }
 
     // Ensure state is as expected
@@ -180,19 +180,18 @@ describe('openByDefault', () => {
   }
 
   beforeAll(() => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest
-      .spyOn(window, 'logWarn')
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(window, 'logWarn')
       .mockImplementation(() => {})
       .mockName('window.logWarn');
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should not add a new row by default when off', async () => {
@@ -549,3 +548,4 @@ describe('openByDefault', () => {
     },
   );
 });
+import type { Mock } from 'vitest';

@@ -1,0 +1,97 @@
+name: Agents - build images
+
+on:
+  pull_request:
+    paths:
+      - agents/**
+      - .github/workflows/agents-images.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - agents/**
+      - .github/workflows/agents-images.yaml
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: agents-images-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.variant }} Agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: minimal
+            repository: ghcr.io/altinn/altinn-studio/agent-minimal
+          - variant: full
+            repository: ghcr.io/altinn/altinn-studio/agent-full
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            agents
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and publish image
+        env:
+          CAN_PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          IMAGE_REPOSITORY: ${{ matrix.repository }}
+          TARGET: ${{ matrix.variant }}
+        run: |
+          set -eu
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            pr_number="$(jq -r '.number' "${GITHUB_EVENT_PATH}")"
+            source_sha="$(jq -r '.pull_request.head.sha' "${GITHUB_EVENT_PATH}")"
+            short_sha="${source_sha::10}"
+            set -- \
+              --tag "${IMAGE_REPOSITORY}:pr-${pr_number}" \
+              --tag "${IMAGE_REPOSITORY}:pr-${pr_number}-${short_sha}"
+          else
+            short_sha="${GITHUB_SHA::10}"
+            set -- \
+              --tag "${IMAGE_REPOSITORY}:sha-${short_sha}" \
+              --tag "${IMAGE_REPOSITORY}:latest"
+          fi
+
+          if [ "${CAN_PUSH}" = "true" ]; then
+            set -- "$@" \
+              --push \
+              --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true"
+          fi
+
+          docker buildx build \
+            --provenance=false \
+            --sbom=false \
+            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
+            --file agents/Dockerfile \
+            --platform linux/amd64,linux/arm64 \
+            --target "${TARGET}" \
+            "$@" \
+            agents

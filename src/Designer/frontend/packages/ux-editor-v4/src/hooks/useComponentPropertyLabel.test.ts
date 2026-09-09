@@ -8,4 +8,9 @@ describe('useComponentPropertyLabel', () => {
     const propertyLabel = result('testProperty');
     expect(propertyLabel).toEqual(textMock('ux_editor.component_properties.testProperty'));
   });
+
+  it('maps timeStamp to the v4-specific translation key', () => {
+    const result = renderHook(() => useComponentPropertyLabel()).result.current;
+    expect(result('timeStamp')).toEqual(textMock('ux_editor.component_properties.timeStamp_v4'));
+  });
 });

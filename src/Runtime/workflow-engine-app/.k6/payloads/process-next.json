@@ -9,7 +9,7 @@
       "orgId": "1337",
       "language": "nb"
     },
-    "lockToken": "k6-load-test-lock-token"
+    "callbackToken": "k6-load-test-callback-token"
   },
   "workflows": [
     {

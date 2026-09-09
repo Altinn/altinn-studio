@@ -64,8 +64,8 @@ public class TextController : Controller
     /// <summary>
     /// The languages in the app
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>List of languages as JSON</returns>
     [HttpGet]
     [Route("languages")]
@@ -79,8 +79,8 @@ public class TextController : Controller
     /// <summary>
     /// Returns the a JSON resource file for the given language id
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="languageCode">The resource language id (for example <code>nb, en</code>)</param>
     /// <returns>The JSON config</returns>
     [HttpGet]
@@ -104,8 +104,8 @@ public class TextController : Controller
     /// </summary>
     /// <param name="jsonData">The JSON Data</param>
     /// <param name="languageCode">The resource language id (for example <code>nb, en</code> )</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>A View with update status</returns>
     [HttpPost]
     [Route("language/{languageCode}")]
@@ -137,8 +137,8 @@ public class TextController : Controller
     /// language in the text resource files in the old format.
     /// Non-existing keys will be added.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="keysTexts">List of Key/Value pairs that should be updated or added if not present.</param>
     /// <param name="languageCode">The languageCode for the text resource file that is being edited.</param>
     /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
@@ -177,15 +177,15 @@ public class TextController : Controller
     /// Method to update multiple key-names
     /// Non-existing keys will be added.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="mutations">List of oldId: string, newId: string tuples to change or remove in all text-resource-files.</param>
     /// <remarks>If the newId is empty or undefined it implies that it is going to be removed</remarks>
     /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
     [HttpPut("keys")]
     public async Task<IActionResult> UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
     {
-        bool mutationHasOccured = false;
+        bool mutationHasOccurred = false;
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -221,7 +221,7 @@ public class TextController : Controller
                         textResourceObject.Resources.Remove(textEntry); //remove
                     }
 
-                    mutationHasOccured = true;
+                    mutationHasOccurred = true;
                 }
 
                 await _mediator.Publish(
@@ -243,14 +243,14 @@ public class TextController : Controller
             return BadRequest($"The update could not be done:\n{e.StackTrace}");
         }
 
-        return Ok(mutationHasOccured ? "The IDs were updated." : "Nothing was changed.");
+        return Ok(mutationHasOccurred ? "The IDs were updated." : "Nothing was changed.");
     }
 
     /// <summary>
     /// Deletes a language resource file
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="languageCode">The resource language id (for example <code>nb, en</code>)</param>
     /// <returns>Deletes a language resource</returns>
     [HttpDelete]

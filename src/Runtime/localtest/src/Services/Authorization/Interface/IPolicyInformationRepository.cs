@@ -28,8 +28,8 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <summary>
         /// Gets the application information of a given instance
         /// </summary>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organization.</param>
+        /// <param name="org">Unique identifier of the organization responsible for the app.</param>
         /// <returns></returns>
         Task<Application> GetApplication(string app, string org);
     }

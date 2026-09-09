@@ -1,10 +1,10 @@
 .wrapper {
   width: 100%;
-  border: solid 1px var(--fds-semantic-border-divider-default);
+  border: solid 1px var(--ds-color-neutral-border-subtle);
 }
 
 .wrapper.buttonHovered {
-  box-shadow: 0 0 0 2px var(--fds-semantic-border-divider-default);
+  box-shadow: 0 0 0 2px var(--ds-color-neutral-border-subtle);
 }
 
 .buttonFocused:focus-visible,
@@ -15,32 +15,32 @@
 }
 
 .cardWrapper {
-  border-radius: var(--fds-sizing-3);
+  border-radius: var(--ds-size-3);
 }
 
 .elementWrapper {
-  border-radius: var(--fds-sizing-1);
-  background-color: var(--fds-semantic-background-subtle);
+  border-radius: var(--ds-size-1);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .cardError {
-  border: solid 2px var(--fds-semantic-border-danger-default);
+  border: solid 2px var(--ds-color-danger-border-default);
 }
 
 .cardErrorHover {
-  border: solid 2px var(--fds-semantic-border-danger-hover);
-  box-shadow: 0 0 0 2px var(--fds-semantic-border-danger-hover);
+  border: solid 2px var(--ds-color-danger-border-strong);
+  box-shadow: 0 0 0 2px var(--ds-color-danger-border-strong);
 }
 
 .topWrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: var(--fds-spacing-4);
+  padding-right: var(--ds-size-4);
 }
 
 .topWrapperCard {
-  border-radius: var(--fds-sizing-3);
+  border-radius: var(--ds-size-3);
 }
 
 .topWrapperCardOpen {
@@ -49,7 +49,7 @@
 }
 
 .topWrapperElement {
-  border-radius: var(--fds-sizing-1);
+  border-radius: var(--ds-size-1);
 }
 
 .topWrapperElementOpen {
@@ -58,8 +58,8 @@
 }
 
 .topWrapperError {
-  border-radius: var(--fds-sizing-3);
-  background-color: var(--fds-semantic-surface-danger-subtle);
+  border-radius: var(--ds-size-3);
+  background-color: var(--ds-color-danger-surface-tinted);
 }
 
 .topWrapperErrorOpen {
@@ -75,8 +75,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: var(--fds-spacing-5);
-  padding-right: var(--fds-spacing-1);
+  padding: var(--ds-size-5);
+  padding-right: var(--ds-size-1);
   margin: 0;
 }
 
@@ -88,9 +88,9 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-block: var(--fds-spacing-3);
-  padding-left: var(--fds-spacing-5);
-  padding-right: var(--fds-spacing-1);
+  padding-block: var(--ds-size-3);
+  padding-left: var(--ds-size-5);
+  padding-right: var(--ds-size-1);
   margin: 0;
 }
 
@@ -100,13 +100,13 @@
 }
 
 .cardBottomWrapper {
-  padding-inline: var(--fds-spacing-5);
-  padding-bottom: var(--fds-spacing-5);
+  padding-inline: var(--ds-size-5);
+  padding-bottom: var(--ds-size-5);
 }
 
 .elementBottomWrapper {
-  padding-inline: var(--fds-spacing-5);
-  padding-bottom: var(--fds-spacing-3);
+  padding-inline: var(--ds-size-5);
+  padding-bottom: var(--ds-size-3);
 }
 
 .headerWrapper {

@@ -1,15 +1,23 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Hubs.Altinity;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -20,6 +28,9 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 /// The connection outlives individual SignalR connections so that in-flight workflows
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
+/// <para>
+/// Every replica sees every event, so persistence is deduplicated on the agent's event id.
+/// </para>
 /// </summary>
 public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 {
@@ -29,22 +40,35 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     private const string InsecureWebSocketScheme = "ws";
     private const string SecureHttpScheme = "https";
 
+    private static readonly JsonSerializerOptions s_persistSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     private readonly ILogger<AltinityWebSocketService> _logger;
     private readonly AltinitySettings _settings;
     private readonly IHubContext<AltinityProxyHub, IAltinityClient> _hubContext;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     private readonly ConcurrentDictionary<string, DeveloperConnection> _connections = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _connectLocks = new();
 
+    // sessionId (== chat thread id) → the editing context it was registered
+    // under. Lets the listener persist assistant messages into the right
+    // app's thread without any browser tab involved.
+    private readonly ConcurrentDictionary<string, AltinnRepoEditingContext> _sessionContexts = new();
+
     public AltinityWebSocketService(
         ILogger<AltinityWebSocketService> logger,
         IOptions<AltinitySettings> settings,
-        IHubContext<AltinityProxyHub, IAltinityClient> hubContext
+        IHubContext<AltinityProxyHub, IAltinityClient> hubContext,
+        IServiceScopeFactory scopeFactory
     )
     {
         _logger = logger;
         _settings = settings.Value;
         _hubContext = hubContext;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task EnsureConnectedAsync(string developer)
@@ -85,14 +109,17 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         }
     }
 
-    public async Task RegisterSessionAsync(string developer, string sessionId)
+    public async Task RegisterSessionAsync(string sessionId, AltinnRepoEditingContext editingContext)
     {
+        string developer = editingContext.Developer;
         if (!_connections.TryGetValue(developer, out var connection) || !connection.IsAlive)
         {
             throw new InvalidOperationException(
                 $"No live agents WebSocket for developer {developer}. Call EnsureConnectedAsync first."
             );
         }
+
+        TrackSessionContext(sessionId, editingContext);
 
         var frame = JsonSerializer.SerializeToUtf8Bytes(
             new
@@ -116,6 +143,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     {
         if (_connections.TryRemove(developer, out var connection))
         {
+            RemoveSessionContextsForDeveloper(developer);
             await CloseWebSocketAsync(connection);
         }
     }
@@ -148,7 +176,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                             "Agents WebSocket closed by remote for developer {Developer}",
                             developer
                         );
-                        _connections.TryRemove(developer, out _);
+                        RemoveConnection(developer, connection);
                         return;
                     }
 
@@ -175,7 +203,15 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
                 try
                 {
-                    var message = JsonSerializer.Deserialize<JsonElement>(json);
+                    JsonNode? messageNode = JsonNode.Parse(json);
+                    if (messageNode is null)
+                    {
+                        continue;
+                    }
+
+                    await TryPersistAssistantMessageAsync(messageNode);
+
+                    var message = JsonSerializer.SerializeToElement(messageNode);
                     await _hubContext.Clients.Group(developer).ReceiveAgentMessage(message);
                 }
                 catch (Exception ex)
@@ -196,7 +232,133 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Agents WebSocket listener error for developer {Developer}", developer);
-            _connections.TryRemove(developer, out _);
+            RemoveConnection(developer, connection);
+        }
+    }
+
+    /// <summary>
+    /// Removes the developer's connection entry only if it still refers to
+    /// <paramref name="connection"/>. A reconnect may already have replaced the entry,
+    /// and blindly removing by key would orphan the replacement while its listener keeps
+    /// running — every agent event would then be delivered (and persisted) twice.
+    /// </summary>
+    private void RemoveConnection(string developer, DeveloperConnection connection)
+    {
+        if (_connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection)))
+        {
+            RemoveSessionContextsForDeveloper(developer);
+        }
+    }
+
+    /// <summary>
+    /// Drops the session→editing-context entries for a developer whose agents connection
+    /// closed. Events for those sessions can no longer arrive, and without eviction the
+    /// map would grow for the lifetime of the process. Re-registration on the next
+    /// connection restores the entries.
+    /// </summary>
+    internal void RemoveSessionContextsForDeveloper(string developer)
+    {
+        foreach (var entry in _sessionContexts)
+        {
+            if (entry.Value.Developer == developer)
+            {
+                _sessionContexts.TryRemove(entry);
+            }
+        }
+    }
+
+    internal void TrackSessionContext(string sessionId, AltinnRepoEditingContext editingContext)
+    {
+        _sessionContexts[sessionId] = editingContext;
+    }
+
+    /// <summary>
+    /// Persists a final assistant message server-side so the answer survives
+    /// regardless of how many browser tabs (including zero) are listening, and
+    /// stamps the persisted id onto the event so clients render it without
+    /// persisting their own copy — which duplicated messages when several tabs
+    /// received the same broadcast. Any failure is logged and the event is
+    /// forwarded unenriched; the frontend then falls back to persisting
+    /// client-side, so an answer is never lost to a persistence error.
+    /// </summary>
+    internal async Task TryPersistAssistantMessageAsync(JsonNode message)
+    {
+        try
+        {
+            if (message["type"]?.GetValue<string>() != "assistant_message")
+            {
+                return;
+            }
+
+            string? sessionId = message["session_id"]?.GetValue<string>();
+            if (sessionId is null || !Guid.TryParse(sessionId, out Guid threadId))
+            {
+                return;
+            }
+
+            if (!_sessionContexts.TryGetValue(sessionId, out AltinnRepoEditingContext? editingContext))
+            {
+                _logger.LogWarning(
+                    "No editing context registered for session {SessionId}; leaving persistence to the client",
+                    sessionId
+                );
+                return;
+            }
+
+            JsonNode? data = message["data"];
+
+            // Same field fallback order as the frontend's getAssistantMessageContent.
+            string? content =
+                data?["response"]?.GetValue<string>()
+                ?? data?["message"]?.GetValue<string>()
+                ?? data?["content"]?.GetValue<string>();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return;
+            }
+
+            List<string>? filesChanged = data!["filesChanged"]?.Deserialize<List<string>>();
+            List<ChatSourceEntity>? sources = data["sources"]
+                ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
+            string? traceId = data["traceId"]?.GetValue<string>();
+            string? eventId = data["eventId"]?.GetValue<string>();
+            bool? attachmentInstructionFlagged = data["attachmentInstructionFlagged"]?.GetValue<bool>();
+
+            var request = new CreateChatMessageRequest(
+                Role.Assistant,
+                content,
+                AllowAppChanges: null,
+                AttachmentFileNames: null,
+                FilesChanged: filesChanged,
+                Sources: sources,
+                AttachmentInstructionFlagged: attachmentInstructionFlagged,
+                TraceId: traceId,
+                EventId: eventId
+            );
+
+            using var scope = _scopeFactory.CreateScope();
+            var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
+            ChatMessageEntity? created = await chatService.CreateMessageAsync(threadId, request, editingContext);
+            if (created is null)
+            {
+                _logger.LogWarning(
+                    "Server-side persist skipped for session {SessionId}: thread not found or not owned by {Developer}",
+                    sessionId,
+                    editingContext.Developer
+                );
+                return;
+            }
+
+            data["persistedMessageId"] = created.Id.ToString();
+            _logger.LogInformation(
+                "Persisted assistant message {MessageId} for session {SessionId}",
+                created.Id,
+                sessionId
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to persist assistant message server-side; forwarding unenriched");
         }
     }
 

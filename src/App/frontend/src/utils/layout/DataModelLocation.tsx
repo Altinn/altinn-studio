@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
@@ -9,7 +11,6 @@ import {
   getCurrentDataModelPath,
   rowContextsToIdMutators,
 } from 'src/utils/layout/rowContext';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { RowContext } from 'src/utils/layout/rowContext';
 
 export type IdMutator = (id: string) => string;

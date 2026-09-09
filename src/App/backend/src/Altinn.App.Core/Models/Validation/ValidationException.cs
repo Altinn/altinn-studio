@@ -8,19 +8,19 @@ namespace Altinn.App.Core.Models.Validation;
 public class ValidationException : AltinnException
 {
     /// <summary>
-    /// Initialises a new instance of the <see cref="ValidationException"/> class.
+    /// Initializes a new instance of the <see cref="ValidationException"/> class.
     /// </summary>
     public ValidationException() { }
 
     /// <summary>
-    /// Initialises a new instance of the <see cref="ValidationException"/> class with a specified error message.
+    /// Initializes a new instance of the <see cref="ValidationException"/> class with a specified error message.
     /// </summary>
     /// <param name="message">The message that describes the error.</param>
     public ValidationException(string message)
         : base(message) { }
 
     /// <summary>
-    /// Initialises a new instance of the <see cref="ValidationException"/> class with a specified error
+    /// Initializes a new instance of the <see cref="ValidationException"/> class with a specified error
     /// message and a reference to the inner exception that is the cause of this exception.
     /// </summary>
     /// <param name="message">The message that describes the error.</param>

@@ -1,6 +1,6 @@
 import type { IInternalLayout } from '../../types/global';
 import { getDuplicatedIds } from '../../utils/formLayoutUtils';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './FormLayoutWarning.module.css';
 
@@ -13,13 +13,13 @@ export const FormLayoutWarning = ({ layout }: FormLayoutWarningProps) => {
   const { t } = useTranslation();
   return (
     <div className={classes.warningWrapper}>
-      <Paragraph size='small'>
+      <StudioParagraph>
         {t('ux_editor.formLayout.warning_duplicates')}
         <span className={classes.duplicatedId}> {duplicatedIds}</span>
-      </Paragraph>
-      <Paragraph size='small'>
+      </StudioParagraph>
+      <StudioParagraph>
         {t('ux_editor.formLayout.warning_duplicates.cannot_publish')}
-      </Paragraph>
+      </StudioParagraph>
     </div>
   );
 };

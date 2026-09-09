@@ -15,7 +15,7 @@ export type StudioResizableLayoutElementProps = {
 
   //** supplied from container **//
   resize?: (size: number) => void;
-  hasNeighbour?: boolean;
+  hasNeighbor?: boolean;
   index?: number;
   children: React.ReactElement | React.ReactElement[];
   ref?: React.Ref<HTMLDivElement>;
@@ -31,7 +31,7 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
       style,
       disableRightHandle,
       index,
-      hasNeighbour = false,
+      hasNeighbor = false,
       children,
     }: StudioResizableLayoutElementProps,
     ref,
@@ -61,7 +61,7 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
         >
           {children}
         </div>
-        {hasNeighbour && (
+        {hasNeighbor && (
           <StudioResizableLayoutHandle
             orientation={orientation}
             index={index ?? 0}

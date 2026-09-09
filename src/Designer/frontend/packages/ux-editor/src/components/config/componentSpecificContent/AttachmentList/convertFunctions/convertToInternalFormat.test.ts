@@ -1,11 +1,11 @@
 import { convertExternalToInternalFormat } from './convertToInternalFormat';
 import { reservedDataTypes } from '../attachmentListUtils';
-import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
+import type { AvailableAttachmentLists, InternalDataTypesFormat } from '../types';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('Convert to internal format: convertExternalToInternalFormat', () => {
   type TestCaseConvertInternalFormat = {
-    availableAttachments: AvailableAttachementLists;
+    availableAttachments: AvailableAttachmentLists;
     dataTypeIds: string[];
     expectedResult: InternalDataTypesFormat;
   };

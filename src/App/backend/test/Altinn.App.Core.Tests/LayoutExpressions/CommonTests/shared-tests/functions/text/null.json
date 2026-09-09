@@ -1,5 +1,0 @@
-{
-  "name": "Should return null when the input is null",
-  "expression": ["text", null],
-  "expects": null
-}

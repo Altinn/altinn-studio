@@ -1,5 +1,0 @@
-{
-  "name": "Should work with null",
-  "expression": ["equals", null, null],
-  "expects": true
-}

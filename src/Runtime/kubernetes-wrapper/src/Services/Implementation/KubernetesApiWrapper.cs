@@ -239,10 +239,10 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
 
             DaemonSet daemonSet = new DaemonSet { Release = element.Metadata?.Name };
 
-            string[]? splittedVersion = containers[0].Image?.Split(":");
-            if (splittedVersion is { Length: > 1 })
+            string[]? splitVersion = containers[0].Image?.Split(":");
+            if (splitVersion is { Length: > 1 })
             {
-                daemonSet.Version = splittedVersion[1];
+                daemonSet.Version = splitVersion[1];
             }
 
             mappedList.Add(daemonSet);
@@ -261,10 +261,10 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
             IList<V1Container>? containers = element.Spec?.Template?.Spec?.Containers;
             if (containers is { Count: > 0 })
             {
-                string[]? splittedVersion = containers[0].Image?.Split(":");
-                if (splittedVersion is { Length: > 1 })
+                string[]? splitVersion = containers[0].Image?.Split(":");
+                if (splitVersion is { Length: > 1 })
                 {
-                    deployment.Version = splittedVersion[1];
+                    deployment.Version = splitVersion[1];
                 }
             }
 

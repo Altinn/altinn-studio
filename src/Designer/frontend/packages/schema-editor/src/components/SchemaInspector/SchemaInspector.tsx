@@ -1,8 +1,7 @@
-import { Tabs } from '@digdir/designsystemet-react';
+import { StudioTabs } from '@studio/components';
 import { ROOT_POINTER, type UiSchemaNode } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
-import classes from './SchemaInspector.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
@@ -27,27 +26,31 @@ export const SchemaInspector = () => {
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
 
   return (
-    <Tabs
-      key={selectedItem.schemaPointer}
-      defaultValue={SchemaInspectorTabs.Properties}
-      className={classes.root}
-    >
-      <Tabs.List>
-        <Tabs.Tab value={SchemaInspectorTabs.Properties}>{t('schema_editor.properties')}</Tabs.Tab>
-        <Tabs.Tab value={SchemaInspectorTabs.Fields}>{t('schema_editor.fields')}</Tabs.Tab>
+    <StudioTabs key={selectedItem.schemaPointer} defaultValue={SchemaInspectorTabs.Properties}>
+      <StudioTabs.List>
+        <StudioTabs.Tab value={SchemaInspectorTabs.Properties}>
+          {t('schema_editor.properties')}
+        </StudioTabs.Tab>
+        <StudioTabs.Tab value={SchemaInspectorTabs.Fields}>
+          {t('schema_editor.fields')}
+        </StudioTabs.Tab>
         {selectedItem.schemaPointer == ROOT_POINTER && (
-          <Tabs.Tab value={SchemaInspectorTabs.Metadata}>{t('schema_editor.metadata')}</Tabs.Tab>
+          <StudioTabs.Tab value={SchemaInspectorTabs.Metadata}>
+            {t('schema_editor.metadata')}
+          </StudioTabs.Tab>
         )}
-      </Tabs.List>
-      <Tabs.Content value={SchemaInspectorTabs.Properties}>
+      </StudioTabs.List>
+      <StudioTabs.Panel value={SchemaInspectorTabs.Properties}>
         <ItemPropertiesTab selectedItem={selectedItem} />
-      </Tabs.Content>
-      <Tabs.Content value={SchemaInspectorTabs.Fields}>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={SchemaInspectorTabs.Fields}>
         <ItemFieldsTab selectedItem={selectedItem} />
-      </Tabs.Content>
-      <Tabs.Content value={SchemaInspectorTabs.Metadata}>
-        <ItemMetadataTab />
-      </Tabs.Content>
-    </Tabs>
+      </StudioTabs.Panel>
+      {selectedItem.schemaPointer == ROOT_POINTER && (
+        <StudioTabs.Panel value={SchemaInspectorTabs.Metadata}>
+          <ItemMetadataTab />
+        </StudioTabs.Panel>
+      )}
+    </StudioTabs>
   );
 };

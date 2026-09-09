@@ -1,0 +1,13 @@
+﻿[
+  {
+    Id: ALTINNAPP0800,
+    Title: Service owner is missing required authorization,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/config/authorization/policy.xml(2,1),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0800,
+    MessageFormat: policy.xml does not permit the app owner '{0}' any of the action(s) [{1}] on {0}/{2}, which is required because the app {3} as the service owner. Grant the action(s) to the org subject in config/authorization/policy.xml, or run the v8 to v9 upgrade to have a rule inserted.,
+    Message: policy.xml does not permit the app owner '[ORG]' any of the action(s) [reject] on [ORG]/[APP], which is required because the app abandons the 'payment' task 'Task_2' on reject as the service owner. Grant the action(s) to the org subject in config/authorization/policy.xml, or run the v8 to v9 upgrade to have a rule inserted.,
+    Category: Authorization
+  }
+]

@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Heading, Label, Paragraph, Link } from '@digdir/designsystemet-react';
-import { StudioHelpText, StudioSelect } from '@studio/components';
+import {
+  StudioHelpText,
+  StudioSelect,
+  StudioLabel,
+  StudioLink,
+  StudioHeading,
+  StudioParagraph,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 
@@ -30,26 +36,24 @@ export const SecurityLevelSelect = ({
 
   return (
     <div>
-      <Heading level={4} size='xxsmall' spacing>
+      <StudioHeading level={4} data-size='xs' spacing>
         {t('policy_editor.security_level_label')}
-      </Heading>
-      <Paragraph className={classes.paragraph} size='small'>
-        {t('policy_editor.security_level_description')}
-      </Paragraph>
+      </StudioHeading>
+      <StudioParagraph spacing>{t('policy_editor.security_level_description')}</StudioParagraph>
       <div>
         <div className={classes.labelAndHelpTextWrapper}>
-          <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>
+          <StudioLabel htmlFor={SELECT_AUTH_LEVEL_ID}>
             {t('policy_editor.select_auth_level_label')}
-          </Label>
+          </StudioLabel>
           <StudioHelpText aria-label={t('policy_editor.select_auth_level_help_text')}>
-            <Link
+            <StudioLink
               href={URL_TO_SECURITY_LEVEL_PAGE}
               target='_newTab'
               rel='noopener noreferrer'
               className={classes.link}
             >
               {t('policy_editor.select_auth_level_help_text_content')}
-            </Link>
+            </StudioLink>
           </StudioHelpText>
         </div>
         <StudioSelect

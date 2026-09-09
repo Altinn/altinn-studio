@@ -3,107 +3,63 @@ import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-rout
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { AppLayout } from 'src/AppLayout';
-import { Form } from 'src/components/form/Form';
-import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { ComponentRouting } from 'src/components/process/ProcessWrapper';
-import { Loader } from 'src/core/loading/Loader';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
-import { indexLoader } from 'src/routes/index/index.loader';
-import { Component as IndexRoute } from 'src/routes/index/index.route';
-import { statelessIndexLoader } from 'src/routes/index/stateless-index.loader';
-import { instanceLoader } from 'src/routes/instance/instance.loader';
-import { Component as InstanceRoute, ErrorBoundary as InstanceErrorBoundary } from 'src/routes/instance/instance.route';
-import { instanceIndexLoader } from 'src/routes/instance/instance-index.loader';
-import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
-import { Component as InstanceSelectionRoute } from 'src/routes/instance-selection/instance-selection.route';
-import { Component as PageRoute } from 'src/routes/page/page.route';
-import { partySelectionLoader } from 'src/routes/party-selection/party-selection.loader';
-import { Component as PartySelectionRoute } from 'src/routes/party-selection/party-selection.route';
-import { Component as ProcessEndRoute } from 'src/routes/process-end/process-end.route';
-import { taskLoader } from 'src/routes/task/task.loader';
-import { Component as TaskRoute } from 'src/routes/task/task.route';
-import { taskIndexLoader } from 'src/routes/task/task-index.loader';
-import { routes } from 'src/routesBuilder';
+import * as appRoute from 'src/routes/app/app.route';
+import * as componentRoute from 'src/routes/component/component.route';
+import * as indexRoute from 'src/routes/index/index.route';
+import * as statelessIndexRoute from 'src/routes/index/stateless-index.route';
+import * as statelessPageRoute from 'src/routes/index/stateless-page.route';
+import * as instanceRoute from 'src/routes/instance/instance.route';
+import * as instanceIndexRoute from 'src/routes/instance/instance-index.route';
+import * as instanceSelectionRoute from 'src/routes/instance-selection/instance-selection.route';
+import * as pageRoute from 'src/routes/page/page.route';
+import * as partySelectionRoute from 'src/routes/party-selection/party-selection.route';
+import * as processEndRoute from 'src/routes/process-end/process-end.route';
+import { convertRouteModule } from 'src/routes/routeModule';
+import * as taskRoute from 'src/routes/task/task.route';
+import * as taskIndexRoute from 'src/routes/task/task-index.route';
+import { buildPartySelectionUrl, routes, TaskKeys } from 'src/routesBuilder';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
 
 export function createRouter({ queryClient, apiClients }: { queryClient: QueryClient; apiClients: ApiClients }) {
   return createBrowserRouter(
     [
       {
-        Component: AppLayout,
-        // Prevents a console error about missing HydrateFallback when using loaders
-        HydrateFallback: () => null,
+        ...convertRouteModule(appRoute),
         children: [
           {
             path: routes.instanceSelection,
-            Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader,
+            ...convertRouteModule(instanceSelectionRoute),
           },
           {
-            path: routes.partySelection,
-            loader: partySelectionLoader,
-            children: [
-              { index: true, Component: PartySelectionRoute },
-              { path: '*', Component: PartySelectionRoute },
-            ],
+            path: routes.partySelectionCatchAll,
+            ...convertRouteModule(partySelectionRoute),
           },
           {
-            Component: IndexRoute,
-            loader: indexLoader,
+            ...convertRouteModule(indexRoute),
             children: [
-              {
-                path: routes.statelessPage,
-                Component: () => (
-                  <PresentationComponent>
-                    <Form />
-                  </PresentationComponent>
-                ),
-              },
-              { index: true, loader: statelessIndexLoader(), Component: () => <Loader reason='stateless-redirect' /> },
+              { path: routes.statelessPage, ...convertRouteModule(statelessPageRoute) },
+              { index: true, ...convertRouteModule(statelessIndexRoute) },
             ],
           },
           {
             path: routes.instance,
-            Component: InstanceRoute,
-            ErrorBoundary: InstanceErrorBoundary,
-            loader: instanceLoader,
-            shouldRevalidate: ({ currentParams, nextParams }) =>
-              currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
-              currentParams.instanceGuid !== nextParams.instanceGuid,
+            ...convertRouteModule(instanceRoute),
             children: [
-              {
-                index: true,
-                loader: instanceIndexLoader,
-                Component: () => <Loader reason='instance-redirect' />,
-              },
-              { path: 'ProcessEnd', Component: ProcessEndRoute },
+              { index: true, ...convertRouteModule(instanceIndexRoute) },
+              { path: TaskKeys.ProcessEnd, ...convertRouteModule(processEndRoute) },
               {
                 path: routes.task,
-                Component: TaskRoute,
-                loader: taskLoader,
+                ...convertRouteModule(taskRoute),
                 children: [
-                  {
-                    index: true,
-                    loader: taskIndexLoader,
-                    Component: () => <Loader reason='task-redirect' />,
-                  },
+                  { index: true, ...convertRouteModule(taskIndexRoute) },
                   {
                     path: routes.page,
                     children: [
-                      {
-                        index: true,
-                        Component: PageRoute,
-                      },
-                      {
-                        path: routes.component,
-                        children: [
-                          { index: true, element: <ComponentRouting /> },
-                          { path: '*', element: <ComponentRouting /> },
-                        ],
-                      },
+                      { index: true, ...convertRouteModule(pageRoute) },
+                      { path: routes.componentCatchAll, ...convertRouteModule(componentRoute) },
                     ],
                   },
                 ],
@@ -113,27 +69,13 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
         ],
       },
       {
-        path: routes.partySelectionLegacy,
-        children: [
-          {
-            index: true,
-            element: (
-              <Navigate
-                to='/party-selection'
-                replace
-              />
-            ),
-          },
-          {
-            path: '*',
-            element: (
-              <Navigate
-                to='/party-selection'
-                replace
-              />
-            ),
-          },
-        ],
+        path: routes.partySelectionLegacyCatchAll,
+        element: (
+          <Navigate
+            to={buildPartySelectionUrl()}
+            replace
+          />
+        ),
       },
     ],
     {

@@ -147,11 +147,67 @@ def _try_parse_json(text: str) -> Optional[dict]:
         except json.JSONDecodeError as e:
             log.debug(f"Truncation repair parse failed: {e}")
 
+    # 4. Last resort: a permissive JSON repairer handles the model quirks
+    #    the strict strategies miss — trailing commas, unescaped newlines
+    #    in strings, single quotes, missing commas between objects, etc.
+    #    Haiku-class models emit these more often than Sonnet, so without
+    #    this fallback spec extraction silently fails on the Haiku path.
+    try:
+        from json_repair import repair_json
+
+        repaired_text = repair_json(text, return_objects=False)
+        if repaired_text and repaired_text != "{}":
+            data = json.loads(repaired_text)
+            if isinstance(data, dict):
+                log.info(
+                    "Recovered spec JSON via json_repair (input %d chars → %d chars)",
+                    len(text),
+                    len(repaired_text),
+                )
+                return data
+    except Exception as e:  # noqa: BLE001
+        log.debug(f"json_repair fallback failed: {e}")
+
     log.error(
         f"All JSON parse strategies failed for text of length {len(text)} "
         f"(starts with: {text[:200]!r})"
     )
     return None
+
+
+def _normalize_options(options: Any) -> Any:
+    """Coerce option entries into the `{label, value}` shape FormSpecField
+    requires.
+
+    Haiku (and to a lesser extent Sonnet) sometimes emits options as
+    `{"id": ..., "label": ...}` instead of `{"label": ..., "value": ...}`,
+    which trips pydantic's `value` required-field check and kills the
+    whole spec.  We accept either shape and derive `value` from `id` (or
+    a kebab-cased label) when missing.  Non-dict entries pass through
+    unchanged; the model layer will surface a clearer error if they
+    actually break validation.
+    """
+    if not isinstance(options, list):
+        return options
+    normalized = []
+    for opt in options:
+        if not isinstance(opt, dict):
+            normalized.append(opt)
+            continue
+        if "value" in opt and opt["value"] not in (None, ""):
+            normalized.append(opt)
+            continue
+        fallback = opt.get("id")
+        if not isinstance(fallback, str) or not fallback:
+            label = opt.get("label", "")
+            fallback = (
+                "".join(c if c.isalnum() else "-" for c in str(label).lower())
+                .strip("-")
+                .replace("--", "-")
+                or "value"
+            )
+        normalized.append({**opt, "value": fallback})
+    return normalized
 
 
 def _parse_spec_response(raw: str) -> Optional[FormSpec]:
@@ -183,7 +239,7 @@ def _parse_spec_response(raw: str) -> Optional[FormSpec]:
                         label=f.get("label", ""),
                         description=f.get("description"),
                         field_type=f.get("field_type", "text"),
-                        options=f.get("options"),
+                        options=_normalize_options(f.get("options")),
                         required=f.get("required", False),
                         data_model_binding=f.get("data_model_binding"),
                     )

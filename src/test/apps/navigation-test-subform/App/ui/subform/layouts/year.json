@@ -26,7 +26,6 @@
       },
       {
         "id": "NavigationButtons-year",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       },

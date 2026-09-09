@@ -73,7 +73,6 @@ export const FormComponentConfig = ({
           className={classes.elementWrapper}
         />
       )}
-
       {/** Grid Property */}
       {properties?.grid && (
         <ConfigGridProperties
@@ -82,7 +81,6 @@ export const FormComponentConfig = ({
           className={classes.elementWrapper}
         />
       )}
-
       {/** String properties */}
       {stringKeys.length > 0 && (
         <ConfigStringProperties
@@ -94,7 +92,6 @@ export const FormComponentConfig = ({
           keepEditOpen={keepEditOpen}
         />
       )}
-
       {/** Number properties */}
       {numberKeys.length > 0 && (
         <ConfigNumberProperties
@@ -106,7 +103,6 @@ export const FormComponentConfig = ({
           keepEditOpen={keepEditOpen}
         />
       )}
-
       {/** Array properties with enum values) */}
       {arrayKeys.length > 0 && (
         <ConfigArrayProperties
@@ -118,7 +114,6 @@ export const FormComponentConfig = ({
           keepEditOpen={keepEditOpen}
         />
       )}
-
       {/** Object properties  */}
       {objectKeys.length > 0 &&
         objectKeys.map((objectPropertyKey) => {

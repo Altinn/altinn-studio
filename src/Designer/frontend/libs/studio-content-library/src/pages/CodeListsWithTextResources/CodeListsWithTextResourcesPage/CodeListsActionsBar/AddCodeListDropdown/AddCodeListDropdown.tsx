@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import { StudioDropdown } from '@studio/components';
 import { FileImportIcon, PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/icons';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
-import type { TextResource } from '@studio/components-legacy';
+import type { TextResource } from '@studio/pure-functions';
 import { ImportFromOrgLibraryDialog } from './ImportFromOrgLibraryDialog';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { getCodeListIdsFromExternalResources } from './utils';

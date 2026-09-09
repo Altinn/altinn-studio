@@ -194,6 +194,45 @@ public class AppDevelopmentServiceTest : IDisposable
     }
 
     [Fact]
+    public async Task GetLayoutSetConfig_WhenLayoutSetExists_ShouldReturnConfig()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        LayoutSetConfig result = await _appDevelopmentService.GetLayoutSetConfig(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            "layoutSet1"
+        );
+
+        Assert.Equal("layoutSet1", result.Id);
+    }
+
+    [Fact]
+    public async Task GetLayoutSetConfig_WhenLayoutSetDoesNotExist_ShouldThrow()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        Func<Task> act = async () =>
+            await _appDevelopmentService.GetLayoutSetConfig(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+                "missing-layout-set"
+            );
+
+        await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
+    }
+
+    [Fact]
     public async Task UpdateLayoutSet_WhenUpdatingSetIdToAnExistingId_ShouldThrowError()
     {
         // Arrange
@@ -391,6 +430,54 @@ public class AppDevelopmentServiceTest : IDisposable
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task GetLayoutSetConfig_WhenV9App_ShouldBuildConfigFromSettings()
+    {
+        // Arrange
+        AltinnRepoEditingContext editingContext = await PrepareV9Repo();
+
+        // Act
+        LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(editingContext, "Task_1");
+
+        // Assert
+        Assert.Equal("Task_1", layoutSetConfig.Id);
+        Assert.Equal("model", layoutSetConfig.DataType);
+        Assert.Null(layoutSetConfig.Type);
+        Assert.Equal("Task_1", Assert.Single(layoutSetConfig.Tasks));
+    }
+
+    [Fact]
+    public async Task GetLayoutSetConfig_WhenV9Subform_ShouldNotResolveTask()
+    {
+        // Arrange
+        AltinnRepoEditingContext editingContext = await PrepareV9Repo();
+
+        // Act
+        LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(
+            editingContext,
+            "moreInfoSubform"
+        );
+
+        // Assert
+        Assert.Equal("moreInfoSubform", layoutSetConfig.Id);
+        Assert.Equal("subform-model", layoutSetConfig.DataType);
+        Assert.Equal("subform", layoutSetConfig.Type);
+        Assert.Null(layoutSetConfig.Tasks);
+    }
+
+    private async Task<AltinnRepoEditingContext> PrepareV9Repo()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        _appVersionServiceMock.Setup(s => s.IsV9App(It.IsAny<AltinnRepoEditingContext>())).Returns(true);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            "app-with-layoutsets-v9",
+            _developer,
+            targetRepository
+        );
+        return AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer);
     }
 
     private List<string> GetFileNamesInLayoutSet(string layoutSetName)

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Expression } from '../types/Expression';
 import { isExpressionSimple } from '../validators/isExpressionSimple';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '../../StudioAlert';
 import { complexToSimpleExpression } from '../converters/complexToSimpleExpression';
 import type { SimplifiedExpression } from '../types/SimplifiedExpression';
 import { simpleToComplexExpression } from '../converters/simpleToComplexExpression';
@@ -22,7 +22,7 @@ export const SimplifiedEditor = ({
   const { texts } = useStudioExpressionContext();
 
   if (!isExpressionSimple(expression)) {
-    return <Alert data-color='info'>{texts.cannotSimplify}</Alert>;
+    return <StudioAlert data-color='info'>{texts.cannotSimplify}</StudioAlert>;
   }
 
   const simplifiedExpression = complexToSimpleExpression(expression);

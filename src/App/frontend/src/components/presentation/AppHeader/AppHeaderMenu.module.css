@@ -1,9 +1,11 @@
+@value mediaSmDown from '@app/form-component/styles/breakpoints.module.css';
+
 .partyName {
   font-size: 0.875rem;
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
+@media mediaSmDown {
   .partyName {
     display: none;
   }

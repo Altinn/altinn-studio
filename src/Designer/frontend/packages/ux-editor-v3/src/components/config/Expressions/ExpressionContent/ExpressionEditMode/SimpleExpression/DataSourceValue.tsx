@@ -11,8 +11,7 @@ import {
 import { useText } from '../../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../../hooks/useAppContext';
-import { StudioSelect, StudioTextfield } from '@studio/components';
-import { ToggleGroup } from '@digdir/designsystemet-react';
+import { StudioSelect, StudioTextfield, StudioToggleGroup } from '@studio/components';
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -119,14 +118,14 @@ export const DataSourceValue = ({
       );
     case DataSource.Boolean:
       return (
-        <ToggleGroup
+        <StudioToggleGroup
           onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
           value={selectedValueForDisplayIfBoolean}
-          size='sm'
+          data-size='sm'
         >
-          <ToggleGroup.Item value='true'>{t('general.true')}</ToggleGroup.Item>
-          <ToggleGroup.Item value='false'>{t('general.false')}</ToggleGroup.Item>
-        </ToggleGroup>
+          <StudioToggleGroup.Item value='true'>{t('general.true')}</StudioToggleGroup.Item>
+          <StudioToggleGroup.Item value='false'>{t('general.false')}</StudioToggleGroup.Item>
+        </StudioToggleGroup>
       );
     default:
       return null;

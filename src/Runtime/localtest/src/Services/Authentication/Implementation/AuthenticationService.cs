@@ -18,12 +18,17 @@ namespace LocalTest.Services.Authentication.Implementation;
 
 public class AuthenticationService : IAuthentication
 {
+    // Test tokens are minted on this container's clock, but apps may validate them on the host
+    // clock (process-mode app runs) with ClockSkew = TimeSpan.Zero. Backdate NotBefore so freshly
+    // minted tokens stay valid across Docker VM/host clock drift.
+    private static readonly TimeSpan _notBeforeDriftTolerance = TimeSpan.FromSeconds(30);
+
     private readonly AltinnOrgsClient _orgsClient;
     private readonly AuthSettings _authSettings;
     private readonly GeneralSettings _generalSettings;
     private readonly CertificateSettings _certSettings;
     private readonly IClaims _claimsService;
-    private readonly IOrganizations _organisations;
+    private readonly IOrganizations _organizations;
 
     public AuthenticationService(
         AltinnOrgsClient orgsClient,
@@ -31,7 +36,7 @@ public class AuthenticationService : IAuthentication
         IOptions<GeneralSettings> generalSettings,
         IOptions<CertificateSettings> certSettings,
         IClaims claimsService,
-        IOrganizations organisations
+        IOrganizations organizations
     )
     {
         _orgsClient = orgsClient;
@@ -39,7 +44,7 @@ public class AuthenticationService : IAuthentication
         _generalSettings = generalSettings.Value;
         _certSettings = certSettings.Value;
         _claimsService = claimsService;
-        _organisations = organisations;
+        _organizations = organizations;
     }
 
     ///<inheritdoc/>
@@ -51,6 +56,7 @@ public class AuthenticationService : IAuthentication
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(principal.Identity),
+            NotBefore = DateTime.UtcNow.Subtract(_notBeforeDriftTolerance),
             Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
             SigningCredentials = GetSigningCredentials(),
         };
@@ -72,7 +78,7 @@ public class AuthenticationService : IAuthentication
 
         payload.TryAdd("exp", now.Add(tokenExpiry).ToUnixTimeSeconds());
         payload.TryAdd("iat", now.ToUnixTimeSeconds());
-        payload.TryAdd("nbf", now.ToUnixTimeSeconds());
+        payload.TryAdd("nbf", now.Subtract(_notBeforeDriftTolerance).ToUnixTimeSeconds());
         payload.TryAdd("jti", Guid.NewGuid().ToString());
 
         var securityToken = new JwtSecurityToken(header, payload);
@@ -81,7 +87,11 @@ public class AuthenticationService : IAuthentication
 
     private X509SigningCredentials GetSigningCredentials()
     {
-        var cert = new X509Certificate2(_certSettings.CertificatePath, _certSettings.CertificatePwd);
+        var cert = X509CertificateLoader.LoadPkcs12FromFile(
+            _certSettings.CertificatePath,
+            _certSettings.CertificatePwd,
+            X509KeyStorageFlags.DefaultKeySet
+        );
         return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
     }
 
@@ -198,7 +208,7 @@ public class AuthenticationService : IAuthentication
         ArgumentException.ThrowIfNullOrWhiteSpace(supplierOrgNumber);
         ArgumentException.ThrowIfNullOrWhiteSpace(scope);
         
-        var org = await _organisations.GetOrganization(systemUserOrgNumber);
+        var org = await _organizations.GetOrganization(systemUserOrgNumber);
         if (org is null)
             throw new ArgumentException("Organization not found in register", nameof(systemUserOrgNumber));
 

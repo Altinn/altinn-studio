@@ -4,7 +4,7 @@ import { TextRow } from './TextRow';
 import { screen, render as rtlRender, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
-import { Table, TableBody } from '@digdir/designsystemet-react';
+import { StudioTable } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -33,11 +33,11 @@ describe('TextRow', () => {
     };
     rtlRender(
       <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <Table>
-          <TableBody>
+        <StudioTable>
+          <StudioTable.Body>
             <TextRow {...allProps} />
-          </TableBody>
-        </Table>
+          </StudioTable.Body>
+        </StudioTable>
       </ServicesContextProvider>,
     );
   };

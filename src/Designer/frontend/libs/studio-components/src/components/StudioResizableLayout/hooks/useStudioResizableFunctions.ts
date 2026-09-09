@@ -23,53 +23,53 @@ export const useStudioResizableLayoutFunctions = (
     );
   };
 
-  const getElementNeighbour = (index: number): StudioResizableLayoutArea => {
-    const neighbourIndex = elementRefs.current.length < index + 2 ? index - 1 : index + 1;
-    return getElement(neighbourIndex);
+  const getElementNeighbor = (index: number): StudioResizableLayoutArea => {
+    const neighborIndex = elementRefs.current.length < index + 2 ? index - 1 : index + 1;
+    return getElement(neighborIndex);
   };
 
   const calculatePixelSizes = (
     element: StudioResizableLayoutArea,
-    neighbour: StudioResizableLayoutArea,
+    neighbor: StudioResizableLayoutArea,
     newSize: number,
-  ): { newSize: number; neighbourNewSize: number } => {
-    const totalSize = element.size + neighbour.size;
+  ): { newSize: number; neighborNewSize: number } => {
+    const totalSize = element.size + neighbor.size;
     if (element.maximumSize < newSize) newSize = element.maximumSize;
     if (element.minimumSize > newSize) newSize = element.minimumSize;
-    if (neighbour.minimumSize > totalSize - newSize) newSize = totalSize - neighbour.minimumSize;
-    const neighbourNewSize = totalSize - newSize;
-    return { newSize, neighbourNewSize };
+    if (neighbor.minimumSize > totalSize - newSize) newSize = totalSize - neighbor.minimumSize;
+    const neighborNewSize = totalSize - newSize;
+    return { newSize, neighborNewSize };
   };
 
   const calculateFlexGrow = (
     element: StudioResizableLayoutArea,
-    neighbour: StudioResizableLayoutArea,
+    neighbor: StudioResizableLayoutArea,
     resizeTo: number,
     ignoreMinimumSize: boolean = false,
-  ): { containerFlexGrow: number; neighbourFlexGrow: number } => {
-    const totalPixelSize = element.size + neighbour.size;
-    const { newSize, neighbourNewSize } = ignoreMinimumSize
-      ? { newSize: resizeTo, neighbourNewSize: totalPixelSize - resizeTo }
-      : calculatePixelSizes(element, neighbour, resizeTo);
+  ): { containerFlexGrow: number; neighborFlexGrow: number } => {
+    const totalPixelSize = element.size + neighbor.size;
+    const { newSize, neighborNewSize } = ignoreMinimumSize
+      ? { newSize: resizeTo, neighborNewSize: totalPixelSize - resizeTo }
+      : calculatePixelSizes(element, neighbor, resizeTo);
 
-    const totalFlexGrow = element.flexGrow + neighbour.flexGrow;
+    const totalFlexGrow = element.flexGrow + neighbor.flexGrow;
     const containerFlexGrow = (newSize / totalPixelSize) * totalFlexGrow;
-    const neighbourFlexGrow = (neighbourNewSize / totalPixelSize) * totalFlexGrow;
-    return { containerFlexGrow, neighbourFlexGrow };
+    const neighborFlexGrow = (neighborNewSize / totalPixelSize) * totalFlexGrow;
+    return { containerFlexGrow, neighborFlexGrow };
   };
 
   const resizeTo = (index: number, size: number): void => {
     const element = getElement(index);
-    const neighbour = getElementNeighbour(index);
+    const neighbor = getElementNeighbor(index);
 
-    if (element.collapsed || neighbour.collapsed) {
+    if (element.collapsed || neighbor.collapsed) {
       return;
     }
 
-    const { containerFlexGrow, neighbourFlexGrow } = calculateFlexGrow(element, neighbour, size);
+    const { containerFlexGrow, neighborFlexGrow } = calculateFlexGrow(element, neighbor, size);
 
     setContainerSize(index, containerFlexGrow);
-    setContainerSize(neighbour.index, neighbourFlexGrow);
+    setContainerSize(neighbor.index, neighborFlexGrow);
   };
 
   const resizeDelta = (index: number, size: number): void => {

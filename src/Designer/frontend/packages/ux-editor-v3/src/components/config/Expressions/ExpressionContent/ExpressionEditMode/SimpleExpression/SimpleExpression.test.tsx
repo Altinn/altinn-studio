@@ -38,9 +38,9 @@ describe('SimpleExpression', () => {
       name: textMock('right_menu.expressions_operator_and'),
     });
     expect(operatorToggleGroupOr).toBeInTheDocument();
-    expect(operatorToggleGroupOr).toHaveAttribute('aria-checked', 'true');
+    expect(operatorToggleGroupOr).toBeChecked();
     expect(operatorToggleGroupAnd).toBeInTheDocument();
-    expect(operatorToggleGroupAnd).toHaveAttribute('aria-checked', 'false');
+    expect(operatorToggleGroupAnd).not.toBeChecked();
   });
 });
 

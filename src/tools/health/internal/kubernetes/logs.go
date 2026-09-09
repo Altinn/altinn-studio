@@ -398,10 +398,10 @@ func (r *reSequencer) resequence() {
 		return
 	}
 
-	treshold := time.Now().UTC().Add(-r.bufferDuration)
+	threshold := time.Now().UTC().Add(-r.bufferDuration)
 	i := r.availablePos
 	for ; i < r.writerPos; i++ {
-		if r.buffer[i].Timestamp.Before(treshold) {
+		if r.buffer[i].Timestamp.Before(threshold) {
 			continue
 		}
 		break
@@ -437,7 +437,7 @@ func (r *reSequencer) next() []LogLine {
 	}
 
 	// Do some compacting here on previously read data
-	// so that the buffer doens't grow forever
+	// so that the buffer doesn't grow forever
 	unreadCount := r.writerPos - r.readerPos
 	if unreadCount > 0 {
 		copy(r.buffer[0:unreadCount], r.buffer[r.readerPos:r.writerPos])

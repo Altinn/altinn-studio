@@ -27,7 +27,7 @@ public static class MimeTypeMap
             //
             // any mime types on left side not pre-loaded on right side, are added automatically
             // some mime types can map to multiple extensions, so to get a deterministic mapping,
-            // add those to the dictionary specifcially
+            // add those to the dictionary specifically
             //
             // combination of values from Windows 7 Registry and
             // from C:\Windows\System32\inetsrv\config\applicationHost.config
@@ -648,7 +648,7 @@ public static class MimeTypeMap
             { "application/x-x509-ca-cert", ".cer" },
             { "application/x-zip-compressed", ".zip" },
             { "application/xhtml+xml", ".xhtml" },
-            { "application/xml", ".xml" }, // anomoly, .xml -> text/xml, but application/xml -> many thingss, but all are xml, so safest is .xml
+            { "application/xml", ".xml" }, // anomaly, .xml -> text/xml, but application/xml -> many thingss, but all are xml, so safest is .xml
             { "audio/aac", ".AAC" },
             { "audio/aiff", ".aiff" },
             { "audio/basic", ".snd" },
@@ -720,7 +720,7 @@ public static class MimeTypeMap
     /// Get the file extension based on the mime type
     /// </summary>
     /// <param name="mimeType">the mime type of the file</param>
-    /// <returns>The file extention based on the mime type</returns>
+    /// <returns>The file extension based on the mime type</returns>
     public static string GetExtension(string mimeType)
     {
         if (mimeType == null)

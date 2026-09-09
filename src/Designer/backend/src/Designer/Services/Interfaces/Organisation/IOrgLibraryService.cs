@@ -11,7 +11,7 @@ public interface IOrgLibraryService
     /// <summary>
     /// Gets the latest commit sha for a given branch.
     /// </summary>
-    /// <param name="org">Organisation.</param>
+    /// <param name="org">Organization.</param>
     /// <param name="branchName">The branch name. Fallback to default branch.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The latest commit sha.</returns>
@@ -24,7 +24,7 @@ public interface IOrgLibraryService
     /// <summary>
     /// Gets all files from a given preset path.
     /// </summary>
-    /// <param name="org">Organisation.</param>
+    /// <param name="org">Organization.</param>
     /// <param name="path">Path to a folder.</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -39,7 +39,7 @@ public interface IOrgLibraryService
     /// <summary>
     /// Update all files from the request.
     /// </summary>
-    /// <param name="org">Organisation.</param>
+    /// <param name="org">Organization.</param>
     /// <param name="developer">Developer.</param>
     /// <param name="token">The developer token.</param>
     /// <param name="request">The request.</param>
@@ -53,9 +53,9 @@ public interface IOrgLibraryService
     );
 
     /// <summary>
-    /// Gets all the published library elements for the organisation.
+    /// Gets all the published library elements for the organization.
     /// </summary>
-    /// <param name="org">Organisation.</param>
+    /// <param name="org">Organization.</param>
     /// <param name="path">Path to a folder.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The published library elements from mentioned path.</returns>

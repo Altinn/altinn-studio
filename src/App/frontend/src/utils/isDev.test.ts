@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 import { orgs } from 'src/__mocks__/orgs';
 import { isDev } from 'src/utils/isDev';
@@ -6,12 +6,12 @@ import { isDev } from 'src/utils/isDev';
 const location = window.location;
 
 function mockHostName(hostname: string) {
-  jest.spyOn(window, 'location', 'get').mockReturnValue({ ...location, hostname });
+  vi.spyOn(window, 'location', 'get').mockReturnValue({ ...location, hostname });
 }
 
 describe('isDev', () => {
   beforeEach(() => {
-    jest.spyOn(window, 'location', 'get').mockRestore();
+    vi.spyOn(window, 'location', 'get').mockRestore();
   });
 
   it('should return true if hostname is local.altinn.cloud', () => {

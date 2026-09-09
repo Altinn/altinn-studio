@@ -1,9 +1,10 @@
+import type { PageValidation } from '@app/layout-contract/generated/common.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
-import type { PageValidation } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();

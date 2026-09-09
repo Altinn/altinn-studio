@@ -52,4 +52,22 @@ public enum PersistentItemStatus
     /// May be resumed like any other unsuccessful terminal state.
     /// </summary>
     Abandoned = 7,
+
+    /// <summary>
+    /// The item executed successfully but the outcome it is waiting for is not available yet
+    /// (<see cref="ExecutionStatus.Deferred"/>). Non-terminal and not a failure: the item is
+    /// re-fetched once the workflow's <see cref="Workflow.BackoffUntil"/> elapses and the step is
+    /// executed again. Unlike <see cref="Requeued"/>, waiting records no error history and does not
+    /// count against the retry budget.
+    /// </summary>
+    Waiting = 8,
+
+    /// <summary>
+    /// Workflow-only. Born parked: the workflow exists, is durable and visible, and has not started — it is held
+    /// until an external event releases it. Today the only such event is a mailbox rendezvous. Deliberately absent
+    /// from the fetch gate's status list, so no worker ever picks it up: it holds no lease, no heartbeat and no
+    /// backoff, and it has no timer of its own. Non-terminal, so dependents stay blocked and it counts as active.
+    /// Never observed on a <see cref="Step"/>.
+    /// </summary>
+    Held = 9,
 }

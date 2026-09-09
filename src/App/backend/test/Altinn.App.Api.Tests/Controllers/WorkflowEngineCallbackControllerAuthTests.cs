@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
@@ -10,6 +11,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -38,10 +40,22 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     /// time. The callback controller verifies this signature before trusting any of the blob.
     /// </summary>
     private string SignState(WorkflowCallbackState state) =>
-        Services.GetRequiredService<WorkflowStateSigner>().Sign(JsonSerializer.Serialize(state));
+        Services
+            .GetRequiredService<WorkflowStateSigner>()
+            .Sign(JsonSerializer.Serialize(state), SigningDomain.CallbackState);
 
     private static string CallbackUrl(Guid instanceGuid) =>
         $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/some-command";
+
+    /// <summary>
+    /// Asserts that state restoration is what rejected the callback. The controller has several non-retryable
+    /// 422 branches, so the status code alone does not pin down which one a test exercised.
+    /// </summary>
+    private static async Task AssertStateRestorationRejected(HttpResponseMessage response)
+    {
+        ProblemDetails? problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal("Invalid State", problem?.Title);
+    }
 
     [Fact]
     public async Task Callback_WithoutToken_ReturnsUnauthorized()
@@ -115,10 +129,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Properly signed so the instance-mismatch check (not the signature check) is what rejects it.
-            State = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = SignState(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -155,10 +178,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Raw inner state, NOT wrapped in a signed envelope.
-            State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -168,6 +200,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         );
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        await AssertStateRestorationRejected(response);
     }
 
     [Fact]
@@ -191,7 +224,15 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
             Data = [],
         };
-        string signed = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] });
+        string signed = SignState(
+            new WorkflowCallbackState
+            {
+                Instance = stateInstance,
+                InstanceVersion = 1,
+                ProcessStateVersion = 1,
+                FormData = [],
+            }
+        );
         var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(signed)!;
         string tampered = JsonSerializer.Serialize(
             envelope with
@@ -205,8 +246,9 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             State = tampered,
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
@@ -217,6 +259,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         );
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        await AssertStateRestorationRejected(response);
     }
 
     [Fact]

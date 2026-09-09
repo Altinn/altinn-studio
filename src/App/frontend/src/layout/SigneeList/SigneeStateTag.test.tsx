@@ -6,7 +6,7 @@ import { render } from '@testing-library/react';
 import { NotificationStatus } from 'src/layout/SigneeList/api';
 import { SIGNEE_STATUS, SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';
 
-jest.mock('src/features/language/Lang', () => ({ Lang: ({ id }: { id: string }) => id }));
+vi.mock('src/features/language/Lang', () => ({ Lang: ({ id }: { id: string }) => id }));
 
 describe('SigneeStateTag', () => {
   it('should display a tag with name "signed" when status is "signed"', () => {

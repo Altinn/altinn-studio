@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@studio/icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,7 +19,7 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioButton, StudioSelect } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioSelect } from '@studio/components';
 
 export interface TextResourceProps {
   description?: string;
@@ -132,7 +131,7 @@ export const TextResource = ({
       )}
       <span className={classes.textResource}>
         {textResource?.value ? (
-          <Paragraph className={classes.paragraph}>{textResource.value}</Paragraph>
+          <StudioParagraph className={classes.paragraph}>{textResource.value}</StudioParagraph>
         ) : (
           <span className={classes.placeholder}>{placeholder}</span>
         )}

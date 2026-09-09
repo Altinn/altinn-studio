@@ -96,6 +96,46 @@ class AgentAttachment(BaseModel):
         blocks = self.to_content_blocks()
         return blocks[0] if blocks else None
 
+    def to_anthropic_blocks(self) -> List[dict]:
+        """Convert to Anthropic Messages-API content blocks.
+
+        The Anthropic SDK uses a different shape than the OpenAI/LangChain
+        blocks returned by `to_content_blocks` — images use a `source`
+        sub-object, and PDFs go through a dedicated `document` block.
+        Without this routing the file would be silently ignored.
+
+        Returns a text-only fallback when no file data is available so
+        the model at least learns *that* an attachment was meant to be
+        there.
+        """
+        data = self._ensure_base64()
+
+        if data and self.mime_type.startswith("image/"):
+            return [{
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": self.mime_type,
+                    "data": data,
+                },
+            }]
+
+        if data and self.mime_type == "application/pdf":
+            return [{
+                "type": "document",
+                "source": {
+                    "type": "base64",
+                    "media_type": "application/pdf",
+                    "data": data,
+                },
+                "title": self.name,
+            }]
+
+        return [{
+            "type": "text",
+            "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable or unsupported format",
+        }]
+
 
 def get_session_dir(root: Path, session_id: str) -> Path:
     return root / session_id

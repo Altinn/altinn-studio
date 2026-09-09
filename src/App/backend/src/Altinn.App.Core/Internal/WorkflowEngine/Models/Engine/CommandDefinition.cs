@@ -26,6 +26,15 @@ internal sealed record CommandDefinition
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
+    /// The step's total wait allowance: the maximum cumulative time it may spend parked in the engine's
+    /// <c>Waiting</c> status across all deferrals, before the engine fails it. Not a poll interval — the
+    /// command picks the delay before each re-check, and this caps the sum of them. Null falls back to
+    /// the engine's own default (24h at the time of writing).
+    /// </summary>
+    [JsonPropertyName("waitBudget")]
+    public TimeSpan? WaitBudget { get; init; }
+
+    /// <summary>
     /// Command-specific data. The engine deserializes this into the type
     /// declared by the matching command handler.
     /// </summary>
@@ -35,20 +44,35 @@ internal sealed record CommandDefinition
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> with typed data serialized into <see cref="Data"/>.
     /// </summary>
-    public static CommandDefinition Create<TData>(string type, TData data, TimeSpan? maxExecutionTime = null)
+    public static CommandDefinition Create<TData>(
+        string type,
+        TData data,
+        TimeSpan? maxExecutionTime = null,
+        TimeSpan? waitBudget = null
+    )
         where TData : class =>
         new()
         {
             Type = type,
             MaxExecutionTime = maxExecutionTime,
+            WaitBudget = waitBudget,
             Data = JsonSerializer.SerializeToElement(data, _serializerOptions),
         };
 
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> without data.
     /// </summary>
-    public static CommandDefinition Create(string type, TimeSpan? maxExecutionTime = null) =>
-        new() { Type = type, MaxExecutionTime = maxExecutionTime };
+    public static CommandDefinition Create(
+        string type,
+        TimeSpan? maxExecutionTime = null,
+        TimeSpan? waitBudget = null
+    ) =>
+        new()
+        {
+            Type = type,
+            MaxExecutionTime = maxExecutionTime,
+            WaitBudget = waitBudget,
+        };
 
     /// <inheritdoc/>
     public override string ToString() => Type;

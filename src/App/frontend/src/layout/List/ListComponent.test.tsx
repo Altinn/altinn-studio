@@ -1,12 +1,12 @@
 import React from 'react';
 
+import * as useDeviceWidths from '@app/form-component';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import * as useDeviceWidths from 'src/hooks/useDeviceWidths';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { doPatchMultipleFormData } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -129,8 +129,8 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
 
 describe('ListComponent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
+    vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('should render rows that is sent in but not rows that is not sent in', async () => {
@@ -147,7 +147,7 @@ describe('ListComponent', () => {
   });
 
   it('should save all field values in dataModelBindings atomically', async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const user = userEvent.setup({ delay: null });
     const { formDataMethods, mutations } = await render();
 
@@ -186,10 +186,10 @@ describe('ListComponent', () => {
 
     // Wait until the debounce timeout has definitely passed, then expect the form data to be saved. It should only
     // be saved once (even though we changed the value twice) because the debouncing happens globally.
-    act(() => jest.advanceTimersByTime(2000));
+    act(() => vi.advanceTimersByTime(2000));
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-    const mockedArgs = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock.calls[0] as unknown as Parameters<
+    const mockedArgs = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0] as unknown as Parameters<
       typeof doPatchMultipleFormData
     >;
     const patch: JsonPatch = mockedArgs[1].patches[0].patch;
@@ -201,8 +201,8 @@ describe('ListComponent', () => {
   });
 
   it('should save all field values when in mobile', async () => {
-    jest.useFakeTimers();
-    jest.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+    vi.useFakeTimers();
+    vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
 
     const user = userEvent.setup({ delay: null });
     const { formDataMethods } = await render({ component: { tableHeadersMobile: ['Name', 'FlagLink'] } });
@@ -265,7 +265,7 @@ describe('ListComponent', () => {
     });
 
     it('should not render controls in mobile view when no dataModelBindings exist', async () => {
-      jest.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+      vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
 
       await render({
         component: {
@@ -294,3 +294,4 @@ describe('ListComponent', () => {
     });
   });
 });
+import type { Mock } from 'vitest';

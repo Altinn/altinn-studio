@@ -15,7 +15,6 @@ Content-Type: application/json; charset=utf-8
       "orgId": "test-user",
       "language": null
     },
-    "lockToken": "e2e-lock-token-abc123",
     "org": "ttd",
     "app": "e2e-tests",
     "instanceOwnerPartyId": 50001,
@@ -32,6 +31,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-1",
               "payload": "step-1-payload"
@@ -45,6 +45,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-2",
               "payload": "step-2-payload"
@@ -59,7 +60,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     }
   ]
 }
@@ -97,10 +99,17 @@ Workflow-Id: Guid_3
     "orgId": "test-user",
     "language": null
   },
-  "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
-  "state": "initial-workflow-state"
+  "mailbox": null,
+  "stepId": "Guid_4",
+  "executionReferenceTime": "{Scrubbed}",
+  "state": "initial-workflow-state",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
+  "deferCount": 0,
+  "firstDeferredAt": null,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -130,10 +139,17 @@ Workflow-Id: Guid_3
     "orgId": "test-user",
     "language": null
   },
-  "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
-  "state": "step-1-result"
+  "mailbox": null,
+  "stepId": "Guid_5",
+  "executionReferenceTime": "{Scrubbed}",
+  "state": "step-1-result",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
+  "deferCount": 0,
+  "firstDeferredAt": null,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -180,6 +196,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-1-result"
     },
     {
@@ -192,6 +209,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-2-result"
     }
   ]

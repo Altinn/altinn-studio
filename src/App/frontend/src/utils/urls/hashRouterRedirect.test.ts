@@ -95,7 +95,7 @@ function createMockLocation(hash: string, search: string = '') {
   return {
     hash,
     search,
-    replace: jest.fn(),
+    replace: vi.fn(),
   };
 }
 

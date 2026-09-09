@@ -1,6 +1,6 @@
 import type { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
-import type { GridSize } from '@studio/components-legacy';
+import type { GridSize } from '@studio/components';
 
 export const findEffectiveGridSize = (
   selectedViewSizes: GridSizes,
@@ -20,15 +20,6 @@ export const findEffectiveGridSize = (
       );
     case ViewSize.Lg:
       return (
-        selectedViewSizes[ViewSize.Lg] ||
-        selectedViewSizes[ViewSize.Md] ||
-        selectedViewSizes[ViewSize.Sm] ||
-        selectedViewSizes[ViewSize.Xs] ||
-        12
-      );
-    case ViewSize.Xl:
-      return (
-        selectedViewSizes[ViewSize.Xl] ||
         selectedViewSizes[ViewSize.Lg] ||
         selectedViewSizes[ViewSize.Md] ||
         selectedViewSizes[ViewSize.Sm] ||

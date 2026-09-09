@@ -180,7 +180,7 @@ public class SigningProcessTaskTests
 
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         _pdfServiceMock
-            .Setup(x => x.GeneratePdf(instance, "Task_1", false, null, CancellationToken.None))
+            .Setup(x => x.GeneratePdf(dataMutator.Object, "Task_1", false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
         dataMutator
             .Setup(x =>
@@ -239,7 +239,7 @@ public class SigningProcessTaskTests
 
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         _pdfServiceMock
-            .Setup(x => x.GeneratePdf(instance, "Task_1", false, null, CancellationToken.None))
+            .Setup(x => x.GeneratePdf(dataMutator.Object, "Task_1", false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
         dataMutator
             .Setup(x =>

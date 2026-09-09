@@ -48,6 +48,8 @@ studioctl app run
 ```
 
 `studioctl auth login` opens Designer for Ansattporten login and stores a Designer API key locally.
+`studioctl app clone` also accepts Studio repository URLs, with or without the `.git` extension, and
+selects the environment from the URL (for example `https://dev.altinn.studio/repos/<org>/<repo>.git`).
 For agents and automations, pass an existing Studio/Designer API key on standard input:
 
 ```sh
@@ -62,7 +64,7 @@ studioctl auth login --env dev --with-token < token.txt
 
 - `studioctl auth login`: login with Ansattporten or `--with-token` for `prod`, `dev`, `staging`, or `local`
 - `studioctl apps search`: search app repositories in Altinn Studio
-- `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
+- `studioctl app clone`: clone `org/repo` or a Studio repository URL from the selected or inferred environment
 - `studioctl app run`: run app locally
 - `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
 - `studioctl env up`: start localtest
@@ -114,7 +116,7 @@ the Dockerfiles in your working tree instead of pulling release images. It confi
 with a `Building and starting localtest environment (dev mode)...` message, and the first
 run is slower because the images are built locally.
 
-Requirements and behaviour:
+Requirements and behavior:
 
 - The current directory must be within a Studio repo checkout. studioctl detects the repo
   root and expects `src/Runtime/localtest/Dockerfile` to exist.

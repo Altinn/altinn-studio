@@ -9,6 +9,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
+import { textRowsPerPage } from './constants';
 
 const textKey1: string = 'a';
 
@@ -150,5 +151,35 @@ describe('TextList', () => {
 
     await user.keyboard('2{TAB}');
     expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'a2' });
+  });
+
+  describe('pagination', () => {
+    const manyResourceRows: TextTableRow[] = Array.from(
+      { length: textRowsPerPage * 2 },
+      (_, index) => ({
+        textKey: `key-${index}`,
+        translations: [{ lang: 'nb', translation: `value-${index}` }],
+      }),
+    );
+
+    it('renders one page of rows at a time and moves to the page the user selects', async () => {
+      const user = userEvent.setup();
+      renderTextList({ resourceRows: manyResourceRows, selectedLanguages: ['nb'] });
+
+      expect(screen.getAllByRole('row')).toHaveLength(textRowsPerPage + 1);
+      expect(screen.getByText('key-0')).toBeInTheDocument();
+      expect(screen.queryByText(`key-${textRowsPerPage}`)).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: `${textMock('general.page')} 2` }));
+
+      expect(screen.getByText(`key-${textRowsPerPage}`)).toBeInTheDocument();
+      expect(screen.queryByText('key-0')).not.toBeInTheDocument();
+    });
+
+    it('does not render pagination when all rows fit on one page', () => {
+      renderTextList();
+
+      expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument();
+    });
   });
 });

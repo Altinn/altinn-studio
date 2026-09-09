@@ -22,7 +22,7 @@ public interface IReleaseService
     /// <summary>
     /// Gets releases based on a query
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="query">ReleaseQueryModel</param>
     /// <returns>SearchResults of type ReleaseEntity</returns>

@@ -1,4 +1,4 @@
-import { Fieldset } from '@digdir/designsystemet-react';
+import { StudioFieldset } from '@studio/components';
 import classes from './ButtonComponent.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { EditSettings } from '../../componentConfig';
@@ -10,7 +10,11 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const { t } = useTranslation();
   return (
-    <Fieldset className={classes.root} legend={t('ux_editor.button_component.settings')} hideLegend>
+    <StudioFieldset
+      className={classes.root}
+      legend={t('ux_editor.button_component.settings')}
+      hideLegend
+    >
       {component.type === ComponentTypeV3.Button && (
         <EditTextResourceBinding
           component={component}
@@ -27,6 +31,6 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
           textResourceBindingKeys={['next', 'back']}
         />
       )}
-    </Fieldset>
+    </StudioFieldset>
   );
 };

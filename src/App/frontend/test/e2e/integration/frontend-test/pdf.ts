@@ -376,7 +376,7 @@ describe('PDF', () => {
             layout: [
               {
                 id: 'title',
-                type: 'Header',
+                type: 'Heading',
                 textResourceBindings: { title: 'This is a custom PDF' },
                 size: 'L',
               },

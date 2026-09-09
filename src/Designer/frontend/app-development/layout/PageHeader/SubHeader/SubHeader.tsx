@@ -5,7 +5,7 @@ import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsPageButton } from './SettingsPageButton';
 import { RepositoryType } from 'app-shared/types/global';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { StudioButton } from '@studio/components';

@@ -4,25 +4,11 @@
   gap: 2rem;
 }
 
-.fieldSet {
+/* .fieldSet {
   border-top: var(--studio-legacy-border-divider);
-  padding-top: var(--fds-spacing-8);
-  margin-top: var(--fds-spacing-4);
-}
-
-.fieldSet > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.fieldSet > div + div {
-  margin-top: var(--fds-spacing-4);
-}
-
-.fieldSetItem {
+  padding-top: var(--ds-size-8);
   margin-top: var(--ds-size-4);
-}
+} */
 
 .switch {
   width: fit-content;

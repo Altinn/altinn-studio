@@ -122,9 +122,7 @@ describe('FormComponentConfig', () => {
     });
     await user.click(screen.getByText(textMock('ux_editor.component_properties.sortOrder')));
     expect(
-      screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.sortOrder'),
-      }),
+      screen.getByLabelText(textMock('ux_editor.component_properties.sortOrder')),
     ).toBeInTheDocument();
   });
 
@@ -181,8 +179,8 @@ describe('FormComponentConfig', () => {
     });
     expect(button).toBeInTheDocument();
     await user.click(button);
-    const timeStampSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.timeStamp'),
+    const timeStampSwitch = screen.getByRole('switch', {
+      name: textMock('ux_editor.component_properties.timeStamp_v4'),
     });
     await user.click(timeStampSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(

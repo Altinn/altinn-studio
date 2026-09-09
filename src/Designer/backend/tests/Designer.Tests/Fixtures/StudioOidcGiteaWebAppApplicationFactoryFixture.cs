@@ -16,6 +16,7 @@ public class StudioOidcGiteaWebAppApplicationFactoryFixture<TEntryPoint> : WebAp
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        TestWebHostDefaults.Configure(builder);
         builder.UseUrls(DesignerUrl);
         builder.ConfigureServices(services =>
         {

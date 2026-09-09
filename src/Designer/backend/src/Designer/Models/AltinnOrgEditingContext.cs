@@ -1,3 +1,4 @@
+using System;
 using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models;
@@ -5,6 +6,8 @@ namespace Altinn.Studio.Designer.Models;
 public record AltinnOrgEditingContext : AltinnOrgContext
 {
     public string Developer { get; }
+
+    public bool IsPersonalProfile => string.Equals(Developer, Org, StringComparison.OrdinalIgnoreCase);
 
     private AltinnOrgEditingContext(string org, string developer)
         : base(org)

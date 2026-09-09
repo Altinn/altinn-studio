@@ -44,10 +44,10 @@ public class GeneralSettings
     internal bool IsTest { get; set; }
 
     /// <summary>
-    /// The externally accesible base url for the app with trailing /
+    /// The externally accessible base url for the app with trailing /
     /// </summary>
     /// <remarks>
-    /// This setting offers the following replacemnts
+    /// This setting offers the following replacements
     /// <br />
     /// {hostName}: GeneralSettings::Hostname<br />
     /// {org}: Org from applicationmetadata.json<br />

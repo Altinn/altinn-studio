@@ -6,8 +6,8 @@ const appFrontend = new AppFrontend();
 describe('Prefill', () => {
   it('Check Prefill from register and readonly input', () => {
     const userFullName =
-      Cypress.env('type') === 'localtest'
-        ? Cypress.env('defaultFullName')
+      Cypress.expose('type') === 'localtest'
+        ? Cypress.expose('defaultFullName')
         : Tenor.users.saligBlomsterplante.reverseName.toUpperCase();
 
     cy.goto('changename');

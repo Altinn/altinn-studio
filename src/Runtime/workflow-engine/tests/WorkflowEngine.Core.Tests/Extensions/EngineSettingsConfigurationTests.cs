@@ -75,6 +75,57 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
+
+        // Mailboxes
+        Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
+        Assert.Equal(100, settings.MaxOpenMailboxesPerCollection);
+        Assert.Equal(256 * 1024, settings.MaxMailboxPayloadSize);
+        Assert.Equal(100, settings.MaxMailboxLogLength);
+        Assert.Equal(TimeSpan.FromMinutes(5), settings.MailboxSweepInterval);
+    }
+
+    [Fact]
+    public void MailboxSettings_BindFromJson_AndZeroesGetDefaulted()
+    {
+        var configured = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "maxMailboxTimeout": "3.00:00:00",
+                "maxOpenMailboxesPerCollection": 7,
+                "maxMailboxPayloadSize": 4096,
+                "maxMailboxLogLength": 5,
+                "mailboxSweepInterval": "00:02:00"
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(3), configured.MaxMailboxTimeout);
+        Assert.Equal(7, configured.MaxOpenMailboxesPerCollection);
+        Assert.Equal(4096, configured.MaxMailboxPayloadSize);
+        Assert.Equal(5, configured.MaxMailboxLogLength);
+        Assert.Equal(TimeSpan.FromMinutes(2), configured.MailboxSweepInterval);
+
+        var zeroed = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "maxMailboxTimeout": "00:00:00",
+                "maxOpenMailboxesPerCollection": 0,
+                "maxMailboxPayloadSize": 0,
+                "maxMailboxLogLength": 0,
+                "mailboxSweepInterval": "00:00:00"
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(21), zeroed.MaxMailboxTimeout);
+        Assert.Equal(100, zeroed.MaxOpenMailboxesPerCollection);
+        Assert.Equal(256 * 1024, zeroed.MaxMailboxPayloadSize);
+        Assert.Equal(100, zeroed.MaxMailboxLogLength);
+        Assert.Equal(TimeSpan.FromMinutes(5), zeroed.MailboxSweepInterval);
     }
 
     [Fact]
@@ -402,6 +453,189 @@ public class EngineSettingsConfigurationTests
         );
 
         Assert.Contains("Interval", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EmptyConfig_ThrottlingDefaultsApplied()
+    {
+        var settings = Resolve("""{ "EngineSettings": {} }""");
+
+        Assert.False(settings.Throttling.Enabled);
+        Assert.Equal(50, settings.Throttling.MinRequeuedWorkflows);
+        Assert.Equal(0.5, settings.Throttling.MinRequeuedRatio);
+        Assert.Equal(TimeSpan.FromSeconds(30), settings.Throttling.SweepInterval);
+        Assert.Equal(3, settings.Throttling.CanaryCount);
+        Assert.Equal(TimeSpan.FromMinutes(10), settings.Throttling.InitialWindow);
+        Assert.Equal(TimeSpan.FromHours(1), settings.Throttling.MaxWindow);
+    }
+
+    [Fact]
+    public void ThrottlingConfig_ProvidedValuesHonored_RestDefaulted()
+    {
+        var settings = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "Throttling": {
+                  "Enabled": true,
+                  "MinRequeuedWorkflows": 100,
+                  "MinRequeuedRatio": 0.25,
+                  "SweepInterval": "00:01:00",
+                  "CanaryCount": 5,
+                  "InitialWindow": "00:05:00",
+                  "MaxWindow": "02:00:00"
+                }
+              }
+            }
+            """
+        );
+
+        Assert.True(settings.Throttling.Enabled);
+        Assert.Equal(100, settings.Throttling.MinRequeuedWorkflows);
+        Assert.Equal(0.25, settings.Throttling.MinRequeuedRatio);
+        Assert.Equal(TimeSpan.FromMinutes(1), settings.Throttling.SweepInterval);
+        Assert.Equal(5, settings.Throttling.CanaryCount);
+        Assert.Equal(TimeSpan.FromMinutes(5), settings.Throttling.InitialWindow);
+        Assert.Equal(TimeSpan.FromHours(2), settings.Throttling.MaxWindow);
+    }
+
+    [Fact]
+    public void ThrottlingZeroValues_GetDefaulted_NotRejected()
+    {
+        var settings = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "Throttling": {
+                  "MinRequeuedWorkflows": 0,
+                  "MinRequeuedRatio": 0,
+                  "SweepInterval": "00:00:00",
+                  "CanaryCount": 0,
+                  "InitialWindow": "00:00:00",
+                  "MaxWindow": "00:00:00"
+                }
+              }
+            }
+            """
+        );
+
+        Assert.Equal(50, settings.Throttling.MinRequeuedWorkflows);
+        Assert.Equal(0.5, settings.Throttling.MinRequeuedRatio);
+        Assert.Equal(TimeSpan.FromSeconds(30), settings.Throttling.SweepInterval);
+        Assert.Equal(3, settings.Throttling.CanaryCount);
+        Assert.Equal(TimeSpan.FromMinutes(10), settings.Throttling.InitialWindow);
+        Assert.Equal(TimeSpan.FromHours(1), settings.Throttling.MaxWindow);
+    }
+
+    [Fact]
+    public void Validation_RejectsThrottlingRatioAboveOne_ThroughFullPipeline()
+    {
+        // PostConfigure only patches non-positive values, so an out-of-range ratio must be
+        // rejected at boot even when the full defaults pipeline runs.
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            Resolve("""{ "EngineSettings": { "Throttling": { "MinRequeuedRatio": 1.5 } } }""")
+        );
+
+        Assert.Contains("MinRequeuedRatio", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsThrottlingInitialWindowAboveMaxWindow_ThroughFullPipeline()
+    {
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            Resolve(
+                """
+                {
+                  "EngineSettings": {
+                    "Throttling": { "InitialWindow": "02:00:00", "MaxWindow": "01:00:00" }
+                  }
+                }
+                """
+            )
+        );
+
+        Assert.Contains("InitialWindow", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(0.0, "MinRequeuedRatio")]
+    [InlineData(-0.5, "MinRequeuedRatio")]
+    [InlineData(1.01, "MinRequeuedRatio")]
+    public void Validation_RejectsOutOfRangeThrottlingRatio_WhenDefaultsBypassed(double ratio, string expectedInMessage)
+    {
+        var ex = ResolveThrottlingValidationError(opts => opts.Throttling.MinRequeuedRatio = ratio);
+
+        Assert.Contains(expectedInMessage, ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsZeroThrottlingCanaryCount_WhenDefaultsBypassed()
+    {
+        var ex = ResolveThrottlingValidationError(opts => opts.Throttling.CanaryCount = 0);
+
+        Assert.Contains("CanaryCount", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsNonPositiveThrottlingSweepInterval_WhenDefaultsBypassed()
+    {
+        var ex = ResolveThrottlingValidationError(opts => opts.Throttling.SweepInterval = TimeSpan.Zero);
+
+        Assert.Contains("SweepInterval", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsNonPositiveThrottlingInitialWindow_WhenDefaultsBypassed()
+    {
+        var ex = ResolveThrottlingValidationError(opts => opts.Throttling.InitialWindow = TimeSpan.Zero);
+
+        Assert.Contains("InitialWindow", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsThrottlingInitialWindowAboveMaxWindow_WhenDefaultsBypassed()
+    {
+        var ex = ResolveThrottlingValidationError(opts =>
+        {
+            opts.Throttling.InitialWindow = TimeSpan.FromHours(2);
+            opts.Throttling.MaxWindow = TimeSpan.FromHours(1);
+        });
+
+        Assert.Contains("InitialWindow", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("MaxWindow", ex.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Runs validation without the defaults pipeline, with all non-throttling settings valid and
+    /// throttling settings valid except for the caller's mutation, and returns the boot rejection.
+    /// </summary>
+    private static OptionsValidationException ResolveThrottlingValidationError(Action<EngineSettings> mutate)
+    {
+        var services = new ServiceCollection();
+        services
+            .AddOptions<EngineSettings>()
+            .Configure(opts =>
+            {
+                opts.DefaultStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.MaxStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
+                opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
+                opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.BatchSize = 100;
+                opts.Retention.Interval = TimeSpan.FromMinutes(1);
+                opts.Throttling.MinRequeuedWorkflows = 50;
+                opts.Throttling.MinRequeuedRatio = 0.5;
+                opts.Throttling.SweepInterval = TimeSpan.FromSeconds(30);
+                opts.Throttling.CanaryCount = 3;
+                opts.Throttling.InitialWindow = TimeSpan.FromMinutes(10);
+                opts.Throttling.MaxWindow = TimeSpan.FromHours(1);
+                mutate(opts);
+            })
+            .ValidateEngineSettings();
+
+        using var sp = services.BuildServiceProvider();
+        return Assert.Throws<OptionsValidationException>(() => sp.GetRequiredService<IOptions<EngineSettings>>().Value);
     }
 
     [Fact]

@@ -375,7 +375,7 @@ internal sealed class EFormidlingProcessRewriter
                         $"Gateway '{gatewayId}' evaluates expressions and previously inferred its data model "
                             + $"from task '{sourceTaskId}', which the inserted eFormidling service task now "
                             + $"precedes. Set <altinn:connectedDataTypeId>{dataTypeId}</altinn:connectedDataTypeId> "
-                            + "on the gateway to preserve that behaviour - adjust it if the gateway expressions "
+                            + "on the gateway to preserve that behavior - adjust it if the gateway expressions "
                             + "target a different data model."
                     );
                 }

@@ -232,7 +232,6 @@
       {
         "id": "DateAndFormatDate-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "validateOnNext": {
           "page": "current",

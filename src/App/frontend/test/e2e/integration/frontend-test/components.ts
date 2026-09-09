@@ -1,9 +1,10 @@
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 import { changeToLang } from 'test/e2e/support/lang';
 
 import { isNumberFormat } from 'src/layout/Input/number-format-helpers';
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -178,7 +179,7 @@ describe('UI Components', () => {
         shouldExist: appFrontend.changeOfName.uploadedTable,
       },
       {
-        type: 'FileUploadWithTag' as const,
+        type: 'FileUpload' as const,
         uploader: appFrontend.changeOfName.uploadWithTag.uploadZone,
         shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
       },
@@ -207,7 +208,7 @@ describe('UI Components', () => {
 
   it('minNumberOfAttachments should validate like required', () => {
     cy.interceptLayout('Task_2', (component) => {
-      if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
+      if (component.type === 'FileUpload') {
         component.minNumberOfAttachments = 1;
       }
     });
@@ -315,7 +316,6 @@ describe('UI Components', () => {
         'Datepicker',
         'Dropdown',
         'FileUpload',
-        'FileUploadWithTag',
         'Input',
         'RadioButtons',
         'TextArea',
@@ -423,7 +423,7 @@ describe('UI Components', () => {
 
     cy.findByRole('radio', { name: /Gårdsbruk/ }).check();
     //makes sure that textresources from active radiobutton are displayed in the alert dialog
-    cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
+    cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
@@ -445,16 +445,17 @@ describe('UI Components', () => {
 
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
-    cy.get(appFrontend.deleteWarningPopover).should(
+    cy.get(appFrontend.confirmPopover).should(
       'contain.text',
       'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?',
     );
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
+    cy.get(appFrontend.confirmPopover).should('not.exist');
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
-    cy.get(appFrontend.deleteWarningPopover).should(
+    cy.get(appFrontend.confirmPopover).should(
       'contain.text',
       'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?',
     );
@@ -487,7 +488,7 @@ describe('UI Components', () => {
     cy.findByRole('option', {
       name: /Grønn, Press to remove/i,
     }).click('right', { force: true });
-    cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
+    cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('option', {
       name: /Grønn, Press to remove/i,
@@ -496,7 +497,7 @@ describe('UI Components', () => {
     cy.findByRole('option', {
       name: /Gul, Press to remove/i,
     }).click('right', { force: true });
-    cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
+    cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
     cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.findByRole('option', {
       name: /Gul, Press to remove/i,
@@ -549,9 +550,10 @@ describe('UI Components', () => {
     cy.goto('changename');
     cy.gotoNavPage('grid');
     // dialog pops up when unchecking a checkbox
-    cy.findAllByRole('checkbox', { name: /Ja/ }).first().dblclick();
+    cy.findAllByRole('checkbox', { name: /Ja/ }).first().click();
+    cy.findAllByRole('checkbox', { name: /Ja/ }).first().click();
     //Make sure that the alert popover for only one checkbox is displayed, if several dialogs are displayed, the test will fail
-    cy.get(appFrontend.deleteWarningPopover);
+    cy.get(appFrontend.confirmPopover);
   });
 
   it('should render components as summary', () => {
@@ -613,13 +615,19 @@ describe('UI Components', () => {
       });
 
       cy.goto('changename');
-      cy.get('#form-content-newFirstName').contains(`Du har ${maxLength} tegn igjen`);
+      cy.get('#form-content-newFirstName').find(`[data-label="Du har ${maxLength} tegn igjen"]`).should('be.visible');
       cy.get(appFrontend.changeOfName.newFirstName).type('Per');
-      cy.get('#form-content-newFirstName').contains(`Du har ${maxLength - 3} tegn igjen`);
+      cy.get('#form-content-newFirstName')
+        .find(`[data-label="Du har ${maxLength - 3} tegn igjen"]`)
+        .should('be.visible');
       cy.get(appFrontend.changeOfName.newFirstName).type('r');
-      cy.get('#form-content-newFirstName').contains(`Du har ${maxLength - 4} tegn igjen`);
+      cy.get('#form-content-newFirstName')
+        .find(`[data-label="Du har ${maxLength - 4} tegn igjen"]`)
+        .should('be.visible');
       cy.get(appFrontend.changeOfName.newFirstName).type('rrr');
-      cy.get('#form-content-newFirstName').contains(`Du har overskredet maks antall tegn med ${7 - maxLength}`);
+      cy.get('#form-content-newFirstName')
+        .find(`[data-label="Du har overskredet maks antall tegn med ${7 - maxLength}"]`)
+        .should('be.visible');
 
       // Display data model validation below component if maxLength in layout and datamodel is different
       if (maxLength !== 4) {
@@ -627,6 +635,12 @@ describe('UI Components', () => {
       } else {
         cy.get('#form-content-newFirstName').should('not.contain', 'Bruk 4 eller færre tegn');
       }
+      cy.get(appFrontend.errorReport).should('not.exist');
+      cy.get(appFrontend.changeOfName.newFirstName).type('a');
+      cy.get(appFrontend.changeOfName.confirmChangeName)
+        .findByRole('checkbox', { name: /Ja[a-z, ]*/ })
+        .check();
+      cy.findByRole('button', { name: /Neste/ }).click();
       cy.get(appFrontend.errorReport).should('be.visible');
       cy.get(appFrontend.errorReport).should('contain.text', 'Bruk 4 eller færre tegn');
     });

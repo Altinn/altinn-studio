@@ -44,7 +44,7 @@
     "tmp",
     "./testing/cypress/**",
     "./testing/playwright/**",
-    "dist",
+    "**/dist",
     "**/prettier.config.js",
     "./scripts/**"
   ]

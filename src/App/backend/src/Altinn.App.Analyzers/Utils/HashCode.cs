@@ -323,7 +323,7 @@ internal struct HashCode
         // ToHashCode is called we can execute #2 correctly.
 
         // We need to initialize the xxHash32 state (_v1 to _v4) lazily (see
-        // #0) nd the last place that can be done if you look at the
+        // #0) and the last place that can be done if you look at the
         // original code is just before the first block of 16 bytes is mixed
         // in. The xxHash32 state is never used for streams containing fewer
         // than 16 bytes.

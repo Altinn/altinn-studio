@@ -589,7 +589,7 @@ namespace LocalTest.Controllers
                 cookieOptions
             );
 
-            // Add cookie about users prefered party (for creating new instances)
+            // Add cookie about users preferred party (for creating new instances)
             CookieBuilder partyCookieBuilder = new RequestPathBaseCookieBuilder
             {
                 Name = "AltinnPartyId",

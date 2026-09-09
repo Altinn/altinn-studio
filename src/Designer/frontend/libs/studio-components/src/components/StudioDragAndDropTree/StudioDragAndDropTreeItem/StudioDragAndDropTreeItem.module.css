@@ -1,11 +1,7 @@
 .item.hasHoveredItem {
-  background-color: color-mix(
-    in srgb,
-    var(--fds-semantic-surface-action-first-no_fill-hover),
-    transparent
-  );
+  background-color: color-mix(in srgb, var(--ds-color-accent-surface-hover), transparent);
 }
 
 .labelButtonWrapper.hasHoveredItem {
-  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+  background-color: var(--ds-color-accent-surface-hover);
 }

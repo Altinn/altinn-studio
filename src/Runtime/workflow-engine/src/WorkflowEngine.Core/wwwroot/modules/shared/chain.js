@@ -4,8 +4,8 @@
  * place to the full pipeline card. */
 
 import { state, workflowData, parseTransition } from '../core/state.js';
-import { esc, escJsArg, formatElapsed } from '../core/helpers.js';
-import { buildCardHTML, setCardFilterData } from './cards.js';
+import { esc, escAttr, escJsArg, formatElapsed } from '../core/helpers.js';
+import { buildCardHTML, revealCard, revealFirstVisible, setCardFilterData } from './cards.js';
 
 /** @typedef {import('../core/state.js').Workflow} Workflow */
 /** @typedef {{ from: string, to: string, kind: string }} ChainEdge */
@@ -33,7 +33,7 @@ const freshest = (/** @type {Workflow} */ wf) => state.previousWorkflows[wf.data
 const durationHTML = (wf) => {
     if (!TERMINAL_STATUSES.has(wf.status)) {
         return state.workflowTimers[wf.databaseId]
-            ? `<span class="chain-time" data-timer="${esc(wf.databaseId)}"></span>`
+            ? `<span class="chain-time" data-timer="${escAttr(wf.databaseId)}"></span>`
             : '';
     }
     const start = wf.executionStartedAt || wf.createdAt;
@@ -56,9 +56,9 @@ const rowInnerHTML = (wf) => {
     const steps = wf.steps
         .map(
             (s) =>
-                `<span class="compact-dot rel-dot ${esc(s.status)}"` +
+                `<span class="compact-dot rel-dot ${escAttr(s.status)}"` +
                 ` onclick="event.stopPropagation();openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(s.idempotencyKey)}','${escJsArg(s.commandDetail)}')"` +
-                ` title="${esc(s.commandDetail)} (${esc(s.status)})"></span>`,
+                ` title="${escAttr(s.commandDetail)} (${escAttr(s.status)})"></span>`,
         )
         .join('');
     const badge =
@@ -66,11 +66,11 @@ const rowInnerHTML = (wf) => {
             ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
             : '';
     return (
-        `<span class="chain-name" title="${esc(wf.operationId)}">${esc(name)}</span>${badge}` +
+        `<span class="chain-name" title="${escAttr(wf.operationId)}">${esc(name)}</span>${badge}` +
         `<span class="chain-steps">${steps}</span>` +
         `<span class="header-spacer"></span>` +
         durationHTML(wf) +
-        `<span class="status-pill ${esc(wf.status)}" style="animation:none">${esc(wf.status)}</span>`
+        `<span class="status-pill ${escAttr(wf.status)}" style="animation:none">${esc(wf.status)}</span>`
     );
 };
 
@@ -79,7 +79,7 @@ const rowInnerHTML = (wf) => {
  * @param {Workflow} wf @returns {string}
  */
 const expandedInnerHTML = (wf) =>
-    `<div class="workflow-card${wf.isHead === false ? ' side-chain' : ''}" data-wfkey="${esc(wf.databaseId)}">${buildCardHTML(wf, true)}</div>`;
+    `<div class="workflow-card${wf.isHead === false ? ' side-chain' : ''}" data-wfkey="${escAttr(wf.databaseId)}">${buildCardHTML(wf, true)}</div>`;
 
 /**
  * A full chain node (row or expanded card), wrapped for spine layout and click handling.
@@ -93,12 +93,20 @@ const nodeHTML = (wf, isSide, isRoot) => {
         (expanded ? ' chain-expanded' : '');
     const hint = expanded ? 'click to collapse' : 'click to expand';
     return (
-        `<div class="${cls}" data-chainwf="${esc(wf.databaseId)}"` +
-        ` onclick="chainRowToggle(event,'${escJsArg(wf.databaseId)}')" title="${esc(wf.operationId)} — ${hint}">` +
+        `<div class="${cls}" data-chainwf="${escAttr(wf.databaseId)}"` +
+        ` onclick="chainRowToggle(event,'${escJsArg(wf.databaseId)}')" title="${escAttr(wf.operationId)} — ${hint}">` +
         (expanded ? expandedInnerHTML(wf) : rowInnerHTML(wf)) +
         `</div>`
     );
 };
+
+/**
+ * Scroll to and flash a workflow's collapsed chain row, falling back to `revealCard`.
+ * @param {string} wfId
+ * @returns {boolean} true when something was revealed
+ */
+export const revealChainRow = (wfId) =>
+    revealFirstVisible(`[data-chainwf="${CSS.escape(wfId)}"]`) || revealCard(wfId);
 
 /** Gaps between transitions shorter than this are noise, not story. */
 const GAP_THRESHOLD_MS = 1000;

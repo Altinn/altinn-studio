@@ -31,7 +31,7 @@ def init_langfuse():
         from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
 
         # Give Langfuse its own dedicated TracerProvider so it is isolated from
-        # the global OTel provider that third-party libraries (fastmcp) share.
+        # the global OTel provider that third-party libraries share.
         langfuse_provider = _OtelTracerProvider()
 
         _client = Langfuse(
@@ -44,9 +44,9 @@ def init_langfuse():
         )
 
         # Reset the global OTel provider to a bare no-op (no exporters/processors).
-        # fastmcp's client_span() calls otel_get_tracer() against this global
-        # provider and will now get a no-op tracer, eliminating the duplicate
-        # 'tools/call <name>' child spans and orphan traces from health checks.
+        # Any third-party library that instruments via the global provider will
+        # now get a no-op tracer, eliminating duplicate child spans and orphan
+        # traces from health checks.
         _otel_trace.set_tracer_provider(_OtelTracerProvider())
 
         _initialized = True
@@ -176,7 +176,7 @@ def score_validation(
             kwargs["config_id"] = config_id
         if observation_id:
             kwargs["observation_id"] = observation_id
-        if comment:
+        if comment is not None:
             kwargs["comment"] = comment
         if score_id:
             kwargs["score_id"] = score_id
@@ -241,6 +241,20 @@ class _NoopSpan:
 
     def __exit__(self, *args):
         pass
+
+
+def delete_score(score_id: str) -> None:
+    """Remove a score by id. Used to clear user feedback on a trace."""
+    client = get_langfuse_client()
+    if not config.LANGFUSE_ENABLED:
+        return
+    if not client or not score_id:
+        return
+    try:
+        client.api.legacy.score_v1.delete(score_id)
+        log.debug("Langfuse score %s deleted", score_id)
+    except Exception as e:
+        log.warning("Failed to delete Langfuse score '%s': %s", score_id, e)
 
 
 def get_trace_developer(trace_id: str) -> str | None:

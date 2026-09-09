@@ -14,7 +14,7 @@ A correspondence resource is a resource configured specifically for use with the
 
 The service owner might want to use different resources for each environment, in order to make it easier to track costs or set different access rules depending on the environment.
 
-This ADR is written post-implementation, and aims to explain the different approaches that were considered and why the chosen alternative was preffered.
+This ADR is written post-implementation, and aims to explain the different approaches that were considered and why the chosen alternative was preferred.
 
 ## Decision drivers
 

@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 public enum CorrespondenceStatus
 {
     /// <summary>
-    /// Correspondence has been initialised.
+    /// Correspondence has been initialized.
     /// </summary>
     Initialized,
 

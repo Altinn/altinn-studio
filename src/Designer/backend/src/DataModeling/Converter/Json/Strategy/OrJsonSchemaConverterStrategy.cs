@@ -8,7 +8,7 @@ public class OrJsonSchemaConverterStrategy : IJsonSchemaConverterStrategy
     /// <inheritdoc />
     public IJsonSchemaAnalyzer GetAnalyzer()
     {
-        // Try to Analyse using GeneralJsonSchemaAnalyzer
+        // Try to Analyze using GeneralJsonSchemaAnalyzer
         return new GeneralJsonSchemaAnalyzer();
     }
 

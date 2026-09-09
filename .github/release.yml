@@ -30,7 +30,7 @@ changelog:
       exclude:
         labels:
           - kind/bug
-    - title: Data modelling 📈
+    - title: Data modeling 📈
       labels:
         - area/data-modeling
       exclude:

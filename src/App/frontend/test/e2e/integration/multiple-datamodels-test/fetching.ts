@@ -1,6 +1,6 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import type { IRawDataModelBinding } from '@app/layout-contract/generated/common.generated';
 
-import type { IRawDataModelBinding } from 'src/layout/common.generated';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 

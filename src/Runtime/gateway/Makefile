@@ -26,7 +26,7 @@ stop: ## Stop the runtime fixture/cluster
 	@cd test && go run ./cmd/tester stop
 
 test: ## Run unit tests
-	@echo "No unit tests yet"
+	@dotnet test tests/Altinn.Studio.Gateway.Api.Tests/Altinn.Studio.Gateway.Api.Tests.csproj --filter "Category!=Kubernetes"
 
 test-e2e: ## Run e2e tests (starts cluster if needed, keeps running)
 	@cd test && go run ./cmd/tester test

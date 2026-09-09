@@ -5,6 +5,7 @@ export type { UiSchemaNode, UiSchemaNodes } from './types';
 export type { FieldNode } from './types/FieldNode';
 export type { CombinationNode } from './types/CombinationNode';
 export type { ReferenceNode } from './types/ReferenceNode';
+export type { PrefillMapping } from './types/PrefillMapping';
 export * from './types';
 export {
   combinationIsNullable,
@@ -25,6 +26,7 @@ export {
 } from './lib/utils';
 export * from './lib/mutations/custom-properties';
 export * from './lib/mutations/ui-schema-reducers';
+export { mergePrefillConfig } from './lib/mappers/prefill';
 export { SchemaModel } from './lib/SchemaModel';
 export * from './lib/pointerUtils';
 export { validateTestUiSchema, testSchemaNodes } from '../test/validateTestUiSchema';

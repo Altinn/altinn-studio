@@ -5,3 +5,5 @@ export type {
   RemotePaginationProps,
   PaginationTexts,
 } from './StudioTableRemotePagination';
+export { StudioPagination } from './StudioPagination';
+export type { StudioPaginationProps } from './StudioPagination/StudioPagination';

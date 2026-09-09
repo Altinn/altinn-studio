@@ -431,7 +431,7 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
 /**
  * Checks if there are component with duplicated ids across all layouts in the layoutset.
  * @param layouts The layouts to check.
- * @returns dublicated layouts.
+ * @returns duplicated layouts.
  */
 export const findLayoutsContainingDuplicateComponents = (
   layouts: Record<string, IInternalLayout>,
@@ -483,7 +483,7 @@ export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
   ObjectUtils.flattenObjectValues(layout.order);
 
 /**
- * Gets all available componenent types to add for a given container
+ * Gets all available component types to add for a given container
  * @param layout
  * @param containerId
  * @returns
@@ -521,7 +521,7 @@ export const getAvailableChildComponentsForContainer = (
 };
 
 /**
- * Gets all default componenent types to add for a given container
+ * Gets all default component types to add for a given container
  * @param layout
  * @param containerId
  * @returns

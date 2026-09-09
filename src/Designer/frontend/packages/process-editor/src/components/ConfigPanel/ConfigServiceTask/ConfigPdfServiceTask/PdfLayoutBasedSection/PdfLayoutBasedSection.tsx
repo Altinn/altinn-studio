@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Combobox } from '@digdir/designsystemet-react';
-import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioCard,
+  StudioSuggestion,
+  StudioTextfield,
+  type StudioSuggestionItem,
+} from '@studio/components';
 import { PencilIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
@@ -23,7 +28,7 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
 
   const [newLayoutSetName, setNewLayoutSetName] = useState('');
   const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
-  const [selectedValue, setSelectedValue] = useState<string[]>([]);
+  const [selectedDataModelId, setSelectedDataModelId] = useState<string>('');
 
   if (currentLayoutSet) {
     return (
@@ -38,7 +43,9 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
     );
   }
 
-  const selectedDataModelId = selectedValue[0];
+  const handleSelectedChange = (item: StudioSuggestionItem | null): void => {
+    setSelectedDataModelId(item?.value ?? '');
+  };
 
   const handleCreateLayoutSet = (): void => {
     if (!newLayoutSetName || !selectedDataModelId || newLayoutSetNameError) return;
@@ -70,22 +77,20 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
         }
       />
 
-      <Combobox
+      <StudioSuggestion
+        multiple={false}
         label={t('process_editor.configuration_panel_pdf_select_data_model_label')}
-        value={selectedValue}
         description={t('process_editor.configuration_panel_pdf_select_data_model_description')}
-        size='small'
-        onValueChange={setSelectedValue}
+        emptyText={t('process_editor.configuration_panel_pdf_no_data_models')}
+        selected={selectedDataModelId || undefined}
+        onSelectedChange={handleSelectedChange}
       >
-        <Combobox.Empty>
-          {t('process_editor.configuration_panel_pdf_no_data_models')}
-        </Combobox.Empty>
         {allDataModelIds.map((option) => (
-          <Combobox.Option value={option} key={option}>
+          <StudioSuggestion.Option value={option} key={option} label={option}>
             {option}
-          </Combobox.Option>
+          </StudioSuggestion.Option>
         ))}
-      </Combobox>
+      </StudioSuggestion>
 
       <StudioButton
         onClick={handleCreateLayoutSet}

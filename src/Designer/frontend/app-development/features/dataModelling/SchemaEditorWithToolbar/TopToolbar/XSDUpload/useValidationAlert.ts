@@ -8,7 +8,7 @@ export const useValidationAlert = () => {
   return useCallback(
     (error: FileNameErrorResult): void => {
       if (error === FileNameErrorResult.NoRegExMatch) {
-        alert(t('app_data_modelling.upload_xsd_invalid_name_error'));
+        alert(t('app_data_modeling.upload_xsd_invalid_name_error'));
       }
     },
     [t],

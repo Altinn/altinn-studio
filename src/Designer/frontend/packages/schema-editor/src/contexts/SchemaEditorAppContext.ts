@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import type { SchemaModel } from '@altinn/schema-model';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 
 export interface SchemaEditorAppContextProps {
   schemaModel: SchemaModel;
@@ -9,6 +10,8 @@ export interface SchemaEditorAppContextProps {
   selectedUniquePointer?: string;
   setSelectedUniquePointer: (pointer?: string) => void;
   name: string;
+  prefillConfig: PrefillConfig;
+  savePrefillConfig: (prefillConfig: PrefillConfig) => void;
 }
 
 /**

@@ -2,11 +2,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -24,12 +26,35 @@ namespace Altinn.App.Api.Tests;
 /// Simulates the workflow engine by calling <see cref="WorkflowEngineCallbackController"/>
 /// directly per command while keeping an in-memory workflow store for polling and failure handling.
 /// </summary>
+/// <remarks>
+/// Time is compressed rather than simulated: a deferring step re-executes immediately with the
+/// requested delay added to a virtual elapsed wait, so a test of a long wait finishes in milliseconds.
+/// The consequence worth knowing is that a workflow never actually rests in
+/// <see cref="PersistentItemStatus.Waiting"/> here, so the early release of a parked
+/// <c>process/next</c> is not covered — that needs the integration suite and a real engine.
+/// </remarks>
 internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 {
+    /// <summary>The engine's own default when a step declares no wait budget.</summary>
+    private static readonly TimeSpan DefaultStepWaitBudget = TimeSpan.FromDays(1);
+
+    /// <summary>
+    /// Loop guard: with the wait compressed, a handler that defers without observing its wait clocks
+    /// would spin forever. Set well above what a day-long budget costs a handler backing off in
+    /// minutes, so only a genuinely unbounded wait trips it.
+    /// </summary>
+    private const int MaxDeferralsPerStep = 1000;
+
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<Guid, StoredWorkflow> _workflows = new();
     private readonly ConcurrentDictionary<string, Guid[]> _workflowsByIdempotencyKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, List<Guid>> _collectionHeadsByKey = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, MailboxResponse> _mailboxesByIdempotencyKey = new(
+        StringComparer.Ordinal
+    );
+    private readonly ConcurrentDictionary<string, MailboxDeliveryResponse> _deliveriesByKey = new(
+        StringComparer.Ordinal
+    );
     private readonly object _gate = new();
     private bool _isProcessing;
 
@@ -75,6 +100,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         foreach (WorkflowRequest workflow in request.Workflows)
         {
             Guid databaseId = Guid.NewGuid();
+            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             if (workflow.Ref is not null)
             {
                 refMap[workflow.Ref] = databaseId;
@@ -102,6 +128,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     DatabaseId = databaseId,
                     Ref = workflow.Ref,
                     IsHead = workflow.IsHead,
+                    StartAt = workflow.StartAt,
                     Namespace = ns,
                     CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
@@ -124,11 +151,14 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                                     CommandType = step.Command.Type,
                                     CommandData = step.Command.Data,
                                     RetryStrategy = step.RetryStrategy,
+                                    WaitBudget = step.Command.WaitBudget,
+                                    MaxExecutionTime = step.Command.MaxExecutionTime,
+                                    CreatedAt = createdAt,
                                 }
                         )
                         .ToList(),
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
+                    CreatedAt = createdAt,
+                    UpdatedAt = createdAt,
                 }
             );
         }
@@ -314,6 +344,119 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return abandoned;
     }
 
+    /// <summary>
+    /// Mints idempotently on <c>(namespace, idempotencyKey)</c>, as the engine does. The fake models the
+    /// address, not the rendezvous.
+    /// </summary>
+    public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
+    {
+        MailboxResponse mailbox = _mailboxesByIdempotencyKey.GetOrAdd(
+            CreateBatchKey(ns, request.IdempotencyKey),
+            _ =>
+            {
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                return new MailboxResponse
+                {
+                    Id = Guid.CreateVersion7(now),
+                    Namespace = ns,
+                    IdempotencyKey = request.IdempotencyKey,
+                    CollectionKey = request.CollectionKey,
+                    Timeout = request.Timeout,
+                    Deadline = now + request.Timeout,
+                    Status = MailboxStatus.Open,
+                    NextIdx = 0,
+                    NextSeq = 0,
+                    CreatedAt = now,
+                };
+            }
+        );
+
+        return Task.FromResult<MailboxMintResult>(new MailboxMintResult.Minted(mailbox));
+    }
+
+    /// <summary>
+    /// Terminal and idempotent as the engine is; <c>null</c> for an unknown id (the engine's <c>404</c>).
+    /// </summary>
+    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    {
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id != mailboxId || !string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                return Task.FromResult<MailboxResponse?>(mailbox);
+            }
+
+            MailboxResponse closed = mailbox with
+            {
+                Status = MailboxStatus.Disposed,
+                DisposedReason = MailboxDisposedReason.Request,
+                DisposedAt = DateTimeOffset.UtcNow,
+            };
+            _mailboxesByIdempotencyKey.TryUpdate(key, closed, mailbox);
+            return Task.FromResult<MailboxResponse?>(closed);
+        }
+
+        return Task.FromResult<MailboxResponse?>(null);
+    }
+
+    /// <summary>
+    /// Models the engine's response matrix: <c>404</c> unknown, <c>409</c> closed, <c>200</c> replay (even
+    /// after closure), <c>202</c> appended. Stores the delivery but wakes nobody.
+    /// </summary>
+    public Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);
+
+        // The idempotency lookup runs before the closed check, exactly as the engine's does.
+        if (_deliveriesByKey.TryGetValue(deliveryKey, out MailboxDeliveryResponse? existing))
+        {
+            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null));
+        }
+
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id != mailboxId || !string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                return Task.FromResult(
+                    new MailboxDeliveryResult(
+                        HttpStatusCode.Conflict,
+                        Body: null,
+                        ErrorDetail: $"Mailbox {mailboxId} is closed and no longer accepts deliveries."
+                    )
+                );
+            }
+
+            var delivery = new MailboxDeliveryResponse
+            {
+                MailboxId = mailboxId,
+                Idx = mailbox.NextIdx,
+                IdempotencyKey = request.IdempotencyKey,
+                AcceptedAt = DateTimeOffset.UtcNow,
+            };
+            _deliveriesByKey[deliveryKey] = delivery;
+            _mailboxesByIdempotencyKey.TryUpdate(key, mailbox with { NextIdx = mailbox.NextIdx + 1 }, mailbox);
+
+            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.Accepted, delivery, ErrorDetail: null));
+        }
+
+        return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.NotFound, Body: null, ErrorDetail: null));
+    }
+
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)
     {
         lock (_gate)
@@ -448,14 +591,28 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 step.Status = PersistentItemStatus.Processing;
                 step.UpdatedAt = DateTimeOffset.UtcNow;
 
+                DateTimeOffset attemptStartedAt = DateTimeOffset.UtcNow;
                 AppCallbackPayload payload = new()
                 {
                     CommandKey = appCommandData.CommandKey,
                     Actor = workflow.Context.Actor,
                     Payload = appCommandData.Payload,
-                    LockToken = workflow.Context.LockToken,
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
+                    StepId = step.DatabaseId,
+                    ExecutionReferenceTime = workflow.StartAt ?? step.CreatedAt,
+                    RetryCount = step.RetryCount,
+                    ExecutionDeadline = step.MaxExecutionTime is { } maxExecutionTime
+                        ? attemptStartedAt + maxExecutionTime
+                        : null,
+                    DeferCount = step.DeferCount,
+                    FirstDeferredAt = step.FirstDeferredAt,
+                    // Projected from the compressed wait: what is left of the budget after the
+                    // delays the handler has already asked for. Once that is spent the deadline
+                    // falls in the past, which is what the handler reads as its final check.
+                    WaitDeadline = step.FirstDeferredAt is null
+                        ? null
+                        : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
                 };
 
                 IActionResult result = await controller.ExecuteCommand(
@@ -470,6 +627,34 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
                 {
+                    if (response.Defer is { } defer)
+                    {
+                        // Not a completion: no error recorded, retry counter reset, and the next
+                        // attempt starts from the state this one received (the app echoes it back
+                        // unchanged, so currentState stays put).
+                        step.FirstDeferredAt ??= DateTimeOffset.UtcNow;
+                        step.DeferCount++;
+                        step.RetryCount = 0;
+                        step.WaitElapsed += defer.Delay;
+                        step.Status = PersistentItemStatus.Waiting;
+                        step.UpdatedAt = DateTimeOffset.UtcNow;
+                        workflow.Status = PersistentItemStatus.Waiting;
+                        workflow.UpdatedAt = DateTimeOffset.UtcNow;
+
+                        if (step.DeferCount > MaxDeferralsPerStep)
+                        {
+                            throw new InvalidOperationException(
+                                $"Step '{step.OperationId}' deferred {step.DeferCount} times without concluding. "
+                                    + "This fake compresses the wait rather than sleeping, so a handler that keeps "
+                                    + "deferring loops here instead of parking. Give the step a wait budget its "
+                                    + "handler observes (ProcessStepOptions.WaitBudget, read back as "
+                                    + "ServiceTaskContext.Wait), or make the handler conclude."
+                            );
+                        }
+
+                        continue;
+                    }
+
                     currentState = response.State;
                     MarkStepCompleted(step, response.State);
                     break;
@@ -704,6 +889,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         public bool? IsHead { get; init; }
 
+        public DateTimeOffset? StartAt { get; init; }
+
         public required string Namespace { get; init; }
 
         public required string? CollectionKey { get; init; }
@@ -749,9 +936,25 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         public required RetryStrategy? RetryStrategy { get; init; }
 
+        public required TimeSpan? WaitBudget { get; init; }
+
+        public required TimeSpan? MaxExecutionTime { get; init; }
+
+        public required DateTimeOffset CreatedAt { get; init; }
+
         public DateTimeOffset? UpdatedAt { get; set; }
 
         public int RetryCount { get; set; }
+
+        public int DeferCount { get; set; }
+
+        public DateTimeOffset? FirstDeferredAt { get; set; }
+
+        /// <summary>
+        /// How much of the wait budget the step's deferrals have asked for. The fake compresses the
+        /// wait instead of sleeping, so this stands in for elapsed time.
+        /// </summary>
+        public TimeSpan WaitElapsed { get; set; }
 
         public string? StateOut { get; set; }
 

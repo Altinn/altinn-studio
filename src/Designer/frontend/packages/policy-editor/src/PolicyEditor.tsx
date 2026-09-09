@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Heading } from '@digdir/designsystemet-react';
 import type {
   PolicyAction,
   Policy,
@@ -22,6 +21,7 @@ import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccess
 import { PolicyRulesEditor } from './components/PolicyRulesEditor';
 import { PolicyEditorTabs } from './components/PolicyEditorTabs';
 import { ConsentResourcePolicyRulesEditor } from './components/ConsentResourcePolicyRulesEditor';
+import { StudioHeading } from '@studio/components';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -86,9 +86,9 @@ export const PolicyEditor = ({
           requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
           onSave={handleSavePolicyAuthLevel}
         />
-        <Heading level={4} size='xxsmall' className={classes.heading}>
+        <StudioHeading level={4} data-size='xs' className={classes.heading}>
           {t('policy_editor.rules')}
-        </Heading>
+        </StudioHeading>
         <div className={classes.alertWrapper}>
           <PolicyEditorAlert />
         </div>

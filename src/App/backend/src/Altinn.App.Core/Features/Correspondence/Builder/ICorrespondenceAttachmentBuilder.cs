@@ -39,7 +39,7 @@ public interface ICorrespondenceAttachmentBuilderData
     /// after the upload completes.
     /// </summary>
     /// <remarks>Wrap an in-memory payload yourself — <c>WithData(new MemoryStream(bytes))</c>. Prefer
-    /// streaming large attachments straight from their source rather than materialising them first.</remarks>
+    /// streaming large attachments straight from their source rather than materializing them first.</remarks>
     /// <param name="data">The data stream</param>
     ICorrespondenceAttachmentBuilder WithData(Stream data);
 }

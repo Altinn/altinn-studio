@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 /// <summary>
@@ -44,18 +46,23 @@ internal sealed class LegacyEFormidlingCodeDetector
         _scanner = scanner;
     }
 
+    private static readonly IReadOnlySet<string> _legacyShipmentMethodName = new HashSet<string>(StringComparer.Ordinal)
+    {
+        LegacyShipmentMethod,
+    };
+
     public MigrationResult Detect()
     {
         var interfaceMatches = _scanner.Files.SelectMany(file =>
-            CSharpSyntaxQueries
-                .TypesImplementing(file, _removedTypes)
-                .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedTypes))
-                .Concat(CSharpSyntaxQueries.InvokedMethodsWithArity(file, LegacyShipmentMethod, LegacyShipmentArity))
-                .Concat(CSharpSyntaxQueries.MethodDeclarations(file, LegacyShipmentMethod, LegacyShipmentArity))
+            file.SemanticModel is { } semanticModel
+                ? SemanticInterfaceMatches(file, semanticModel)
+                : SyntaxInterfaceMatches(file)
         );
 
         var settingMatches = _scanner.Files.SelectMany(file =>
-            CSharpSyntaxQueries.MemberReferences(file, _removedMembers)
+            file.SemanticModel is { } semanticModel
+                ? CSharpSemanticQueries.AltinnMemberReferences(file, semanticModel, _removedMembers)
+                : CSharpSyntaxQueries.MemberReferences(file, _removedMembers)
         );
 
         return WarnOnlyDetector.Combine(
@@ -63,4 +70,33 @@ internal sealed class LegacyEFormidlingCodeDetector
             WarnOnlyDetector.Report(SettingSummary, settingMatches)
         );
     }
+
+    /// <summary>
+    /// With the v8 compilation the removed overload binds to its symbol, so overload resolution — not
+    /// argument counting — separates the removed <c>SendEFormidlingShipment(Instance)</c> from the
+    /// surviving two-argument sibling. Declarations keep the arity match: an app's implementation is
+    /// declared in the app, not the SDK, and its shape is what the syntax query captures.
+    /// </summary>
+    private static IEnumerable<CSharpApiMatch> SemanticInterfaceMatches(
+        ScannedCSharpFile file,
+        SemanticModel semanticModel
+    ) =>
+        CSharpSemanticQueries
+            .AltinnTypeReferences(file, semanticModel, _removedTypes)
+            .Concat(
+                CSharpSemanticQueries.InvokedAltinnMethods(
+                    file,
+                    semanticModel,
+                    _legacyShipmentMethodName,
+                    predicate: static method => method.Parameters.Length == LegacyShipmentArity
+                )
+            )
+            .Concat(CSharpSyntaxQueries.MethodDeclarations(file, LegacyShipmentMethod, LegacyShipmentArity));
+
+    private static IEnumerable<CSharpApiMatch> SyntaxInterfaceMatches(ScannedCSharpFile file) =>
+        CSharpSyntaxQueries
+            .TypesImplementing(file, _removedTypes)
+            .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedTypes))
+            .Concat(CSharpSyntaxQueries.InvokedMethodsWithArity(file, LegacyShipmentMethod, LegacyShipmentArity))
+            .Concat(CSharpSyntaxQueries.MethodDeclarations(file, LegacyShipmentMethod, LegacyShipmentArity));
 }

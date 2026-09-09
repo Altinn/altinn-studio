@@ -103,9 +103,9 @@ public class Signee
     public string? PersonNumber { get; set; }
 
     /// <summary>
-    /// The organisation number of the user performing the signing, set if the signer is an organisation
+    /// The organization number of the user performing the signing, set if the signer is an organization
     /// </summary>
-    public string? OrganisationNumber { get; set; }
+    public string? OrganizationNumber { get; set; }
 }
 
 /// <summary>

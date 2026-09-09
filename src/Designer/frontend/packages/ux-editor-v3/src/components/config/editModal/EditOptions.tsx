@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Fieldset, Radio, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -13,7 +12,14 @@ import type {
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioFieldset,
+  StudioRadio,
+  StudioRadioGroup,
+  StudioTextfield,
+  StudioValidationMessage,
+} from '@studio/components';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<
   FormCheckboxesComponent | FormRadioButtonsComponent
@@ -105,19 +111,28 @@ export function EditOptions({
 
   return (
     <>
-      <Radio.Group
-        onChange={handleOptionsTypeChange}
+      <StudioRadioGroup
         legend={t('ux_editor.modal_properties_add_radio_button_options')}
-        name={`${component.id}-options`}
-        value={selectedOptionsType}
-        inline={true}
-        size='small'
+        data-size='sm'
       >
-        <Radio value={SelectedOptionsType.CodeList}>
-          {t('ux_editor.modal_add_options_code_list')}
-        </Radio>
-        <Radio value={SelectedOptionsType.Manual}>{t('ux_editor.modal_add_options_manual')}</Radio>
-      </Radio.Group>
+        <div className={classes.inlineRadios}>
+          <StudioRadio
+            name={`${component.id}-options`}
+            value={SelectedOptionsType.CodeList}
+            checked={selectedOptionsType === SelectedOptionsType.CodeList}
+            onChange={(e) => handleOptionsTypeChange(e.target.value as SelectedOptionsType)}
+            label={t('ux_editor.modal_add_options_code_list')}
+          />
+          <StudioRadio
+            name={`${component.id}-options`}
+            value={SelectedOptionsType.Manual}
+            checked={selectedOptionsType === SelectedOptionsType.Manual}
+            onChange={(e) => handleOptionsTypeChange(e.target.value as SelectedOptionsType)}
+            label={t('ux_editor.modal_add_options_manual')}
+          />
+        </div>
+      </StudioRadioGroup>
+
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
@@ -141,7 +156,7 @@ export function EditOptions({
                 return (
                   <div className={classes.optionContainer} key={key}>
                     <div className={classes.optionContentWrapper}>
-                      <Fieldset legend={optionTitle}>
+                      <StudioFieldset legend={optionTitle}>
                         <div className={classes.optionContent}>
                           <TextResource
                             handleIdChange={handleUpdateOptionLabel(index)}
@@ -161,7 +176,7 @@ export function EditOptions({
                             />
                           </div>
                         </div>
-                      </Fieldset>
+                      </StudioFieldset>
                     </div>
                     <div>
                       <StudioButton
@@ -192,7 +207,9 @@ export function EditOptions({
           </StudioButton>
         </div>
       )}
-      {errorMessage && <ErrorMessage size='small'>{errorMessage}</ErrorMessage>}
+      {errorMessage && (
+        <StudioValidationMessage data-size='sm'>{errorMessage}</StudioValidationMessage>
+      )}
     </>
   );
 }

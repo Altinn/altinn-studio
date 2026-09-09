@@ -1,9 +1,4 @@
-FROM node:24-bullseye-slim@sha256:aca89821b1f09df223227ff2abe075fc3161f05604d3b61309f46820a5938020
-
-RUN apt-get update --fix-missing && \
-    apt-get install -y python3 build-essential && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM node:24-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e
 
 RUN corepack enable
 

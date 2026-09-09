@@ -6,126 +6,6 @@
       HasParent: true
     },
     {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 1
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.UpdateInstanceData,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.UpdateInstanceData,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.UpdateInstanceData,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.UpdateInstanceData,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 1
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.UpdateInstanceData,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.UpdateInstanceData,
-      IdFormat: W3C,
-      Tags: [
-        {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -143,10 +23,10 @@
           network.protocol.version: 1.1
         },
         {
-          organisation.name: tdd
+          organization.name: tdd
         },
         {
-          organisation.number: 405003309
+          organization.number: 405003309
         },
         {
           server.address: localhost
@@ -200,10 +80,10 @@
           network.protocol.version: 1.1
         },
         {
-          organisation.name: tdd
+          organization.name: tdd
         },
         {
-          organisation.number: 405003309
+          organization.number: 405003309
         },
         {
           server.address: localhost
@@ -242,6 +122,20 @@
       Tags: [
         {
           instance.owner.party.id: 5001337
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_3
+        },
+        {
+          process.callback.command: AcquireProcessingStatus
         }
       ],
       HasParent: true
@@ -325,7 +219,7 @@
           instance.guid: Guid_3
         },
         {
-          process.callback.command: SaveProcessStateToStorage
+          process.callback.command: CommitProcessState
         }
       ],
       HasParent: true

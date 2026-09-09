@@ -69,7 +69,7 @@ export class AppFrontend {
     alertOpen: 'div[data-testid="helptext"]:popover-open',
   };
 
-  public deleteWarningPopover = 'div[data-testid="delete-warning-popover"]';
+  public confirmPopover = 'div.ds-popover:popover-open';
 
   public navMenu = '#navigation-menu';
   public navMenuButtons = '#navigation-menu li > button';

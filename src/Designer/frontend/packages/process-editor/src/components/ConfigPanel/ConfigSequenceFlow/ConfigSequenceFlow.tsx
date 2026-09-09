@@ -6,11 +6,11 @@ import {
   PredefinedGatewayAction,
   SimpleSubexpressionValueType,
   StudioExpression,
+  StudioParagraph,
 } from '@studio/components';
 import { StudioSectionHeader, StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 import { useTranslation } from 'react-i18next';
@@ -78,9 +78,9 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
         }}
       />
       <div className={classes.container}>
-        <Paragraph spacing>
+        <StudioParagraph spacing>
           {t('process_editor.sequence_flow_configuration_panel_explanation')}
-        </Paragraph>
+        </StudioParagraph>
         {!expression ? (
           <StudioButton
             variant='secondary'

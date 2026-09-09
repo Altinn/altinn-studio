@@ -3,7 +3,7 @@ import type { Expression, SubExpression } from '../../../../../../types/Expressi
 import { Operator } from '../../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
 import { useText } from '../../../../../../hooks';
-import { ToggleGroup } from '@digdir/designsystemet-react';
+import { StudioToggleGroup } from '@studio/components';
 
 export type SimpleExpressionProps = {
   expression: Expression;
@@ -32,17 +32,17 @@ export const SimpleExpression = ({
               onRemoveSubExpression={() => onRemoveSubExpression(subExp)}
             />
             {index !== expression.subExpressions.length - 1 && (
-              <ToggleGroup
+              <StudioToggleGroup
                 onChange={(value) => onUpdateExpressionOperator(value as Operator)}
                 value={expression.operator || Operator.And}
               >
-                <ToggleGroup.Item value={Operator.And}>
+                <StudioToggleGroup.Item value={Operator.And}>
                   {t('right_menu.expressions_operator_and')}
-                </ToggleGroup.Item>
-                <ToggleGroup.Item value={Operator.Or}>
+                </StudioToggleGroup.Item>
+                <StudioToggleGroup.Item value={Operator.Or}>
                   {t('right_menu.expressions_operator_or')}
-                </ToggleGroup.Item>
-              </ToggleGroup>
+                </StudioToggleGroup.Item>
+              </StudioToggleGroup>
             )}
           </Fragment>
         );

@@ -7,11 +7,11 @@ import {
   StudioHeading,
   StudioSpinner,
   StudioTextfield,
+  StudioParagraph,
 } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
-import { Paragraph } from '@digdir/designsystemet-react';
 
 export type DeleteModalProps = {
   org: string;
@@ -52,9 +52,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
           </StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
-          <Paragraph size='small' spacing>
-            {t('local_changes.modal_delete_modal_text')}
-          </Paragraph>
+          <StudioParagraph spacing>{t('local_changes.modal_delete_modal_text')}</StudioParagraph>
           <StudioTextfield
             label={t('local_changes.modal_delete_modal_textfield_label')}
             description={t('local_changes.modal_delete_modal_textfield_description', {

@@ -6,21 +6,22 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { CompTypes } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
-type ValidTypes = 'FileUpload' | 'FileUploadWithTag';
+type ValidTypes = 'FileUpload';
 
 function isValidType(type: CompTypes): boolean {
-  return type === 'FileUpload' || type === 'FileUploadWithTag';
+  return type === 'FileUpload';
 }
 
 export function AttachmentSummaryComponent({ targetBaseComponentId }: SummaryRendererProps) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
   const { langAsString } = useLanguage();
   const component = useItemWhenType<ValidTypes>(targetBaseComponentId, isValidType);
-  const hasTag = component.type === 'FileUploadWithTag';
+  const hasTag = fileUploadHasTag(component);
 
   const { options: allOptions } = useOptionsFor(targetBaseComponentId, 'single');
   const options = hasTag ? allOptions : undefined;

@@ -34,7 +34,6 @@ export type FormImageComponent = FormComponent<ComponentType.Image>;
 export type FormCheckboxesComponent = FormComponent<ComponentType.Checkboxes>;
 export type FormRadioButtonsComponent = FormComponent<ComponentType.RadioButtons>;
 export type FormFileUploaderComponent = FormComponent<ComponentType.FileUpload>;
-export type FormFileUploaderWithTagComponent = FormComponent<ComponentType.FileUploadWithTag>;
 export type FormButtonComponent = FormComponent<
   ComponentType.Button | ComponentType.NavigationButtons
 >;
