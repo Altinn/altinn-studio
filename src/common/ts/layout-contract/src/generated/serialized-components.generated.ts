@@ -31,6 +31,7 @@ import type { CompInstantiationButtonSerialized } from '@app/layout-contract/gen
 import type { CompLikertSerialized } from '@app/layout-contract/generated/components/Likert/serialized.generated';
 import type { CompLinkSerialized } from '@app/layout-contract/generated/components/Link/serialized.generated';
 import type { CompListSerialized } from '@app/layout-contract/generated/components/List/serialized.generated';
+import type { CompLommebokSerialized } from '@app/layout-contract/generated/components/Lommebok/serialized.generated';
 import type { CompMapSerialized } from '@app/layout-contract/generated/components/Map/serialized.generated';
 import type { CompMultipleSelectSerialized } from '@app/layout-contract/generated/components/MultipleSelect/serialized.generated';
 import type { CompNavigationBarSerialized } from '@app/layout-contract/generated/components/NavigationBar/serialized.generated';
@@ -92,6 +93,7 @@ export enum ComponentType {
   Likert = 'Likert',
   Link = 'Link',
   List = 'List',
+  Lommebok = 'Lommebok',
   Map = 'Map',
   MultipleSelect = 'MultipleSelect',
   NavigationBar = 'NavigationBar',
@@ -154,6 +156,7 @@ export type SerializedComponent =
   | CompLikertSerialized
   | CompLinkSerialized
   | CompListSerialized
+  | CompLommebokSerialized
   | CompMapSerialized
   | CompMultipleSelectSerialized
   | CompNavigationBarSerialized
@@ -183,4 +186,4 @@ export type SerializedComponent =
   | CompTimePickerSerialized
   | CompVideoSerialized;
 
-// Source hash: b2e8d5fcbbde3565ee47ac2caa9ffc14a58ac0908459334dd3c7046230a032d0
+// Source hash: ebf33af3b7669d18a04a1b39972c33b164b690c42ce8c4bb35cdb2ef2d70174c
