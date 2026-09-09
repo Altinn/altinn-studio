@@ -201,7 +201,7 @@ def all_runs(*, directory: Path | None = None) -> tuple[Run, ...]:
     for path in sorted(target.glob("*.json"), reverse=True):
         try:
             runs.append(Run.from_dict(json.loads(path.read_text(encoding="utf-8"))))
-        except (json.JSONDecodeError, KeyError, TypeError):
+        except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError):
             continue
     return tuple(runs)
 

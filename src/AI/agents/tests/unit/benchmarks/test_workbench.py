@@ -84,6 +84,18 @@ def test_a_run_round_trips_through_disk(tmp_path):
     assert back == run
 
 
+def test_a_file_that_is_not_utf8_is_skipped_rather_than_fatal(tmp_path):
+    """The loop skips a malformed run file, and bytes that are not UTF-8 are malformed
+    in the same way. Pinning the encoding made them raise instead."""
+    run = _run("20260909T100000Z-good", "good", HOLDING)
+    runstore.save(run, directory=tmp_path)
+    (tmp_path / "20260909T110000Z-bad.json").write_bytes(b'{"label": "\xff\xfe"}')
+
+    found = runstore.all_runs(directory=tmp_path)
+
+    assert [r.name for r in found] == [run.name]
+
+
 def test_saving_twice_refuses_rather_than_overwriting(tmp_path):
     run = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     runstore.save(run, directory=tmp_path)
