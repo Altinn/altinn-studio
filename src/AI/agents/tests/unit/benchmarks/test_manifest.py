@@ -23,7 +23,7 @@ def test_every_component_resolves_to_a_symbol_that_exists():
         target = AGENTS_ROOT / path
         assert target.exists(), f"{component.id}: {path} does not exist"
 
-        tree = ast.parse(target.read_text())
+        tree = ast.parse(target.read_text(encoding="utf-8"))
         outer, _, inner = symbol.partition(".")
         defined = {
             node.name: node
@@ -85,7 +85,7 @@ def test_prose_fields_are_written_not_stubbed():
 
 
 def test_no_em_dashes_anywhere_in_the_manifest():
-    source = (AGENTS_ROOT / "benchmarks" / "manifest.py").read_text()
+    source = (AGENTS_ROOT / "benchmarks" / "manifest.py").read_text(encoding="utf-8")
     assert "—" not in source
 
 
@@ -148,7 +148,7 @@ def test_declared_score_names_match_what_each_module_actually_emits():
     import re
 
     for module in ("gates", "planner", "generation", "evaluators"):
-        source = (AGENTS_ROOT / "benchmarks" / f"{module}.py").read_text()
+        source = (AGENTS_ROOT / "benchmarks" / f"{module}.py").read_text(encoding="utf-8")
         found = set(re.findall(r'name="([a-z_]+)"', source))
         declared = set(__import__(f"benchmarks.{module}", fromlist=["SCORE_NAMES"]).SCORE_NAMES)
         assert declared == found, f"{module}: declared {declared ^ found} not emitted, or vice versa"
@@ -185,3 +185,42 @@ def test_a_dataset_that_scores_nothing_is_not_counted_as_coverage():
         assert not behavior.is_pinned
         assert behavior.eval
         assert behavior.fix.kind == "gap"
+
+
+def test_every_rule_key_in_a_dataset_is_read_by_an_evaluator():
+    """`datepicker_sets_timestamp` sat in an item for three runs while nothing read it,
+    and the item's own note claimed the run scored 0 on it."""
+    import json
+    import re
+
+    source = (AGENTS_ROOT / "benchmarks" / "generation.py").read_text(encoding="utf-8")
+    read = set(re.findall(r'(?:rule|rule_of\([^)]*\))\.get\(\s*"([a-z_]+)"', source))
+
+    declared: dict[str, set[str]] = {}
+    for path in sorted((AGENTS_ROOT / "benchmarks" / "datasets").glob("*.json*")):
+        text = path.read_text(encoding="utf-8")
+        blobs = (
+            [json.loads(text)]
+            if path.suffix == ".json"
+            else [json.loads(line) for line in text.splitlines() if line.strip()]
+        )
+        for blob in blobs:
+            for rule in _rules_in(blob):
+                declared.setdefault(path.name, set()).update(rule)
+
+    unread = {name: sorted(keys - read) for name, keys in declared.items() if keys - read}
+    assert not unread, (
+        f"rule keys no evaluator in generation.py reads: {unread}. Either score the key "
+        f"or take it out; evaluators read {sorted(read)}"
+    )
+
+
+def _rules_in(blob):
+    if isinstance(blob, dict):
+        if isinstance(blob.get("rule"), dict):
+            yield set(blob["rule"])
+        for value in blob.values():
+            yield from _rules_in(value)
+    elif isinstance(blob, list):
+        for value in blob:
+            yield from _rules_in(value)

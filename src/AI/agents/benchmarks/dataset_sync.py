@@ -31,7 +31,7 @@ class Dataset(NamedTuple):
 
 def _read_items(path: Path) -> list[dict[str, Any]]:
     items = []
-    for number, line in enumerate(path.read_text().splitlines(), start=1):
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         if not line.strip():
             continue
         try:
@@ -88,8 +88,15 @@ def render_input(dataset: Dataset, item: dict[str, Any]) -> dict[str, Any]:
 
 def validate(dataset: Dataset) -> list[str]:
     problems = []
+    shaped = []
+    for item in dataset.items:
+        missing = REQUIRED_KEYS - item.keys()
+        if missing:
+            problems.append(f"{dataset.path.name}: item is missing {sorted(missing)}")
+            continue
+        shaped.append(item)
     if dataset.kind == "prompt" and dataset.prompt not in MESSAGE_BUILDERS:
-        if not all(item["input"].get("user_message") for item in dataset.items):
+        if not all(item["input"].get("user_message") for item in shaped):
             problems.append(
                 f"{dataset.path.name}: no message builder for '{dataset.prompt}' and "
                 "not every item carries a user_message"
@@ -97,11 +104,7 @@ def validate(dataset: Dataset) -> list[str]:
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
     seen: set[str] = set()
-    for item in dataset.items:
-        missing = REQUIRED_KEYS - item.keys()
-        if missing:
-            problems.append(f"{dataset.path.name}: item is missing {sorted(missing)}")
-            continue
+    for item in shaped:
         if item["id"] in seen:
             problems.append(f"{dataset.path.name}: duplicate id {item['id']}")
         seen.add(item["id"])

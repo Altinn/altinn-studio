@@ -91,6 +91,7 @@ def _print_summary(report) -> None:
         f"{counts['holding']} holding" if counts["holding"] else "",
         f"{counts['recorded']} recorded with nothing to compare" if counts["recorded"] else "",
         f"{counts['moved']} moved",
+        f"{counts['variance']} moved by one item" if counts["variance"] else "",
         f"{counts['failing']} failing",
         f"{counts['not_run']} not run",
         f"{counts['unpinned']} with nothing pinning them",
@@ -327,7 +328,10 @@ def cmd_fetch(args: argparse.Namespace) -> None:
         _fetch_summary(runstore.load(args.check_id))
         print("  pass --overwrite to replace it with what Langfuse holds now")
         return
-    run = remote.fetch(args.check_id)
+    try:
+        run = remote.fetch(args.check_id)
+    except LookupError as missing:
+        sys.exit(str(missing))
     print(f"saved {runstore.save(run, overwrite=args.overwrite)}")
     _fetch_summary(run)
 
@@ -546,7 +550,11 @@ def _dispatch(argv: list[str]) -> int:
     try:
         args.func(args)
     except SystemExit as exit_code:
-        return int(exit_code.code or 0)
+        code = exit_code.code
+        if isinstance(code, str):
+            print(code, file=sys.stderr)
+            return 1
+        return int(code or 0)
     return 0
 
 

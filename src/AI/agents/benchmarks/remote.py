@@ -61,11 +61,13 @@ def _items(api: LangfuseApi, experiment_id: str) -> list[dict]:
             return out
 
 
-def check_ids(api: LangfuseApi | None = None) -> dict[str, dict]:
+def check_ids(
+    api: LangfuseApi | None = None, *, experiments: list[dict] | None = None
+) -> dict[str, dict]:
     """Every `check` invocation Langfuse holds, newest first."""
     api = api or LangfuseApi()
     found: dict[str, dict] = {}
-    for experiment in _experiments(api):
+    for experiment in experiments if experiments is not None else _experiments(api):
         metadata = experiment.get("metadata") or {}
         check_id = metadata.get("check_id")
         if not check_id:
@@ -156,16 +158,17 @@ def _output_text(value: object) -> str | None:
 def fetch(check_id: str, *, api: LangfuseApi | None = None) -> Run:
     """Rebuild one `check` invocation from Langfuse."""
     api = api or LangfuseApi()
-    known = check_ids(api)
+    experiments = _experiments(api)
+    known = check_ids(api, experiments=experiments)
     if check_id not in known:
-        raise SystemExit(
+        raise LookupError(
             f"No run in Langfuse carries check_id {check_id!r}. Known: "
             f"{list(known)[:5]}"
         )
     entry = known[check_id]
 
     per_eval: dict[str, dict[str, ItemResult]] = {}
-    for experiment in _experiments(api):
+    for experiment in experiments:
         metadata = experiment.get("metadata") or {}
         if metadata.get("check_id") != check_id:
             continue

@@ -170,7 +170,9 @@ def save(run: Run, *, directory: Path | None = None, overwrite: bool = False) ->
     target.mkdir(parents=True, exist_ok=True)
     path = target / f"{run.name}.json"
     assert overwrite or not path.exists(), f"{path} already exists, so a run would be overwritten"
-    path.write_text(json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n")
+    path.write_text(
+        json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -187,7 +189,7 @@ def attach_judge_note(run: Run, note: str | None, *, directory: Path | None = No
 
 def load(name: str, *, directory: Path | None = None) -> Run:
     path = (directory or RUNS_DIR) / f"{name}.json"
-    return Run.from_dict(json.loads(path.read_text()))
+    return Run.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
 
 def all_runs(*, directory: Path | None = None) -> tuple[Run, ...]:
@@ -198,7 +200,7 @@ def all_runs(*, directory: Path | None = None) -> tuple[Run, ...]:
     runs = []
     for path in sorted(target.glob("*.json"), reverse=True):
         try:
-            runs.append(Run.from_dict(json.loads(path.read_text())))
+            runs.append(Run.from_dict(json.loads(path.read_text(encoding="utf-8"))))
         except (json.JSONDecodeError, KeyError, TypeError):
             continue
     return tuple(runs)
@@ -265,7 +267,10 @@ def set_baseline(
     else:
         from benchmarks import remote
 
-        run = remote.fetch(name)
+        try:
+            run = remote.fetch(name)
+        except LookupError as missing:
+            raise SystemExit(str(missing)) from missing
 
     holes = incomplete(run)
     if holes and not force:

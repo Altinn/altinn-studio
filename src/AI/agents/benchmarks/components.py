@@ -74,7 +74,7 @@ def universe() -> tuple[str, ...]:
 
 
 def _in_file(path: Path) -> tuple[str, ...]:
-    return tuple(sorted(set(_TYPE.findall(path.read_text()))))
+    return tuple(sorted(set(_TYPE.findall(path.read_text(encoding="utf-8")))))
 
 
 def collect() -> Coverage:

@@ -303,8 +303,8 @@ def resolve_system_prompt(item_input: dict[str, Any]) -> str:
                 f"{SYSTEM_PROMPTS_FILE} is missing; rebuild it with "
                 "`python -m benchmarks.harvest`"
             )
-        prompts = json.loads(path.read_text())
-        if trace not in prompts:
+        prompts = json.loads(path.read_text(encoding="utf-8"))
+        if not prompts.get(trace):
             raise ValueError(
                 f"no session prompt recorded for trace {trace}; rebuild with "
                 "`python -m benchmarks.harvest`"
@@ -581,7 +581,7 @@ def failure_mode(
         stop = rule.get("stop")
         if used & forbidden:
             mode = "forbidden_tool"
-        elif allowed and (not used or used - allowed):
+        elif allowed and used - allowed:
             mode = "tool_outside_set"
         elif required - used:
             mode = "missing_tool"

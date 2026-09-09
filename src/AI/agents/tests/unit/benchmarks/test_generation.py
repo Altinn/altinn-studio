@@ -830,6 +830,26 @@ class TestFailureModeNamesTheProblem:
             {"required_tools": ["verify_changes"], "stop": False},
         ) == "correct"
 
+    def test_stopping_when_asked_to_stop_is_correct_even_with_an_allowed_set(self):
+        """An empty turn counted as a call outside the set, so a model that stopped as
+        asked was named a tool violator while `stopped_cleanly` scored the same turn 1."""
+        assert self._mode(
+            {"tool_calls": [], "message": "done"},
+            {"allowed_tools": ["read_file"], "stop": True},
+        ) == "correct"
+
+    def test_a_call_outside_the_allowed_set_is_still_named(self):
+        assert self._mode(
+            {"tool_calls": [{"tool": "write_file", "arguments_json": "{}"}]},
+            {"allowed_tools": ["read_file"], "stop": False},
+        ) == "tool_outside_set"
+
+    def test_an_empty_turn_that_owed_a_call_is_still_named(self):
+        assert self._mode(
+            {"tool_calls": [], "message": "done"},
+            {"allowed_tools": ["read_file"], "required_tools": ["read_file"], "stop": False},
+        ) == "missing_tool"
+
     def test_a_forbidden_call_outranks_the_others(self):
         assert self._mode(
             {"tool_calls": [{"tool": "commit_session_branch", "arguments_json": "{}"}]},
