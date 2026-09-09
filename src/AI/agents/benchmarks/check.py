@@ -216,6 +216,21 @@ def _kept_metadata(metadata: dict) -> dict[str, str]:
     return kept
 
 
+def _scored_set_digest(outcomes: dict[str, EvalOutcome]) -> str:
+    """What was measured, as one value a comparison can refuse on."""
+    import hashlib
+
+    pairs = sorted(
+        f"{name}:{item_id}"
+        for name, outcome in outcomes.items()
+        for item_id in outcome.per_item
+    )
+    if not pairs:
+        return "nothing scored"
+    digest = hashlib.sha256("\n".join(pairs).encode()).hexdigest()[:12]
+    return f"{len(pairs)} items {digest}"
+
+
 def _as_text(value: object) -> str:
     """What the item was measured against, for the report to show next to the score."""
     import json
@@ -339,7 +354,7 @@ def run(
 
     state = provenance.collect(
         prompts=prompt_versions,
-        dataset=dataset_version,
+        dataset=dataset_version or _scored_set_digest(outcomes),
         evaluators=evaluator_versions,
         judge=_judge_model(),
         agent_models=agent_models,

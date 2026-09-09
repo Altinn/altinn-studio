@@ -1,18 +1,18 @@
 {
   "axes": {
     "actor_prompt": "77dd32dbde59",
-    "code": "e5661fb dirty",
+    "code": "1f71e0a dirty",
     "dataset": "not recorded",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
-    "models": "actor claude-sonnet-5, default gpt-5.4-mini, planner claude-opus-4-8",
+    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
-    "sampling": "temperature 0.1, temperature_planner model default",
+    "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "e477b1c86c5c"
   },
-  "check_id": "20260909T165618Z-claude-baseline-e4ed",
-  "label": "claude baseline",
-  "recorded_at": "2026-09-09T17:05:08+00:00",
-  "why": "pre-migration reference, matches main"
+  "check_id": "20260909T191956Z-planner-sol-d122",
+  "label": "planner sol",
+  "recorded_at": "2026-09-09T19:25:19+00:00",
+  "why": "post-migration reference: gpt-5.6-terra actor, gpt-5.6-sol planner, EU data zone"
 }

@@ -98,6 +98,7 @@ class Run:
     behaviors: tuple[BehaviorResult, ...]
     under_test: tuple[str, ...] = field(default_factory=tuple)
     duration_seconds: float | None = None
+    judge_note: str | None = None
 
     def behavior(self, behavior_id: str) -> BehaviorResult | None:
         for result in self.behaviors:
@@ -116,6 +117,7 @@ class Run:
             "provenance": self.provenance.to_dict(),
             "under_test": list(self.under_test),
             "duration_seconds": self.duration_seconds,
+            "judge_note": self.judge_note,
             "behaviors": [
                 {
                     **asdict(behavior),
@@ -133,6 +135,7 @@ class Run:
             provenance=Provenance.from_dict(data["provenance"]),
             under_test=tuple(data.get("under_test") or ()),
             duration_seconds=data.get("duration_seconds"),
+            judge_note=data.get("judge_note"),
             behaviors=tuple(
                 BehaviorResult(
                     behavior=b["behavior"],
@@ -169,6 +172,17 @@ def save(run: Run, *, directory: Path | None = None, overwrite: bool = False) ->
     assert overwrite or not path.exists(), f"{path} already exists, so a run would be overwritten"
     path.write_text(json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n")
     return path
+
+
+def attach_judge_note(run: Run, note: str | None, *, directory: Path | None = None) -> Run:
+    """Keep the review beside the scores it reviewed, so a re-render keeps it."""
+    import dataclasses
+
+    if note is None:
+        return run
+    kept = dataclasses.replace(run, judge_note=note)
+    save(kept, directory=directory, overwrite=True)
+    return kept
 
 
 def load(name: str, *, directory: Path | None = None) -> Run:

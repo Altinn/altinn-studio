@@ -8,8 +8,20 @@ from dataclasses import dataclass
 
 IDENTIFIER_MAX_CHARS = 64
 
-# Run metadata, not output.
-IGNORED_KEYS = ("model",)
+# Run metadata, not output. Session keys are minted per run.
+IGNORED_KEYS = ("model", "session_id", "session_branch")
+
+# Names the model invents; only whether the field carries one is compared.
+GENERATED_NAME_KEYS = ("id", "data_model_binding", "section_id")
+
+# An option's value is a slug of its label, so the label carries the meaning.
+OPTION_VALUE = "value"
+
+
+def _is_generated_name(key: str, path: str) -> bool:
+    if key in GENERATED_NAME_KEYS:
+        return True
+    return key == OPTION_VALUE and "options" in path
 
 
 def _is_identifier(value: str) -> bool:
@@ -21,7 +33,11 @@ def _walk(node: object, path: str, out: list[str]) -> None:
         for key in sorted(node):
             if key in IGNORED_KEYS:
                 continue
-            _walk(node[key], f"{path}.{key}" if path else key, out)
+            child = f"{path}.{key}" if path else key
+            if _is_generated_name(key, path) and isinstance(node[key], str):
+                out.append(f"{child}:name")
+                continue
+            _walk(node[key], child, out)
         return
     if isinstance(node, list):
         for index, item in enumerate(node):

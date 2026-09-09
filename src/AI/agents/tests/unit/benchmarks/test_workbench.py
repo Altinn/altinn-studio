@@ -291,6 +291,20 @@ class TestTheReportShowsWhatWasMeasured:
         assert '"in_scope": true' in shown
         assert "text" not in shown
 
+    def test_an_empty_payload_does_not_hide_the_answer(self):
+        """A query task returns spec=None beside the answer in text. Treating the
+        key as present dropped text and rendered the whole answer as null."""
+        wrapped = json.dumps({"model": "m", "spec": None, "text": "input component binding"})
+
+        assert report.readable(wrapped, unwrap=True) == "input component binding"
+
+    def test_a_present_payload_still_replaces_its_raw_form(self):
+        wrapped = json.dumps({"model": "m", "spec": {"title": "t"}, "text": "raw"})
+
+        shown = report.readable(wrapped, unwrap=True)
+
+        assert '"title": "t"' in shown and "raw" not in shown
+
     def test_an_expectation_keeps_the_name_of_what_is_expected(self):
         """Unwrapping an expectation would turn decline_language en into just en."""
         shown = report.readable('{"decline_language": "en"}')
@@ -445,6 +459,255 @@ class TestTheReportShowsWhatWasMeasured:
         assert item.comments["gate_decline_language"] == "declined in en, expected en"
         assert item.value("gate_decline_language") == 1.0
         assert item.value("nothing_emitted_this") is None
+
+
+def test_an_item_delta_reads_the_score_the_behavior_claims(tmp_path):
+    """Items carry every sibling score, so taking the first one in the dict
+    reported spec_field_count where spec_label_coverage was claimed."""
+    def one(name, coverage):
+        return Run(
+            name=name,
+            label=name,
+            provenance=_provenance(),
+            behaviors=(
+                BehaviorResult(
+                    behavior="spec.covers-every-label",
+                    evaluator="spec_label_coverage",
+                    score=coverage,
+                    items=(
+                        ItemResult(
+                            item_id="spec-helseattest",
+                            scores={
+                                "spec_field_count": 0.9583,
+                                "spec_label_coverage": coverage,
+                                "spec_parses": 1.0,
+                            },
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    change = diff.compare(one("20260909T100000Z-a", 0.9565), one("20260909T110000Z-b", 0.913))
+    covers = next(c for c in change.changes if c.behavior == "spec.covers-every-label")
+    item = covers.items[0]
+
+    assert (item.before, item.after) == (0.9565, 0.913)
+    assert "0.958" not in " ".join(covers.evidence())
+
+
+class TestTheJudgeReviewSurvivesARerender:
+    """The review lived only in the rendered HTML, so `report` silently deleted it."""
+
+    def test_the_note_is_stored_with_the_run(self, tmp_path):
+        run = _run("20260909T100000Z-judged", "judged", HOLDING)
+        runstore.save(run, directory=tmp_path)
+
+        runstore.attach_judge_note(run, "VERDICT\n\nIt held.", directory=tmp_path)
+
+        assert runstore.load(run.name, directory=tmp_path).judge_note == "VERDICT\n\nIt held."
+
+    def test_no_note_leaves_the_run_alone(self, tmp_path):
+        run = _run("20260909T100000Z-plain", "plain", HOLDING)
+        runstore.save(run, directory=tmp_path)
+
+        runstore.attach_judge_note(run, None, directory=tmp_path)
+
+        assert runstore.load(run.name, directory=tmp_path).judge_note is None
+
+    def test_the_page_names_the_judge_and_marks_it_as_prose(self, tmp_path):
+        run = _run("20260909T100000Z-judged", "judged", HOLDING)
+        runstore.save(run, directory=tmp_path)
+        built = report.build(directory=tmp_path)
+
+        page = report_html.render(built, judge_note="VERDICT\n\nIt held.")
+
+        assert "No score on this page comes from a model" in page
+        assert built.current.provenance.judge in page or "a model" in page
+
+    def test_a_run_round_trips_its_note(self, tmp_path):
+        run = _run("20260909T100000Z-judged", "judged", HOLDING)
+        runstore.save(run, directory=tmp_path)
+        kept = runstore.attach_judge_note(run, "a review", directory=tmp_path)
+
+        assert kept.judge_note == "a review"
+        assert runstore.load(run.name, directory=tmp_path).judge_note == "a review"
+
+
+def test_a_run_that_is_the_baseline_has_no_before(tmp_path):
+    """Comparing a run to itself has no earlier state, so the weakness list must
+    not file its scores as already like this before this run."""
+    run = _run("20260909T100000Z-base", "base", {**HOLDING, "spec.parses": 0.5})
+    runstore.save(run, directory=tmp_path)
+    runstore.set_baseline(run.name, directory=tmp_path, why="because")
+
+    built = report.build(directory=tmp_path)
+
+    assert built.baseline is not None
+    assert built.baseline.name == built.current.name
+    assert built.moved_in_this_run() == frozenset()
+    assert [v.behavior.id for v in built.short_of_full_marks()] == ["spec.parses"]
+
+
+class TestNoiseIsNotReportedAsARegression:
+    """A one item flip on a component whose model did not change blocked adoption
+    and read exactly like a real regression."""
+
+    def _pair(self, tmp_path, passing_after):
+        def one(name, passing):
+            items = tuple(
+                ItemResult(item_id=f"i{n}", scores={"gate_verdict": 1.0 if n < passing else 0.0})
+                for n in range(15)
+            )
+            return Run(
+                name=name,
+                label=name,
+                provenance=_provenance(),
+                behaviors=(
+                    BehaviorResult(
+                        behavior="scope.declines-out-of-scope",
+                        evaluator="gate_verdict",
+                        score=passing / 15,
+                        items=items,
+                    ),
+                ),
+            )
+        base, cand = one("20260909T100000Z-base", 15), one("20260909T110000Z-cand", passing_after)
+        for run in (base, cand):
+            runstore.save(run, directory=tmp_path)
+        runstore.set_baseline(base.name, directory=tmp_path, why="because", force=True)
+        return report.build(directory=tmp_path)
+
+    def test_one_item_on_an_unchanged_model_is_variance(self, tmp_path):
+        built = self._pair(tmp_path, 14)
+        view = _view(built, "scope.declines-out-of-scope")
+
+        assert not view.model_changed
+        assert view.item_weight == 1 / 15
+        assert view.verdict == "variance"
+        assert built.counts()["variance"] == 1
+
+    def test_more_than_one_item_is_still_reported(self, tmp_path):
+        """Only the smallest possible movement is dismissed."""
+        built = self._pair(tmp_path, 12)
+
+        assert _view(built, "scope.declines-out-of-scope").verdict == "regressed"
+
+    def test_variance_is_not_counted_as_movement(self, tmp_path):
+        built = self._pair(tmp_path, 14)
+
+        assert "scope.declines-out-of-scope" not in built.moved_in_this_run()
+
+    def test_a_real_regression_is_counted_as_movement(self, tmp_path):
+        built = self._pair(tmp_path, 12)
+
+        assert "scope.declines-out-of-scope" in built.moved_in_this_run()
+
+
+class TestTheReportCarriesEveryReference:
+    """The page switches between precomputed comparisons. Recomputing a verdict in
+    JavaScript would put the noise floor and the refusal rules in two places."""
+
+    def _runs(self, tmp_path):
+        base = _run("20260909T100000Z-base", "claude", HOLDING)
+        mid = _run("20260909T110000Z-mid", "terra", {**HOLDING, "spec.parses": 0.5})
+        now = _run("20260909T120000Z-now", "sol", HOLDING)
+        for run in (base, mid, now):
+            runstore.save(run, directory=tmp_path)
+        runstore.set_baseline(base.name, directory=tmp_path, why="because")
+        return base, mid, now
+
+    def test_one_reference_per_other_run(self, tmp_path):
+        base, mid, now = self._runs(tmp_path)
+
+        built = report.build(directory=tmp_path)
+
+        assert [r.name for r in built.references] == [mid.name, base.name]
+        assert {r.kind for r in built.references} == {"previous", "baseline"}
+
+    def test_the_current_run_is_never_its_own_reference(self, tmp_path):
+        _, _, now = self._runs(tmp_path)
+
+        built = report.build(directory=tmp_path)
+
+        assert now.name not in [r.name for r in built.references]
+
+    def test_each_reference_carries_its_own_verdict(self, tmp_path):
+        """spec.parses is 1.0, 0.5, 1.0 across the three, so the same behavior
+        reads as holding against one reference and improved against the other."""
+        base, mid, _ = self._runs(tmp_path)
+
+        built = report.build(directory=tmp_path)
+        by_name = {r.name: r for r in built.references}
+
+        assert by_name[base.name].behaviors["spec.parses"]["verdict"] == "holding"
+        assert by_name[mid.name].behaviors["spec.parses"]["verdict"] == "improved"
+
+    def test_a_reference_carries_the_item_values_behind_its_deltas(self, tmp_path):
+        base, _, _ = self._runs(tmp_path)
+
+        built = report.build(directory=tmp_path)
+        by_name = {r.name: r for r in built.references}
+
+        items = by_name[base.name].behaviors["scope.declines-out-of-scope"]["items"]
+        assert items, "an item row needs its reference value to show a before column"
+
+    def test_references_do_not_recurse(self, tmp_path):
+        """Each reference is itself a built report; building those with references
+        would not terminate."""
+        self._runs(tmp_path)
+
+        built = report.build(directory=tmp_path)
+
+        assert built.references
+        for one in built.references:
+            assert isinstance(one, report.Reference)
+
+
+class TestComparingTwoCandidates:
+    """An A/B between two candidates is not a decision about what main does, so it
+    must not require moving the committed pointer."""
+
+    def _three(self, tmp_path):
+        base = _run("20260909T100000Z-base", "claude", HOLDING)
+        terra = _run("20260909T110000Z-terra", "terra", {**HOLDING, "spec.parses": 0.5})
+        sol = _run("20260909T120000Z-sol", "sol", HOLDING)
+        for run in (base, terra, sol):
+            runstore.save(run, directory=tmp_path)
+        runstore.set_baseline(base.name, directory=tmp_path, why="because")
+        return base, terra, sol
+
+    def test_the_override_picks_the_named_run(self, tmp_path):
+        _, terra, sol = self._three(tmp_path)
+
+        built = report.build(directory=tmp_path, baseline_run=terra.name)
+
+        assert built.baseline is not None and built.baseline.name == terra.name
+        assert built.current.name == sol.name
+        assert not built.adopted
+
+    def test_the_committed_pointer_is_not_touched(self, tmp_path):
+        from benchmarks import baseline as pointer_file
+
+        base, terra, _ = self._three(tmp_path)
+        report.build(directory=tmp_path, baseline_run=terra.name)
+
+        still = pointer_file.read(path=tmp_path / "BASELINE.json")
+        assert still is not None and still.check_id == base.name
+
+    def test_without_the_override_the_pointer_still_decides(self, tmp_path):
+        base, _, _ = self._three(tmp_path)
+
+        built = report.build(directory=tmp_path)
+
+        assert built.baseline is not None and built.baseline.name == base.name
+        assert built.adopted
+
+    def test_a_run_cannot_be_its_own_baseline(self, tmp_path):
+        _, _, sol = self._three(tmp_path)
+
+        with pytest.raises(AssertionError, match="against itself"):
+            report.build(directory=tmp_path, baseline_run=sol.name)
 
 
 def test_a_regression_past_the_noise_floor_is_reported():
@@ -665,10 +928,21 @@ def test_the_judge_payload_shows_the_blind_spots(tmp_path):
 
 
 def test_a_models_reply_cannot_inject_markup():
-    html_out = report_html._prose("<script>alert(1)</script>\n\n**bold** text")
+    html_out = report_html._prose(
+        "<script>alert(1)</script>\n\n**bold** text", "gpt-5.6-sol", "a-run"
+    )
     assert "<script>alert(1)</script>" not in html_out
     assert "&lt;script&gt;" in html_out
     assert "<b>bold</b>" in html_out
+
+
+def test_the_judge_name_and_run_are_escaped_too():
+    """Both come from config and a filename, so neither is markup."""
+    html_out = report_html._prose("held", "<b>judge</b>", "<i>run</i>")
+
+    assert "<b>judge</b>" not in html_out
+    assert "<i>run</i>" not in html_out
+    assert "&lt;b&gt;judge&lt;/b&gt;" in html_out
 
 
 def test_word_diff_marks_what_moved():
@@ -879,6 +1153,76 @@ def test_a_reworded_label_is_not_an_output_change(tmp_path):
     assert "wording may differ" in change.summary
 
 
+def test_a_new_session_is_not_an_output_change():
+    """Session ids are minted per run, so comparing them reported every end to end
+    item as changed on every single comparison."""
+    from benchmarks import outputs
+
+    before = json.dumps(
+        {"completed": True, "session_id": "162243c5", "session_branch": "s_162243c5",
+         "workflow_status": "done"}
+    )
+    after = json.dumps(
+        {"completed": True, "session_id": "61bcb79e", "session_branch": "s_61bcb79e",
+         "workflow_status": "done"}
+    )
+
+    assert not outputs.compare(before, after).changed
+
+
+def test_a_workflow_that_stopped_completing_is_an_output_change():
+    from benchmarks import outputs
+
+    before = json.dumps({"completed": True, "session_id": "a", "workflow_status": "done"})
+    after = json.dumps({"completed": False, "session_id": "b", "workflow_status": "timeout"})
+
+    assert outputs.compare(before, after).substantive
+
+
+def test_a_renamed_id_is_not_an_output_change():
+    """Ids and bindings are names the model invents, so their spelling is noise."""
+    from benchmarks import outputs
+    before = json.dumps({"spec": {"fields": [
+        {"id": "fulgt-kontroller", "data_model_binding": "fulgtKontroller", "field_type": "boolean"}]}})
+    after = json.dumps({"spec": {"fields": [
+        {"id": "followed_checkups", "data_model_binding": "followedCheckups", "field_type": "boolean"}]}})
+
+    assert outputs.compare(before, after).comparable
+    assert not outputs.compare(before, after).changed
+
+
+def test_a_field_losing_its_binding_is_still_an_output_change():
+    """Only the spelling is ignored, not whether the field carries one."""
+    from benchmarks import outputs
+    before = json.dumps({"spec": {"fields": [{"id": "a", "data_model_binding": "aName"}]}})
+    after = json.dumps({"spec": {"fields": [{"id": "a"}]}})
+
+    assert outputs.compare(before, after).substantive
+
+
+def test_an_option_slug_is_ignored_but_its_label_is_not():
+    """The slug is derived from the label, so the label carries the meaning."""
+    from benchmarks import outputs
+    same_label = json.dumps({"spec": {"options": [{"label": "Annet", "value": "annet"}]}})
+    reslugged = json.dumps({"spec": {"options": [{"label": "Annet", "value": "other"}]}})
+    relabelled = json.dumps({"spec": {"options": [{"label": "Ukjent", "value": "annet"}]}})
+
+    assert not outputs.compare(same_label, reslugged).changed
+    assert outputs.compare(same_label, relabelled).substantive
+
+
+def test_a_collapsed_page_structure_is_an_output_change():
+    """The finding the noise hid: a four page form extracted onto one page, with
+    every label still present so no score moved."""
+    from benchmarks import outputs
+    four = json.dumps({"spec": {"total_pages": 4, "pages": [
+        {"page_name": f"side{n}", "fields": [{"label": f"F{n}"}]} for n in (1, 2, 3, 4)]}})
+    one = json.dumps({"spec": {"total_pages": 1, "pages": [
+        {"page_name": "helseattest", "fields": [{"label": f"F{n}"} for n in (1, 2, 3, 4)]}]}})
+
+    assert outputs.compare(four, one).substantive
+
+
 def test_a_changed_field_type_is_an_output_change():
     from benchmarks import outputs as out
 
@@ -911,18 +1255,20 @@ def test_an_insertion_reports_one_change_not_a_shifted_index_for_every_item():
     """Indexed paths turn one insertion into dozens of differences."""
     from benchmarks import outputs as out
 
-    before = json.dumps({"fields": [{"id": "a"}, {"id": "b"}, {"id": "c"}]})
-    after = json.dumps({"fields": [{"id": "a"}, {"id": "new"}, {"id": "b"}, {"id": "c"}]})
+    before = json.dumps({"fields": [{"type": "a"}, {"type": "b"}, {"type": "c"}]})
+    after = json.dumps(
+        {"fields": [{"type": "a"}, {"type": "new"}, {"type": "b"}, {"type": "c"}]}
+    )
     change = out.compare(before, after)
-    assert change.added == ("fields[].id=new",)
+    assert change.added == ("fields[].type=new",)
     assert change.removed == ()
 
 
 def test_reordering_is_reported_apart_from_a_substantive_change():
     from benchmarks import outputs as out
 
-    before = json.dumps({"fields": [{"id": "a"}, {"id": "b"}]})
-    after = json.dumps({"fields": [{"id": "b"}, {"id": "a"}]})
+    before = json.dumps({"fields": [{"type": "a"}, {"type": "b"}]})
+    after = json.dumps({"fields": [{"type": "b"}, {"type": "a"}]})
     change = out.compare(before, after)
     assert change.reordered
     assert not change.substantive

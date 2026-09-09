@@ -9,30 +9,7 @@ import re
 from benchmarks import manifest
 from benchmarks.diff import NOISE_FLOOR
 from benchmarks.outputs import IDENTIFIER_MAX_CHARS
-from benchmarks.report import Report
-
-VERDICT_WORDS = {
-    "holding": "holding",
-    "improved": "improved",
-    "regressed": "regressed",
-    "failing": "failing",
-    "output-changed": "output changed, score did not",
-    "unpinned": "not pinned",
-    "not-run": "not run",
-    "no-score": "ran but scored nothing",
-    "new": "recorded, nothing to compare",
-}
-VERDICT_CLASS = {
-    "holding": "hold",
-    "improved": "moved",
-    "regressed": "broken",
-    "failing": "broken",
-    "output-changed": "moved",
-    "unpinned": "unpinned",
-    "not-run": "unpinned",
-    "no-score": "broken",
-    "new": "hold",
-}
+from benchmarks.report import VERDICT_CLASS, VERDICT_WORDS, Report, shape_of
 
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 
@@ -43,27 +20,6 @@ def _flat(value: object) -> str:
     if isinstance(value, dict):
         return ", ".join(f"{k} {v}" for k, v in sorted(value.items())) or "not recorded"
     return str(value)
-
-
-def _shape(item) -> dict | None:
-    """What moved in one item's output, as paths rather than as two walls of JSON."""
-    change = item.shape
-    if change.changed is None:
-        return {"comparable": False, "summary": change.summary, "rows": []}
-    if not change.changed:
-        return None
-    return {
-        "comparable": True,
-        "summary": change.summary,
-        "reordered": change.reordered,
-        "removed": list(change.removed[:40]),
-        "added": list(change.added[:40]),
-        "total": len(change.removed) + len(change.added),
-        "rows": [
-            {"kind": kind, "path": path.split("=")[0].split(":")[0], "entry": path}
-            for kind, path in change.paths(40)
-        ],
-    }
 
 
 def _payload(report: Report) -> dict:
@@ -88,7 +44,7 @@ def _payload(report: Report) -> dict:
     for view in report.behaviors:
         behavior = view.behavior
         count = view.scored_count
-        shapes = {item.item_id: _shape(item) for item in view.items}
+        shapes = {item.item_id: shape_of(item) for item in view.items}
         items = [
             {
                 "id": row.item_id,
@@ -199,6 +155,23 @@ def _payload(report: Report) -> dict:
         )
 
     return {
+        "references": [
+            {
+                "name": r.name,
+                "label": r.label,
+                "recorded": r.recorded,
+                "kind": r.kind,
+                "adopted": r.adopted,
+                "axes": r.axes,
+                "refused": list(r.refused),
+                "counts": r.counts,
+                "behaviors": r.behaviors,
+                "components": r.components,
+                "moved": list(r.moved),
+            }
+            for r in report.references
+        ],
+        "adopted_reference": report.baseline.name if report.baseline else None,
         "identifier_max_chars": IDENTIFIER_MAX_CHARS,
         "scored_items": len(
             {row.item_id for view in report.behaviors for row in view.rows()}
@@ -217,16 +190,20 @@ def _payload(report: Report) -> dict:
         "runs": runs,
         "open_work": [v.behavior.id for v in report.open_work()],
         "short_of_full_marks": [v.behavior.id for v in report.short_of_full_marks()],
+        "moved_in_this_run": sorted(report.moved_in_this_run()),
         "unattributable": [v.behavior.id for v in report.unattributable()],
         "unclaimed_evals": list(manifest.evals_with_no_behavior()),
     }
 
 
-def _prose(text: str) -> str:
+def _prose(text: str, judge: str, run: str) -> str:
     """A small markdown subset, applied to already-escaped text."""
     out = [
         '<section><div class="panel"><div class="panel-head">'
-        "<h3>What a model made of the evidence above</h3></div>"
+        f"<h3>What {html.escape(judge)} made of the evidence above</h3>"
+        '<span class="panel-note">generated prose over the payload for '
+        f'{html.escape(run)}, saved beside the run. No score on this page comes '
+        "from a model.</span></div>"
         '<div class="prose">'
     ]
     for block in text.split("\n\n"):
@@ -245,7 +222,8 @@ def _prose(text: str) -> str:
 
 def render(report: Report, *, judge_note: str | None = None) -> str:
     data = json.dumps(_payload(report), ensure_ascii=False)
-    note = _prose(judge_note) if judge_note else ""
+    judge = report.current.provenance.judge or "a model"
+    note = _prose(judge_note, judge, report.current.name) if judge_note else ""
     return TEMPLATE.replace("__DATA__", data).replace("__JUDGE__", note)
 
 
@@ -400,6 +378,22 @@ color:var(--broken)}
 .wr{font-size:11.5px;color:var(--muted);text-align:right}
 @media (max-width:760px){.weak-row{grid-template-columns:56px minmax(0,1fr)}.wr{display:none}}
 .where{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.refbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 18px}
+.refbar .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+text-transform:uppercase;color:var(--muted);margin-right:2px}
+.refbtn{font:inherit;font-size:12px;padding:6px 11px;border:1px solid var(--rule);
+border-radius:4px;background:var(--panel);color:var(--ink-2);cursor:pointer;
+display:inline-flex;gap:7px;align-items:baseline}
+.refbtn:hover{border-color:var(--rule-2);color:var(--ink)}
+.refbtn[aria-pressed="true"]{border-color:var(--accent-br);color:var(--ink);
+background:var(--panel-2)}
+.refbtn em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+text-transform:uppercase;color:var(--muted)}
+.refbtn[aria-pressed="true"] em{color:var(--accent-br)}
+.refbtn .rd{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.axis-row.unknown .axis-flag{color:var(--moved)}
+.same-as{color:var(--muted)}
+.chip.total{color:var(--muted);background:var(--panel-2);border:1px solid var(--rule-2)}
 .itemhead{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;
 justify-content:space-between;margin:16px 0 7px}
 .itemhead h4{margin:0;font-size:12.5px;font-weight:600}
@@ -524,6 +518,7 @@ font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--ink-2);whit
 </style></head><body><div class="wrap">
 <header><div><div class="eyebrow">Altinn Studio Assistant &middot; eval workbench</div><h1>Workbench</h1></div>
 <div class="sources" id="sources"></div></header>
+<div class="refbar" id="refbar"></div>
 <div id="verdict"></div>
 <section><div class="panel"><div class="panel-head"><h3>How to read this page</h3>
 <span class="panel-note">the words on this page, defined</span></div>
@@ -570,6 +565,99 @@ const KIND = D.fix_kinds;
 const esc = t => String(t == null ? "" : t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
 const fmt = v => v == null ? "\u2013" : v.toFixed(3);
 
+// The reference the page is read against; each one is compared in Python.
+let refName = D.adopted_reference
+  || (D.references.length ? D.references[0].name : null);
+
+function reference() {
+  return D.references.find(r => r.name === refName) || null;
+}
+
+// A behavior with the selected reference's numbers laid over it.
+function withRef(b) {
+  const r = reference();
+  const o = r && r.behaviors[b.id];
+  if (!o) {
+    const verdict = b.pinned ? "new" : b.verdict;
+    return Object.assign({}, b, {
+      baseline: null, delta: null, verdict: verdict,
+      verdict_word: WORD[verdict] || verdict,
+      verdict_class: CLS[verdict] || "unpinned",
+      evidence: [], prompt: b.prompt,
+      readings: Object.assign({}, b.readings, {baseline: "no reference selected"}),
+      items: b.items.map(i => Object.assign({}, i, {before: null, shape: null})),
+    });
+  }
+  return Object.assign({}, b, {
+    baseline: o.baseline,
+    delta: o.delta,
+    verdict: o.verdict,
+    verdict_word: o.verdict_word,
+    verdict_class: o.verdict_class,
+    attributable: o.attributable,
+    evidence: o.evidence,
+    prompt: o.prompt,
+    readings: Object.assign({}, b.readings, {baseline: o.reading}),
+    items: b.items.map(i => {
+      const per = o.items[i.id] || {};
+      return Object.assign({}, i, {before: per.before ?? null, shape: per.shape || null});
+    }),
+  });
+}
+
+function tally(counts) {
+  const chips = [
+    ["hold", counts.holding, "holding"],
+    ["moved", counts.moved, "moved"],
+    ["hold", counts.variance, "within one item"],
+    ["broken", counts.failing, "failing"],
+    ["broken", counts.no_score, "scored nothing"],
+    ["unpinned", counts.not_run, "not run"],
+    ["hold", counts.recorded, "recorded"],
+    ["unpinned", counts.unpinned, "nothing pins these"],
+  ].filter(c => c[1]);
+  const shown = chips.reduce((n, c) => n + c[1], 0);
+  return '<div class="tally">' +
+    chips.map(c => '<span class="chip ' + c[0] + '">' + c[1] + " " + c[2] + "</span>").join("") +
+    '<span class="chip total">' + shown + " of " + D.behaviors.length + " behaviors</span></div>";
+}
+
+function chosenLabel() {
+  const r = reference();
+  return r ? r.label : "no reference";
+}
+
+function refCounts() {
+  const r = reference();
+  if (r) return r.counts;
+  const pinned = D.behaviors.filter(b => b.pinned).length;
+  return {holding: 0, moved: 0, failing: 0, variance: 0, not_run: 0, no_score: 0,
+    recorded: pinned, unpinned: D.behaviors.length - pinned};
+}
+
+function refRefused() {
+  const r = reference();
+  return r ? r.refused : [];
+}
+
+function refbar() {
+  const el = document.getElementById("refbar");
+  if (!D.references.length) { el.innerHTML = ""; return; }
+  const button = (name, label, kind, recorded) =>
+    '<button class="refbtn" data-ref="' + esc(name || "") + '" aria-pressed="' +
+    (refName === name ? "true" : "false") + '">' +
+    "<em>" + esc(kind) + "</em><span>" + esc(label) + "</span>" +
+    (recorded ? '<span class="rd">' + esc(recorded.slice(0, 10)) + "</span>" : "") +
+    "</button>";
+  el.innerHTML = '<span class="rl">read against</span>' +
+    D.references.map(r => button(r.name, r.label, r.kind, r.recorded)).join("") +
+    button(null, "nothing", "absolute", "");
+  el.querySelectorAll(".refbtn").forEach(btn => btn.addEventListener("click", () => {
+    refName = btn.dataset.ref || null;
+    render();
+  }));
+}
+
 let sel = (() => {
   const first = D.behaviors.find(b => D.open_work.includes(b.id));
   return first ? first.component : (D.components[0] || {}).id;
@@ -603,52 +691,66 @@ function header() {
 
 function verdict() {
   const el = document.getElementById("verdict");
-  if (D.refused.length) {
-    el.className = "verdict refused";
-    el.innerHTML = '<div class="eyebrow">Comparison refused</div>' +
-      "<h2>These two runs cannot be compared</h2>" +
-      "<p>" + D.refused.length + " thing" + (D.refused.length > 1 ? "s" : "") +
-      " differ that were not declared as the change under test, so any difference in the scores could " +
-      "come from any of them. Line them up, or re-run the baseline against today's state, then compare again.</p>" +
-      '<div class="tally">' + D.refused.map(k =>
-        '<span class="chip broken">' + esc(AXIS_LABELS[k] || k) + "</span>").join("") + "</div>";
-    return;
-  }
-  const down = D.behaviors.filter(b => b.verdict === "regressed").length;
-  const up = D.behaviors.filter(b => b.verdict === "improved").length;
-  const silent = D.behaviors.filter(b => b.verdict === "output-changed").length;
-  const failing = D.behaviors.filter(b => b.verdict === "failing").length;
+  const shown = D.behaviors.map(withRef);
+  const down = shown.filter(b => b.verdict === "regressed").length;
+  const up = shown.filter(b => b.verdict === "improved").length;
+  const silent = shown.filter(b => b.verdict === "output-changed").length;
+  const failing = shown.filter(b => b.verdict === "failing").length;
+  const counts = refCounts();
+  const chosen = reference();
   const byId = Object.fromEntries(D.behaviors.map(b => [b.id, b]));
   const weak = (D.short_of_full_marks || []).map(id => byId[id]).filter(Boolean);
 
   // A score that has never been good holds steady, so movement alone misses it.
+  const chosenRef = reference();
+  const movedNow = new Set(chosenRef ? chosenRef.moved : []);
+  const rows = list => list.map(b =>
+    '<button class="weak-row" data-go="' + esc(b.id) + '">' +
+    '<span class="wv">' + fmt(b.current) + "</span>" +
+    '<span class="wt">' + esc(b.text) + "</span>" +
+    '<span class="wr">' + esc(b.readings.current) + "</span></button>").join("");
+  const fresh = weak.filter(b => movedNow.has(b.id));
+  const standing = weak.filter(b => !movedNow.has(b.id));
   const weakList = weak.length
-    ? '<div class="weak"><div class="weak-hd">Not at full marks, worst first</div>' +
-      weak.map(b =>
-        '<button class="weak-row" data-go="' + esc(b.id) + '">' +
-        '<span class="wv">' + fmt(b.current) + "</span>" +
-        '<span class="wt">' + esc(b.text) + "</span>" +
-        '<span class="wr">' + esc(b.readings.current) + "</span></button>").join("") +
+    ? '<div class="weak">' +
+      (fresh.length ? '<div class="weak-hd">Moved in this run</div>' + rows(fresh) : "") +
+      (standing.length
+        ? '<div class="weak-hd">Already like this before this run, so not a finding ' +
+          'about this change</div>' + rows(standing)
+        : "") +
       "</div>"
     : '<div class="weak"><div class="weak-hd">Every scored behavior is at full marks</div></div>';
 
+  const refused = refRefused();
+  if (refused.length) {
+    el.className = "verdict refused";
+    el.innerHTML = '<div class="eyebrow">Comparison refused</div>' +
+      "<h2>These two runs cannot be compared</h2>" +
+      "<p>" + refused.length + " thing" + (refused.length > 1 ? "s" : "") +
+      " differ that were not declared as the change under test, so any difference in the scores could " +
+      "come from any of them. Line them up, or re-run the baseline against today's state, then compare again.</p>" +
+      '<div class="tally">' + refused.map(k =>
+        '<span class="chip broken">' + esc(AXIS_LABELS[k] || k) + "</span>").join("") + "</div>" +
+      weakList;
+    return;
+  }
   el.className = "verdict";
-  if (!D.runs.baseline) {
+  if (!chosen) {
     el.innerHTML = '<div class="eyebrow">' + esc(D.runs.current.label) + "</div>" +
-      "<h2>" + D.counts.recorded + " behavior" + (D.counts.recorded === 1 ? "" : "s") +
-      " recorded, with no baseline to compare against</h2>" +
+      "<h2>" + counts.recorded + " behavior" + (counts.recorded === 1 ? "" : "s") +
+      " recorded, with nothing selected to compare against</h2>" +
       "<p>Nothing here is a regression or an improvement, because there is nothing to " +
       "compare to yet. What the page can show is the absolute state: which items pass, " +
       "which do not, and what the evaluator computed for each. Adopt this run as the " +
       "baseline once it is what main does today.</p>" + weakList +
       '<div class="tally">' +
-      '<span class="chip hold">' + D.counts.recorded + " recorded</span>" +
+      '<span class="chip hold">' + counts.recorded + " recorded</span>" +
       '<span class="chip broken">' + weak.length + " short of full marks</span>" +
-      '<span class="chip unpinned">' + D.counts.unpinned + " nothing pins these</span></div>";
+      '<span class="chip unpinned">' + counts.unpinned + " nothing pins these</span></div>";
     return;
   }
   el.innerHTML = '<div class="eyebrow">' +
-    esc(D.runs.baseline.label) + " &rarr; " + esc(D.runs.current.label) +
+    esc(chosen.label) + " &rarr; " + esc(D.runs.current.label) +
     "</div><h2>" + down + " regressed, " + up + " improved, " + silent +
     " changed output without moving a score</h2><p>" +
     (D.under_test.length
@@ -657,48 +759,58 @@ function verdict() {
     failing + " behavior" + (failing === 1 ? " is" : "s are") +
     " failing on both runs, which a comparison between two models alone would report as no change.</p>" +
     weakList +
-    '<div class="tally">' +
-    '<span class="chip hold">' + D.counts.holding + " holding</span>" +
-    '<span class="chip moved">' + D.counts.moved + " moved</span>" +
-    '<span class="chip broken">' + D.counts.failing + " failing</span>" +
-    '<span class="chip unpinned">' + D.counts.unpinned + " nothing pins these</span></div>";
+    tally(counts);
 }
 
 function axes() {
-  const cur = D.runs.current, base = D.runs.baseline;
+  const cur = D.runs.current, base = reference();
   const axisKeys = Object.keys(cur.axes);
   const blank = axisKeys.filter(k => cur.axes[k] === "not recorded");
   document.getElementById("axisnote").textContent =
     axisKeys.length + " axes recorded per run" +
-    (blank.length ? ", " + blank.length + " of them empty in this run" : "");
+    (blank.length
+      ? ". " + blank.length + " were not captured, so they cannot be compared: " +
+        blank.map(k => AXIS_LABELS[k] || k).join(", ")
+      : ". All captured.");
   if (!base) {
     document.getElementById("axes").innerHTML =
-      '<div class="gap"><p>No baseline on disk, so nothing has been compared. Mark one with ' +
+      '<div class="gap"><p>Nothing selected to compare against. Pick a run above, or ' +
+      "mark one as the baseline with " +
       "<code>python -m benchmarks.runner baseline &lt;run name&gt;</code>.</p></div>";
     return;
   }
   document.getElementById("axes").innerHTML = Object.keys(cur.axes).map(k => {
-    const a = base.axes[k], z = cur.axes[k], differs = a !== z;
-    const cls = ["axis-row", differs ? "differs" : "same"];
-    let flag = differs ? "differs" : "same";
+    const a = base.axes[k] || "not recorded", z = cur.axes[k], differs = a !== z;
+    // Neither side recorded it, so it was not verified identical.
+    const blind = a === "not recorded" || z === "not recorded";
+    const cls = ["axis-row", blind ? "unknown" : differs ? "differs" : "same"];
+    let flag = blind ? "not compared" : differs ? "differs" : "same";
     if (differs && D.under_test.indexOf(k) >= 0) { cls.push("under-test"); flag = "under test"; }
-    if (D.refused.indexOf(k) >= 0) { cls.push("blocking"); flag = "blocks compare"; }
+    if (refRefused().indexOf(k) >= 0) { cls.push("blocking"); flag = "refuses the comparison"; }
     return '<div class="' + cls.join(" ") + '"><div class="name">' + esc(AXIS_LABELS[k] || k) + "</div>" +
-      '<div class="val b">' + esc(a) + '</div><div class="val a">' + (differs ? esc(z) : "") + "</div>" +
+      '<div class="val b">' + esc(a) + '</div><div class="val a">' +
+      (differs || blind ? esc(z) : '<span class="same-as">identical</span>') + "</div>" +
       '<div class="axis-flag">' + flag + "</div></div>";
   }).join("");
+}
+
+function worstOf(component) {
+  const r = reference();
+  if (r) return r.components[component] || "holding";
+  return D.behaviors.some(b => b.component === component && b.pinned) ? "new" : "unpinned";
 }
 
 function path() {
   const color = {hold:"var(--hold)",moved:"var(--moved)",broken:"var(--broken)",unpinned:"var(--unpinned)"};
   document.getElementById("path").innerHTML = D.components.map(c =>
     '<button class="station ' + (sel === c.id ? "sel" : "") + '" style="--st:' +
-    (color[CLS[c.worst]] || "var(--unpinned)") + '" data-c="' + c.id + '">' +
+    (color[CLS[worstOf(c.id)]] || "var(--unpinned)") + '" data-c="' + c.id + '">' +
     '<span class="st-name"><span class="st-label">' + esc(c.name) + '</span>' +
-    '<span class="st-sum">' + (WORD[c.worst] || c.worst) + "</span></span>" +
+    '<span class="st-sum">' + (WORD[worstOf(c.id)] || worstOf(c.id)) + "</span></span>" +
     '<span class="st-file">' + esc(c.where) + "</span>" +
-    '<span class="bars">' + c.verdicts.map(v =>
-      '<i class="bar ' + (CLS[v] || "unpinned") + '"></i>').join("") + "</span>" +
+    '<span class="bars">' + D.behaviors.filter(b => b.component === c.id)
+      .map(withRef).map(b =>
+      '<i class="bar ' + (CLS[b.verdict] || "unpinned") + '"></i>').join("") + "</span>" +
     '<span class="st-file">' + c.pinned + " of " + c.total + " behaviors pinned</span></button>").join("");
   document.querySelectorAll(".station").forEach(b =>
     b.addEventListener("click", () => { sel = b.dataset.c; render(); }));
@@ -727,6 +839,7 @@ function detail() {
   apSeq = 0;
   document.getElementById("detail").innerHTML = D.behaviors
     .filter(b => b.component === sel)
+    .map(withRef)
     .map(b => {
       if (!b.pinned) {
         return '<div class="beh"><div class="gap">' +
@@ -853,14 +966,16 @@ function detail() {
           "<strong>What changed in the output</strong><span>" + esc(shaped.id) + "</span>" +
           '<span class="more">' + esc(s.summary) + "</span></div>" +
           '<div class="shape-cols">' +
-          col("gone", "only in baseline", gone) +
+          col("gone", "only in " + chosenLabel(), gone) +
           col("new", "only in current", added) + "</div>" +
           '<div class="shape-note">Compared: every key path, and any text value with no ' +
-          "spaces in it of " + D.identifier_max_chars + " characters or fewer, so field ids, " +
-          "bindings, types, option values and one-word labels all count. Not compared: text " +
-          "with a space in it, treated as prose a model may reword freely, and the value of " +
-          "any number, which is compared by type alone. A reworded sentence is invisible " +
-          "here, and so is a changed number." +
+          "spaces in it of " + D.identifier_max_chars + " characters or fewer, so field " +
+          "types, labels and option labels all count. Not compared: text with a space in " +
+          "it, treated as prose a model may reword freely; the value of any number, " +
+          "compared by type alone; and the ids, data model bindings and option slugs the " +
+          "model invents for itself, where only whether the field carries one is compared. " +
+          "Two models never spell those the same way, and comparing them buried real " +
+          "findings under hundreds of rows." +
           (s.reordered ? " The same fields also appear in a different order." : "") +
           (s.total > s.rows.length ? " Showing " + s.rows.length + " of " + s.total + "." : "") +
           "</div></div>";
@@ -871,7 +986,8 @@ function detail() {
       }
       const cntFor = b.counts || {};
       const means = esc(b.readings.current) +
-        (!flat ? ", a change of " + (d > 0 ? "+" : "") + fmt(d) + " against the baseline."
+        (!flat ? ", a change of " + (d > 0 ? "+" : "") + fmt(d) + " against " +
+                 esc(chosenLabel()) + "."
                : d == null
                  ? ". There is no baseline yet, so the only thing this number can say is " +
                    "the absolute state: " + cntFor.passed + " of " + cntFor.scored +
@@ -882,13 +998,13 @@ function detail() {
         '<span class="pill ' + b.verdict_class + '">' + esc(b.verdict_word) + "</span></span>" +
         '<span class="beh-checks">' + esc(b.checks) + "</span>" +
         '<span class="runs">' +
-        '<div><span class="rl">baseline</span><span class="rv">' + fmt(b.baseline) +
+        '<div><span class="rl">' + esc(chosenLabel()) + '</span><span class="rv">' + fmt(b.baseline) +
         '</span><span class="rn">' + esc(b.readings.baseline) + "</span></div>" +
         '<div><span class="rl">previous</span><span class="rv">' + fmt(b.previous) +
         '</span><span class="rn">' + esc(b.readings.previous) + "</span></div>" +
         '<div class="cur"><span class="rl">current</span><span class="rv">' + fmt(b.current) +
         '</span><span class="rn">' + esc(b.readings.current) + "</span></div>" +
-        '<div class="ch"><span class="rl">change</span><span class="rv ' + dCls + '">' +
+        '<div class="ch"><span class="rl">change vs ' + esc(chosenLabel()) + '</span><span class="rv ' + dCls + '">' +
         (d == null ? "\u2013" : (d > 0 ? "+" : "") + fmt(d)) + '</span><span class="rn">' + dWord +
         "</span></div></span></button>" +
         '<div class="beh-body"><dl class="meta">' +
@@ -964,7 +1080,7 @@ function detail() {
   }));
 }
 
-function render() { header(); verdict(); axes(); path(); detail(); }
+function render() { refbar(); header(); verdict(); axes(); path(); detail(); }
 render();
 </script></body></html>
 """
