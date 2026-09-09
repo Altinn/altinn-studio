@@ -130,7 +130,7 @@ class Impact:
     def axes(self) -> tuple[str, ...]:
         return tuple(sorted({h.axis for h in self.hits}))
 
-    def explain(self) -> tuple[str, ...]:
+    def explain(self, *, rebaselined: bool = False) -> tuple[str, ...]:
         lines: list[str] = []
         if not self.hits:
             lines.append("Nothing in this change moves an axis the harness measures.")
@@ -139,14 +139,20 @@ class Impact:
             lines.append("This change moves what is measured:")
             for hit in self.yardstick_hits:
                 lines.append(f"  {hit.path}  ({hit.axis}) {hit.because}")
-            lines.append(
-                "The current baseline measured with a different instrument, so its scores "
-                "are not comparable to anything produced after this lands."
-            )
-            lines.append(
-                "Run a full check and adopt it, and commit BASELINE.json in this pull "
-                "request. See EVALS.md."
-            )
+            if rebaselined:
+                lines.append(
+                    "BASELINE.json moves in this change, so the baseline was measured with "
+                    "this instrument and its scores are comparable."
+                )
+            else:
+                lines.append(
+                    "The baseline measured with a different instrument, so its scores are "
+                    "not comparable to anything produced after this lands."
+                )
+                lines.append(
+                    "Run a full check and adopt it, and commit BASELINE.json in this pull "
+                    "request. See EVALS.md."
+                )
         if self.behavior_hits:
             lines.append("This change moves the agent without moving the yardstick:")
             for hit in self.behavior_hits:
@@ -170,12 +176,12 @@ def report(changed: list[str], *, strict: bool) -> int:
     from benchmarks import baseline as pointer_file
 
     found = analyze(changed)
-    for line in found.explain():
+    rebaselined = any(path.endswith("BASELINE.json") for path in changed)
+    for line in found.explain(rebaselined=rebaselined):
         print(line)
     if not found.needs_rebaseline:
         return 0
-    if any(path.endswith("BASELINE.json") for path in changed):
-        print("\nBASELINE.json is in this change, so the new baseline travels with it.")
+    if rebaselined:
         return 0
 
     pointer = pointer_file.read()

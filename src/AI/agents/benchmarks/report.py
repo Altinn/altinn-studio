@@ -11,7 +11,32 @@ from typing import Any
 
 from benchmarks import manifest
 from benchmarks.diff import NOISE_FLOOR, Comparison, compare
-from benchmarks.runstore import BehaviorResult, ItemResult, Run, series
+from benchmarks.runstore import BehaviorResult, ItemResult, Run, load, series
+
+VERDICT_WORDS = {
+    "holding": "holding",
+    "improved": "improved",
+    "regressed": "regressed",
+    "failing": "failing",
+    "output-changed": "output changed, score did not",
+    "unpinned": "not pinned",
+    "not-run": "not run",
+    "no-score": "ran but scored nothing",
+    "new": "recorded, nothing to compare",
+    "variance": "moved by one item on an unchanged model",
+}
+VERDICT_CLASS = {
+    "holding": "hold",
+    "improved": "moved",
+    "regressed": "broken",
+    "failing": "broken",
+    "output-changed": "moved",
+    "unpinned": "unpinned",
+    "not-run": "unpinned",
+    "no-score": "broken",
+    "new": "hold",
+    "variance": "hold",
+}
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "eval_report_judge.md"
 
@@ -149,11 +174,13 @@ class BehaviorView:
                 f"move in steps of {step:.3f}, which is {floor}."
             )
             if not self.floor_applies:
-                return (
-                    f"{line} No smaller change exists, so any one item answering "
-                    "differently is reported as a change and nothing here can be "
-                    "absorbed as run to run variance."
+                absorbed = (
+                    " A single item moving on a model that did not change is treated as "
+                    "variance rather than a finding."
+                    if step <= NOISE_FLOOR * COARSE_MULTIPLE
+                    else " Every single item answering differently is reported as a change."
                 )
+                return f"{line} No smaller change exists.{absorbed}"
             return line
         return (
             f"Resolution: the mean of {scored} items, so any one of them moves this "
@@ -280,6 +307,23 @@ class BehaviorView:
 
 
 @dataclass(frozen=True)
+class Reference:
+    """One run the current one can be read against, compared in Python."""
+
+    name: str
+    label: str
+    recorded: str
+    kind: str
+    adopted: bool
+    axes: dict[str, str]
+    refused: tuple[str, ...]
+    counts: dict[str, int]
+    behaviors: dict[str, dict]
+    components: dict[str, str]
+    moved: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class Report:
     baseline: Run | None
     previous: Run | None
@@ -287,6 +331,8 @@ class Report:
     comparison: Comparison | None
     behaviors: tuple[BehaviorView, ...]
     generated_at: str
+    adopted: bool = True
+    references: tuple[Reference, ...] = ()
 
     @property
     def is_refused(self) -> bool:
@@ -297,11 +343,13 @@ class Report:
 
     def counts(self) -> dict[str, int]:
         counts = {
-            "holding": 0, "moved": 0, "failing": 0, "recorded": 0,
+            "holding": 0, "moved": 0, "failing": 0, "recorded": 0, "variance": 0,
             "unpinned": 0, "not_run": 0, "no_score": 0,
         }
         for view in self.behaviors:
-            if view.verdict in ("improved", "regressed", "output-changed"):
+            if view.verdict == "variance":
+                counts["variance"] += 1
+            elif view.verdict in ("improved", "regressed", "output-changed"):
                 counts["moved"] += 1
             elif view.verdict == "not-run":
                 counts["not_run"] += 1
@@ -314,6 +362,14 @@ class Report:
                 counts[view.verdict] += 1
         return counts
 
+    def moved_in_this_run(self) -> frozenset[str]:
+        """Behaviors whose score moved against the reference by more than noise."""
+        return frozenset(
+            v.behavior.id
+            for v in self.behaviors
+            if v.verdict in ("regressed", "improved")
+        )
+
     def short_of_full_marks(self) -> tuple[BehaviorView, ...]:
         """Pinned behaviors not at 1.0, worst first."""
         scored = [v for v in self.behaviors if v.current is not None and v.current < 1.0]
@@ -322,7 +378,8 @@ class Report:
     def worst_verdict(self, component_id: str) -> str:
         rank = {
             "failing": 6, "no-score": 5, "regressed": 4, "output-changed": 3,
-            "improved": 2, "unpinned": 1, "not-run": 1, "new": 0, "holding": 0,
+            "improved": 2, "variance": 2, "unpinned": 1, "not-run": 1,
+            "new": 0, "holding": 0,
         }
         views = self.of_component(component_id)
         if not views:
@@ -409,7 +466,9 @@ def _unwrap(value: object) -> object:
     """What the model said, with the envelope around it removed."""
     if not isinstance(value, dict):
         return value
-    carried = {k: v for k, v in value.items() if k not in _ENVELOPE_KEYS}
+    carried = {
+        k: v for k, v in value.items() if k not in _ENVELOPE_KEYS and v is not None
+    }
     if any(key in carried for key in _PARSED_KEYS):
         carried.pop("text", None)
     if "goal" in carried:
@@ -525,12 +584,142 @@ def _evidence_for(verdict: str, change) -> tuple[str, ...]:
     return change.evidence()
 
 
+def _variance_or_not(verdict: str, result, base_result) -> str:
+    """One item flipping on an unchanged model is noise, unless the set is coarse."""
+    if result is None or base_result is None:
+        return verdict
+    if result.score is None or base_result.score is None:
+        return verdict
+    step = result.granularity
+    if step is None or step > NOISE_FLOOR * COARSE_MULTIPLE:
+        return verdict
+    return "variance" if abs(result.score - base_result.score) <= step + 1e-9 else verdict
+
+
+def _references(
+    current: Run,
+    adopted: Run | None,
+    previous: Run | None,
+    *,
+    directory: Path | None,
+    pointer: Path | None,
+) -> tuple[Reference, ...]:
+    """Every run the page can be read against, newest first."""
+    from benchmarks.runstore import all_runs
+
+    kinds = {}
+    if adopted:
+        kinds[adopted.name] = "baseline"
+    if previous and previous.name not in kinds:
+        kinds[previous.name] = "previous"
+    built = []
+    for run in all_runs(directory=directory):
+        if run.name == current.name:
+            continue
+        one = build(
+            current=current,
+            directory=directory,
+            pointer=pointer,
+            baseline_run=run.name,
+            with_references=False,
+        )
+        built.append(
+            _as_reference(
+                one,
+                kinds.get(run.name, "other"),
+                adopted=adopted is not None and run.name == adopted.name,
+            )
+        )
+    return tuple(built)
+
+
+def shape_of(item) -> dict | None:
+    """What moved in one item's output, as paths rather than as two walls of JSON."""
+    change = item.shape
+    if change.changed is None:
+        return {"comparable": False, "summary": change.summary, "rows": []}
+    if not change.changed:
+        return None
+    return {
+        "comparable": True,
+        "summary": change.summary,
+        "reordered": change.reordered,
+        "removed": list(change.removed[:40]),
+        "added": list(change.added[:40]),
+        "total": len(change.removed) + len(change.added),
+        "rows": [
+            {"kind": kind, "path": path.split("=")[0].split(":")[0], "entry": path}
+            for kind, path in change.paths(40)
+        ],
+    }
+
+
+def _as_reference(built: Report, kind: str, *, adopted: bool) -> Reference:
+    """A built comparison, reduced to what switching reference has to change."""
+    reference = built.baseline
+    assert reference is not None
+    behaviors = {}
+    for view in built.behaviors:
+        shapes = {item.item_id: shape_of(item) for item in view.items}
+        behaviors[view.behavior.id] = {
+            "baseline": view.baseline,
+            "delta": view.delta,
+            "verdict": view.verdict,
+            "verdict_word": VERDICT_WORDS.get(view.verdict, view.verdict),
+            "verdict_class": VERDICT_CLASS.get(view.verdict, "unpinned"),
+            "attributable": view.attributable,
+            "evidence": list(view.evidence),
+            "prompt": view.prompt,
+            "reading": view.reading(
+                view.baseline, view.scored_in("baseline"), slot="baseline"
+            ),
+            "items": {
+                row.item_id: {
+                    "before": row.before,
+                    "shape": shapes.get(row.item_id),
+                }
+                for row in view.rows()
+            },
+        }
+    return Reference(
+        name=reference.name,
+        label=reference.label,
+        recorded=reference.provenance.recorded_at,
+        kind=kind,
+        adopted=adopted,
+        axes={k: _flat_axis(v) for k, v in reference.provenance.axes().items()},
+        refused=tuple(built.comparison.refused) if built.comparison else (),
+        counts=built.counts(),
+        behaviors=behaviors,
+        components={c.id: built.worst_verdict(c.id) for c in manifest.COMPONENTS},
+        moved=tuple(sorted(built.moved_in_this_run())),
+    )
+
+
+def _flat_axis(value: object) -> str:
+    if isinstance(value, dict):
+        return ", ".join(f"{k} {v}" for k, v in value.items()) if value else "not recorded"
+    return str(value) if value not in (None, "") else "not recorded"
+
+
 def build(
-    *, current: Run | None = None, directory: Path | None = None, pointer: Path | None = None
+    *,
+    current: Run | None = None,
+    directory: Path | None = None,
+    pointer: Path | None = None,
+    baseline_run: str | None = None,
+    with_references: bool = True,
 ) -> Report:
+    """`baseline_run` compares against a named run, leaving the pointer alone."""
     baseline, previous, latest = series(directory=directory, pointer=pointer)
     current = current or latest
     assert current is not None, "no runs on disk, so there is nothing to report"
+    if baseline_run:
+        assert baseline_run != current.name, (
+            f"{current.name} cannot be compared against itself"
+        )
+        baseline = load(baseline_run, directory=directory)
+        previous = None
 
     comparison = compare(baseline, current) if baseline else None
     views = []
@@ -545,6 +734,8 @@ def build(
         model_changed = _model_changed(behavior, baseline, current)
         if verdict == "output-changed" and model_changed:
             verdict = "holding"
+        if verdict in ("regressed", "improved") and not model_changed:
+            verdict = _variance_or_not(verdict, result, base_result)
         views.append(
             BehaviorView(
                 behavior=behavior,
@@ -569,7 +760,15 @@ def build(
                 model_changed=model_changed,
             )
         )
+    references: tuple[Reference, ...] = ()
+    if with_references:
+        references = _references(
+            current, baseline, previous, directory=directory, pointer=pointer
+        )
+
     return Report(
+        references=references,
+        adopted=not baseline_run,
         baseline=baseline,
         previous=previous,
         current=current,

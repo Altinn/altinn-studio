@@ -96,6 +96,26 @@ def test_both_kinds_are_reported_when_both_are_present():
     assert found.yardstick_hits and found.behavior_hits
 
 
+def test_the_gate_says_one_thing_about_the_baseline(capsys):
+    """It asserted the baseline was stale and then that it travelled with the
+    change, in the same output."""
+    impact.report(["src/AI/agents/benchmarks/gates.py",
+                   "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
+    said = capsys.readouterr().out
+
+    assert "were measured with this instrument" in said or "was measured with this" in said
+    assert "not comparable" not in said
+
+
+def test_without_a_new_baseline_it_still_says_stale(capsys):
+    code = impact.report(["src/AI/agents/benchmarks/gates.py"], strict=True)
+    said = capsys.readouterr().out
+
+    assert code == 1
+    assert "not comparable" in said
+    assert "were measured with this instrument" not in said
+
+
 def test_every_declared_pattern_matches_something_that_exists():
     """A rule for a path that is gone is a rule that silently stops working."""
     for pattern, _axis, _why in impact.YARDSTICK + impact.BEHAVIOR:
@@ -162,7 +182,7 @@ class TestTheFailureTellsYouWhatToDo:
             ["benchmarks/datasets/gates_scope.jsonl", "benchmarks/BASELINE.json"], tmp_path
         )
         assert code == 0
-        assert "travels with it" in text
+        assert "measured with this instrument" in text
 
     def test_a_behavior_change_passes(self, tmp_path):
         code, _text = self._run_impact(["agents/core/loop.py"], tmp_path)

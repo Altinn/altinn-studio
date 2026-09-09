@@ -50,7 +50,7 @@ class BaseConfig:
     LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "low")
 
 
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-terra")
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
 
     LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "gpt-5.6-sol")

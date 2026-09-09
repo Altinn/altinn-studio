@@ -157,8 +157,8 @@ def _item_changes(baseline: Run, candidate: Run, behavior_id: str) -> tuple[Item
     changes = []
     for item in after.items:
         old = before.item(item.item_id) if before else None
-        primary = next(iter(item.scores.values()), None) if item.scores else None
-        old_primary = next(iter(old.scores.values()), None) if old and old.scores else None
+        primary = item.value(after.evaluator)
+        old_primary = old.value(after.evaluator) if old else None
         changes.append(
             ItemChange(
                 item_id=item.item_id,

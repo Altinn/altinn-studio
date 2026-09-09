@@ -72,6 +72,11 @@ def _write_report(report, judge_note, out: str | None) -> Path:
 
 def _print_summary(report) -> None:
     counts = report.counts()
+    if not report.adopted and report.baseline:
+        print(
+            f"\nComparing against {report.baseline.name!r}, not the committed baseline. "
+            "Nothing here changes the pointer."
+        )
     if report.is_refused:
         from .provenance import remedy
 
@@ -92,13 +97,41 @@ def _print_summary(report) -> None:
     ]
     print("\n" + ", ".join(part for part in tally if part))
     short = report.short_of_full_marks()
-    if short:
-        print(f"\n  {len(short)} behavior(s) are not at full marks, worst first:")
+    is_the_baseline = bool(
+        report.baseline and report.baseline.name == report.current.name
+    )
+    if short and is_the_baseline:
+        print(
+            f"\n  This run is the baseline. {len(short)} behavior(s) are below full "
+            "marks, and these are the scores everything later is held to:"
+        )
         for view in short:
             print(
                 f"    {view.current:.3f}  {view.behavior.id:34} "
                 f"{view.reading(view.current, view.scored_count)}"
             )
+    elif short:
+        moved = report.moved_in_this_run()
+        fresh = [v for v in short if v.behavior.id in moved]
+        standing = [v for v in short if v.behavior.id not in moved]
+        if fresh:
+            print(f"\n  {len(fresh)} of these moved in this run:")
+            for view in fresh:
+                print(
+                    f"    {view.current:.3f}  {view.behavior.id:34} "
+                    f"{view.reading(view.current, view.scored_count)}"
+                )
+        if standing:
+            was = "was" if len(standing) == 1 else "were"
+            print(
+                f"\n  {len(standing)} {was} already like this before this run, so not a "
+                "finding about this change:"
+            )
+            for view in standing:
+                print(
+                    f"    {view.current:.3f}  {view.behavior.id:34} "
+                    f"{view.reading(view.current, view.scored_count)}"
+                )
     if counts["no_score"]:
         print(
             f"  WARNING: {counts['no_score']} behavior(s) ran and scored nothing. "
@@ -178,7 +211,7 @@ def cmd_check(args: argparse.Namespace) -> None:
     path = runstore.save(run)
     print(f"\nsaved {path}")
 
-    report = build(current=run)
+    report = build(current=run, baseline_run=args.baseline)
     note = None
     if not args.no_review and not report.is_refused:
         from .report import judge_model
@@ -187,6 +220,8 @@ def cmd_check(args: argparse.Namespace) -> None:
         print(f"Asking {model} to review the evidence...")
         note = asyncio.run(review(judge_payload(report), model))
 
+    if note:
+        runstore.attach_judge_note(run, note)
     _print_summary(report)
     destination = _write_report(report, note, args.out)
     print(f"\nReport: file://{destination.resolve()}")
@@ -196,9 +231,12 @@ def cmd_report(args: argparse.Namespace) -> None:
     """Re-render the page from the run store, running nothing."""
     from .report import build
 
-    report = build()
+    report = build(baseline_run=args.baseline)
     _print_summary(report)
-    print(f"\nReport: file://{_write_report(report, None, args.out).resolve()}")
+    print(
+        f"\nReport: file://"
+        f"{_write_report(report, report.current.judge_note, args.out).resolve()}"
+    )
 
 
 def cmd_runs(_: argparse.Namespace) -> None:
@@ -559,6 +597,10 @@ def _parser() -> argparse.ArgumentParser:
     check_parser.add_argument("--include-e2e", action="store_true", help="also run the slow builds")
     check_parser.add_argument("--no-review", action="store_true")
     check_parser.add_argument("--judge-model", default=None)
+    check_parser.add_argument(
+        "--baseline",
+        help="compare against this run instead of the committed pointer, for an A/B",
+    )
     check_parser.add_argument("--out")
     check_parser.add_argument("--max-concurrency", type=int, default=5)
     check_parser.add_argument("--role", default="actor")
@@ -571,6 +613,10 @@ def _parser() -> argparse.ArgumentParser:
     check_parser.set_defaults(func=cmd_check)
 
     report_parser = sub.add_parser("report", help=_describe("report"))
+    report_parser.add_argument(
+        "--baseline",
+        help="compare against this run instead of the committed pointer, for an A/B",
+    )
     report_parser.add_argument("--out")
     report_parser.set_defaults(func=cmd_report)
 
