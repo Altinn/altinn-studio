@@ -2,11 +2,14 @@
 
 Choose a Claude Code development environment:
 
-| Variant    | Additional tools                                        |
-| ---------- | ------------------------------------------------------- |
-| `minimal`  | .NET, Node.js and Go                                    |
-| `full`     | Rust, Podman, kind, kubectl, Helm and Flux              |
-| `worktree` | Full image with the current checkout mounted read-write |
+| Variant    | Additional tools                                                   |
+| ---------- | ------------------------------------------------------------------ |
+| `minimal`  | .NET, Node.js, Go, GitHub CLI, asciinema and agg                   |
+| `full`     | Rust, Podman, kind, kubectl, Helm, Flux, Playwright CLI and ffmpeg |
+| `worktree` | Full image with the current checkout mounted read-write            |
+
+Every variant installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
+recordings through asciinema, uploaded with `gh pr create --attach`.
 
 The host needs hardware virtualization. Docker is required only for manifests that build an image locally; these
 released variants use registry references. Install the released Agent CLI on Linux or macOS:
@@ -38,8 +41,10 @@ repository one, so add `Gists: Read and write` when the Agent must create or pus
 Organization approval may be required.
 
 Copy the chosen variant's `.env.sample` to `.env` and set `GITHUB_TOKEN` there. The token remains
-on the host and is substituted only for authorized GitHub requests. The worktree variant does not
-receive a token because its host checkout is mounted into the Agent.
+on the host and is substituted only for authorized GitHub requests, including attachment uploads to
+`uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
+token prefix, which `gh` needs before it will attach files. The worktree variant does not receive a
+token because its host checkout is mounted into the Agent, so it cannot attach files to pull requests.
 
 From the repository root, configure and start an Agent:
 

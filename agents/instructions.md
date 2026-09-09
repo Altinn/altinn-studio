@@ -80,7 +80,8 @@ When asked to create or update a pull request:
   `--body-file` rather than relying on interactive inference.
 - Use a conventional commit-style title such as `feat:`, `fix:`, or `chore:` and follow the repository template.
 - Explain what changed, why it changed, and how it was verified.
-- Include screenshots for relevant user-interface changes and command/output evidence for CLI behavior changes.
+- Show visible results instead of describing them: screenshots for user-interface changes, recordings for terminal
+  behavior, attached to the pull request. The `pr-evidence` skill has the workflow and the tool commands.
 - For `Altinn/altinn-studio`, push a feature branch to `origin` and target `main`; never merge it yourself.
 - For repositories without direct write access, configure or use a fork and target the upstream default branch.
 - Keep each pull request focused. Use separate, dependent pull requests when independent review or rollout is useful.
@@ -96,16 +97,8 @@ When posting multiline GitHub comments from a shell, pass the body through stdin
 
 Real secrets are host-mediated. Never search for, print, copy, or persist their values.
 
-The full image provides Podman, with `docker` and `/run/docker.sock` as compatibility surfaces, plus Rust, kind,
-kubectl, Helm, Flux, and Playwright with Chromium. The minimal image does not provide container, Kubernetes, or browser
-tooling. Detect available tools before relying on them.
-
-When Podman is available, containers receive mediated CA configuration automatically. Build steps receive the full CA
-bundle at `/run/agent/tls/ca-bundle.pem` and common system trust paths. A current Buildah bug drops default environment
-variables from build stages, so tools that ignore the system store need a step-scoped variable such as
-`RUN NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem npm ci` or `RUN NODE_OPTIONS=--use-openssl-ca npm ci`. Kind's
-`KIND_EXPERIMENTAL_PROVIDER=podman` mode is installed but unverified; do not assume nested kind containers inherit the
-Agent's mediated CA trust.
+The tools installed on this computer are listed in the section that follows this shared text. Detect a tool before
+relying on it.
 
 Store reusable local scripts under `/home/agent/code/.scripts/` and downloaded reference repositories or source
 material under `/home/agent/code/.reference/`. Check for existing material before downloading another copy.

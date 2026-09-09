@@ -24,7 +24,10 @@ spec:
   home:
     source: home
   instructions:
-    source: ../instructions.md
+    - source: ../instructions.md
+    - source: ../full/environment.md
+  skills:
+    - source: ../skills/pr-evidence
   harnesses:
     - type: claudeCode
       auth: mediated
