@@ -397,17 +397,24 @@ fn walk_source(
         if relative.as_os_str().is_empty() {
             continue;
         }
-        if entry.file_type().is_some_and(|kind| kind.is_symlink()) {
+        // Only directories and regular files are carried into the Sandbox. A symbolic link would
+        // point at host content outside the source, and reading a FIFO or device would block setup.
+        let kind = entry
+            .file_type()
+            .ok_or_else(|| Error::Invalid(format!("{field} entry {} has no file type", relative.display())))?;
+        if kind.is_symlink() {
             return Err(Error::Invalid(format!(
                 "{field} contains unsupported symbolic link {}",
                 relative.display()
             )));
         }
-        visit(
-            relative,
-            entry.path(),
-            entry.file_type().is_some_and(|kind| kind.is_dir()),
-        )?;
+        if !kind.is_dir() && !kind.is_file() {
+            return Err(Error::Invalid(format!(
+                "{field} contains unsupported non-regular file {}",
+                relative.display()
+            )));
+        }
+        visit(relative, entry.path(), kind.is_dir())?;
     }
     Ok(())
 }

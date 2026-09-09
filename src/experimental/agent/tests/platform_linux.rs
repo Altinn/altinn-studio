@@ -527,3 +527,62 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
         "verification must happen before injection"
     );
 }
+
+#[tokio::test(flavor = "local")]
+async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    let skill = directory.path().join("skills").join("evidence");
+    std::fs::create_dir_all(&skill).expect("skill directory");
+    std::fs::write(skill.join("SKILL.md"), "capture").expect("skill file");
+    let status = std::process::Command::new("mkfifo")
+        .arg(skill.join("pipe"))
+        .status()
+        .expect("mkfifo runs");
+    assert!(status.success());
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    resource.spec.instructions.clear();
+    resource.spec.skills = vec![agent::SkillSpec {
+        source: PathBuf::from("skills/evidence"),
+    }];
+    let record = AgentRecord {
+        id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    let service = SandboxService::new(backend);
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("Sandbox");
+
+    let error = Linux.setup(&record, &sandbox).await.expect_err("FIFO must be rejected");
+
+    assert!(
+        matches!(&error, agent::Error::Invalid(message) if message.contains("non-regular file pipe")),
+        "unexpected error: {error:?}"
+    );
+}
