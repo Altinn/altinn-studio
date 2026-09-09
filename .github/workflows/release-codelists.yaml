@@ -59,7 +59,9 @@ jobs:
           # feeds MSBuild, which rejects the prefix, so normalize it here at the single source.
           version="${version#v}"
 
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          # Fully anchored: a partial match would accept trailing junk, and a version such as
+          # `9.0.0-` reaches `dotnet pack` only to fail there, after the tag and release exist.
+          if [[ ! "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
             echo "Resolved version is not major.minor.patch[-prerelease]: $version" >&2
             exit 1
           fi
@@ -135,8 +137,8 @@ jobs:
         run: |
           # Matched explicitly rather than with a sed substitution: a sed that does not match
           # passes the version through unchanged, which produced an invalid AssemblyVersion
-          # instead of failing.
-          if [[ ! "$RELEASE_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+          # instead of failing. Same anchored pattern as the resolve-environment step.
+          if [[ ! "$RELEASE_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
             echo "RELEASE_VERSION is not major.minor.patch[-prerelease]: $RELEASE_VERSION" >&2
             exit 1
           fi
