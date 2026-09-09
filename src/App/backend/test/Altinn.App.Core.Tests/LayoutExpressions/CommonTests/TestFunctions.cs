@@ -253,9 +253,8 @@ public class TestFunctions
     public async Task Jmespath_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
-    [SharedTestCases("sum")]
-    public async Task Sum_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
-        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+    [SharedTest("sum")]
+    public async Task Sum_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestCases("average")]
@@ -263,9 +262,8 @@ public class TestFunctions
         await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
 
     [Theory]
-    [SharedTestCases("count")]
-    public async Task Count_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
-        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+    [SharedTest("count")]
+    public async Task Count_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
