@@ -894,11 +894,7 @@ fn agent_tone(agent: &Agent) -> (Tone, String) {
     if agent.metadata.deletion_timestamp.is_some() {
         return (Tone::Red, "Terminating".to_owned());
     }
-    let ready = agent
-        .status
-        .conditions
-        .iter()
-        .find(|condition| condition.kind == "Ready");
+    let ready = agent.status.ready_condition();
     ready.map_or_else(
         || (Tone::Gray, "Pending".to_owned()),
         |condition| {

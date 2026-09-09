@@ -6,7 +6,7 @@ use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
-    control_plane::{AgentRecord, AgentStore as _},
+    control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{Reconcile, SessionId, SessionName, SessionStore as _},
@@ -133,7 +133,11 @@ impl Provider for CountingProvider {
         Box::pin(async { Ok(true) })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        _progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             self.ensure_calls.set(self.ensure_calls.get() + 1);
             let spec = record
@@ -252,18 +256,31 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
     let session_task = tokio::task::spawn_local(session_controller.run());
-    let service = agent::sessions::Service::new(session_store, agent_store, agent_wakeup, session_wakeup);
+    let service = agent::sessions::Service::new(
+        session_store,
+        agent_store,
+        Convergence::new(agent_wakeup, Observers::new()),
+        session_wakeup,
+    );
 
     let explicit = service
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::Codex),
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect("explicit harness Session");
     let implicit = service
-        .ensure("worker", &SessionName::new("implicit").expect("name"), None)
+        .ensure(
+            "worker",
+            &SessionName::new("implicit").expect("name"),
+            None,
+            WaitPolicy::FirstPass,
+            None,
+        )
         .await
         .expect("implicit default Session");
 
@@ -275,6 +292,8 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::ClaudeCode),
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect_err("an existing Session keeps its harness");
@@ -559,13 +578,19 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
     let service = Rc::new(agent::sessions::Service::new(
         session_store,
         agent_store,
-        agent_wakeup,
+        Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
     ));
     let ensure_service = service.clone();
     let ensure = tokio::task::spawn_local(async move {
         ensure_service
-            .ensure("worker", &SessionName::new("s1").expect("name"), None)
+            .ensure(
+                "worker",
+                &SessionName::new("s1").expect("name"),
+                None,
+                WaitPolicy::FirstPass,
+                None,
+            )
             .await
     });
 

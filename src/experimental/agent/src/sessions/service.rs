@@ -1,6 +1,6 @@
 //! User-facing Session operations coordinated with the reconciler.
 
-use crate::{Error, Harness, control_plane};
+use crate::{Error, Harness, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::{AttachTarget, Session, SessionName, SharedStore, Wakeup};
 
@@ -8,23 +8,23 @@ use super::{AttachTarget, Session, SessionName, SharedStore, Wakeup};
 pub struct Service {
     store: SharedStore,
     agents: std::rc::Rc<dyn control_plane::AgentStore>,
-    agent_wakeup: control_plane::Wakeup,
+    convergence: control_plane::Convergence,
     wakeup: Wakeup,
 }
 
 impl Service {
-    /// Creates a Session service over durable storage and controller wake-ups.
+    /// Creates a Session service over durable storage, Agent convergence, and the Session controller.
     #[must_use]
-    pub fn new(
+    pub const fn new(
         store: SharedStore,
         agents: std::rc::Rc<dyn control_plane::AgentStore>,
-        agent_wakeup: control_plane::Wakeup,
+        convergence: control_plane::Convergence,
         wakeup: Wakeup,
     ) -> Self {
         Self {
             store,
             agents,
-            agent_wakeup,
+            convergence,
             wakeup,
         }
     }
@@ -33,13 +33,28 @@ impl Service {
     ///
     /// # Errors
     ///
-    /// Returns an error when persistence or convergence fails.
+    /// Returns an error when persistence fails or the Agent is invalid; with
+    /// [`WaitPolicy::FirstPass`] also when the single Agent pass fails.
     pub async fn ensure(
         &self,
         agent: &str,
         name: &SessionName,
         requested_harness: Option<Harness>,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
+        let (owner, session) = self.prepare(agent, name, requested_harness).await?;
+        self.convergence.converge(owner.id, wait, progress.as_ref()).await?;
+        self.wakeup.reconcile(session.id).await?;
+        self.store.session_attach_target(session.id).await
+    }
+
+    async fn prepare(
+        &self,
+        agent: &str,
+        name: &SessionName,
+        requested_harness: Option<Harness>,
+    ) -> Result<(control_plane::AgentRecord, Session), Error> {
         let owner = self.agents.get_by_name(agent).await?;
         if owner.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
@@ -74,9 +89,7 @@ impl Service {
             Err(error) => return Err(error),
         };
         self.store.activate_session(session.id).await?;
-        self.agent_wakeup.reconcile(owner.id).await?;
-        self.wakeup.reconcile(session.id).await?;
-        self.store.session_attach_target(session.id).await
+        Ok((owner, session))
     }
 
     /// Gets one durable Session from the active Agent incarnation.

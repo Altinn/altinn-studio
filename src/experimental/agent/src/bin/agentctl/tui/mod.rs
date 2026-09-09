@@ -5,8 +5,8 @@ mod view;
 use std::{collections::HashSet, io::IsTerminal as _, path::PathBuf, process::ExitCode, time::Duration};
 
 use agent::{
-    Agent, Error, Harness, control_api::Client, local::home::ControlPlaneHome, manifest, sessions::Session,
-    sessions::SessionName,
+    Agent, Error, Harness, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
+    sessions::Session, sessions::SessionName,
 };
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
@@ -14,6 +14,7 @@ use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
+use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
 use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal};
 use terminal::Tui;
@@ -162,7 +163,9 @@ fn spawn_create(
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
         let result = async {
-            let target = client.ensure_execution(&agent).await?;
+            // The TUI has no place to render progress while on screen, so a failing
+            // first pass is reported instead of waited through.
+            let target = client.ensure_execution(&agent, WaitPolicy::FirstPass, None).await?;
             PortForward::start(home_path, target.sandbox, spec.clone()).await
         }
         .await;
@@ -311,17 +314,18 @@ async fn attach(
     session: SessionName,
     harness: Option<Harness>,
 ) -> Result<(), Error> {
-    eprintln!(
-        "Ensuring Agent {agent:?} and Session {name:?}; initial provisioning can take several minutes...",
-        name = session.as_str()
-    );
-    let target = client.ensure_session(agent, session, harness).await?;
+    let wait = Wait::start();
+    let target = wait
+        .until(client.ensure_session(agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
     agent::sessions::attach(home.path(), &target).await
 }
 
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
-    eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
-    let target = client.ensure_execution(agent).await?;
+    let wait = Wait::start();
+    let target = wait
+        .until(client.ensure_execution(agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
     match agent::sandbox::attach_terminal(

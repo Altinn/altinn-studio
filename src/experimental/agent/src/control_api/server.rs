@@ -5,14 +5,16 @@ use serde::Serialize;
 use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane, harness, sessions};
+use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::Reporter, sessions};
 
+use super::outbox::Outbox;
 use super::protocol::{
-    CODE_AGENT_NOT_FOUND, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST,
-    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
+    CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
+    CODE_PARSE_ERROR, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
     METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams,
-    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionListParams, SessionParams, error_response, read_message,
+    METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
+    NameParams, Notification, PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams,
+    SessionParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -89,6 +91,8 @@ pub trait SessionApi {
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
 
     /// Gets one named Session scoped to an Agent.
@@ -108,8 +112,10 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness).await })
+        Box::pin(async move { Self::ensure(self, agent, name, harness, wait, progress).await })
     }
 
     fn get<'a>(
@@ -128,12 +134,22 @@ impl SessionApi for sessions::Service {
 /// Transient Agent Execution target resolution exposed through the local control API.
 pub trait ExecutionApi {
     /// Converges an Agent and returns its exact ready Sandbox assignment.
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
+    fn ensure<'a>(
+        &'a self,
+        name: &'a str,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
+    ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
 }
 
 impl ExecutionApi for crate::sandbox::ExecutionService {
-    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, name).await })
+    fn ensure<'a>(
+        &'a self,
+        name: &'a str,
+        wait: WaitPolicy,
+        progress: Option<Reporter>,
+    ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
+        Box::pin(async move { Self::ensure(self, name, wait, progress).await })
     }
 }
 
@@ -212,7 +228,15 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
-            let response = self.handle(request).await;
+            let outbox = Outbox::new();
+            let mut response = std::pin::pin!(self.handle(request, outbox.reporter()));
+            let response = loop {
+                tokio::select! {
+                    () = outbox.readied() => flush(&outbox, stream.get_mut()).await?,
+                    response = &mut response => break response,
+                }
+            };
+            flush(&outbox, stream.get_mut()).await?;
             write_response(stream.get_mut(), &response).await?;
         }
     }
@@ -221,7 +245,7 @@ impl Server {
         (self.on_error)(error);
     }
 
-    async fn handle(&self, request: Request) -> Response {
+    async fn handle(&self, request: Request, progress: crate::progress::Reporter) -> Response {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
         }
@@ -236,10 +260,10 @@ impl Server {
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
-            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
+            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params, progress).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
-            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
+            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params, progress).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
             METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
@@ -279,12 +303,15 @@ impl Server {
         )
     }
 
-    async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
-        let params = match name_params(value) {
-            Ok(params) => params,
-            Err(response) => return response_with_id(id, response),
+    async fn handle_execution_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
+        let Ok(params) = serde_json::from_value::<ExecutionEnsureParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "name is required");
         };
-        result_response(id, self.executions.ensure(&params.name).await)
+        if params.name.is_empty() {
+            return error_response(id, CODE_INVALID_PARAMS, "name is required");
+        }
+        let (wait, progress) = observation(params.follow, params.progress, progress);
+        result_response(id, self.executions.ensure(&params.name, wait, progress).await)
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
@@ -299,13 +326,16 @@ impl Server {
         )
     }
 
-    async fn handle_session_ensure(&self, id: u64, value: Value) -> Response {
-        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+    async fn handle_session_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionEnsureParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
         };
+        let (wait, progress) = observation(params.follow, params.progress, progress);
         result_response(
             id,
-            self.sessions.ensure(&params.agent, &params.name, params.harness).await,
+            self.sessions
+                .ensure(&params.agent, &params.name, params.harness, wait, progress)
+                .await,
         )
     }
 
@@ -322,6 +352,23 @@ impl Server {
         };
         result_response(id, self.sessions.list(params.agent.as_deref()).await)
     }
+}
+
+/// Maps the request's opt-in flags to the wait policy and optional progress sink.
+fn observation(follow: bool, progress: bool, reporter: Reporter) -> (WaitPolicy, Option<Reporter>) {
+    let wait = if follow {
+        WaitPolicy::UntilReady
+    } else {
+        WaitPolicy::FirstPass
+    };
+    (wait, progress.then_some(reporter))
+}
+
+async fn flush<W: AsyncWrite + Unpin>(outbox: &Outbox, writer: &mut W) -> Result<(), Error> {
+    while let Some(event) = outbox.pop() {
+        write_notification(writer, &event).await?;
+    }
+    Ok(())
 }
 
 fn name_params(value: Value) -> Result<NameParams, Response> {
@@ -347,7 +394,7 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
                 error: None,
             },
         ),
-        Err(Error::NotFound) => error_response(id, CODE_AGENT_NOT_FOUND, Error::NotFound.to_string()),
+        Err(Error::NotFound) => error_response(id, CODE_NOT_FOUND, Error::NotFound.to_string()),
         Err(Error::Immutable(field)) => error_response(id, CODE_IMMUTABLE, Error::Immutable(field).to_string()),
         Err(Error::Conflict) => error_response(id, CODE_IMMUTABLE, Error::Conflict.to_string()),
         Err(Error::Invalid(message)) => error_response(id, CODE_INVALID_PARAMS, message),
@@ -357,6 +404,22 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
 
 async fn write_response<W: AsyncWrite + Unpin>(writer: &mut W, response: &Response) -> Result<(), Error> {
     let mut bytes = serde_json::to_vec(response)?;
+    bytes.push(b'\n');
+    writer.write_all(&bytes).await?;
+    writer.flush().await?;
+    Ok(())
+}
+
+async fn write_notification<W: AsyncWrite + Unpin>(
+    writer: &mut W,
+    event: &crate::progress::Event,
+) -> Result<(), Error> {
+    let notification = Notification {
+        jsonrpc: JSON_RPC_VERSION.into(),
+        method: METHOD_PROGRESS_EVENT.into(),
+        params: serde_json::to_value(event)?,
+    };
+    let mut bytes = serde_json::to_vec(&notification)?;
     bytes.push(b'\n');
     writer.write_all(&bytes).await?;
     writer.flush().await?;

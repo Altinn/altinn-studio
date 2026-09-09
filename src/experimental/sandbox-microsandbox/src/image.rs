@@ -328,8 +328,9 @@ impl MicrosandboxImageBackend {
             },
         );
         let report = async {
+            let mut pull = PullReport::default();
             while let Some(event) = import_events.recv().await {
-                report_image_progress(&step, event).await;
+                pull.report(&step, event).await;
             }
         };
         let (loaded, ()) = tokio::join!(load, report);
@@ -435,8 +436,9 @@ impl MicrosandboxImageBackend {
             let (mut events, sender) = microsandbox_image::progress_channel();
             let pull = registry.pull_with_sender(&parsed, &options, sender);
             let report = async {
+                let mut pull = PullReport::default();
                 while let Some(event) = events.recv().await {
-                    report_image_progress(&step, event).await;
+                    pull.report(&step, event).await;
                 }
             };
             let (result, ()) = tokio::join!(pull, report);
@@ -660,41 +662,108 @@ async fn report_buildkit_status(
     Ok(())
 }
 
-async fn report_image_progress(step: &ProgressStep, event: microsandbox_image::PullProgress) {
-    match event {
-        microsandbox_image::PullProgress::Resolved { layer_count, .. } => {
-            step.progress(0, u64::try_from(layer_count).ok(), ProgressUnit::Items)
+/// Translates registry pull events into one step's progress.
+///
+/// Layer counts keep their total across events, byte progress covers both the
+/// download and the materialization of each layer, and the stitch stages that
+/// have no byte progress are named as output so a long root-disk write is
+/// visibly in progress rather than silent.
+#[derive(Default)]
+struct PullReport {
+    layers: Option<u64>,
+    /// Total download size announced by the registry, when known up front.
+    total_download_bytes: Option<u64>,
+    /// Bytes downloaded and expected per layer; layers download concurrently.
+    downloads: std::collections::BTreeMap<usize, (u64, Option<u64>)>,
+}
+
+impl PullReport {
+    async fn report(&mut self, step: &ProgressStep, event: microsandbox_image::PullProgress) {
+        use microsandbox_image::PullProgress;
+        match event {
+            PullProgress::Resolved {
+                layer_count,
+                total_download_bytes,
+                ..
+            } => {
+                self.layers = u64::try_from(layer_count).ok();
+                self.total_download_bytes = total_download_bytes;
+                step.progress(0, self.layers, ProgressUnit::Items).await;
+            }
+            PullProgress::LayerDownloadProgress {
+                layer_index,
+                downloaded_bytes,
+                total_bytes,
+                ..
+            } => {
+                self.downloads.insert(layer_index, (downloaded_bytes, total_bytes));
+                let (downloaded, total) = self.download_totals();
+                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+            }
+            PullProgress::LayerDownloadComplete {
+                layer_index,
+                downloaded_bytes,
+                ..
+            } => {
+                self.downloads
+                    .insert(layer_index, (downloaded_bytes, Some(downloaded_bytes)));
+                let (downloaded, total) = self.download_totals();
+                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+            }
+            PullProgress::LayerMaterializeStarted { layer_index, .. } => {
+                step.output(
+                    OutputStream::Stdout,
+                    self.layer_line("Materializing layer", layer_index),
+                )
                 .await;
+            }
+            PullProgress::LayerMaterializeProgress {
+                bytes_read,
+                total_bytes,
+                ..
+            } => step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await,
+            PullProgress::LayerMaterializeComplete { layer_index, .. } => {
+                let completed = u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX);
+                step.progress(completed, self.layers, ProgressUnit::Items).await;
+            }
+            PullProgress::StitchMergingTrees { layer_count } => {
+                step.output(OutputStream::Stdout, format!("Merging {layer_count} layer trees\n"))
+                    .await;
+            }
+            PullProgress::StitchWritingFsmeta => {
+                step.output(OutputStream::Stdout, "Writing filesystem metadata\n").await;
+            }
+            PullProgress::StitchWritingVmdk => {
+                step.output(OutputStream::Stdout, "Writing root disk image\n").await;
+            }
+            PullProgress::Complete { layer_count, .. } => {
+                let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
+                step.progress(completed, Some(completed), ProgressUnit::Items).await;
+            }
+            PullProgress::Resolving { .. }
+            | PullProgress::LayerDownloadVerifying { .. }
+            | PullProgress::LayerMaterializeWriting { .. }
+            | PullProgress::StitchComplete => {}
         }
-        microsandbox_image::PullProgress::LayerMaterializeProgress {
-            bytes_read,
-            total_bytes,
-            ..
-        } => {
-            step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await;
-        }
-        microsandbox_image::PullProgress::LayerMaterializeComplete { layer_index, .. } => {
-            step.progress(
-                u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX),
-                None,
-                ProgressUnit::Items,
-            )
-            .await;
-        }
-        microsandbox_image::PullProgress::Complete { layer_count, .. } => {
-            let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
-            step.progress(completed, Some(completed), ProgressUnit::Items).await;
-        }
-        microsandbox_image::PullProgress::Resolving { .. }
-        | microsandbox_image::PullProgress::LayerDownloadProgress { .. }
-        | microsandbox_image::PullProgress::LayerDownloadComplete { .. }
-        | microsandbox_image::PullProgress::LayerDownloadVerifying { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeStarted { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeWriting { .. }
-        | microsandbox_image::PullProgress::StitchMergingTrees { .. }
-        | microsandbox_image::PullProgress::StitchWritingFsmeta
-        | microsandbox_image::PullProgress::StitchWritingVmdk
-        | microsandbox_image::PullProgress::StitchComplete => {}
+    }
+
+    /// Sums per-layer download progress; the total is the registry's figure when it
+    /// announced one, otherwise the sum of the layer sizes seen so far.
+    fn download_totals(&self) -> (u64, Option<u64>) {
+        let downloaded = self.downloads.values().map(|(bytes, _)| bytes).sum();
+        let total = self.total_download_bytes.or_else(|| {
+            let known: Vec<u64> = self.downloads.values().filter_map(|(_, total)| *total).collect();
+            (known.len() == self.downloads.len() && !known.is_empty()).then(|| known.iter().sum())
+        });
+        (downloaded, total)
+    }
+
+    fn layer_line(&self, activity: &str, layer_index: usize) -> String {
+        let ordinal = layer_index.saturating_add(1);
+        self.layers.map_or_else(
+            || format!("{activity} {ordinal}\n"),
+            |total| format!("{activity} {ordinal}/{total}\n"),
+        )
     }
 }
 
