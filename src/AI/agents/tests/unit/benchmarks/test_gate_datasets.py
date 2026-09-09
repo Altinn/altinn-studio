@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import pytest
 
+from pathlib import Path
+
+AGENTS_ROOT = Path(__file__).resolve().parents[3]
+
 from agents.services.llm.intent_parser import _validate_goal_safety_quick
 from agents.services.llm.llm_client import build_intent_parse_message
 from agents.services.llm.scope_checker import build_scope_check_message
-from benchmarks.dataset_sync import load_datasets, render_input, validate
+from benchmarks.dataset_sync import load_datasets, missing_assets, render_input, validate
 
 # Gate prompt datasets only; a generation dataset is covered in test_generation.
 DATASETS = [d for d in load_datasets() if d.name.startswith("Gates/")]
@@ -33,6 +37,38 @@ class TestTheFilesLoad:
         ids = [item["id"] for d in ALL_DATASETS for item in d.items]
 
         assert len(ids) == len(set(ids))
+
+
+class TestValidationHoldsFromAClone:
+    """CI validates a checkout, so validate() may only assert what travels."""
+
+    def test_validation_does_not_require_a_gitignored_file(self):
+        """benchmarks/assets is gitignored, so requiring the PDFs in validate()
+        passed only on a machine that already had them and failed every clone."""
+        assets = (AGENTS_ROOT / ".gitignore").read_text()
+        assert "benchmarks/assets/" in assets
+
+        problems = [p for d in ALL_DATASETS for p in validate(d)]
+
+        assert not any("assets/" in problem for problem in problems)
+
+    def test_a_named_attachment_is_still_checked_where_it_can_be(self):
+        """Reported separately, so a typo in a filename is not silent."""
+        spec = next(d for d in ALL_DATASETS if d.name == "Planner/spec")
+        named = [n for i in spec.items for n in i["input"].get("attachments") or []]
+
+        assert named, "the spec dataset is the one that names attachments"
+        for absent in missing_assets(spec):
+            assert "not in assets/" in absent
+
+    def test_a_gate_attachment_needs_no_file(self):
+        """The intent gate is shown filenames and opens nothing, so an injection
+        payload carried in a filename has no asset behind it."""
+        safety = next(d for d in ALL_DATASETS if d.name == "Gates/intent-safety")
+        named = [n for i in safety.items for n in i["input"].get("attachments") or []]
+
+        assert named, "the safety set carries filename payloads"
+        assert missing_assets(safety) == []
 
 
 class TestTheBlocklistAgreesWithTheDatasets:

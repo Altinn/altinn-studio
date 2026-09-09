@@ -96,8 +96,6 @@ def validate(dataset: Dataset) -> list[str]:
             )
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
-    if dataset.kind == "planner":
-        problems.extend(_planner_problems(dataset))
     seen: set[str] = set()
     for item in dataset.items:
         missing = REQUIRED_KEYS - item.keys()
@@ -115,8 +113,10 @@ def validate(dataset: Dataset) -> list[str]:
     return problems
 
 
-def _planner_problems(dataset: Dataset) -> list[str]:
-    """A planner item is only runnable if the file it names is in the repo."""
+def missing_assets(dataset: Dataset) -> list[str]:
+    """Attachments a planner item names that are not on this machine."""
+    if dataset.kind != "planner":
+        return []
     from .planner import ASSETS_DIR
 
     problems = []
@@ -181,6 +181,9 @@ def main() -> int:
         print(f"  INVALID: {problem}")
     if problems:
         return 1
+    for dataset in datasets:
+        for absent in missing_assets(dataset):
+            print(f"  LOCAL: {absent}")
 
     if args.check:
         for dataset in datasets:
