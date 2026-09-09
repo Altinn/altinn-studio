@@ -2,6 +2,8 @@
 
 mod support;
 
+use std::path::PathBuf;
+
 use agent::{API_VERSION, Harness, KIND, SecretSpec, manifest};
 use sandbox::RootFilesystemMode;
 
@@ -122,7 +124,18 @@ fn decodes_the_self_development_manifest() {
     assert_eq!(agent.spec.secrets.len(), 1);
     assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].source(), "GITHUB_TOKEN");
-    assert_eq!(agent.spec.secrets[0].placeholder, None);
+    assert_eq!(
+        agent.spec.secrets[0].placeholder.as_deref(),
+        Some("github_pat_AGENT_MEDIATED_GITHUB_TOKEN")
+    );
+    assert!(
+        agent.spec.secrets[0]
+            .allowed_hosts
+            .iter()
+            .any(|host| host == "uploads.github.com")
+    );
+    assert_eq!(agent.spec.skills.len(), 1);
+    assert_eq!(agent.spec.skills[0].name(), Some("pr-evidence"));
     assert_eq!(agent.spec.harnesses.len(), 2);
     assert!(agent.spec.harnesses[0].default);
     assert_eq!(agent.spec.harnesses[0].kind, Harness::ClaudeCode);
@@ -307,4 +320,33 @@ fn status_tolerates_unknown_fields_inside_provenance() {
         provenance.manifest_path.as_deref(),
         Some(std::path::Path::new("/source/worker.yml"))
     );
+}
+
+#[test]
+fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
+    let mut agent = support::agent("worker");
+    agent.spec.skills = vec![agent::SkillSpec {
+        source: PathBuf::from("skills/.."),
+    }];
+    let error = agent.validate().expect_err("a source ending in .. has no skill name");
+    assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("spec.skills[0].source")));
+
+    agent.spec.skills = vec![
+        agent::SkillSpec {
+            source: PathBuf::from("skills/evidence"),
+        },
+        agent::SkillSpec {
+            source: PathBuf::from("../shared/evidence/"),
+        },
+    ];
+    let error = agent
+        .validate()
+        .expect_err("two skills with the same directory name collide");
+    assert!(
+        matches!(error, agent::Error::Invalid(message) if message == "spec.skills[1] duplicates skill \"evidence\"")
+    );
+
+    agent.spec.skills.pop();
+    agent.validate().expect("one named skill is valid");
+    assert_eq!(agent.spec.skills[0].name(), Some("evidence"));
 }

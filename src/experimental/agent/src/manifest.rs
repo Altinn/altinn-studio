@@ -90,6 +90,9 @@ pub struct Spec {
     /// Optional Agent-wide guidance installed through every declared Harness Adapter.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub instructions: Option<InstructionsSpec>,
+    /// Skill directories installed through every declared Harness Adapter.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub skills: Vec<SkillSpec>,
     /// Harness installations available to Sessions in this Agent.
     pub harnesses: Vec<HarnessSpec>,
     /// Host-owned values made available only through mediated requests.
@@ -314,6 +317,19 @@ impl Spec {
         {
             return Err(Error::Invalid("spec.instructions.source must not be empty".into()));
         }
+        let mut skill_names = std::collections::BTreeSet::new();
+        for (index, skill) in self.skills.iter().enumerate() {
+            let Some(name) = skill.name() else {
+                return Err(Error::Invalid(format!(
+                    "spec.skills[{index}].source must end in the skill's directory name"
+                )));
+            };
+            if !skill_names.insert(name) {
+                return Err(Error::Invalid(format!(
+                    "spec.skills[{index}] duplicates skill {name:?}"
+                )));
+            }
+        }
         if self.harnesses.is_empty() {
             return Err(Error::Invalid("spec.harnesses must not be empty".into()));
         }
@@ -401,6 +417,25 @@ pub struct HomeSpec {
 pub struct InstructionsSpec {
     /// Host file, resolved relative to the manifest directory.
     pub source: std::path::PathBuf,
+}
+
+/// One skill directory installed for every declared harness.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SkillSpec {
+    /// Host directory holding `SKILL.md`, resolved relative to the manifest directory.
+    pub source: std::path::PathBuf,
+}
+
+impl SkillSpec {
+    /// Returns the skill name: the final component of the source directory.
+    #[must_use]
+    pub fn name(&self) -> Option<&str> {
+        self.source
+            .file_name()?
+            .to_str()
+            .filter(|name| !name.is_empty() && *name != ".")
+    }
 }
 
 /// One host-owned value exposed to Sandbox processes only as an inert environment placeholder.

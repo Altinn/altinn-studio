@@ -5,7 +5,10 @@ You develop the experimental agent platform under `src/experimental` in the chec
 checkout (`mount | grep altinn-studio`), the host sees your edits directly; otherwise work on a branch and push it.
 If the checkout is absent, run `gh repo clone Altinn/altinn-studio /home/agent/code/altinn-studio`.
 
-Read `src/experimental/AGENTS.md` first. `make help` in `src/experimental` lists the targets; run
+Read `src/experimental/AGENTS.md` first. Pull requests that change `agentctl` output or the TUI include a terminal
+recording, as the `pr-evidence` skill describes: `asciinema rec --window-size 120x36 --command '<agentctl ...>' demo.cast`, `agg demo.cast demo.gif`, then
+`gh pr create --attach ./demo.gif` with a matching image reference in the body. Keep recordings under
+`/home/agent/code/.artifacts/`, never in the checkout. `make help` in `src/experimental` lists the targets; run
 `make fmt lint build test` before reporting completion. `make test-e2e` and `make user-install` work here too: the
 Sandbox has `/dev/kvm` and Podman.
 

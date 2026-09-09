@@ -137,10 +137,17 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let home = directory.path().join("home");
     std::fs::create_dir_all(&home).expect("home directory");
     std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    let skill = directory.path().join("skills").join("evidence");
+    std::fs::create_dir_all(skill.join("references")).expect("skill directory");
+    std::fs::write(skill.join("SKILL.md"), "---\nname: evidence\n---\ncapture").expect("skill file");
+    std::fs::write(skill.join("references").join("gif.md"), "palette").expect("skill reference");
     let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     let mut resource = support::agent("worker");
     resource.metadata.generation = 1;
     resource.spec.home.source = home;
+    resource.spec.skills = vec![agent::SkillSpec {
+        source: PathBuf::from("skills/evidence"),
+    }];
     resource.spec.harnesses[0].default = true;
     resource.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
@@ -208,6 +215,12 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     assert_eq!(instructions, b"test instructions");
     let codex_instructions = read_file(&sandbox, "/home/agent/.codex/AGENTS.md").await;
     assert_eq!(codex_instructions, b"test instructions");
+    for root in ["/home/agent/.claude/skills", "/home/agent/.agents/skills"] {
+        let skill = read_file(&sandbox, &format!("{root}/evidence/SKILL.md")).await;
+        assert_eq!(skill, b"---\nname: evidence\n---\ncapture");
+        let reference = read_file(&sandbox, &format!("{root}/evidence/references/gif.md")).await;
+        assert_eq!(reference, b"palette");
+    }
     let codex_auth: serde_json::Value =
         serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/auth.json").await).expect("Codex auth JSON");
     assert_eq!(codex_auth["auth_mode"], "chatgpt");

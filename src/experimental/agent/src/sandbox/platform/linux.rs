@@ -152,8 +152,9 @@ impl Linux {
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
         let instructions = read_instructions(record).await?;
+        let skills = read_skills(record).await?;
         for installation in &record.agent.spec.harnesses {
-            harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref()).await?;
+            harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
         }
         Ok(())
     }
@@ -294,16 +295,82 @@ async fn read_instructions(record: &control_plane::AgentRecord) -> Result<Option
     tokio::fs::read(source).await.map(Some).map_err(Error::from)
 }
 
-async fn archive_home(manifest_directory: std::path::PathBuf, source: std::path::PathBuf) -> Result<Vec<u8>, Error> {
-    tokio::task::spawn_blocking(move || archive_home_blocking(&manifest_directory, &source))
-        .await
-        .map_err(|error| Error::Daemon(format!("Agent home scan task failed: {error}")))?
+async fn read_skills(record: &control_plane::AgentRecord) -> Result<Vec<harness::Skill>, Error> {
+    let mut skills = Vec::with_capacity(record.agent.spec.skills.len());
+    for (index, spec) in record.agent.spec.skills.iter().enumerate() {
+        let field = format!("spec.skills[{index}].source");
+        let name = spec
+            .name()
+            .ok_or_else(|| Error::Invalid(format!("{field} must end in the skill's directory name")))?;
+        let source = resolve_source(&record.source_directory, &spec.source, &field)?;
+        if !source.join("SKILL.md").is_file() {
+            return Err(Error::Invalid(format!("{field} must contain SKILL.md")));
+        }
+        let files = tokio::task::spawn_blocking(move || read_skill_files(&source, &field))
+            .await
+            .map_err(|error| Error::Daemon(format!("Agent skill scan task failed: {error}")))??;
+        skills.push(harness::Skill {
+            name: name.to_owned(),
+            files,
+        });
+    }
+    Ok(skills)
 }
 
-fn archive_home_blocking(manifest_directory: &Path, source: &Path) -> Result<Vec<u8>, Error> {
-    let source = resolve_source(manifest_directory, source)?;
+fn read_skill_files(source: &Path, field: &str) -> Result<Vec<harness::SkillFile>, Error> {
+    let mut files = Vec::new();
+    walk_source(source, field, |relative, path, is_dir| {
+        if is_dir {
+            return Ok(());
+        }
+        let relative_path = relative
+            .components()
+            .map(|component| component.as_os_str().to_str())
+            .collect::<Option<Vec<_>>>()
+            .ok_or_else(|| Error::Invalid(format!("{field} contains a non-UTF-8 file name")))?
+            .join("/");
+        files.push(harness::SkillFile {
+            relative_path,
+            contents: std::fs::read(path)?,
+        });
+        Ok(())
+    })?;
+    Ok(files)
+}
+
+async fn archive_home(manifest_directory: std::path::PathBuf, source: std::path::PathBuf) -> Result<Vec<u8>, Error> {
+    let source = resolve_source(&manifest_directory, &source, "spec.home.source")?;
+    archive_directory(source, "spec.home.source".to_owned()).await
+}
+
+/// Archives a resolved host directory on a blocking thread; `field` names the manifest field in errors.
+async fn archive_directory(source: std::path::PathBuf, field: String) -> Result<Vec<u8>, Error> {
+    let task = format!("Agent {field} scan task failed");
+    tokio::task::spawn_blocking(move || archive_directory_blocking(&source, &field))
+        .await
+        .map_err(|error| Error::Daemon(format!("{task}: {error}")))?
+}
+
+fn archive_directory_blocking(source: &Path, field: &str) -> Result<Vec<u8>, Error> {
     let mut archive = tar::Builder::new(Vec::new());
-    for result in WalkBuilder::new(&source)
+    walk_source(source, field, |relative, path, is_dir| {
+        if is_dir {
+            archive.append_dir(relative, path)?;
+        } else {
+            archive.append_path_with_name(path, relative)?;
+        }
+        Ok(())
+    })?;
+    archive.into_inner().map_err(Error::from)
+}
+
+/// Visits every entry below `source` with its relative path, rejecting symbolic links.
+fn walk_source(
+    source: &Path,
+    field: &str,
+    mut visit: impl FnMut(&Path, &Path, bool) -> Result<(), Error>,
+) -> Result<(), Error> {
+    for result in WalkBuilder::new(source)
         .hidden(false)
         .ignore(false)
         .git_ignore(false)
@@ -312,27 +379,27 @@ fn archive_home_blocking(manifest_directory: &Path, source: &Path) -> Result<Vec
         .follow_links(false)
         .build()
     {
-        let entry = result.map_err(|error| Error::Invalid(format!("cannot traverse spec.home.source: {error}")))?;
+        let entry = result.map_err(|error| Error::Invalid(format!("cannot traverse {field}: {error}")))?;
         let relative = entry
             .path()
-            .strip_prefix(&source)
-            .map_err(|_| Error::Invalid("spec.home.source traversal escaped its root".into()))?;
+            .strip_prefix(source)
+            .map_err(|_| Error::Invalid(format!("{field} traversal escaped its root")))?;
         if relative.as_os_str().is_empty() {
             continue;
         }
         if entry.file_type().is_some_and(|kind| kind.is_symlink()) {
             return Err(Error::Invalid(format!(
-                "spec.home.source contains unsupported symbolic link {}",
+                "{field} contains unsupported symbolic link {}",
                 relative.display()
             )));
         }
-        if entry.file_type().is_some_and(|kind| kind.is_dir()) {
-            archive.append_dir(relative, entry.path())?;
-        } else {
-            archive.append_path_with_name(entry.path(), relative)?;
-        }
+        visit(
+            relative,
+            entry.path(),
+            entry.file_type().is_some_and(|kind| kind.is_dir()),
+        )?;
     }
-    archive.into_inner().map_err(Error::from)
+    Ok(())
 }
 
 async fn sync_home(sandbox: &SandboxHandle, archive: Vec<u8>) -> Result<(), Error> {
@@ -384,7 +451,7 @@ pub(crate) async fn run_checked<const N: usize>(
     )))
 }
 
-fn resolve_source(manifest_directory: &Path, source: &Path) -> Result<std::path::PathBuf, Error> {
+fn resolve_source(manifest_directory: &Path, source: &Path, field: &str) -> Result<std::path::PathBuf, Error> {
     let source = if source.is_absolute() {
         source.to_path_buf()
     } else {
@@ -392,7 +459,7 @@ fn resolve_source(manifest_directory: &Path, source: &Path) -> Result<std::path:
     };
     let source = std::fs::canonicalize(source)?;
     if !source.is_dir() {
-        return Err(Error::Invalid("spec.home.source must identify a directory".into()));
+        return Err(Error::Invalid(format!("{field} must identify a directory")));
     }
     Ok(source)
 }

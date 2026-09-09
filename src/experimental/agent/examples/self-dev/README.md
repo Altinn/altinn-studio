@@ -23,4 +23,5 @@ The worktree variant mounts the whole checkout, so its secret file must live out
 agentctl apply -f worktree/agent.yaml --env-file ~/.agent/self-dev.env
 ```
 
-Inside a running Agent, `instructions.md` tells the harness how to build, test and run the platform nested.
+Inside a running Agent, `instructions.md` tells the harness how to build, test and run the platform nested, and how to
+record `agentctl` demonstrations with asciinema and attach them to pull requests.
