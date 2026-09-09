@@ -4,10 +4,10 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-# `Type=exec` completes the start job as soon as the clone has been spawned. As a oneshot ordered
-# before `multi-user.target` the clone was part of the boot transaction, and the host's
-# `systemctl is-system-running --wait` readiness check timed out on every first boot because the
-# clone outlives its deadline. Podman setup does not depend on the checkout.
+# One best-effort clone started at boot for the checkout variants; a bind-mounted checkout already
+# has `.git`, so the script exits without touching it. `Type=exec` completes the start job once the
+# clone has been spawned, keeping the clone out of the boot transaction so that
+# `systemctl is-system-running --wait` does not wait for it.
 Type=exec
 User=agent
 Group=agent
