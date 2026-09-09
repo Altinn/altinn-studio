@@ -148,7 +148,7 @@ services:
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
-      - RedisCacheSettings:UseRedisCache=true
+      - DistributedCacheSettings:Type=Redis
       - RedisCacheSettings:ConnectionString=redis:6379
       - RedisCacheSettings:InstanceName=designer
       - SchedulingSettings:UsePersistentScheduling=true
