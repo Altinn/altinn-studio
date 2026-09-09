@@ -707,9 +707,10 @@ function chosenLabel() {
 function refCounts() {
   const r = reference();
   if (r) return r.counts;
-  const pinned = D.behaviors.filter(b => b.pinned).length;
-  return {holding: 0, moved: 0, failing: 0, variance: 0, not_run: 0, no_score: 0,
-    recorded: pinned, unpinned: D.behaviors.length - pinned};
+  const pinned = D.behaviors.filter(b => b.pinned);
+  const scored = pinned.filter(b => b.current != null).length;
+  return {holding: 0, moved: 0, failing: 0, variance: 0, not_run: pinned.length - scored,
+    no_score: 0, recorded: scored, unpinned: D.behaviors.length - pinned.length};
 }
 
 function refRefused() {
@@ -881,6 +882,10 @@ function verdict() {
       '<span class="chip hold">' + (counts.recorded - weak.length) +
         " with every item passing</span>" +
       '<span class="chip broken">' + weak.length + " below full marks</span>" +
+      (counts.not_run
+        ? '<span class="chip unknown">' + counts.not_run + " measured, but this run scored " +
+          "nothing for them</span>"
+        : "") +
       '<span class="chip unpinned">' + counts.unpinned + " nothing measures these</span></div>";
     return;
   }
