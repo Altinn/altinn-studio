@@ -134,7 +134,7 @@ class Provenance:
 def _code() -> Code:
     commit = _git("rev-parse", "HEAD")
     branch = _git("rev-parse", "--abbrev-ref", "HEAD")
-    status = _git("status", "--porcelain")
+    status = _git("status", "--porcelain", "--", ".")
     return Code(commit=commit, branch=branch, dirty=bool(status))
 
 

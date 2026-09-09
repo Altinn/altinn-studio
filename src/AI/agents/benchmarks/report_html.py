@@ -860,13 +860,37 @@ function verdict() {
   const refused = refRefused();
   if (refused.length) {
     el.className = "verdict refused";
+    const unrecorded = refused.filter(k =>
+      (chosen.axes[k] || "not recorded") === "not recorded" ||
+      D.runs.current.axes[k] === "not recorded");
+    const moved = refused.filter(k => unrecorded.indexOf(k) < 0);
+    const name = keys => keys.map(k => AXIS_LABELS[k] || k).join(", ");
+    const said = [];
+    if (moved.length) {
+      said.push(
+        (moved.length === 1 ? "One setting differs" : moved.length + " settings differ") +
+        " that nobody declared as the change under test (" + esc(name(moved)) + "), so a " +
+        "difference in the scores could come from " +
+        (moved.length === 1 ? "it" : "any of them") + " rather than from the agent.");
+    }
+    if (unrecorded.length) {
+      said.push(
+        (unrecorded.length === 1
+          ? "One setting was never recorded"
+          : unrecorded.length + " settings were never recorded") +
+        " by one of these two runs (" + esc(name(unrecorded)) + "). Nothing differs there as " +
+        "far as the page can see, which is the problem: it cannot tell whether " +
+        (unrecorded.length === 1 ? "it matches" : "they match") + ", so it will not " +
+        "print deltas that rest on the assumption.");
+    }
+    said.push("Run a full check on today's state and adopt it as the baseline, then compare " +
+      "against that.");
     el.innerHTML = '<div class="eyebrow">Comparison refused</div>' +
       "<h2>These two runs cannot be compared</h2>" +
-      "<p>" + refused.length + " thing" + (refused.length > 1 ? "s" : "") +
-      " differ that were not declared as the change under test, so any difference in the scores could " +
-      "come from any of them. Line them up, or re-run the baseline against today's state, then compare again.</p>" +
+      said.map(line => "<p>" + line + "</p>").join("") +
       '<div class="tally">' + refused.map(k =>
-        '<span class="chip broken">' + esc(AXIS_LABELS[k] || k) + "</span>").join("") + "</div>";
+        '<span class="chip ' + (unrecorded.indexOf(k) < 0 ? "broken" : "unknown") + '">' +
+        esc(AXIS_LABELS[k] || k) + "</span>").join("") + "</div>";
     return;
   }
   el.className = "verdict";
