@@ -25,6 +25,33 @@ const exampleComponent = {
 } as const;
 
 describe('generateComponentDocumentation', () => {
+  it.each(['en', 'nb'] as const)('renders only the supplied common properties in %s', (locale) => {
+    const property = { type: 'string', required: false } as const;
+    const catalog = { Example: { ...exampleComponent, properties: { value: property } } } satisfies ComponentCatalog;
+    const render = (names: string[]) =>
+      generateComponentDocumentation(catalog, Object.fromEntries(names.map((name) => [name, property])), locale).get(
+        'Example',
+      )!;
+
+    expect(render([]).startsWith('|')).toBe(true);
+    expect(render(['custom']).split('\n')[0]).toBe(
+      locale === 'en'
+        ? 'The component also supports the common properties [`custom`](../common-properties/#custom).'
+        : 'Komponenten støtter også de felles egenskapene [`custom`](../common-properties/#custom).',
+    );
+    expect(render(['id', 'custom']).split('\n')[0]).toContain(
+      locale === 'en'
+        ? '[`id`](../common-properties/#id) and [`custom`](../common-properties/#custom).'
+        : '[`id`](../common-properties/#id) og [`custom`](../common-properties/#custom).',
+    );
+    expect(render(['grid', 'pageBreak', 'custom']).split('\n')[0]).toContain(
+      locale === 'en'
+        ? '[`grid`](../grid/), [`pageBreak`](../page-break/), and [`custom`](../common-properties/#custom).'
+        : '[`grid`](../grid/), [`pageBreak`](../page-break/) og [`custom`](../common-properties/#custom).',
+    );
+    expect(render(['custom'])).not.toContain('../grid/');
+  });
+
   it.each([
     [1, 3, 'minItems: 1, maxItems: 3'],
     [0, 0, 'minItems: 0, maxItems: 0'],
@@ -161,9 +188,7 @@ describe('generateComponentDocumentation', () => {
 
     const documentation = generateComponentDocumentation(catalog, { id: constrainedNumber }, 'en');
 
-    expect(documentation.get('Example')).toContain(
-      'common properties [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/), and [`pageBreak`](../page-break/)',
-    );
+    expect(documentation.get('Example')).toContain('common properties [`id`](../common-properties/#id).');
     expect(documentation.get('Example')).not.toContain('| `id` |');
     expect(documentation.get('Example')).toContain('| `value` | `number (1–12)` | No | `6` |  |');
     expect(documentation.get('_common')).toContain('| `id` | `number (1–12)` | No | `6` |  |');
