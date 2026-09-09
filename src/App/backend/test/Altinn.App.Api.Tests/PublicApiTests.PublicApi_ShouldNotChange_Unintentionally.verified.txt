@@ -884,26 +884,6 @@ namespace Altinn.App.Api.Infrastructure.Middleware
         public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseTelemetryEnricher(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
     }
 }
-namespace Altinn.App.Api.Infrastructure.Telemetry
-{
-    public class CustomTelemetryInitializer : Microsoft.ApplicationInsights.Extensibility.ITelemetryInitializer
-    {
-        public CustomTelemetryInitializer() { }
-        public void Initialize(Microsoft.ApplicationInsights.Channel.ITelemetry telemetry) { }
-    }
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public class HealthTelemetryFilter : Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor
-    {
-        public HealthTelemetryFilter(Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor next) { }
-        public void Process(Microsoft.ApplicationInsights.Channel.ITelemetry item) { }
-    }
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public class IdentityTelemetryFilter : Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor
-    {
-        public IdentityTelemetryFilter(Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor next, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor) { }
-        public void Process(Microsoft.ApplicationInsights.Channel.ITelemetry item) { }
-    }
-}
 namespace Altinn.App.Api.Mappers
 {
     public static class SimpleInstanceMapper

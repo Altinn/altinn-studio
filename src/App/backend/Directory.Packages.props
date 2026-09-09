@@ -23,7 +23,6 @@
     <PackageVersion Include="JmesPath.Net" Version="1.1.0" />
     <PackageVersion Include="JsonPatch.Net" Version="4.0.1" />
     <PackageVersion Include="JWTCookieAuthentication" Version="3.0.1" />
-    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.7" />

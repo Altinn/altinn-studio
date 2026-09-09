@@ -29,7 +29,6 @@
     <PackageReference Include="Altinn.Platform.Storage.Interface.Experimental"/>
     <PackageReference Include="JmesPath.Net"/>
     <PackageReference Include="JsonPatch.Net"/>
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore"/>
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid"/>
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore"/>
     <PackageReference Include="Newtonsoft.Json"/>
