@@ -178,6 +178,8 @@ struct UnsupportedProvider {
 
 enum PlannedFailure {
     Invalid(String),
+    /// The Sandbox Provider rejects the request itself (an SDK `InvalidRequest`).
+    Rejected,
     /// Floods telemetry past the lossy channel's capacity, then fails as invalid.
     InvalidAfterFlood(String),
     Transient(String),
@@ -215,6 +217,12 @@ impl Provider for PlannedProvider {
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         match self.failures.borrow_mut().pop_front() {
             Some(PlannedFailure::Invalid(message)) => Box::pin(async move { Err(Error::Invalid(message)) }),
+            Some(PlannedFailure::Rejected) => Box::pin(async move {
+                Err(Error::Sandbox(sandbox::Error::Invalid {
+                    field: "spec.resources.cpu",
+                    reason: "fractional CPUs are not supported",
+                }))
+            }),
             Some(PlannedFailure::InvalidAfterFlood(message)) => Box::pin(async move {
                 for _ in 0..TELEMETRY_FLOOD {
                     progress(sandbox::SandboxEvent::PhaseStarted {
@@ -1201,6 +1209,47 @@ async fn observed_execution_reports_invalid_failure_then_returns_it() {
         event,
         agent::progress::Event::Condition { message, failure: Some(FailureKind::Invalid), .. }
             if message.contains(".env does not define required variable")
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_provider_rejection_is_permanent_and_fails_the_wait_immediately() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(backend, [PlannedFailure::Rejected]));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let error = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::UntilReady, Some(reporter)),
+    )
+    .await
+    .expect("a permanent rejection must not be waited through")
+    .expect_err("rejected request fails");
+
+    assert!(matches!(error, Error::Invalid(message) if message.contains("fractional CPUs")));
+    assert!(events.borrow().iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition {
+            failure: Some(FailureKind::Invalid),
+            ..
+        }
     )));
     task.abort();
 }

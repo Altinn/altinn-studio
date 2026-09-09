@@ -57,16 +57,31 @@ pub struct ReconcileFailure {
 
 impl ReconcileFailure {
     /// Classifies a reconciliation error by its variant, never by its message.
+    ///
+    /// Invalid desired state, an immutable field that changed, and a Sandbox
+    /// request the Provider rejects or cannot support are permanent until the
+    /// operator changes something; everything else is retried.
     #[must_use]
     pub fn classify(error: &Error) -> Self {
-        match error {
-            Error::Invalid(message) => Self {
-                kind: FailureKind::Invalid,
-                message: message.clone(),
+        let permanent = match error {
+            Error::Invalid(_) | Error::Immutable(_) => true,
+            Error::Sandbox(sandbox) => matches!(
+                sandbox.kind(),
+                ::sandbox::ErrorKind::InvalidRequest
+                    | ::sandbox::ErrorKind::Immutable
+                    | ::sandbox::ErrorKind::Unsupported
+            ),
+            _ => false,
+        };
+        Self {
+            kind: if permanent {
+                FailureKind::Invalid
+            } else {
+                FailureKind::Transient
             },
-            error => Self {
-                kind: FailureKind::Transient,
-                message: error.to_string(),
+            message: match error {
+                Error::Invalid(message) => message.clone(),
+                error => error.to_string(),
             },
         }
     }

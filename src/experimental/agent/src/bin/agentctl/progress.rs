@@ -45,7 +45,44 @@ pub(crate) struct Interrupted {
 pub(crate) struct Wait<'a> {
     agent: &'a str,
     renderer: RefCell<Renderer>,
-    restore_interrupt: bool,
+    after: InterruptMode,
+}
+
+/// What a Ctrl-C does to this process right now.
+///
+/// Awaiting `tokio::signal::ctrl_c` installs a process-wide handler that cannot
+/// be removed, so one watcher task owns the decision for the rest of the
+/// process and every wait only switches the mode. A stale per-wait task would
+/// otherwise exit the process during a later wait in the same process, which
+/// is exactly what the TUI does.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum InterruptMode {
+    /// A wait is in progress and cancels itself; the watcher stays quiet.
+    Cancel,
+    /// Nothing handles Ctrl-C, so it keeps its default meaning: exit 130.
+    Exit,
+    /// The command watches Ctrl-C itself; the watcher stays quiet.
+    Leave,
+}
+
+thread_local! {
+    static INTERRUPT_MODE: std::cell::Cell<InterruptMode> = const { std::cell::Cell::new(InterruptMode::Exit) };
+    static INTERRUPT_WATCHER: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+fn set_interrupt_mode(mode: InterruptMode) {
+    INTERRUPT_MODE.with(|current| current.set(mode));
+    if INTERRUPT_WATCHER.with(|started| started.replace(true)) {
+        return;
+    }
+    tokio::task::spawn_local(async {
+        loop {
+            let _ignored = tokio::signal::ctrl_c().await;
+            if INTERRUPT_MODE.with(std::cell::Cell::get) == InterruptMode::Exit {
+                std::process::exit(130);
+            }
+        }
+    });
 }
 
 impl<'a> Wait<'a> {
@@ -53,14 +90,14 @@ impl<'a> Wait<'a> {
         Self {
             agent,
             renderer: RefCell::new(Renderer::stderr()),
-            restore_interrupt: true,
+            after: InterruptMode::Exit,
         }
     }
 
-    /// Leaves the Ctrl-C handler installed after the wait because the command
-    /// watches Ctrl-C itself afterwards.
+    /// Leaves Ctrl-C to the command after the wait because it watches Ctrl-C
+    /// itself afterwards.
     pub(crate) const fn keep_interrupts(mut self) -> Self {
-        self.restore_interrupt = false;
+        self.after = InterruptMode::Leave;
         self
     }
 
@@ -71,27 +108,22 @@ impl<'a> Wait<'a> {
 
     /// Runs the ensure call until it completes or the user presses Ctrl-C.
     ///
-    /// Awaiting Ctrl-C installs a process-wide handler that would otherwise
-    /// swallow every later SIGINT, so once the wait is over the next Ctrl-C
-    /// regains its default meaning (exit 130) unless [`Self::keep_interrupts`]
-    /// was requested.
+    /// During the wait Ctrl-C cancels it. Afterwards Ctrl-C regains its default
+    /// meaning (exit 130) unless [`Self::keep_interrupts`] was requested; see
+    /// [`InterruptMode`] for why this is a mode rather than a handler.
     ///
     /// # Errors
     ///
     /// Returns [`Interrupted`] when the user pressed Ctrl-C before the call completed.
     pub(crate) async fn until<T>(&self, ensure: impl Future<Output = T>) -> Result<T, Interrupted> {
+        set_interrupt_mode(InterruptMode::Cancel);
         let waited = tokio::select! {
             biased;
             result = ensure => Some(result),
             _ = tokio::signal::ctrl_c() => None,
         };
         self.renderer.borrow_mut().finish();
-        if self.restore_interrupt {
-            tokio::task::spawn_local(async {
-                let _ignored = tokio::signal::ctrl_c().await;
-                std::process::exit(130);
-            });
-        }
+        set_interrupt_mode(self.after);
         waited.ok_or_else(|| Interrupted {
             agent: self.agent.to_owned(),
         })
