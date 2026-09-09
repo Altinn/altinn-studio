@@ -26,6 +26,17 @@ describe('isExpressionValid', () => {
     });
   });
 
+  it('Returns true when a list argument is looked up from the data model', () => {
+    // The evaluators accept any expression returning a list where a list is expected, so the editor must let the
+    // user save it. Typed as unknown because the Expression type does not cover the count function yet.
+    const countExpression: unknown = [
+      GeneralRelationOperator.Equals,
+      2,
+      ['count', [DataLookupFuncName.DataModel, 'someList']],
+    ];
+    expect(isExpressionValid(countExpression)).toBe(true);
+  });
+
   it('Returns false when expression is invalid', () => {
     const invalidFunction = ['invalidFunction', 'test'];
     const validFunction: DataLookupFunc = [DataLookupFuncName.DataModel, 'test'];
