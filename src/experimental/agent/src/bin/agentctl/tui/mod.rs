@@ -2,7 +2,13 @@ mod app;
 mod terminal;
 mod view;
 
-use std::{collections::HashSet, io::IsTerminal as _, path::PathBuf, process::ExitCode, time::Duration};
+use std::{
+    collections::HashSet,
+    io::IsTerminal as _,
+    path::{Path, PathBuf},
+    process::ExitCode,
+    time::Duration,
+};
 
 use agent::{
     Agent, Error, Harness, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
@@ -10,6 +16,7 @@ use agent::{
 };
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
+use ignore::WalkBuilder;
 use sandbox::terminal::TerminalAttachOutcome;
 
 use crate::CommandResult;
@@ -20,6 +27,8 @@ use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate,
 use terminal::Tui;
 
 const REFRESH_INTERVAL: Duration = Duration::from_secs(2);
+/// Deepest directory level below the working directory searched for manifests.
+const DISCOVERY_DEPTH: usize = 8;
 
 enum Input {
     Event(Option<std::io::Result<Event>>),
@@ -181,10 +190,11 @@ fn spawn_discovery(outcomes: tokio::sync::mpsc::UnboundedSender<Vec<ManifestCand
     });
 }
 
-/// Assembles create-agent candidates from the working directory and recorded Agent manifests.
+/// Assembles create-agent candidates from the working directory tree and recorded Agent manifests.
 ///
-/// The working directory is offered only when it holds a manifest; a recorded
-/// manifest that is unreadable stays listed so its error is visible.
+/// Every manifest below the working directory is offered, skipping hidden and
+/// ignored directories; a recorded manifest that is unreadable stays listed so
+/// its error is visible.
 async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent]) -> Vec<ManifestCandidate> {
     let mut recorded: Vec<PathBuf> = agents
         .iter()
@@ -193,9 +203,15 @@ async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent
         .collect();
     recorded.sort();
     recorded.dedup();
-    let paths = current_directory
+    let found = match current_directory {
+        Some(directory) => tokio::task::spawn_blocking(move || working_tree_manifests(&directory))
+            .await
+            .unwrap_or_default(),
+        None => Vec::new(),
+    };
+    let paths = found
         .into_iter()
-        .map(|directory| (directory.join(MANIFEST_FILE), false))
+        .map(|path| (path, false))
         .chain(recorded.into_iter().map(|path| (path, true)));
     let mut seen = HashSet::new();
     let mut candidates = Vec::new();
@@ -214,6 +230,22 @@ async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent
         candidates.push(ManifestCandidate { path, name });
     }
     candidates
+}
+
+/// Lists manifests below `directory`, shallowest first, honoring ignore files
+/// and skipping hidden directories so build output and dependency trees are not walked.
+fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
+    let mut found: Vec<PathBuf> = WalkBuilder::new(directory)
+        .max_depth(Some(DISCOVERY_DEPTH))
+        .require_git(false)
+        .follow_links(false)
+        .build()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_some_and(|kind| kind.is_file()) && entry.file_name() == MANIFEST_FILE)
+        .map(ignore::DirEntry::into_path)
+        .collect();
+    found.sort_by_key(|path| (path.components().count(), path.clone()));
+    found
 }
 
 /// Applies the manifest under the chosen name; a rejection reopens the form with the error.
@@ -430,6 +462,31 @@ mod tests {
         assert!(candidates[2].name.is_err());
         assert_eq!(candidates[3].path, recorded.join(MANIFEST_FILE));
         assert_eq!(candidates[3].name.as_deref(), Ok("recorded"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn discovery_walks_the_working_directory_tree_but_not_hidden_or_ignored_directories() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let cwd = manifest_directory(root.path(), "cwd", &manifest_yaml("top"));
+        let nested = manifest_directory(&cwd, "examples/deeper", &manifest_yaml("nested"));
+        let sibling = manifest_directory(&cwd, "examples/other", &manifest_yaml("other"));
+        manifest_directory(&cwd, ".hidden", &manifest_yaml("hidden"));
+        manifest_directory(&cwd, "target/ignored", &manifest_yaml("ignored"));
+        std::fs::write(cwd.join(".gitignore"), "target/\n").expect("ignore file should be written");
+        let agents = vec![recorded_agent("nested", Some(&nested))];
+
+        let candidates = manifest_candidates(Some(cwd.clone()), &agents).await;
+
+        let paths: Vec<&std::path::Path> = candidates.iter().map(|candidate| candidate.path.as_path()).collect();
+        assert_eq!(
+            paths,
+            [
+                cwd.join(MANIFEST_FILE),
+                nested.join(MANIFEST_FILE),
+                sibling.join(MANIFEST_FILE)
+            ]
+        );
+        assert_eq!(candidates[1].name.as_deref(), Ok("nested"));
     }
 
     #[tokio::test(flavor = "local")]
