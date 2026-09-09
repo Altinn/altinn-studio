@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type AttachmentNode, isCanonicalAttachmentData } from 'src/features/attachments/tools';
@@ -13,7 +14,6 @@ import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IData } from 'src/types/shared';
 
 type BindingEntry = {

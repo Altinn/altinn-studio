@@ -2,6 +2,7 @@ import React from 'react';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -9,7 +10,6 @@ import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepG
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 

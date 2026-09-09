@@ -112,7 +112,11 @@ pub trait Provider {
     fn supports<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<bool, Error>>;
 
     /// Idempotently ensures the Sandbox and its Provider-specific host integration.
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        progress: crate::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
     fn open<'a>(&'a self, record: &'a AgentRecord, id: &'a SandboxId) -> LocalFuture<'a, Result<SandboxHandle, Error>>;
@@ -203,9 +207,13 @@ impl Service {
     /// # Errors
     ///
     /// Returns an error when the assignment is missing, its Provider is unavailable, or setup fails.
-    pub async fn ensure(&self, record: &AgentRecord) -> Result<EnsureOutcome, Error> {
+    pub async fn ensure(
+        &self,
+        record: &AgentRecord,
+        progress: crate::progress::SandboxReporter,
+    ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
-        let outcome = provider.ensure(record).await?;
+        let outcome = provider.ensure(record, progress).await?;
         let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self

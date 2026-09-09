@@ -34,6 +34,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
         manifest_path: None,
+        env_file: None,
         agent: resource,
     }
 }

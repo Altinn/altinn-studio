@@ -181,6 +181,8 @@ impl NetworkBackend for MicrosandboxNetworkBackend {
                 .cloned()
                 .unwrap_or_default();
             let sandbox_id = request.sandbox_id.clone();
+            let log_sandbox_id = sandbox_id.clone();
+            let log_sandbox_name = request.sandbox_name.clone();
             let task = tokio::task::spawn_local(async move {
                 if let Err(error) = drive(
                     sandbox_id,
@@ -193,7 +195,12 @@ impl NetworkBackend for MicrosandboxNetworkBackend {
                 )
                 .await
                 {
-                    tracing::warn!(%error, "Microsandbox Network controller stopped");
+                    tracing::warn!(
+                        %error,
+                        sandbox = %log_sandbox_id,
+                        sandbox_name = %log_sandbox_name,
+                        "Microsandbox Network data plane stopped"
+                    );
                 }
             });
             self.drivers
@@ -285,8 +292,7 @@ async fn drive(
     let batch_size = NonZeroUsize::new(RECEIVE_BATCH_SIZE)
         .ok_or_else(|| Error::Backend("invalid Microsandbox Network receive batch size".into()))?;
     let mut received = NetworkBatch::new(batch_size);
-    let mut handshake_complete = false;
-    let mut flows = HashSet::new();
+    let mut state = DriverState::default();
 
     loop {
         tokio::select! {
@@ -304,8 +310,7 @@ async fn drive(
                                 policy.as_ref(),
                                 secret_store.as_deref(),
                                 &secret_bindings,
-                                &mut handshake_complete,
-                                &mut flows,
+                                &mut state,
                             ).await?;
                             if let Some(response) = response {
                                 send(&mut endpoint, response).await?;
@@ -319,7 +324,7 @@ async fn drive(
                 let Some(DriverCommand::RevokeAll) = command else {
                     return Ok(());
                 };
-                for flow_id in flows.drain() {
+                for flow_id in state.flows.drain() {
                     send(&mut endpoint, ControllerMessage::Revoke { flow_id }).await?;
                 }
             }
@@ -333,13 +338,12 @@ async fn handle_runtime_message(
     policy: &dyn PolicyEngine,
     secret_store: Option<&dyn SecretStore>,
     secret_bindings: &[SecretBinding],
-    handshake_complete: &mut bool,
-    flows: &mut HashSet<u64>,
+    state: &mut DriverState,
 ) -> Result<Option<ControllerMessage>, Error> {
     match message {
         RuntimeMessage::Hello { protocol } if protocol == NETWORK_CONTROL_PROTOCOL => {
-            *handshake_complete = true;
-            flows.clear();
+            state.handshake_complete = true;
+            state.flows.clear();
             Ok(Some(ControllerMessage::HelloAccepted {
                 protocol,
                 secrets: SecretsConfig {
@@ -353,12 +357,15 @@ async fn handle_runtime_message(
             request_id,
             flow_id,
             operation,
-        } if *handshake_complete => {
+        } if state.handshake_complete => {
             let authorization = authorize_operation(subject, &operation, policy, secret_store, secret_bindings).await;
+            if authorization.is_none() {
+                log_authorization_denial(subject, &operation, &mut state.denials);
+            }
             let (decision, secret_material) = authorization.map_or_else(
                 || (RuntimeDecision::Deny, None),
                 |secret_material| {
-                    flows.insert(flow_id);
+                    state.flows.insert(flow_id);
                     (RuntimeDecision::Allow, secret_material)
                 },
             );
@@ -368,13 +375,96 @@ async fn handle_runtime_message(
                 secret_material,
             }))
         }
-        RuntimeMessage::FlowClosed { flow_id } if *handshake_complete => {
-            flows.remove(&flow_id);
+        RuntimeMessage::FlowClosed { flow_id } if state.handshake_complete => {
+            state.flows.remove(&flow_id);
             Ok(None)
         }
         RuntimeMessage::AuthorizationRequest { .. } | RuntimeMessage::FlowClosed { .. } => Err(Error::Backend(
             "Microsandbox Network request arrived before the protocol handshake".into(),
         )),
+    }
+}
+
+/// Mutable state of one Network driver: the handshake, live flows, and denial logging.
+#[derive(Default)]
+struct DriverState {
+    handshake_complete: bool,
+    flows: HashSet<u64>,
+    denials: DenialLog,
+}
+
+/// Per-driver bound on denial logging.
+///
+/// A Sandbox can be denied once per request it makes, so unbounded logging would
+/// let it grow the host log at will. Each distinct `(action, hostname)` is logged
+/// on its first denial and then once per [`DenialLog::REPEAT_EVERY`] repeats. A
+/// Sandbox rotating hostnames would still log one line per new key, so the total
+/// number of lines per driver is capped at [`DenialLog::MAX_LINES`]; beyond it only
+/// every [`DenialLog::SUMMARY_EVERY`]th denial is logged, with the running total.
+#[derive(Default)]
+struct DenialLog {
+    counts: HashMap<(&'static str, Option<String>), u64>,
+    total: u64,
+    lines: u64,
+}
+
+impl DenialLog {
+    const REPEAT_EVERY: u64 = 100;
+    const MAX_KEYS: usize = 1_024;
+    const MAX_LINES: u64 = 1_000;
+    const SUMMARY_EVERY: u64 = 10_000;
+
+    /// Records one denial and returns the count to log when a line is warranted.
+    fn record(&mut self, action: &'static str, hostname: Option<&str>) -> Option<u64> {
+        self.total += 1;
+        if self.lines >= Self::MAX_LINES {
+            return self.total.is_multiple_of(Self::SUMMARY_EVERY).then_some(self.total);
+        }
+        let key = (action, hostname.map(str::to_owned));
+        if !self.counts.contains_key(&key) && self.counts.len() >= Self::MAX_KEYS {
+            self.counts.clear();
+        }
+        let count = self.counts.entry(key).or_insert(0);
+        *count += 1;
+        let log = *count == 1 || count.is_multiple_of(Self::REPEAT_EVERY);
+        if log {
+            self.lines += 1;
+        }
+        log.then_some(*count)
+    }
+}
+
+fn log_authorization_denial(subject: SandboxSubject<'_>, operation: &NetworkOperation, denials: &mut DenialLog) {
+    let (action, hostname, destination) = operation_log_fields(operation);
+    if let Some(denied) = denials.record(action, hostname) {
+        tracing::warn!(
+            action,
+            hostname,
+            destination = %destination,
+            sandbox = %subject.id,
+            sandbox_name = %subject.name,
+            denied,
+            "Microsandbox Network authorization denied"
+        );
+    }
+}
+
+fn operation_log_fields(operation: &NetworkOperation) -> (&'static str, Option<&str>, String) {
+    match operation {
+        NetworkOperation::Connect {
+            destination, hostname, ..
+        } => (action::NETWORK_CONNECT, hostname.as_deref(), destination.to_string()),
+        NetworkOperation::DnsQuery { name, resolver, .. } => (
+            action::DNS_QUERY,
+            Some(name),
+            resolver.as_ref().map_or_else(|| "none".into(), ToString::to_string),
+        ),
+        NetworkOperation::HttpRequest {
+            destination, authority, ..
+        } => (action::HTTP_REQUEST, Some(authority), destination.to_string()),
+        NetworkOperation::SecretUse {
+            destination, authority, ..
+        } => (action::SECRET_USE, Some(authority), destination.to_string()),
     }
 }
 
@@ -639,6 +729,38 @@ fn protocol_error(error: impl std::fmt::Display) -> Error {
 #[allow(clippy::expect_used)]
 mod tests {
     use std::time::Duration;
+
+    #[test]
+    fn denial_logging_is_bounded_per_key() {
+        let mut denials = super::DenialLog::default();
+        assert_eq!(denials.record("network.connect", Some("example.com")), Some(1));
+        for _ in 1..super::DenialLog::REPEAT_EVERY - 1 {
+            assert_eq!(denials.record("network.connect", Some("example.com")), None);
+        }
+        assert_eq!(
+            denials.record("network.connect", Some("example.com")),
+            Some(super::DenialLog::REPEAT_EVERY)
+        );
+        assert_eq!(
+            denials.record("network.connect", None),
+            Some(1),
+            "a new key logs immediately"
+        );
+
+        let mut rotating = super::DenialLog::default();
+        let hostnames: Vec<String> = (0..super::DenialLog::MAX_LINES + 50)
+            .map(|i| format!("h{i}.example"))
+            .collect();
+        let logged = hostnames
+            .iter()
+            .filter(|hostname| rotating.record("dns.query", Some(hostname)).is_some())
+            .count();
+        assert_eq!(
+            u64::try_from(logged).expect("count"),
+            super::DenialLog::MAX_LINES,
+            "rotating hostnames hit the line cap"
+        );
+    }
     use std::{
         cell::{Cell, RefCell},
         collections::BTreeMap,

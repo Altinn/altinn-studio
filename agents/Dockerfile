@@ -9,6 +9,7 @@ RUN apt-get update \
         build-essential \
         ca-certificates \
         curl \
+        fonts-liberation \
         git \
         jq \
         libicu-dev \
@@ -63,7 +64,7 @@ RUN case "${TARGETARCH}" in \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz /tmp/node.tar.xz
 
 ARG YARN_VERSION=4.18.0
-ARG GH_VERSION=2.98.0
+ARG GH_VERSION=2.100.0
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
@@ -73,8 +74,8 @@ RUN mkdir -p "${COREPACK_HOME}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
 RUN case "${TARGETARCH}" in \
-        amd64) GH_SHA256=3b8ac6b30336802fc1a858d7c084e11cdf24ac1a761ca90b68022d7d729208de ;; \
-        arm64) GH_SHA256=cf689084f3a3618f7eae4a2420d335d74626d65f5e594b9828d125d69f800d86 ;; \
+        amd64) GH_SHA256=e4d4bb4498e8d007abe545b6568926793ace1b6447da598294a610018cb164be ;; \
+        arm64) GH_SHA256=ea4e7a581a32ccad6cc7923cb1576ac5859ba4b9a16ab22eb8f8a96e78e2e961 ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
     && GH_ARCHIVE="gh_${GH_VERSION}_linux_${TARGETARCH}.tar.gz" \
@@ -90,6 +91,36 @@ RUN case "${TARGETARCH}" in \
 # directory is resynchronized from the host on every sandbox setup.
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
     && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
+
+# Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF
+# with a system font (Liberation Mono from fonts-liberation above is in its default family list).
+# Both are static single binaries published per architecture without checksum files, so the
+# digests are pinned here and must move together with the version.
+ARG ASCIINEMA_VERSION=3.2.1
+ARG AGG_VERSION=1.9.0
+
+RUN case "${TARGETARCH}" in \
+        amd64) RUST_ARCH=x86_64; \
+            ASCIINEMA_SHA256=1b405bbda565b33c3c4718de67fedc3535580603c0694b1ff3fb04f363430a20; \
+            AGG_SHA256=f111e315cd71056b116302342553dd765b7297579ed511f111d0cedb442aeda6 ;; \
+        arm64) RUST_ARCH=aarch64; \
+            ASCIINEMA_SHA256=b516a6d896844c0ffbc96e0a55afe4cbcc79216abde0fc64fdda4e39bee421ea; \
+            AGG_SHA256=2b4be407b97e00e1c313a41d154ced8fa3d02c560c8f47a0db4950a2576444c9 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL \
+        "https://github.com/asciinema/asciinema/releases/download/v${ASCIINEMA_VERSION}/asciinema-${RUST_ARCH}-unknown-linux-gnu" \
+        -o /tmp/asciinema \
+    && echo "${ASCIINEMA_SHA256}  /tmp/asciinema" | sha256sum -c - \
+    && install -m 0755 /tmp/asciinema /usr/local/bin/asciinema \
+    && curl -fsSL \
+        "https://github.com/asciinema/agg/releases/download/v${AGG_VERSION}/agg-${RUST_ARCH}-unknown-linux-gnu" \
+        -o /tmp/agg \
+    && echo "${AGG_SHA256}  /tmp/agg" | sha256sum -c - \
+    && install -m 0755 /tmp/agg /usr/local/bin/agg \
+    && rm -f /tmp/asciinema /tmp/agg \
+    && asciinema --version \
+    && agg --version
 
 ARG CODEX_VERSION=0.149.1
 ARG CLAUDE_CODE_VERSION=2.1.260
@@ -133,10 +164,12 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 
 FROM base AS full
 
-ARG PLAYWRIGHT_VERSION=1.62.1
+ARG PLAYWRIGHT_CLI_VERSION=0.1.19
 ARG RUST_VERSION=1.97.1
 
 ENV CARGO_HOME=/usr/local/cargo
+# Standalone scripts resolve the globally installed `playwright` package from any directory.
+ENV NODE_PATH=/usr/local/lib/node_modules
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV PATH=/usr/local/cargo/bin:${PATH}
@@ -147,6 +180,7 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
         clang \
+        ffmpeg \
         iproute2 \
         lldb \
         linux-perf \
@@ -162,11 +196,32 @@ RUN apt-get update \
     && rustup default "${RUST_VERSION}" \
     && rustup component add clippy rustfmt
 
-RUN npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
+# Playwright ties every package version to one Chromium build. The browser CLI owns the version:
+# the `playwright` package is installed at exactly the version the CLI depends on, so the CLI,
+# standalone scripts and the single browser under PLAYWRIGHT_BROWSERS_PATH cannot drift apart.
+# The bundled skill is installed user-wide where Claude Code and Codex look for skills;
+# `playwright-cli install --skills` would otherwise write it per working directory. Root-owned
+# build caches under the agent home would deny the agent user its own cache directories later.
+RUN npm install --global "@playwright/cli@${PLAYWRIGHT_CLI_VERSION}" \
+    && PLAYWRIGHT_VERSION="$(node -p "require('${NODE_PATH}/@playwright/cli/package.json').dependencies.playwright")" \
+    && test -n "${PLAYWRIGHT_VERSION}" \
+    && npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
+    && test "$(node -p "require('playwright/package.json').version")" = "${PLAYWRIGHT_VERSION}" \
     && playwright install --with-deps chromium \
     && chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}" \
-    && rm -rf /var/lib/apt/lists/* \
-    && playwright --version
+    && playwright --version \
+    && playwright-cli --version \
+    && for skills in /home/agent/.claude/skills /home/agent/.agents/skills; do \
+        mkdir -p "${skills}" \
+        && cp -R "${NODE_PATH}/@playwright/cli/skills/playwright-cli" "${skills}/playwright-cli"; \
+    done \
+    && chown -R agent:agent /home/agent/.claude /home/agent/.agents \
+    && rm -rf /var/lib/apt/lists/* /home/agent/.npm /home/agent/.cache \
+    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
+        echo "build left files under /home/agent not owned by agent" >&2; exit 1; \
+    fi
+
+COPY --chmod=0755 common/bin/video-to-gif common/bin/media-preview /usr/local/bin/
 
 ARG FLUX_VERSION=2.9.4
 ARG HELM_VERSION=3.21.1
@@ -217,7 +272,8 @@ RUN case "${TARGETARCH}" in \
     && kind version \
     && kubectl version --client \
     && helm version --short \
-    && flux --version
+    && flux --version \
+    && ffmpeg -version
 
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 

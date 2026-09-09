@@ -1,13 +1,13 @@
 #!/bin/sh
 set -eu
 
-repository=${AGENT_WORKSPACE_REPOSITORY:-Altinn/altinn-studio}
 destination=${AGENT_WORKSPACE_DESTINATION:-/home/agent/code/altinn-studio}
 
 if [ -d "$destination/.git" ]; then
     exit 0
 fi
 
+repository=${AGENT_WORKSPACE_REPOSITORY:-Altinn/altinn-studio}
 parent=${destination%/*}
 mkdir -p "$parent"
 

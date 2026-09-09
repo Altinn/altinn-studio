@@ -19,7 +19,7 @@ spec:
   home:
     source: home
   instructions:
-    source: instructions.md
+    - source: instructions.md
   harnesses:
     - type: claudeCode
       version: "2.1.239"

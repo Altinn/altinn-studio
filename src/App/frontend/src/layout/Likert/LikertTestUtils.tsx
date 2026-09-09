@@ -2,6 +2,9 @@ import React from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 import { vi } from 'vitest';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
+import type { CompLikertExternal } from '@app/layout-contract/generated/components/Likert/config.generated';
+import type { CompLikertItemExternal } from '@app/layout-contract/generated/components/LikertItem/config.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -15,9 +18,6 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { IRawOption } from 'src/layout/common.generated';
-import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
-import type { CompLikertItemExternal } from 'src/layout/LikertItem/config.generated';
 
 let mockTextResourcesValue: TextResourceMap = {};
 

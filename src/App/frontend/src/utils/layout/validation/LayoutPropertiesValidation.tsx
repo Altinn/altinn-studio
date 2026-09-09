@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { Loader } from 'src/core/loading/Loader';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { getComponentDef, implementsDataModelBindingValidation } from 'src/layout';
+import { getComponentDef, implementsDataModelBindingValidation, isExternallyConfigurableComponent } from 'src/layout';
 import {
   shouldValidateLayoutConfiguration,
   useLayoutSchemaValidator,
@@ -13,7 +15,6 @@ import {
 import { duplicateStringFilter } from 'src/utils/stringHelper';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
 import type { LayoutValidationResult, ValidateFunc } from 'src/utils/layout/validation/LayoutValidationContext';
@@ -124,7 +125,7 @@ export function validateLayoutProperties({
       }
     }
 
-    if (schemaValidator) {
+    if (schemaValidator && isExternallyConfigurableComponent(component.type)) {
       const schemaErrors = def.validateLayoutConfig(component as never, schemaValidator);
       if (schemaErrors) {
         for (const error of schemaErrors

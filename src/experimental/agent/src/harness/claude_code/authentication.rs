@@ -89,7 +89,7 @@ impl Authentication {
             .send()
             .await;
         let Ok(response) = sent else {
-            eprintln!("warning: could not reach Claude to validate the token; storing it anyway.");
+            tracing::warn!("could not reach Claude to validate the token; storing it anyway");
             return Ok(());
         };
         let status = response.status();
@@ -99,7 +99,7 @@ impl Authentication {
             ))
         } else {
             if !status.is_success() && status != reqwest::StatusCode::FORBIDDEN {
-                eprintln!("warning: unexpected HTTP {status} while validating the token; storing it anyway.");
+                tracing::warn!(%status, "unexpected HTTP status while validating the token; storing it anyway");
             }
             Ok(())
         }
