@@ -1772,7 +1772,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -1879,8 +1879,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -1906,7 +1906,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -1978,8 +1978,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "type": true,
@@ -2430,7 +2430,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -2520,8 +2520,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
@@ -2635,7 +2635,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -2710,8 +2710,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "type": true,
@@ -2832,7 +2832,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -2970,8 +2970,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -3045,7 +3045,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -3122,8 +3122,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
@@ -3309,7 +3309,6 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
@@ -3742,7 +3741,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -3812,8 +3811,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -3837,7 +3836,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -4004,8 +4003,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -4159,7 +4158,7 @@
           "$ref": "#/definitions/ISelectionComponent"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/ILikertColumnProperties"
@@ -4273,8 +4272,8 @@
             "source": true,
             "optionFilter": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "columns": true,
             "type": true,
             "textResourceBindings": true,
@@ -4376,7 +4375,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -4502,8 +4501,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -4537,7 +4536,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -4621,8 +4620,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -4651,7 +4650,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -4732,8 +4731,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
@@ -5109,7 +5108,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -5205,8 +5204,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "type": true,
@@ -5386,7 +5385,7 @@
               "properties": {
                 "title": {
                   "title": "Title",
-                  "description": "The title of the paragraph",
+                  "description": "The title of the payment details",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "description": {
@@ -5458,7 +5457,7 @@
                   "properties": {
                     "title": {
                       "title": "Title",
-                      "description": "The title of the paragraph",
+                      "description": "The title of the payment component",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
@@ -5573,7 +5572,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -5655,8 +5654,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "type": true,
@@ -5729,7 +5728,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -5820,8 +5819,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "optionsId": true,
@@ -6404,7 +6403,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -6466,7 +6465,7 @@
               }
             },
             "zebra": {
-              "title": "Size",
+              "title": "Zebra striping",
               "description": "If true, the table will have zebra striping",
               "type": "boolean"
             },
@@ -6476,7 +6475,7 @@
               "type": "boolean"
             },
             "enableEdit": {
-              "title": "Enable delete",
+              "title": "Enable edit",
               "description": "If true, will allow user to edit row",
               "type": "boolean"
             },
@@ -6507,8 +6506,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -6540,7 +6539,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -6670,8 +6669,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "type": true,
@@ -6924,7 +6923,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -7004,8 +7003,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -7116,7 +7115,7 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/FormComponentProps"
+          "$ref": "#/definitions/FormComponentPropsWithRequired"
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
@@ -7243,8 +7242,8 @@
             "grid": true,
             "pageBreak": true,
             "readOnly": true,
-            "required": true,
             "showValidations": true,
+            "required": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
             "labelSettings": true,
@@ -7710,16 +7709,29 @@
           "default": false,
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
-        "required": {
-          "title": "Required?",
-          "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-          "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
-        },
         "showValidations": {
           "$ref": "#/definitions/AllowedValidationMasks"
         }
       }
+    },
+    "FormComponentPropsWithRequired": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "title": "FormComponentPropsWithRequired",
+          "type": "object",
+          "properties": {
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            }
+          }
+        }
+      ]
     },
     "GridCell": {
       "title": "GridCell",

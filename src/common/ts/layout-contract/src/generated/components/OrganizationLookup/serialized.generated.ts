@@ -1,7 +1,7 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IRawDataModelBinding,
   SummarizableComponentProps,
   TRBFormComp,
@@ -19,7 +19,7 @@ export type CompOrganizationLookupSerialized = {
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { orgnr: IRawDataModelBinding; name?: IRawDataModelBinding };
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps;
 
-// Source hash: 4091d3191c5d5c0764bf84421f6bb2a08cb77a7d16d23591f0b91463d14c1344
+// Source hash: 68b90f8c5b4b5f24ddfc721c675521fcb03c2a77fd15eab5d2e766ca2ef1fb0a

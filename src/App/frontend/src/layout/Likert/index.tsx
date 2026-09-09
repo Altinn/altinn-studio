@@ -13,7 +13,7 @@ import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';
-import type { IDataModelBindings } from 'src/layout/layout';
+import type { CompInternal, IDataModelBindings } from 'src/layout/layout';
 import type {
   ChildClaimerProps,
   ExprResolver,
@@ -31,6 +31,14 @@ export class Likert extends LikertDef {
 
   renderSummaryBoilerplate(): boolean {
     return false;
+  }
+
+  isRequired(item: CompInternal<'Likert'>): boolean {
+    return item.required === true;
+  }
+
+  supportsRequiredProperty(): boolean {
+    return true;
   }
 
   renderSummary(props: SummaryRendererProps): JSX.Element | null {

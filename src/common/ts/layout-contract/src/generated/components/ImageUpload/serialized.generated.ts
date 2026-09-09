@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
@@ -30,8 +30,8 @@ export type CompImageUploadSerialized = {
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsSimple;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 07c1213bf13eb562132adf258348ae7185728c2d32688d58ec8c2079ca62d1a0
+// Source hash: 3de1a3e0cfc62d6230ede33cb4d7355edd0c234e7861eb3ae00b72a39280c273

@@ -27,6 +27,10 @@ export abstract class FileUploadDef extends FormComponent<'FileUpload'> implemen
     };
   }
 
+  supportsRequiredProperty(): boolean {
+    return false;
+  }
+
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
     baseComponentId: string,
@@ -38,4 +42,4 @@ export abstract class FileUploadDef extends FormComponent<'FileUpload'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 3abc0c73d990e44db999a8288a955d771a890518ddda1daca543a016509bf12c
+// Source hash: f6522bf364659cd69860b2353d4d6c45ef2051902834e077c7cad8219e51fed9

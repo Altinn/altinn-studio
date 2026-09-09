@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -15,7 +15,7 @@ export abstract class SubformDef extends FormComponent<'Subform'> {
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -30,4 +30,4 @@ export abstract class SubformDef extends FormComponent<'Subform'> {
   }
 }
 
-// Source hash: 894d95802edde432bc3f2636b1ae871d7d27fbfb659dd47c60983da4aa1a2069
+// Source hash: 9b4c700fc9ed27d0e56799bd366b24423c5354ec905b345ca075aea80c148427

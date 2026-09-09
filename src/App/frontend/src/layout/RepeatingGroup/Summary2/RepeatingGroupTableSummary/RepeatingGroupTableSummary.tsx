@@ -27,7 +27,7 @@ import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryCo
 import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentIsRequired, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {
@@ -241,8 +241,7 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   const headerTitle = langAsString(useTableTitle(baseComponentId));
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
   const displayData = useDisplayData(baseComponentId);
-  const item = useItemFor(baseComponentId);
-  const required = 'required' in item ? item.required : false;
+  const required = useComponentIsRequired(baseComponentId);
 
   useReportSummaryRender(
     displayData.trim() === ''

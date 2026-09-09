@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -17,7 +17,7 @@ export abstract class AddToListDef extends FormComponent<'AddToList'> {
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -39,4 +39,4 @@ export abstract class AddToListDef extends FormComponent<'AddToList'> {
   ): string[];
 }
 
-// Source hash: caccb312ea9d8f6dbe457ddfe6655e4a295109e804c01afb6b77853c04a34477
+// Source hash: 7df57478aa3bcbf23f160dfb4374fa8f3687e73855ad0c8176b1efbcd5e01757

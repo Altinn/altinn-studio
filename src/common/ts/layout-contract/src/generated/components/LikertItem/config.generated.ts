@@ -1,7 +1,7 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsOptionsSimple,
   ILikertColumnProperties,
   ISelectionComponentFull,
@@ -14,7 +14,7 @@ import {
 export interface CompLikertItemExternal
   extends
     ComponentBase,
-    FormComponentProps,
+    FormComponentPropsWithRequired,
     SummarizableComponentProps,
     ISelectionComponentFull,
     ILikertColumnProperties {
@@ -59,4 +59,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: e993d597dd4652224caec6e3be761aec2c0c3ba6bdb8566fd8e1c42c63c4e03e
+// Source hash: 0612635a36ad0ec22ead230c98089ab7cffd38f165a7b7ac40a014af59368049

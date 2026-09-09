@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
@@ -22,9 +22,9 @@ export type CompRadioButtonsSerialized = {
   showLabelsInTable?: boolean;
   showAsCard?: boolean;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: d2f106bb2c71a6705dcabff8d98372cbde4357919a4a77f2fc886cdec77c5bde
+// Source hash: 711f44960becfbcf17a0cd2dc9d514821d38a41009bedf1e2f20632a623d3b9d

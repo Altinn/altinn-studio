@@ -59,7 +59,11 @@ export class ComponentConfig {
     this.inner.extends(CG.common('ComponentBase'));
 
     if (config.category === CompCategory.Form) {
-      this.inner.extends(CG.common('FormComponentProps'));
+      this.inner.extends(
+        config.functionality.supportsRequired === false
+          ? CG.common('FormComponentProps')
+          : CG.common('FormComponentPropsWithRequired'),
+      );
       this.extendTextResources(CG.common('TRBFormComp'));
     }
     if (this.isFormLike()) {
@@ -420,9 +424,13 @@ export class ComponentConfig {
     const isFormComponent = this.config.category === CompCategory.Form;
     const isSummarizable = this.behaviors.isSummarizable;
 
+    const formComponentProps =
+      this.config.functionality.supportsRequired === false
+        ? CG.common('FormComponentProps')
+        : CG.common('FormComponentPropsWithRequired');
     const evalCommonProps = [
       { base: CG.common('ComponentBase'), condition: true, evaluator: 'evalBase' },
-      { base: CG.common('FormComponentProps'), condition: isFormComponent, evaluator: 'evalFormProps' },
+      { base: formComponentProps, condition: isFormComponent, evaluator: 'evalFormProps' },
       { base: CG.common('SummarizableComponentProps'), condition: isSummarizable, evaluator: 'evalSummarizable' },
     ];
 
@@ -437,6 +445,10 @@ export class ComponentConfig {
     }
 
     const additionalMethods: string[] = [];
+
+    if (isFormComponent && this.config.functionality.supportsRequired === false) {
+      additionalMethods.push(`supportsRequiredProperty(): boolean { return false; }`);
+    }
 
     if (!this.config.functionality.customExpressions) {
       additionalMethods.push(

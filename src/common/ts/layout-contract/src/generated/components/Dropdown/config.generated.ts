@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsOptionsSimple,
   ISelectionComponentFull,
   ISummaryOverridesCommon,
@@ -15,7 +15,7 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 export interface CompDropdownExternal
   extends
     ComponentBase,
-    FormComponentProps,
+    FormComponentPropsWithRequired,
     SummarizableComponentProps,
     ISelectionComponentFull,
     LabeledComponentProps {
@@ -58,4 +58,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DropdownSummaryOverridesWithRef;
 };
 
-// Source hash: ebd254fba0dd72311209a2aae228069c59dedabf24dae38f994d8d1a2d6d1ce4
+// Source hash: e3e1258f730cbff23375aa611b76d4fedec814eb14cb69eb1a37e8cb1abdc25b

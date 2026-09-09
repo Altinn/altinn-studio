@@ -188,6 +188,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateComponentRequiredness(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -779,6 +782,34 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
+        }
+    }
+
+    static async Task<int> MigrateComponentRequiredness(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Component requiredness");
+        try
+        {
+            var result = await new ComponentRequiredMigration(projectFolder).Migrate();
+            foreach (var message in result.Messages.Messages)
+                UpgradeConsole.Message(message.Status, message.Text);
+
+            if (result.FilesChanged > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.PropertiesRemoved} required flag(s) from {result.FilesChanged} layout file(s)"
+                );
+            }
+            else if (result.Messages.Messages.Count == 0)
+            {
+                UpgradeConsole.Skip("No unsupported required properties found");
+            }
+
+            return result.Messages.RequiresManualFollowUp ? ExitManualActionRequired : ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating component requiredness", ex);
         }
     }
 

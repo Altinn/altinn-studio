@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class AddressDef extends FormComponent<'Address'> implements Dis
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -43,4 +43,4 @@ export abstract class AddressDef extends FormComponent<'Address'> implements Dis
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 837622d6dc091afe50005dd0b37d4fa38af10f5e8e5f2da202f54160d9f46ae2
+// Source hash: b1ff39cef6b24b7f1ff06864ea883132873233dff2f3dcd418ef129aa1bed93f

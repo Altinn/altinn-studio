@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   HTMLAutoCompleteValues,
   LabeledComponentProps,
   SaveWhileTyping,
@@ -21,8 +21,8 @@ export type CompTextAreaSerialized = {
   autocomplete?: HTMLAutoCompleteValues;
   maxLength?: number;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 8fe697792900d0804a8130b27f3b334083b302a6408b488d1b8204eb40f9f038
+// Source hash: 19e87de5a8e3d82d193150460819364342772e27813a39e52002db73ae0e6cac

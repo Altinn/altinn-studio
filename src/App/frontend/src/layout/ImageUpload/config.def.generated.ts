@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class ImageUploadDef extends FormComponent<'ImageUpload'> implem
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class ImageUploadDef extends FormComponent<'ImageUpload'> implem
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: bffc6d4af9702d689020b130a773c33f68a0410a5100eb6b9a3417d1c4b4d947
+// Source hash: e69bd407dcfbbe09743f927a4ad7191434b48a84ebc8d9d7d0647da2a68126e1

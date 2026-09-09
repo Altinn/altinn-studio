@@ -36,7 +36,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentIsRequired, useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface ColSpanHiddenOverlapWarningParams {
@@ -446,7 +446,7 @@ function CellWithLabel({
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const item = useItemFor(labelFrom);
   const trb = item.textResourceBindings;
-  const required = 'required' in item && item.required;
+  const required = useComponentIsRequired(labelFrom);
   const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
     returnType: ExprVal.Number,
     defaultValue: 1,

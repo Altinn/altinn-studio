@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
@@ -20,8 +20,8 @@ export type CompTimePickerSerialized = {
   minTime?: ExprValToActualOrExpr<ExprVal.String> | string;
   maxTime?: ExprValToActualOrExpr<ExprVal.String> | string;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 121e8de27276f00673fb767a97db2ff0d9d1d3d3ff88f7583733177182df7a0b
+// Source hash: fe270aca47bf1545bc928def91e17432e802a8f22751ac81aaa0b0fea4d84609

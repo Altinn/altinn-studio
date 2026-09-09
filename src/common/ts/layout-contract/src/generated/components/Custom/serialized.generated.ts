@@ -1,7 +1,7 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IRawDataModelBinding,
   SummarizableComponentProps,
   TRBFormComp,
@@ -20,7 +20,7 @@ export type CompCustomSerialized = {
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps;
 
-// Source hash: beef386cfee9c593c42901a0201997587ba651314fb2d78a295b43981138d79b
+// Source hash: 5ea1968a90e636d20976ae43ee1400617795e6f0ef6d1b0aee4958fcea24f025

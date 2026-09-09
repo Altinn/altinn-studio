@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class MapDef extends FormComponent<'Map'> implements DisplayData
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class MapDef extends FormComponent<'Map'> implements DisplayData
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 94ff84e034fe3a1eb9698553a5b3eff045e0d3b2f2c4acc0f19059abc3db6cb0
+// Source hash: db911a8cdfbfaf9d735e5596c9272b0c90101eae215f652cbeb003b20c569110

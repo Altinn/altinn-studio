@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   HTMLAutoCompleteValues,
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
@@ -14,7 +14,11 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompTextAreaExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends
+    ComponentBase,
+    FormComponentPropsWithRequired,
+    SummarizableComponentProps,
+    LabeledComponentProps {
   type: 'TextArea';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -56,4 +60,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TextAreaSummaryOverridesWithRef;
 };
 
-// Source hash: bf5d361826c0b5c54c716dfda750a18346f6a067df6748ca2822ac1213d2b9be
+// Source hash: 1bd4b1e36bed1060c4ccf1d8a0f9b939ca801871dc27d342bb233eaafd868a8b

@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class ListDef extends FormComponent<'List'> implements DisplayDa
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class ListDef extends FormComponent<'List'> implements DisplayDa
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 74619fc21a2b235b2b64ffdbfcaf00086d1aa393d8a66505de769f35ec75f5bc
+// Source hash: 4dc9416388f4ddeb57ae5b097dfadd611e4f4b18050caafa54fe9e4f158bca97

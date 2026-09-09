@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
@@ -12,7 +12,11 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompImageUploadExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends
+    ComponentBase,
+    FormComponentPropsWithRequired,
+    SummarizableComponentProps,
+    LabeledComponentProps {
   type: 'ImageUpload';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
   crop?: CropConfig;
@@ -65,4 +69,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ImageUploadSummaryOverridesWithRef;
 };
 
-// Source hash: 08180b2b89c23af51df445790a7525188b725439bde0d99ed890408698d4addd
+// Source hash: 5d242813ea895946fdf5e256428c76c656e420fea507b9dfaebfc0d726ecc9ac

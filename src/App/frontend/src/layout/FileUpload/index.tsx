@@ -21,7 +21,7 @@ import type {
   PropsFromGenericComponent,
   ValidateComponent,
 } from 'src/layout';
-import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
+import type { CompInternal, ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -38,6 +38,10 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
 
   renderDefaultValidations(): boolean {
     return false;
+  }
+
+  isRequired(item: CompInternal<'FileUpload'>): boolean {
+    return item.minNumberOfAttachments > 0;
   }
 
   useDisplayData(baseComponentId: string): string {

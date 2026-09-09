@@ -46,7 +46,7 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentIsRequired, useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -271,7 +271,7 @@ function SummaryCell(props: CellProps) {
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
   const item = useItemFor(props.labelFrom);
-  const required = 'required' in item ? item.required : false;
+  const required = useComponentIsRequired(props.labelFrom);
   const title =
     item.textResourceBindings && 'title' in item.textResourceBindings ? item.textResourceBindings.title : undefined;
   const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
@@ -403,7 +403,7 @@ function SummaryCellWithComponent({
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const item = useItemFor(baseComponentId);
   const textResourceBindings = item.textResourceBindings;
-  const required = 'required' in item ? item.required : false;
+  const required = useComponentIsRequired(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
   const content = getComponentCellData(baseComponentId, item.type, displayData, textResourceBindings);
 
@@ -492,7 +492,7 @@ function SummaryCellWithLabel({
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
     ITextResourceBindings | undefined;
   const title = trb && 'title' in trb ? trb.title : undefined;
-  const required = (refItem && 'required' in refItem && refItem.required) ?? false;
+  const required = useComponentIsRequired(cell.labelFrom);
 
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 

@@ -13,7 +13,7 @@ import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentIsRequired, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
@@ -33,7 +33,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
     return attachment.data.tags && attachment.data.tags?.length > 0;
   });
   const isEmpty = filteredAttachments.length === 0;
-  const required = component.minNumberOfAttachments > 0;
+  const required = useComponentIsRequired(targetBaseComponentId);
 
   return (
     <SummaryFlex

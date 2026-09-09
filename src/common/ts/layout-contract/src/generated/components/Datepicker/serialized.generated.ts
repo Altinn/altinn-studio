@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
@@ -33,8 +33,8 @@ export type CompDatepickerSerialized = {
   timeStamp?: boolean;
   format?: string;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 95d9689346f1f2ba17ed515de1db9184bd6ab1a81cbc46e350191a5327e5686f
+// Source hash: 3580fa606c265a7a23b702a488fa0c7a0c001b183bbac22aa39bd815dab5a775

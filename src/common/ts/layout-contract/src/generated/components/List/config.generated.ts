@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelReference,
   IQueryParameters,
   ISummaryOverridesCommon,
@@ -13,7 +13,11 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompListExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends
+    ComponentBase,
+    FormComponentPropsWithRequired,
+    SummarizableComponentProps,
+    LabeledComponentProps {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -72,4 +76,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: a7ec97269c691a72f8a81e4adc7e7f692a1f0de0f3b845283c9925d418ff7e4e
+// Source hash: 16d9c9846214a896605f9656ea9f0ed010e5274e54b86003b51152ff9f3488f3

@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class TextAreaDef extends FormComponent<'TextArea'> implements D
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -43,4 +43,4 @@ export abstract class TextAreaDef extends FormComponent<'TextArea'> implements D
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 7445cdb1431e8065c62c7ff6d0d14efa755d52f7ccb3e2cfb9235394a270f8f8
+// Source hash: 7f0c939677049cf3ad71c8310c61bea1160a21c588fd9a1e081ab8d38c363633

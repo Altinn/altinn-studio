@@ -81,6 +81,12 @@ export function useItemFor<T extends CompTypes = CompTypes>(baseComponentId: str
   return def.evalExpressions(props as never) as CompInternal<T>;
 }
 
+export function useComponentIsRequired(baseComponentId: string): boolean {
+  const item = useItemFor(baseComponentId);
+  const def = getComponentDef(item.type);
+  return def.isRequired(item as never);
+}
+
 type FormDataFromType<T extends CompTypes | undefined> = T extends undefined
   ? IComponentFormData<Exclude<T, undefined>> | undefined
   : IComponentFormData<Exclude<T, undefined>>;

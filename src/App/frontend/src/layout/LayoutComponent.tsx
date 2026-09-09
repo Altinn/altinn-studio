@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { CompCategory } from '@app/layout-contract';
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelReference,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
@@ -31,6 +31,7 @@ import type {
   CompExternal,
   CompExternalExact,
   CompIntermediateExact,
+  CompInternal,
   ComponentLayoutValidationProps,
   CompTypes,
   IDataModelBindings,
@@ -44,7 +45,7 @@ import type { BaseRow } from 'src/utils/layout/types';
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
   evalBase: () => ExprResolved<Omit<ComponentBase, 'hidden'>>;
-  evalFormProps: () => ExprResolved<FormComponentProps>;
+  evalFormProps: () => ExprResolved<FormComponentPropsWithRequired>;
   evalSummarizable: () => ExprResolved<SummarizableComponentProps>;
   evalStr: SimpleEval<ExprVal.String>;
   evalNum: SimpleEval<ExprVal.Number>;
@@ -153,6 +154,14 @@ export abstract class AnyComponent<Type extends CompTypes> {
     return undefined;
   }
 
+  isRequired(_item: CompInternal<Type>): boolean {
+    return false;
+  }
+
+  supportsRequiredProperty(): boolean {
+    return false;
+  }
+
   /**
    * Expands statically claimed children into the nodes that exist for the current runtime data.
    * Containers with generated or repeated children can override this while traversal stays component-agnostic.
@@ -234,6 +243,14 @@ export abstract class FormComponent<Type extends CompTypes>
   implements ValidateEmptyField<Type>
 {
   readonly category = CompCategory.Form;
+
+  isRequired(item: CompInternal<Type>): boolean {
+    return this.supportsRequiredProperty() && 'required' in item && item.required === true;
+  }
+
+  supportsRequiredProperty(): boolean {
+    return true;
+  }
 
   validateEmptyField(ctx: ComponentValidationContext<Type>): ComponentValidation[] {
     return validateEmptyFieldAllBindings(ctx);

@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 
-import type { FormComponentProps, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+import type {
+  FormComponentPropsWithRequired,
+  SummarizableComponentProps,
+} from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -66,7 +69,7 @@ export function useExpressionResolverProps<T extends CompTypes>(
   };
 
   const evalFormProps = () => {
-    const out: ExprResolved<FormComponentProps> = {};
+    const out: ExprResolved<FormComponentPropsWithRequired> = {};
     if (isFormItem(item)) {
       if (Array.isArray(item.required)) {
         out.required = evalBool(item.required, false);
@@ -104,7 +107,7 @@ export function useExpressionResolverProps<T extends CompTypes>(
   return { item, evalBool, evalNum, evalStr, evalAny, evalBase, evalFormProps, evalSummarizable, evalTrb };
 }
 
-function isFormItem(item: CompIntermediate): item is CompIntermediate & FormComponentProps {
+function isFormItem(item: CompIntermediate): item is CompIntermediate & FormComponentPropsWithRequired {
   return 'readOnly' in item || 'required' in item || 'showValidations' in item;
 }
 

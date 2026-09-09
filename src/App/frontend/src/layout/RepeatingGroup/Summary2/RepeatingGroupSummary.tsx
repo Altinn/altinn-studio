@@ -23,7 +23,7 @@ import {
 } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentIsRequired, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -35,7 +35,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const rows = RepGroupHooks.useVisibleRows(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, dataModelBindings, minCount, tableColumns } = useItemWhenType(
+  const { textResourceBindings, dataModelBindings, tableColumns } = useItemWhenType(
     targetBaseComponentId,
     'RepeatingGroup',
   );
@@ -51,7 +51,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
     : [];
   const visibleChildIds = childIds.filter((id) => !hiddenColumns.includes(id));
 
-  const required = minCount !== undefined && minCount > 0;
+  const required = useComponentIsRequired(targetBaseComponentId);
   const { className } = useSummarySoftHidden(hideEmptyFields && rows.length === 0 && !required);
 
   if (rows.length === 0) {

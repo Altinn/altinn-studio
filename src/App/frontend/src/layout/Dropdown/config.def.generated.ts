@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class DropdownDef extends FormComponent<'Dropdown'> implements D
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class DropdownDef extends FormComponent<'Dropdown'> implements D
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: a83ea0ab308598732c81af2e018f9907215f504e2f2043477950b43148a16ddf
+// Source hash: 54514bb833773cd71b4e839f43c38891bcc39644bd8949c365f3c7457c26c1aa

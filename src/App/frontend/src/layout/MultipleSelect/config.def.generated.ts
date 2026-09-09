@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class MultipleSelectDef extends FormComponent<'MultipleSelect'> 
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class MultipleSelectDef extends FormComponent<'MultipleSelect'> 
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 07e6e90e6e5c80f787f09ff974aa3aa4a958fd9a969b9a0fa1b9db3b2b321b82
+// Source hash: 969e38f6721fed471adfd500d07fe14f75d678eb6c4719d8652a17e27dd454b5

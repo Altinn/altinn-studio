@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -17,7 +17,7 @@ export abstract class SimpleTableDef extends FormComponent<'SimpleTable'> {
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -39,4 +39,4 @@ export abstract class SimpleTableDef extends FormComponent<'SimpleTable'> {
   ): string[];
 }
 
-// Source hash: be09aee6d08956408f6fe924ba8a89c31cb9b39f19447cbad8dff62e3e9366b8
+// Source hash: 8f5a53ffe93aa0092274509c5869d091c4ab1c217517e556b4040bf51cce7e9b

@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsOptionsSimple,
   ISelectionComponentFull,
   ISummaryOverridesCommon,
@@ -16,7 +16,7 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 export interface CompRadioButtonsExternal
   extends
     ComponentBase,
-    FormComponentProps,
+    FormComponentPropsWithRequired,
     SummarizableComponentProps,
     ISelectionComponentFull,
     LabeledComponentProps {
@@ -62,4 +62,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RadioButtonsSummaryOverridesWithRef;
 };
 
-// Source hash: fe7550f0582d4f233f8cb49f8d5f60488850c21c99d2b3509482fc5d686efe64
+// Source hash: 0e535a3cce7966c03e62506f9e84e30ad48a2f9984dd9421a37dab170113b6f4

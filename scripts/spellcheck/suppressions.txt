@@ -100,6 +100,16 @@ Axe
 @paths src/App/frontend/src/layout/Subform/config.ts
 celler
 
+# Norwegian metadata passed alongside English values in code-generator input.
+@paths src/App/frontend/src/codegen/Common.ts
+Alternativ
+alternativ
+Celler
+
+# Norwegian translation passed alongside English metadata in component code.
+@paths src/App/frontend/src/layout/FileUpload/config.ts
+tagg
+
 # --------------------------------------------------- codes and slugs ---
 
 # Altinn service-owner org slugs (als, staf) used as config/test values

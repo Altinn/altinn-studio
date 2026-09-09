@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class OrganizationLookupDef extends FormComponent<'OrganizationL
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -43,4 +43,4 @@ export abstract class OrganizationLookupDef extends FormComponent<'OrganizationL
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 839950f95b71a59a9ebdb1b1cd673877afd6d9ecea13567a9039abc6d8a01eb5
+// Source hash: 7c522f12b6b0494573b11f47c7f5836acab0d9ad20369453eaa108c2105cd42b

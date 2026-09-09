@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
@@ -12,7 +12,11 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompDatepickerExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends
+    ComponentBase,
+    FormComponentPropsWithRequired,
+    SummarizableComponentProps,
+    LabeledComponentProps {
   type: 'Datepicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -68,4 +72,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DatepickerSummaryOverridesWithRef;
 };
 
-// Source hash: 92490f5d42ac9a658807bcbf25092710cfc6f754093d0f01f7ddc99f0f3dd72e
+// Source hash: d72891a525d0a7493b9b7756585cb58040e454968102ebf6787bc399dd5e2469

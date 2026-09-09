@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class TimePickerDef extends FormComponent<'TimePicker'> implemen
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class TimePickerDef extends FormComponent<'TimePicker'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 6d21a5aa6438205b4ce55c9a879bcc0266ef954495b6581f1efadb8924aa0b95
+// Source hash: 1a957ed72624af4f9913b1f34fb8a8ec03c91f2454337681790fe7d87e9ca718

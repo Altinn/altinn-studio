@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class LikertItemDef extends FormComponent<'LikertItem'> implemen
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -43,4 +43,4 @@ export abstract class LikertItemDef extends FormComponent<'LikertItem'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 97ab907408365e6f56f7ecdd2d9617da958d91a70cc2e6bac2785a598a0877bb
+// Source hash: 386c23bdc850eaf11c0a7469e3c55b669190a5a013f89a86152e6ed4fdbdfe1a

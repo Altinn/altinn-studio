@@ -1,7 +1,7 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IRawDataModelBinding,
   LabeledComponentProps,
   SaveWhileTyping,
@@ -33,8 +33,8 @@ export type CompAddressSerialized = {
   saveWhileTyping?: SaveWhileTyping;
   simplified?: boolean;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: e06c20ff0957bf435abd9c5385a1cb01116983dcda83ff9aacaf6e08955a9130
+// Source hash: 19f2828c0cf4bbe5d408670cdd1e8ffc31791f115639660703e4596408351b69

@@ -1,5 +1,5 @@
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentIsRequired, useItemFor } from 'src/utils/layout/useNodeItem';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export interface LabelData {
@@ -26,7 +26,7 @@ export function useLabelData({
   const componentId = useIndexedId(baseComponentId);
 
   const readOnly = 'readOnly' in item ? item.readOnly : undefined;
-  const required = 'required' in item ? item.required : undefined;
+  const required = useComponentIsRequired(baseComponentId);
   const showOptionalMarking = 'labelSettings' in item && !!item.labelSettings?.optionalIndicator;
 
   const trb = item.textResourceBindings;

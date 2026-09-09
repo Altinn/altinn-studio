@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class PersonLookupDef extends FormComponent<'PersonLookup'> impl
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -43,4 +43,4 @@ export abstract class PersonLookupDef extends FormComponent<'PersonLookup'> impl
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 78f08bc4fbe532b4f4ce6e9a6558876afefa607f93531a922b097a1ad2f32595
+// Source hash: 257288b914672a5f19da5868c72f18f4692a9439a2910b16e60c0238af98e7d3

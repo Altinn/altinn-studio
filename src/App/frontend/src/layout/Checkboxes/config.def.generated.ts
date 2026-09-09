@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class CheckboxesDef extends FormComponent<'Checkboxes'> implemen
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class CheckboxesDef extends FormComponent<'Checkboxes'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: c0aef6dbea8a1ea312a33e8ee153fc29feeb7357f98972de9837702ae37010f8
+// Source hash: c294e519dc1f41e783d9ebed92afa3b2d57df0f23b42f3f14fbf551b7744b15b

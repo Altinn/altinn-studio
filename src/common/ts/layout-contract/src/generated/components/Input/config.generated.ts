@@ -1,7 +1,7 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsSimple,
   IFormatting,
   ISummaryOverridesCommon,
@@ -14,7 +14,11 @@ import {
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompInputExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends
+    ComponentBase,
+    FormComponentPropsWithRequired,
+    SummarizableComponentProps,
+    LabeledComponentProps {
   type: 'Input';
   textResourceBindings?: {
     prefix?: ExprValToActualOrExpr<ExprVal.String>;
@@ -116,4 +120,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: b65f91d2fdbfc3543399f64e3dfb60aa625a99f0b6831fd96bd2cfe1e3eccb0b
+// Source hash: 6365a9164c2eeace0f7471c453256f7b13800876b7dbac9edac54f08ac08dcf1

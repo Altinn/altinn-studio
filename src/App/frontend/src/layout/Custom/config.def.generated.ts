@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class CustomDef extends FormComponent<'Custom'> implements Displ
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -43,4 +43,4 @@ export abstract class CustomDef extends FormComponent<'Custom'> implements Displ
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: b373de15944f551169ac865d3ad0246ed31ffcf10efbcced9ea10e56c251d7a8
+// Source hash: 37ce69716269259c10bb41ecb920f57b9487ffcd10c101f1bc1ce90e87a61ea3

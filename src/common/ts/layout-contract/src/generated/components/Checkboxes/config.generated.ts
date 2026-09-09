@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelBindingsOptionsSimple,
   IDataModelReference,
   ISelectionComponentFull,
@@ -25,7 +25,7 @@ export type CheckboxesSummaryOverridesWithRef =
 export interface CompCheckboxesExternal
   extends
     ComponentBase,
-    FormComponentProps,
+    FormComponentPropsWithRequired,
     SummarizableComponentProps,
     ISelectionComponentFull,
     LabeledComponentProps {
@@ -72,4 +72,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: CheckboxesSummaryOverridesWithRef;
 };
 
-// Source hash: e827b19cb3d2972a5e565a1f5b6aba92903f1a416d2a7eaa1df8112ef25ccc3e
+// Source hash: ea7b2faa6b4abbc27f4db7abde78e49131b83980c71d1a46e162c84ec7ea862b

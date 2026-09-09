@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   ISelectionComponentFull,
   LabeledComponentProps,
   SummarizableComponentProps,
@@ -18,9 +18,9 @@ export type CompDropdownSerialized = {
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: a3f148f16d458a96ca02feff6d1d657c9061ca6efb251fd3d46847612b5ac8ac
+// Source hash: 5cdf388d9ee0ce841e836b8d65f043ac7ca6776d56785ddc3ef001d096f6e4cc

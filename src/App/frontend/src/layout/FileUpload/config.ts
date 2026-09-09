@@ -26,6 +26,7 @@ export const Config = asOptionsComponent(
       },
       functionality: {
         customExpressions: true,
+        supportsRequired: false,
       },
     }),
   ).addTextResource(

@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class DatepickerDef extends FormComponent<'Datepicker'> implemen
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class DatepickerDef extends FormComponent<'Datepicker'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: e5f7614708b779896986b9ccbf035b8d75cb0d41fb93b60f36edf41173b1de4b
+// Source hash: f2f2afa8910f2a14e3fa0e4e244e7af2917c278436a6b1f12439f5e1aaeff427

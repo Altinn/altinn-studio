@@ -1,6 +1,6 @@
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IRawDataModelBinding,
   ISelectionComponentFull,
   LabeledComponentProps,
@@ -25,9 +25,9 @@ export type CompMultipleSelectSerialized = {
   dataModelBindings: IDataModelBindingsForGroupMultiselect;
   deletionStrategy?: 'soft' | 'hard';
 } & ComponentBase &
-  FormComponentProps &
+  FormComponentPropsWithRequired &
   SummarizableComponentProps &
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: 7913dfae5b0f12d8aefde001fbac62fbec5ff66081d4f27488df57ba3a07dbca
+// Source hash: f956abb3b1f4e5c03992f91275eca3a29f344b02f1011da54f36b8a405bbb062

@@ -1,6 +1,6 @@
 import type {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -18,7 +18,7 @@ export abstract class RadioButtonsDef extends FormComponent<'RadioButtons'> impl
     return {
       ...(props.item as Omit<
         typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
+        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
       >),
       ...props.evalBase(),
       ...props.evalFormProps(),
@@ -38,4 +38,4 @@ export abstract class RadioButtonsDef extends FormComponent<'RadioButtons'> impl
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 42f9e2edd8e24f6518d7d1faf03e38f89363609fb8508b1125f7668bb0c5ef9f
+// Source hash: f712d5438f31c9580106d9cf573983dc49fca8637ff41cb7c9b395554568e2b5

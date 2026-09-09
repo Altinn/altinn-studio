@@ -727,6 +727,10 @@ const common = {
             'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
           ),
       ),
+      new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional()),
+    ),
+  FormComponentPropsWithRequired: () =>
+    new CG.obj(
       new CG.prop(
         'required',
         new CG.expr(ExprVal.Boolean)
@@ -737,8 +741,7 @@ const common = {
             'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
           ),
       ),
-      new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional()),
-    ),
+    ).extends(CG.common('FormComponentProps')),
   SummarizableComponentProps: () =>
     new CG.obj(
       new CG.prop(

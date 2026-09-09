@@ -14,8 +14,7 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { CompTypes } from 'src/layout/layout';
+import { useComponentIsRequired, useItemFor } from 'src/utils/layout/useNodeItem';
 
 interface ComponentSummaryProps {
   targetBaseComponentId: string;
@@ -74,10 +73,10 @@ function useIsHiddenInSummary(baseComponentId: string) {
   return !!(hidden || hiddenInOverride);
 }
 
-function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, type: T, content: SummaryContains) {
+function useIsHiddenBecauseEmpty(baseComponentId: string, content: SummaryContains) {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const item = useItemWhenType(baseComponentId, type);
-  const isRequired = 'required' in item ? item.required : undefined;
+  const item = useItemFor(baseComponentId);
+  const isRequired = useComponentIsRequired(baseComponentId);
   const forceShowInSummary = item['forceShowInSummary'];
 
   if (isRequired && content === SummaryContains.EmptyValueNotRequired) {
@@ -132,7 +131,7 @@ export function SummaryFlex({ targetBaseId, className, content, children }: Summ
   }
 
   const isHidden = useIsHiddenInSummary(targetBaseId);
-  const isHiddenBecauseEmpty = useIsHiddenBecauseEmpty(targetBaseId, component.type, content);
+  const isHiddenBecauseEmpty = useIsHiddenBecauseEmpty(targetBaseId, content);
   const { className: hiddenClass, leafCanReturnNull } = useSummarySoftHidden(isHidden);
 
   useReportSummaryRender(isHidden ? SummaryContains.EmptyValueNotRequired : content);

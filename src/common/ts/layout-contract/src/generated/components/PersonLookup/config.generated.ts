@@ -1,7 +1,7 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentProps,
+  FormComponentPropsWithRequired,
   IDataModelReference,
   ISummaryOverridesCommon,
   SummarizableComponentProps,
@@ -10,7 +10,7 @@ import {
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompPersonLookupExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps {
+  extends ComponentBase, FormComponentPropsWithRequired, SummarizableComponentProps {
   type: 'PersonLookup';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -62,4 +62,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 4262ba903bd26eaa33143af1ca17c7c39c0f9420f5d2208f4063c4d491805b91
+// Source hash: 93fd5837a7086d1fcf993c998f86d30d7c8135adf065518b6582a1a6e27a9987

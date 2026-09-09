@@ -9,6 +9,7 @@ import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsyste
 
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
+import { getComponentDef } from 'src/layout';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
@@ -53,7 +54,7 @@ export function LabelInner(props: LabelInnerProps) {
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
   const item = { ..._item, ...overrideItemProps };
   const { grid, textResourceBindings: _trb } = item;
-  const required = 'required' in item && item.required;
+  const required = getComponentDef(item.type).isRequired(item as never);
   const readOnly = 'readOnly' in item && item.readOnly;
   const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
 

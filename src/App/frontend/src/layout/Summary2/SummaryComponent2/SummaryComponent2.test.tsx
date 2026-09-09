@@ -225,6 +225,71 @@ describe('SummaryComponent', () => {
     expect(screen.getByTestId('summary-single-value-component')).toBeInTheDocument();
   });
 
+  test('should render an empty FileUpload when its minimum attachment count makes it required', async () => {
+    await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'FileUpload',
+                type: 'FileUpload',
+                displayMode: 'list',
+                maxFileSizeInMB: 25,
+                minNumberOfAttachments: 1,
+                maxNumberOfAttachments: 10,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        hideEmptyFields: true,
+        id: 'Summary2',
+        target: {
+          id: 'FileUpload',
+          type: 'component',
+        },
+      },
+    });
+
+    expect(document.querySelector('[data-summary-target="FileUpload"]')).toBeInTheDocument();
+  });
+
+  test('should ignore an unsupported required property on FileUpload', async () => {
+    await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'FileUpload',
+                type: 'FileUpload',
+                displayMode: 'list',
+                maxFileSizeInMB: 25,
+                minNumberOfAttachments: 0,
+                maxNumberOfAttachments: 10,
+                required: true,
+              } as CompExternal,
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        hideEmptyFields: true,
+        id: 'Summary2',
+        target: {
+          id: 'FileUpload',
+          type: 'component',
+        },
+      },
+    });
+
+    expect(document.querySelector('[data-summary-target="FileUpload"]')).not.toBeInTheDocument();
+  });
+
   test('should render component if its set to hide if empty, but the component is set to forceShow', async () => {
     await render({
       layout: {
