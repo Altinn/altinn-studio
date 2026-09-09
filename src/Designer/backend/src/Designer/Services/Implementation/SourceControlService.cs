@@ -800,7 +800,8 @@ public class SourceControlService(
                 Branch branch =
                     repo.Branches[ctx.branchName]
                     ?? throw new BranchNotFoundException(
-                        $"Branch '{ctx.branchName}' not found in local repository. Cannot publish non-existing branch."
+                        $"Branch '{ctx.branchName}' not found in local repository. Cannot publish non-existing branch.",
+                        ctx.branchName
                     );
 
                 repo.Branches.Update(

@@ -98,7 +98,7 @@ describe('DataModeling', () => {
       .fn()
       .mockImplementation(() =>
         Promise.reject(
-          createApiErrorMock(400, 'DM_01', [
+          createApiErrorMock(400, 'DM_01', undefined, [
             'custom error message',
             'another custom error message',
           ]),
@@ -126,7 +126,7 @@ describe('DataModeling', () => {
       .fn()
       .mockImplementation(() =>
         Promise.reject(
-          createApiErrorMock(400, 'DM_01', [
+          createApiErrorMock(400, 'DM_01', undefined, [
             'custom error message',
             'another custom error message',
           ]),
