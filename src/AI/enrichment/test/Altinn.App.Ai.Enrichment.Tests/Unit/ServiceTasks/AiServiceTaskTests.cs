@@ -33,7 +33,7 @@ public class AiServiceTaskTests
         var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
         var mutator = CreateMutator("demo-json", stored);
 
-        var result = await CreateSut().Execute(new ServiceTaskContext { InstanceDataMutator = mutator });
+        var result = await CreateSut().Execute(CreateContext(mutator));
 
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         var entry = stored.Should().ContainSingle().Subject;
@@ -49,7 +49,7 @@ public class AiServiceTaskTests
     {
         var mutator = CreateMutator("finnes-ikke", stored: []);
 
-        var result = await CreateSut().Execute(new ServiceTaskContext { InstanceDataMutator = mutator });
+        var result = await CreateSut().Execute(CreateContext(mutator));
 
 #if NET10_0_OR_GREATER
         // A missing agent folder is a config error: permanent, so the engine
@@ -93,7 +93,7 @@ public class AiServiceTaskTests
             }));
 
         var result = await CreateSut(instanceClient: instanceClient)
-            .Execute(new ServiceTaskContext { InstanceDataMutator = mutator, WorkflowId = workflowId });
+            .Execute(CreateContext(mutator, workflowId));
 
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         stored.Should().BeEmpty("a replay must not run the agent or store duplicate outputs");
@@ -108,7 +108,7 @@ public class AiServiceTaskTests
         var mutator = CreateMutator("demo-json", stored, storedMetadata: storedMetadata);
 
         var result = await CreateSut()
-            .Execute(new ServiceTaskContext { InstanceDataMutator = mutator, WorkflowId = workflowId });
+            .Execute(CreateContext(mutator, workflowId));
 
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         storedMetadata.Should().NotBeEmpty();
@@ -158,7 +158,7 @@ public class AiServiceTaskTests
             },
         };
 
-        var result = await CreateSut(options).Execute(new ServiceTaskContext { InstanceDataMutator = mutator });
+        var result = await CreateSut(options).Execute(CreateContext(mutator));
 
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         stored.Should().ContainSingle().Which.DataType.Should().Be("saksvurdering");
@@ -207,6 +207,25 @@ public class AiServiceTaskTests
     }
 
     // --- helpers ---------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds a <see cref="ServiceTaskContext"/> for the target framework in play. From
+    /// Altinn.App.Core 9.0.0-preview.5 the engine-supplied identities (WorkflowId, StepId) are
+    /// required members, so a directly constructed context must name them; on net8.0 the type has
+    /// no such members. Tests that care about the workflow identity pass it explicitly - the rest
+    /// get a fresh one, which is what a first attempt looks like to the replay guard.
+    /// </summary>
+    private static ServiceTaskContext CreateContext(IInstanceDataMutator mutator, Guid? workflowId = null) =>
+#if NET10_0_OR_GREATER
+        new()
+        {
+            InstanceDataMutator = mutator,
+            WorkflowId = workflowId ?? Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
+#else
+        new() { InstanceDataMutator = mutator };
+#endif
 
     private static AiServiceTask CreateSut(
         AiEnrichmentOptions? options = null
