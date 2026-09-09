@@ -41,6 +41,7 @@
             "Likert",
             "Link",
             "List",
+            "Lommebok",
             "Map",
             "MultipleSelect",
             "NavigationBar",
@@ -443,6 +444,18 @@
           },
           "then": {
             "$ref": "#/definitions/CompList"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Lommebok"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompLommebok"
           }
         },
         {
@@ -876,6 +889,9 @@
     "CompList": {
       "$ref": "#/definitions/CompListExternal"
     },
+    "CompLommebok": {
+      "$ref": "#/definitions/CompLommebokExternal"
+    },
     "CompMap": {
       "$ref": "#/definitions/CompMapExternal"
     },
@@ -1104,6 +1120,9 @@
         },
         {
           "$ref": "#/definitions/ListSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/LommebokSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/MapSummaryOverridesWithRef"
@@ -4526,6 +4545,85 @@
             "type",
             "tableHeaders",
             "dataListId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CompLommebokExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/SummarizableComponentProps"
+        },
+        {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
+          "title": "CompLommebokExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "Lommebok"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "$ref": "#/definitions/TRBLabel"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true,
+                    "title": true,
+                    "description": true,
+                    "help": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "readOnly": true,
+            "required": true,
+            "showValidations": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "labelSettings": true,
+            "type": true,
+            "textResourceBindings": true
+          },
+          "required": [
+            "id",
+            "type"
           ],
           "additionalProperties": false
         }
@@ -9960,6 +10058,75 @@
         "longitude"
       ],
       "additionalProperties": false
+    },
+    "LommebokSummaryOverridesWithRef": {
+      "title": "LommebokSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for Lommebok",
+              "description": "Properties for how to display the summary of this Lommebok component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all Lommebok",
+              "description": "Properties for how to display the summary of all Lommebok components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Lommebok"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
     },
     "MapLayer": {
       "title": "MapLayer",

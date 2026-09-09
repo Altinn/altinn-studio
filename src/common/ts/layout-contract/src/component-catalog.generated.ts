@@ -3651,6 +3651,46 @@ const ListSummaryOverridesWithRef = {
   ],
 } as const;
 
+const LommebokSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for Lommebok',
+        nb: 'Overstyringer av oppsummering for Lommebok',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Lommebok component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Lommebok-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Lommebok', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Lommebok',
+        nb: 'Overstyringer av oppsummering for alle Lommebok-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Lommebok components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Lommebok-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
 const MapSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4317,6 +4357,7 @@ const AnySummaryOverride = {
     InputSummaryOverridesWithRef,
     LikertSummaryOverridesWithRef,
     ListSummaryOverridesWithRef,
+    LommebokSummaryOverridesWithRef,
     MapSummaryOverridesWithRef,
     MultipleSelectSummaryOverridesWithRef,
     NumberSummaryOverridesWithRef,
@@ -7610,6 +7651,68 @@ const generatedContract = {
           description: {
             en: 'An array of strings representing the columns that is chosen to be shown in the mobile view.',
             nb: 'En liste over kolonnene som skal vises i mobilvisningen.',
+          },
+          required: false,
+        },
+      },
+    },
+    Lommebok: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: { name: { nb: 'Lommebok', en: 'Lommebok' }, lifecycle: { status: 'beta' } },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        readOnly: FormComponentProps['properties']['readOnly'],
+        required: FormComponentProps['properties']['required'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
+        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
+        type: {
+          type: 'constant',
+          value: 'Lommebok',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
           required: false,
         },
