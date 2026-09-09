@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
