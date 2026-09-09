@@ -2,10 +2,13 @@
 Description=Initialize the Agent workspace checkout
 Wants=network-online.target
 After=network-online.target
-Before=multi-user.target
 
 [Service]
-Type=oneshot
+# `Type=exec` completes the start job as soon as the clone has been spawned. As a oneshot ordered
+# before `multi-user.target` the clone was part of the boot transaction, and the host's
+# `systemctl is-system-running --wait` readiness check timed out on every first boot because the
+# clone outlives its deadline. Podman setup does not depend on the checkout.
+Type=exec
 User=agent
 Group=agent
 Environment=HOME=/home/agent
