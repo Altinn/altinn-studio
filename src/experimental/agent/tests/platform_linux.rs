@@ -528,6 +528,9 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
     );
 }
 
+// The host is what holds the FIFO; Windows has no mkfifo, and the Linux Sandbox setup runs the same
+// walker on every host, so one Unix host exercising it is enough.
+#[cfg(unix)]
 #[tokio::test(flavor = "local")]
 async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
     let directory = TempDir::new().expect("temporary directory");
