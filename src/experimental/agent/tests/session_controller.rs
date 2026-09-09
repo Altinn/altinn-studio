@@ -1,15 +1,20 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::panic)]
 
 mod support;
 
-use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    path::PathBuf,
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
     control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
-    sessions::{Reconcile, SessionId, SessionName, SessionStore as _},
+    sessions::{Reconcile, SessionId, SessionName, SessionReports as _, SessionStore as _},
 };
 use sandbox::{
     EnsureSandboxRequest, LocalFuture, Platform, SandboxHandle, SandboxService,
@@ -88,15 +93,7 @@ impl Reconcile<SessionId> for MarkSessionReady {
     fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
             self.0
-                .update_session_status(
-                    id,
-                    agent::sessions::Status {
-                        state: agent::sessions::State::Running,
-                        failure: None,
-                        harness_session_id: None,
-                    },
-                    0,
-                )
+                .update_session_lifecycle(id, agent::sessions::Lifecycle::running(), 0)
                 .await
         })
     }
@@ -226,6 +223,871 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
     }
 }
 
+/// A throwaway Sandbox service and tmux runtime for Session Service tests that
+/// never reach the runtime (they resolve with `WaitPolicy::FirstPass`).
+fn unused_sandboxes() -> Rc<agent::sandbox::Service> {
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
+        id: ProviderId::new("memory").expect("Provider ID"),
+        service: SandboxService::new(backend),
+        ensure_calls: Rc::new(Cell::new(0)),
+    });
+    Rc::new(
+        agent::sandbox::Service::new([provider], [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>])
+            .expect("Agent Sandbox service"),
+    )
+}
+
+fn tmux_runtime() -> Rc<dyn agent::sessions::SessionRuntime> {
+    Rc::new(agent::sessions::Tmux)
+}
+
+/// A scripted Session runtime: records deliveries and launches, serves a
+/// conversation the test appends to.
+struct FakeRuntime {
+    /// Whether the harness process is observed present; a launch is expected when it is not.
+    present: Cell<bool>,
+    conversation: RefCell<Vec<agent::sessions::Turn>>,
+    sent: RefCell<Vec<String>>,
+    launches: RefCell<Vec<(Option<String>, Option<String>)>>,
+}
+
+impl Default for FakeRuntime {
+    fn default() -> Self {
+        Self {
+            present: Cell::new(true),
+            conversation: RefCell::default(),
+            sent: RefCell::default(),
+            launches: RefCell::default(),
+        }
+    }
+}
+
+fn user_turn(text: &str) -> agent::sessions::Turn {
+    agent::sessions::Turn {
+        messages: vec![agent::sessions::Message {
+            role: agent::sessions::Role::User,
+            parts: vec![agent::sessions::Part::Text { text: text.into() }],
+        }],
+    }
+}
+
+fn assistant_text(text: &str) -> agent::sessions::Message {
+    agent::sessions::Message {
+        role: agent::sessions::Role::Assistant,
+        parts: vec![agent::sessions::Part::Text { text: text.into() }],
+    }
+}
+
+impl agent::sessions::SessionRuntime for FakeRuntime {
+    fn observe<'a>(
+        &'a self,
+        _session: &'a agent::sessions::Session,
+        _sandbox: &'a SandboxHandle,
+    ) -> LocalFuture<'a, Result<agent::sessions::Observation, Error>> {
+        let observation = if self.present.get() {
+            agent::sessions::Observation::Alive {
+                attached: false,
+                idle_seconds: 0,
+            }
+        } else {
+            agent::sessions::Observation::Missing
+        };
+        Box::pin(async move { Ok(observation) })
+    }
+
+    fn start<'a>(
+        &'a self,
+        _session: &'a agent::sessions::Session,
+        _sandbox: &'a SandboxHandle,
+        _session_hook_url: &'a str,
+        _token: &'a agent::sessions::LaunchToken,
+        resume: Option<&'a str>,
+        initial_prompt: Option<&'a str>,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.launches
+            .borrow_mut()
+            .push((resume.map(str::to_owned), initial_prompt.map(str::to_owned)));
+        self.present.set(true);
+        Box::pin(async { Ok(()) })
+    }
+
+    fn stop<'a>(
+        &'a self,
+        _session: &'a agent::sessions::Session,
+        _sandbox: &'a SandboxHandle,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async { Ok(()) })
+    }
+
+    fn prompt<'a>(
+        &'a self,
+        _session: &'a agent::sessions::Session,
+        _sandbox: &'a SandboxHandle,
+        prompt: &'a str,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.sent.borrow_mut().push(prompt.to_owned());
+        self.conversation.borrow_mut().push(user_turn(prompt));
+        Box::pin(async { Ok(()) })
+    }
+
+    fn turns<'a>(
+        &'a self,
+        _session: &'a agent::sessions::Session,
+        _sandbox: &'a SandboxHandle,
+    ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
+        let turns = self.conversation.borrow().clone();
+        Box::pin(async move { Ok(turns) })
+    }
+
+    fn attach<'a>(
+        &'a self,
+        _home: &'a std::path::Path,
+        _target: &'a agent::sessions::AttachTarget,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async { Err(Error::Invalid("no terminal in tests".into())) })
+    }
+}
+
+/// A database, a materialized memory Sandbox for Agent `worker`, and one
+/// Running Session `s1` launched with `token`; with `started`, its harness has
+/// already reported its start (native ID and conversation location).
+async fn running_session(
+    directory: &TempDir,
+    token: &str,
+    started: bool,
+) -> (
+    persistence::Database,
+    Rc<agent::sandbox::Service>,
+    agent::sessions::Session,
+) {
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider_service =
+        SandboxService::new(backend).with_network_backend(Rc::new(sandbox_memory::NetworkBackend::for_endpoint(
+            "memory",
+            NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+        )));
+    let mut record = ready_record("worker", agent_id);
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = provider_service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("materialized Sandbox");
+    record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
+        provider: ProviderId::new("memory").expect("Provider ID"),
+        id: sandbox.id().clone(),
+    });
+    database.put(record, 0).await.expect("Agent");
+    let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
+        id: ProviderId::new("memory").expect("Provider ID"),
+        service: provider_service,
+        ensure_calls: Rc::new(Cell::new(0)),
+    });
+    let sandboxes = Rc::new(
+        agent::sandbox::Service::new([provider], [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>])
+            .expect("Agent Sandbox service"),
+    );
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+            None,
+        )
+        .await
+        .expect("Session");
+    let activation = database.activate_session(session.id).await.expect("activate");
+    database
+        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), activation)
+        .await
+        .expect("running");
+    database
+        .record_session_launch(
+            session.id,
+            agent::sessions::LaunchRecord {
+                token: token.parse().expect("launch token"),
+                sandbox: sandbox.id().to_string(),
+                launched_at: time::OffsetDateTime::now_utc().unix_timestamp(),
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch bookkeeping");
+    if started {
+        let token: agent::sessions::LaunchToken = token.parse().expect("launch token");
+        database
+            .record_session_start_for_launch(session.id, &token, "native-0", Some("/home/agent/conversation.jsonl"))
+            .await
+            .expect("start report");
+        // The start report itself is the first activity event; without it the
+        // Session still reads as Starting.
+        database
+            .apply_session_activity_for_launch(
+                session.id,
+                &token,
+                agent::sessions::ActivityEvent::SessionStart,
+                time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+            )
+            .await
+            .expect("fold");
+    }
+    let session = database.get_session(session.id).await.expect("Session");
+    (database, sandboxes, session)
+}
+
+#[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
+async fn send_with_wait_returns_the_turns_the_conversation_gained() {
+    const TOKEN: &str = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let observers = agent::sessions::SessionObservers::new();
+    let observed = Rc::new(agent::sessions::ObservedStore::new(
+        Rc::new(database.clone()),
+        observers.clone(),
+    ));
+    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    // An earlier exchange the hook counter never saw (it was folded before a
+    // relaunch); its turn must not leak into the produced turns.
+    let mut earlier = user_turn("earlier prompt");
+    earlier.messages.push(assistant_text("earlier answer"));
+    runtime.conversation.borrow_mut().push(earlier);
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(MarkSessionReady(database.clone())),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = Rc::new(agent::sessions::Service::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        runtime.clone(),
+        Convergence::new(agent_wakeup, Observers::new()),
+        session_wakeup,
+        observers.clone(),
+    ));
+    let name = SessionName::new("s1").expect("name");
+
+    let sending_service = service.clone();
+    let sending_name = name.clone();
+    let send = tokio::task::spawn_local(async move {
+        sending_service
+            .prompt(
+                "worker",
+                &sending_name,
+                "do the thing",
+                true,
+                Some(Duration::from_secs(10)),
+            )
+            .await
+    });
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert_eq!(runtime.sent.borrow().as_slice(), ["do the thing"]);
+    assert!(
+        !send.is_finished(),
+        "the wait blocks until the harness reports the turn complete"
+    );
+
+    // The harness works, then reports the turn complete through the hook; the
+    // Platform API folds it durably and publishes it to observers.
+    let token: agent::sessions::LaunchToken = TOKEN.parse().expect("token");
+    for event in [
+        agent::sessions::ActivityEvent::TurnStarted,
+        agent::sessions::ActivityEvent::ToolStarted,
+        agent::sessions::ActivityEvent::ToolFinished,
+    ] {
+        observed
+            .apply_session_activity_for_launch(session.id, &token, event, time::OffsetDateTime::now_utc())
+            .await
+            .expect("fold");
+    }
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert!(!send.is_finished(), "working is not done");
+    runtime
+        .conversation
+        .borrow_mut()
+        .last_mut()
+        .expect("the sent turn")
+        .messages
+        .push(assistant_text("did the thing"));
+    observed
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            agent::sessions::ActivityEvent::TurnCompleted,
+            time::OffsetDateTime::now_utc(),
+        )
+        .await
+        .expect("fold");
+
+    let produced = send.await.expect("send task").expect("turns");
+    assert_eq!(produced.len(), 1, "only the exchange this send produced");
+    assert_eq!(produced[0].final_assistant_message(), Some("did the thing"));
+    let user = &produced[0].messages[0];
+    assert!(matches!(&user.parts[0], agent::sessions::Part::Text { text } if text == "do the thing"));
+
+    // Without wait the delivery returns immediately and reads nothing.
+    let immediate = service
+        .prompt("worker", &name, "and another", false, None)
+        .await
+        .expect("send");
+    assert!(immediate.is_empty());
+    assert_eq!(runtime.sent.borrow().len(), 2);
+
+    // `turns` reads the whole conversation; `last` trims it.
+    let all = service.turns("worker", &name, None).await.expect("turns");
+    assert_eq!(all.len(), 3);
+    let last = service.turns("worker", &name, Some(1)).await.expect("turns");
+    assert_eq!(last.len(), 1);
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn send_with_wait_reports_a_failed_session_instead_of_hanging() {
+    const TOKEN: &str = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let observers = agent::sessions::SessionObservers::new();
+    let observed = Rc::new(agent::sessions::ObservedStore::new(
+        Rc::new(database.clone()),
+        observers.clone(),
+    ));
+    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(MarkSessionReady(database.clone())),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = Rc::new(agent::sessions::Service::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        Rc::new(FakeRuntime::default()),
+        Convergence::new(agent_wakeup, Observers::new()),
+        session_wakeup,
+        observers,
+    ));
+    let name = SessionName::new("s1").expect("name");
+
+    let sending_service = service.clone();
+    let sending_name = name.clone();
+    let send = tokio::task::spawn_local(async move {
+        sending_service
+            .prompt(
+                "worker",
+                &sending_name,
+                "do the thing",
+                true,
+                Some(Duration::from_mins(1)),
+            )
+            .await
+    });
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert!(!send.is_finished());
+    // No activity report arrives; the lifecycle write itself wakes the wait.
+    session_store
+        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::failed("harness exited"), 1)
+        .await
+        .expect("failed");
+    let error = send
+        .await
+        .expect("send task")
+        .expect_err("a failed Session ends the wait");
+    assert!(error.to_string().contains("harness exited"), "{error}");
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
+async fn send_with_wait_joins_a_running_turn_and_waits_for_a_late_start_report() {
+    const TOKEN: &str = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, false).await;
+    let observers = agent::sessions::SessionObservers::new();
+    let observed = Rc::new(agent::sessions::ObservedStore::new(
+        Rc::new(database.clone()),
+        observers.clone(),
+    ));
+    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(MarkSessionReady(database.clone())),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = Rc::new(agent::sessions::Service::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        runtime.clone(),
+        Convergence::new(agent_wakeup, Observers::new()),
+        session_wakeup,
+        observers.clone(),
+    ));
+    let name = SessionName::new("s1").expect("name");
+    let token: agent::sessions::LaunchToken = TOKEN.parse().expect("token");
+
+    // The Session has launched but its harness has not reported its start:
+    // nothing is delivered until it does.
+    let sending_service = service.clone();
+    let sending_name = name.clone();
+    let send = tokio::task::spawn_local(async move {
+        sending_service
+            .prompt(
+                "worker",
+                &sending_name,
+                "steer left",
+                true,
+                Some(Duration::from_secs(10)),
+            )
+            .await
+    });
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert!(runtime.sent.borrow().is_empty(), "no delivery before the start report");
+
+    // The harness starts on its first prompt and is mid-turn when it reports.
+    runtime.conversation.borrow_mut().push(user_turn("first prompt"));
+    observed
+        .record_session_start_for_launch(session.id, &token, "native-1", Some("/home/agent/t.jsonl"))
+        .await
+        .expect("start report");
+    // The event is stamped in the past so the input-readiness grace is over.
+    observed
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            agent::sessions::ActivityEvent::TurnStarted,
+            time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+        )
+        .await
+        .expect("fold");
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert_eq!(
+        runtime.sent.borrow().as_slice(),
+        ["steer left"],
+        "delivered once the start is reported"
+    );
+    // The fake appended the steering input as a new turn; a real harness folds
+    // it into the running turn, so model that: merge it back.
+    let steer = runtime.conversation.borrow_mut().pop().expect("steer turn");
+    runtime
+        .conversation
+        .borrow_mut()
+        .last_mut()
+        .expect("running turn")
+        .messages
+        .extend(steer.messages);
+    runtime
+        .conversation
+        .borrow_mut()
+        .last_mut()
+        .expect("running turn")
+        .messages
+        .push(assistant_text("went left"));
+    observed
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            agent::sessions::ActivityEvent::TurnCompleted,
+            time::OffsetDateTime::now_utc(),
+        )
+        .await
+        .expect("fold");
+
+    let produced = send.await.expect("send task").expect("turns");
+    assert_eq!(produced.len(), 1, "the running turn the input joined is returned");
+    assert_eq!(produced[0].final_assistant_message(), Some("went left"));
+    assert!(
+        produced[0].messages.iter().any(|message| {
+            matches!(&message.parts[0], agent::sessions::Part::Text { text } if text == "steer left")
+        })
+    );
+    agent_task.abort();
+    session_task.abort();
+}
+
+/// A Session service over a started `s1` with a fake runtime, plus the observed
+/// store the test writes harness reports through.
+struct ServiceHarness {
+    database: persistence::Database,
+    observed: Rc<agent::sessions::ObservedStore<persistence::Database>>,
+    runtime: Rc<FakeRuntime>,
+    service: Rc<agent::sessions::Service>,
+    session: agent::sessions::Session,
+    token: agent::sessions::LaunchToken,
+    tasks: Vec<tokio::task::JoinHandle<()>>,
+}
+
+impl ServiceHarness {
+    async fn start(directory: &TempDir, token: &str) -> Self {
+        let (database, sandboxes, session) = running_session(directory, token, true).await;
+        let observers = agent::sessions::SessionObservers::new();
+        let observed = Rc::new(agent::sessions::ObservedStore::new(
+            Rc::new(database.clone()),
+            observers.clone(),
+        ));
+        let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+        let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+        let runtime = Rc::new(FakeRuntime::default());
+        let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+            agent_store.clone(),
+            Rc::new(NoopAgentReconcile),
+            Duration::from_mins(1),
+            Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+        );
+        let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+            session_store.clone(),
+            Rc::new(MarkSessionReady(database.clone())),
+            Duration::from_mins(1),
+            Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+        );
+        let tasks = vec![
+            tokio::task::spawn_local(agent_controller.run()),
+            tokio::task::spawn_local(session_controller.run()),
+        ];
+        let service = Rc::new(agent::sessions::Service::new(
+            session_store,
+            Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+            runtime.clone(),
+            Convergence::new(agent_wakeup, Observers::new()),
+            session_wakeup,
+            observers,
+        ));
+        Self {
+            database,
+            observed,
+            runtime,
+            service,
+            session,
+            token: token.parse().expect("token"),
+            tasks,
+        }
+    }
+
+    /// Reports one activity event for the current launch, as the Platform API would.
+    async fn report(&self, event: agent::sessions::ActivityEvent) {
+        self.observed
+            .apply_session_activity_for_launch(self.session.id, &self.token, event, time::OffsetDateTime::now_utc())
+            .await
+            .expect("fold")
+            .expect("current launch");
+    }
+
+    fn append_to_last_turn(&self, message: agent::sessions::Message) {
+        self.runtime
+            .conversation
+            .borrow_mut()
+            .last_mut()
+            .expect("a turn")
+            .messages
+            .push(message);
+    }
+
+    fn prompt(&self, text: &'static str) -> tokio::task::JoinHandle<Result<Vec<agent::sessions::Turn>, Error>> {
+        let service = self.service.clone();
+        tokio::task::spawn_local(async move {
+            service
+                .prompt(
+                    "worker",
+                    &SessionName::new("s1").expect("name"),
+                    text,
+                    true,
+                    Some(Duration::from_secs(10)),
+                )
+                .await
+        })
+    }
+
+    fn finish(self) {
+        for task in self.tasks {
+            task.abort();
+        }
+        drop(self.database);
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_repeated_prompt_never_matches_an_earlier_exchange() {
+    let directory = TempDir::new().expect("temporary directory");
+    let harness = ServiceHarness::start(&directory, "11111111-1111-4111-8111-111111111111").await;
+    // An earlier, answered "continue" and an unrelated turn still running.
+    let mut earlier = user_turn("continue");
+    earlier.messages.push(assistant_text("old answer"));
+    harness.runtime.conversation.borrow_mut().push(earlier);
+    harness
+        .runtime
+        .conversation
+        .borrow_mut()
+        .push(user_turn("something else"));
+    harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+
+    let answer = harness.prompt("continue");
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    // The unrelated turn completes: its answer is not ours, and neither is the old one.
+    let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
+    harness.append_to_last_turn(assistant_text("unrelated done"));
+    harness.runtime.conversation.borrow_mut().push(queued);
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    tokio::time::sleep(Duration::from_millis(2_500)).await;
+    assert!(
+        !answer.is_finished(),
+        "an older exchange with the same text is not the answer"
+    );
+
+    // Our turn runs and completes.
+    harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+    harness.append_to_last_turn(assistant_text("new answer"));
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let produced = answer.await.expect("task").expect("turns");
+    assert_eq!(produced.len(), 1);
+    assert_eq!(produced[0].final_assistant_message(), Some("new answer"));
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_queued_prompt_is_not_answered_by_its_own_opening_commentary() {
+    let directory = TempDir::new().expect("temporary directory");
+    let harness = ServiceHarness::start(&directory, "22222222-2222-4222-8222-222222222222").await;
+    harness.runtime.conversation.borrow_mut().push(user_turn("first task"));
+    harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+
+    let answer = harness.prompt("second task");
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    // The first turn completes; the queued second turn starts and writes commentary
+    // right after our prompt, then calls a tool, before it finally answers.
+    let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
+    harness.append_to_last_turn(assistant_text("first done"));
+    harness.runtime.conversation.borrow_mut().push(queued);
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+    harness.append_to_last_turn(assistant_text("Let me look."));
+    tokio::time::sleep(Duration::from_millis(700)).await;
+    assert!(
+        !answer.is_finished(),
+        "commentary of a turn still working is not the answer"
+    );
+    harness.append_to_last_turn(agent::sessions::Message {
+        role: agent::sessions::Role::Assistant,
+        parts: vec![agent::sessions::Part::ToolCall {
+            name: "Bash".into(),
+            failed: false,
+        }],
+    });
+    harness.append_to_last_turn(assistant_text("second done"));
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let produced = answer.await.expect("task").expect("turns");
+    assert_eq!(produced.len(), 1);
+    assert_eq!(produced[0].final_assistant_message(), Some("second done"));
+    assert_eq!(produced[0].messages.len(), 4, "prompt, commentary, tool call, answer");
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) =
+        running_session(&directory, "33333333-3333-4333-8333-333333333333", false).await;
+    let observers = agent::sessions::SessionObservers::new();
+    let observed = Rc::new(agent::sessions::ObservedStore::new(
+        Rc::new(database.clone()),
+        observers.clone(),
+    ));
+    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(MarkSessionReady(database.clone())),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = Rc::new(agent::sessions::Service::new(
+        session_store,
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        runtime.clone(),
+        Convergence::new(agent_wakeup, Observers::new()),
+        session_wakeup,
+        observers,
+    ));
+    let fire_and_forget = {
+        let service = service.clone();
+        tokio::task::spawn_local(async move {
+            service
+                .prompt("worker", &SessionName::new("s1").expect("name"), "go", false, None)
+                .await
+        })
+    };
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert!(
+        runtime.sent.borrow().is_empty(),
+        "nothing is pasted into a harness that has not reported in"
+    );
+    let token: agent::sessions::LaunchToken = "33333333-3333-4333-8333-333333333333".parse().expect("token");
+    observed
+        .record_session_start_for_launch(session.id, &token, "native-1", None)
+        .await
+        .expect("start report");
+    observed
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            agent::sessions::ActivityEvent::SessionStart,
+            time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+        )
+        .await
+        .expect("fold");
+    let produced = fire_and_forget.await.expect("task").expect("delivered");
+    assert!(produced.is_empty());
+    assert_eq!(runtime.sent.borrow().as_slice(), ["go"]);
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
+    const TOKEN: &str = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, existing) = running_session(&directory, TOKEN, true).await;
+    let sandbox_id = database
+        .session_launch_state(existing.id)
+        .await
+        .expect("launch state")
+        .expect("recorded launch")
+        .sandbox;
+    let prompted = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("prompted").expect("name"),
+            agent::Harness::ClaudeCode,
+            Some("start here"),
+        )
+        .await
+        .expect("Session");
+    database.activate_session(prompted.id).await.expect("activate");
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+
+    reconciler.reconcile(prompted.id).await.expect("first launch");
+    assert_eq!(
+        runtime.launches.borrow().as_slice(),
+        [(None, Some("start here".to_owned()))],
+        "the first launch starts on the first prompt"
+    );
+    assert_eq!(
+        database.session_initial_prompt(prompted.id).await.expect("prompt"),
+        None,
+        "a delivered prompt is forgotten"
+    );
+
+    // A fresh conversation later (nothing reported to resume) starts empty.
+    // Clear the crash backoff the first launch armed so the pass relaunches now.
+    database
+        .reset_session_launch_attempts(prompted.id)
+        .await
+        .expect("reset attempts");
+    runtime.present.set(false);
+    reconciler.reconcile(prompted.id).await.expect("fresh relaunch");
+    assert_eq!(
+        runtime.launches.borrow().last().expect("second launch"),
+        &(None, None),
+        "a Sandbox replacement does not replay the task"
+    );
+
+    // Once the harness has reported a conversation, a relaunch resumes it and
+    // does not repeat the prompt.
+    let token: agent::sessions::LaunchToken = "abababab-abab-4bab-8bab-abababababab".parse().expect("token");
+    database
+        .record_session_launch(
+            prompted.id,
+            agent::sessions::LaunchRecord {
+                token: token.clone(),
+                sandbox: sandbox_id,
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch bookkeeping");
+    database
+        .record_session_start_for_launch(prompted.id, &token, "native-1", Some("/home/agent/t.jsonl"))
+        .await
+        .expect("start report");
+    runtime.present.set(false);
+    reconciler.reconcile(prompted.id).await.expect("relaunch");
+    assert_eq!(
+        runtime.launches.borrow().last().expect("third launch"),
+        &(Some("native-1".to_owned()), None)
+    );
+    let relaunched = database.get_session(prompted.id).await.expect("Session");
+    assert_eq!(
+        relaunched.status.reported.harness_transcript_path.as_deref(),
+        Some("/home/agent/t.jsonl"),
+        "a relaunch in the same Sandbox keeps the reported conversation"
+    );
+    assert_eq!(
+        relaunched.status.state,
+        agent::sessions::State::Starting,
+        "a relaunch is Starting until the new process reports, whatever the old launch reported"
+    );
+}
+
 #[tokio::test(flavor = "local")]
 async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     let directory = TempDir::new().expect("temporary directory");
@@ -258,9 +1120,11 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     let session_task = tokio::task::spawn_local(session_controller.run());
     let service = agent::sessions::Service::new(
         session_store,
-        agent_store,
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, unused_sandboxes())),
+        tmux_runtime(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
+        agent::sessions::SessionObservers::new(),
     );
 
     let explicit = service
@@ -268,6 +1132,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::Codex),
+            None,
             WaitPolicy::FirstPass,
             None,
         )
@@ -277,6 +1142,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .ensure(
             "worker",
             &SessionName::new("implicit").expect("name"),
+            None,
             None,
             WaitPolicy::FirstPass,
             None,
@@ -292,6 +1158,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::ClaudeCode),
+            None,
             WaitPolicy::FirstPass,
             None,
         )
@@ -336,6 +1203,7 @@ async fn session_reconciliation_never_ensures_the_agent_sandbox() {
             "worker",
             &SessionName::new("s1").expect("name"),
             agent::Harness::ClaudeCode,
+            None,
         )
         .await
         .expect("Session");
@@ -352,7 +1220,12 @@ async fn session_reconciliation_never_ensures_the_agent_sandbox() {
     );
     let sessions: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let agents: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database);
-    let reconciler = agent::sessions::Reconciler::new(sessions, agents, sandboxes, "http://platform-api".into());
+    let reconciler = agent::sessions::Reconciler::new(
+        sessions,
+        Rc::new(agent::sessions::AgentSandboxes::new(agents, sandboxes)),
+        tmux_runtime(),
+        "http://platform-api".into(),
+    );
 
     let _result = reconciler.reconcile(session.id).await;
 
@@ -399,20 +1272,13 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
             "worker",
             &SessionName::new("idle").expect("name"),
             agent::Harness::ClaudeCode,
+            None,
         )
         .await
         .expect("Session");
     let activation = database.activate_session(session.id).await.expect("activate Session");
     database
-        .update_session_status(
-            session.id,
-            agent::sessions::Status {
-                state: agent::sessions::State::Running,
-                failure: None,
-                harness_session_id: None,
-            },
-            activation,
-        )
+        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), activation)
         .await
         .expect("running status");
     database
@@ -432,7 +1298,7 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
         is_session_observation,
         vec![
             ExecutionEvent::Started { process_id: None },
-            ExecutionEvent::Stdout("0 300\n".into()),
+            ExecutionEvent::Stdout("0 1900\n".into()),
             ExecutionEvent::Exited(ExitStatus { code: 0 }),
         ],
     );
@@ -447,11 +1313,16 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
     );
     let sessions: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let agents: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
-    let reconciler = agent::sessions::Reconciler::new(sessions, agents, sandboxes, "http://platform-api".into());
+    let reconciler = agent::sessions::Reconciler::new(
+        sessions,
+        Rc::new(agent::sessions::AgentSandboxes::new(agents, sandboxes)),
+        tmux_runtime(),
+        "http://platform-api".into(),
+    );
 
     reconciler.reconcile(session.id).await.expect("idle reconciliation");
     let idle = database.get_session(session.id).await.expect("Idle Session");
-    assert_eq!(idle.status.state, agent::sessions::State::Idle);
+    assert_eq!(idle.status.lifecycle.state, agent::sessions::LifecycleState::Idle);
     assert_eq!(
         database
             .session_launch_state(session.id)
@@ -494,8 +1365,9 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
             .await
             .expect("running Session")
             .status
+            .lifecycle
             .state,
-        agent::sessions::State::Running
+        agent::sessions::LifecycleState::Running
     );
 
     let commands = backend.execution_specs();
@@ -577,9 +1449,11 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
         .expect("Agent");
     let service = Rc::new(agent::sessions::Service::new(
         session_store,
-        agent_store,
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, unused_sandboxes())),
+        tmux_runtime(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
+        agent::sessions::SessionObservers::new(),
     ));
     let ensure_service = service.clone();
     let ensure = tokio::task::spawn_local(async move {
@@ -587,6 +1461,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             .ensure(
                 "worker",
                 &SessionName::new("s1").expect("name"),
+                None,
                 None,
                 WaitPolicy::FirstPass,
                 None,
@@ -598,12 +1473,18 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
     let sessions = database.list_agent_sessions("worker").await.expect("Sessions");
     assert_eq!(sessions.len(), 1);
     assert_eq!(sessions[0].name.as_str(), "s1");
-    assert_eq!(sessions[0].status.state, agent::sessions::State::Starting);
+    assert_eq!(
+        sessions[0].status.lifecycle.state,
+        agent::sessions::LifecycleState::Starting
+    );
     release.notify_one();
     let target = ensure.await.expect("ensure task").expect("ready Session");
 
     assert_eq!(target.session.name.as_str(), "s1");
-    assert_eq!(target.session.status.state, agent::sessions::State::Running);
+    assert_eq!(
+        target.session.status.lifecycle.state,
+        agent::sessions::LifecycleState::Running
+    );
     agent_task.abort();
     session_task.abort();
 }
@@ -621,6 +1502,7 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
             "worker",
             &SessionName::new("slow").expect("name"),
             agent::Harness::ClaudeCode,
+            None,
         )
         .await
         .expect("slow Session");
@@ -654,6 +1536,7 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
             "worker",
             &SessionName::new("fast").expect("name"),
             agent::Harness::ClaudeCode,
+            None,
         )
         .await
         .expect("fast Session");

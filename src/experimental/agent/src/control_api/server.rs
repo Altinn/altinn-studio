@@ -13,8 +13,9 @@ use super::protocol::{
     CODE_PARSE_ERROR, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
     METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    NameParams, Notification, PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams,
-    SessionParams, error_response, read_message,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, NameParams, Notification, PROTOCOL_VERSION, ReadMessage, Request,
+    Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams,
+    error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -91,6 +92,7 @@ pub trait SessionApi {
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
+        initial_prompt: Option<&'a str>,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
@@ -104,6 +106,25 @@ pub trait SessionApi {
 
     /// Lists tracked Sessions, optionally scoped to one Agent.
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
+
+    /// Delivers a prompt to a running Session's harness, optionally waiting for
+    /// its answer and returning the turns it produced.
+    fn prompt<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        prompt: &'a str,
+        wait: bool,
+        timeout: Option<std::time::Duration>,
+    ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
+
+    /// Reads the harness transcript of a Session as ordered turns.
+    fn turns<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        last: Option<usize>,
+    ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
 }
 
 impl SessionApi for sessions::Service {
@@ -112,10 +133,31 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         harness: Option<harness::Harness>,
+        initial_prompt: Option<&'a str>,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness, wait, progress).await })
+        Box::pin(async move { Self::ensure(self, agent, name, harness, initial_prompt, wait, progress).await })
+    }
+
+    fn prompt<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        prompt: &'a str,
+        wait: bool,
+        timeout: Option<std::time::Duration>,
+    ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>> {
+        Box::pin(async move { Self::prompt(self, agent, name, prompt, wait, timeout).await })
+    }
+
+    fn turns<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        last: Option<usize>,
+    ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>> {
+        Box::pin(async move { Self::turns(self, agent, name, last).await })
     }
 
     fn get<'a>(
@@ -266,6 +308,8 @@ impl Server {
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params, progress).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
             METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
+            METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
+            METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
     }
@@ -334,9 +378,36 @@ impl Server {
         result_response(
             id,
             self.sessions
-                .ensure(&params.agent, &params.name, params.harness, wait, progress)
+                .ensure(
+                    &params.agent,
+                    &params.name,
+                    params.harness,
+                    params.initial_prompt.as_deref(),
+                    wait,
+                    progress,
+                )
                 .await,
         )
+    }
+
+    async fn handle_session_prompt(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionPromptParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent, session name and prompt are required");
+        };
+        let timeout = params.timeout_secs.map(std::time::Duration::from_secs);
+        result_response(
+            id,
+            self.sessions
+                .prompt(&params.agent, &params.name, &params.prompt, params.wait, timeout)
+                .await,
+        )
+    }
+
+    async fn handle_session_turns(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionTurnsParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(id, self.sessions.turns(&params.agent, &params.name, params.last).await)
     }
 
     async fn handle_session_get(&self, id: u64, value: Value) -> Response {

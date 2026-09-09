@@ -7,7 +7,7 @@ use crate::{Error, persistence};
 
 mod claude_code;
 mod codex;
-mod session_start;
+mod hook_script;
 mod skills;
 
 pub(crate) use skills::{Skill, SkillFile};
@@ -223,12 +223,31 @@ pub struct ProcessLaunch {
 /// Resolves the selected harness's terminal launch configuration.
 ///
 /// A `resume` value continues the given harness-native conversation instead of
-/// starting a fresh one.
+/// starting a fresh one. `initial_prompt` is the first prompt of a fresh
+/// conversation, passed as the harness's positional prompt argument so the
+/// harness starts working on it immediately; it is ignored when resuming.
 #[must_use]
-pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>) -> ProcessLaunch {
+pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     match harness {
-        Harness::ClaudeCode => claude_code::launch_linux(home, resume),
-        Harness::Codex => codex::launch_linux(home, resume),
+        Harness::ClaudeCode => claude_code::launch_linux(home, resume, initial_prompt),
+        Harness::Codex => codex::launch_linux(home, resume, initial_prompt),
+    }
+}
+
+/// Quotes `value` as one POSIX shell word, safe for any content.
+pub(crate) fn shell_single_quoted(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\\''"))
+}
+
+/// Parses harness transcript bytes into ordered, runtime-neutral turns.
+///
+/// # Errors
+///
+/// Returns an error when the transcript cannot be decoded.
+pub(crate) fn parse_transcript(harness: Harness, bytes: &[u8]) -> Result<Vec<crate::sessions::Turn>, Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::transcript::parse(bytes),
+        Harness::Codex => codex::transcript::parse(bytes),
     }
 }
 

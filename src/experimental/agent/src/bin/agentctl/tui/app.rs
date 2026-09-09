@@ -2,7 +2,7 @@ use std::{collections::HashSet, path::PathBuf};
 
 use agent::{
     Agent, ConditionStatus, Harness,
-    sessions::{Session, SessionName, State},
+    sessions::{LifecycleState, Session, SessionName, State},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -404,7 +404,7 @@ impl App {
         let running = self
             .sessions
             .iter()
-            .filter(|session| session.status.state == State::Running)
+            .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
             .count();
         (self.agents.len(), self.sessions.len(), running)
     }
@@ -794,7 +794,7 @@ impl App {
                     let running = sessions
                         .iter()
                         .filter_map(|index| self.sessions.get(*index))
-                        .filter(|session| session.status.state == State::Running)
+                        .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
                         .count();
                     let marker = if self.collapsed.contains(&agent.metadata.name) {
                         "▸ "
@@ -915,7 +915,7 @@ fn agent_tone(agent: &Agent) -> (Tone, String) {
 
 const fn session_tone(state: State) -> Tone {
     match state {
-        State::Running => Tone::Green,
+        State::Working | State::WaitingForInput => Tone::Green,
         State::Starting => Tone::Yellow,
         State::Idle => Tone::Gray,
         State::Failed => Tone::Red,
@@ -951,11 +951,15 @@ fn session_detail(session: &Session) -> Detail {
         format!("Agent:      {}", session.agent),
         format!("Harness:    {}", session.harness.as_str()),
         format!("State:      {}", format::session_state(session.status.state)),
+        format!("Turns:      {}", session.status.reported.activity.turns),
         format!("Age:        {}", format::format_age(session.created_at)),
-        format!("Failure:    {}", session.status.failure.as_deref().unwrap_or("-")),
+        format!(
+            "Failure:    {}",
+            session.status.lifecycle.failure.as_deref().unwrap_or("-")
+        ),
         format!(
             "Harness ID: {}",
-            session.status.harness_session_id.as_deref().unwrap_or("-")
+            session.status.reported.harness_session_id.as_deref().unwrap_or("-")
         ),
         format!("ID:         {}", session.id),
     ];
@@ -1027,6 +1031,10 @@ mod tests {
     }
 
     fn session(agent: &str, name: &str, state: &str) -> Session {
+        let lifecycle = match state {
+            "working" | "waitingForInput" => "running",
+            other => other,
+        };
         serde_json::from_value(serde_json::json!({
             "id": "00000000-0000-0000-0000-000000000001",
             "agentId": "00000000-0000-0000-0000-000000000002",
@@ -1034,7 +1042,7 @@ mod tests {
             "name": name,
             "harness": "claudeCode",
             "createdAt": "2026-08-25T00:00:00Z",
-            "status": {"state": state}
+            "status": {"state": state, "lifecycle": {"state": lifecycle}}
         }))
         .expect("test session should deserialize")
     }
@@ -1044,7 +1052,7 @@ mod tests {
         app.apply_snapshot(
             vec![agent("worker"), agent("builder")],
             vec![
-                session("worker", "s2", "running"),
+                session("worker", "s2", "working"),
                 session("worker", "s1", "idle"),
                 session("builder", "b1", "starting"),
             ],
@@ -1363,7 +1371,10 @@ mod tests {
         let mut app = App::new();
         app.apply_snapshot(
             vec![ready_agent("alive"), terminating, agent("fresh")],
-            vec![session("alive", "up", "running"), session("alive", "down", "failed")],
+            vec![
+                session("alive", "up", "waitingForInput"),
+                session("alive", "down", "failed"),
+            ],
         );
         let views = app.render_rows();
         assert_eq!(views[0].tone, Tone::Green);

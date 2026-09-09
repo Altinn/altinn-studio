@@ -9,7 +9,7 @@ use agent::{
     control_plane::{AgentRecord, AgentStore as _},
     persistence,
     sandbox::{Assignment, ProviderId},
-    sessions::{SessionName, SessionStore as _, Status as SessionStatus},
+    sessions::{Lifecycle, SessionName, SessionStore as _},
 };
 use sandbox::secret_store::SecretStore as _;
 use tempfile::TempDir;
@@ -100,26 +100,23 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         first.put(ready, 0).await.expect("ready Agent");
         let name = SessionName::new("s1").expect("session name");
         let created = first
-            .ensure_session("worker", &name, agent::Harness::ClaudeCode)
+            .ensure_session("worker", &name, agent::Harness::ClaudeCode, Some("first prompt"))
             .await
             .expect("create session");
         let existing = first
-            .ensure_session("worker", &name, agent::Harness::ClaudeCode)
+            .ensure_session(
+                "worker",
+                &name,
+                agent::Harness::ClaudeCode,
+                Some("ignored: not created here"),
+            )
             .await
             .expect("get session");
         assert_eq!(created.agent_id, test_agent_id());
         assert_eq!(created.harness, agent::Harness::ClaudeCode);
         assert_eq!(created, existing);
         first
-            .update_session_status(
-                created.id,
-                SessionStatus {
-                    state: agent::sessions::State::Running,
-                    failure: None,
-                    harness_session_id: None,
-                },
-                0,
-            )
+            .update_session_lifecycle(created.id, Lifecycle::running(), 0)
             .await
             .expect("persist observed state");
     });
@@ -131,7 +128,19 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         assert_eq!(sessions.len(), 1);
         assert_eq!(sessions[0].name.as_str(), "s1");
         assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
-        assert_eq!(sessions[0].status.state, agent::sessions::State::Running);
+        assert_eq!(
+            sessions[0].status.lifecycle.state,
+            agent::sessions::LifecycleState::Running
+        );
+        assert_eq!(
+            second
+                .session_initial_prompt(sessions[0].id)
+                .await
+                .expect("initial message")
+                .as_deref(),
+            Some("first prompt"),
+            "the first prompt is recorded once, at creation"
+        );
         assert_eq!(
             second
                 .get_agent_session("worker", &SessionName::new("s1").expect("Session name"))
@@ -153,7 +162,7 @@ fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reuse
         store.put(ready_record("worker", old_id), 0).await.expect("old Agent");
         let old_session = SessionName::new("old-session").expect("session name");
         store
-            .ensure_session("worker", &old_session, agent::Harness::ClaudeCode)
+            .ensure_session("worker", &old_session, agent::Harness::ClaudeCode, None)
             .await
             .expect("old session");
         store.mark_deleting("worker").await.expect("mark deleting");

@@ -9,6 +9,8 @@ use sandbox::secret_store::SecretReference;
 
 pub(super) mod authentication;
 mod bootstrap;
+mod hooks;
+pub(super) mod transcript;
 
 const PROVIDER: &str = "claude";
 const ACCESS_SECRET: &str = "claude-access-token";
@@ -139,7 +141,7 @@ pub(super) async fn verify_linux(
     Ok(())
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
+pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.claude");
     // The mediated setup token cannot enumerate models, so Fable never appears in the /model
     // picker (same inference-only-scope limitation as the usage-credits gate handled in bootstrap).
@@ -147,6 +149,12 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
     // can still switch to the listed models via /model. Revisit when
     // github.com/anthropics/claude-code#79360 ships.
     let base = format!("claude --dangerously-skip-permissions --model fable --settings {config}/agent-settings.json");
+    // A fresh conversation may start on a positional prompt; `--` keeps a prompt
+    // that begins with `-` from being read as an option.
+    let fresh = initial_prompt.map_or_else(
+        || base.clone(),
+        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+    );
     // Claude Code currently reports UUID conversation IDs. Keep that
     // harness-specific constraint out of the generic Session reconciler.
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
@@ -156,9 +164,9 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
         // an untouched Session can still wake from Idle as a fresh Session.
         Some(native) => format!(
             "if /usr/bin/find {config}/projects -type f -name '{native}.jsonl' -print -quit 2>/dev/null \
-             | /usr/bin/grep -q .; then exec {base} --resume {native}; else exec {base}; fi"
+             | /usr/bin/grep -q .; then exec {base} --resume {native}; else exec {fresh}; fi"
         ),
-        None => base,
+        None => fresh,
     };
     ProcessLaunch {
         command,
@@ -171,7 +179,7 @@ mod tests {
     #[test]
     fn resume_launch_requires_a_native_transcript() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native));
+        let launch = super::launch_linux("/home/agent", Some(native), None);
 
         assert!(launch.command.contains("/home/agent/.claude/projects"));
         assert!(launch.command.contains("160cdb4b-5997-464c-9d22-602786eb45d4.jsonl"));
@@ -181,8 +189,21 @@ mod tests {
 
     #[test]
     fn non_uuid_native_id_is_not_a_claude_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"));
+        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
 
+        assert!(!launch.command.contains("--resume"));
+    }
+
+    #[test]
+    fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
+        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+
+        assert!(
+            // `--` keeps a prompt that starts with `-` or names a subcommand positional.
+            launch.command.ends_with(" -- 'fix it'\\''s\nbroken'"),
+            "{}",
+            launch.command
+        );
         assert!(!launch.command.contains("--resume"));
     }
 }

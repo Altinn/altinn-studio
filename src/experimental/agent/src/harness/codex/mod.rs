@@ -12,6 +12,8 @@ use crate::{
 
 pub(super) mod authentication;
 mod bootstrap;
+mod hooks;
+pub(super) mod transcript;
 
 const PROVIDER: &str = "codex";
 const ACCESS_SECRET: &str = "codex-access-token";
@@ -163,7 +165,7 @@ pub(super) async fn verify_linux(
     Ok(())
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
+pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.codex");
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
     // Launch-only overrides keep adapter-owned authentication and the fixed
@@ -173,15 +175,21 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
         crate::sandbox::platform::WORKING_DIRECTORY
     );
     let base = format!("codex {flags} {configuration}");
+    // A fresh conversation may start on a positional prompt; `--` keeps a prompt
+    // that begins with `-` or names a subcommand (`resume`) positional.
+    let fresh = initial_prompt.map_or_else(
+        || base.clone(),
+        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+    );
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
     let command = match resume {
         Some(native) => format!(
             "if /usr/bin/find {config}/sessions -type f \\( \
              -name 'rollout-*-{native}.jsonl' -o -name 'rollout-*-{native}.jsonl.zst' \\) \
              -print -quit 2>/dev/null | /usr/bin/grep -q .; \
-             then exec codex resume {flags} {configuration} {native}; else exec {base}; fi"
+             then exec codex resume {flags} {configuration} {native}; else exec {fresh}; fi"
         ),
-        None => base,
+        None => fresh,
     };
     ProcessLaunch {
         command,
@@ -217,7 +225,7 @@ mod tests {
     #[test]
     fn resume_launch_requires_a_native_rollout() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native));
+        let launch = super::launch_linux("/home/agent", Some(native), None);
 
         assert!(launch.command.contains("/home/agent/.codex/sessions"));
         assert!(
@@ -249,8 +257,21 @@ mod tests {
 
     #[test]
     fn non_uuid_native_id_is_not_a_codex_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"));
+        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
 
+        assert!(!launch.command.contains("codex resume"));
+    }
+
+    #[test]
+    fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
+        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+
+        assert!(
+            // `--` keeps a prompt that starts with `-` or names a subcommand positional.
+            launch.command.ends_with(" -- 'fix it'\\''s\nbroken'"),
+            "{}",
+            launch.command
+        );
         assert!(!launch.command.contains("codex resume"));
     }
 }

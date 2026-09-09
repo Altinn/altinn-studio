@@ -93,8 +93,8 @@ RUN case "${TARGETARCH}" in \
 # host-mediated token.
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-ARG CODEX_VERSION=0.149.1
-ARG CLAUDE_CODE_VERSION=2.1.260
+ARG CODEX_VERSION=0.153.4
+ARG CLAUDE_CODE_VERSION=2.1.266
 
 # Node ignores the system trust store, and Buildah drops default environment from build stages,
 # so a build inside an Agent needs the system store selected per step for npm to trust mediation.

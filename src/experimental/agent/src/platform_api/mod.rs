@@ -2,9 +2,10 @@
 //!
 //! Harness processes inside a Sandbox reach the host through the mediated
 //! Network Backend's host alias, which rewrites to host loopback. This module
-//! owns the loopback listener and its one current route: per-launch session
-//! reports carrying the harness-native conversation ID. The same listener is
-//! the growth point for later platform tools (MCP), so nothing here assumes
+//! owns the loopback listener and its session-report route: per-launch reports
+//! carrying the harness-native conversation ID and transcript location (on
+//! start) and activity signals folded into Session status. The same listener
+//! is the growth point for later platform tools (MCP), so nothing here assumes
 //! the report route is the only one.
 //!
 //! Requests originate inside Sandboxes and are untrusted: parsing is bounded,
@@ -31,6 +32,7 @@ const MAX_BODY_BYTES: usize = 4_096;
 const CONNECTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const MAX_CONCURRENT_CONNECTIONS: usize = 64;
 const MAX_NATIVE_SESSION_ID_BYTES: usize = 1_024;
+const MAX_TRANSCRIPT_PATH_BYTES: usize = 4_096;
 type ConnectionFuture = futures_util::future::LocalBoxFuture<'static, ()>;
 
 /// Binds the Platform API listener on loopback, reusing the previously bound port.
@@ -64,14 +66,15 @@ pub async fn bind_persistent(port_path: &Path) -> Result<TcpListener, Error> {
 
 /// Serves Platform API requests from Sandboxes until the listener fails.
 pub struct Server {
-    sessions: Rc<dyn sessions::SessionStore>,
+    sessions: Rc<dyn sessions::SessionReports>,
     on_error: Rc<dyn Fn(&Error)>,
 }
 
 impl Server {
-    /// Creates a Platform API server over durable Session state.
+    /// Creates a Platform API server that records what harnesses report; it
+    /// holds no other Session capability.
     #[must_use]
-    pub fn new(sessions: Rc<dyn sessions::SessionStore>, on_error: Rc<dyn Fn(&Error)>) -> Self {
+    pub fn new(sessions: Rc<dyn sessions::SessionReports>, on_error: Rc<dyn Fn(&Error)>) -> Self {
         Self { sessions, on_error }
     }
 
@@ -116,7 +119,7 @@ impl Server {
         if request.method != "POST" {
             return 405;
         }
-        if request.target != "/v1/session/hooks/start" {
+        if request.target != "/v1/session/hooks" {
             return 404;
         }
         let Some(token) = request.bearer_token() else {
@@ -131,22 +134,44 @@ impl Server {
         self.accept_report(&token, &report).await
     }
 
-    /// Applies one authenticated session report.
+    /// Applies one authenticated session report: it records the native session
+    /// ID and transcript location on start and folds the reported activity event.
     ///
     /// The per-launch token rejects reports from earlier harness incarnations.
     /// Sessions in one Agent share a Unix identity and are not mutually
-    /// isolated security principals.
+    /// isolated security principals. A stale token on an activity-only report is
+    /// a silent no-op; a stale token on a start report is rejected so the ID is
+    /// never attributed to the wrong launch.
     async fn accept_report(&self, token: &sessions::LaunchToken, report: &SessionReport) -> u16 {
-        if report.native_session_id.is_empty() || report.native_session_id.len() > MAX_NATIVE_SESSION_ID_BYTES {
-            return 400;
+        if report.event == sessions::ActivityEvent::SessionStart {
+            if report.native_session_id.is_empty() || report.native_session_id.len() > MAX_NATIVE_SESSION_ID_BYTES {
+                return 400;
+            }
+            // The transcript path is read back inside the same Sandbox as the
+            // reporting harness; it is bounded and must be absolute, nothing more.
+            let transcript_path = report.transcript_path.as_deref().filter(|path| !path.is_empty());
+            if transcript_path.is_some_and(|path| !path.starts_with('/') || path.len() > MAX_TRANSCRIPT_PATH_BYTES) {
+                return 400;
+            }
+            match self
+                .sessions
+                .record_session_start_for_launch(report.session_id, token, &report.native_session_id, transcript_path)
+                .await
+            {
+                Ok(()) => {}
+                Err(Error::NotFound) => return 401,
+                Err(error) => {
+                    (self.on_error)(&error);
+                    return 500;
+                }
+            }
         }
         match self
             .sessions
-            .set_session_native_id_for_launch(report.session_id, token, &report.native_session_id)
+            .apply_session_activity_for_launch(report.session_id, token, report.event, time::OffsetDateTime::now_utc())
             .await
         {
-            Ok(()) => 204,
-            Err(Error::NotFound) => 401,
+            Ok(_) => 204,
             Err(error) => {
                 (self.on_error)(&error);
                 500
@@ -160,13 +185,16 @@ impl Server {
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct SessionReport {
     session_id: sessions::SessionId,
+    /// The reported activity signal; `sessionStart` also carries the native ID
+    /// and, when the harness exposes one, its transcript location.
+    event: sessions::ActivityEvent,
+    #[serde(default)]
     native_session_id: String,
+    #[serde(default)]
+    transcript_path: Option<String>,
     #[serde(default)]
     #[allow(dead_code, reason = "accepted for diagnostics; not used for authorization")]
     source: String,
-    #[serde(default)]
-    #[allow(dead_code, reason = "accepted for diagnostics; not used for authorization")]
-    pane_id: String,
 }
 
 struct Request {

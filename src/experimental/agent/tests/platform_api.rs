@@ -59,10 +59,11 @@ async fn request_to(port: u16, path: &str, token: &str, body: &str) -> u16 {
 }
 
 async fn request(port: u16, token: &str, body: &str) -> u16 {
-    request_to(port, "/v1/session/hooks/start", token, body).await
+    request_to(port, "/v1/session/hooks", token, body).await
 }
 
 #[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
 async fn session_reports_require_the_current_launch_token() {
     const TOKEN_1: &str = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
     const TOKEN_2: &str = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -75,6 +76,7 @@ async fn session_reports_require_the_current_launch_token() {
             "worker",
             &SessionName::new("s1").expect("name"),
             agent::Harness::ClaudeCode,
+            None,
         )
         .await
         .expect("session");
@@ -95,15 +97,20 @@ async fn session_reports_require_the_current_launch_token() {
         .await
         .expect("bind Platform API listener");
     let port = listener.local_addr().expect("local address").port();
+    let observers = agent::sessions::SessionObservers::new();
     let server = Rc::new(agent::platform_api::Server::new(
-        Rc::new(database.clone()),
+        Rc::new(agent::sessions::ObservedStore::new(
+            Rc::new(database.clone()),
+            observers.clone(),
+        )),
         Rc::new(|error| panic!("unexpected Platform API error: {error}")),
     ));
     let server_task = tokio::task::spawn_local(server.serve(listener));
 
     let native = "0f0e0d0c-0b0a-4908-8706-050403020100";
+    let transcript = "/home/agent/.claude/projects/-home-agent-code/0f0e0d0c-0b0a-4908-8706-050403020100.jsonl";
     let report = format!(
-        r#"{{"sessionId":"{}","nativeSessionId":"{native}","source":"startup"}}"#,
+        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":"{native}","transcriptPath":"{transcript}","source":"startup"}}"#,
         session.id
     );
 
@@ -111,39 +118,68 @@ async fn session_reports_require_the_current_launch_token() {
     // A stale or foreign token authenticates as nothing.
     assert_eq!(request(port, "unknown-token", &report).await, 401);
     // A valid token for a different platform Session is rejected.
-    let mismatched = format!(r#"{{"sessionId":"{agent_id}","nativeSessionId":"{native}"}}"#);
+    let mismatched = format!(r#"{{"sessionId":"{agent_id}","event":"sessionStart","nativeSessionId":"{native}"}}"#);
     assert_eq!(request(port, TOKEN_1, &mismatched).await, 401);
     // Harness-native IDs are opaque to the platform layer.
     let opaque = format!(
-        r#"{{"sessionId":"{}","nativeSessionId":"opaque-harness-id"}}"#,
+        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":"opaque-harness-id"}}"#,
         session.id
     );
     assert_eq!(request(port, TOKEN_1, &opaque).await, 204);
     let stored = database.get_session(session.id).await.expect("session");
-    assert_eq!(stored.status.harness_session_id.as_deref(), Some("opaque-harness-id"));
+    assert_eq!(
+        stored.status.reported.harness_session_id.as_deref(),
+        Some("opaque-harness-id")
+    );
+    assert_eq!(stored.status.reported.harness_transcript_path, None);
+    // A transcript location must be an absolute Sandbox path.
+    let relative = format!(
+        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":"{native}","transcriptPath":"relative.jsonl"}}"#,
+        session.id
+    );
+    assert_eq!(request(port, TOKEN_1, &relative).await, 400);
 
-    let empty = format!(r#"{{"sessionId":"{}","nativeSessionId":""}}"#, session.id);
+    let empty = format!(
+        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":""}}"#,
+        session.id
+    );
     assert_eq!(request(port, TOKEN_1, &empty).await, 400);
 
     assert_eq!(request(port, TOKEN_1, &report).await, 204);
     let stored = database.get_session(session.id).await.expect("session");
-    assert_eq!(stored.status.harness_session_id.as_deref(), Some(native));
+    assert_eq!(stored.status.reported.harness_session_id.as_deref(), Some(native));
+    assert_eq!(
+        stored.status.reported.harness_transcript_path.as_deref(),
+        Some(transcript)
+    );
+    assert_eq!(stored.status.reported.activity.phase, agent::sessions::Phase::Working);
 
-    // Generic status writes preserve the reported native ID.
+    // Lifecycle writes cannot touch the reported half.
     database
-        .update_session_status(
-            session.id,
-            agent::sessions::Status {
-                state: agent::sessions::State::Running,
-                failure: None,
-                harness_session_id: None,
-            },
-            0,
-        )
+        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), 0)
         .await
         .expect("status update");
     let stored = database.get_session(session.id).await.expect("session");
-    assert_eq!(stored.status.harness_session_id.as_deref(), Some(native));
+    assert_eq!(stored.status.reported.harness_session_id.as_deref(), Some(native));
+    assert_eq!(stored.status.lifecycle.state, agent::sessions::LifecycleState::Running);
+
+    // Activity events fold into the report and wake Session observers.
+    let mut feed = observers.subscribe(session.id);
+    let event = |name: &str| format!(r#"{{"sessionId":"{}","event":"{name}"}}"#, session.id);
+    assert_eq!(request(port, TOKEN_1, &event("turnStarted")).await, 204);
+    assert_eq!(request(port, TOKEN_1, &event("toolStarted")).await, 204);
+    assert_eq!(request(port, TOKEN_1, &event("turnCompleted")).await, 204);
+    let stored = database.get_session(session.id).await.expect("session");
+    assert_eq!(stored.status.reported.activity.turns, 1);
+    assert_eq!(
+        stored.status.reported.activity.phase,
+        agent::sessions::Phase::WaitingForInput
+    );
+    assert!(stored.status.reported.activity.last_event_at.is_some());
+    assert!(feed.has_changed().expect("feed open"));
+    assert_eq!(*feed.borrow_and_update(), 3, "one change tick per folded event");
+    // An unknown event is a malformed report.
+    assert_eq!(request(port, TOKEN_1, &event("danced")).await, 400);
 
     // A relaunch rotates the token; the old incarnation's token stops working.
     database
@@ -158,7 +194,26 @@ async fn session_reports_require_the_current_launch_token() {
         )
         .await
         .expect("record relaunch");
+    // The relaunch reset what the old launch reported, so the Session is
+    // Starting again until the new process reports; the old ID stays for resume.
+    let relaunched = database.get_session(session.id).await.expect("session");
+    assert_eq!(relaunched.status.state, agent::sessions::State::Starting);
+    assert_eq!(relaunched.status.reported.activity.turns, 0);
+    assert_eq!(relaunched.status.reported.harness_session_id.as_deref(), Some(native));
     assert_eq!(request(port, TOKEN_1, &report).await, 401);
+    // A stale token's activity report is a silent no-op, not an error the hook retries.
+    assert_eq!(request(port, TOKEN_1, &event("turnCompleted")).await, 204);
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("session")
+            .status
+            .reported
+            .activity
+            .turns,
+        0
+    );
     assert_eq!(request(port, TOKEN_2, &report).await, 204);
 
     server_task.abort();
@@ -175,6 +230,7 @@ async fn launch_bookkeeping_round_trips_and_resets() {
             "worker",
             &SessionName::new("s1").expect("name"),
             agent::Harness::ClaudeCode,
+            None,
         )
         .await
         .expect("session");
@@ -244,7 +300,7 @@ async fn platform_api_bounds_stalled_connections() {
 
     let blocked = tokio::time::timeout(
         Duration::from_millis(100),
-        request_to(port, "/v1/session/hooks/start", TOKEN, "{}"),
+        request_to(port, "/v1/session/hooks", TOKEN, "{}"),
     )
     .await;
     assert!(blocked.is_err(), "a connection beyond the limit must wait for capacity");
@@ -252,7 +308,7 @@ async fn platform_api_bounds_stalled_connections() {
     drop(stalled.pop());
     let status = tokio::time::timeout(
         Duration::from_secs(1),
-        request_to(port, "/v1/session/hooks/start", TOKEN, "{}"),
+        request_to(port, "/v1/session/hooks", TOKEN, "{}"),
     )
     .await
     .expect("request should proceed after capacity is released");

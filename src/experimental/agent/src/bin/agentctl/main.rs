@@ -14,7 +14,7 @@ use agent::{
     manifest,
     sessions::{Session, SessionName},
 };
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 mod format;
 mod forward;
@@ -56,6 +56,37 @@ enum Command {
         #[command(subcommand)]
         command: CodexCommand,
     },
+    /// Create a Session and wait until its harness is ready, without attaching.
+    Create {
+        #[command(flatten)]
+        target: SessionTarget,
+        /// Harness installation to bind when creating the Session.
+        #[arg(long, value_parser = parse_harness)]
+        harness: Option<agent::Harness>,
+        /// First prompt, handed to the harness at launch.
+        #[command(flatten)]
+        input: PromptInput,
+    },
+    /// Deliver a prompt to a running Session's harness.
+    Prompt {
+        #[command(flatten)]
+        target: SessionTarget,
+        #[command(flatten)]
+        input: PromptInput,
+        #[command(flatten)]
+        answer: AnswerOptions,
+    },
+    /// Read a Session's conversation as turns.
+    Turns {
+        #[command(flatten)]
+        target: SessionTarget,
+        /// Print only the last N turns.
+        #[arg(long)]
+        last: Option<usize>,
+        /// Print only the harness's final message of the last turn, as plain text.
+        #[arg(long, conflicts_with = "last")]
+        last_message: bool,
+    },
     /// Create or update an Agent from a manifest.
     Apply {
         /// Agent manifest path.
@@ -87,6 +118,9 @@ enum Command {
         /// List Sessions across every Agent instead of resolving one owner.
         #[arg(short = 'A', long, conflicts_with = "agent")]
         all_agents: bool,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
     },
     /// Show detailed state and conditions for one resource.
     Describe {
@@ -94,6 +128,9 @@ enum Command {
         resource: String,
         /// Optional Agent name when it is not part of `resource`.
         name: Option<String>,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
     },
     /// Request deletion of a resource.
     Delete {
@@ -167,6 +204,50 @@ enum Resource {
     Session,
 }
 
+/// The Session a verb acts on: `session/NAME` or `session NAME`, plus its owning Agent.
+#[derive(clap::Args)]
+struct SessionTarget {
+    /// Session resource, optionally combined with its name (for example `session/s1`).
+    resource: String,
+    /// Optional Session name when it is not part of `resource`.
+    name: Option<String>,
+    /// Owning Agent; inferred from the current directory when omitted.
+    #[arg(long)]
+    agent: Option<String>,
+}
+
+/// Whether and how a prompt waits for its answer.
+#[derive(clap::Args)]
+struct AnswerOptions {
+    /// Block until the harness answers, then print the turns it produced.
+    #[arg(long)]
+    wait: bool,
+    /// Maximum wait with --wait, written as seconds, minutes, or hours.
+    #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
+    timeout: Duration,
+    /// With --wait, print only the harness's final message as plain text.
+    #[arg(long, requires = "wait")]
+    last_message: bool,
+}
+
+/// Prompt text from --prompt, --file, or piped standard input.
+#[derive(clap::Args)]
+struct PromptInput {
+    /// Prompt text. Read from a file with --file, or from standard input when
+    /// neither is given and stdin is piped.
+    #[arg(long, conflicts_with = "file", allow_hyphen_values = true)]
+    prompt: Option<String>,
+    /// Read the prompt from a file instead of --prompt.
+    #[arg(short = 'f', long, conflicts_with = "prompt")]
+    file: Option<PathBuf>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+enum OutputFormat {
+    Table,
+    Json,
+}
+
 #[derive(Debug, thiserror::Error)]
 enum CommandError {
     #[error(transparent)]
@@ -186,6 +267,66 @@ enum ClaudeCommand {
         /// mediation without ever holding a real credential.
         #[arg(long)]
         from_stdin: bool,
+    },
+}
+
+#[derive(Subcommand)]
+enum SessionCommand {
+    /// Create a Session and wait until its harness is ready, without attaching.
+    Create {
+        /// Session name.
+        name: String,
+        /// Owning Agent; inferred from the current directory when omitted.
+        #[arg(long)]
+        agent: Option<String>,
+        /// Harness installation to bind when creating the Session.
+        #[arg(long, value_parser = parse_harness)]
+        harness: Option<agent::Harness>,
+        /// First prompt to deliver once the harness is ready. Read from a file
+        /// with --file, or from standard input when neither is given.
+        #[arg(long, conflicts_with = "file", allow_hyphen_values = true)]
+        message: Option<String>,
+        /// Read the first prompt from a file instead of --message.
+        #[arg(short = 'f', long, conflicts_with = "message")]
+        file: Option<PathBuf>,
+    },
+    /// Send a message to a running Session's harness.
+    Send {
+        /// Session name.
+        name: String,
+        /// Owning Agent; inferred from the current directory when omitted.
+        #[arg(long)]
+        agent: Option<String>,
+        /// Message to deliver. Read from a file with --file, or from standard
+        /// input when neither is given.
+        #[arg(long, conflicts_with = "file", allow_hyphen_values = true)]
+        message: Option<String>,
+        /// Read the message from a file instead of --message.
+        #[arg(short = 'f', long, conflicts_with = "message")]
+        file: Option<PathBuf>,
+        /// Block until the harness finishes the turn, then print what it produced.
+        #[arg(long)]
+        wait: bool,
+        /// Maximum wait with --wait, written as seconds, minutes, or hours.
+        #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
+        timeout: Duration,
+        /// With --wait, print only the harness's final message of the turn as plain text.
+        #[arg(long, requires = "wait")]
+        last_message: bool,
+    },
+    /// Read the harness transcript of a Session as turns.
+    Turns {
+        /// Session name.
+        name: String,
+        /// Owning Agent; inferred from the current directory when omitted.
+        #[arg(long)]
+        agent: Option<String>,
+        /// Print only the last N turns.
+        #[arg(long)]
+        last: Option<usize>,
+        /// Print only the harness's final message of the last turn, as plain text.
+        #[arg(long, conflicts_with = "last")]
+        last_message: bool,
     },
 }
 
@@ -278,8 +419,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             name,
             agent,
             all_agents,
-        } => get_resources(client, &resource, name, agent, all_agents).await?,
-        Command::Describe { resource, name } => describe(client, &resource, name).await?,
+            output,
+        } => get_resources(client, &resource, name, agent, all_agents, output).await?,
+        Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
         Command::Delete { resource, name } => {
             let (resource, name) = resource_reference(&resource, name)?;
             if resource != Resource::Agent {
@@ -305,6 +447,13 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::PortForward { agent, arguments } => {
             return port_forward(home, client, agent, &arguments).await;
         }
+        Command::Create { target, harness, input } => create_session(client, target, harness, input).await?,
+        Command::Prompt { target, input, answer } => prompt_session(client, target, input, answer).await?,
+        Command::Turns {
+            target,
+            last,
+            last_message,
+        } => turns(client, target, last, last_message).await?,
         Command::Tui => return tui::run(home, client).await,
         Command::Wait {
             condition,
@@ -322,6 +471,7 @@ async fn get_resources(
     name: Option<String>,
     agent: Option<String>,
     all_agents: bool,
+    output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     match resource {
@@ -332,26 +482,45 @@ async fn get_resources(
             } else {
                 client.list_agents().await?
             };
-            print_agents(&agents);
-        }
-        Resource::Session if name.is_some() => {
-            if all_agents {
-                return Err(
-                    Error::Invalid("a named Session requires --agent or current-directory inference".into()).into(),
-                );
+            match output {
+                OutputFormat::Json => print_json(&agents)?,
+                OutputFormat::Table => print_agents(&agents),
             }
-            let agent = resolve_agent_name(client, agent).await?;
-            let session = client
-                .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
-                .await?;
-            print_sessions(&[session], false);
         }
-        Resource::Session if all_agents => print_sessions(&client.list_sessions(None).await?, true),
         Resource::Session => {
-            let agent = resolve_agent_name(client, agent).await?;
-            print_sessions(&client.list_sessions(Some(&agent)).await?, false);
+            let sessions = if name.is_some() {
+                if all_agents {
+                    return Err(Error::Invalid(
+                        "a named Session requires --agent or current-directory inference".into(),
+                    )
+                    .into());
+                }
+                let agent = resolve_agent_name(client, agent).await?;
+                vec![
+                    client
+                        .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
+                        .await?,
+                ]
+            } else if all_agents {
+                client.list_sessions(None).await?
+            } else {
+                let agent = resolve_agent_name(client, agent).await?;
+                client.list_sessions(Some(&agent)).await?
+            };
+            match output {
+                OutputFormat::Json => print_json(&sessions)?,
+                OutputFormat::Table => print_sessions(&sessions, all_agents),
+            }
         }
     }
+    Ok(())
+}
+
+fn print_json<T: serde::Serialize>(value: &T) -> CommandResult<()> {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(value).map_err(|error| Error::Invalid(error.to_string()))?
+    );
     Ok(())
 }
 
@@ -371,7 +540,14 @@ async fn attach(
     let agent = resolve_agent_name(client, agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_session(&agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client.ensure_session(
+            &agent,
+            session,
+            harness,
+            None,
+            WaitPolicy::UntilReady,
+            Some(&mut wait.sink()),
+        ))
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
@@ -488,6 +664,138 @@ async fn port_forward(
     }
 }
 
+/// Resolves a [`SessionTarget`] into the owning Agent and Session name.
+async fn session_target(client: &Client, target: SessionTarget) -> CommandResult<(String, SessionName)> {
+    let (resource, name) = resource_reference(&target.resource, target.name)?;
+    if resource != Resource::Session {
+        return Err(Error::Invalid("this command requires a Session resource".into()).into());
+    }
+    let session = SessionName::new(require_name(name, "Session")?)?;
+    let agent = resolve_agent_name(client, target.agent).await?;
+    Ok((agent, session))
+}
+
+async fn create_session(
+    client: &Client,
+    target: SessionTarget,
+    harness: Option<agent::Harness>,
+    input: PromptInput,
+) -> CommandResult<()> {
+    let (agent, session) = session_target(client, target).await?;
+    let initial = read_prompt_arg(input)?;
+    let wait = progress::Wait::start();
+    wait.until(client.ensure_session(
+        &agent,
+        session.clone(),
+        harness,
+        initial,
+        WaitPolicy::UntilReady,
+        Some(&mut wait.sink()),
+    ))
+    .await?;
+    println!("session/{agent}/{session} ready");
+    Ok(())
+}
+
+async fn prompt_session(
+    client: &Client,
+    target: SessionTarget,
+    input: PromptInput,
+    answer: AnswerOptions,
+) -> CommandResult<()> {
+    let (agent, session) = session_target(client, target).await?;
+    let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
+    let produced = client
+        .prompt_session(
+            &agent,
+            session.clone(),
+            prompt,
+            answer.wait,
+            answer.wait.then_some(answer.timeout),
+        )
+        .await?;
+    if !answer.wait {
+        println!("session/{agent}/{session} prompted");
+    } else if answer.last_message {
+        print_last_message(&produced);
+    } else {
+        print_turns(&produced);
+    }
+    Ok(())
+}
+
+async fn turns(client: &Client, target: SessionTarget, last: Option<usize>, last_message: bool) -> CommandResult<()> {
+    let (agent, session) = session_target(client, target).await?;
+    let effective_last = if last_message { Some(1) } else { last };
+    let turns = client.session_turns(&agent, session, effective_last).await?;
+    if last_message {
+        print_last_message(&turns);
+    } else {
+        print_turns(&turns);
+    }
+    Ok(())
+}
+
+/// Resolves the prompt from --prompt, --file, or piped standard input.
+///
+/// With neither flag and an interactive terminal there is no prompt.
+fn read_prompt_arg(input: PromptInput) -> CommandResult<Option<String>> {
+    if let Some(prompt) = input.prompt {
+        return Ok(Some(prompt));
+    }
+    if let Some(file) = input.file {
+        return Ok(Some(std::fs::read_to_string(&file).map_err(Error::from)?));
+    }
+    if !std::io::stdin().is_terminal() {
+        let mut buffer = String::new();
+        std::io::Read::read_to_string(&mut std::io::stdin(), &mut buffer).map_err(Error::from)?;
+        if !buffer.is_empty() {
+            return Ok(Some(buffer));
+        }
+    }
+    Ok(None)
+}
+
+/// Prints the harness's final message of the newest turn, or says why there is none.
+fn print_last_message(turns: &[agent::sessions::Turn]) {
+    match turns.last() {
+        None => eprintln!("No turns yet."),
+        Some(turn) => match turn.final_assistant_message() {
+            Some(text) => println!("{text}"),
+            None => eprintln!("The turn has no final message yet."),
+        },
+    }
+}
+
+fn print_turns(turns: &[agent::sessions::Turn]) {
+    use agent::sessions::{Part, Role};
+    if turns.is_empty() {
+        eprintln!("No turns yet.");
+        return;
+    }
+    for (index, turn) in turns.iter().enumerate() {
+        if index > 0 {
+            println!();
+        }
+        println!("=== turn {} ===", index + 1);
+        for message in &turn.messages {
+            let who = match message.role {
+                Role::User => "user",
+                Role::Assistant => "assistant",
+            };
+            for part in &message.parts {
+                match part {
+                    Part::Text { text } => println!("[{who}] {text}"),
+                    Part::ToolCall { name, failed } => {
+                        let mark = if *failed { " (failed)" } else { "" };
+                        println!("[{who}] -> {name}{mark}");
+                    }
+                }
+            }
+        }
+    }
+}
+
 async fn resolve_execution_agent(
     client: &Client,
     resource: Option<String>,
@@ -542,12 +850,16 @@ fn exit_code(code: i32) -> ExitCode {
     u8::try_from(code).map_or(ExitCode::FAILURE, ExitCode::from)
 }
 
-async fn describe(client: &Client, resource: &str, name: Option<String>) -> CommandResult<()> {
+async fn describe(client: &Client, resource: &str, name: Option<String>, output: OutputFormat) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     if resource != Resource::Agent {
         return Err(Error::Invalid("describe currently supports only Agent resources".into()).into());
     }
-    print_agent_description(&client.get(&require_name(name, "Agent")?).await?);
+    let agent = client.get(&require_name(name, "Agent")?).await?;
+    match output {
+        OutputFormat::Json => print_json(&agent)?,
+        OutputFormat::Table => print_agent_description(&agent),
+    }
     Ok(())
 }
 
