@@ -63,7 +63,8 @@ scheduler, which serializes work per resource identity while allowing unrelated 
 
 Desired state is persisted before reconciliation. Wakeups provide low-latency progress, while startup and periodic
 scans ensure dropped notifications or daemon restarts do not lose work. Provider assignment is sticky for an Agent
-incarnation, and a reused Agent name never inherits resources from a deleted incarnation.
+incarnation, and a reused Agent name never inherits resources from a deleted incarnation. The Sandbox is named after the
+incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations. Detaching leaves a Session running. An inactive,

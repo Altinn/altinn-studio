@@ -74,4 +74,14 @@ impl AgentRecord {
         ::sandbox::SandboxName::new(format!("agent-{}", self.id))
             .map_err(|error| Error::Database(format!("Agent ID cannot identify its Sandbox: {error}")))
     }
+
+    /// Derives the hostname the Sandbox reports: the Agent name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error only if the validated Agent name cannot form a hostname.
+    pub fn sandbox_hostname(&self) -> Result<::sandbox::Hostname, Error> {
+        ::sandbox::Hostname::new(self.agent.metadata.name.clone())
+            .map_err(|error| Error::Database(format!("Agent name cannot be its Sandbox hostname: {error}")))
+    }
 }

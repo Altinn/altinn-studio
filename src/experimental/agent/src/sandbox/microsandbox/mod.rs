@@ -134,6 +134,7 @@ impl Provider for Adapter {
                 Err(error) => return Err(error.into()),
             };
             let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
+                .with_hostname(record.sandbox_hostname()?)
                 .with_mounts(Self::sandbox_mounts(record))
                 .with_environment(prepared.environment);
             let mut sandbox = ensure_with_progress(&self.service, &request, &progress).await?;
