@@ -10,6 +10,9 @@ dockerInDocker:
   enabled: true
 shareWorkspace:
   enabled: true
+actCacheSeed:
+  enabled: true
+  imageTag: "latest"
 
 # Per-org concurrency caps applied to KEDA ScaledJobs in the workload chart.
 # `maxConcurrentDefault` applies to every org; `maxConcurrentOverrides` keys
