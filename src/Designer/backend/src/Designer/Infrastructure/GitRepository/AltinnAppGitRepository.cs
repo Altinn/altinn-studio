@@ -322,6 +322,11 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     public async Task SaveText(string languageCode, TextResource jsonTexts)
     {
+        if (string.IsNullOrEmpty(jsonTexts.Schema))
+        {
+            jsonTexts.Schema = TextResource.SchemaUrl;
+        }
+
         string fileName = $"resource.{languageCode}.json";
         string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
         string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
