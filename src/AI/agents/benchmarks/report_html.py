@@ -217,9 +217,12 @@ def _prose(text: str, judge: str, run: str) -> str:
 
 def render(report: Report, *, judge_note: str | None = None) -> str:
     data = json.dumps(_payload(report), ensure_ascii=False)
+    for raw, escaped in (("&", r"\u0026"), ("<", r"\u003c"), (">", r"\u003e")):
+        data = data.replace(raw, escaped)
     judge = report.current.provenance.judge or "a model"
     note = _prose(judge_note, judge, report.current.name) if judge_note else ""
-    return TEMPLATE.replace("__DATA__", data).replace("__JUDGE__", note)
+    fills = {"__DATA__": data, "__JUDGE__": note}
+    return re.sub("|".join(fills), lambda m: fills[m.group(0)], TEMPLATE)
 
 
 TEMPLATE = r"""<!doctype html>
@@ -760,7 +763,7 @@ function failures() {
     ? '<div class="fxgroup"><div class="fxhd">' + heading + "</div>" + list.map(row).join("") + "</div>"
     : "";
   document.getElementById("failures").innerHTML = rows.length
-    ? (moved.size || !reference()
+    ? (reference()
         ? group("Moved in this run, so these are findings about this change", fresh) +
           group("Already like this before this run, so not a finding about this change", standing)
         : group("Every case below full marks", rows))

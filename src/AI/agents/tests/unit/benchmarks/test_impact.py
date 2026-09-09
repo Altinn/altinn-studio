@@ -103,7 +103,7 @@ def test_the_gate_says_one_thing_about_the_baseline(capsys):
                    "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
     said = capsys.readouterr().out
 
-    assert "were measured with this instrument" in said or "was measured with this" in said
+    assert "was measured with this instrument" in said
     assert "not comparable" not in said
 
 
@@ -113,7 +113,7 @@ def test_without_a_new_baseline_it_still_says_stale(capsys):
 
     assert code == 1
     assert "not comparable" in said
-    assert "were measured with this instrument" not in said
+    assert "was measured with this instrument" not in said
 
 
 def test_every_declared_pattern_matches_something_that_exists():

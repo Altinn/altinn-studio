@@ -25,7 +25,7 @@ def read(*, path: Path | None = None) -> Pointer | None:
     target = path or POINTER
     if not target.exists():
         return None
-    data = json.loads(target.read_text())
+    data = json.loads(target.read_text(encoding="utf-8"))
     return Pointer(
         check_id=data["check_id"],
         label=data.get("label", data["check_id"]),
@@ -37,7 +37,7 @@ def read(*, path: Path | None = None) -> Pointer | None:
 
 def write(pointer: Pointer, *, path: Path | None = None) -> Path:
     target = path or POINTER
-    target.write_text(pointer.to_json())
+    target.write_text(pointer.to_json(), encoding="utf-8")
     return target
 
 
@@ -69,5 +69,10 @@ def drifted(pointer: Pointer, run) -> tuple[str, ...]:
     return tuple(
         name
         for name, recorded in sorted(pointer.axes.items())
-        if actual.get(name, "").split()[0:1] != recorded.split()[0:1]
+        if _comparable(name, actual.get(name, "")) != _comparable(name, recorded)
     )
+
+
+def _comparable(axis: str, value: str) -> str:
+    """The code axis carries a dirty flag that moves on its own; the rest do not."""
+    return value.split()[0] if axis == "code" and value else value

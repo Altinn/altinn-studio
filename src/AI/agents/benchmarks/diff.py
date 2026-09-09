@@ -80,6 +80,9 @@ class BehaviorChange:
         if not behavior.is_pinned:
             lines.append("nothing pins this behavior, so no run has ever measured it")
             return tuple(lines)
+        if self.after is None:
+            lines.append(f"{behavior.eval} did not run, so {behavior.evaluator} scored nothing")
+            return tuple(lines)
         if self.before is None:
             lines.append(f"{behavior.evaluator} {self.after:.3f}, no baseline to compare against")
         elif self.delta is not None and abs(self.delta) > NOISE_FLOOR:
@@ -132,9 +135,15 @@ class Comparison:
         return tuple(c for c in self.changes if c.silent_items)
 
 
-def _verdict(before: float | None, after: float | None, items: tuple[ItemChange, ...]) -> str:
+def _verdict(
+    before: float | None,
+    after: float | None,
+    items: tuple[ItemChange, ...],
+    *,
+    pinned: bool = True,
+) -> str:
     if after is None:
-        return "unpinned"
+        return "not-run" if pinned else "unpinned"
     if after == 0:
         return "failing"
     if before is None:
@@ -185,7 +194,12 @@ def compare(baseline: Run, candidate: Run) -> Comparison:
                 behavior=behavior.id,
                 before=before.score if before else None,
                 after=after.score if after else None,
-                verdict=_verdict(before.score if before else None, after.score if after else None, items),
+                verdict=_verdict(
+                    before.score if before else None,
+                    after.score if after else None,
+                    items,
+                    pinned=behavior.is_pinned,
+                ),
                 items=items,
             )
         )

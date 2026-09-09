@@ -245,6 +245,13 @@ def _main() -> int:
             text=True,
             check=False,
         )
+        if diff.returncode != 0:
+            print(
+                "Could not work out what changed, so this gate proves nothing:\n"
+                + (diff.stderr.strip() or "git diff origin/main...HEAD failed"),
+                file=sys.stderr,
+            )
+            return 1
         changed = [line for line in diff.stdout.splitlines() if line.strip()]
     return report(changed, strict=strict)
 

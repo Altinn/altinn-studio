@@ -40,6 +40,8 @@ jobs:
         working-directory: src/AI/agents
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
+        shell: bash
         run: |
+          set -euo pipefail
           git diff --name-only "$BASE_REF"...HEAD | tee /tmp/changed.txt
           xargs -a /tmp/changed.txt -r python -m benchmarks.impact --strict

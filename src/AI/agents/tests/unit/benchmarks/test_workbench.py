@@ -611,6 +611,23 @@ class TestThePageLeadsWithFindings:
         runstore.save(run, directory=tmp_path)
         return report_html.render(report.build(directory=tmp_path))
 
+    def test_a_closing_script_tag_in_an_output_cannot_break_the_page(self, tmp_path):
+        """The payload sits in an inline script element, so an unescaped `</script>`
+        in a model answer would end the element and blank the page."""
+        run = _run(
+            "20260909T100000Z-now",
+            "now",
+            HOLDING,
+            outputs={"spec.parses": "</script><script>alert(1)</script>"},
+        )
+        runstore.save(run, directory=tmp_path)
+
+        page = report_html.render(report.build(directory=tmp_path))
+
+        assert "</script><script>alert(1)" not in page
+        blob = page.split('type="application/json">')[1].split("</script>")[0]
+        assert json.loads(blob)
+
     def test_every_behavior_sits_in_one_list(self, tmp_path):
         page = self._page(tmp_path)
 
@@ -668,6 +685,22 @@ class TestThePageLeadsWithFindings:
 class TestTheReportCarriesEveryReference:
     """The page switches between precomputed comparisons. Recomputing a verdict in
     JavaScript would put the noise floor and the refusal rules in two places."""
+
+    def test_the_reference_count_is_bounded(self, tmp_path):
+        """Every reference is a full comparison, so an unbounded run store made both
+        `check` and `report` quadratic in the number of runs kept."""
+        for hour in range(12):
+            runstore.save(
+                _run(f"20260909T{hour:02d}0000Z-run{hour}", f"run {hour}", HOLDING),
+                directory=tmp_path,
+            )
+        runstore.set_baseline("20260909T000000Z-run0", directory=tmp_path, why="oldest")
+
+        built = report.build(directory=tmp_path)
+
+        assert len(built.references) == report.MAX_OTHER_REFERENCES + 2
+        kinds = [r.kind for r in built.references]
+        assert "baseline" in kinds and "previous" in kinds
 
     def _runs(self, tmp_path):
         base = _run("20260909T100000Z-base", "claude", HOLDING)
@@ -765,9 +798,10 @@ class TestComparingTwoCandidates:
         assert built.adopted
 
     def test_a_run_cannot_be_its_own_baseline(self, tmp_path):
+        """Not an assert: `python -O` drops those, and this one guards an input."""
         _, _, sol = self._three(tmp_path)
 
-        with pytest.raises(AssertionError, match="against itself"):
+        with pytest.raises(SystemExit, match="against itself"):
             report.build(directory=tmp_path, baseline_run=sol.name)
 
 
@@ -864,6 +898,26 @@ def test_a_comparison_across_an_undeclared_axis_is_refused():
     comparison = diff.compare(base, cand)
     assert comparison.is_refused
     assert set(comparison.refused) == {"environment", "dataset", "evaluators"}
+
+
+def test_an_axis_neither_run_recorded_refuses_the_comparison():
+    """`None == None` counted as agreement, so a comparison could turn on a dataset,
+    prompt or evaluator change that neither run had written down."""
+    base = _run("20260909T100000Z-baseline", "baseline", HOLDING, prov=_provenance(dataset=None))
+    cand = _run("20260909T110000Z-cand", "candidate", HOLDING, prov=_provenance(dataset=None))
+
+    comparison = diff.compare(base, cand)
+
+    assert comparison.is_refused
+    assert set(comparison.refused) == {"dataset"}
+
+
+def test_an_axis_recorded_as_empty_is_a_real_answer_and_does_not_refuse():
+    """No behavior declares a judge version, so an empty evaluators map is complete."""
+    base = _run("20260909T100000Z-baseline", "baseline", HOLDING, prov=_provenance(evaluators={}))
+    cand = _run("20260909T110000Z-cand", "candidate", HOLDING, prov=_provenance(evaluators={}))
+
+    assert not diff.compare(base, cand).is_refused
 
 
 def test_declaring_an_axis_as_under_test_allows_the_comparison():
@@ -1390,6 +1444,43 @@ class TestWhereTheBaselineLives:
         assert set(pointer_file.drifted(edited, run)) == {"environment", "tools"}
         assert pointer_file.drifted(pointer, run) == ()
 
+    def test_drift_in_a_dict_axis_is_detected(self, tmp_path):
+        """Comparing one whitespace-separated token made every dict axis a no-op: the
+        first token of a flattened `models` is the role name, never a model."""
+        from benchmarks import baseline as pointer_file
+
+        run = _run("20260909T100000Z-base", "baseline", HOLDING)
+        pointer = pointer_file.from_run(run, "because")
+        swapped = pointer_file.Pointer(
+            check_id=pointer.check_id,
+            label=pointer.label,
+            recorded_at=pointer.recorded_at,
+            why=pointer.why,
+            axes={
+                **pointer.axes,
+                "models": "actor claude-sonnet-5, default gpt-5.4-mini, planner something-else",
+                "prompts": "scope_check 4",
+            },
+        )
+
+        assert set(pointer_file.drifted(swapped, run)) == {"models", "prompts"}
+
+    def test_an_uncommitted_workspace_alone_is_not_drift(self, tmp_path):
+        """The dirty flag moves on its own, which is why `code` compares by commit."""
+        from benchmarks import baseline as pointer_file
+
+        run = _run("20260909T100000Z-base", "baseline", HOLDING)
+        pointer = pointer_file.from_run(run, "because")
+        dirty = pointer_file.Pointer(
+            check_id=pointer.check_id,
+            label=pointer.label,
+            recorded_at=pointer.recorded_at,
+            why=pointer.why,
+            axes={**pointer.axes, "code": pointer.axes["code"].split()[0] + " dirty"},
+        )
+
+        assert pointer_file.drifted(dirty, run) == ()
+
     def test_the_baseline_is_read_from_the_local_cache_when_it_is_there(self, tmp_path):
         run = _run("20260909T100000Z-base", "baseline", HOLDING)
         runstore.save(run, directory=tmp_path)
@@ -1493,10 +1584,26 @@ class TestReadingARunBackFromLangfuse:
         assert any("reconstructed from Langfuse" in note for note in run.provenance.notes)
 
     def test_an_unknown_check_id_fails_loudly(self):
+        """Not SystemExit: `runstore.baseline` catches Exception around this call, so a
+        pointer that has aged out of Langfuse would have killed the process."""
         from benchmarks import remote
 
-        with pytest.raises(SystemExit, match="No run in Langfuse"):
+        with pytest.raises(LookupError, match="No run in Langfuse"):
             remote.fetch("nope", api=self._api(self._metadata(), []))
+
+    def test_a_baseline_that_langfuse_has_lost_reads_as_no_baseline(self, tmp_path, monkeypatch):
+        from benchmarks import baseline as pointer_file
+        from benchmarks import remote
+
+        run = _run("20260909T100000Z-base", "baseline", HOLDING)
+        pointer_file.write(
+            pointer_file.from_run(run, "because"), path=tmp_path / "BASELINE.json"
+        )
+        monkeypatch.setattr(
+            remote, "fetch", lambda *a, **k: (_ for _ in ()).throw(LookupError("gone"))
+        )
+
+        assert runstore.baseline(directory=tmp_path, pointer=tmp_path / "BASELINE.json") is None
 
     def test_a_dataset_absent_from_the_run_is_marked_not_run(self):
         from benchmarks import remote

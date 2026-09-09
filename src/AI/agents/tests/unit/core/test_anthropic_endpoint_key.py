@@ -30,6 +30,34 @@ def _client_for(config):
     return AnthropicAdapter(model="claude-sonnet-5")._client
 
 
+class TestTheConfigResolvesTheKey:
+    """Both client tests set the resolved value on a fake, so the resolution itself,
+    which is what a single-resource deployment relies on, was never exercised."""
+
+    def _fresh(self):
+        """A private copy: reloading the shared module changes it for every later test."""
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "_base_config_probe", base_config.__file__
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.BaseConfig
+
+    def test_the_anthropic_key_falls_back_to_the_azure_key(self, monkeypatch):
+        monkeypatch.delenv("AZURE_ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.setenv("AZURE_API_KEY", "one-resource-key")
+
+        assert self._fresh().AZURE_ANTHROPIC_API_KEY == "one-resource-key"
+
+    def test_a_dedicated_key_wins_over_the_azure_key(self, monkeypatch):
+        monkeypatch.setenv("AZURE_ANTHROPIC_API_KEY", "dedicated")
+        monkeypatch.setenv("AZURE_API_KEY", "one-resource-key")
+
+        assert self._fresh().AZURE_ANTHROPIC_API_KEY == "dedicated"
+
+
 class TestTheKeyMatchesTheEndpoint:
     def test_the_anthropic_key_is_used_when_set(self, config):
         assert _client_for(config).api_key == "anthropic-resource-key"
@@ -93,6 +121,6 @@ class TestBothAnthropicClientsUseTheSameKey:
             "agents/core/llm_adapter.py",
             "agents/services/llm/llm_client.py",
         ):
-            source = pathlib.Path(name).read_text()
+            source = pathlib.Path(name).read_text(encoding="utf-8")
             for match in re.finditer(r"Anthropic\((.*?)\)", source, re.S):
                 assert "AZURE_API_KEY" not in match.group(1), name

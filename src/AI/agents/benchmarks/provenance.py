@@ -98,6 +98,10 @@ class Provenance:
         """Axes we could not collect. An unrecorded axis is not a matching one."""
         return tuple(name for name, value in self.axes().items() if value in (None, {}, ""))
 
+    def never_collected(self) -> tuple[str, ...]:
+        """Axes with no value at all. An empty dict is a collected, empty answer."""
+        return tuple(name for name, value in self.axes().items() if value is None)
+
     def to_dict(self) -> dict:
         data = asdict(self)
         data["code"] = asdict(self.code)
@@ -228,9 +232,15 @@ MEASUREMENT_AXES = ("prompts", "actor_prompt", "tools", "dataset", "evaluators")
 
 
 def blocking_differences(left: Provenance, right: Provenance, under_test: tuple[str, ...]) -> tuple[str, ...]:
-    """Axes that differ and were not declared as the change being tested."""
-    differing = set(left.differs_from(right))
-    return tuple(a for a in BLOCKING_AXES if a in differing and a not in under_test)
+    """Axes that differ, or that neither run recorded, and were not declared as the change."""
+    suspect = set(left.differs_from(right)) | set(unverifiable(left, right))
+    return tuple(a for a in BLOCKING_AXES if a in suspect and a not in under_test)
+
+
+def unverifiable(left: Provenance, right: Provenance) -> tuple[str, ...]:
+    """Blocking axes one side never recorded, so equality was never established."""
+    blind = set(left.never_collected()) | set(right.never_collected())
+    return tuple(a for a in BLOCKING_AXES if a in blind)
 
 
 def remedy(refused: tuple[str, ...]) -> tuple[str, ...]:

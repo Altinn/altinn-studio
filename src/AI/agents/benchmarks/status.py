@@ -125,7 +125,7 @@ def _read(entry: registry.Eval) -> list[Any]:
     path = entry.path
     if not path or not path.exists():
         return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def undeclared(lf: LangfuseApi) -> list[str]:

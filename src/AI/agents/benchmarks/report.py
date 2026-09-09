@@ -43,6 +43,9 @@ PROMPT_PATH = Path(__file__).parent / "prompts" / "eval_report_judge.md"
 # Above this multiple of the noise floor, one item swamps the measurement.
 COARSE_MULTIPLE = 5
 
+# Each reference is a full comparison, so the page pays for every one it offers.
+MAX_OTHER_REFERENCES = 4
+
 
 def judge_model() -> str:
     from shared.config import get_config
@@ -614,10 +617,11 @@ def _references(
     prior = previous or next((r for r in others if r.name not in kinds), None)
     if prior and prior.name not in kinds:
         kinds[prior.name] = "previous"
+    named = [r for r in others if r.name in kinds]
+    recent = [r for r in others if r.name not in kinds][:MAX_OTHER_REFERENCES]
+    chosen = sorted(named + recent, key=lambda r: r.name, reverse=True)
     built = []
-    for run in all_runs(directory=directory):
-        if run.name == current.name:
-            continue
+    for run in chosen:
         one = build(
             current=current,
             directory=directory,
@@ -717,9 +721,8 @@ def build(
     current = current or latest
     assert current is not None, "no runs on disk, so there is nothing to report"
     if baseline_run:
-        assert baseline_run != current.name, (
-            f"{current.name} cannot be compared against itself"
-        )
+        if baseline_run == current.name:
+            raise SystemExit(f"{current.name} cannot be compared against itself")
         baseline = load(baseline_run, directory=directory)
         previous = None
 
@@ -822,7 +825,7 @@ async def review(payload: dict[str, Any], model: str | None = None) -> str:
     adapter = adapter_for(model or judge_model(), max_tokens=4000)
     reply = await adapter.chat(
         messages=[UserMessage(content=json.dumps(payload, ensure_ascii=False, indent=2))],
-        system_prompt=PROMPT_PATH.read_text(),
+        system_prompt=PROMPT_PATH.read_text(encoding="utf-8"),
         tool_schemas=[],
     )
     return "".join(block.text for block in reply.content if getattr(block, "text", None)).strip()

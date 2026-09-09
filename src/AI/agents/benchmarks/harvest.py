@@ -60,10 +60,22 @@ class TraceReader:
 
     def observations(self, trace_id: str) -> list[dict]:
         """Every observation, in the order it started."""
-        listing = self._get(
-            "/api/public/v2/observations", traceId=trace_id, limit=100, fields="core"
-        )
-        rows = [self._get(f"/api/public/observations/{row['id']}") for row in listing.get("data") or []]
+        found: list[dict] = []
+        cursor = None
+        while True:
+            params: dict[str, Any] = {
+                "traceId": trace_id,
+                "limit": 100,
+                "fields": "core",
+            }
+            if cursor:
+                params["cursor"] = cursor
+            page = self._get("/api/public/v2/observations", **params)
+            found += page.get("data") or []
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor:
+                break
+        rows = [self._get(f"/api/public/observations/{row['id']}") for row in found]
         return sorted(rows, key=lambda row: row.get("startTime") or "")
 
     def trace(self, trace_id: str) -> dict:
@@ -336,7 +348,7 @@ def main() -> int:
                 print(f"  {index:2}  {count:2} call(s)  {tools}")
             return 0
 
-        spec = json.loads(Path(args.spec).read_text())
+        spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
 
         if args.planner:
             trace_ids = [entry["trace_id"] for entry in spec["traces"]] + list(
@@ -344,7 +356,7 @@ def main() -> int:
             )
             planner = planner_items(reader, trace_ids)
             destination = DATASETS_DIR / "planner_intake.jsonl"
-            with destination.open("w") as handle:
+            with destination.open("w", encoding="utf-8") as handle:
                 for item in planner:
                     handle.write(json.dumps(item, ensure_ascii=False) + "\n")
             for item in planner:
@@ -356,7 +368,10 @@ def main() -> int:
         collected_prompts: dict[str, str] = {}
         for entry in spec["traces"]:
             harvest = read_trace(reader, entry["trace_id"])
-            collected_prompts[harvest.trace_id] = harvest.system_prompt
+            if harvest.system_prompt:
+                collected_prompts[harvest.trace_id] = harvest.system_prompt
+            else:
+                print(f"  no system prompt in {harvest.trace_id}, keeping the recorded one")
             print(f"{entry['trace_id']}: {len(harvest.turns)} decisions "
                   f"({entry['verification']})")
             for pick in entry["items"]:
@@ -378,14 +393,16 @@ def main() -> int:
                 print(f"  {pick['id']}")
 
     destination = DATASETS_DIR / spec["output"]
-    with destination.open("w") as handle:
+    with destination.open("w", encoding="utf-8") as handle:
         for item in items:
             handle.write(json.dumps(item, ensure_ascii=False) + "\n")
 
     prompts_path = DATASETS_DIR / SYSTEM_PROMPTS_FILE
-    prompts = json.loads(prompts_path.read_text()) if prompts_path.exists() else {}
+    prompts = json.loads(prompts_path.read_text(encoding="utf-8")) if prompts_path.exists() else {}
     prompts.update(collected_prompts)
-    prompts_path.write_text(json.dumps(prompts, indent=2, ensure_ascii=False) + "\n")
+    prompts_path.write_text(
+        json.dumps(prompts, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     print(f"\n{destination}: {len(items)} items")
     print(f"{prompts_path}: {len(prompts)} session prompt(s)")
