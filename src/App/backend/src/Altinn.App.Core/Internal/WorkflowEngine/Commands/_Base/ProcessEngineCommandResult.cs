@@ -47,6 +47,7 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     public readonly string ErrorMessage;
     public readonly string ExceptionType;
     public readonly bool NonRetryable;
+    public readonly Exception? Exception;
 
     /// <summary>
     /// The failure was Altinn Authorization denying the app while it acted as the service owner,
@@ -72,6 +73,7 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
             exception.Message,
             exception.GetType().Name,
             nonRetryable: false,
+            exception,
             serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(exception)
         );
 
@@ -79,7 +81,7 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     /// Creates a retryable failure from a caught exception (likely transient — Storage down, HTTP timeout, etc.).
     /// </summary>
     public static FailedProcessEngineCommandResult Retryable(string errorMessage, string? exceptionType = null) =>
-        new(errorMessage, exceptionType, nonRetryable: false);
+        new(errorMessage, exceptionType, nonRetryable: false, exception: null);
 
     /// <summary>
     /// Creates a non-retryable failure (validation error, business rule violation, etc.).
@@ -89,12 +91,13 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
         string errorMessage,
         string? exceptionType = null,
         MailboxContinuation? mailboxContinuation = null
-    ) => new(errorMessage, exceptionType, nonRetryable: true, mailboxContinuation);
+    ) => new(errorMessage, exceptionType, nonRetryable: true, mailboxContinuation: mailboxContinuation);
 
     private FailedProcessEngineCommandResult(
         string errorMessage,
         string? exceptionType,
         bool nonRetryable,
+        Exception? exception = null,
         MailboxContinuation? mailboxContinuation = null,
         bool serviceOwnerAuthorizationDenied = false
     )
@@ -102,6 +105,7 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
         ErrorMessage = errorMessage;
         ExceptionType = exceptionType ?? "Not specified";
         NonRetryable = nonRetryable;
+        Exception = exception;
         ServiceOwnerAuthorizationDenied = serviceOwnerAuthorizationDenied;
         MailboxContinuation = mailboxContinuation;
     }

@@ -16,25 +16,22 @@ internal sealed record ScheduleSigneeInitializationPayload(
     string TaskId,
     WorkflowEnqueueRequest? Continuation = null,
     StepRequest? DelegationStep = null,
-    StepRequest? NotificationStep = null,
-    StepRequest? NotificationSchedulerStep = null
+    StepRequest? NotificationStep = null
 ) : CommandRequestPayload
 {
     internal override string? Validate() =>
         string.IsNullOrWhiteSpace(TaskId)
         || Continuation?.Workflows.Count != 1
-        || Continuation
-            .Workflows[0]
-            .Steps.Count(step => SigningWorkflowSteps.GetKey(step) == SaveProcessStateToStorage.Key) != 1
+        || Continuation.Workflows[0].Steps.Count(step => SigningWorkflowSteps.GetKey(step) == CommitProcessState.Key)
+            != 1
         || DelegationStep is null
         || NotificationStep is null
-        || NotificationSchedulerStep is null
             ? "The signing task and its pre-assembled continuation are required."
             : null;
 }
 
 /// <summary>
-/// Expands the persisted recipient plan into ordinary sequential grant steps followed by the original
+/// Expands the persisted recipient plan into ordinary sequential grant steps, notification steps, and the original
 /// transition tail. The dependent workflow cannot run until this scheduling callback has completed.
 /// </summary>
 internal sealed class ScheduleSigneeInitialization(
@@ -58,7 +55,6 @@ internal sealed class ScheduleSigneeInitialization(
                     Continuation: { } continuation,
                     DelegationStep: { } delegationStep,
                     NotificationStep: { } notificationStep,
-                    NotificationSchedulerStep: { } notificationSchedulerStep,
                 }
             || payload.Validate() is not null
         )
@@ -87,52 +83,32 @@ internal sealed class ScheduleSigneeInitialization(
                 context.CancellationToken
             );
             WorkflowRequest template = continuation.Workflows[0];
-            var steps = plan
-                .SigneeIds.Select(signeeId =>
-                    SigningWorkflowSteps.WithPayload(
-                        delegationStep,
-                        new SigneeCommandPayload(payload.TaskId, plan.SigneeStateElementId, signeeId)
-                    ) with
-                    {
-                        Labels = new Dictionary<string, string>
-                        {
-                            [SigningWorkflowLabels.SigningInitializationLabel] = plan.SigneeStateElementId.ToString(
-                                "D"
-                            ),
-                            [SigningWorkflowLabels.SigningSigneeLabel] = signeeId.ToString("D"),
-                            [SigningWorkflowLabels.SigningTaskLabel] = payload.TaskId,
-                        },
-                    }
-                )
-                .ToList();
-
-            var notificationRequest = continuation with
+            var steps = new List<StepRequest>();
+            // One ordered run owns the instance until CommitProcessState. Finish every delegation before
+            // sending any notifications, then preserve the original transition tail and its commit boundary.
+            foreach (StepRequest templateStep in new[] { delegationStep, notificationStep })
             {
-                Workflows =
-                [
-                    new WorkflowRequest
-                    {
-                        OperationId = "Signing notification",
-                        Steps = [notificationStep],
-                        IsHead = false,
-                        DependsOnHeads = false,
-                    },
-                ],
-            };
-            var notificationPayload = new ScheduleSigneeNotificationsPayload(
-                payload.TaskId,
-                plan.SigneeStateElementId,
-                plan.SigneeIds,
-                notificationRequest
-            );
-            foreach (StepRequest step in template.Steps)
-            {
-                steps.Add(step);
-                if (SigningWorkflowSteps.GetKey(step) == SaveProcessStateToStorage.Key)
+                foreach (Guid signeeId in plan.SigneeIds)
                 {
-                    steps.Add(SigningWorkflowSteps.WithPayload(notificationSchedulerStep, notificationPayload));
+                    steps.Add(
+                        SigningWorkflowSteps.WithPayload(
+                            templateStep,
+                            new SigneeCommandPayload(payload.TaskId, plan.SigneeStateElementId, signeeId)
+                        ) with
+                        {
+                            Labels = new Dictionary<string, string>
+                            {
+                                [SigningWorkflowLabels.SigningInitializationLabel] = plan.SigneeStateElementId.ToString(
+                                    "D"
+                                ),
+                                [SigningWorkflowLabels.SigningSigneeLabel] = signeeId.ToString("D"),
+                                [SigningWorkflowLabels.SigningTaskLabel] = payload.TaskId,
+                            },
+                        }
+                    );
                 }
             }
+            steps.AddRange(template.Steps);
 
             await workflowEngineClient.EnqueueWorkflows(
                 ns: $"{context.AppId.Org}/{context.AppId.App}",

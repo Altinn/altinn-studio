@@ -5,7 +5,6 @@ using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -107,95 +106,6 @@ public class WorkflowEngineCallbackControllerCommandTests : ApiTestBase, IClassF
         Assert.Equal(cancellation.Token, exception.CancellationToken);
     }
 
-    [Theory]
-    [InlineData("success", HttpStatusCode.OK)]
-    [InlineData("permanent", HttpStatusCode.UnprocessableEntity)]
-    public async Task DecoratedNotification_OwnsFreshLockThroughExecution_AndReleasesIt(
-        string outcome,
-        HttpStatusCode expectedStatus
-    )
-    {
-        bool lockHeld = false;
-        var probe = new Probe { WhenExecuting = () => Assert.True(lockHeld) };
-        var lease = new Mock<IInstanceLock>(MockBehavior.Strict);
-        lease.Setup(x => x.Lock(TimeSpan.FromMinutes(10))).Callback(() => lockHeld = true).Returns(Task.CompletedTask);
-        lease.Setup(x => x.DisposeAsync()).Callback(() => lockHeld = false).Returns(ValueTask.CompletedTask);
-        var locker = new Mock<IInstanceLocker>(MockBehavior.Strict);
-        locker.Setup(x => x.InitLock(OwnerId, It.IsAny<Guid>())).Returns(lease.Object);
-        OverrideServicesForThisTest = services =>
-        {
-            var original = services.Single(x => x.ImplementationType == typeof(NotifySigneeCommand));
-            services.Remove(original);
-            // Framework command decorators retain their key but no longer have the concrete command type.
-            services.AddScoped<IWorkflowEngineCommand>(_ => new CustomerCommand(
-                outcome,
-                probe,
-                NotifySigneeCommand.Key
-            ));
-            services.AddSingleton(locker.Object);
-        };
-        Guid instanceGuid = Guid.NewGuid();
-        using var client = GetRootedClient(Org, App);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
-        );
-
-        using var response = await client.PostAsJsonAsync(
-            $"{Org}/{App}/instances/{OwnerId}/{instanceGuid}/workflow-engine-callbacks/{NotifySigneeCommand.Key}",
-            CreatePayload(instanceGuid, "{}", NotifySigneeCommand.Key)
-        );
-
-        Assert.Equal(expectedStatus, response.StatusCode);
-        Assert.Equal(1, probe.ExecutionCount);
-        Assert.False(lockHeld);
-        locker.Verify(x => x.UseExternalLockToken(It.IsAny<string>()), Times.Never);
-        lease.Verify(x => x.DisposeAsync(), Times.Once);
-    }
-
-    [Fact]
-    public async Task Notification_LockContention_DefersWithoutExecutingOrChangingState()
-    {
-        var probe = new Probe();
-        var lease = new Mock<IInstanceLock>(MockBehavior.Strict);
-        using var conflictResponse = new HttpResponseMessage(HttpStatusCode.Conflict);
-        var conflict = await PlatformHttpException.Create(conflictResponse);
-        lease.Setup(x => x.Lock(TimeSpan.FromMinutes(10))).ThrowsAsync(conflict);
-        lease.Setup(x => x.DisposeAsync()).Returns(ValueTask.CompletedTask);
-        var locker = new Mock<IInstanceLocker>(MockBehavior.Strict);
-        locker.Setup(x => x.InitLock(OwnerId, It.IsAny<Guid>())).Returns(lease.Object);
-        OverrideServicesForThisTest = services =>
-        {
-            services.Remove(services.Single(x => x.ImplementationType == typeof(NotifySigneeCommand)));
-            services.AddScoped<IWorkflowEngineCommand>(_ => new CustomerCommand(
-                "success",
-                probe,
-                NotifySigneeCommand.Key
-            ));
-            services.AddSingleton(locker.Object);
-        };
-        Guid instanceGuid = Guid.NewGuid();
-        using var client = GetRootedClient(Org, App);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
-        );
-        var payload = CreatePayload(instanceGuid, "{}", NotifySigneeCommand.Key);
-
-        using var response = await client.PostAsJsonAsync(
-            $"{Org}/{App}/instances/{OwnerId}/{instanceGuid}/workflow-engine-callbacks/{NotifySigneeCommand.Key}",
-            payload
-        );
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<AppCallbackResponse>();
-        Assert.Equal(payload.State, body!.State);
-        Assert.Equal(TimeSpan.FromSeconds(1), body.Defer!.Delay);
-        Assert.Equal(0, probe.ExecutionCount);
-        locker.Verify(x => x.UseExternalLockToken(It.IsAny<string>()), Times.Never);
-        lease.Verify(x => x.DisposeAsync(), Times.Once);
-    }
-
     private AppCallbackPayload CreatePayload(Guid instanceGuid, string input, string key = CommandKey)
     {
         var instance = new Instance
@@ -214,7 +124,6 @@ public class WorkflowEngineCallbackControllerCommandTests : ApiTestBase, IClassF
         {
             CommandKey = key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
             ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
@@ -222,7 +131,15 @@ public class WorkflowEngineCallbackControllerCommandTests : ApiTestBase, IClassF
             State = Services
                 .GetRequiredService<WorkflowStateSigner>()
                 .Sign(
-                    JsonSerializer.Serialize(new WorkflowCallbackState { Instance = instance, FormData = [] }),
+                    JsonSerializer.Serialize(
+                        new WorkflowCallbackState
+                        {
+                            Instance = instance,
+                            InstanceVersion = 1,
+                            ProcessStateVersion = 1,
+                            FormData = [],
+                        }
+                    ),
                     SigningDomain.CallbackState
                 ),
         };

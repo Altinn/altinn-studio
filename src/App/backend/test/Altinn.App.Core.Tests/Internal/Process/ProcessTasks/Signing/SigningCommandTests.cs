@@ -2,7 +2,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -25,7 +24,6 @@ public class SigningCommandTests
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
 
     [Fact]
     public async Task ResolveSignees_NotRuntimeDelegated_DoesNothingWithoutResolvingService()
@@ -398,7 +396,7 @@ public class SigningCommandTests
             command.DefaultStepOptions.MaxExecutionTime
         );
         Assert.Equal(TimeSpan.FromMinutes(5), command.DefaultStepOptions.MaxExecutionTime);
-        Assert.Equal(TimeSpan.FromMinutes(10), command.DefaultStepOptions.WaitBudget);
+        Assert.Equal(SigningStepOptions.PlatformCallsPerSignee.WaitBudget, command.DefaultStepOptions.WaitBudget);
     }
 
     [Fact]
@@ -443,21 +441,7 @@ public class SigningCommandTests
             )
             .Returns(Task.CompletedTask)
             .Verifiable(Times.Once);
-        var instances = new Mock<IInstanceClient>();
-        instances
-            .Setup(x =>
-                x.GetInstance(
-                    dataMutator.Object.Instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(CreateInstance());
-        var command = new AbortRuntimeDelegatedSigningCommand(
-            _processReaderMock.Object,
-            _signingServiceMock.Object,
-            instances.Object
-        );
+        var command = new AbortRuntimeDelegatedSigningCommand(_processReaderMock.Object, _signingServiceMock.Object);
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 
@@ -470,7 +454,6 @@ public class SigningCommandTests
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" });
         Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreateInstance());
-        SetupStoredInstance(dataMutator.Object.Instance, CreateInstance());
         _pdfServiceMock
             .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
@@ -495,118 +478,22 @@ public class SigningCommandTests
                     ReadOnlyMemory<byte>.Empty,
                     TaskId
                 )
-            );
-        var command = new GenerateSigningPdfCommand(
-            _processReaderMock.Object,
-            _pdfServiceMock.Object,
-            _instanceClientMock.Object
-        );
-
-        ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
-
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        _pdfServiceMock.VerifyAll();
-        _instanceClientMock.VerifyAll();
-        dataMutator.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task GenerateSigningPdf_WithStoredTaskGeneratedPdf_ReusesPdfAndPreservesCarriedState(
-        bool pdfInCallbackState
-    )
-    {
-        DataElement existingSigningPdf = new()
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "signing-pdf",
-            ContentType = "application/pdf",
-            Filename = "signing-pdf.pdf",
-            References =
-            [
-                new Reference
-                {
-                    Relation = RelationType.GeneratedFrom,
-                    ValueType = ReferenceType.Task,
-                    Value = TaskId,
-                },
-            ],
-        };
-        SetupConfiguration(new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" });
-        DataElement unrelatedData = new() { Id = Guid.NewGuid().ToString(), DataType = "other-data" };
-        Instance carried = pdfInCallbackState
-            ? CreateInstance(unrelatedData, existingSigningPdf)
-            : CreateInstance(unrelatedData);
-        ProcessState virtualProcess = carried.Process;
-        virtualProcess.CurrentTask.ElementId = "Task_Virtual";
-        Instance stored = CreateInstance(existingSigningPdf);
-        stored.Data.Add(new DataElement { Id = Guid.NewGuid().ToString(), DataType = "storage-only-data" });
-        SetupStoredInstance(carried, stored);
-        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(carried);
-        _pdfServiceMock
-            .Setup(x => x.GeneratePdf(dataMutator.Object, TaskId, false, null, CancellationToken.None))
-            .Callback(() =>
-            {
-                Assert.Same(carried, dataMutator.Object.Instance);
-                Assert.Same(virtualProcess, carried.Process);
-                Assert.Equal("Task_Virtual", carried.Process.CurrentTask.ElementId);
-                Assert.Collection(
-                    carried.Data,
-                    element => Assert.Same(unrelatedData, element),
-                    element => Assert.Same(existingSigningPdf, element)
-                );
-            })
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
-        dataMutator
-            .Setup(x =>
-                x.UpdateBinaryDataElement(existingSigningPdf, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
             )
-            .Returns(
-                new BinaryDataChange(
-                    ChangeType.Updated,
-                    new DataType { Id = "signing-pdf" },
-                    "application/pdf",
-                    existingSigningPdf,
-                    "signing-pdf.pdf",
-                    ReadOnlyMemory<byte>.Empty
-                )
-            );
-        var command = new GenerateSigningPdfCommand(
-            _processReaderMock.Object,
-            _pdfServiceMock.Object,
-            _instanceClientMock.Object
-        );
+            .Verifiable(Times.Once);
+        var command = new GenerateSigningPdfCommand(_processReaderMock.Object, _pdfServiceMock.Object);
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(dataMutator.Object));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _pdfServiceMock.VerifyAll();
-        _instanceClientMock.VerifyAll();
-        dataMutator.VerifyAll();
-        dataMutator.Verify(
-            x =>
-                x.AddBinaryDataElement(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<List<KeyValueEntry>?>()
-                ),
-            Times.Never
-        );
+        dataMutator.Verify();
     }
 
     [Fact]
     public async Task GenerateSigningPdf_WithoutSigningPdfDataType_DoesNothing()
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" });
-        var command = new GenerateSigningPdfCommand(
-            _processReaderMock.Object,
-            _pdfServiceMock.Object,
-            _instanceClientMock.Object
-        );
+        var command = new GenerateSigningPdfCommand(_processReaderMock.Object, _pdfServiceMock.Object);
 
         ProcessEngineCommandResult result = await command.Execute(
             CreateContext(CreateDataMutator(CreateInstance()).Object)
@@ -614,20 +501,7 @@ public class SigningCommandTests
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _pdfServiceMock.VerifyNoOtherCalls();
-        _instanceClientMock.VerifyNoOtherCalls();
     }
-
-    private void SetupStoredInstance(Instance carried, Instance stored) =>
-        _instanceClientMock
-            .Setup(x =>
-                x.GetInstance(
-                    carried,
-                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
-                    CancellationToken.None
-                )
-            )
-            .ReturnsAsync(stored)
-            .Verifiable(Times.Once);
 
     private AltinnSignatureConfiguration SetupConfiguration(AltinnSignatureConfiguration configuration)
     {

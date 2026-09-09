@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AgentId, ConditionStatus, Error, Harness,
+    AgentId, Error, Harness,
     sandbox::Assignment,
     sessions::{AttachTarget, LaunchState, LaunchToken, Session, SessionId, SessionName, State, Status},
 };
@@ -237,12 +237,7 @@ pub(super) fn attach_target(connection: &Connection, id: SessionId) -> Result<At
         return Err(Error::Invalid(format!("Session {} is not ready", session.id)));
     }
     let agent = agents::get(connection, session.agent_id)?;
-    let ready = agent
-        .agent
-        .status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True);
+    let ready = agent.agent.status.is_ready();
     let Some(sandbox @ Assignment::Materialized { .. }) = agent.agent.status.sandbox else {
         return Err(Error::Invalid(format!(
             "Agent {:?} is not ready",

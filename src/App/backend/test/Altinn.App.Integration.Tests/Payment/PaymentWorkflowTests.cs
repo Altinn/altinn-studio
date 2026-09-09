@@ -43,8 +43,8 @@ public class PaymentWorkflowTests(ITestOutputHelper output, AppFixtureClassFixtu
         );
         Assert.DoesNotContain(current.Data.Model.Data, x => x.DataType == "payment-receipt");
         var state = await State(fixture);
-        Assert.Equal(status == PaymentStatus.Created ? 1 : 0, state.TerminationCalls);
-        Assert.Equal(state.TerminationCalls, state.AcceptedTerminations);
+        Assert.Equal(status == PaymentStatus.Created ? (loseResponse ? 2 : 1) : 0, state.TerminationCalls);
+        Assert.Equal(status == PaymentStatus.Created ? 1 : 0, state.AcceptedTerminations);
         Assert.Equal(loseResponse ? 1 : 0, state.LostResponses);
         AssertCallbacks(state, "CleanupPayment", loseResponse ? 2 : 1);
     }
@@ -140,7 +140,7 @@ public class PaymentWorkflowTests(ITestOutputHelper output, AppFixtureClassFixtu
             current.Data.Model!.Data.Count(x => x.DataType == "payment")
         );
         var state = await State(fixture);
-        Assert.Equal(status == PaymentStatus.Created ? 1 : 0, state.TerminationCalls);
+        Assert.Equal(status == PaymentStatus.Created ? (loseResponse ? 2 : 1) : 0, state.TerminationCalls);
         Assert.Equal(0, state.PdfCalls);
         AssertCallbacks(state, "CleanupPayment", loseResponse ? 2 : 1);
     }

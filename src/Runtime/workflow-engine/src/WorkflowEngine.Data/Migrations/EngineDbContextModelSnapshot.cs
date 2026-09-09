@@ -526,6 +526,12 @@ namespace WorkflowEngine.Data.Migrations
                     b.HasIndex("Namespace", "Status")
                         .HasDatabaseName("ix_workflows_namespace_status");
 
+                    b.HasIndex(new[] { "Namespace", "Id" }, "ix_workflows_namespace_id_requeued")
+                        .HasDatabaseName("ix_workflows_namespace_id_requeued")
+                        .HasFilter("status = 2");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex(new[] { "Namespace", "Id" }, "ix_workflows_namespace_id_requeued"), new[] { "ThrottledUntil" });
+
                     b.HasIndex(new[] { "Namespace", "Status" }, "ix_workflows_namespace_status_incomplete")
                         .HasDatabaseName("ix_workflows_namespace_status_incomplete")
                         .HasFilter("status IN (0, 1, 2, 8, 9)");

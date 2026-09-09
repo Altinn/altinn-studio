@@ -4,7 +4,6 @@ using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.Platform.Storage.Interface.Models;
@@ -23,17 +22,11 @@ internal sealed class CleanupPaymentCommand : WorkflowEngineCommandBase<ProcessT
 
     private readonly IProcessReader _processReader;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IInstanceClient _instanceClient;
 
-    public CleanupPaymentCommand(
-        IProcessReader processReader,
-        AppImplementationFactory appImplementationFactory,
-        IInstanceClient instanceClient
-    )
+    public CleanupPaymentCommand(IProcessReader processReader, AppImplementationFactory appImplementationFactory)
     {
         _processReader = processReader;
         _appImplementationFactory = appImplementationFactory;
-        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
@@ -50,20 +43,6 @@ internal sealed class CleanupPaymentCommand : WorkflowEngineCommandBase<ProcessT
             _processReader,
             payload.TaskId
         );
-
-        // A completed deletion can outlive a lost callback response. Reconcile only payment metadata:
-        // Storage may still have the previous process task until this transition commits.
-        Instance stored = await _instanceClient.GetInstance(
-            dataMutator.Instance,
-            StorageAuthenticationMethod.ServiceOwner(),
-            context.CancellationToken
-        );
-        DataElement[] currentPaymentData = (stored.Data ?? [])
-            .Where(element => element.DataType == paymentConfiguration.PaymentDataType)
-            .ToArray();
-        List<DataElement> instanceData = dataMutator.Instance.Data ??= [];
-        instanceData.RemoveAll(element => element.DataType == paymentConfiguration.PaymentDataType);
-        instanceData.AddRange(currentPaymentData);
 
         DataElement? paymentDataElement = dataMutator
             .GetDataElementsForType(paymentConfiguration.PaymentDataType)

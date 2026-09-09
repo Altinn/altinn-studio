@@ -49,6 +49,16 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
         Assert.Equal(2, callbacks.Count(c => c.CommandKey == "NotifySignee"));
         Assert.Equal(5, callbacks.Select(c => c.StepId).Distinct().Count());
         Assert.All(callbacks, callback => Assert.NotEqual(Guid.Empty, callback.StepId));
+        Assert.Equal(
+            new[] { "ResolveSignees", "DelegateSigneeRights", "DelegateSigneeRights", "NotifySignee", "NotifySignee" },
+            callbacks.Select(callback => callback.CommandKey)
+        );
+        Assert.Single(
+            callbacks
+                .Where(callback => callback.CommandKey != "ResolveSignees")
+                .Select(callback => callback.WorkflowId)
+                .Distinct()
+        );
     }
 
     [Fact]
@@ -190,281 +200,179 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
         Assert.Single(NotificationsFor(recovered, SecondPerson), notification => notification.Accepted);
     }
 
-    [Fact]
-    public async Task ProcessNext_PermanentNotificationRejection_ReportsFailureForOnlyThatRecipient()
+    [Theory]
+    [InlineData(400, 1, 422)]
+    [InlineData(503, 3, 500)]
+    public async Task NotificationFailure_BlocksCommitAndProcessResumeRetriesOnlyFailedRecipient(
+        int dependencyStatusCode,
+        int expectedFailedAttempts,
+        int callbackStatusCode
+    )
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
         var fixture = fixtureScope.Fixture;
-        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, 400));
+        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, dependencyStatusCode));
         string token = await fixture.Auth.GetUserToken(userId: 1337);
         using var instance = await CreateInstance(fixture, token);
 
-        await EnterSigning(fixture, token, instance);
-
-        await AssertInitialized(fixture, token, instance, notificationFailurePartyId: SecondPartyId);
-        var state = await GetScenarioState(fixture);
-        Assert.Equal(1, state.ProviderCalls);
-        AssertDelegations(state, expectedAttemptsPerRecipient: 1);
-        Assert.Equal(1, state.AcceptedNotificationCount);
-        Assert.Single(NotificationsFor(state, FirstPerson), notification => notification.Accepted);
-        Assert.Single(NotificationsFor(state, SecondPerson), notification => notification.StatusCode == 400);
-        Assert.Equal(5, SigningCallbacks(state).Length);
-    }
-
-    [Fact]
-    public async Task NotificationJobs_AreIndependentAndServiceOwnerCanResumeOne()
-    {
-        await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
-        var fixture = fixtureScope.Fixture;
-        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, 503));
-        string token = await fixture.Auth.GetUserToken(userId: 1337);
-        string serviceOwnerToken = await fixture.Auth.GetServiceOwnerToken();
-        using var instance = await CreateInstance(fixture, token);
-
-        await EnterSigning(fixture, token, instance);
-        await WaitForNotificationJobs(fixture, instance);
-
-        using var jobsResponse = await fixture.Generic.Get(
-            fixture.Signing.NotificationJobsEndpoint(instance),
-            serviceOwnerToken
-        );
-        using var jobs = await jobsResponse.Read<JsonElement>();
-        Assert.Equal(HttpStatusCode.OK, jobs.Response.StatusCode);
-        var entries = jobs.Data.Model.EnumerateArray().ToArray();
-        Assert.Equal(2, entries.Length);
-        var failed = Assert.Single(entries, entry => entry.GetProperty("errorCode").GetString() is not null);
-        Assert.Equal(SecondPartyId, failed.GetProperty("partyId").GetInt32());
-        Assert.NotEqual(Guid.Empty, failed.GetProperty("workflowId").GetGuid());
-        Assert.All(entries, entry => Assert.True(entry.TryGetProperty("signeeId", out _)));
-
-        using var forbiddenResume = await fixture.Generic.Post(
-            $"{fixture.Signing.NotificationJobsEndpoint(instance)}/{failed.GetProperty("workflowId").GetGuid()}/resume",
-            token,
-            new StringContent(string.Empty)
-        );
-        Assert.Equal(HttpStatusCode.Forbidden, forbiddenResume.Response.StatusCode);
-
-        using var unknownResume = await fixture.Generic.Post(
-            $"{fixture.Signing.NotificationJobsEndpoint(instance)}/{Guid.NewGuid()}/resume",
-            serviceOwnerToken,
-            new StringContent(string.Empty)
-        );
-        Assert.Equal(HttpStatusCode.NotFound, unknownResume.Response.StatusCode);
-        var completed = Assert.Single(entries, entry => entry.GetProperty("status").GetString() == "Completed");
-        using var completedResume = await fixture.Generic.Post(
-            $"{fixture.Signing.NotificationJobsEndpoint(instance)}/{completed.GetProperty("workflowId").GetGuid()}/resume",
-            serviceOwnerToken,
-            new StringContent(string.Empty)
-        );
-        Assert.Equal(HttpStatusCode.Conflict, completedResume.Response.StatusCode);
-
-        await AllowScenario(fixture);
-        using var resume = await fixture.Generic.Post(
-            $"{fixture.Signing.NotificationJobsEndpoint(instance)}/{failed.GetProperty("workflowId").GetGuid()}/resume",
-            serviceOwnerToken,
-            new StringContent(string.Empty)
-        );
-        Assert.Equal(HttpStatusCode.Accepted, resume.Response.StatusCode);
-
-        await AssertInitialized(fixture, token, instance);
-        var state = await GetScenarioState(fixture);
-        Assert.Equal(2, state.AcceptedNotificationCount);
-    }
-
-    [Fact]
-    public async Task NotificationFailure_DoesNotBlockSigningTaskAfterOtherSigneeIsNotified()
-    {
-        await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
-        var fixture = fixtureScope.Fixture;
-        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, 503));
-        string token = await fixture.Auth.GetUserToken(userId: 1337);
-        using var instance = await CreateInstance(fixture, token);
-
-        await EnterSigning(fixture, token, instance);
-        await WaitForNotificationJobs(fixture, instance);
-
-        using var signingResponse = await fixture.Signing.GetState(token, instance);
-        using var signing = await signingResponse.Read<SigningStateResponse>();
-        Assert.Equal(HttpStatusCode.OK, signing.Response.StatusCode);
-        Assert.Equal([FirstPartyId, SecondPartyId], signing.Data.Model!.SigneeStates.Select(s => s.PartyId).Order());
-        Assert.Equal(
-            NotificationStatus.Sent,
-            signing.Data.Model.SigneeStates.Single(s => s.PartyId == FirstPartyId).NotificationStatus
-        );
-        Assert.Equal(
-            NotificationStatus.Failed,
-            signing.Data.Model.SigneeStates.Single(s => s.PartyId == SecondPartyId).NotificationStatus
-        );
-
-        using var process = await fixture.Instances.GetProcess(token, instance);
-        using var processState = await process.Read<AppProcessState>();
-        Assert.Equal(HttpStatusCode.OK, processState.Response.StatusCode);
-        Assert.Equal(SigningTask, processState.Data.Model!.CurrentTask!.ElementId);
-
-        // Even the recipient whose call-to-action failed can sign using their delegated rights.
-        string signeeToken = await fixture.Auth.GetUserToken(userId: 1002);
-        using var signed = await fixture.Signing.Sign(signeeToken, instance);
-        using var signedBody = await signed.Read<UserActionResponse>();
-        Assert.True(signedBody.Response.IsSuccessStatusCode, signedBody.Data.Body);
-        var afterSigning = await ReadSigningState(fixture, token, instance);
-        Assert.NotNull(afterSigning.SigneeStates.Single(s => s.PartyId == SecondPartyId).SignedTime);
-        Assert.Null(afterSigning.SigneeStates.Single(s => s.PartyId == FirstPartyId).SignedTime);
-    }
-
-    [Fact]
-    public async Task NotificationRetriesExhausted_CanBeRecoveredThroughIndependentJobResume()
-    {
-        await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
-        var fixture = fixtureScope.Fixture;
-        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, 503));
-        string token = await fixture.Auth.GetUserToken(userId: 1337);
-        using var instance = await CreateInstance(fixture, token);
-
-        await EnterSigning(fixture, token, instance);
-        await WaitForNotificationJobs(fixture, instance);
+        Guid failedWorkflowId = await FailEnteringSigning(fixture, token, instance);
         var before = await GetScenarioState(fixture);
-        Assert.Equal(1, before.AcceptedNotificationCount);
         Assert.Equal(1, before.ProviderCalls);
         AssertDelegations(before, expectedAttemptsPerRecipient: 1);
-        AssertNotificationKeys(before);
-
-        var pending = await ReadSigningState(fixture, token, instance);
+        Assert.Equal(1, before.AcceptedNotificationCount);
+        Assert.Single(NotificationsFor(before, FirstPerson), notification => notification.Accepted);
+        Assert.Equal(expectedFailedAttempts, NotificationsFor(before, SecondPerson).Length);
         Assert.All(
-            pending.SigneeStates,
-            signee =>
-            {
-                Assert.True(signee.DelegationSuccessful);
-                if (signee.PartyId == SecondPartyId)
-                {
-                    Assert.Equal(NotificationStatus.Failed, signee.NotificationStatus);
-                    Assert.NotNull(signee.NotificationFailure);
-                }
-                else
-                {
-                    Assert.Equal(NotificationStatus.Sent, signee.NotificationStatus);
-                    Assert.Null(signee.NotificationFailure);
-                }
-            }
+            NotificationsFor(before, SecondPerson),
+            notification => Assert.Equal(dependencyStatusCode, notification.StatusCode)
+        );
+        AssertNotificationKeys(before);
+        Guid failedStepId = Assert.Single(
+            SigningCallbacks(before)
+                .Where(callback => callback.StatusCode == callbackStatusCode)
+                .Select(callback => callback.StepId)
+                .Distinct()
+        );
+        Assert.All(
+            SigningCallbacks(before).Where(callback => callback.StepId == failedStepId),
+            callback => Assert.Equal(failedWorkflowId, callback.WorkflowId)
         );
 
-        string serviceOwnerToken = await fixture.Auth.GetServiceOwnerToken();
-        using var jobsResponse = await fixture.Generic.Get(
-            fixture.Signing.NotificationJobsEndpoint(instance),
-            serviceOwnerToken
+        using var response = await fixture.Instances.Get(token, instance);
+        using var refreshed = await response.Read<Instance>();
+        Assert.Equal(HttpStatusCode.OK, refreshed.Response.StatusCode);
+        Assert.Equal("Task_1", refreshed.Data.Model!.Process.CurrentTask!.ElementId);
+        Assert.Equal(ProcessStatus.Processing, refreshed.Data.Model.Process.Status);
+        var pending = await ReadSigningState(fixture, token, refreshed);
+        Assert.All(pending.SigneeStates, signee => Assert.True(signee.DelegationSuccessful));
+        Assert.Equal(
+            NotificationStatus.Sent,
+            pending.SigneeStates.Single(signee => signee.PartyId == FirstPartyId).NotificationStatus
         );
-        using var jobs = await jobsResponse.Read<JsonElement>();
-        Assert.Equal(HttpStatusCode.OK, jobs.Response.StatusCode);
-        var failed = Assert.Single(
-            jobs.Data.Model.EnumerateArray(),
-            entry => entry.GetProperty("errorCode").GetString() == "NotificationRetryExhausted"
+        Assert.Equal(
+            NotificationStatus.NotSent,
+            pending.SigneeStates.Single(signee => signee.PartyId == SecondPartyId).NotificationStatus
         );
-        Guid failedWorkflowId = failed.GetProperty("workflowId").GetGuid();
+        Assert.DoesNotContain(
+            before.Callbacks,
+            callback => callback.WorkflowId == failedWorkflowId && callback.CommandKey == "CommitProcessState"
+        );
+
         await AllowScenario(fixture);
-        using var resume = await fixture.Generic.Post(
-            $"{fixture.Signing.NotificationJobsEndpoint(instance)}/{failedWorkflowId}/resume",
-            serviceOwnerToken,
-            new StringContent(string.Empty)
-        );
-        Assert.Equal(HttpStatusCode.Accepted, resume.Response.StatusCode);
-
+        await ResumeSigning(fixture, token, instance);
         await AssertInitialized(fixture, token, instance);
         var after = await GetScenarioState(fixture);
         Assert.Equal(before.ProviderCalls, after.ProviderCalls);
         Assert.Equal(before.Delegations, after.Delegations);
         Assert.Equal(2, after.AcceptedNotificationCount);
+        Assert.Single(NotificationsFor(after, FirstPerson));
+        Assert.Equal(expectedFailedAttempts + 1, NotificationsFor(after, SecondPerson).Length);
         AssertNotificationKeys(after);
-        foreach (var notification in before.Notifications)
-        {
-            Assert.All(
-                after.Notifications.Where(n => n.Recipient == notification.Recipient),
-                retried => Assert.Equal(notification.IdempotencyKey, retried.IdempotencyKey)
-            );
-        }
-
+        Assert.Equal(
+            NotificationsFor(before, SecondPerson)[0].IdempotencyKey,
+            NotificationsFor(after, SecondPerson)[^1].IdempotencyKey
+        );
         var resumed = Assert.Single(SigningCallbacks(after).Skip(SigningCallbacks(before).Length));
         Assert.Equal("NotifySignee", resumed.CommandKey);
         Assert.Equal(failedWorkflowId, resumed.WorkflowId);
-        Guid originalStepId = Assert.Single(
-            SigningCallbacks(before)
-                .Where(callback => callback.WorkflowId == failedWorkflowId)
-                .Select(callback => callback.StepId)
-                .Distinct()
-        );
-        Assert.Equal(originalStepId, resumed.StepId);
+        Assert.Equal(failedStepId, resumed.StepId);
     }
 
     [Fact]
-    public async Task FailedNotification_CannotBeResumedAfterExitOrReentry()
+    public async Task CompletedSigningEntry_RejectAndReenter_CreatesNewRecipientsAndNotificationKeys()
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
         var fixture = fixtureScope.Fixture;
-        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, 503));
+        await ResetScenario(fixture);
         string token = await fixture.Auth.GetUserToken(userId: 1337);
-        string ownerToken = await fixture.Auth.GetServiceOwnerToken();
         using var instance = await CreateInstance(fixture, token);
         await EnterSigning(fixture, token, instance);
-        var originalJobs = await WaitForNotificationJobs(fixture, instance);
-        Guid failedId = Assert.Single(originalJobs, job => job.Status == "Failed").WorkflowId;
-        string originalElement = await GetStateElementId(fixture, token, instance);
+        string originalElement = await AssertInitialized(fixture, token, instance);
         var before = await GetScenarioState(fixture);
 
         using var reject = await fixture.Instances.ProcessNext(token, instance, new ProcessNext { Action = "reject" });
         using var rejected = await reject.Read<AppProcessState>();
         Assert.Equal(HttpStatusCode.OK, rejected.Response.StatusCode);
         Assert.Equal("Task_1", rejected.Data.Model!.CurrentTask!.ElementId);
-        using var exitedJobsResponse = await fixture.Generic.Get(
-            fixture.Signing.NotificationJobsEndpoint(instance),
-            ownerToken
-        );
-        using var exitedJobs = await exitedJobsResponse.Read<SigningNotificationWorkflowResponse[]>();
-        Assert.Equal(HttpStatusCode.OK, exitedJobs.Response.StatusCode);
-        Assert.Empty(exitedJobs.Data.Model!);
-        await AssertOldJobCannotResume();
-
-        await AllowScenario(fixture);
         await EnterSigning(fixture, token, instance);
         string newElement = await AssertInitialized(fixture, token, instance);
-        var newJobs = await WaitForNotificationJobs(fixture, instance);
         Assert.NotEqual(originalElement, newElement);
-        Assert.All(newJobs, job => Assert.DoesNotContain(originalJobs, old => old.SigneeId == job.SigneeId));
-        await AssertOldJobCannotResume();
         var after = await GetScenarioState(fixture);
-        Assert.Equal(before.AcceptedNotificationCount + 2, after.AcceptedNotificationCount);
-        Assert.DoesNotContain(
-            SigningCallbacks(after).Skip(SigningCallbacks(before).Length),
-            callback => callback.WorkflowId == failedId
+        Assert.Equal(2, after.ProviderCalls);
+        Assert.Equal(4, after.AcceptedNotificationCount);
+        Assert.Equal(4, after.Notifications.Select(notification => notification.IdempotencyKey).Distinct().Count());
+        Assert.All(
+            after.Notifications.Skip(before.Notifications.Length),
+            notification =>
+                Assert.DoesNotContain(
+                    before.Notifications,
+                    original => original.IdempotencyKey == notification.IdempotencyKey
+                )
         );
-
-        async Task AssertOldJobCannotResume()
-        {
-            using var resume = await fixture.Generic.Post(
-                $"{fixture.Signing.NotificationJobsEndpoint(instance)}/{failedId}/resume",
-                ownerToken,
-                new StringContent(string.Empty)
-            );
-            Assert.Equal(HttpStatusCode.NotFound, resume.Response.StatusCode);
-        }
     }
 
-    [Fact]
-    public async Task ProcessNext_ResolveResponseLostAfterStorageSave_AdoptsSavedSigneesOnRetry()
+    [Theory]
+    [InlineData("ResolveSignees")]
+    [InlineData("DelegateSigneeRights")]
+    [InlineData("NotifySignee")]
+    public async Task CallbackResponseLostAfterAggregateSave_ReplaysAcceptedMutationAndRetainsFrozenRecipients(
+        string commandKey
+    )
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
         var fixture = fixtureScope.Fixture;
-        await ResetScenario(fixture, loseResolveResponseOnce: true);
+        await ResetScenario(
+            fixture,
+            loseCallbackResponseOnce: commandKey,
+            changeSigneesOnProviderRetry: commandKey == "ResolveSignees"
+        );
         string token = await fixture.Auth.GetUserToken(userId: 1337);
         using var instance = await CreateInstance(fixture, token);
 
         await EnterSigning(fixture, token, instance);
-
-        await AssertInitialized(fixture, token, instance);
+        string stateElementId = await AssertInitialized(fixture, token, instance);
         var state = await GetScenarioState(fixture);
-        Assert.Equal(1, state.LostResolveResponses);
-        Assert.Equal(1, state.ProviderCalls);
-        AssertDelegations(state, expectedAttemptsPerRecipient: 1);
+        Assert.Equal(1, state.LostCallbackResponses);
+        // The provider is read-only and may run again when its own callback response is lost. Its changed
+        // second result must never replace the first accepted recipient list during aggregate replay.
+        Assert.Equal(commandKey == "ResolveSignees" ? 2 : 1, state.ProviderCalls);
+        Assert.NotEmpty(state.ResolvedStateElementIds);
+        Assert.All(state.ResolvedStateElementIds, id => Assert.Equal(stateElementId, id));
+        Assert.Equal(2, state.ResolvedSigneeIds[0].Length);
+        Assert.All(state.ResolvedSigneeIds, ids => Assert.Equal(state.ResolvedSigneeIds[0], ids));
         Assert.Equal(2, state.AcceptedNotificationCount);
-        Assert.Equal(2, state.Notifications.Length);
-        AssertOnlyStepRetried(state, "ResolveSignees", expectedAttempts: 2);
+        AssertNotificationKeys(state);
+        var callbacks = SigningCallbacks(state);
+        var replayedStep = Assert.Single(callbacks.GroupBy(callback => callback.StepId), group => group.Count() == 2);
+        Assert.All(replayedStep, callback => Assert.Equal(commandKey, callback.CommandKey));
+        Assert.All(
+            callbacks.GroupBy(callback => callback.StepId).Where(group => group.Key != replayedStep.Key),
+            group => Assert.Single(group)
+        );
+        Assert.Single(replayedStep, callback => callback.StatusCode == 503);
+        Assert.Single(replayedStep, callback => callback.StatusCode == 200);
+        Assert.Single(replayedStep.Select(callback => callback.WorkflowId).Distinct());
+        Assert.Equal(5, callbacks.Select(callback => callback.StepId).Distinct().Count());
+        if (commandKey == "DelegateSigneeRights")
+        {
+            Assert.Equal(3, state.Delegations.Length);
+            Assert.Equal(2, state.Delegations.Count(delegation => delegation.Recipient == FirstPartyUuid));
+            Assert.Single(state.Delegations, delegation => delegation.Recipient == SecondPartyUuid);
+        }
+        else
+        {
+            AssertDelegations(state, expectedAttemptsPerRecipient: 1);
+        }
+        if (commandKey == "NotifySignee")
+        {
+            Assert.Equal(3, state.Notifications.Length);
+            Assert.Single(NotificationsFor(state, FirstPerson), notification => notification.Duplicate);
+            Assert.Single(NotificationsFor(state, SecondPerson));
+        }
+        else
+        {
+            Assert.Equal(2, state.Notifications.Length);
+        }
     }
 
     [Fact]
@@ -590,15 +498,14 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
     private static async Task<string> AssertInitialized(
         AppFixture fixture,
         string token,
-        AppFixture.ReadApiResponse<Instance> instance,
-        int? notificationFailurePartyId = null
+        AppFixture.ReadApiResponse<Instance> instance
     )
     {
-        await WaitForNotificationJobs(fixture, instance);
         using var response = await fixture.Instances.Get(token, instance);
         using var refreshed = await response.Read<Instance>();
         Assert.Equal(HttpStatusCode.OK, refreshed.Response.StatusCode);
         Assert.Equal(SigningTask, refreshed.Data.Model!.Process.CurrentTask!.ElementId);
+        Assert.Equal(ProcessStatus.Idle, refreshed.Data.Model.Process.Status);
         var stateElement = Assert.Single(refreshed.Data.Model.Data, d => d.DataType == "signee-states");
         Assert.NotNull(stateElement.References);
         Assert.Contains(
@@ -618,54 +525,11 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
                 Assert.True(signee.DelegationSuccessful);
                 Assert.Null(signee.DelegationFailure);
                 Assert.Null(signee.SignedTime);
-                if (signee.PartyId == notificationFailurePartyId)
-                {
-                    Assert.Equal(NotificationStatus.Failed, signee.NotificationStatus);
-                    Assert.Equal(SigneeNotificationFailure.Unknown, signee.NotificationFailure);
-                }
-                else
-                {
-                    Assert.Equal(NotificationStatus.Sent, signee.NotificationStatus);
-                    Assert.Null(signee.NotificationFailure);
-                }
+                Assert.Equal(NotificationStatus.Sent, signee.NotificationStatus);
+                Assert.Null(signee.NotificationFailure);
             }
         );
         return stateElement.Id;
-    }
-
-    private static async Task<SigningNotificationWorkflowResponse[]> WaitForNotificationJobs(
-        AppFixture fixture,
-        AppFixture.ReadApiResponse<Instance> instance
-    )
-    {
-        string token = await fixture.Auth.GetServiceOwnerToken();
-        SigningNotificationWorkflowResponse[] latest = [];
-        for (int attempt = 0; attempt < 150; attempt++)
-        {
-            using var response = await fixture.Generic.Get(fixture.Signing.NotificationJobsEndpoint(instance), token);
-            using var body = await response.Read<SigningNotificationWorkflowResponse[]>();
-            Assert.Equal(HttpStatusCode.OK, body.Response.StatusCode);
-            latest = body.Data.Model ?? [];
-            if (latest.Length == 2 && latest.All(job => job.Status is "Completed" or "Failed"))
-            {
-                return latest;
-            }
-            await Task.Delay(TimeSpan.FromMilliseconds(200));
-        }
-        Assert.Fail($"Notification jobs did not settle: {JsonSerializer.Serialize(latest)}");
-        return latest;
-    }
-
-    private static async Task<string> GetStateElementId(
-        AppFixture fixture,
-        string token,
-        AppFixture.ReadApiResponse<Instance> instance
-    )
-    {
-        using var response = await fixture.Instances.Get(token, instance);
-        using var refreshed = await response.Read<Instance>();
-        Assert.Equal(HttpStatusCode.OK, refreshed.Response.StatusCode);
-        return Assert.Single(refreshed.Data.Model!.Data, d => d.DataType == "signee-states").Id;
     }
 
     private static async Task<SigningStateResponse> ReadSigningState(
@@ -731,7 +595,8 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
         AppFixture fixture,
         FailureRule? delegationFailure = null,
         FailureRule? notificationFailure = null,
-        bool loseResolveResponseOnce = false,
+        string? loseCallbackResponseOnce = null,
+        bool changeSigneesOnProviderRetry = false,
         bool providerContractFailure = false
     )
     {
@@ -744,7 +609,8 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
                     signees = new[] { FirstPerson, SecondPerson },
                     delegationFailure,
                     notificationFailure,
-                    loseResolveResponseOnce,
+                    loseCallbackResponseOnce,
+                    signeesOnProviderRetry = changeSigneesOnProviderRetry ? new[] { SecondPerson } : null,
                     providerContractFailure,
                 }
             );
@@ -776,7 +642,9 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
         DelegationAttempt[] Delegations,
         NotificationAttempt[] Notifications,
         int AcceptedNotificationCount,
-        int LostResolveResponses,
+        int LostCallbackResponses,
+        string[] ResolvedStateElementIds,
+        Guid[][] ResolvedSigneeIds,
         CallbackAttempt[] Callbacks
     );
 

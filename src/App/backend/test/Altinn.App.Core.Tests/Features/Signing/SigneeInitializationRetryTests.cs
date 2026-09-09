@@ -10,18 +10,26 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
@@ -36,258 +44,162 @@ namespace Altinn.App.Core.Tests.Features.Signing;
 
 public sealed class SigneeInitializationRetryTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Abort_RetryRefreshesMetadataAfterCompletedOrPartialCleanup(bool failOneDelete)
-    {
-        await using var fixture = new Fixture();
-        fixture.SeedLegacyState();
-        fixture.AddSignature();
-        string incomingState = fixture.Snapshot();
-        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
-        await fixture.Abort(first);
-        fixture.FailNextDelete = failOneDelete;
-        if (failOneDelete)
-        {
-            await Assert.ThrowsAsync<HttpRequestException>(() => Fixture.Commit(first));
-            Assert.Single(fixture.Stored.Data);
-        }
-        else
-        {
-            await Fixture.Commit(first);
-            Assert.Empty(fixture.Stored.Data);
-        }
-
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
-        await fixture.Abort(retry);
-        await Fixture.Commit(retry);
-
-        Assert.Empty(fixture.Stored.Data);
-        Assert.Empty(retry.Instance.Data);
-        Assert.Equal(failOneDelete ? 3 : 2, fixture.DeleteCalls);
-        Assert.Equal(0, fixture.ProviderCalls);
-        fixture.AccessManagement.Verify(
-            x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-        fixture.Correspondence.Verify(
-            x => x.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-    }
-
     [Fact]
-    public async Task Resolve_ResponseLost_AdoptsSavedStateWithoutCallingProviderAgain()
+    public async Task Resolve_ResponseLost_AggregateReplayPreservesFrozenIdsAndVirtualTask()
     {
         await using var fixture = new Fixture();
-        string incomingState = fixture.Snapshot();
-        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
+        string incomingState = await fixture.Capture();
+        Guid stepId = Guid.NewGuid();
+        InstanceDataUnitOfWork first = await fixture.Restore(incomingState);
         await fixture.Resolve(first);
-        await Fixture.Commit(first);
+        await Fixture.Commit(first, stepId);
         string elementId = Assert.Single(fixture.Stored.Data).Id;
+        Guid? signeeId = Assert.Single(await fixture.ReadState()).SigneeId;
 
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+        InstanceDataUnitOfWork retry = await fixture.Restore(incomingState);
         await fixture.Resolve(retry);
-        await Fixture.Commit(retry);
+        await Fixture.Commit(retry, stepId);
 
-        Assert.Equal(elementId, Assert.Single(fixture.Stored.Data).Id);
         Assert.Equal(elementId, Assert.Single(retry.Instance.Data).Id);
-        Assert.Equal(1, fixture.ProviderCalls);
+        Assert.Equal(signeeId, Assert.Single(await fixture.ReadState()).SigneeId);
+        Assert.Equal("SigningTask", retry.Instance.Process.CurrentTask.ElementId);
+        Assert.Equal("SourceTask", fixture.Stored.Process.CurrentTask.ElementId);
         Assert.Equal(1, fixture.InsertCalls);
-        Assert.Single(await fixture.ReadState());
+        Assert.Equal(1, fixture.ReplayCount);
+        Assert.Equal(2, fixture.ProviderCalls);
     }
 
     [Fact]
-    public async Task Resolve_CreateSucceedsDeleteFails_RetryAdoptsNewStateAndFinishesCleanup()
+    public async Task Resolve_AggregateFailure_PreservesOldStateUntilAtomicRetry()
     {
         await using var fixture = new Fixture();
         string oldId = fixture.AddOldState();
-        string incomingState = fixture.Snapshot();
-        fixture.FailNextDelete = true;
-        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
+        string incomingState = await fixture.Capture();
+        InstanceDataUnitOfWork first = await fixture.Restore(incomingState);
         await fixture.Resolve(first);
-        await Assert.ThrowsAsync<HttpRequestException>(() => Fixture.Commit(first));
-        Assert.Equal(2, fixture.Stored.Data.Count);
-        string newId = fixture.Stored.Data.Single(x => x.Id != oldId).Id;
+        fixture.FailNextCommit = true;
+        await Assert.ThrowsAsync<PlatformHttpException>(() => Fixture.Commit(first));
+        Assert.Equal(oldId, Assert.Single(fixture.Stored.Data).Id);
+        Assert.Equal(0, fixture.InsertCalls);
+        Assert.Equal(0, fixture.DeleteCalls);
 
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+        InstanceDataUnitOfWork retry = await fixture.Restore(incomingState);
         await fixture.Resolve(retry);
         await Fixture.Commit(retry);
-
-        Assert.Equal(newId, Assert.Single(fixture.Stored.Data).Id);
-        Assert.Equal(newId, Assert.Single(retry.Instance.Data).Id);
-        Assert.Equal(1, fixture.ProviderCalls);
+        Assert.NotEqual(oldId, Assert.Single(fixture.Stored.Data).Id);
         Assert.Equal(1, fixture.InsertCalls);
-        Assert.Equal(2, fixture.DeleteCalls);
-    }
-
-    [Fact]
-    public async Task Resolve_DeleteSucceedsCreateFails_RetryDoesNotDeleteMissingElement()
-    {
-        await using var fixture = new Fixture();
-        fixture.AddOldState();
-        string incomingState = fixture.Snapshot();
-        fixture.FailNextInsert = true;
-        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
-        await fixture.Resolve(first);
-        await Assert.ThrowsAsync<HttpRequestException>(() => Fixture.Commit(first));
-        Assert.Empty(fixture.Stored.Data);
-
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
-        await fixture.Resolve(retry);
-        await Fixture.Commit(retry);
-
-        Assert.Single(fixture.Stored.Data);
-        Assert.Single(retry.Instance.Data);
-        Assert.Equal(2, fixture.ProviderCalls);
-        Assert.Equal(2, fixture.InsertCalls);
         Assert.Equal(1, fixture.DeleteCalls);
     }
 
     [Fact]
-    public async Task Delegate_ResponseLost_RetryReadsSavedCheckpointAndSkipsGrant()
+    public async Task Delegate_ResponseLost_CarriedBytesReachAggregateReplay()
     {
         await using var fixture = new Fixture();
         await fixture.ResolveAndCommit();
-        string incomingState = fixture.Snapshot();
-        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
+        string incomingState = await fixture.Capture();
+        Guid stepId = Guid.NewGuid();
+        InstanceDataUnitOfWork first = await fixture.Restore(incomingState);
         await fixture.Delegate(first);
-        await Fixture.Commit(first);
-        Reference reference = Assert.Single(Assert.Single(fixture.Stored.Data).References);
-        Assert.Equal(RelationType.GeneratedFrom, reference.Relation);
-        Assert.Equal(ReferenceType.Task, reference.ValueType);
-        Assert.Equal("SigningTask", reference.Value);
-
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+        await Fixture.Commit(first, stepId);
+        InstanceDataUnitOfWork retry = await fixture.Restore(incomingState);
         await fixture.Delegate(retry);
-        await Fixture.Commit(retry);
+        await Fixture.Commit(retry, stepId);
 
         Assert.True(Assert.Single(await fixture.ReadState()).SigneeState.IsAccessDelegated);
+        Assert.Equal(1, fixture.ReplayCount);
+        Assert.Equal("SigningTask", Assert.Single(Assert.Single(retry.Instance.Data).References).Value);
+        Assert.Equal("SigningTask", retry.Instance.Process.CurrentTask.ElementId);
+        fixture.AccessManagement.Verify(
+            x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2)
+        );
+    }
+
+    [Fact]
+    public async Task Delegate_StaleBlobWithoutCarriedBytes_IsRejectedBeforeGrant()
+    {
+        await using var fixture = new Fixture();
+        await fixture.ResolveAndCommit();
+        InstanceDataUnitOfWork stale = fixture.Fresh();
+        InstanceDataUnitOfWork first = fixture.Fresh();
+        await fixture.Delegate(first);
+        await Fixture.Commit(first);
+
+        await Assert.ThrowsAsync<DataElementContentConflictException>(() => fixture.Delegate(stale));
         fixture.AccessManagement.Verify(
             x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
             Times.Once
         );
-        Assert.Equal(1, fixture.ProviderCalls);
     }
 
     [Fact]
-    public async Task Notify_IndependentRecipientRetry_MergesFreshSiblingCheckpointAndKeepsKey()
+    public async Task Notify_SequentialRetry_PreservesEarlierRecipientAndStableKey()
     {
         await using var fixture = new Fixture(signeeCount: 2);
         await fixture.ResolveAndCommit();
-        InstanceDataUnitOfWork delegation = fixture.Restore(fixture.Snapshot());
-        await fixture.Delegate(delegation);
-        await Fixture.Commit(delegation);
-        InstanceDataUnitOfWork secondDelegation = fixture.Restore(fixture.Snapshot());
-        await fixture.Delegate(secondDelegation, recipient: 1);
-        await Fixture.Commit(secondDelegation);
-        string incomingState = fixture.Snapshot();
-        var sent = new HashSet<Guid>();
+        foreach (int recipient in new[] { 0, 1 })
+        {
+            InstanceDataUnitOfWork grant = fixture.Fresh();
+            await fixture.Delegate(grant, recipient);
+            await Fixture.Commit(grant);
+        }
+        var accepted = new HashSet<Guid>();
         var attempts = new List<Guid>();
-        fixture
-            .Correspondence.Setup(x => x.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()))
-            .Returns(
-                (SendCorrespondencePayload payload, CancellationToken _) =>
-                {
-                    Guid key = Assert.IsType<Guid>(payload.CorrespondenceRequest.IdempotentKey);
-                    attempts.Add(key);
-                    if (attempts.Count == 2)
-                        throw new HttpRequestException(
-                            "Correspondence unavailable",
-                            null,
-                            HttpStatusCode.ServiceUnavailable
-                        );
-                    if (!sent.Add(key))
-                        throw new CorrespondenceRequestException("Already sent", null, HttpStatusCode.Conflict, null);
-                    return Task.FromResult(
-                        new SendCorrespondenceResponse
-                        {
-                            Correspondences =
-                            [
-                                new CorrespondenceDetailsResponse
-                                {
-                                    CorrespondenceId = Guid.NewGuid(),
-                                    Recipient = payload.CorrespondenceRequest.Recipients[0],
-                                },
-                            ],
-                        }
-                    );
-                }
-            );
-
-        InstanceDataUnitOfWork firstNotification = fixture.Restore(incomingState);
-        await fixture.Notify(firstNotification);
-        await Fixture.Commit(firstNotification);
-        await Assert.ThrowsAsync<HttpRequestException>(() =>
-            fixture.Notify(fixture.Restore(incomingState), recipient: 1)
+        fixture.SetupNotification(accepted, attempts, failAttempt: 2);
+        InstanceDataUnitOfWork first = await fixture.Restore(await fixture.Capture());
+        await fixture.Notify(first);
+        await Fixture.Commit(first);
+        string incomingSecondState = await fixture.Capture(first);
+        Guid? firstCorrespondence = (await fixture.ReadState())[0].SigneeState.CtaCorrespondenceId;
+        await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            await fixture.Notify(await fixture.Restore(incomingSecondState), recipient: 1)
         );
-        List<SigneeContext> afterFailure = await fixture.ReadState();
-        Assert.True(afterFailure[0].SigneeState.HasBeenMessagedForCallToSign);
-        Assert.False(afterFailure[1].SigneeState.HasBeenMessagedForCallToSign);
-        Guid? firstCorrespondenceId = afterFailure[0].SigneeState.CtaCorrespondenceId;
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+
+        InstanceDataUnitOfWork retry = await fixture.Restore(incomingSecondState);
         await fixture.Notify(retry, recipient: 1);
         await Fixture.Commit(retry);
-
         Assert.Equal(3, attempts.Count);
         Assert.Equal(attempts[1], attempts[2]);
-        Assert.Equal(firstCorrespondenceId, (await fixture.ReadState())[0].SigneeState.CtaCorrespondenceId);
         Assert.NotEqual(attempts[0], attempts[1]);
-        Assert.Equal(2, sent.Count);
+        Assert.Equal(2, accepted.Count);
+        Assert.Equal(firstCorrespondence, (await fixture.ReadState())[0].SigneeState.CtaCorrespondenceId);
         Assert.All(await fixture.ReadState(), context => Assert.True(context.SigneeState.HasBeenMessagedForCallToSign));
-        Assert.Equal("SigningTask", Assert.Single(Assert.Single(fixture.Stored.Data).References).Value);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Notify_ResponseLost_ReusesTaskEntryKeyAndSavedSuccess(bool responseLostAfterSave)
+    public async Task Notify_ResponseLost_ReusesTaskEntryKeyAndAggregateReplay(bool saved)
     {
         await using var fixture = new Fixture();
         await fixture.ResolveAndCommit();
-        InstanceDataUnitOfWork delegation = fixture.Restore(fixture.Snapshot());
-        await fixture.Delegate(delegation);
-        await Fixture.Commit(delegation);
-        string incomingState = fixture.Snapshot();
+        InstanceDataUnitOfWork grant = fixture.Fresh();
+        await fixture.Delegate(grant);
+        await Fixture.Commit(grant);
+        string incomingState = await fixture.Capture();
         var accepted = new HashSet<Guid>();
         var attempts = new List<Guid>();
-        fixture
-            .Correspondence.Setup(x => x.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()))
-            .Returns(
-                (SendCorrespondencePayload payload, CancellationToken _) =>
-                {
-                    Guid key = Assert.IsType<Guid>(payload.CorrespondenceRequest.IdempotentKey);
-                    attempts.Add(key);
-                    if (!accepted.Add(key))
-                        throw new CorrespondenceRequestException("Already sent", null, HttpStatusCode.Conflict, null);
-                    return Task.FromResult(
-                        new SendCorrespondenceResponse
-                        {
-                            Correspondences =
-                            [
-                                new CorrespondenceDetailsResponse
-                                {
-                                    CorrespondenceId = Guid.NewGuid(),
-                                    Recipient = payload.CorrespondenceRequest.Recipients[0],
-                                },
-                            ],
-                        }
-                    );
-                }
-            );
-        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
+        fixture.SetupNotification(accepted, attempts);
+        Guid stepId = Guid.NewGuid();
+        InstanceDataUnitOfWork first = await fixture.Restore(incomingState);
         await fixture.Notify(first);
-        if (responseLostAfterSave)
-            await Fixture.Commit(first);
-        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+        if (saved)
+            await Fixture.Commit(first, stepId);
+        InstanceDataUnitOfWork retry = await fixture.Restore(incomingState);
         await fixture.Notify(retry, newWorkflowIdentity: true);
-        await Fixture.Commit(retry);
+        await Fixture.Commit(retry, stepId);
 
         Assert.Single(accepted);
         Assert.Single(attempts.Distinct());
-        Assert.Equal(responseLostAfterSave ? 1 : 2, attempts.Count);
+        Assert.Equal(2, attempts.Count);
+        Assert.Equal(saved ? 1 : 0, fixture.ReplayCount);
         Assert.True(Assert.Single(await fixture.ReadState()).SigneeState.HasBeenMessagedForCallToSign);
+        if (saved)
+            Assert.NotNull(Assert.Single(await fixture.ReadState()).SigneeState.CtaCorrespondenceId);
+        string replayedState = await fixture.Capture(retry);
+        InstanceDataUnitOfWork continued = await fixture.Restore(replayedState);
+        await fixture.Notify(continued);
+        Assert.Equal(2, attempts.Count);
     }
 
     [Fact]
@@ -301,7 +213,7 @@ public sealed class SigneeInitializationRetryTests
         Assert.Null(context.SigneeState.DelegationFailure);
         Assert.Null(context.SigneeState.NotificationFailure);
 
-        await fixture.Revoke(fixture.Restore(fixture.Snapshot()));
+        await fixture.Revoke(fixture.Fresh());
 
         fixture.AccessManagement.Verify(
             x =>
@@ -333,9 +245,14 @@ public sealed class SigneeInitializationRetryTests
         private readonly Guid _workflowId = Guid.NewGuid();
         private readonly Guid _stepId = Guid.NewGuid();
         private readonly Dictionary<string, byte[]> _bytes = [];
-        private readonly Mock<IDataClient> _data = new(MockBehavior.Strict);
-        private readonly Mock<IInstanceClient> _instances = new(MockBehavior.Strict);
+        private readonly Mock<IDataClientWithStorageMetadata> _data = new(MockBehavior.Strict);
+        private readonly Mock<IInstanceClientWithStorageMetadata> _instances = new(MockBehavior.Strict);
         private readonly ServiceProvider _services;
+        private readonly Mock<IInstanceMutationClient> _mutations = new(MockBehavior.Strict);
+        private readonly Dictionary<string, (int Previous, int Produced, IReadOnlyList<Guid> Created)> _receipts = [];
+        private readonly WorkflowCallbackStateService _stateService;
+        private int _instanceVersion = 1;
+        private StorageVersionMetadata Versions => new(_instanceVersion, 1);
         private readonly ApplicationMetadata _metadata = new("ttd/app")
         {
             DataTypes = [new DataType { Id = DataTypeId }, new DataType { Id = "signatures" }],
@@ -343,7 +260,6 @@ public sealed class SigneeInitializationRetryTests
         private readonly SigneeContextsManager _manager;
         private readonly SigneeInitializationService _initialization;
         private readonly SigningService _signing;
-        private readonly AbortRuntimeDelegatedSigningCommand _abort;
         private readonly AltinnSignatureConfiguration _config = new()
         {
             SigneeProviderId = "provider",
@@ -359,7 +275,11 @@ public sealed class SigneeInitializationRetryTests
                 AppId = "ttd/app",
                 Org = "ttd",
                 InstanceOwner = new InstanceOwner { PartyId = "1337", OrganisationNumber = "991825827" },
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = TaskId } },
+                Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    CurrentTask = new ProcessElementInfo { ElementId = "SourceTask" },
+                },
                 Data = [],
             };
         public Mock<IAccessManagementClient> AccessManagement { get; } = new();
@@ -367,200 +287,67 @@ public sealed class SigneeInitializationRetryTests
         public int ProviderCalls { get; private set; }
         public int InsertCalls { get; private set; }
         public int DeleteCalls { get; private set; }
-        public bool FailNextInsert { get; set; }
-        public bool FailNextDelete { get; set; }
+        public bool FailNextCommit { get; set; }
+        public int ReplayCount { get; private set; }
 
         public Fixture(int signeeCount = 1)
         {
             _instances
                 .Setup(x =>
-                    x.GetInstance(
-                        It.IsAny<Instance>(),
+                    x.GetInstanceWithStorageMetadata(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>(),
                         It.IsAny<StorageAuthenticationMethod?>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .ReturnsAsync(() => JsonSerializer.Deserialize<Instance>(Snapshot())!);
+                .ReturnsAsync(() => new InstanceWithStorageMetadata(CloneStored(), Versions));
             _data
                 .Setup(x =>
-                    x.GetDataBytes(
+                    x.GetDataBytesWithExpectedBlobVersionId(
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
                         It.IsAny<Guid>(),
                         It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(
-                    (int _, Guid _, Guid id, StorageAuthenticationMethod? _, CancellationToken _) =>
-                        _bytes[id.ToString()].ToArray()
-                );
-            _data
-                .Setup(x =>
-                    x.InsertBinaryData(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<Stream>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    )
-                )
-                .Returns(
-                    async (
-                        string _,
-                        string type,
-                        string contentType,
-                        string? filename,
-                        Stream stream,
-                        string? task,
-                        StorageAuthenticationMethod? _,
-                        CancellationToken _
-                    ) =>
+                    (int _, Guid _, Guid id, StorageAuthenticationMethod? _, string? expected, CancellationToken _) =>
                     {
-                        InsertCalls++;
-                        if (FailNextInsert)
-                        {
-                            FailNextInsert = false;
-                            throw new HttpRequestException(
-                                "Storage create failed",
-                                null,
-                                HttpStatusCode.ServiceUnavailable
-                            );
-                        }
-                        using var buffer = new MemoryStream();
-                        await stream.CopyToAsync(buffer);
-                        var element = new DataElement
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            DataType = type,
-                            ContentType = contentType,
-                            Filename = filename,
-                            References =
-                            [
-                                new Reference
-                                {
-                                    Relation = RelationType.GeneratedFrom,
-                                    ValueType = ReferenceType.Task,
-                                    Value = task,
-                                },
-                            ],
-                        };
-                        _bytes[element.Id] = buffer.ToArray();
-                        Stored.Data.Add(element);
-                        return element;
+                        DataElement element =
+                            Stored.Data.SingleOrDefault(element => element.Id == id.ToString())
+                            ?? throw new PlatformHttpException(HttpStatusCode.NotFound, "Data element was deleted.");
+                        if (expected is not null && expected != element.BlobVersionId)
+                            throw new PlatformHttpException(HttpStatusCode.PreconditionFailed, "Blob version changed.");
+                        return _bytes[element.Id];
                     }
                 );
-            _data
+            _mutations
                 .Setup(x =>
-                    x.UpdateBinaryData(
-                        It.IsAny<InstanceIdentifier>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<Stream>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    )
-                )
-                .Returns(
-                    async (
-                        InstanceIdentifier _,
-                        string? _,
-                        string? _,
-                        Guid id,
-                        Stream stream,
-                        StorageAuthenticationMethod? _,
-                        CancellationToken _
-                    ) =>
-                    {
-                        using var buffer = new MemoryStream();
-                        await stream.CopyToAsync(buffer);
-                        _bytes[id.ToString()] = buffer.ToArray();
-                        DataElement element = Stored.Data.Single(x => x.Id == id.ToString());
-                        // Match Storage: a binary update without generatedFromTask clears the task reference.
-                        element.References = null;
-                        return element;
-                    }
-                );
-            _data
-                .Setup(x =>
-                    x.UpdateBinaryData(
-                        It.IsAny<InstanceIdentifier>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<Stream>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<CancellationToken>()
-                    )
-                )
-                .Returns(
-                    async (
-                        InstanceIdentifier _,
-                        string? _,
-                        string? _,
-                        Guid id,
-                        Stream stream,
-                        StorageAuthenticationMethod? _,
-                        string? generatedFromTask,
-                        CancellationToken _
-                    ) =>
-                    {
-                        using var buffer = new MemoryStream();
-                        await stream.CopyToAsync(buffer);
-                        _bytes[id.ToString()] = buffer.ToArray();
-                        DataElement element = Stored.Data.Single(x => x.Id == id.ToString());
-                        element.References = string.IsNullOrEmpty(generatedFromTask)
-                            ? null
-                            :
-                            [
-                                new Reference
-                                {
-                                    Relation = RelationType.GeneratedFrom,
-                                    ValueType = ReferenceType.Task,
-                                    Value = generatedFromTask,
-                                },
-                            ];
-                        return element;
-                    }
-                );
-            _data
-                .Setup(x =>
-                    x.DeleteData(
+                    x.CommitInstanceMutationWithStorageMetadata(
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
-                        It.IsAny<Guid>(),
-                        false,
+                        It.IsAny<StorageInstanceMutationRequest>(),
+                        It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                         It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<StorageWritePreconditions?>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .Returns(
-                    (int _, Guid _, Guid id, bool _, StorageAuthenticationMethod? _, CancellationToken _) =>
-                    {
-                        DeleteCalls++;
-                        if (FailNextDelete)
-                        {
-                            FailNextDelete = false;
-                            return Task.FromException<bool>(
-                                new HttpRequestException(
-                                    "Storage delete failed",
-                                    null,
-                                    HttpStatusCode.ServiceUnavailable
-                                )
-                            );
-                        }
-                        if (!_bytes.Remove(id.ToString()))
-                            return Task.FromException<bool>(
-                                new HttpRequestException("Already deleted", null, HttpStatusCode.NotFound)
-                            );
-                        Stored.Data.RemoveAll(x => x.Id == id.ToString());
-                        return Task.FromResult(true);
-                    }
+                .ReturnsAsync(
+                    (
+                        int _,
+                        Guid _,
+                        StorageInstanceMutationRequest request,
+                        IReadOnlyDictionary<string, StorageInstanceMutationContent> content,
+                        StorageAuthenticationMethod? _,
+                        StorageWritePreconditions? preconditions,
+                        CancellationToken _
+                    ) => ApplyMutation(request, content, preconditions!)
                 );
             var metadataClient = new Mock<IAppMetadata>();
             metadataClient.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(_metadata);
@@ -609,7 +396,6 @@ public sealed class SigneeInitializationRetryTests
             _services = services.BuildServiceProvider();
             _manager = new SigneeContextsManager(
                 partyClient.Object,
-                _instances.Object,
                 _services.GetRequiredService<AppImplementationFactory>(),
                 metadataClient.Object,
                 NullLogger<SigneeContextsManager>.Instance
@@ -663,7 +449,47 @@ public sealed class SigneeInitializationRetryTests
             processReader
                 .Setup(x => x.GetAltinnTaskExtension(TaskId))
                 .Returns(new AltinnTaskExtension { SignatureConfiguration = _config });
-            _abort = new AbortRuntimeDelegatedSigningCommand(processReader.Object, _signing, _instances.Object);
+            processReader
+                .Setup(x => x.GetProcessTasks())
+                .Returns([
+                    new ProcessTask
+                    {
+                        Id = TaskId,
+                        ExtensionElements = new ExtensionElements
+                        {
+                            TaskExtension = new AltinnTaskExtension { SignatureConfiguration = _config },
+                        },
+                    },
+                ]);
+            var serialization = new ModelSerializationService(Mock.Of<IAppModel>());
+            var initializer = new InstanceDataUnitOfWorkInitializer(
+                _data.Object,
+                _mutations.Object,
+                _instances.Object,
+                metadataClient.Object,
+                translation,
+                serialization,
+                resources.Object,
+                Microsoft.Extensions.Options.Options.Create(new FrontEndSettings())
+            );
+            var code = new AppCode
+            {
+                Id = "signing-test",
+                Code = "secret-code-long-enough-for-signing-tests",
+                IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
+                ExpiresAt = DateTimeOffset.UtcNow.AddDays(30),
+            };
+            var secrets = new Mock<IWorkflowCallbackSecretProvider>();
+            secrets.Setup(x => x.GetSigningSecret()).Returns(code);
+            secrets.Setup(x => x.GetValidationSecrets()).Returns([code]);
+            _stateService = new WorkflowCallbackStateService(
+                initializer,
+                serialization,
+                metadataClient.Object,
+                Mock.Of<IAppModel>(),
+                new WorkflowStateSigner(secrets.Object),
+                processReader.Object
+            );
             _initialization = new SigneeInitializationService(
                 _manager,
                 new SigningDelegationService(AccessManagement.Object, NullLogger<SigningDelegationService>.Instance),
@@ -671,17 +497,26 @@ public sealed class SigneeInitializationRetryTests
                 partyClient.Object,
                 cdn.Object,
                 environment.Object,
-                _instances.Object,
                 NullLogger<SigneeInitializationService>.Instance
             );
         }
 
-        public string Snapshot() => JsonSerializer.Serialize(Stored);
+        private Instance CloneStored() => JsonSerializer.Deserialize<Instance>(JsonSerializer.Serialize(Stored))!;
 
-        public InstanceDataUnitOfWork Restore(string incomingState) =>
-            new(
-                JsonSerializer.Deserialize<Instance>(incomingState)!,
+        public Task<string> Capture(InstanceDataUnitOfWork? data = null) => _stateService.CaptureState(data ?? Fresh());
+
+        public async Task<InstanceDataUnitOfWork> Restore(string state) =>
+            (await _stateService.RestoreState(new InstanceIdentifier(Stored), state, "nb")).UnitOfWork;
+
+        public InstanceDataUnitOfWork Fresh()
+        {
+            Instance carried = CloneStored();
+            carried.Process.CurrentTask.ElementId = TaskId;
+            return new InstanceDataUnitOfWork(
+                carried,
+                Versions,
                 _data.Object,
+                _mutations.Object,
                 _instances.Object,
                 _metadata,
                 null!,
@@ -691,6 +526,126 @@ public sealed class SigneeInitializationRetryTests
                 TaskId,
                 "nb"
             );
+        }
+
+        private InstanceMutationWithStorageMetadata ApplyMutation(
+            StorageInstanceMutationRequest request,
+            IReadOnlyDictionary<string, StorageInstanceMutationContent> content,
+            StorageWritePreconditions preconditions
+        )
+        {
+            string key = Assert.IsType<string>(preconditions.IdempotencyKey);
+            int expected = Assert.IsType<int>(preconditions.InstanceVersion);
+            if (_receipts.TryGetValue(key, out var prior))
+            {
+                Assert.Equal(prior.Previous, expected);
+                Assert.Equal(prior.Produced, _instanceVersion);
+                ReplayCount++;
+                return new InstanceMutationWithStorageMetadata(CloneStored(), Versions, prior.Created, replayed: true);
+            }
+            Assert.Equal(_instanceVersion, expected);
+            Assert.Equal(ProcessStatus.Processing, request.ExpectedProcessStatus);
+            Assert.Null(request.ProcessState);
+            if (FailNextCommit)
+            {
+                FailNextCommit = false;
+                throw new PlatformHttpException(HttpStatusCode.ServiceUnavailable, "Aggregate commit failed.");
+            }
+            List<Guid> createdIds = [];
+            foreach (var create in request.CreateDataElements)
+            {
+                var element = new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    InstanceGuid = new InstanceIdentifier(Stored).InstanceGuid.ToString(),
+                    DataType = create.DataType,
+                    ContentType = create.ContentType,
+                    Filename = create.Filename,
+                    BlobVersionId = Guid.NewGuid().ToString(),
+                };
+                if (create.GeneratedFromTask is { } task)
+                    element.References =
+                    [
+                        new Reference
+                        {
+                            Relation = RelationType.GeneratedFrom,
+                            ValueType = ReferenceType.Task,
+                            Value = task,
+                        },
+                    ];
+                Stored.Data.Add(element);
+                _bytes[element.Id] = content[create.ContentPartName].Bytes.ToArray();
+                createdIds.Add(Guid.Parse(element.Id));
+                InsertCalls++;
+            }
+            foreach (var update in request.UpdateDataElements)
+            {
+                DataElement element = Stored.Data.Single(element => element.Id == update.DataElementId.ToString());
+                Assert.Equal(element.BlobVersionId, update.ExpectedCurrentBlobVersion);
+                _bytes[element.Id] = content[update.ContentPartName!].Bytes.ToArray();
+                element.BlobVersionId = Guid.NewGuid().ToString();
+                element.Refs = update.Refs;
+                element.References = update.GeneratedFromTask is { } task
+                    ?
+                    [
+                        new Reference
+                        {
+                            Relation = RelationType.GeneratedFrom,
+                            ValueType = ReferenceType.Task,
+                            Value = task,
+                        },
+                    ]
+                    : null;
+            }
+            foreach (var delete in request.DeleteDataElements)
+            {
+                Assert.True(_bytes.Remove(delete.DataElementId.ToString()));
+                Assert.Equal(1, Stored.Data.RemoveAll(element => element.Id == delete.DataElementId.ToString()));
+                DeleteCalls++;
+            }
+            _instanceVersion++;
+            _receipts.Add(key, (expected, _instanceVersion, createdIds));
+            return new InstanceMutationWithStorageMetadata(CloneStored(), Versions, createdIds);
+        }
+
+        public void SetupNotification(HashSet<Guid> accepted, List<Guid> attempts, int? failAttempt = null)
+        {
+            Correspondence
+                .Setup(x => x.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()))
+                .Returns(
+                    (SendCorrespondencePayload payload, CancellationToken _) =>
+                    {
+                        Guid key = Assert.IsType<Guid>(payload.CorrespondenceRequest.IdempotentKey);
+                        attempts.Add(key);
+                        if (attempts.Count == failAttempt)
+                            throw new HttpRequestException(
+                                "Correspondence unavailable",
+                                null,
+                                HttpStatusCode.ServiceUnavailable
+                            );
+                        if (!accepted.Add(key))
+                            throw new CorrespondenceRequestException(
+                                "Already sent",
+                                null,
+                                HttpStatusCode.Conflict,
+                                null
+                            );
+                        return Task.FromResult(
+                            new SendCorrespondenceResponse
+                            {
+                                Correspondences =
+                                [
+                                    new CorrespondenceDetailsResponse
+                                    {
+                                        CorrespondenceId = Guid.NewGuid(),
+                                        Recipient = payload.CorrespondenceRequest.Recipients[0],
+                                    },
+                                ],
+                            }
+                        );
+                    }
+                );
+        }
 
         public Task<SigneeInitializationOutcome> Resolve(InstanceDataUnitOfWork data) =>
             _initialization.ResolveSignees(data, _config, TaskId, CancellationToken.None);
@@ -729,44 +684,30 @@ public sealed class SigneeInitializationRetryTests
         public Task Revoke(InstanceDataUnitOfWork data) =>
             _signing.RevokeSigneeRightsOnTaskEnd(data, _config, CancellationToken.None);
 
-        public Task<ProcessEngineCommandResult> Abort(InstanceDataUnitOfWork data) =>
-            ((IWorkflowEngineCommand)_abort).Execute(
-                new ProcessEngineCommandContext
-                {
-                    InstanceDataMutator = data,
-                    WorkflowId = _workflowId,
-                    StepId = _stepId,
-                    CommandPayload = CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId)),
-                }
-            );
-
-        public void AddSignature()
-        {
-            var element = new DataElement
-            {
-                Id = Guid.NewGuid().ToString(),
-                DataType = "signatures",
-                ContentType = "application/json",
-            };
-            Stored.Data.Add(element);
-            _bytes[element.Id] = "{}"u8.ToArray();
-        }
-
         public Task<List<SigneeContext>> ReadState() =>
-            _manager.GetSigneeContexts(Restore(Snapshot()), _config, CancellationToken.None);
+            _manager.GetSigneeContexts(Fresh(), _config, CancellationToken.None);
 
         public async Task ResolveAndCommit()
         {
-            InstanceDataUnitOfWork data = Restore(Snapshot());
+            InstanceDataUnitOfWork data = Fresh();
             await Resolve(data);
             await Commit(data);
         }
 
-        public static async Task Commit(InstanceDataUnitOfWork data)
+        public static async Task Commit(InstanceDataUnitOfWork data, Guid? stepId = null)
         {
-            var changes = data.GetDataElementChanges(false);
-            await data.UpdateInstanceData(changes);
-            await data.SaveChanges(changes);
+            try
+            {
+                await data.SaveWorkflowOwnedAggregate(
+                    data.GetDataElementChanges(false),
+                    (stepId ?? Guid.NewGuid()).ToString(),
+                    CancellationToken.None
+                );
+            }
+            catch (InstanceMutationReplayedException)
+            {
+                // The callback controller treats this as success and captures the rebuilt authoritative state.
+            }
         }
 
         public string AddOldState()
@@ -775,6 +716,7 @@ public sealed class SigneeInitializationRetryTests
             {
                 Id = Guid.NewGuid().ToString(),
                 DataType = DataTypeId,
+                BlobVersionId = Guid.NewGuid().ToString(),
                 ContentType = "application/json",
             };
             Stored.Data.Add(element);

@@ -19,7 +19,7 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
 
 ```bash
 dotnet build LocalTest.sln    # from src/Runtime/localtest
-dotnet test tests/LocalTest.Tests/LocalTest.Tests.csproj
+dotnet test test/LocalTest.Tests/LocalTest.Tests.csproj
 ```
 
 The tests exercise emulated platform contracts, including idempotent instance delegation and revocation.

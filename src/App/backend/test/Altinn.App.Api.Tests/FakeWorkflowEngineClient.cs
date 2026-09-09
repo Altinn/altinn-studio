@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -99,6 +100,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         foreach (WorkflowRequest workflow in request.Workflows)
         {
             Guid databaseId = Guid.NewGuid();
+            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             if (workflow.Ref is not null)
             {
                 refMap[workflow.Ref] = databaseId;
@@ -120,7 +122,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 }
             }
 
-            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             createdWorkflows.Add(
                 new StoredWorkflow
                 {
@@ -596,7 +597,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     CommandKey = appCommandData.CommandKey,
                     Actor = workflow.Context.Actor,
                     Payload = appCommandData.Payload,
-                    LockToken = workflow.Context.LockToken,
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
                     StepId = step.DatabaseId,

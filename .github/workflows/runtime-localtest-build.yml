@@ -35,5 +35,5 @@ jobs:
         run: dotnet build LocalTest.sln --configuration Debug --no-restore
         working-directory: 'src/Runtime/localtest/'
       - name: Test LocalTest
-        run: dotnet test tests/LocalTest.Tests/LocalTest.Tests.csproj --configuration Debug --no-build --no-restore
+        run: dotnet test test/LocalTest.Tests/LocalTest.Tests.csproj --configuration Debug --no-build --no-restore
         working-directory: 'src/Runtime/localtest/'

@@ -18,6 +18,8 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
@@ -42,6 +44,7 @@ public class DataController : ControllerBase
     private readonly ILogger<DataController> _logger;
     private readonly IDataClient _dataClient;
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IAppModel _appModel;
     private readonly IAppMetadata _appMetadata;
     private readonly IPrefill _prefillService;
@@ -77,6 +80,7 @@ public class DataController : ControllerBase
         _logger = logger;
 
         _instanceClient = instanceClient;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _dataClient = dataClient;
         _appModel = appModel;
         _appMetadata = appMetadata;
@@ -106,6 +110,11 @@ public class DataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [Obsolete(
         "Use the POST method with the dataType parameter in url instead, to get more sensible BadRequests when validation fails."
     )]
@@ -176,7 +185,11 @@ public class DataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [ProducesResponseType(typeof(DataPostErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DataPostResponse>> Post(
@@ -230,7 +243,7 @@ public class DataController : ControllerBase
                 return instanceResult.Error;
             }
 
-            var (instance, dataType, _) = instanceResult.Ok;
+            var (instance, dataType, _, versions) = instanceResult.Ok;
 
             if (
                 await _dataElementAccessChecker.GetCreateProblem(instance, dataType, _authenticationContext.Current) is
@@ -250,7 +263,7 @@ public class DataController : ControllerBase
                     Status = StatusCodes.Status409Conflict,
                 };
             }
-            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, taskId, language);
 
             // Save data elements with form data
             if (dataType.AppLogic?.ClassRef is { } classRef)
@@ -284,7 +297,7 @@ public class DataController : ControllerBase
                     appModel
                 );
                 var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(dataMutator.Instance, appModel, null);
+                await instantiationProcessor.DataCreation(dataMutator, appModel, null);
 
                 // Just stage the element to be created. We don't get the element id before we call UpdateInstanceData
                 dataMutator.AddFormDataElement(dataType.Id, appModel);
@@ -361,8 +374,7 @@ public class DataController : ControllerBase
             }
 
             var finalChanges = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-            await dataMutator.UpdateInstanceData(finalChanges);
-            var saveTask = dataMutator.SaveChanges(finalChanges);
+            await dataMutator.SaveChanges(finalChanges);
             List<ValidationSourcePair> validationIssues = [];
             if (ignoredValidatorsString is not null)
             {
@@ -379,7 +391,6 @@ public class DataController : ControllerBase
                 );
             }
 
-            await saveTask;
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
             var newDataElement =
@@ -469,7 +480,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataTypeObject, dataElement) = instanceResult.Ok;
+            var (instance, dataTypeObject, dataElement, _) = instanceResult.Ok;
 
             if (dataType is not null && dataTypeObject.Id != dataType)
             {
@@ -530,6 +541,11 @@ public class DataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
     [ProducesResponseType(typeof(CalculationResult), 200)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     public async Task<ActionResult> Put(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -547,7 +563,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataTypeObject, dataElement) = instanceResult.Ok;
+            var (instance, dataTypeObject, dataElement, versions) = instanceResult.Ok;
 
             if (dataType is not null && dataTypeObject.Id != dataType)
             {
@@ -570,7 +586,7 @@ public class DataController : ControllerBase
 
             if (dataTypeObject.AppLogic?.ClassRef is not null)
             {
-                return await PutFormData(instance, dataElement, dataTypeObject, language);
+                return await PutFormData(instance, versions, dataElement, dataTypeObject, language);
             }
 
             return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject);
@@ -598,7 +614,11 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPatch("{dataGuid:guid}")]
     [ProducesResponseType(typeof(DataPatchResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     [Obsolete("Use PatchFormDataMultiple instead")]
     public async Task<ActionResult<DataPatchResponse>> PatchFormData(
@@ -649,7 +669,8 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPatch("")]
     [ProducesResponseType(typeof(DataPatchResponseMultiple), 200)]
-    [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 409, ProcessStatusProblemResult.ContentType)]
+    [ProducesResponseType(typeof(ProblemDetails), 412)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 404)]
@@ -675,7 +696,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataTypes) = instanceResult.Ok;
+            var (instance, dataTypes, versions) = instanceResult.Ok;
 
             // Verify that the data elements isn't restricted for the user
             foreach (var dataType in dataTypes)
@@ -695,9 +716,11 @@ public class DataController : ControllerBase
 
             ServiceResult<DataPatchResult, ProblemDetails> res = await _patchService.ApplyPatches(
                 instance,
+                versions,
                 dataPatchRequestMultiple.Patches.ToDictionary(i => i.DataElementId, i => i.Patch),
                 language,
-                dataPatchRequestMultiple.IgnoredValidators
+                dataPatchRequestMultiple.IgnoredValidators,
+                dataPatchRequestMultiple.ExpectedProcessStateVersion
             );
 
             if (res.Success)
@@ -737,6 +760,12 @@ public class DataController : ControllerBase
     /// <returns>The updated data element.</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpDelete("{dataGuid:guid}")]
+    [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     public async Task<ActionResult<DataPostResponse>> Delete(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -755,7 +784,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataTypeObject, dataElement) = instanceResult.Ok;
+            var (instance, dataTypeObject, dataElement, versions) = instanceResult.Ok;
 
             if (dataType is not null && dataTypeObject.Id != dataType)
             {
@@ -781,7 +810,7 @@ public class DataController : ControllerBase
                 instance.Process?.CurrentTask?.ElementId
                 ?? throw new InvalidOperationException("Instance have no process");
 
-            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, taskId, language);
 
             dataMutator.RemoveDataElement(dataElement);
 
@@ -795,7 +824,6 @@ public class DataController : ControllerBase
             }
             // Get the updated changes for saving
             changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-            await dataMutator.UpdateInstanceData(changes);
             await dataMutator.SaveChanges(changes);
 
             List<ValidationSourcePair> validationIssues = [];
@@ -921,13 +949,16 @@ public class DataController : ControllerBase
             appModel,
             includeRowId: includeRowId,
             language: language,
-            persistFormData: (processedFormData, cancellationToken) =>
-                _dataClient.UpdateFormData(
-                    instance,
-                    processedFormData,
-                    dataElement,
-                    cancellationToken: cancellationToken
-                )
+            persistFormData: includeRowId
+                ? (processedFormData, cancellationToken) =>
+                    PersistFormDataWithRowIds(instance, dataElement, processedFormData, cancellationToken)
+                : (processedFormData, cancellationToken) =>
+                    _dataClient.UpdateFormData(
+                        instance,
+                        processedFormData,
+                        dataElement,
+                        cancellationToken: cancellationToken
+                    )
         );
 
         // This is likely not required as the instance is already read
@@ -944,6 +975,59 @@ public class DataController : ControllerBase
         }
 
         return Ok(appModel);
+    }
+
+    private async Task PersistFormDataWithRowIds(
+        Instance instance,
+        DataElement dataElement,
+        object processedFormData,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            await _dataClient.UpdateFormData(
+                instance,
+                processedFormData,
+                dataElement,
+                cancellationToken: cancellationToken
+            );
+        }
+        catch (PlatformHttpException exception) when (exception.Response.StatusCode is HttpStatusCode.Conflict)
+        {
+            Instance? refreshedInstance = null;
+            try
+            {
+                refreshedInstance = await _instanceClient.GetInstance(
+                    instance,
+                    authenticationMethod: null,
+                    ct: cancellationToken
+                );
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception refreshException)
+            {
+                _logger.LogWarning(
+                    refreshException,
+                    "Could not refresh instance {InstanceId} after row-id persistence conflict.",
+                    instance.Id
+                );
+            }
+
+            if (refreshedInstance is null || ProcessStatusHelper.IsIdle(refreshedInstance))
+            {
+                throw;
+            }
+
+            _logger.LogInformation(
+                "Skipping row-id persistence for {InstanceId} because the refreshed process status is {ProcessStatus}.",
+                instance.Id,
+                refreshedInstance.Process?.Status
+            );
+        }
     }
 
     private async Task<ActionResult> PutBinaryData(
@@ -1014,6 +1098,7 @@ public class DataController : ControllerBase
 
     private async Task<ActionResult> PutFormData(
         Instance instance,
+        StorageVersionMetadata versions,
         DataElement dataElement,
         DataType dataType,
         string? language
@@ -1044,7 +1129,7 @@ public class DataController : ControllerBase
             );
         }
 
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, taskId, language);
 
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
@@ -1074,7 +1159,6 @@ public class DataController : ControllerBase
 
         // Save changes
         var changesAfterDataProcessors = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-        await dataMutator.UpdateInstanceData(changesAfterDataProcessors);
         await dataMutator.SaveChanges(changesAfterDataProcessors);
 
         //set self links
@@ -1114,20 +1198,24 @@ public class DataController : ControllerBase
     }
 
     private async Task<
-        ServiceResult<(Instance instance, DataType dataType, DataElement dataElement), ProblemDetails>
+        ServiceResult<
+            (Instance instance, DataType dataType, DataElement dataElement, StorageVersionMetadata versions),
+            ProblemDetails
+        >
     > GetInstanceDataOrError(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataElementGuid)
     {
         try
         {
-            var instance = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-            if (instance is null)
+            InstanceWithStorageMetadata? fetchedInstance =
+                await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
+            if (fetchedInstance?.Instance is not { } instance)
             {
                 return new ProblemDetails()
                 {
@@ -1164,7 +1252,7 @@ public class DataController : ControllerBase
                 };
             }
 
-            return (instance, dataType, dataElement);
+            return (instance, dataType, dataElement, fetchedInstance.Metadata);
         }
         catch (PlatformHttpException e)
         {
@@ -1177,7 +1265,12 @@ public class DataController : ControllerBase
         }
     }
 
-    private async Task<ServiceResult<(Instance, IEnumerable<DataType>), ProblemDetails>> GetInstanceDataOrError(
+    private async Task<
+        ServiceResult<
+            (Instance instance, IEnumerable<DataType> dataTypes, StorageVersionMetadata versions),
+            ProblemDetails
+        >
+    > GetInstanceDataOrError(
         string org,
         string app,
         int instanceOwnerPartyId,
@@ -1188,15 +1281,16 @@ public class DataController : ControllerBase
         try
         {
             var application = await _appMetadata.GetApplicationMetadata();
-            var instance = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-            if (instance is null)
+            InstanceWithStorageMetadata? fetchedInstance =
+                await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
+            if (fetchedInstance?.Instance is not { } instance)
             {
                 return new ProblemDetails()
                 {
@@ -1240,7 +1334,7 @@ public class DataController : ControllerBase
                 dataTypes.Add(dataType);
             }
 
-            return (instance, dataTypes);
+            return (instance, dataTypes, fetchedInstance.Metadata);
         }
         catch (PlatformHttpException e)
         {
@@ -1254,20 +1348,29 @@ public class DataController : ControllerBase
     }
 
     private async Task<
-        ServiceResult<(Instance instance, DataType dataType, ApplicationMetadata applicationMetadata), ProblemDetails>
+        ServiceResult<
+            (
+                Instance instance,
+                DataType dataType,
+                ApplicationMetadata applicationMetadata,
+                StorageVersionMetadata versions
+            ),
+            ProblemDetails
+        >
     > GetInstanceDataOrError(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataTypeId)
     {
         try
         {
-            var instance = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-            if (instance is null)
+            InstanceWithStorageMetadata? fetchedInstance =
+                await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
+            if (fetchedInstance?.Instance is not { } instance)
             {
                 return new ProblemDetails()
                 {
@@ -1290,7 +1393,7 @@ public class DataController : ControllerBase
                 };
             }
 
-            return (instance, dataType, application);
+            return (instance, dataType, application, fetchedInstance.Metadata);
         }
         catch (PlatformHttpException e)
         {

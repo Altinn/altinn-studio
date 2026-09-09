@@ -47,15 +47,21 @@ From the repository root, configure and start an Agent:
 cd agents/full
 cp .env.sample .env
 $EDITOR .env
-agentctl apply -f agent.yaml
-agentctl wait agent/altinn-full --for condition=Ready --timeout 10m
+agentctl apply -f agent.yaml --wait
 ```
+
+`--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
+returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
 Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
 
 To work directly on the current checkout without cloning it, apply `agents/worktree/agent.yaml` from
 the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
 worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
+
+A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree
+variant while any `.env` of another Agent, for example `agents/full/.env`, lies inside the checkout. Keep such
+secret files outside the checkout and pass their location with `agentctl apply --env-file <path>`.
 
 Create or reattach to a Session:
 

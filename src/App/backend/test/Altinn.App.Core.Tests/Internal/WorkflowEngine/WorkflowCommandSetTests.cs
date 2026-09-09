@@ -28,6 +28,7 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
+                TaskId = "Task_1",
                 ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
@@ -57,6 +58,7 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
+                TaskId = "Task_1",
                 ServiceTask = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
@@ -70,22 +72,13 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetProcessEndSteps_AllFeaturesEnabled_RoutesCommandsToTheCorrectBuckets()
     {
-        var commandSet = WorkflowCommandSet.GetProcessEndSteps(
-            new ProcessEndContext
-            {
-                RegisterEvents = true,
-                HasAutoDeleteDataTypes = true,
-                AutoDeleteInstanceOnProcessEnd = true,
-            }
-        );
+        var commandSet = WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
 
-        Assert.Equal([OnProcessEndingHook.Key], Keys(commandSet.Commands));
+        // The end hook runs pre-commit; the configured cleanup/hard delete is staged by
+        // CommitProcessState into the commit save itself.
+        Assert.Equal([OnProcessEndingHook.Key, EndProcessLegacyHook.Key], Keys(commandSet.Commands));
 
-        // App-authored end hook and storage mutations stay gated in Main.
-        Assert.Equal(
-            [EndProcessLegacyHook.Key, DeleteDataElementsIfConfigured.Key, DeleteInstanceIfConfigured.Key],
-            Keys(commandSet.CriticalPostCommitCommands)
-        );
+        Assert.Empty(commandSet.CriticalPostCommitCommands);
 
         Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
     }
@@ -93,7 +86,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps([]);
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1", []);
 
         Assert.Equal([CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
@@ -123,12 +116,13 @@ public class WorkflowCommandSetTests
             "start" => WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "Task_1",
                     ServiceTask = null,
                     IsInitialTaskStart = false,
                     StartCommands = declarations,
                 }
             ),
-            "end" => WorkflowCommandSet.GetTaskEndSteps(declarations),
+            "end" => WorkflowCommandSet.GetTaskEndSteps("Task_1", declarations),
             _ => WorkflowCommandSet.GetTaskAbandonSteps(declarations),
         };
         List<string> keys = Keys(commandSet.Commands);

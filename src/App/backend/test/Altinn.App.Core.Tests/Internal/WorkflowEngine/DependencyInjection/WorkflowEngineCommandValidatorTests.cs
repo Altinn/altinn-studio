@@ -26,7 +26,7 @@ public class WorkflowEngineCommandValidatorTests
         );
 
         Assert.Contains("CustomerCommand", keys);
-        Assert.Contains("SaveProcessStateToStorage", keys);
+        Assert.Contains("CommitProcessState", keys);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class WorkflowEngineCommandValidatorTests
 
     [Theory]
     [InlineData("CustomerCommand")]
-    [InlineData("SaveProcessStateToStorage")]
+    [InlineData("CommitProcessState")]
     public void Validate_DuplicateOrdinaryOrFrameworkKey_Fails(string key)
     {
         List<IWorkflowEngineCommand> commands = AllCommands().ToList();

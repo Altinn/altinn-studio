@@ -393,8 +393,8 @@ public sealed partial class AppFixture : IAsyncDisposable
                         pendingErrors.Clear();
                     }
 
-                    // Remove the fixture index as tests run with parallelism - use efficient slicing
-                    target.Add($"[{start[4..]}");
+                    // The fixture index has a minimum width of two digits, but grows past 99.
+                    target.Add($"[{start[(start.IndexOf('/') + 1)..]}");
                 }
                 else if (isErrorMessage)
                 {

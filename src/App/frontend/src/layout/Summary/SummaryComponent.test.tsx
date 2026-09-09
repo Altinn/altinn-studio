@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { act, fireEvent, screen } from '@testing-library/react';
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
@@ -8,7 +9,6 @@ import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigM
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 
 describe('SummaryComponent', () => {

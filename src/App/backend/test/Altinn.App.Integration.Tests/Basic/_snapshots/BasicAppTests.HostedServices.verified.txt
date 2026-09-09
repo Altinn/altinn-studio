@@ -46,6 +46,13 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.Process.ProcessTaskConfigurationValidationService
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Altinn.App.Core.Internal.WorkflowEngine.WorkflowStepOptionsValidator
   },
   {

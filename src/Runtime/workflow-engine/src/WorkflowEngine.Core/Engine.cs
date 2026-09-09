@@ -8,6 +8,7 @@ using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
@@ -61,6 +62,17 @@ internal interface IEngine
     /// it up immediately instead of when its timer elapses. Idempotent.
     /// </summary>
     Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fails a parked workflow (Requeued or Waiting) by caller decision, recording <paramref name="reason"/>
+    /// as the parked step's final error entry. Compare-and-set: a workflow that is not parked is left alone.
+    /// </summary>
+    Task<FailWorkflowResult> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        string reason,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>Mints a mailbox, idempotent on the caller's key within the namespace.</summary>
     Task<MailboxMintResult> MintMailbox(
@@ -458,6 +470,48 @@ internal sealed class Engine(
             return new NudgeWorkflowResult.AlreadyRunnable(workflowId);
 
         return new NudgeWorkflowResult.NotParked(status.Value);
+    }
+
+    /// <inheritdoc/>
+    public async Task<FailWorkflowResult> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        string reason,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            return new FailWorkflowResult.Invalid("Reason cannot be empty or whitespace.");
+
+        if (reason.Length > FailWorkflowRequest.MaxReasonLength)
+            return new FailWorkflowResult.Invalid(
+                $"Reason is {reason.Length} characters, maximum is {FailWorkflowRequest.MaxReasonLength}."
+            );
+
+        var now = timeProvider.GetUtcNow();
+        var failed = await repository.FailWorkflow(workflowId, ns, now, reason, cancellationToken);
+
+        if (failed is not null)
+        {
+            Metrics.StepsFailed.Add(1, ("reason", "manual"));
+            Metrics.WorkflowsFailed.Add(
+                1,
+                ("reason", "manual"),
+                ("is_head", WorkflowExtensions.IsHeadTagValue(failed.IsHead))
+            );
+
+            // The failure may unblock dependents (they settle as DependencyFailed on their next
+            // evaluation); signal so that happens on the next fetch cycle rather than the next poll tick.
+            workflowSignal.Signal();
+
+            return new FailWorkflowResult.Failed(workflowId, now);
+        }
+
+        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
+        if (status is null)
+            return new FailWorkflowResult.NotFound();
+
+        return new FailWorkflowResult.NotParked(status.Value);
     }
 
     /// <summary><c>idempotency_key</c> and <c>collection_key</c> are both <c>varchar(200)</c>.</summary>

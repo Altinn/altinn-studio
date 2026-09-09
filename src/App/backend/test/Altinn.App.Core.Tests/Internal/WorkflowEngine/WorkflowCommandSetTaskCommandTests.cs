@@ -21,6 +21,7 @@ public class WorkflowCommandSetTaskCommandTests
         WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
+                TaskId = "Task_1",
                 ServiceTask = null,
                 StartCommands =
                 [
@@ -65,6 +66,7 @@ public class WorkflowCommandSetTaskCommandTests
         WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
+                TaskId = "Task_1",
                 ServiceTask = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
@@ -80,10 +82,10 @@ public class WorkflowCommandSetTaskCommandTests
     [Fact]
     public void GetTaskEndSteps_DeclaredCommands_RunBeforeCommonFinalization()
     {
-        WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskEndSteps([
-            new WorkflowCommandRef("GenerateSigningPdf"),
-            new WorkflowCommandRef("RevokeSigneeRights"),
-        ]);
+        WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskEndSteps(
+            "Task_1",
+            [new WorkflowCommandRef("GenerateSigningPdf"), new WorkflowCommandRef("RevokeSigneeRights")]
+        );
 
         Assert.Equal(
             [

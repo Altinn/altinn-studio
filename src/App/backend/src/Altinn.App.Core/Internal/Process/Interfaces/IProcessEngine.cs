@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -21,8 +22,8 @@ internal interface IProcessEngine
     /// </summary>
     Task<Instance> SubmitInitialProcessState(
         Instance instance,
+        StorageVersionMetadata versions,
         ProcessStateChange processStateChange,
-        string lockToken,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
@@ -53,7 +54,6 @@ internal interface IProcessEngine
     Task EnqueueProcessNext(
         Instance instance,
         Actor actor,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,

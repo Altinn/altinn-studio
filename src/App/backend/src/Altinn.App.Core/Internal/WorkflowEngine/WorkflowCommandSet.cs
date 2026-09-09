@@ -38,7 +38,7 @@ internal sealed class WorkflowCommandSet
     private readonly List<StepRequest> _sideEffectCommands = [];
 
     /// <summary>
-    /// Gets the main commands for this event. SaveProcessStateToStorage will be added after these.
+    /// Gets the main commands for this event. CommitProcessState will be added after these.
     /// </summary>
     public IReadOnlyList<StepRequest> Commands => _commands;
 
@@ -55,6 +55,12 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
+    /// Whether this command set schedules a service-task command after CommitProcessState.
+    /// The factory copies this exact sequence fact into the commit payload.
+    /// </summary>
+    public bool ServiceTaskFollowsCommit { get; private set; }
+
+    /// <summary>
     /// Creates command group for task start events.
     /// </summary>
     public static WorkflowCommandSet GetTaskStartSteps(TaskStartContext context)
@@ -65,7 +71,7 @@ internal sealed class WorkflowCommandSet
         // The task type's commands come last, one step each, so the app's starting handler and the
         // common initialization have run before the task does its own work.
         var group = new WorkflowCommandSet()
-            .AddCommand(UnlockTaskData.Key)
+            .AddCommand(UnlockTaskData.Key, new TaskDataLockPayload(context.TaskId))
             .AddCommand(CleanupGeneratedFromTask.Key)
             .AddCommand(OnTaskStartingHook.Key)
             .AddCommand(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
@@ -78,6 +84,8 @@ internal sealed class WorkflowCommandSet
 
         if (context.ServiceTask is { } serviceTask)
         {
+            group.ServiceTaskFollowsCommit = true;
+
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
             // item 0 is never one), and Main therefore always ends on a step of its own: the stage whose
             // completion starts the rest of the pipeline, or the pipeline's conclusion.
@@ -105,14 +113,15 @@ internal sealed class WorkflowCommandSet
     /// Creates command group for task end events. The task type's own end commands run first, one step each,
     /// before the common finalization, the app's ending handler and the data lock.
     /// </summary>
+    /// <param name="taskId">The leaving BPMN task whose data is locked after its end commands.</param>
     /// <param name="endCommands">The commands the leaving task's type declares for its end phase, in order.</param>
-    public static WorkflowCommandSet GetTaskEndSteps(IReadOnlyList<WorkflowCommandRef> endCommands)
+    public static WorkflowCommandSet GetTaskEndSteps(string taskId, IReadOnlyList<WorkflowCommandRef> endCommands)
     {
         return new WorkflowCommandSet()
             .AddTaskCommands(endCommands)
             .AddCommand(CommonTaskFinalization.Key)
             .AddCommand(OnTaskEndingHook.Key)
-            .AddCommand(LockTaskData.Key);
+            .AddCommand(LockTaskData.Key, new TaskDataLockPayload(taskId));
     }
 
     /// <summary>
@@ -130,22 +139,7 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetProcessEndSteps(ProcessEndContext context)
     {
-        // EndProcessLegacyHook runs post-commit because IProcessEnd.End reads instance.Process.EndEvent,
-        // which is only set when the process state is persisted. This matches the old ProcessEngine behavior
-        // where RunAppDefinedProcessEndHandlers ran after HandleEventsAndUpdateStorage.
-        var group = new WorkflowCommandSet()
-            .AddCommand(OnProcessEndingHook.Key)
-            .AddCriticalPostCommitCommand(EndProcessLegacyHook.Key);
-
-        if (context.HasAutoDeleteDataTypes)
-        {
-            group.AddCriticalPostCommitCommand(DeleteDataElementsIfConfigured.Key);
-        }
-
-        if (context.AutoDeleteInstanceOnProcessEnd)
-        {
-            group.AddCriticalPostCommitCommand(DeleteInstanceIfConfigured.Key);
-        }
+        var group = new WorkflowCommandSet().AddCommand(OnProcessEndingHook.Key).AddCommand(EndProcessLegacyHook.Key);
 
         if (context.RegisterEvents)
         {
@@ -180,7 +174,7 @@ internal sealed class WorkflowCommandSet
 
     /// <summary>
     /// Adds a command that executes after the ProcessNext has been committed to storage via
-    /// SaveProcessStateToStorage, and that must complete before the transition settles.
+    /// CommitProcessState, and that must complete before the transition settles.
     /// </summary>
     /// <param name="commandKey">The command's registered key.</param>
     /// <param name="payload">Optional command payload.</param>

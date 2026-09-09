@@ -696,38 +696,6 @@ public interface IDataClient
     );
 
     /// <summary>
-    /// Updates binary data while retaining the task that generated the data element.
-    /// Storage replaces this reference on every binary update, so callers must pass the existing task ID.
-    /// </summary>
-    /// <param name="instanceIdentifier">The instance identifier.</param>
-    /// <param name="contentType">Content type of the updated binary data.</param>
-    /// <param name="filename">Filename of the updated binary data.</param>
-    /// <param name="dataGuid">The data element to update.</param>
-    /// <param name="stream">The updated binary data.</param>
-    /// <param name="authenticationMethod">Authentication to use for the request.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <param name="generatedFromTask">The task that generated the data element, if any.</param>
-    Task<DataElement> UpdateBinaryData(
-        InstanceIdentifier instanceIdentifier,
-        string? contentType,
-        string? filename,
-        Guid dataGuid,
-        Stream stream,
-        StorageAuthenticationMethod? authenticationMethod,
-        string? generatedFromTask,
-        CancellationToken cancellationToken
-    ) =>
-        UpdateBinaryData(
-            instanceIdentifier,
-            contentType,
-            filename,
-            dataGuid,
-            stream,
-            authenticationMethod,
-            cancellationToken
-        );
-
-    /// <summary>
     /// Method that updates a form attachments to disk/storage and returns the updated data element.
     /// </summary>
     /// <param name="instanceIdentifier">Instance identifier instanceOwnerPartyId and instanceGuid</param>

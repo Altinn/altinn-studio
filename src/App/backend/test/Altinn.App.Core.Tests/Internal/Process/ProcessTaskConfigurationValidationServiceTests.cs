@@ -234,7 +234,8 @@ public class ProcessTaskConfigurationValidationServiceTests
 
     [Theory]
     [InlineData("MutateProcessState")]
-    [InlineData("SaveProcessStateToStorage")]
+    [InlineData("AcquireProcessingStatus")]
+    [InlineData("CommitProcessState")]
     [InlineData("ExecuteServiceTask")]
     [InlineData("MintMailbox")]
     [InlineData("OnTaskStartingHook")]

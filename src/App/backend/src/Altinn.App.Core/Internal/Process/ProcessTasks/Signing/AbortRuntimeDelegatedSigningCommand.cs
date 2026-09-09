@@ -1,10 +1,7 @@
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Services;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
@@ -18,17 +15,11 @@ internal sealed class AbortRuntimeDelegatedSigningCommand : WorkflowEngineComman
 
     private readonly IProcessReader _processReader;
     private readonly ISigningService _signingService;
-    private readonly IInstanceClient _instanceClient;
 
-    public AbortRuntimeDelegatedSigningCommand(
-        IProcessReader processReader,
-        ISigningService signingService,
-        IInstanceClient instanceClient
-    )
+    public AbortRuntimeDelegatedSigningCommand(IProcessReader processReader, ISigningService signingService)
     {
         _processReader = processReader;
         _signingService = signingService;
-        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
@@ -41,20 +32,6 @@ internal sealed class AbortRuntimeDelegatedSigningCommand : WorkflowEngineComman
     )
     {
         AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
-
-        // A previous attempt may have deleted only some elements, or completed before its response was lost.
-        // Reconcile the signing metadata before reading/revoking/deleting so a retry never targets missing data.
-        Instance stored = await _instanceClient.GetInstance(
-            context.InstanceDataMutator.Instance,
-            StorageAuthenticationMethod.ServiceOwner(),
-            context.CancellationToken
-        );
-        bool IsSigningData(DataElement element) =>
-            element.DataType == configuration.SignatureDataType
-            || element.DataType == configuration.SigneeStatesDataTypeId;
-        List<DataElement> instanceData = context.InstanceDataMutator.Instance.Data ??= [];
-        instanceData.RemoveAll(element => IsSigningData(element));
-        instanceData.AddRange((stored.Data ?? []).Where(IsSigningData));
 
         await _signingService.AbortRuntimeDelegatedSigning(
             context.InstanceDataMutator,

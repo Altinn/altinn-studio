@@ -2,7 +2,6 @@ using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -25,13 +24,11 @@ internal sealed class CompletePaymentCommand : WorkflowEngineCommandBase<Process
 
     private readonly IProcessReader _processReader;
     private readonly IPdfService _pdfService;
-    private readonly IInstanceClient _instanceClient;
 
-    public CompletePaymentCommand(IProcessReader processReader, IPdfService pdfService, IInstanceClient instanceClient)
+    public CompletePaymentCommand(IProcessReader processReader, IPdfService pdfService)
     {
         _processReader = processReader;
         _pdfService = pdfService;
-        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
@@ -47,21 +44,6 @@ internal sealed class CompletePaymentCommand : WorkflowEngineCommandBase<Process
         CancellationToken ct = context.CancellationToken;
         string taskId = payload.TaskId;
         ValidAltinnPaymentConfiguration paymentConfiguration = PaymentTaskConfiguration.Get(_processReader, taskId);
-
-        // A receipt may already have been saved by an attempt whose response was lost. Adopt current
-        // payment/receipt metadata before upserting, without replacing the workflow's virtual process state.
-        Instance stored = await _instanceClient.GetInstance(
-            dataMutator.Instance,
-            StorageAuthenticationMethod.ServiceOwner(),
-            ct
-        );
-        bool IsPaymentData(DataElement element) =>
-            element.DataType == paymentConfiguration.PaymentDataType
-            || element.DataType == paymentConfiguration.PaymentReceiptPdfDataType;
-        DataElement[] currentPaymentData = (stored.Data ?? []).Where(IsPaymentData).ToArray();
-        List<DataElement> instanceData = dataMutator.Instance.Data ??= [];
-        instanceData.RemoveAll(element => IsPaymentData(element));
-        instanceData.AddRange(currentPaymentData);
 
         DataElement? paymentDataElement = dataMutator
             .GetDataElementsForType(paymentConfiguration.PaymentDataType)
@@ -96,8 +78,7 @@ internal sealed class CompletePaymentCommand : WorkflowEngineCommandBase<Process
         using var memoryStream = new MemoryStream();
         await pdfStream.CopyToAsync(memoryStream, ct);
 
-        TaskGeneratedDataElements.UpsertBinaryDataElement(
-            dataMutator,
+        dataMutator.AddBinaryDataElement(
             paymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,

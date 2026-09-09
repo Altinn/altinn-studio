@@ -26,11 +26,15 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
         TRequestPayload? payload;
         try
         {
-            payload = CommandPayloadSerializer.Deserialize<TRequestPayload>(context.CommandPayload);
+            payload = ResolvePayload(context);
         }
         catch (JsonException)
         {
             return InvalidPayload("is not valid JSON for this command");
+        }
+        catch (NotSupportedException)
+        {
+            return InvalidPayload("has an unsupported payload type");
         }
 
         if (payload is null)
@@ -45,6 +49,9 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
 
         return Execute(context, payload);
     }
+
+    protected virtual TRequestPayload? ResolvePayload(ProcessEngineCommandContext context) =>
+        CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.CommandPayload) as TRequestPayload;
 
     private Task<ProcessEngineCommandResult> InvalidPayload(string reason) =>
         Task.FromResult<ProcessEngineCommandResult>(

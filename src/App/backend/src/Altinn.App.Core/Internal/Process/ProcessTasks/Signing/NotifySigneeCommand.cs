@@ -9,8 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
 /// <summary>
-/// Sends one frozen signee's call to action as an independent workflow. The callback holds a fresh instance
-/// lock through execution and saving; the service refreshes stored state and rejects obsolete task entries.
+/// Sends one frozen signee's call to action while the workflow owns the process. Recipient commands execute
+/// sequentially, and the callback saves state through the versioned aggregate mutation boundary.
 /// </summary>
 internal sealed class NotifySigneeCommand : WorkflowEngineCommandBase<SigneeCommandPayload>
 {
@@ -29,11 +29,7 @@ internal sealed class NotifySigneeCommand : WorkflowEngineCommandBase<SigneeComm
     public override string GetKey() => Key;
 
     /// <inheritdoc/>
-    public override ProcessStepOptions DefaultStepOptions =>
-        SigningStepOptions.PlatformCallsPerSignee with
-        {
-            WaitBudget = TimeSpan.FromMinutes(10),
-        };
+    public override ProcessStepOptions DefaultStepOptions => SigningStepOptions.PlatformCallsPerSignee;
 
     /// <inheritdoc/>
     public override async Task<ProcessEngineCommandResult> Execute(

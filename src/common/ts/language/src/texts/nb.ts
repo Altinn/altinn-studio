@@ -588,7 +588,6 @@ export function nb() {
     'service_task.help_text':
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "{0}". Hvis problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
-    'service_task.back_button': 'Gå tilbake',
     'service_task.waiting_title': 'Vi behandler forespørselen din',
     'service_task.waiting_body':
       'Dette kan ta litt tid. Du trenger ikke å gjøre noe, vi går automatisk videre når alt er klart.',

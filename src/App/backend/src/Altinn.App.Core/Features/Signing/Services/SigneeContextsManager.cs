@@ -6,7 +6,6 @@ using Altinn.App.Core.Features.Signing.Extensions;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -21,7 +20,6 @@ namespace Altinn.App.Core.Features.Signing.Services;
 
 internal sealed class SigneeContextsManager(
     IAltinnPartyClient altinnPartyClient,
-    IInstanceClient instanceClient,
     AppImplementationFactory appImplementationFactory,
     IAppMetadata appMetadata,
     ILogger<SigneeContextsManager> logger,
@@ -105,45 +103,6 @@ internal sealed class SigneeContextsManager(
                 .ToList(),
             $"tagged with task '{taskId}'"
         );
-    }
-
-    /// <inheritdoc />
-    public async Task<DataElement?> RefreshTaskSigneeStateElementFromStorage(
-        IInstanceDataMutator instanceDataMutator,
-        AltinnSignatureConfiguration signatureConfiguration,
-        string taskId,
-        CancellationToken ct
-    )
-    {
-        string dataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
-        Instance stored = await instanceClient.GetInstance(
-            instanceDataMutator.Instance,
-            StorageAuthenticationMethod.ServiceOwner(),
-            ct
-        );
-
-        List<DataElement> storedStateElements = (stored.Data ?? [])
-            .Where(dataElement => dataElement.DataType == dataTypeId)
-            .ToList();
-        DataElement? persisted = PickOne(
-            storedStateElements.Where(dataElement => IsGeneratedFromTask(dataElement, taskId)).ToList(),
-            $"tagged with task '{taskId}' in Storage"
-        );
-        List<DataElement> instanceData = instanceDataMutator.Instance.Data ??= [];
-        if (persisted is not null && instanceData.All(dataElement => dataElement.Id != persisted.Id))
-        {
-            logger.LogWarning(
-                "Adopting signee state element {DataElementId} for task {TaskId} from Storage: an earlier attempt "
-                    + "of this step created it, but its response never reached the workflow engine.",
-                persisted.Id,
-                taskId
-            );
-        }
-
-        instanceData.RemoveAll(dataElement => dataElement.DataType == dataTypeId);
-        instanceData.AddRange(storedStateElements);
-
-        return persisted;
     }
 
     /// <inheritdoc />

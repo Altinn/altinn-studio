@@ -8,6 +8,12 @@ Implementation plan and record, 2026-09-08. Starting point:
 `feat/robust-signee-initialization` at `1f40300a3c`. The direct-command refactor is implemented on
 this branch. The original implementation sequence is retained below, followed by verification results.
 
+The remaining sections are the historical bulk-branch plan and its verification record, not a current-main
+port checklist. References to instance leases, `SaveProcessStateToStorage`, bulk `NotifySignees`, and
+the old instance-lock test scenario describe that earlier baseline. The experimental branch uses
+`AcquireProcessingStatus`/`CommitProcessState`, sequential per-recipient notifications, and the
+`ProcessNextConcurrencyTests` scenario; its validation results must be reported separately.
+
 ## Recommended API for this change
 
 The priority is robust signing initialization with transparent retries and a small implementation

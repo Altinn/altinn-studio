@@ -1,10 +1,8 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
@@ -20,17 +18,11 @@ internal sealed class GenerateSigningPdfCommand : WorkflowEngineCommandBase<Proc
 
     private readonly IProcessReader _processReader;
     private readonly IPdfService _pdfService;
-    private readonly IInstanceClient _instanceClient;
 
-    public GenerateSigningPdfCommand(
-        IProcessReader processReader,
-        IPdfService pdfService,
-        IInstanceClient instanceClient
-    )
+    public GenerateSigningPdfCommand(IProcessReader processReader, IPdfService pdfService)
     {
         _processReader = processReader;
         _pdfService = pdfService;
-        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
@@ -53,26 +45,11 @@ internal sealed class GenerateSigningPdfCommand : WorkflowEngineCommandBase<Proc
             return ProcessEngineCommandResult.Completed();
         }
 
-        // A previous attempt may have committed the PDF before its callback response was lost.
-        // Refresh only its metadata, preserving the workflow's virtual process state and other data.
-        Instance stored = await _instanceClient.GetInstance(
-            dataMutator.Instance,
-            StorageAuthenticationMethod.ServiceOwner(),
-            ct
-        );
-        DataElement[] currentSigningPdfs = (stored.Data ?? [])
-            .Where(element => element.DataType == signingPdfDataType)
-            .ToArray();
-        List<DataElement> instanceData = dataMutator.Instance.Data ??= [];
-        instanceData.RemoveAll(element => element.DataType == signingPdfDataType);
-        instanceData.AddRange(currentSigningPdfs);
-
         await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
         using var memoryStream = new MemoryStream();
         await pdfStream.CopyToAsync(memoryStream, ct);
 
-        TaskGeneratedDataElements.UpsertBinaryDataElement(
-            dataMutator,
+        dataMutator.AddBinaryDataElement(
             signingPdfDataType,
             PdfContentType,
             signingPdfDataType + ".pdf",

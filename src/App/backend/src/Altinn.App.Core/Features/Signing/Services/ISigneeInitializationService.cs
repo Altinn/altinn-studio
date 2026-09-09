@@ -41,8 +41,8 @@ internal interface ISigneeInitializationService
 
     /// <summary>
     /// Sends one recipient's call to action using a stable task-entry key and persists success. The caller must
-    /// hold a fresh instance lock through execution and saving, so notifications merge safely and task exit
-    /// cannot race a send. A job for an ended or replaced task entry fails without sending or writing.
+    /// retain process ownership and run recipient commands sequentially through their aggregate save boundaries.
+    /// A command for an ended or replaced task entry fails without sending or writing.
     /// </summary>
     Task ExecuteNotification(
         IInstanceDataMutator instanceDataMutator,

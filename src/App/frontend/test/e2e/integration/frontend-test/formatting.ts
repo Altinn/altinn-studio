@@ -1,7 +1,7 @@
+import type { IFormatting } from '@app/layout-contract/generated/common.generated';
+
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { changeToLang } from 'test/e2e/support/lang';
-
-import type { IFormatting } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
 

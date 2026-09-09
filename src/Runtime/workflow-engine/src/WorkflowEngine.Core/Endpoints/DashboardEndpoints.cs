@@ -539,6 +539,10 @@ internal static class DashboardEndpoints
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
+                            deferCount = s.DeferCount,
+                            firstDeferredAt = s.FirstDeferredAt,
+                            lastDeferredAt = s.LastDeferredAt,
+                            lastDeferReason = s.LastDeferReason,
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,
@@ -669,87 +673,6 @@ internal static class DashboardEndpoints
                         },
                         _jsonCompact
                     );
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapPost(
-                "/dashboard/retry",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
-
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp)
-                        || nsProp.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp.GetString() ?? throw new UnreachableException();
-                    var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
-
-                    return result switch
-                    {
-                        ResumeWorkflowResult.Resumed => Results.Ok(),
-                        ResumeWorkflowResult.NotFound => Results.NotFound(),
-                        ResumeWorkflowResult.NotResumable r => Results.Conflict(
-                            $"Workflow is in {r.CurrentStatus} state"
-                        ),
-                        _ => throw new UnreachableException(),
-                    };
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapPost(
-                "/dashboard/nudge",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
-                {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
-
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
-                        || nsProp2.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp2.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp2.GetString() ?? throw new UnreachableException();
-                    using IServiceScope scope = sp.CreateScope();
-                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
-
-                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/nudge — routed through the
-                    // engine rather than the repository so the dashboard button also wakes the
-                    // processor immediately instead of waiting for its next poll tick.
-                    var result = await engine.NudgeWorkflow(workflowId, ns, ct);
-
-                    return result switch
-                    {
-                        NudgeWorkflowResult.Nudged or NudgeWorkflowResult.AlreadyRunnable => Results.Ok(),
-                        NudgeWorkflowResult.NotFound => Results.NotFound(),
-                        NudgeWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
-                        _ => throw new UnreachableException(),
-                    };
                 }
             )
             .ExcludeFromDescription();

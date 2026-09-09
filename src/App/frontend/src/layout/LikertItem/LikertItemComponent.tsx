@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 
 import { getLabelId, RequiredIndicator } from '@app/form-component';
+import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -8,7 +9,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
-import { LayoutStyle } from 'src/layout/common.generated';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';

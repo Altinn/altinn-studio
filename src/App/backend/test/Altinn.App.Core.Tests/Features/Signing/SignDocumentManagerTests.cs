@@ -188,6 +188,7 @@ public sealed class SignDocumentManagerTests : IDisposable
         {
             TaskId = taskId,
             Signee = signee,
+            AdditionalActionsToDelegate = ["reject"],
             SigneeState = new SigneeContextState { IsAccessDelegated = false },
             SignDocument = signDocument,
         };
@@ -366,6 +367,7 @@ public sealed class SignDocumentManagerTests : IDisposable
         SigneeContext synchronized = Assert.Single(result);
         Assert.NotSame(context, synchronized);
         Assert.Equal(context.SigneeId, synchronized.SigneeId);
+        Assert.Same(context.AdditionalActionsToDelegate, synchronized.AdditionalActionsToDelegate);
         Assert.Same(context.Signee, synchronized.Signee);
         Assert.Null(synchronized.SignDocument);
     }
@@ -393,6 +395,7 @@ public sealed class SignDocumentManagerTests : IDisposable
         Assert.Single(result);
         SigneeContext updatedSigneeContext = result[0];
         Assert.Equal(signeeContext.SigneeId, updatedSigneeContext.SigneeId);
+        Assert.Same(signeeContext.AdditionalActionsToDelegate, updatedSigneeContext.AdditionalActionsToDelegate);
         Assert.NotNull(updatedSigneeContext.SignDocument);
         Assert.Equal(signDocument, updatedSigneeContext.SignDocument);
     }
@@ -476,6 +479,7 @@ public sealed class SignDocumentManagerTests : IDisposable
         Assert.Single(result);
         SigneeContext updatedSigneeContext = result[0];
         Assert.Equal(signeeContext.SigneeId, updatedSigneeContext.SigneeId);
+        Assert.Same(signeeContext.AdditionalActionsToDelegate, updatedSigneeContext.AdditionalActionsToDelegate);
         Assert.NotNull(updatedSigneeContext.SignDocument);
         Assert.Equal(signDocument, updatedSigneeContext.SignDocument);
 
@@ -510,6 +514,7 @@ public sealed class SignDocumentManagerTests : IDisposable
         Assert.Single(result);
         SigneeContext updatedSigneeContext = result[0];
         Assert.Equal(signeeContext.SigneeId, updatedSigneeContext.SigneeId);
+        Assert.Same(signeeContext.AdditionalActionsToDelegate, updatedSigneeContext.AdditionalActionsToDelegate);
         Assert.NotNull(updatedSigneeContext.SignDocument);
         Assert.Equal(signDocument, updatedSigneeContext.SignDocument);
 

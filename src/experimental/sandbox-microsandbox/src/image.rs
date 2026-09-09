@@ -58,6 +58,18 @@ impl MicrosandboxImageBackend {
         self.docker.as_ref().map_err(|failure| Error::Backend(failure.clone()))
     }
 
+    /// Scratch directory for image and build-context archives, inside the Microsandbox cache.
+    ///
+    /// The system temporary directory is often a small tmpfs (a Sandbox guest gives `/tmp`
+    /// 512 MiB), while an exported image archive is as large as the image itself.
+    async fn scratch_dir(&self) -> Result<PathBuf, Error> {
+        let scratch = self.client.local().cache_dir().join("tmp");
+        tokio::fs::create_dir_all(&scratch)
+            .await
+            .map_err(|source| error::io("create image scratch directory", source))?;
+        Ok(scratch)
+    }
+
     async fn build_image(
         &self,
         request: &image::ResolveRequest,
@@ -67,7 +79,9 @@ impl MicrosandboxImageBackend {
     ) -> Result<image::ResolvedImage, Error> {
         let platform = platform::require_supported(&request.platform)?;
         self.check_docker(progress).await?;
-        let prepared = Self::prepare_context(context, dockerfile, &request.platform, progress).await?;
+        let prepared = self
+            .prepare_context(context, dockerfile, &request.platform, progress)
+            .await?;
         let build_id = Uuid::new_v4().simple().to_string();
         let temporary_tag = format!("sandbox-microsandbox-build:{build_id}");
         self.build_docker_image(&prepared, &temporary_tag, &build_id, &platform, progress)
@@ -101,6 +115,7 @@ impl MicrosandboxImageBackend {
     }
 
     async fn prepare_context(
+        &self,
         source_context: &Path,
         source_dockerfile: &Path,
         platform: &sandbox::Platform,
@@ -121,7 +136,7 @@ impl MicrosandboxImageBackend {
         let dockerfile_parameter = archive_path(&relative_dockerfile)?;
 
         let cache_tag = cache_tag(&context, &dockerfile_parameter, platform);
-        let archive = create_context_archive(context, relative_dockerfile).await?;
+        let archive = create_context_archive(self.scratch_dir().await?, context, relative_dockerfile).await?;
         step.complete(started.elapsed()).await;
         Ok(PreparedBuild {
             archive,
@@ -313,8 +328,9 @@ impl MicrosandboxImageBackend {
             },
         );
         let report = async {
+            let mut pull = PullReport::default();
             while let Some(event) = import_events.recv().await {
-                report_image_progress(&step, event).await;
+                pull.report(&step, event).await;
             }
         };
         let (loaded, ()) = tokio::join!(load, report);
@@ -335,7 +351,7 @@ impl MicrosandboxImageBackend {
     }
 
     async fn export_image(&self, reference: &str, step: &ProgressStep) -> Result<tempfile::TempPath, Error> {
-        let archive = tempfile::NamedTempFile::new()
+        let archive = tempfile::NamedTempFile::new_in(self.scratch_dir().await?)
             .map_err(|source| error::io("create Docker image archive", source))?
             .into_temp_path();
         let mut file = tokio::fs::File::create(&archive)
@@ -420,8 +436,9 @@ impl MicrosandboxImageBackend {
             let (mut events, sender) = microsandbox_image::progress_channel();
             let pull = registry.pull_with_sender(&parsed, &options, sender);
             let report = async {
+                let mut pull = PullReport::default();
                 while let Some(event) = events.recv().await {
-                    report_image_progress(&step, event).await;
+                    pull.report(&step, event).await;
                 }
             };
             let (result, ()) = tokio::join!(pull, report);
@@ -645,41 +662,108 @@ async fn report_buildkit_status(
     Ok(())
 }
 
-async fn report_image_progress(step: &ProgressStep, event: microsandbox_image::PullProgress) {
-    match event {
-        microsandbox_image::PullProgress::Resolved { layer_count, .. } => {
-            step.progress(0, u64::try_from(layer_count).ok(), ProgressUnit::Items)
+/// Translates registry pull events into one step's progress.
+///
+/// Layer counts keep their total across events, byte progress covers both the
+/// download and the materialization of each layer, and the stitch stages that
+/// have no byte progress are named as output so a long root-disk write is
+/// visibly in progress rather than silent.
+#[derive(Default)]
+struct PullReport {
+    layers: Option<u64>,
+    /// Total download size announced by the registry, when known up front.
+    total_download_bytes: Option<u64>,
+    /// Bytes downloaded and expected per layer; layers download concurrently.
+    downloads: std::collections::BTreeMap<usize, (u64, Option<u64>)>,
+}
+
+impl PullReport {
+    async fn report(&mut self, step: &ProgressStep, event: microsandbox_image::PullProgress) {
+        use microsandbox_image::PullProgress;
+        match event {
+            PullProgress::Resolved {
+                layer_count,
+                total_download_bytes,
+                ..
+            } => {
+                self.layers = u64::try_from(layer_count).ok();
+                self.total_download_bytes = total_download_bytes;
+                step.progress(0, self.layers, ProgressUnit::Items).await;
+            }
+            PullProgress::LayerDownloadProgress {
+                layer_index,
+                downloaded_bytes,
+                total_bytes,
+                ..
+            } => {
+                self.downloads.insert(layer_index, (downloaded_bytes, total_bytes));
+                let (downloaded, total) = self.download_totals();
+                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+            }
+            PullProgress::LayerDownloadComplete {
+                layer_index,
+                downloaded_bytes,
+                ..
+            } => {
+                self.downloads
+                    .insert(layer_index, (downloaded_bytes, Some(downloaded_bytes)));
+                let (downloaded, total) = self.download_totals();
+                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+            }
+            PullProgress::LayerMaterializeStarted { layer_index, .. } => {
+                step.output(
+                    OutputStream::Stdout,
+                    self.layer_line("Materializing layer", layer_index),
+                )
                 .await;
+            }
+            PullProgress::LayerMaterializeProgress {
+                bytes_read,
+                total_bytes,
+                ..
+            } => step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await,
+            PullProgress::LayerMaterializeComplete { layer_index, .. } => {
+                let completed = u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX);
+                step.progress(completed, self.layers, ProgressUnit::Items).await;
+            }
+            PullProgress::StitchMergingTrees { layer_count } => {
+                step.output(OutputStream::Stdout, format!("Merging {layer_count} layer trees\n"))
+                    .await;
+            }
+            PullProgress::StitchWritingFsmeta => {
+                step.output(OutputStream::Stdout, "Writing filesystem metadata\n").await;
+            }
+            PullProgress::StitchWritingVmdk => {
+                step.output(OutputStream::Stdout, "Writing root disk image\n").await;
+            }
+            PullProgress::Complete { layer_count, .. } => {
+                let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
+                step.progress(completed, Some(completed), ProgressUnit::Items).await;
+            }
+            PullProgress::Resolving { .. }
+            | PullProgress::LayerDownloadVerifying { .. }
+            | PullProgress::LayerMaterializeWriting { .. }
+            | PullProgress::StitchComplete => {}
         }
-        microsandbox_image::PullProgress::LayerMaterializeProgress {
-            bytes_read,
-            total_bytes,
-            ..
-        } => {
-            step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await;
-        }
-        microsandbox_image::PullProgress::LayerMaterializeComplete { layer_index, .. } => {
-            step.progress(
-                u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX),
-                None,
-                ProgressUnit::Items,
-            )
-            .await;
-        }
-        microsandbox_image::PullProgress::Complete { layer_count, .. } => {
-            let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
-            step.progress(completed, Some(completed), ProgressUnit::Items).await;
-        }
-        microsandbox_image::PullProgress::Resolving { .. }
-        | microsandbox_image::PullProgress::LayerDownloadProgress { .. }
-        | microsandbox_image::PullProgress::LayerDownloadComplete { .. }
-        | microsandbox_image::PullProgress::LayerDownloadVerifying { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeStarted { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeWriting { .. }
-        | microsandbox_image::PullProgress::StitchMergingTrees { .. }
-        | microsandbox_image::PullProgress::StitchWritingFsmeta
-        | microsandbox_image::PullProgress::StitchWritingVmdk
-        | microsandbox_image::PullProgress::StitchComplete => {}
+    }
+
+    /// Sums per-layer download progress; the total is the registry's figure when it
+    /// announced one, otherwise the sum of the layer sizes seen so far.
+    fn download_totals(&self) -> (u64, Option<u64>) {
+        let downloaded = self.downloads.values().map(|(bytes, _)| bytes).sum();
+        let total = self.total_download_bytes.or_else(|| {
+            let known: Vec<u64> = self.downloads.values().filter_map(|(_, total)| *total).collect();
+            (known.len() == self.downloads.len() && !known.is_empty()).then(|| known.iter().sum())
+        });
+        (downloaded, total)
+    }
+
+    fn layer_line(&self, activity: &str, layer_index: usize) -> String {
+        let ordinal = layer_index.saturating_add(1);
+        self.layers.map_or_else(
+            || format!("{activity} {ordinal}\n"),
+            |total| format!("{activity} {ordinal}/{total}\n"),
+        )
     }
 }
 
@@ -744,9 +828,13 @@ impl image::ImageBackend for MicrosandboxImageBackend {
     }
 }
 
-async fn create_context_archive(context: PathBuf, dockerfile: PathBuf) -> Result<tempfile::TempPath, Error> {
+async fn create_context_archive(
+    scratch: PathBuf,
+    context: PathBuf,
+    dockerfile: PathBuf,
+) -> Result<tempfile::TempPath, Error> {
     tokio::task::spawn_blocking(move || {
-        let archive = tempfile::NamedTempFile::new()?;
+        let archive = tempfile::NamedTempFile::new_in(scratch)?;
         let path = archive.into_temp_path();
         let file = File::create(&path)?;
         let ignore = dockerignore(&context)?;
@@ -846,10 +934,13 @@ mod tests {
         fs::write(context.path().join("nested/included.txt"), "included").expect("re-included file should be written");
         fs::write(context.path().join("nested/ignored.txt"), "ignored").expect("nested ignored file should be written");
 
-        let archive =
-            super::create_context_archive(context.path().to_path_buf(), Path::new("Dockerfile").to_path_buf())
-                .await
-                .expect("context archive should be created");
+        let archive = super::create_context_archive(
+            std::env::temp_dir(),
+            context.path().to_path_buf(),
+            Path::new("Dockerfile").to_path_buf(),
+        )
+        .await
+        .expect("context archive should be created");
         let file = fs::File::open(archive).expect("context archive should open");
         let entries = tar::Archive::new(file)
             .entries()

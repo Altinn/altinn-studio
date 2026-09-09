@@ -7,13 +7,14 @@ const appFrontend = new AppFrontend();
 
 describe('Service task', () => {
   it('failure view takes precedence over the custom layout, which still serves the PDF', { retries: 0 }, () => {
-    startAppAndFillToFailure();
+    startAppAndFillForm({ shouldFail: true });
 
     // Task_Fail has a custom layout-set, but a terminal failure owned by the service task renders
     // the recoverable failure view instead (#18935: failure takes precedence over layout). The
     // layout's own "Prøv igjen" was a plain process/next Button - a silent no-op on a terminally
     // failed v9 workflow - while the failure view's retry goes through process/resume and works.
     cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
     cy.findByText('Uff da! Her tryna denne service-tasken, men det var jo du som valgte at det skulle skje.').should(
       'not.exist',
     );
@@ -27,7 +28,6 @@ describe('Service task', () => {
     // not have a pdfLayoutName, so it will auto-generate a PDF.
     cy.testPdf({
       snapshotName: 'service-task-with-layout',
-      returnToForm: true,
       enableResponseFuzzing: false,
       callback: () => {
         // This is not a great-looking PDF, but when overriding it is the responsibility of the
@@ -37,8 +37,6 @@ describe('Service task', () => {
         ).should('be.visible');
       },
     });
-
-    goBackAndAchieveSuccess();
   });
 
   it('should display something sensible when there is no layout-set for the service task', { retries: 0 }, () => {
@@ -50,15 +48,15 @@ describe('Service task', () => {
       delete globalData.ui.folders.Task_Fail;
     });
 
-    startAppAndFillToFailure();
+    startAppAndFillForm({ shouldFail: true });
 
     cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
     cy.findByText(/Du kan prøve å utføre behandlingen på nytt/).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
     cy.visualTesting('service-task-no-layout-set');
 
     cy.testPdf({
       snapshotName: 'service-task-with-multiple-tasks',
-      returnToForm: true,
       enableResponseFuzzing: false,
       buildUrl: (href) => {
         const queryArgs = new URLSearchParams();
@@ -77,12 +75,21 @@ describe('Service task', () => {
         cy.findByText('Himling med øyne og skuldertrekk fra Task_Utfylling2').should('be.visible');
       },
     });
+  });
 
-    goBackAndAchieveSuccess();
+  it('successful service tasks produce both PDFs on the receipt', { retries: 0 }, () => {
+    startAppAndFillForm({ shouldFail: false });
+
+    cy.findByText('Skjemaet er sendt inn').should('be.visible');
+    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 2);
+    cy.findByRole('link', { name: /Autogenerert PDF av Task_Utfylling1 og Task_Utfylling2\.pdf$/ }).should(
+      'be.visible',
+    );
+    cy.findByRole('link', { name: /PDF basert på layout-set\.pdf$/ }).should('be.visible');
   });
 });
 
-function startAppAndFillToFailure() {
+function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
   cy.startAppInstance(appFrontend.apps.serviceTask, { cyUser: 'manager' });
   cy.get('#finishedLoading').should('exist');
   cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).type('En hilsen fra Task_Utfylling1');
@@ -110,25 +117,8 @@ function startAppAndFillToFailure() {
     'Himling med øyne og skuldertrekk fra Task_Utfylling2',
   );
   cy.findByRole('radiogroup', { name: /Skal Task_Fail servicetask feile\?/ })
-    .findByRole('radio', { name: 'Ja' })
+    .findByRole('radio', { name: shouldFail ? 'Ja' : 'Nei' })
     .click();
   cy.waitUntilSaved();
   cy.findByRole('button', { name: 'Neste' }).click();
-}
-
-function goBackAndAchieveSuccess() {
-  cy.waitUntilSaved();
-  cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
-  cy.findByRole('button', { name: 'Gå tilbake' }).click();
-
-  cy.findByRole('radiogroup', { name: /Skal Task_Fail servicetask feile\?/ })
-    .findByRole('radio', { name: 'Nei' })
-    .click();
-  cy.waitUntilSaved();
-  cy.findByRole('button', { name: 'Neste' }).click();
-
-  cy.findByText('Skjemaet er sendt inn').should('be.visible');
-  cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 2);
-  cy.findByRole('link', { name: /Autogenerert PDF av Task_Utfylling1 og Task_Utfylling2\.pdf$/ }).should('be.visible');
-  cy.findByRole('link', { name: /PDF basert på layout-set\.pdf$/ }).should('be.visible');
 }

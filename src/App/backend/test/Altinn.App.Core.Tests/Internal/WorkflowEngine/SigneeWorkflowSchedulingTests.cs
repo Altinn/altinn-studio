@@ -31,7 +31,7 @@ public class SigneeWorkflowSchedulingTests
     private const string State = "signed-published-state";
 
     [Fact]
-    public async Task Initialization_SequentialRecipientsThenOriginalTail_NotificationsScheduledImmediatelyAfterCommit()
+    public async Task Initialization_AllDelegationsThenAllNotifications_PrecedeOriginalTailAndCommit()
     {
         var requests = new ConcurrentQueue<EnqueueCall>();
         var client = CreateClient(requests);
@@ -58,9 +58,10 @@ public class SigneeWorkflowSchedulingTests
             {
                 "DelegateSigneeRights",
                 "DelegateSigneeRights",
+                "NotifySignee",
+                "NotifySignee",
                 "CustomerBeforeCommit",
-                SaveProcessStateToStorage.Key,
-                ScheduleSigneeNotifications.Key,
+                CommitProcessState.Key,
                 EnqueueSideEffectsWorkflow.Key,
                 "ExecuteServiceTask",
             },
@@ -88,19 +89,35 @@ public class SigneeWorkflowSchedulingTests
         );
         Assert.Equal(
             JsonSerializer.Serialize(payload.Continuation.Workflows[0].Steps[0]),
-            JsonSerializer.Serialize(workflow.Steps[2])
+            JsonSerializer.Serialize(workflow.Steps[4])
         );
         Assert.Equal(
             JsonSerializer.Serialize(payload.Continuation.Workflows[0].Steps[^1]),
             JsonSerializer.Serialize(workflow.Steps[^1])
         );
-        var notifications = Payload<ScheduleSigneeNotificationsPayload>(workflow.Steps[4]);
-        Assert.Equal(StateElementId, notifications.SigneeStateElementId);
-        Assert.Equal(new[] { FirstSigneeId, SecondSigneeId }, notifications.SigneeIds);
         Assert.Equal(
-            "NotifySignee",
-            Assert.Single(Assert.Single(notifications.Notifications.Workflows).Steps).OperationId
+            new SigneeCommandPayload(TaskId, StateElementId, FirstSigneeId),
+            Payload<SigneeCommandPayload>(workflow.Steps[2])
         );
+        Assert.Equal(
+            new SigneeCommandPayload(TaskId, StateElementId, SecondSigneeId),
+            Payload<SigneeCommandPayload>(workflow.Steps[3])
+        );
+        Assert.All(
+            workflow.Steps.Skip(2).Take(2),
+            step =>
+            {
+                Assert.Equal(TimeSpan.FromSeconds(60), step.Command.MaxExecutionTime);
+                Assert.Equal(5, step.RetryStrategy!.MaxRetries);
+                Assert.Equal(
+                    StateElementId.ToString("D"),
+                    step.Labels![SigningWorkflowLabels.SigningInitializationLabel]
+                );
+                Assert.Equal(TaskId, step.Labels[SigningWorkflowLabels.SigningTaskLabel]);
+            }
+        );
+        Assert.Equal(FirstSigneeId.ToString("D"), workflow.Steps[2].Labels![SigningWorkflowLabels.SigningSigneeLabel]);
+        Assert.Equal(SecondSigneeId.ToString("D"), workflow.Steps[3].Labels![SigningWorkflowLabels.SigningSigneeLabel]);
     }
 
     [Fact]
@@ -124,60 +141,6 @@ public class SigneeWorkflowSchedulingTests
         Assert.Equal(2, calls.Length);
         Assert.Equal(calls[0].Key, calls[1].Key);
         Assert.Equal(JsonSerializer.Serialize(calls[0].Request), JsonSerializer.Serialize(calls[1].Request));
-    }
-
-    [Fact]
-    public async Task Notifications_PartialEnqueueFailure_AttemptsOtherRecipients_AndRetryDeduplicatesEachJob()
-    {
-        var requests = new ConcurrentQueue<EnqueueCall>();
-        int firstRecipientAttempts = 0;
-        var client = CreateClient(
-            requests,
-            request =>
-                request.Labels![SigningWorkflowLabels.SigningSigneeLabel] == FirstSigneeId.ToString("D")
-                && Interlocked.Increment(ref firstRecipientAttempts) == 1
-                    ? new HttpRequestException("response lost")
-                    : null
-        );
-        var command = new ScheduleSigneeNotifications(client.Object);
-        var payload = CreateNotificationPayload();
-
-        var failure = Assert.IsType<FailedProcessEngineCommandResult>(await command.Execute(CreateContext(), payload));
-        Assert.False(failure.NonRetryable);
-        Assert.Equal(2, requests.Count);
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(await command.Execute(CreateContext(), RoundTrip(payload)));
-
-        Assert.Equal(4, requests.Count);
-        foreach (Guid signeeId in payload.SigneeIds)
-        {
-            EnqueueCall[] calls = requests
-                .Where(call => call.Request.Labels![SigningWorkflowLabels.SigningSigneeLabel] == signeeId.ToString("D"))
-                .ToArray();
-            Assert.Equal(2, calls.Length);
-            Assert.Equal(ScheduleSigneeNotifications.CreateIdempotencyKey(StepId, signeeId), calls[0].Key);
-            Assert.Equal(calls[0].Key, calls[1].Key);
-            Assert.Equal(JsonSerializer.Serialize(calls[0].Request), JsonSerializer.Serialize(calls[1].Request));
-            Assert.Equal("ttd/test-app", calls[0].Namespace);
-            Assert.Equal(InstanceId.InstanceGuid.ToString(), calls[0].CollectionKey);
-            Dictionary<string, string> labels = calls[0].Request.Labels!;
-            Assert.Equal("true", labels[SigningWorkflowLabels.SigningNotificationLabel]);
-            Assert.Equal(TaskId, labels[SigningWorkflowLabels.SigningTaskLabel]);
-            Assert.Equal(StateElementId.ToString("D"), labels[SigningWorkflowLabels.SigningInitializationLabel]);
-            Assert.Equal("Task_Signing:1", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
-            WorkflowRequest workflow = Assert.Single(calls[0].Request.Workflows);
-            Assert.False(workflow.IsHead);
-            Assert.False(workflow.DependsOnHeads);
-            Assert.Null(workflow.DependsOn);
-            Assert.Equal(WorkflowId, Assert.Single(workflow.Links!).Id);
-            Assert.Equal(State, workflow.State);
-            StepRequest step = Assert.Single(workflow.Steps);
-            Assert.Equal(
-                new SigneeCommandPayload(TaskId, StateElementId, signeeId),
-                Payload<SigneeCommandPayload>(step)
-            );
-            Assert.Equal(TimeSpan.FromSeconds(60), step.Command.MaxExecutionTime);
-            Assert.Equal(5, step.RetryStrategy!.MaxRetries);
-        }
     }
 
     [Theory]
@@ -207,31 +170,7 @@ public class SigneeWorkflowSchedulingTests
     }
 
     [Fact]
-    public async Task Notifications_OneDeterministicRejection_TakesPrecedenceOverTransientSiblingFailure()
-    {
-        var requests = new ConcurrentQueue<EnqueueCall>();
-        var client = CreateClient(
-            requests,
-            request => new HttpRequestException(
-                "Engine rejected request",
-                null,
-                request.Labels![SigningWorkflowLabels.SigningSigneeLabel] == FirstSigneeId.ToString("D")
-                    ? HttpStatusCode.ServiceUnavailable
-                    : HttpStatusCode.BadRequest
-            )
-        );
-        var command = new ScheduleSigneeNotifications(client.Object);
-
-        var failure = Assert.IsType<FailedProcessEngineCommandResult>(
-            await command.Execute(CreateContext(), CreateNotificationPayload())
-        );
-
-        Assert.True(failure.NonRetryable);
-        Assert.Equal(2, requests.Count);
-    }
-
-    [Fact]
-    public async Task Notifications_RequestedCancellation_IsPropagated()
+    public async Task Initialization_RequestedCancellation_IsPropagated()
     {
         using var cancellation = new CancellationTokenSource();
         var client = CreateClient(
@@ -242,10 +181,11 @@ public class SigneeWorkflowSchedulingTests
                 return new OperationCanceledException(cancellation.Token);
             }
         );
-        var command = new ScheduleSigneeNotifications(client.Object);
+        using var services = CreateServices();
+        var command = new ScheduleSigneeInitialization(services, CreateProcessReader().Object, client.Object);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            command.Execute(CreateContext(cancellation.Token), CreateNotificationPayload())
+            command.Execute(CreateContext(cancellation.Token), CreateInitializationPayload())
         );
     }
 
@@ -309,17 +249,6 @@ public class SigneeWorkflowSchedulingTests
         Assert.True(failure.NonRetryable);
     }
 
-    [Fact]
-    public async Task Notifications_DuplicateRecipient_IsPermanentAndDoesNotEnqueue()
-    {
-        var command = new ScheduleSigneeNotifications(Mock.Of<IWorkflowEngineClient>(MockBehavior.Strict));
-        var payload = CreateNotificationPayload() with { SigneeIds = [FirstSigneeId, FirstSigneeId] };
-
-        var failure = Assert.IsType<FailedProcessEngineCommandResult>(await command.Execute(CreateContext(), payload));
-
-        Assert.True(failure.NonRetryable);
-    }
-
     private static ScheduleSigneeInitializationPayload CreateInitializationPayload() =>
         new(
             TaskId,
@@ -329,9 +258,7 @@ public class SigneeWorkflowSchedulingTests
                 {
                     [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_Signing:1",
                 },
-                Context = JsonSerializer.SerializeToElement(
-                    new { lockToken = "frozen-lock", callbackToken = "frozen-token" }
-                ),
+                Context = JsonSerializer.SerializeToElement(new { callbackToken = "frozen-token" }),
                 Workflows =
                 [
                     new WorkflowRequest
@@ -343,7 +270,7 @@ public class SigneeWorkflowSchedulingTests
                                 SigningWorkflowSteps.Create("CustomerBeforeCommit"),
                                 new ProcessTaskPayload("unchanged")
                             ),
-                            SigningWorkflowSteps.Create(SaveProcessStateToStorage.Key),
+                            SigningWorkflowSteps.Create(CommitProcessState.Key),
                             SigningWorkflowSteps.Create(EnqueueSideEffectsWorkflow.Key),
                             SigningWorkflowSteps.Create("ExecuteServiceTask"),
                         ],
@@ -369,32 +296,8 @@ public class SigneeWorkflowSchedulingTests
                         MaxExecutionTime = TimeSpan.FromSeconds(60),
                         RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 5),
                     }
-                ),
-            SigningWorkflowSteps.Create(ScheduleSigneeNotifications.Key)
+                )
         );
-
-    private static ScheduleSigneeNotificationsPayload CreateNotificationPayload()
-    {
-        var initialization = CreateInitializationPayload();
-        return new(
-            TaskId,
-            StateElementId,
-            [FirstSigneeId, SecondSigneeId],
-            initialization.Continuation! with
-            {
-                Workflows =
-                [
-                    new WorkflowRequest
-                    {
-                        OperationId = "Signing notification",
-                        Steps = [initialization.NotificationStep!],
-                        IsHead = false,
-                        DependsOnHeads = false,
-                    },
-                ],
-            }
-        );
-    }
 
     private static ServiceProvider CreateServices()
     {
@@ -444,7 +347,6 @@ public class SigneeWorkflowSchedulingTests
             {
                 CommandKey = ScheduleSigneeInitialization.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "frozen-lock",
                 WorkflowId = WorkflowId,
                 StepId = StepId,
                 State = State,

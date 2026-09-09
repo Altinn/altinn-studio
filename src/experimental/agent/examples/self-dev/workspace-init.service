@@ -1,5 +1,5 @@
 [Unit]
-Description=Initialize the Altinn Studio Agent workspace
+Description=Initialize the Agent workspace checkout
 Wants=network-online.target
 After=network-online.target
 Before=multi-user.target

@@ -8,6 +8,7 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -944,12 +945,42 @@ public class MaskinportenClientTests
         Assert.Equal(1, fetchCount());
     }
 
+    /// <summary>
+    /// A hostname that <see cref="RuntimeEnvironment.IsLocaltestPlatform"/> does not recognize as localtest,
+    /// i.e. an app deployed to a real environment. This is the default for the refresh service tests,
+    /// because a localtest app deliberately skips the refresh loop entirely.
+    /// </summary>
+    private const string DeployedHostName = "at22.altinn.cloud";
+
+    /// <summary>
+    /// The hostname a locally run app has, per the <c>GeneralSettings.HostName</c> default and everything
+    /// that configures it (studioctl, the app template, the apps under <c>src/test/apps</c>).
+    /// </summary>
+    private const string LocaltestHostName = "local.altinn.cloud";
+
+    /// <summary>
+    /// A <see cref="RuntimeEnvironment"/> that reports the given hostname. The hostname is the only input
+    /// to <see cref="RuntimeEnvironment.IsLocaltestPlatform"/>, which is what decides whether
+    /// <see cref="MaskinportenWellKnownRefreshService"/> runs its refresh loop at all.
+    /// </summary>
+    private static RuntimeEnvironment RuntimeEnvironmentFor(string hostName)
+    {
+        var generalSettings = new Mock<IOptionsMonitor<GeneralSettings>>();
+        generalSettings.Setup(x => x.CurrentValue).Returns(new GeneralSettings { HostName = hostName });
+        var platformSettings = new Mock<IOptionsMonitor<PlatformSettings>>();
+        platformSettings.Setup(x => x.CurrentValue).Returns(new PlatformSettings());
+
+        return new RuntimeEnvironment(generalSettings.Object, platformSettings.Object);
+    }
+
     private MaskinportenWellKnownRefreshService RefreshService(
         Fixture fixture,
-        ILogger<MaskinportenWellKnownRefreshService>? logger = null
+        ILogger<MaskinportenWellKnownRefreshService>? logger = null,
+        string hostName = DeployedHostName
     ) =>
         new(
             fixture.App.Services,
+            RuntimeEnvironmentFor(hostName),
             logger ?? fixture.App.Services.GetRequiredService<ILogger<MaskinportenWellKnownRefreshService>>(),
             fixture.FakeTime
         );
@@ -1153,8 +1184,9 @@ public class MaskinportenClientTests
     [Fact]
     public async Task WellKnownRefreshService_UnconfiguredSettings_SkipsSilently()
     {
-        // Arrange - Maskinporten is not configured, so the settings read inside the refresh throws
-        // OptionsValidationException, which the service must swallow at Debug level
+        // Arrange - a deployed app that does not use Maskinporten (the internal variant is unconfigured
+        // in nearly every app): the settings read inside the refresh throws OptionsValidationException,
+        // which the service must swallow at Debug level. Localtest is covered separately, by the gate.
         await using var fixture = Fixture.Create(configureMaskinporten: false);
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
@@ -1184,6 +1216,44 @@ public class MaskinportenClientTests
     }
 
     [Fact]
+    public async Task WellKnownRefreshService_OnLocaltestPlatform_LeavesResolutionToTheRequestPath()
+    {
+        // Arrange - Maskinporten IS configured here, so the platform is the only thing that can stop
+        // the refresh loop, and a skipped refresh cannot be mistaken for a missing configuration
+        await using var fixture = Fixture.Create();
+        const string expectedIssuer = "https://issuer.maskinporten.no/";
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) => Task.FromResult(WellKnownSuccessResponse(expectedIssuer))
+        );
+        var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
+        using var service = RefreshService(fixture, logger, hostName: LocaltestHostName);
+
+        // Act - ExecuteAsync returns as soon as it has seen the platform, so awaiting ExecuteTask is a
+        // deterministic "the gate has run" signal rather than a race against the first iteration
+        await service.StartAsync(CancellationToken.None);
+        await service.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // The loop is gone rather than merely idle: a full interval produces no refresh
+        fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
+        var fetchesBeforeCaller = fetchCount();
+
+        // ...and the warm-up was never load-bearing: a real caller still resolves the true issuer
+        var result = await fixture.Client(MaskinportenClient.VariantDefault).GetAudienceFromWellKnown();
+        await service.StopAsync(CancellationToken.None);
+
+        // Assert - nothing refreshed, one on-demand fetch, and a single self-explanatory Debug line
+        // instead of the per-variant skip entries an unconfigured localtest app used to produce
+        Assert.False(service.ExecuteTask.IsFaulted);
+        Assert.Equal(0, fetchesBeforeCaller);
+        Assert.Equal(expectedIssuer, result);
+        Assert.Equal(1, fetchCount());
+        var entry = Assert.Single(logger.Snapshot());
+        Assert.Equal(LogLevel.Debug, entry.Level);
+        Assert.Contains("localtest", entry.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task WellKnownRefreshService_ServiceResolutionFailureDoesNotFaultTheService()
     {
         // Arrange - a broken DI graph (client construction pulls IOptionsMonitor/IHttpClientFactory/
@@ -1196,6 +1266,7 @@ public class MaskinportenClientTests
         var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
         using var service = new MaskinportenWellKnownRefreshService(
             provider.Object,
+            RuntimeEnvironmentFor(DeployedHostName),
             logger,
             new FakeTimeProvider(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero))
         );

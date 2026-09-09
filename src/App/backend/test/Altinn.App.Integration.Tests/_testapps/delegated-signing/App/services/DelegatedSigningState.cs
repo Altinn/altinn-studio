@@ -1,7 +1,10 @@
 #nullable enable
 
 using System.Net;
+using System.Text.Json;
 using Altinn.App.Core.Features.Signing;
+using Altinn.App.Core.Features.Signing.Models;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using TestApp.Shared;
 
@@ -18,6 +21,8 @@ public sealed record FailureRequest
 public sealed record ResetSigningRequest
 {
     public string[] Signees { get; init; } = ["01899699552", "17858296439"];
+    public string[]? SigneesOnProviderRetry { get; init; }
+    public string? LoseCallbackResponseOnce { get; set; }
     public bool HoldProvider { get; set; }
     public bool ProviderContractFailure { get; set; }
     public bool LoseResolveResponseOnce { get; set; }
@@ -62,6 +67,9 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
     private ResetSigningRequest _plan = new();
     private int _providerCalls;
     private int _lostResolveResponses;
+    private int _lostCallbackResponses;
+    private readonly List<string> _resolvedStateElementIds = [];
+    private readonly List<Guid[]> _resolvedSigneeIds = [];
     private int _lostAbortResponses;
     private readonly List<DelegationAttempt> _delegations = [];
     private readonly List<RevocationAttempt> _revocations = [];
@@ -81,6 +89,9 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
                     _plan = request;
                     _providerCalls = 0;
                     _lostResolveResponses = 0;
+                    _lostCallbackResponses = 0;
+                    _resolvedStateElementIds.Clear();
+                    _resolvedSigneeIds.Clear();
                     _lostAbortResponses = 0;
                     _delegations.Clear();
                     _revocations.Clear();
@@ -101,6 +112,7 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
                     _plan.HoldProvider = false;
                     _plan.ProviderContractFailure = false;
                     _plan.LoseResolveResponseOnce = false;
+                    _plan.LoseCallbackResponseOnce = null;
                     _plan.LoseAbortResponseOnce = false;
                     _plan.DelegationFailure = null;
                     _plan.NotificationFailure = null;
@@ -124,6 +136,9 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
                             callbacks = _callbacks.ToArray(),
                             acceptedNotificationCount = _acceptedNotifications.Count,
                             lostResolveResponses = _lostResolveResponses,
+                            lostCallbackResponses = _lostCallbackResponses,
+                            resolvedStateElementIds = _resolvedStateElementIds.ToArray(),
+                            resolvedSigneeIds = _resolvedSigneeIds.ToArray(),
                             lostAbortResponses = _lostAbortResponses,
                         }
                     );
@@ -154,8 +169,8 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
                 );
             return new SigneeProviderResult
             {
-                Signees = _plan
-                    .Signees.Select(
+                Signees = (_providerCalls > 1 ? _plan.SigneesOnProviderRetry ?? _plan.Signees : _plan.Signees)
+                    .Select(
                         (ssn, index) =>
                             (ProvidedSignee)
                                 new ProvidedPerson
@@ -224,10 +239,36 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
         }
     }
 
-    public int RecordCallback(AppCallbackPayload payload, string commandKey, int statusCode, bool deferred = false)
+    public int RecordCallback(
+        AppCallbackPayload payload,
+        string commandKey,
+        int statusCode,
+        bool deferred = false,
+        string? publishedState = null
+    )
     {
         lock (_gate)
         {
+            if (commandKey == "ResolveSignees" && statusCode is >= 200 and < 300 && publishedState is not null)
+            {
+                // Inspect the exact successful response before simulating its loss. It contains the
+                // authoritative aggregate result, including on a Storage replay of this callback.
+                var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(publishedState)!;
+                var snapshot = JsonSerializer.Deserialize<WorkflowCallbackState>(envelope.Payload)!;
+                var entry = snapshot.TaskStateData!.Single(data => data.DataType == "signee-states");
+                var contexts = JsonSerializer.Deserialize<List<SigneeContext>>(
+                    entry.Data,
+                    SigneeStateSerialization.Options
+                )!;
+                _resolvedStateElementIds.Add(entry.Id);
+                _resolvedSigneeIds.Add(contexts.Select(context => context.SigneeId!.Value).ToArray());
+            }
+            if (commandKey == _plan.LoseCallbackResponseOnce && statusCode is >= 200 and < 300)
+            {
+                _plan.LoseCallbackResponseOnce = null;
+                _lostCallbackResponses++;
+                statusCode = 503;
+            }
             if (commandKey == "ResolveSignees" && statusCode is >= 200 and < 300 && _plan.LoseResolveResponseOnce)
             {
                 _plan.LoseResolveResponseOnce = false;

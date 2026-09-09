@@ -97,7 +97,13 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
             }
         );
         using var readPatchResponse = await patchResponse.Read<DataPatchResponseMultiple>();
-        await verifier.Verify(readPatchResponse, snapshotName: "PatchFormData", scrubbers: scrubbers);
+        // The patch mints a new blob version, so the instantiation-time scrubber cannot scrub it.
+        var patchedInstance = readPatchResponse.Data.Model?.Instance ?? instance;
+        await verifier.Verify(
+            readPatchResponse,
+            snapshotName: "PatchFormData",
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(patchedInstance))
+        );
 
         using var processNextResponse = await fixture.Instances.ProcessNext(token, readInstantiationResponse);
         using var readProcessNextResponse = await processNextResponse.Read<AppProcessState>();
@@ -206,8 +212,17 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         var port = fixture.PdfHostPort.ToString();
         Assert.NotNull(port);
         var response = await fixture.Connectivity.Pdf();
-        await Verify(response).AddScrubber(sb => sb.Replace(port, "<pdfPort>"));
-        Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+        await Verify(response)
+            .AddScrubber(sb =>
+                sb.Replace($":{port}/", ":<pdfPort>/")
+                    .Replace($":{AppFixture.StudioctlLocaltestHostPort}/", ":<localtestPort>/")
+            );
+        if (!response.Success)
+        {
+            _output.WriteLine(response.ResponseContent ?? "null");
+            _output.WriteLine(response.Exception ?? "null");
+            Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+        }
     }
 
     [Fact]
@@ -217,7 +232,8 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         var fixture = fixtureScope.Fixture;
 
         var response = await fixture.Connectivity.Localtest();
-        await Verify(response);
+        await Verify(response)
+            .AddScrubber(sb => sb.Replace($":{AppFixture.StudioctlLocaltestHostPort}/", ":<localtestPort>/"));
         Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
     }
 

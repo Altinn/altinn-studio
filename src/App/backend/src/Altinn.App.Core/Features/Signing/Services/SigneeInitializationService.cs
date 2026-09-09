@@ -4,7 +4,6 @@ using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -22,7 +21,6 @@ internal sealed class SigneeInitializationService(
     IAltinnPartyClient altinnPartyClient,
     IAltinnCdnClient altinnCdnClient,
     IHostEnvironment hostEnvironment,
-    IInstanceClient instanceClient,
     ILogger<SigneeInitializationService> logger,
     Telemetry? telemetry = null
 ) : ISigneeInitializationService
@@ -44,13 +42,13 @@ internal sealed class SigneeInitializationService(
     {
         using Activity? activity = telemetry?.StartAssignSigneesActivity();
 
-        // A callback save can partially succeed before its response is lost. Refresh both creations and
-        // deletions so this attempt reuses saved state and does not try to delete an already removed element.
-        DataElement? existing = await signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
+        // Callback state carries the authoritative instance and versions. The controller owns aggregate
+        // replay; replacing metadata here would separate it from those captured version preconditions.
+        ct.ThrowIfCancellationRequested();
+        DataElement? existing = signeeContextsManager.FindTaskSigneeStateElement(
             instanceDataMutator,
             signatureConfiguration,
-            taskId,
-            ct
+            taskId
         );
         signeeContextsManager.RemoveOtherSigneeStateElements(instanceDataMutator, signatureConfiguration, taskId);
         if (existing is not null)
@@ -140,7 +138,6 @@ internal sealed class SigneeInitializationService(
             taskId,
             signeeStateElementId,
             signeeId,
-            requireCurrentTask: false,
             ct
         );
         if (signeeContext.SigneeState.IsAccessDelegated)
@@ -186,15 +183,14 @@ internal sealed class SigneeInitializationService(
         CancellationToken ct
     )
     {
-        // The callback owns a fresh instance lock through this read, the send and the final save.
-        // Its carried state may predate successful sibling notifications, so merge from Storage first.
+        // Recipient commands execute sequentially while the process is owned by this workflow. Each save
+        // publishes the updated signee state and Storage versions to the next callback.
         var (signeeContexts, signeeContext) = await LoadRecipient(
             instanceDataMutator,
             signatureConfiguration,
             taskId,
             signeeStateElementId,
             signeeId,
-            requireCurrentTask: true,
             ct
         );
         if (signeeContext.SigneeState.HasBeenMessagedForCallToSign)
@@ -282,29 +278,18 @@ internal sealed class SigneeInitializationService(
         string taskId,
         Guid signeeStateElementId,
         Guid signeeId,
-        bool requireCurrentTask,
         CancellationToken ct
     )
     {
-        Instance stored = await instanceClient.GetInstance(
-            instanceDataMutator.Instance,
-            StorageAuthenticationMethod.ServiceOwner(),
-            ct
-        );
-        if (requireCurrentTask && stored.Process?.CurrentTask?.ElementId != taskId)
+        ct.ThrowIfCancellationRequested();
+        if (instanceDataMutator.Instance.Process?.CurrentTask?.ElementId != taskId)
         {
             throw new SigneeInitializationPermanentException(
-                "The signing task is no longer current; this notification is obsolete.",
+                "The signing task is no longer current; this recipient command is obsolete.",
                 "SigneeTaskEntryObsolete"
             );
         }
 
-        DataElement[] storedStateElements = (stored.Data ?? [])
-            .Where(element => element.DataType == signatureConfiguration.SigneeStatesDataTypeId)
-            .ToArray();
-        List<DataElement> data = instanceDataMutator.Instance.Data ??= [];
-        data.RemoveAll(element => element.DataType == signatureConfiguration.SigneeStatesDataTypeId);
-        data.AddRange(storedStateElements);
         DataElement? stateElement = signeeContextsManager.FindTaskSigneeStateElement(
             instanceDataMutator,
             signatureConfiguration,

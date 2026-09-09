@@ -21,12 +21,6 @@ public partial class AppFixture
             );
         }
 
-        public string NotificationJobsEndpoint(ReadApiResponse<Instance> instance)
-        {
-            var model = instance.Data.Model ?? throw new InvalidOperationException("Instance data model is null");
-            return $"{fixture.OriginalAppPath}/instances/{model.Id}/signing/notifications";
-        }
-
         public Task<ApiResponse> GetState(string token, ReadApiResponse<Instance> instance, string? taskId = null)
         {
             var model = instance.Data.Model ?? throw new InvalidOperationException("Instance data model is null");

@@ -11,8 +11,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(ExecuteServiceTaskPayload), typeDiscriminator: "executeServiceTask")]
-[JsonDerivedType(typeof(SaveProcessStateToStoragePayload), typeDiscriminator: "saveProcessStateToStorage")]
+[JsonDerivedType(typeof(ProcessStateChangePayload), typeDiscriminator: "processStateChange")]
 [JsonDerivedType(typeof(CommonTaskInitializationPayload), typeDiscriminator: "commonTaskInitialization")]
+[JsonDerivedType(typeof(TaskDataLockPayload), typeDiscriminator: "taskDataLock")]
 [JsonDerivedType(
     typeof(NotifyInstanceOwnerOnInstantiationPayload),
     typeDiscriminator: "notifyInstanceOwnerOnInstantiation"
@@ -22,7 +23,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 [JsonDerivedType(typeof(ProcessTaskPayload), typeDiscriminator: "processTask")]
 [JsonDerivedType(typeof(SigneeCommandPayload), typeDiscriminator: "signee")]
 [JsonDerivedType(typeof(ScheduleSigneeInitializationPayload), typeDiscriminator: "scheduleSigneeInitialization")]
-[JsonDerivedType(typeof(ScheduleSigneeNotificationsPayload), typeDiscriminator: "scheduleSigneeNotifications")]
 internal abstract record CommandRequestPayload
 {
     internal virtual string? Validate() => null;
@@ -35,6 +35,8 @@ internal sealed record ProcessTaskPayload(string TaskId) : CommandRequestPayload
         string.IsNullOrWhiteSpace(TaskId) ? "The process task ID is missing or empty." : null;
 }
 
+internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
+
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.
 /// Provides AOT-compatible, high-performance serialization.
@@ -42,15 +44,15 @@ internal sealed record ProcessTaskPayload(string TaskId) : CommandRequestPayload
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(CommandRequestPayload))]
 [JsonSerializable(typeof(ExecuteServiceTaskPayload))]
-[JsonSerializable(typeof(SaveProcessStateToStoragePayload))]
+[JsonSerializable(typeof(ProcessStateChangePayload))]
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]
+[JsonSerializable(typeof(TaskDataLockPayload))]
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
 [JsonSerializable(typeof(ProcessTaskPayload))]
 [JsonSerializable(typeof(SigneeCommandPayload))]
 [JsonSerializable(typeof(ScheduleSigneeInitializationPayload))]
-[JsonSerializable(typeof(ScheduleSigneeNotificationsPayload))]
 [JsonSerializable(typeof(InstantiationNotification))]
 [JsonSerializable(typeof(InstantiationNotificationReminder))]
 [JsonSerializable(typeof(CustomSms))]
@@ -67,7 +69,9 @@ internal static class CommandPayloadSerializer
     public static string? Serialize<T>(T? payload)
         where T : CommandRequestPayload
     {
-        return payload is null ? null : JsonSerializer.Serialize(payload, CommandPayloadJsonContext.Default.Options);
+        return payload is null
+            ? null
+            : JsonSerializer.Serialize<CommandRequestPayload>(payload, CommandPayloadJsonContext.Default.Options);
     }
 
     public static T? Deserialize<T>(string? json)

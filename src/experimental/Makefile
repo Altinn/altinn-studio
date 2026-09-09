@@ -3,13 +3,13 @@
 
 USER_INSTALL_VERSION := v0.0.0
 USER_INSTALL_ARCHIVE := $(abspath build/user-install/agent-$(USER_INSTALL_VERSION).tar.gz)
-RELEASE_BIN_DIR := $(abspath ../../target/release)
+RELEASE_BIN_DIR := $(abspath $(or $(CARGO_TARGET_DIR),../../target)/release)
 
 EXPERIMENTAL_PACKAGES := \
 	-p agent \
 	-p sandbox-authorization \
 	-p sandbox \
-	-p sandbox-self-dev \
+	-p sandbox-worktree \
 	-p sandbox-microsandbox
 PORTABLE_PACKAGES := \
 	-p sandbox \

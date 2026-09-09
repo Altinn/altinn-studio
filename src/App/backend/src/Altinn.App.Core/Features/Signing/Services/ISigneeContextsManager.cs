@@ -36,18 +36,6 @@ internal interface ISigneeContextsManager
     );
 
     /// <summary>
-    /// Refreshes the signee-state data elements from Storage, including creations and deletions a previous
-    /// callback attempt saved before it failed. Returns the element tagged with the task, or null if no such
-    /// element has been saved. Only called by the resolve command, before staging any data changes.
-    /// </summary>
-    Task<DataElement?> RefreshTaskSigneeStateElementFromStorage(
-        IInstanceDataMutator instanceDataMutator,
-        AltinnSignatureConfiguration signatureConfiguration,
-        string taskId,
-        CancellationToken ct
-    );
-
-    /// <summary>
     /// Removes every signee-state element that is not tagged with the given task: elements from before the
     /// state was tagged, or tagged with another task. Initialization must start from a clean slate however the
     /// task was reached.

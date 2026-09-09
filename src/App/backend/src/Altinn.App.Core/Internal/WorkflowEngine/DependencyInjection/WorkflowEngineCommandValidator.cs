@@ -114,6 +114,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTask = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -125,6 +126,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -137,6 +139,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -150,6 +153,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTask = new ResolvedServiceTask("DummyServiceTask", CreateDummyPipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -163,6 +167,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTask = new ResolvedServiceTask("DummyMailboxServiceTask", CreateDummyMailboxPipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -170,26 +175,19 @@ internal static class WorkflowEngineCommandValidator
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps([]), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("DummyTask", []), keys);
         CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps([]), keys);
         CollectCommandKeys(
-            WorkflowCommandSet.GetProcessEndSteps(
-                new ProcessEndContext
-                {
-                    RegisterEvents = true,
-                    HasAutoDeleteDataTypes = true,
-                    AutoDeleteInstanceOnProcessEnd = true,
-                }
-            ),
+            WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
             keys
         );
 
-        // MutateProcessState, SaveProcessStateToStorage and EnqueueSideEffectsWorkflow are inserted by
-        // ProcessNextRequestFactory rather than declared in WorkflowCommandSet
+        // AcquireProcessingStatus, MutateProcessState, CommitProcessState, and EnqueueSideEffectsWorkflow
+        // are inserted by ProcessNextRequestFactory rather than declared in WorkflowCommandSet
+        keys.Add(AcquireProcessingStatus.Key);
         keys.Add(MutateProcessState.Key);
-        keys.Add(SaveProcessStateToStorage.Key);
+        keys.Add(CommitProcessState.Key);
         keys.Add(EnqueueSideEffectsWorkflow.Key);
-        keys.Add(ScheduleSigneeNotifications.Key);
 
         return keys;
     }

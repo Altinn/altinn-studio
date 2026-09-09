@@ -9,7 +9,7 @@ using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -40,7 +40,6 @@ public sealed class SigneeContextsManagerTests : IDisposable
     private readonly SigneeContextsManager _signeeContextsManager;
 
     private readonly Mock<IAltinnPartyClient> _altinnPartyClient = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClient = new(MockBehavior.Strict);
     private readonly Mock<ISigneeProvider> _signeeProvider = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<ILogger<SigneeContextsManager>> _logger = new();
@@ -73,7 +72,6 @@ public sealed class SigneeContextsManagerTests : IDisposable
 
         _signeeContextsManager = new SigneeContextsManager(
             _altinnPartyClient.Object,
-            _instanceClient.Object,
             _appImplementationFactory,
             _appMetadata.Object,
             _logger.Object
@@ -840,111 +838,6 @@ public sealed class SigneeContextsManagerTests : IDisposable
         );
 
         Assert.Same(newer, result);
-    }
-
-    [Fact]
-    public async Task RefreshTaskSigneeStateElementFromStorage_ElementInStorageNotLocally_AddsAndReturnsIt()
-    {
-        const string taskId = "Task_1";
-        var signatureConfiguration = new AltinnSignatureConfiguration
-        {
-            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
-        };
-
-        var instance = new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
-            Data = [],
-        };
-
-        DataElement storageElement = CreateTaggedSigneeStateElement(taskId);
-        var storedInstance = new Instance { Data = [storageElement] };
-
-        var instanceDataMutator = new Mock<IInstanceDataMutator>();
-        instanceDataMutator.Setup(x => x.Instance).Returns(instance);
-
-        _instanceClient
-            .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), CancellationToken.None))
-            .ReturnsAsync(storedInstance);
-
-        DataElement? result = await _signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
-            instanceDataMutator.Object,
-            signatureConfiguration,
-            taskId,
-            CancellationToken.None
-        );
-
-        Assert.Same(storageElement, result);
-        Assert.Contains(storageElement, instance.Data);
-    }
-
-    [Fact]
-    public async Task RefreshTaskSigneeStateElementFromStorage_ElementAlreadyLocal_ReturnsWithoutDuplicating()
-    {
-        const string taskId = "Task_1";
-        var signatureConfiguration = new AltinnSignatureConfiguration
-        {
-            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
-        };
-
-        DataElement sharedElement = CreateTaggedSigneeStateElement(taskId);
-
-        var instance = new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
-            Data = [sharedElement],
-        };
-        var storedInstance = new Instance { Data = [sharedElement] };
-
-        var instanceDataMutator = new Mock<IInstanceDataMutator>();
-        instanceDataMutator.Setup(x => x.Instance).Returns(instance);
-
-        _instanceClient
-            .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), CancellationToken.None))
-            .ReturnsAsync(storedInstance);
-
-        DataElement? result = await _signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
-            instanceDataMutator.Object,
-            signatureConfiguration,
-            taskId,
-            CancellationToken.None
-        );
-
-        Assert.Same(sharedElement, result);
-        Assert.Single(instance.Data);
-    }
-
-    [Fact]
-    public async Task RefreshTaskSigneeStateElementFromStorage_NoneInStorage_ReturnsNull()
-    {
-        const string taskId = "Task_1";
-        var signatureConfiguration = new AltinnSignatureConfiguration
-        {
-            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
-        };
-
-        var instance = new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
-            Data = [],
-        };
-        var storedInstance = new Instance { Data = [] };
-
-        var instanceDataMutator = new Mock<IInstanceDataMutator>();
-        instanceDataMutator.Setup(x => x.Instance).Returns(instance);
-
-        _instanceClient
-            .Setup(x => x.GetInstance(instance, StorageAuthenticationMethod.ServiceOwner(), CancellationToken.None))
-            .ReturnsAsync(storedInstance);
-
-        DataElement? result = await _signeeContextsManager.RefreshTaskSigneeStateElementFromStorage(
-            instanceDataMutator.Object,
-            signatureConfiguration,
-            taskId,
-            CancellationToken.None
-        );
-
-        Assert.Null(result);
     }
 
     [Fact]
