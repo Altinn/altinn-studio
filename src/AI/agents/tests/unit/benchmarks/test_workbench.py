@@ -623,6 +623,22 @@ class TestThePageLeadsWithFindings:
         runstore.save(run, directory=tmp_path)
         return report_html.render(report.build(directory=tmp_path))
 
+    def test_a_behavior_the_run_never_scored_is_not_counted_as_passing(self, tmp_path):
+        """With no reference selected the tally called every pinned behavior "recorded",
+        so one the run never scored was counted under "with every item passing"."""
+        scores = dict(HOLDING)
+        del scores["spec.parses"]
+        run = _run("20260909T100000Z-now", "now", scores)
+        runstore.save(run, directory=tmp_path)
+
+        page = report_html.render(report.build(directory=tmp_path))
+        data = json.loads(page.split('type="application/json">')[1].split("</script>")[0])
+        pinned = [b for b in data["behaviors"] if b["pinned"]]
+        unscored = [b for b in pinned if b["current"] is None]
+
+        assert [b["id"] for b in unscored] == ["spec.parses"]
+        assert "measured, but this run scored " in page
+
     def test_a_closing_script_tag_in_an_output_cannot_break_the_page(self, tmp_path):
         """The payload sits in an inline script element, so an unescaped `</script>`
         in a model answer would end the element and blank the page."""
