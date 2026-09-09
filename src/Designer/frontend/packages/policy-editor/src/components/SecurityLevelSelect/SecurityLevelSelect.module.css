@@ -11,3 +11,7 @@
   line-height: var(--ds-line-height-md);
   font-weight: var(--ds-font-weight-regular);
 }
+
+.bottomSpacing {
+  margin-bottom: var(--ds-size-4);
+}

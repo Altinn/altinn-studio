@@ -30,5 +30,6 @@ const mapAppPolicyResponse = (appPolicy: Policy): Policy => {
     requiredAuthenticationLevelEndUser:
       appPolicy?.requiredAuthenticationLevelEndUser ?? DEFAULT_AUTH_LEVEL,
     requiredAuthenticationLevelOrg: DEFAULT_AUTH_LEVEL,
+    requiredAuthenticationLevelSystemUser: appPolicy?.requiredAuthenticationLevelSystemUser,
   };
 };
