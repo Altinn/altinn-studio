@@ -26,6 +26,7 @@ fn record_with_id(name: &str, generation: u64, id: AgentId) -> AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
         manifest_path: None,
+        env_file: None,
         agent,
     }
 }
@@ -62,6 +63,7 @@ fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
         record.agent.status.provenance = Some(agent::Provenance {
             source_directory: PathBuf::from("/leaked"),
             manifest_path: None,
+            env_file: None,
         });
         store.put(record.clone(), 0).await.expect("Agent stored");
 
@@ -74,6 +76,7 @@ fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
         status.provenance = Some(agent::Provenance {
             source_directory: PathBuf::from("/leaked"),
             manifest_path: None,
+            env_file: None,
         });
         store
             .update_status(record.id, stored.agent.metadata.generation, status)

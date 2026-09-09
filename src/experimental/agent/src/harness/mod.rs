@@ -8,6 +8,9 @@ use crate::{Error, persistence};
 mod claude_code;
 mod codex;
 mod session_start;
+mod skills;
+
+pub(crate) use skills::{Skill, SkillFile};
 
 /// Supported harnesses.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -101,7 +104,10 @@ impl AuthenticationManager {
         }
     }
 
-    /// Stores a host-acquired credential for the selected harness.
+    /// Stores a credential for the selected harness.
+    ///
+    /// `imported` marks a credential supplied by the caller rather than minted by the host login
+    /// flow; adapters whose host grant must stay isolated only accept mediated placeholders that way.
     ///
     /// # Errors
     ///
@@ -110,10 +116,11 @@ impl AuthenticationManager {
         &self,
         harness: Harness,
         credential: Zeroizing<String>,
+        imported: bool,
     ) -> Result<ImportedAuthentication, Error> {
         match harness {
             Harness::ClaudeCode => self.claude_code.login(credential).await,
-            Harness::Codex => self.codex.login(credential).await,
+            Harness::Codex => self.codex.login(credential, imported).await,
         }
     }
 }
@@ -185,10 +192,11 @@ pub(crate) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[Skill],
 ) -> Result<(), Error> {
     match harness {
-        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions).await,
-        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions).await,
+        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions, skills).await,
+        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions, skills).await,
     }
 }
 

@@ -98,8 +98,9 @@ pub(super) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
 ) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home, instructions).await
+    bootstrap::configure_linux(sandbox, home, instructions, skills).await
 }
 
 pub(super) async fn verify_linux(
@@ -115,10 +116,14 @@ pub(super) async fn verify_linux(
         ))
         .await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
-            "Claude Code is missing or `claude --version` exited with code {}",
-            output.status.code
-        )));
+        let message = format!("`claude --version` exited with code {}", output.status.code);
+        // 126/127 mean the image does not provide the harness; retrying cannot change that.
+        // Any other failure this early in the guest's life may be transient.
+        return Err(if matches!(output.status.code, 126 | 127) {
+            Error::Invalid(format!("Claude Code is missing: {message}"))
+        } else {
+            Error::SandboxSetup(message)
+        });
     }
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|_| Error::SandboxSetup("`claude --version` returned non-UTF-8 output".into()))?;
@@ -127,7 +132,7 @@ pub(super) async fn verify_linux(
         .next()
         .ok_or_else(|| Error::SandboxSetup("`claude --version` returned no version".into()))?;
     if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
-        return Err(Error::SandboxSetup(format!(
+        return Err(Error::Invalid(format!(
             "declared Claude Code version {expected:?} does not match installed version {installed:?}"
         )));
     }

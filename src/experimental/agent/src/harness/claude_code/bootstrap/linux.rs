@@ -2,13 +2,19 @@
 
 use std::io::Cursor;
 
-use sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
+use sandbox::{SandboxHandle, SandboxPath};
 
-use crate::Error;
+use crate::{Error, sandbox::platform::run_checked};
 
 use super::super::ACCESS_PLACEHOLDER;
 
-pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions: Option<&[u8]>) -> Result<(), Error> {
+pub(super) async fn configure(
+    sandbox: &SandboxHandle,
+    home: &str,
+    instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
+) -> Result<(), Error> {
+    let skills_path = format!("{home}/.claude/skills");
     let config = format!("{home}/.claude");
     let hooks_path = format!("{config}/hooks");
     let credentials_path = format!("{config}/.credentials.json");
@@ -97,22 +103,5 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
         .await?;
         run_checked(sandbox, "/usr/bin/chmod", ["644", instructions_path.as_str()]).await?;
     }
-    Ok(())
-}
-
-async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, args: [&str; N]) -> Result<(), Error> {
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new(executable),
-            args.into_iter().map(str::to_owned),
-        ))
-        .await?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(Error::SandboxSetup(format!(
-            "command {executable:?} exited with code {}",
-            output.status.code
-        )))
-    }
+    crate::harness::skills::install_linux(sandbox, &skills_path, skills).await
 }

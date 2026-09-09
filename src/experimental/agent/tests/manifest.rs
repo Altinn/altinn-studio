@@ -2,6 +2,8 @@
 
 mod support;
 
+use std::path::PathBuf;
+
 use agent::{API_VERSION, Harness, KIND, SecretSpec, manifest};
 use sandbox::RootFilesystemMode;
 
@@ -114,18 +116,30 @@ fn decodes_the_minimal_manifest() {
 
 #[test]
 fn decodes_the_self_development_manifest() {
-    let bytes = include_bytes!("../examples/self-dev/agent.yaml");
+    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
     let agent = manifest::decode(bytes).expect("self-development manifest should decode");
 
-    assert_eq!(agent.metadata.name, "studiodev");
+    assert_eq!(agent.metadata.name, "agent-dev-worktree");
     assert_eq!(agent.spec.sandbox.platform.architecture, None);
-    assert_eq!(agent.spec.secrets.len(), 2);
+    assert_eq!(agent.spec.secrets.len(), 1);
     assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].source(), "GITHUB_TOKEN");
-    assert_eq!(agent.spec.secrets[0].placeholder, None);
+    assert_eq!(
+        agent.spec.secrets[0].placeholder.as_deref(),
+        Some("github_pat_AGENT_MEDIATED_GITHUB_TOKEN")
+    );
+    assert!(
+        agent.spec.secrets[0]
+            .allowed_hosts
+            .iter()
+            .any(|host| host == "uploads.github.com")
+    );
+    assert_eq!(agent.spec.skills.len(), 1);
+    assert_eq!(agent.spec.skills[0].name(), Some("pr-evidence"));
     assert_eq!(agent.spec.harnesses.len(), 2);
     assert!(agent.spec.harnesses[0].default);
     assert_eq!(agent.spec.harnesses[0].kind, Harness::ClaudeCode);
+    assert_eq!(agent.spec.harnesses[0].version, None);
     assert_eq!(agent.spec.harnesses[1].kind, Harness::Codex);
     assert!(!agent.spec.harnesses[1].default);
     assert_eq!(
@@ -135,36 +149,45 @@ fn decodes_the_self_development_manifest() {
 }
 
 #[test]
+fn self_development_mounts_the_host_checkout_instead_of_cloning() {
+    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
+    let agent = manifest::decode(bytes).expect("self-development manifest should decode");
+    let dockerfile = include_str!("../examples/self-dev/Dockerfile");
+
+    let mounts = agent.spec.sandbox.mounts;
+    assert_eq!(mounts.len(), 1);
+    assert!(matches!(
+        &mounts[0],
+        manifest::MountSpec::Bind { source, target, read_only }
+            if source == std::path::Path::new("../../../../../..")
+                && target.as_str() == "/home/agent/code/altinn-studio"
+                && !read_only
+    ));
+    assert!(!dockerfile.contains("gh repo clone"));
+
+    let checkout = manifest::decode(include_bytes!("../examples/self-dev/checkout/agent.yaml"))
+        .expect("checkout manifest should decode");
+    assert_eq!(checkout.metadata.name, "agent-dev");
+    assert!(checkout.spec.sandbox.mounts.is_empty());
+    let nested = manifest::decode(include_bytes!("../examples/self-dev/nested/agent.yaml"))
+        .expect("nested manifest should decode");
+    assert_eq!(nested.metadata.name, "agent-dev-nested");
+    assert!(nested.spec.sandbox.mounts.is_empty());
+    assert!(nested.spec.sandbox.resources.memory() < agent.spec.sandbox.resources.memory());
+}
+
+#[test]
 fn self_development_image_leaves_harness_startup_to_sessions() {
     let dockerfile = include_str!("../examples/self-dev/Dockerfile");
 
     assert!(!dockerfile.lines().any(|line| line.trim_start().starts_with("CMD ")));
     assert!(dockerfile.contains("podman"));
     assert!(dockerfile.contains("podman-docker"));
-    assert!(dockerfile.contains("podman-compose"));
     assert!(dockerfile.contains("nftables"));
-}
-
-#[test]
-fn self_development_workspace_clone_is_a_simple_one_shot() {
-    let unit = include_str!("../examples/self-dev/workspace-init.service");
-    let initialization = include_str!("../examples/self-dev/workspace-init.sh");
-
-    assert!(!unit.contains("Restart="));
-    assert!(!unit.contains("StartLimit"));
-    assert!(unit.contains("PassEnvironment=GITHUB_TOKEN"));
-    assert!(!unit.contains("MSB_GITHUB_TOKEN"));
-    assert!(!initialization.contains(".clone."));
-    assert!(!initialization.contains("GITHUB_TOKEN"));
-    assert!(!initialization.contains("agent-github-token-placeholder"));
-    assert!(initialization.contains("getent ahosts github.com"));
-    assert!(initialization.contains("remaining=$((remaining - 1))"));
-    assert_eq!(
-        initialization
-            .matches("gh repo clone \"$repository\" \"$destination\"")
-            .count(),
-        1
-    );
+    assert!(dockerfile.contains("rustup"));
+    assert!(dockerfile.contains("cargo-machete"));
+    assert!(dockerfile.contains("ENV DOCKER_HOST=unix:///run/podman/podman.sock"));
+    assert!(dockerfile.contains("ENV CARGO_TARGET_DIR="));
 }
 
 #[test]
@@ -297,4 +320,33 @@ fn status_tolerates_unknown_fields_inside_provenance() {
         provenance.manifest_path.as_deref(),
         Some(std::path::Path::new("/source/worker.yml"))
     );
+}
+
+#[test]
+fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
+    let mut agent = support::agent("worker");
+    agent.spec.skills = vec![agent::SkillSpec {
+        source: PathBuf::from("skills/.."),
+    }];
+    let error = agent.validate().expect_err("a source ending in .. has no skill name");
+    assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("spec.skills[0].source")));
+
+    agent.spec.skills = vec![
+        agent::SkillSpec {
+            source: PathBuf::from("skills/evidence"),
+        },
+        agent::SkillSpec {
+            source: PathBuf::from("../shared/evidence/"),
+        },
+    ];
+    let error = agent
+        .validate()
+        .expect_err("two skills with the same directory name collide");
+    assert!(
+        matches!(error, agent::Error::Invalid(message) if message == "spec.skills[1] duplicates skill \"evidence\"")
+    );
+
+    agent.spec.skills.pop();
+    agent.validate().expect("one named skill is valid");
+    assert_eq!(agent.spec.skills[0].name(), Some("evidence"));
 }
