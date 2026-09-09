@@ -4,8 +4,7 @@ import {
   type ConfigBooleanPropertiesProps,
 } from './ConfigBooleanProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
-import DatepickerSchema from '../../../testing/schemas/json/component/Datepicker.schema.v1.json';
+import { componentCatalog } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -66,7 +65,7 @@ describe('ConfigBooleanProperties', () => {
     renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden', 'timeStamp'],
-        schema: DatepickerSchema,
+        properties: componentCatalog.Datepicker.properties,
       },
     });
     const button = screen.getByRole('button', {
@@ -83,7 +82,7 @@ describe('ConfigBooleanProperties', () => {
     renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden'],
-        schema: DatepickerSchema,
+        properties: componentCatalog.Datepicker.properties,
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
@@ -114,7 +113,7 @@ describe('ConfigBooleanProperties', () => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigBooleanPropertiesProps = {
       booleanPropertyKeys: booleanPropertiesKeys,
-      schema: InputSchema,
+      properties: componentCatalog.Input.properties,
       component: inputComponent,
       handleComponentUpdate: jest.fn(),
     };

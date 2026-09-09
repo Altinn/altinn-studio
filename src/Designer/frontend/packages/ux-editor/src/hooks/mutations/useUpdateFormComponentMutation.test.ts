@@ -1,7 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import {
@@ -16,11 +16,10 @@ import type {
   FormFileUploaderComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import type { IDataModelBindingsKeyValue } from '../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
@@ -30,12 +29,11 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
+const dataModelBindings: IDataModelBindingsKeyValueExplicit = {
   simpleBinding: { field: 'some-path', dataType: '' },
 };
-const updatedComponent: FormComponent = {
+const updatedComponent: FormComponent<ComponentType.TextArea> = {
   id,
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings,
 };
@@ -108,8 +106,7 @@ describe('useUpdateFormComponentMutation', () => {
     ).result;
     const newComponent: FormFileUploaderComponent = {
       ...updatedComponent,
-      description: 'test',
-      displayMode: 'test',
+      displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 100,
       maxNumberOfAttachments: 2,
@@ -300,8 +297,7 @@ function createFileUploaderMutationPayload(
     ...updatedComponent,
     id,
     optionsId: 'test',
-    description: 'test',
-    displayMode: 'test',
+    displayMode: 'list',
     hasCustomFileEndings: false,
     maxFileSizeInMB: 100,
     maxNumberOfAttachments: newMaxCount,

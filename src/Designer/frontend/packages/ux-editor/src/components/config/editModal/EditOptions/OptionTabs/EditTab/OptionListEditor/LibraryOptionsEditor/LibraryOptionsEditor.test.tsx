@@ -5,7 +5,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ObjectUtils } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';

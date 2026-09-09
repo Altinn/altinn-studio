@@ -3,7 +3,7 @@ import { EmptyTextField } from './EmptyTextField';
 import { component1IdMock } from '../../../../../../testing/layoutMock';
 import { userEvent } from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { Summary2OverrideConfig } from '@altinn/ux-editor/types/Summary2Config';
 
 describe('EmptyTextField', () => {
   it('Should display textfield when openbutton is clicked', async () => {

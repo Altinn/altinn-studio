@@ -4,15 +4,16 @@ import { StudioHeading, StudioParagraph } from '@studio/components';
 import { ComponentButton } from './ComponentButton';
 import { getTitleByComponentType } from '@altinn/ux-editor/utils/language';
 import { generateComponentId } from '@altinn/ux-editor/utils/generateId';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { AddedItem } from './types';
 import type { IToolbarElement } from '@altinn/ux-editor/types/global';
 import { useFormLayouts } from '@altinn/ux-editor/hooks';
 import { mapComponentToToolbarElement } from '@altinn/ux-editor/utils/formLayoutUtils';
-import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
+import { getFormItemConfig } from '@altinn/ux-editor/data/formItemConfig';
 
 type FavoriteItemsProps = {
-  favorites: (ComponentType | CustomComponentType)[];
+  favorites: (ComponentType | ComponentPreset)[];
   onAddItem: (item: AddedItem) => void;
 };
 
@@ -20,9 +21,9 @@ export const FavoriteItems = ({ onAddItem, favorites = [] }: FavoriteItemsProps)
   const { t } = useTranslation();
   const layouts = useFormLayouts();
 
-  const favoriteComponents: IToolbarElement[] = favorites
-    .filter((componentType) => Boolean(formItemConfigs[componentType]))
-    .map((componentType) => mapComponentToToolbarElement(formItemConfigs[componentType]));
+  const favoriteComponents: IToolbarElement[] = favorites.map((componentType) =>
+    mapComponentToToolbarElement(getFormItemConfig(componentType)),
+  );
 
   return (
     <>

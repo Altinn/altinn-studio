@@ -22,7 +22,7 @@ import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsU
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
@@ -183,7 +183,7 @@ describe('DesignView', () => {
 
 type renderDesignViewParams = {
   layoutSettings?: ILayoutSettings;
-  externalLayout?: FormLayoutsResponse;
+  externalLayout?: SerializedFormLayoutsResponse;
   pagesModel?: PagesModel;
 };
 

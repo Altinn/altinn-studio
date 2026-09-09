@@ -1,17 +1,11 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { EditNumberValue } from './EditNumberValue';
-import { renderWithProviders, renderHookWithProviders } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+import { renderHookWithProviders, renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../../testing/appContextMock';
 import { useMutation } from '@tanstack/react-query';
-
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
 
 const renderEditNumberValue = async ({
   enumValues = null,
@@ -19,8 +13,6 @@ const renderEditNumberValue = async ({
   handleComponentChange = jest.fn(),
   componentOverrides = {},
 } = {}) => {
-  await waitForData();
-
   return renderWithProviders(
     <EditNumberValue
       handleComponentChange={handleComponentChange}
@@ -33,7 +25,6 @@ const renderEditNumberValue = async ({
           title: 'ServiceName',
         },
         maxLength,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         ...componentOverrides,
       }}
@@ -80,7 +71,6 @@ describe('EditNumberValue', () => {
         title: 'ServiceName',
       },
       maxLength: 2,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
@@ -102,7 +92,6 @@ describe('EditNumberValue', () => {
         title: 'ServiceName',
       },
       maxLength: 1,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
@@ -135,12 +124,11 @@ describe('EditNumberValue', () => {
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should update value when propertyPath is set', async () => {
+  it('should update the number value', async () => {
     const user = userEvent.setup();
     const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
     await renderEditNumberValue({
       handleComponentChange: mockHandleComponentChange,
-      componentOverrides: { propertyPath: 'definitions/inputComponent' },
     });
     await user.type(screen.getByRole('textbox'), '2');
     expect(mockHandleComponentChange).toHaveReturnedWith({
@@ -150,9 +138,7 @@ describe('EditNumberValue', () => {
         title: 'ServiceName',
       },
       maxLength: 2,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      propertyPath: 'definitions/inputComponent',
     });
   });
 });

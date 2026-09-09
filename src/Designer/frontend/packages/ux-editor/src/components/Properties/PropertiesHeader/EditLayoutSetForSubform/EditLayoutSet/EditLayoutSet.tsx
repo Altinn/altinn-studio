@@ -4,7 +4,7 @@ import { SubformUtilsImpl } from '@altinn/ux-editor/classes/SubformUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { SelectSubformSection } from './SelectSubformSection/SelectSubformSection';
 
 export const EditLayoutSet = <T extends ComponentType>({

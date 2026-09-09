@@ -3,7 +3,7 @@ import { EditBooleanValue } from './EditBooleanValue';
 import { renderWithProviders } from '../../../testing/mocks';
 
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -25,7 +25,6 @@ const renderEditBooleanValue = ({
           title: 'ServiceName',
         },
         required: value,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         ...componentOverrides,
       }}
@@ -56,7 +55,6 @@ describe('EditBooleanValue', () => {
           title: 'ServiceName',
         },
         required: true,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       });
     });
@@ -82,13 +80,10 @@ describe('EditBooleanValue', () => {
     ).toBeInTheDocument();
   });
 
-  it('should update value when propertyPath is set', async () => {
+  it('should update the boolean value', async () => {
     const handleComponentChange = jest.fn();
     renderEditBooleanValue({
       handleComponentChange,
-      componentOverrides: {
-        propertyPath: 'definitions/inputComponent',
-      },
     });
     const inputElement = screen.getByLabelText(textMock('ux_editor.component_properties.required'));
     await user.click(inputElement);
@@ -100,9 +95,7 @@ describe('EditBooleanValue', () => {
           title: 'ServiceName',
         },
         required: true,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-        propertyPath: 'definitions/inputComponent',
       });
     });
   });

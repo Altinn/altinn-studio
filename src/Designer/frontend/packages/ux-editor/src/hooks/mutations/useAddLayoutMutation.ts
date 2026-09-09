@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ObjectUtils } from '@studio/pure-functions';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
-import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
@@ -12,6 +11,7 @@ import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import { useAppContext } from '../../hooks';
+import type { SerializedFormLayout } from '../../types/SerializedComponent';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -27,7 +27,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const queryClient = useQueryClient();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
+    const convertedLayout: SerializedFormLayout = internalLayoutToExternal(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, {
       layout: convertedLayout,
     });

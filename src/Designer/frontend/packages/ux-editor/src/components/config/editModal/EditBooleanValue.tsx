@@ -1,12 +1,14 @@
 import { StudioSwitch } from '@studio/components';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText, useComponentPropertyLabel, useComponentPropertyHelpText } from '../../../hooks';
-import { FormField } from '../../FormField';
+import { FormField } from 'app-shared/components/FormField';
+import type { PropertyDefinition } from '@app/layout-contract';
 
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
   defaultValue?: boolean;
   className?: string;
+  definition?: PropertyDefinition;
 }
 
 export const EditBooleanValue = ({
@@ -15,6 +17,7 @@ export const EditBooleanValue = ({
   propertyKey,
   defaultValue,
   className,
+  definition,
 }: EditBooleanValueProps) => {
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -35,16 +38,12 @@ export const EditBooleanValue = ({
     ? t('ux_editor.component_properties.config_is_expression_message')
     : componentPropertyHelpText(propertyKey);
 
-  const schemaPropertyPath = component.propertyPath
-    ? `${component.propertyPath}/properties/${propertyKey}`
-    : undefined;
-
   return (
     <FormField
       id={component.id}
       value={component[propertyKey]}
       onChange={handleChange}
-      propertyPath={schemaPropertyPath}
+      customRequired={definition?.required}
       componentType={component.type}
       helpText={helpText}
       className={className}
@@ -57,7 +56,7 @@ export const EditBooleanValue = ({
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             id={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(fieldProps.value)}
-            label={componentPropertyLabel(propertyKey)}
+            label={componentPropertyLabel(propertyKey, definition)}
           />
         );
       }}
