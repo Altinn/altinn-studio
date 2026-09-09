@@ -281,17 +281,24 @@ public class JsonValue
         }
     }
 
+    /// <summary>
+    /// Looks a property up by exact name. Takes the <b>last</b> match, because <c>System.Text.Json</c>
+    /// deserializes duplicate properties last-one-wins and permits them by default
+    /// (<c>AllowDuplicateProperties</c>), so that is the value the runtime will see.
+    /// </summary>
     public JsonValue? GetProperty(string propertyName) =>
-        GetObjectValues().FirstOrDefault(item => item.IsPropertyName(propertyName.AsSpan()))?.Value;
+        GetObjectValues().LastOrDefault(item => item.IsPropertyName(propertyName.AsSpan()))?.Value;
 
     /// <summary>
     /// Looks a property up ignoring case, the way <c>System.Text.Json</c> does with
     /// <c>PropertyNameCaseInsensitive</c>. Use this for a document the app backend itself deserializes
     /// that way — <c>applicationmetadata.json</c> above all — so the analyzer sees the same properties
     /// the runtime will, rather than silently skipping a <c>"DataTypeId"</c> that the runtime honors.
+    /// Case-only duplicates are accepted there too, and resolve last-one-wins, hence the same choice
+    /// of match as <see cref="GetProperty"/>.
     /// </summary>
     public JsonValue? GetPropertyIgnoreCase(string propertyName) =>
-        GetObjectValues().FirstOrDefault(item => item.IsPropertyNameIgnoreCase(propertyName))?.Value;
+        GetObjectValues().LastOrDefault(item => item.IsPropertyNameIgnoreCase(propertyName))?.Value;
 
     public class JsonProperty
     {
