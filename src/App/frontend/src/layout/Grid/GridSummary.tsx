@@ -2,8 +2,18 @@ import React, { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { useIsMobile } from '@app/form-component';
+import { CompCategory } from '@app/layout-contract';
 import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type {
+  GridCell,
+  GridCellLabelFrom,
+  GridCellText,
+  GridComponentRef,
+  GridRow,
+  ITableColumnFormatting,
+  ITableColumnProperties,
+} from '@app/layout-contract/generated/common.generated';
 
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -14,7 +24,6 @@ import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
-import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
 import { useIsGridRowHidden } from 'src/layout/Grid/tools';
@@ -38,15 +47,6 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type {
-  GridCell,
-  GridCellLabelFrom,
-  GridCellText,
-  GridComponentRef,
-  GridRow,
-  ITableColumnFormatting,
-  ITableColumnProperties,
-} from 'src/layout/common.generated';
 import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 

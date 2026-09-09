@@ -1,11 +1,11 @@
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export function validateRepGroupMinCount(

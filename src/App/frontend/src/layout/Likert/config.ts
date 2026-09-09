@@ -48,8 +48,11 @@ export const Config = asOptionsComponent(
   .addTextResource(
     new CG.trb({
       name: 'help',
-      title: 'Help text',
-      description: 'Help text shown in a tooltip when clicking the help button',
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'Help text shown in a tooltip when clicking the help button',
+        nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
+      },
     }),
   )
   .addTextResource(

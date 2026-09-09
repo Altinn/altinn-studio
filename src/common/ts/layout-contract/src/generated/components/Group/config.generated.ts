@@ -11,6 +11,7 @@ export interface CompGroupExternal extends ComponentBase, SummarizableComponentP
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
   groupingIndicator?: 'indented' | 'panel';
   children: string[];
@@ -50,4 +51,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: GroupSummaryOverridesWithRef;
 };
 
-// Source hash: 55aceb4782c87a40a786a80375969e67f8fa486566f2f55b5d64fb2b0ee58e68
+// Source hash: fed3a630416737699e4dfed3f26d9385f7440ee7221996688834a31241a1fde1

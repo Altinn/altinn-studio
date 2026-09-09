@@ -6,6 +6,7 @@ export interface CompPaymentDetailsExternal extends ComponentBase {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
   };
   mapping?: IMapping;
   dataModelBindings?: undefined;
@@ -39,4 +40,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 3f2ff3b50914e946d6a8c0b5efa8abf4162b8dfb818c0519792687796011fedb
+// Source hash: 17d55f9d19ebe17f89a6ea1b82ac79b352b638874ca89be11f9fcc56aa47ffe8

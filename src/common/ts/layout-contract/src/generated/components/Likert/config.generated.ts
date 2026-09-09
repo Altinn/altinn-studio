@@ -21,6 +21,7 @@ export interface CompLikertExternal
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
     leftColumnHeader?: ExprValToActualOrExpr<ExprVal.String>;
     questions?: ExprValToActualOrExpr<ExprVal.String>;
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
@@ -65,4 +66,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: be112aa92e28d95fb0bde39d76bbc0486c9da7e721c81472480caa92bf612ff5
+// Source hash: f186d9c471a8af1f0fedfad7fe2c371cd2341cb8abcc088c70538f3c59406473

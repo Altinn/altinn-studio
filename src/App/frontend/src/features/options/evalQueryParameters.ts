@@ -1,8 +1,9 @@
+import type { IQueryParameters } from '@app/layout-contract/generated/common.generated';
+
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IQueryParameters } from 'src/layout/common.generated';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export function evalQueryParameters(props: ExprResolver<'List'>) {

@@ -16,6 +16,7 @@ export type CompLikertSerialized = {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
+    help?: ExprValToActualOrExpr<ExprVal.String>;
     leftColumnHeader?: ExprValToActualOrExpr<ExprVal.String>;
     questions?: ExprValToActualOrExpr<ExprVal.String>;
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
@@ -30,4 +31,4 @@ export type CompLikertSerialized = {
   FormComponentProps &
   ILikertColumnProperties;
 
-// Source hash: 07d0a194171f21cc5ef02878df69bb328010cce9e72210942ed9e1e073c4ab52
+// Source hash: 62117e032b5c3af0a09c2dadf242c70b96b12dcc6709bab7c6844846579e3291
