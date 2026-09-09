@@ -401,8 +401,6 @@ async fn exec_command(
     let target = wait
         .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
         .await??;
-    // A streamed (non-terminal) Execution has no Ctrl-C handling of its own.
-    progress::exit_on_next_interrupt();
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
         match agent::sandbox::attach_terminal(
@@ -456,7 +454,8 @@ async fn port_forward(
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
     let agent = resolve_execution_agent(client, resource, agent).await?;
-    let wait = progress::Wait::start(&agent);
+    // The forwarding loop below watches Ctrl-C itself to stop the forwards cleanly.
+    let wait = progress::Wait::start(&agent).keep_interrupts();
     let target = wait
         .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
         .await??;

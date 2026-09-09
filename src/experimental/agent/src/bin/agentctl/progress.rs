@@ -45,6 +45,7 @@ pub(crate) struct Interrupted {
 pub(crate) struct Wait<'a> {
     agent: &'a str,
     renderer: RefCell<Renderer>,
+    restore_interrupt: bool,
 }
 
 impl<'a> Wait<'a> {
@@ -52,7 +53,15 @@ impl<'a> Wait<'a> {
         Self {
             agent,
             renderer: RefCell::new(Renderer::stderr()),
+            restore_interrupt: true,
         }
+    }
+
+    /// Leaves the Ctrl-C handler installed after the wait because the command
+    /// watches Ctrl-C itself afterwards.
+    pub(crate) const fn keep_interrupts(mut self) -> Self {
+        self.restore_interrupt = false;
+        self
     }
 
     /// Returns the progress sink to hand to the client call.
@@ -62,10 +71,10 @@ impl<'a> Wait<'a> {
 
     /// Runs the ensure call until it completes or the user presses Ctrl-C.
     ///
-    /// Awaiting Ctrl-C installs a process-wide handler that outlives this call,
-    /// so a command that afterwards runs something the user must be able to
-    /// interrupt, and that does not watch Ctrl-C itself, calls
-    /// [`exit_on_next_interrupt`].
+    /// Awaiting Ctrl-C installs a process-wide handler that would otherwise
+    /// swallow every later SIGINT, so once the wait is over the next Ctrl-C
+    /// regains its default meaning (exit 130) unless [`Self::keep_interrupts`]
+    /// was requested.
     ///
     /// # Errors
     ///
@@ -77,18 +86,16 @@ impl<'a> Wait<'a> {
             _ = tokio::signal::ctrl_c() => None,
         };
         self.renderer.borrow_mut().finish();
+        if self.restore_interrupt {
+            tokio::task::spawn_local(async {
+                let _ignored = tokio::signal::ctrl_c().await;
+                std::process::exit(130);
+            });
+        }
         waited.ok_or_else(|| Interrupted {
             agent: self.agent.to_owned(),
         })
     }
-}
-
-/// Gives the next Ctrl-C its default meaning again: exit with status 130.
-pub(crate) fn exit_on_next_interrupt() {
-    tokio::task::spawn_local(async {
-        let _ignored = tokio::signal::ctrl_c().await;
-        std::process::exit(130);
-    });
 }
 
 /// Where the renderer writes, which decides between an updating line and plain lines.
