@@ -190,11 +190,12 @@ fn spawn_discovery(outcomes: tokio::sync::mpsc::UnboundedSender<Vec<ManifestCand
     });
 }
 
-/// Assembles create-agent candidates from the working directory tree and recorded Agent manifests.
+/// Assembles create-agent candidates from the working tree and recorded Agent manifests.
 ///
-/// Every manifest below the working directory is offered, skipping hidden and
-/// ignored directories; a recorded manifest that is unreadable stays listed so
-/// its error is visible.
+/// Every manifest below the working directory is offered, or below the repository
+/// root when the working directory is inside a git repository, skipping hidden and
+/// ignored directories; a recorded manifest that is unreadable stays listed so its
+/// error is visible.
 async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent]) -> Vec<ManifestCandidate> {
     let mut recorded: Vec<PathBuf> = agents
         .iter()
@@ -232,10 +233,19 @@ async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent
     candidates
 }
 
-/// Lists manifests below `directory`, shallowest first, honoring ignore files
-/// and skipping hidden directories so build output and dependency trees are not walked.
+/// Returns the root of the git repository containing `directory`, if any.
+///
+/// A linked worktree keeps `.git` as a file, so only presence is checked.
+fn repository_root(directory: &Path) -> Option<&Path> {
+    directory.ancestors().find(|ancestor| ancestor.join(".git").exists())
+}
+
+/// Lists manifests below `directory`, or below its git repository root, shallowest
+/// first, honoring ignore files and skipping hidden directories so build output and
+/// dependency trees are not walked.
 fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
-    let mut found: Vec<PathBuf> = WalkBuilder::new(directory)
+    let root = repository_root(directory).unwrap_or(directory);
+    let mut found: Vec<PathBuf> = WalkBuilder::new(root)
         .max_depth(Some(DISCOVERY_DEPTH))
         .require_git(false)
         .follow_links(false)
@@ -487,6 +497,21 @@ mod tests {
             ]
         );
         assert_eq!(candidates[1].name.as_deref(), Ok("nested"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn discovery_walks_the_whole_git_repository_from_a_nested_working_directory() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let repository = manifest_directory(root.path(), "repository", &manifest_yaml("root"));
+        std::fs::write(repository.join(".git"), "gitdir: elsewhere\n").expect("worktree marker should be written");
+        let cwd = empty_directory(&repository, "src/deep/inside");
+        let sibling = manifest_directory(&repository, "agents/full", &manifest_yaml("full"));
+        manifest_directory(root.path(), "outside", &manifest_yaml("outside"));
+
+        let candidates = manifest_candidates(Some(cwd), &[]).await;
+
+        let paths: Vec<&std::path::Path> = candidates.iter().map(|candidate| candidate.path.as_path()).collect();
+        assert_eq!(paths, [repository.join(MANIFEST_FILE), sibling.join(MANIFEST_FILE)]);
     }
 
     #[tokio::test(flavor = "local")]
