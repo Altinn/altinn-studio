@@ -34,12 +34,14 @@ test -z "$foreign" || fail "entries under /home/agent not owned by agent:"$'\n'"
 
 echo "## terminal recording"
 asciinema rec --headless --quiet --window-size 80x24 --title 'smoke' \
-    --command 'printf "\033[1;32mgrønn\033[0m \033[34mblå\033[0m æøå ÆØÅ\n"; printf "linje 1\nlinje 2\033[1A\033[5Cinnskutt\n\n"; printf "█▓▒░ ✓ ✗\n"' \
+    --command 'printf "\033[1;34m$ demo\033[0m\n"; sleep 0.4; printf "\033[1;32mgrønn\033[0m \033[34mblå\033[0m æøå ÆØÅ\n"; sleep 0.4; printf "linje 1\nlinje 2\033[1A\033[5Cinnskutt\n\n"; sleep 0.4; printf "█▓▒░ ✓ ✗\n"; sleep 0.4' \
     terminal.cast
 test -s terminal.cast || fail "asciinema produced no cast"
 grep -q 'æøå' terminal.cast || fail "cast lacks the Norwegian fixture text"
 agg --cols 80 --rows 24 terminal.cast terminal.gif
 head -c 6 terminal.gif | grep -q '^GIF8' || fail "agg did not write a GIF"
+frames="$(grep -c '^\[' terminal.cast || true)"
+test "${frames:-0}" -ge 4 || fail "cast has $frames timed events; the fixture should produce output over time"
 echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 
 [ "$variant" = full ] || finish

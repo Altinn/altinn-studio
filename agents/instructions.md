@@ -80,8 +80,8 @@ When asked to create or update a pull request:
   `--body-file` rather than relying on interactive inference.
 - Use a conventional commit-style title such as `feat:`, `fix:`, or `chore:` and follow the repository template.
 - Explain what changed, why it changed, and how it was verified.
-- Include screenshots for relevant user-interface changes and command/output evidence for CLI behavior changes; see
-  the evidence workflow below.
+- Show visible results instead of describing them: screenshots for user-interface changes, recordings for terminal
+  behavior, attached to the pull request. The `pr-evidence` skill has the workflow and the tool commands.
 - For `Altinn/altinn-studio`, push a feature branch to `origin` and target `main`; never merge it yourself.
 - For repositories without direct write access, configure or use a fork and target the upstream default branch.
 - Keep each pull request focused. Use separate, dependent pull requests when independent review or rollout is useful.
@@ -93,40 +93,12 @@ When asked to create or update a pull request:
 When posting multiline GitHub comments from a shell, pass the body through stdin or `--body-file`; do not embed literal
 `\n` escapes in ordinary double-quoted strings.
 
-### Evidence
-
-Visible changes are shown, not described. Screenshots are the default; a short GIF for an interaction; an asciinema
-recording rendered with `agg` for terminal behavior. One or two images or one clip should explain the result. Backend-only
-changes keep using test output. The `pr-evidence` skill has the capture recipes and the tool commands.
-
-1. Identify the visible result that demonstrates the change, and for a visual fix capture the base revision too.
-2. Start the app or command with the repository's test data; never capture personal data or secret values.
-3. Capture with `playwright-cli` (full image) or `asciinema`, at a fixed viewport or terminal size.
-4. Convert with `video-to-gif` or `agg` and inspect the result with `media-preview` or by reading the image.
-5. Store everything under `/home/agent/code/.artifacts/<task>/<run>/` with a `capture.md` recording revisions,
-   commands and dimensions, and write the pull request body there with local image references.
-6. Run `gh pr create` or `gh pr edit` from that directory with one `--attach` per file; `gh` uploads the files and
-   rewrites the references. Then read the pull request body back and confirm the attachments rendered.
-
-`gh` uploads before it creates or edits. When every upload fails nothing is created; when some fail, the pull request
-exists with the successful ones and `gh` exits nonzero: retry only the missing files with `gh pr edit --attach`, never
-repeat `gh pr create`. Attaching requires a GitHub token binding with write access to the repository.
-
 ## Environment
 
 Real secrets are host-mediated. Never search for, print, copy, or persist their values.
 
-Both images provide `asciinema` and `agg` for terminal recordings. The full image additionally provides Podman, with
-`docker` and `/run/docker.sock` as compatibility surfaces, plus Rust, kind, kubectl, Helm, Flux, `playwright-cli` with
-Chromium, ffmpeg and the `video-to-gif` and `media-preview` helpers. The minimal image does not provide container,
-Kubernetes, or browser tooling. Detect available tools before relying on them.
-
-When Podman is available, containers receive mediated CA configuration automatically. Build steps receive the full CA
-bundle at `/run/agent/tls/ca-bundle.pem` and common system trust paths. A current Buildah bug drops default environment
-variables from build stages, so tools that ignore the system store need a step-scoped variable such as
-`RUN NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem npm ci` or `RUN NODE_OPTIONS=--use-openssl-ca npm ci`. Kind's
-`KIND_EXPERIMENTAL_PROVIDER=podman` mode is installed but unverified; do not assume nested kind containers inherit the
-Agent's mediated CA trust.
+The tools installed on this computer are listed in the section that follows this shared text. Detect a tool before
+relying on it.
 
 Store reusable local scripts under `/home/agent/code/.scripts/` and downloaded reference repositories or source
 material under `/home/agent/code/.reference/`. Check for existing material before downloading another copy.

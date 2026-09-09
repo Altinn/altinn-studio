@@ -47,9 +47,9 @@ pub(crate) fn agent(name: &str) -> Agent {
             home: HomeSpec {
                 source: PathBuf::from("home"),
             },
-            instructions: Some(InstructionsSpec {
+            instructions: vec![InstructionsSpec {
                 source: PathBuf::from("instructions.md"),
-            }),
+            }],
             skills: vec![],
             harnesses: vec![HarnessSpec {
                 kind: Harness::ClaudeCode,

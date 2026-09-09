@@ -39,8 +39,9 @@ which test data was used. Never capture real personal data or secrets; use the r
 
 ## Browser: screenshots
 
-The full image has `playwright-cli` with Chromium. Use one named session per task so parallel work does not share a
-browser, and a fixed viewport so before and after images line up.
+Browser capture needs `playwright-cli`; when it is not on `PATH`, this computer has no browser and the pull request
+gets terminal or textual evidence instead. Use one named session per task so parallel work does not share a browser,
+and a fixed viewport so before and after images line up.
 
 ```sh
 export PLAYWRIGHT_CLI_SESSION=<task>
@@ -53,8 +54,8 @@ playwright-cli screenshot e7 --filename=after-panel.png   # one element
 playwright-cli close
 ```
 
-`playwright-cli --help` lists every command; the `playwright-cli` skill under `~/.claude/skills` has references for
-sessions, storage state, request mocking and video.
+`playwright-cli --help` lists every command; the `playwright-cli` skill has references for sessions, storage state,
+request mocking and video.
 
 ## Browser: clips
 
@@ -96,17 +97,23 @@ Look at the result before attaching it: read the PNG, or the contact sheet `medi
 
 ## Terminal
 
-Record the demonstrated command, not the whole coding session. Fix the terminal size so the GIF has a predictable
-shape and set a title for the frame.
+Record the demonstrated commands, not the whole coding session. A GIF only shows something when output appears over
+time: a single command whose output lands at once renders as one static frame. Script the demonstration so the viewer
+sees each command line before its output and give the output time to be read.
 
 ```sh
-asciinema rec --window-size 100x30 --command 'studioctl app run --help' --title 'studioctl app run' terminal.cast
+cat > demo.sh <<'DEMO'
+step() { printf '\033[1;34m$ %s\033[0m\n' "$*"; sleep 1; "$@"; sleep 2; }
+step studioctl app run --help
+step studioctl app list
+DEMO
+asciinema rec --window-size 100x30 --idle-time-limit 3 --command 'bash demo.sh' terminal.cast
 agg --cols 100 --rows 30 --font-size 14 --theme monokai terminal.cast terminal.gif
+media-preview terminal.gif                                # check that the frames differ
 ```
 
-For an interactive demonstration omit `--command`, perform the steps, and exit the shell; `--idle-time-limit 2` in
-`asciinema rec` collapses long pauses. `agg --help` lists speed, theme and font options; Liberation Mono is
-installed and covers Norwegian characters.
+For an interactive demonstration omit `--command`, perform the steps, and exit the shell. `agg --help` lists speed,
+theme and font options; Liberation Mono is installed and covers Norwegian characters.
 
 ## Attaching to the pull request
 

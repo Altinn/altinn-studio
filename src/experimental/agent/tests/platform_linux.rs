@@ -136,7 +136,12 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
     std::fs::create_dir_all(&home).expect("home directory");
-    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions\n").expect("instruction file");
+    std::fs::write(
+        directory.path().join("environment.md"),
+        "# Environment\n\nhas a browser\n",
+    )
+    .expect("environment file");
     let skill = directory.path().join("skills").join("evidence");
     std::fs::create_dir_all(skill.join("references")).expect("skill directory");
     std::fs::write(skill.join("SKILL.md"), "---\nname: evidence\n---\ncapture").expect("skill file");
@@ -148,6 +153,9 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     resource.spec.skills = vec![agent::SkillSpec {
         source: PathBuf::from("skills/evidence"),
     }];
+    resource.spec.instructions.push(agent::InstructionsSpec {
+        source: PathBuf::from("environment.md"),
+    });
     resource.spec.harnesses[0].default = true;
     resource.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
@@ -212,9 +220,9 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let preserved = read_file(&sandbox, "/home/agent/.claude/.claude.json").await;
     assert_eq!(preserved, mutable_state);
     let instructions = read_file(&sandbox, "/home/agent/.claude/CLAUDE.md").await;
-    assert_eq!(instructions, b"test instructions");
+    assert_eq!(instructions, b"test instructions\n\n# Environment\n\nhas a browser\n");
     let codex_instructions = read_file(&sandbox, "/home/agent/.codex/AGENTS.md").await;
-    assert_eq!(codex_instructions, b"test instructions");
+    assert_eq!(codex_instructions, instructions);
     for root in ["/home/agent/.claude/skills", "/home/agent/.agents/skills"] {
         let skill = read_file(&sandbox, &format!("{root}/evidence/SKILL.md")).await;
         assert_eq!(skill, b"---\nname: evidence\n---\ncapture");

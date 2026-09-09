@@ -279,20 +279,30 @@ async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Res
         .map_err(Error::from)
 }
 
+/// Concatenates the instruction files in manifest order, each terminated by a newline and
+/// separated by a blank line, so independent documents read as sections of one file.
 async fn read_instructions(record: &control_plane::AgentRecord) -> Result<Option<Vec<u8>>, Error> {
-    let Some(spec) = &record.agent.spec.instructions else {
-        return Ok(None);
-    };
-    let source = if spec.source.is_absolute() {
-        spec.source.clone()
-    } else {
-        record.source_directory.join(&spec.source)
-    };
-    let metadata = tokio::fs::metadata(&source).await?;
-    if !metadata.is_file() {
-        return Err(Error::Invalid("spec.instructions.source must identify a file".into()));
+    let mut combined = Vec::new();
+    for (index, spec) in record.agent.spec.instructions.iter().enumerate() {
+        let source = if spec.source.is_absolute() {
+            spec.source.clone()
+        } else {
+            record.source_directory.join(&spec.source)
+        };
+        let metadata = tokio::fs::metadata(&source).await?;
+        if !metadata.is_file() {
+            return Err(Error::Invalid(format!(
+                "spec.instructions[{index}].source must identify a file"
+            )));
+        }
+        let contents = tokio::fs::read(source).await?;
+        if !combined.is_empty() {
+            combined.push(b'\n');
+        }
+        combined.extend_from_slice(contents.strip_suffix(b"\n").unwrap_or(&contents));
+        combined.push(b'\n');
     }
-    tokio::fs::read(source).await.map(Some).map_err(Error::from)
+    Ok((!combined.is_empty()).then_some(combined))
 }
 
 async fn read_skills(record: &control_plane::AgentRecord) -> Result<Vec<harness::Skill>, Error> {
