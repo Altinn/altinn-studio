@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use ::sandbox::LocalFuture;
 
-use crate::{ConditionStatus, Error, control_plane::AgentStore};
+use crate::{Error, control_plane::AgentStore};
 
 use super::{LaunchRecord, LaunchToken, Session, SessionId, SharedStore, State, Status, tmux};
 
@@ -53,12 +53,7 @@ impl Reconciler {
         }
         let agent = self.agents.get(session.agent_id).await?;
         if agent.agent.metadata.deletion_timestamp.is_some()
-            || !agent
-                .agent
-                .status
-                .conditions
-                .iter()
-                .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True)
+            || !agent.agent.status.is_ready()
             || !matches!(
                 agent.agent.status.sandbox,
                 Some(crate::sandbox::Assignment::Materialized { .. })

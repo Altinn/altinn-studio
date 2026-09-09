@@ -14,6 +14,9 @@
  *   status:         StepStatus,
  *   processingOrder: number,
  *   retryCount:     number,
+ *   deferCount:     number,
+ *   firstDeferredAt: string | null,
+ *   lastDeferReason: string | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   executionStartedAt: string | null,
@@ -276,5 +279,11 @@ export const stepPhase = (commandDetail) => {
     return null;
 };
 
-/** Extra sub-label for a step (e.g. service task type). Returns null if none. */
-export const stepSubLabel = (_step) => null;
+/**
+ * Extra sub-label for a step. A Waiting step shows the reason its command gave for deferring, so
+ * the card says what the step is waiting for without opening the modal.
+ * @param {Step} step
+ * @returns {string | null}
+ */
+export const stepSubLabel = (step) =>
+    step.status === 'Waiting' && step.lastDeferReason ? step.lastDeferReason : null;

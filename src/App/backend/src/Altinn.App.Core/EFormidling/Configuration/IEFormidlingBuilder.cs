@@ -1,7 +1,6 @@
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
-using Altinn.Common.EFormidlingClient.Configuration;
 
 namespace Altinn.App.Core.EFormidling.Configuration;
 

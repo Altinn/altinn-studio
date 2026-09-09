@@ -112,7 +112,7 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), '123456789');
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    expect(screen.getByText(/Organisasjonsnummeret er ugyldig/i)).toBeInTheDocument();
+    expect(document.querySelector('[data-field="validation"]')).toHaveTextContent(/Organisasjonsnummeret er ugyldig/i);
     expect(mockedHttpGet).not.toHaveBeenCalled();
 
     const statusRegion = screen.getByTestId('organization-lookup-status');
@@ -208,7 +208,11 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), validOrgNr);
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    expect(await screen.findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.querySelector('[data-field="validation"]')).toHaveTextContent(
+        /Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i,
+      );
+    });
   });
 
   it('shows invalid response error when lookup response is invalid', async () => {

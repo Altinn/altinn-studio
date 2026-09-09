@@ -6,11 +6,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -20,8 +23,11 @@ using FluentAssertions;
 using Json.More;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -138,6 +144,135 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task Patch_WhenContentChangedAfterInstanceRead_ReturnsConflictWithReloadInstructions()
+    {
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services => services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        _ = GetClient();
+        storageMetadata.BumpDataElementBeforeNextContentRead(
+            new InstanceIdentifier(InstanceOwnerPartyId, _instanceGuid),
+            _dataGuid
+        );
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        );
+
+        var (response, responseBody, problemDetails) = await CallPatchApi<ProblemDetails>(
+            patch,
+            ignoredValidators: null,
+            HttpStatusCode.Conflict
+        );
+
+        problemDetails.Status.Should().Be(StatusCodes.Status409Conflict);
+        problemDetails.Title.Should().Be("Data element content conflict");
+        problemDetails.Detail.Should().Contain("Reload the instance data and retry the request.");
+        problemDetails.Detail.Should().Contain(_dataGuid.ToString());
+
+        var expectedConflict = new ConflictObjectResult(
+            InstanceStateConflictResult.Create(
+                new DataElementContentConflictException(
+                    $"{InstanceOwnerPartyId}/{_instanceGuid}",
+                    _dataGuid,
+                    new InvalidOperationException("stale")
+                )
+            )
+        );
+        var expectedHttpContext = new DefaultHttpContext { RequestServices = Services };
+        await using var expectedBody = new MemoryStream();
+        expectedHttpContext.Response.Body = expectedBody;
+        await expectedConflict.ExecuteResultAsync(
+            new ActionContext(expectedHttpContext, new RouteData(), new ActionDescriptor())
+        );
+        expectedBody.Position = 0;
+        using var expectedBodyReader = new StreamReader(expectedBody);
+        string expectedResponseBody = await expectedBodyReader.ReadToEndAsync();
+
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+        MediaTypeHeaderValue
+            .Parse(expectedHttpContext.Response.ContentType!)
+            .MediaType.Should()
+            .Be("application/problem+json");
+        JsonNode.DeepEquals(JsonNode.Parse(responseBody), JsonNode.Parse(expectedResponseBody)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PatchMultiple_WhenExpectedProcessStateVersionIsExplicitZero_ReturnsPreconditionFailedBeforeMutation()
+    {
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services => services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        JsonPatch patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        );
+        var request = new DataPatchRequestMultiple
+        {
+            ExpectedProcessStateVersion = 0,
+            Patches = [new(_dataGuid, patch)],
+        };
+        string serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
+        using JsonDocument serializedDocument = JsonDocument.Parse(serializedRequest);
+        serializedDocument.RootElement.GetProperty("expectedProcessStateVersion").GetInt32().Should().Be(0);
+
+        var (response, _, problemDetails) = await CallPatchMultipleApi<ProblemDetails>(
+            request,
+            HttpStatusCode.PreconditionFailed
+        );
+
+        problemDetails.Status.Should().Be(StatusCodes.Status412PreconditionFailed);
+        problemDetails.Title.Should().Be("Process state has changed");
+        ((JsonElement)problemDetails.Extensions["expectedVersion"]!).GetInt32().Should().Be(0);
+        ((JsonElement)problemDetails.Extensions["actualVersion"]!).GetInt32().Should().BeGreaterThan(0);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+        storageMetadata.AggregateMutationRequestCount.Should().Be(0);
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ConcurrentPatches_WhenFirstUnitOfWorkSaves_SecondReturnsConflictWithReloadInstructions()
+    {
+        var storageMetadata = new ApiTestStorageMetadata();
+        var coordinator = new ConcurrentPatchDataWriteProcessor(storageMetadata);
+        OverrideServicesForThisTest = services =>
+        {
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+            services.RemoveAll<IDataWriteProcessor>();
+            services.AddSingleton<IDataWriteProcessor>(coordinator);
+        };
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(It.IsAny<Instance>(), _dataGuid, It.IsAny<object>(), It.IsAny<object?>(), null)
+            )
+            .Returns(Task.CompletedTask);
+
+        async Task<HttpResponseMessage> SendPatch(string name)
+        {
+            var patch = new JsonPatch(
+                PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonValue.Create(name))
+            );
+            var request = new DataPatchRequest { Patch = patch };
+            using JsonContent content = JsonContent.Create(request, options: _jsonSerializerOptions);
+            return await GetClient().PatchAsync($"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}", content);
+        }
+
+        Task<HttpResponseMessage> firstResponseTask = SendPatch("First save");
+        await coordinator.FirstUnitOfWorkReady.WaitAsync(TimeSpan.FromSeconds(10));
+        Task<HttpResponseMessage> secondResponseTask = SendPatch("Second save");
+
+        using HttpResponseMessage firstResponse = await firstResponseTask;
+        using HttpResponseMessage secondResponse = await secondResponseTask;
+
+        firstResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        var problemDetails = await VerifyStatusAndDeserialize<ProblemDetails>(secondResponse, HttpStatusCode.Conflict);
+        problemDetails.Status.Should().Be(StatusCodes.Status409Conflict);
+        problemDetails.Title.Should().Be("Instance data conflict");
+        problemDetails.Detail.Should().Contain("Reload the instance data and retry the request.");
+        secondResponse.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+        _dataProcessorMock.Verify(
+            p => p.ProcessDataWrite(It.IsAny<Instance>(), _dataGuid, It.IsAny<object>(), It.IsAny<object?>(), null),
+            Times.Exactly(2)
+        );
+    }
+
+    [Fact]
     public async Task ValidName_ReturnsOk()
     {
         _dataProcessorMock
@@ -186,8 +321,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task MultiplePatches_AppliesCorrectly()
     {
         const string prefillDataType = "prefill-data-type";
+        var storageMetadata = new ApiTestStorageMetadata();
         OverrideServicesForThisTest = (services) =>
         {
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
             services.AddSingleton(
                 new AppMetadataMutationHook(
                     (app) =>
@@ -246,6 +383,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             Patches = new() { new(_dataGuid, patch), new(extraDataGuid, patch2) },
             IgnoredValidators = [],
         };
+        int mutationRequestCountBeforePatch = storageMetadata.AggregateMutationRequestCount;
 
         var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(request, HttpStatusCode.OK);
 
@@ -273,6 +411,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Which.Deserialize<Skjema>()!;
         newExtraData.Melding!.Name.Should().Be("Kari Olsen");
 
+        storageMetadata.AggregateMutationRequestCount.Should().Be(mutationRequestCountBeforePatch + 1);
         _dataProcessorMock.Verify();
     }
 
@@ -1110,6 +1249,44 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         (await action.Should().ThrowAsync<Exception>())
             .Which.Message.Should()
             .Contain("changed by validators");
+    }
+
+    private sealed class ConcurrentPatchDataWriteProcessor(ApiTestStorageMetadata storageMetadata) : IDataWriteProcessor
+    {
+        private readonly TaskCompletionSource _firstUnitOfWorkReady = new(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        private readonly TaskCompletionSource _bothUnitsOfWorkReady = new(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        private int _invocationCount;
+
+        public Task FirstUnitOfWorkReady => _firstUnitOfWorkReady.Task;
+
+        public async Task ProcessDataWrite(
+            IInstanceDataMutator instanceDataMutator,
+            string taskId,
+            DataElementChanges changes,
+            string? language
+        )
+        {
+            int invocation = Interlocked.Increment(ref _invocationCount);
+            switch (invocation)
+            {
+                case 1:
+                    _firstUnitOfWorkReady.TrySetResult();
+                    await _bothUnitsOfWorkReady.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    break;
+                case 2:
+                    _bothUnitsOfWorkReady.TrySetResult();
+                    await storageMetadata
+                        .WaitForFirstAggregateMutation(CancellationToken.None)
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+                    break;
+                default:
+                    throw new InvalidOperationException("Expected exactly two concurrent units of work.");
+            }
+        }
     }
 
     ~DataControllerPatchTests()

@@ -5,7 +5,6 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -23,38 +22,29 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenerator
 {
     private readonly IAppMetadata _appMetadata;
-    private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FiksArkivDefaultPayloadGenerator> _logger;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IFiksArkivConfigResolver _fiksArkivConfigResolver;
-    private readonly FiksIOSettings _fiksIOSettings;
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly IAppModel _appModelResolver;
-    private readonly TimeProvider _timeProvider;
 
     private bool _indentXmlSerialization => !_hostEnvironment.IsProduction();
 
     public FiksArkivDefaultPayloadGenerator(
         IAppMetadata appMetadata,
-        IAuthenticationContext authenticationContext,
         ILogger<FiksArkivDefaultPayloadGenerator> logger,
         IHostEnvironment hostEnvironment,
         IFiksArkivConfigResolver fiksArkivConfigResolver,
         IAppModel appModelResolver,
-        IOptions<FiksArkivSettings> fiksArkivSettings,
-        IOptions<FiksIOSettings> fiksIOSettings,
-        TimeProvider? timeProvider = null
+        IOptions<FiksArkivSettings> fiksArkivSettings
     )
     {
         _appMetadata = appMetadata;
-        _authenticationContext = authenticationContext;
         _logger = logger;
         _hostEnvironment = hostEnvironment;
         _fiksArkivConfigResolver = fiksArkivConfigResolver;
         _appModelResolver = appModelResolver;
         _fiksArkivSettings = fiksArkivSettings.Value;
-        _fiksIOSettings = fiksIOSettings.Value;
-        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     /// <inheritdoc />
@@ -67,31 +57,15 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         CancellationToken cancellationToken = default
     )
     {
-        DateTime localReferenceTime = TimeZoneInfo
-            .ConvertTime(executionReferenceTime, _timeProvider.LocalTimeZone)
-            .DateTime;
-        return await GeneratePayloadUsingLocalTime(
-            recipient,
-            messageType,
-            localReferenceTime,
-            dataAccessor,
-            cancellationToken
-        );
-    }
-
-    private async Task<IEnumerable<FiksIOMessagePayload>> GeneratePayloadUsingLocalTime(
-        FiksArkivRecipient recipient,
-        string messageType,
-        DateTime localReferenceTime,
-        IInstanceDataAccessor dataAccessor,
-        CancellationToken cancellationToken
-    )
-    {
         if (messageType != FiksArkivConstants.MessageTypes.CreateArchiveRecord)
             throw new FiksArkivException(
                 $"Unsupported message type: {messageType}. {nameof(FiksArkivDefaultPayloadGenerator)} can only handle {FiksArkivConstants.MessageTypes.CreateArchiveRecord} requests."
             );
 
+        // Every generated date derives from the one retry-stable reference time the workflow engine supplies, so a
+        // retried step reproduces the exact same archive record. It is normalized to UTC so the arkivmelding carries
+        // unambiguous, offset-qualified timestamps regardless of the offset the caller used.
+        DateTimeOffset referenceTime = executionReferenceTime.ToUniversalTime();
         var instance = dataAccessor.Instance;
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var documentCreator = appMetadata.AppIdentifier.Org;
@@ -103,8 +77,8 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         );
         var recipientParty = _fiksArkivConfigResolver.GetRecipientParty(instance, recipient);
         var instanceOwnerParty = await _fiksArkivConfigResolver.GetInstanceOwnerParty(instance, cancellationToken);
-        var instanceOwnerClassification = await _fiksArkivConfigResolver.GetInstanceOwnerClassification(
-            _authenticationContext.Current,
+        var caseFileClassifications = await _fiksArkivConfigResolver.GetCaseFileClassifications(
+            instance,
             cancellationToken
         );
 
@@ -112,9 +86,12 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         {
             Tittel = documentMetadata?.CaseFileTitle ?? defaultDocumentTitle,
             OffentligTittel = documentMetadata?.CaseFileTitle ?? defaultDocumentTitle,
-            AdministrativEnhet = new AdministrativEnhet { Navn = documentCreator },
-            Saksaar = localReferenceTime.Year,
-            Saksdato = localReferenceTime,
+            AdministrativEnhet = new AdministrativEnhet
+            {
+                Navn = documentMetadata?.CaseFileAdministrativeUnit ?? documentCreator,
+            },
+            Saksaar = referenceTime.Year,
+            Saksdato = referenceTime.UtcDateTime,
             ReferanseEksternNoekkel = new EksternNoekkel
             {
                 Fagsystem = appMetadata.AppIdentifier.ToString(),
@@ -122,13 +99,16 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
             },
         };
 
-        caseFile.Klassifikasjon.Add(instanceOwnerClassification);
+        foreach (var classification in caseFileClassifications)
+        {
+            caseFile.Klassifikasjon.Add(classification);
+        }
 
         var journalEntry = new Journalpost
         {
-            Journalaar = localReferenceTime.Year,
-            DokumentetsDato = localReferenceTime,
-            SendtDato = localReferenceTime,
+            Journalaar = referenceTime.Year,
+            DokumentetsDato = referenceTime.UtcDateTime,
+            SendtDato = referenceTime.UtcDateTime,
             Tittel = documentMetadata?.JournalEntryTitle ?? defaultDocumentTitle,
             OffentligTittel = documentMetadata?.JournalEntryTitle ?? defaultDocumentTitle,
             OpprettetAv = documentCreator,
@@ -160,14 +140,12 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         }
 
         // Main form data file
-        journalEntry.Dokumentbeskrivelse.Add(
-            GetDocumentDescription(archiveDocuments.PrimaryDocument, localReferenceTime)
-        );
+        journalEntry.Dokumentbeskrivelse.Add(GetDocumentDescription(archiveDocuments.PrimaryDocument, referenceTime));
 
         // Attachments
         foreach (var attachment in archiveDocuments.AttachmentDocuments)
         {
-            journalEntry.Dokumentbeskrivelse.Add(GetDocumentDescription(attachment, localReferenceTime));
+            journalEntry.Dokumentbeskrivelse.Add(GetDocumentDescription(attachment, referenceTime));
         }
 
         // Archive record
@@ -202,6 +180,8 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
             primaryDataElement,
             primaryDocumentSettings.Filename,
             DokumenttypeKoder.Dokument,
+            primaryDocumentSettings.Format,
+            primaryDocumentSettings.Variant,
             dataAccessor
         );
 
@@ -216,7 +196,14 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
             attachmentDocuments.AddRange(
                 await Task.WhenAll(
                     dataElements.Select(async x =>
-                        await GetPayload(x, attachmentSetting.Filename, DokumenttypeKoder.Vedlegg, dataAccessor)
+                        await GetPayload(
+                            x,
+                            attachmentSetting.Filename,
+                            DokumenttypeKoder.Vedlegg,
+                            attachmentSetting.Format,
+                            attachmentSetting.Variant,
+                            dataAccessor
+                        )
                     )
                 )
             );
@@ -229,6 +216,8 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         DataElement dataElement,
         string? filename,
         Kode fileTypeCode,
+        FiksArkivCode? fileFormat,
+        FiksArkivCode? fileVariant,
         IInstanceDataAccessor dataAccessor
     )
     {
@@ -240,13 +229,15 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
 
         return new MessagePayloadWrapper(
             new FiksIOMessagePayload(payloadFilename, await dataAccessor.GetBinaryData(dataElement)),
-            fileTypeCode
+            fileTypeCode,
+            fileFormat,
+            fileVariant
         );
     }
 
-    private Dokumentbeskrivelse GetDocumentDescription(
+    private static Dokumentbeskrivelse GetDocumentDescription(
         MessagePayloadWrapper payloadWrapper,
-        DateTime localReferenceTime
+        DateTimeOffset referenceTime
     )
     {
         var documentClassification =
@@ -272,25 +263,16 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
                 KodeProperty = documentClassification.Verdi,
                 Beskrivelse = documentClassification.Beskrivelse,
             },
-            OpprettetDato = localReferenceTime,
+            OpprettetDato = referenceTime.UtcDateTime,
         };
 
         metadata.Dokumentobjekt.Add(
             new Dokumentobjekt
             {
-                SystemID = new SystemID
-                {
-                    Value = _fiksIOSettings.AccountId.ToString(),
-                    Label = FiksArkivConstants.AltinnSystemId,
-                },
                 Filnavn = payloadWrapper.Payload.Filename,
                 ReferanseDokumentfil = payloadWrapper.Payload.Filename,
-                Format = new Format { KodeProperty = payloadWrapper.Payload.GetDotlessFileExtension() },
-                Variantformat = new Variantformat
-                {
-                    KodeProperty = VariantformatKoder.Produksjonsformat.Verdi,
-                    Beskrivelse = VariantformatKoder.Produksjonsformat.Beskrivelse,
-                },
+                Format = payloadWrapper.GetFileFormat(),
+                Variantformat = payloadWrapper.GetFileVariant(),
             }
         );
 

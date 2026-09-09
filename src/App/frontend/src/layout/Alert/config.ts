@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Varsel', en: 'Alert' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -19,23 +25,23 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The title of the alert',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title of the alert', nb: 'Ledeteksten til varselet.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'body',
-      title: 'Body',
-      description: 'The body text of the alert',
+      title: { en: 'Body', nb: 'Brødtekst' },
+      description: { en: 'The body text of the alert', nb: 'Brødteksten i varselet.' },
     }),
   )
   .addProperty(
     new CG.prop(
       'severity',
       new CG.enum('success', 'warning', 'danger', 'info')
-        .setTitle('Alert severity')
-        .setDescription('The severity of the alert')
+        .setTitle('Alert severity', 'Alvorlighetsgrad')
+        .setDescription('The severity of the alert', 'Varselets alvorlighetsgrad.')
         .exportAs('AlertSeverity'),
     ),
   );

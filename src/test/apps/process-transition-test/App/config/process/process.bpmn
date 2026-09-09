@@ -12,7 +12,6 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_Start_Task1</bpmn:incoming>
       <bpmn:incoming>Flow_Gateway_Task1</bpmn:incoming>
-      <bpmn:incoming>Flow_GatewayS_Task1</bpmn:incoming>
       <bpmn:outgoing>Flow_Task1_GatewayPC</bpmn:outgoing>
     </bpmn:task>
     <!-- Routes the forward transition through the scenario service task ONLY when the postCommit
@@ -31,17 +30,12 @@
       <bpmn:outgoing>Flow_GatewayPC_ServiceLayout</bpmn:outgoing>
       <bpmn:outgoing>Flow_GatewayPC_Task2</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <!-- 'reject' lets the user abandon the service task from its failure view ("Gå tilbake"):
-         the engine writes the failed workflow off and the reject transition routes back to
-         Task_1 via Gateway_Service. The forward path (success auto-advance, and the user's
-         resume-driven retry) exits the same gateway towards Task_2. -->
+    <!-- Failed service tasks recover through process/resume. Successful completion exits
+         via Gateway_Service towards Task_2. -->
     <bpmn:serviceTask id="Task_Service" name="Behandling">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>scenario</altinn:taskType>
-          <altinn:actions>
-            <altinn:action>reject</altinn:action>
-          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_GatewayPC_Service</bpmn:incoming>
@@ -55,9 +49,6 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>scenario</altinn:taskType>
-          <altinn:actions>
-            <altinn:action>reject</altinn:action>
-          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_GatewayPC_ServiceLayout</bpmn:incoming>
@@ -66,7 +57,6 @@
     <bpmn:exclusiveGateway id="Gateway_Service">
       <bpmn:incoming>Flow_Service_GatewayS</bpmn:incoming>
       <bpmn:incoming>Flow_ServiceLayout_GatewayS</bpmn:incoming>
-      <bpmn:outgoing>Flow_GatewayS_Task1</bpmn:outgoing>
       <bpmn:outgoing>Flow_GatewayS_Task2</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:task id="Task_2" name="Task 2">
@@ -103,12 +93,7 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_Service_GatewayS" sourceRef="Task_Service" targetRef="Gateway_Service" />
     <bpmn:sequenceFlow id="Flow_ServiceLayout_GatewayS" sourceRef="Task_ServiceLayout" targetRef="Gateway_Service" />
-    <bpmn:sequenceFlow id="Flow_GatewayS_Task1" sourceRef="Gateway_Service" targetRef="Task_1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_GatewayS_Task2" sourceRef="Gateway_Service" targetRef="Task_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GatewayS_Task2" sourceRef="Gateway_Service" targetRef="Task_2" />
     <bpmn:sequenceFlow id="Flow_Task2_Gateway" sourceRef="Task_2" targetRef="Gateway_1" />
     <bpmn:sequenceFlow id="Flow_Gateway_Task1" sourceRef="Gateway_1" targetRef="Task_1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
@@ -174,12 +159,6 @@
         <di:waypoint x="495" y="-120" />
         <di:waypoint x="550" y="-120" />
         <di:waypoint x="550" y="-25" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_GatewayS_Task1_di" bpmnElement="Flow_GatewayS_Task1">
-        <di:waypoint x="550" y="-25" />
-        <di:waypoint x="550" y="-70" />
-        <di:waypoint x="330" y="-70" />
-        <di:waypoint x="330" y="81" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_GatewayS_Task2_di" bpmnElement="Flow_GatewayS_Task2">
         <di:waypoint x="550" y="25" />

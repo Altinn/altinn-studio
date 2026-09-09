@@ -146,19 +146,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             // archive rejection gets, concluded down the same errorHandling path.
             _logger.LogError(e, "The archive record can not be sent: {ErrorMessage}", e.Message);
 
-            if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is true)
-            {
-                return ServiceTaskOpeningStageResult.Conclude(
-                    ServiceTaskResult.Success(action: _fiksArkivSettings.ErrorHandling.GetActionOrDefault())
-                );
-            }
-
-            return ServiceTaskOpeningStageResult.Conclude(
-                ServiceTaskResult.FailedPermanent(
-                    "The archive record can not be sent: the recipient account does not exist. Retrying "
-                        + $"cannot succeed; manual follow-up is required. {e.Message}"
-                )
-            );
+            return ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success(action: ErrorAction()));
         }
         catch (Exception e)
         {
@@ -291,14 +279,18 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
                 : (IEnumerable<string>)["Message contains no content."]
         );
 
-        if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is true)
-            return ServiceTaskResult.Success(action: _fiksArkivSettings.ErrorHandling.GetActionOrDefault());
-
-        return ServiceTaskResult.FailedPermanent(
-            $"The archive rejected the record with message type '{message.MessageType}'. "
-                + "The archive will not answer differently if asked again; manual follow-up is required."
-        );
+        // The archive will not answer differently if asked again, so the archiving concludes down the
+        // errorHandling path: the process moves on with the configured action, `reject` by default, and the
+        // exclusive gateway the startup check requires after the task is what routes it.
+        return ServiceTaskResult.Success(action: ErrorAction());
     }
+
+    /// <summary>
+    /// The action an archiving that cannot succeed moves the process on with. An omitted
+    /// <c>errorHandling</c> block and one without an action both mean <c>reject</c>.
+    /// </summary>
+    private string ErrorAction() =>
+        _fiksArkivSettings.ErrorHandling?.GetActionOrDefault() ?? FiksArkivErrorHandlingSettings.DefaultAction;
 
     private async Task<ServiceTaskResult> HandleArchiveReceipt(
         ServiceTaskContext context,
@@ -326,16 +318,16 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
         SaveArchiveReceipt(context, receipt);
 
         // Before concluding: the conclusion advances the process, which may end it and take the instance along.
-        if (_fiksArkivSettings.SuccessHandling?.MarkInstanceComplete is true)
+        if (
+            _fiksArkivSettings.SuccessHandling?.MarkInstanceComplete
+            ?? FiksArkivSuccessHandlingSettings.DefaultMarkInstanceComplete
+        )
         {
             await _fiksArkivInstanceClient.MarkInstanceComplete(
                 new InstanceIdentifier(context.InstanceDataMutator.Instance),
                 context.CancellationToken
             );
         }
-
-        if (_fiksArkivSettings.SuccessHandling is { MoveToNextTask: false })
-            return ServiceTaskResult.SuccessWithoutAutoAdvance();
 
         return ServiceTaskResult.Success(action: _fiksArkivSettings.SuccessHandling?.GetActionOrDefault());
     }

@@ -1,6 +1,6 @@
+import type { MapLayer } from '@app/layout-contract/generated/components/Map/config.generated';
 import type { LatLngBounds, LatLngExpression, PointExpression } from 'leaflet';
 
-import type { MapLayer } from 'src/layout/Map/config.generated';
 import type { Location } from 'src/layout/Map/types';
 
 export const DefaultCenterLocation: Location = {

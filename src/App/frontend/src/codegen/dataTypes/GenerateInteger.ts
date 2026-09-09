@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { GenerateNumber } from 'src/codegen/dataTypes/GenerateNumber';
@@ -20,6 +21,15 @@ export class GenerateInteger extends GenerateNumber {
       ...this.getInternalJsonSchema(),
       ...super.toJsonSchemaDefinition(),
       type: 'integer',
+    };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return {
+      type: 'integer',
+      ...(this.minimum !== undefined ? { minimum: this.minimum } : {}),
+      ...(this.maximum !== undefined ? { maximum: this.maximum } : {}),
+      ...this.componentCatalogMetadata(),
     };
   }
 }

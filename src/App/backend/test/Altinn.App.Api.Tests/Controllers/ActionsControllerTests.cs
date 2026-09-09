@@ -13,6 +13,8 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +44,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
         TestData.PrepareInstance(org, app, 1337, guid);
+        await TestData.SetProcessStatus(org, app, 1337, guid, ProcessStatus.Processing);
         string token = TestAuthentication.GetUserToken(1000, authenticationLevel: 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         using var content = new StringContent(
@@ -170,6 +173,39 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    public async Task Perform_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeAction(ProcessStatus processStatus)
+    {
+        OverrideServicesForThisTest = services => services.AddTransient<IUserAction, LookupAction>();
+        const string org = "tdd";
+        const string app = "task-action";
+        var guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        TestData.PrepareInstance(org, app, 1337, guid);
+        await TestData.SetProcessStatus(org, app, 1337, guid, processStatus);
+        try
+        {
+            HttpClient client = GetRootedClient(org, app);
+            string token = TestAuthentication.GetUserToken(1000, authenticationLevel: 3);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                AuthorizationSchemes.Bearer,
+                token
+            );
+            using JsonContent content = JsonContent.Create(new { action = "lookup" });
+
+            using HttpResponseMessage response = await client.PostAsync(
+                $"/{org}/{app}/instances/1337/{guid}/actions",
+                content
+            );
+
+            await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, 1337, guid);
+        }
     }
 
     [Fact]

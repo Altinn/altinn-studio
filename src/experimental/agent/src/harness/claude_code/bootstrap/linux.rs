@@ -2,9 +2,9 @@
 
 use std::io::Cursor;
 
-use sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
+use sandbox::{SandboxHandle, SandboxPath};
 
-use crate::Error;
+use crate::{Error, sandbox::platform::run_checked};
 
 use super::super::ACCESS_PLACEHOLDER;
 
@@ -46,7 +46,7 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
         )
         .await?;
     // HACK: the mediated setup token is inference-only, so Claude Code cannot read the account's
-    // plan entitlement and gates Fable 5 behind a usage-credits prompt. Declaring the subscription
+    // plan entitlement and gates Fable behind a usage-credits prompt. Declaring the subscription
     // type and rate-limit tier in the settings env satisfies the client-side plan-inclusion check
     // (the literal "max" tier is what the check looks for, regardless of the real plan); the server
     // still authorizes inference independently. Both are required — the type alone unblocks Max
@@ -98,21 +98,4 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
         run_checked(sandbox, "/usr/bin/chmod", ["644", instructions_path.as_str()]).await?;
     }
     Ok(())
-}
-
-async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, args: [&str; N]) -> Result<(), Error> {
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new(executable),
-            args.into_iter().map(str::to_owned),
-        ))
-        .await?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(Error::SandboxSetup(format!(
-            "command {executable:?} exited with code {}",
-            output.status.code
-        )))
-    }
 }

@@ -1,6 +1,7 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 
 describe('makeIndexedId', () => {

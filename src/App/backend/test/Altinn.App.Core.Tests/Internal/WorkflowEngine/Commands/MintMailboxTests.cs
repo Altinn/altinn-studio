@@ -208,7 +208,6 @@ public class MintMailboxTests
             {
                 CommandKey = MintMailbox.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),

@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -49,5 +50,12 @@ export class GenerateEnum<T extends string | number> extends DescribableCodeGene
 
   shouldUseParens(): boolean {
     return this._asRealEnum === false;
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    const metadata = this.componentCatalogMetadata();
+    return typeof this.values[0] === 'number'
+      ? { type: 'number', allowedValues: this.values as number[], ...metadata }
+      : { type: 'string', allowedValues: this.values as string[], ...metadata };
   }
 }

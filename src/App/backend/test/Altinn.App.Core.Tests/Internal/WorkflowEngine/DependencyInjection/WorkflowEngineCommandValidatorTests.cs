@@ -29,7 +29,7 @@ public class WorkflowEngineCommandValidatorTests
         // Arrange
         var services = new ServiceCollection();
         // Intentionally NOT registering all commands
-        services.AddTransient<IWorkflowEngineCommand, SaveProcessStateToStorage>();
+        services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -38,6 +38,24 @@ public class WorkflowEngineCommandValidatorTests
 
         Assert.Contains("not registered", exception.Message);
         Assert.Contains("OnTaskStartingHook", exception.Message);
+    }
+
+    [Fact]
+    public void Validate_MutateProcessStateNotRegistered_ThrowsInvalidOperationException()
+    {
+        var services = new ServiceCollection();
+        RegisterAllCommands(services);
+        ServiceDescriptor registration = Assert.Single(
+            services,
+            descriptor => descriptor.ImplementationType == typeof(MutateProcessState)
+        );
+        services.Remove(registration);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            WorkflowEngineCommandValidator.Validate(services)
+        );
+
+        Assert.Contains("'MutateProcessState'", exception.Message);
     }
 
     private static void RegisterAllCommands(IServiceCollection services)
@@ -60,11 +78,10 @@ public class WorkflowEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, EndProcessLegacyHook>();
-        services.AddTransient<IWorkflowEngineCommand, DeleteDataElementsIfConfigured>();
-        services.AddTransient<IWorkflowEngineCommand, DeleteInstanceIfConfigured>();
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
+        services.AddTransient<IWorkflowEngineCommand, AcquireProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
-        services.AddTransient<IWorkflowEngineCommand, SaveProcessStateToStorage>();
+        services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
     }

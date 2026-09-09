@@ -1,6 +1,5 @@
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 
@@ -60,10 +59,15 @@ public interface IFiksArkivConfigResolver
     Task<Korrespondansepart?> GetInstanceOwnerParty(Instance instance, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the classification of the instance owner (klassifikasjon).
+    /// Gets the case file classifications (klassifikasjoner) for the shipment, in the order configured in
+    /// <see cref="FiksArkivMetadataSettings.CaseFileClassifications"/>. An entry whose source is
+    /// <see cref="FiksArkivClassificationSource.InstanceOwner"/> resolves to the owner recorded on
+    /// <paramref name="instance"/>: an organization by its organization number, a person by their national identity
+    /// number, titled with the party's registered name when the register knows it. Every other entry is emitted as
+    /// configured. Returns an empty list when nothing is configured.
     /// </summary>
-    Task<Klassifikasjon> GetInstanceOwnerClassification(
-        Authenticated auth,
+    Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(
+        Instance instance,
         CancellationToken cancellationToken = default
     );
 }

@@ -163,11 +163,6 @@
         "Nullable": true
       },
       {
-        "Name": "lockToken",
-        "Kind": "string",
-        "Nullable": false
-      },
-      {
         "Name": "mailbox",
         "Kind": "object<AppCallbackMailbox>",
         "Nullable": true
@@ -260,11 +255,6 @@
       {
         "Name": "instanceOwnerPartyId",
         "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "lockToken",
-        "Kind": "string",
         "Nullable": false
       },
       {

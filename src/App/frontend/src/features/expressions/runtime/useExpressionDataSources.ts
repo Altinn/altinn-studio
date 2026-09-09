@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { StoreApi } from 'zustand';
 
 import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
@@ -31,7 +32,6 @@ import type { StaticOptionSet } from 'src/features/formBootstrap/types';
 import type { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
 /**

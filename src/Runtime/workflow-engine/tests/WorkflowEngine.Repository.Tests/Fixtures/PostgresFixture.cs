@@ -140,6 +140,23 @@ public sealed class PostgresFixture : IAsyncLifetime
         );
     }
 
+    internal (NamespaceThrottleService Service, ThrottleStateView View) CreateThrottleService(
+        IOptions<EngineSettings> settings
+    )
+    {
+        var view = new ThrottleStateView(TimeProvider.System, settings);
+        var service = new NamespaceThrottleService(
+            NullLogger<NamespaceThrottleService>.Instance,
+            TimeProvider.System,
+            DataSource,
+            settings,
+            CreateRepository(settings),
+            view
+        );
+        _disposables.Add(service);
+        return (service, view);
+    }
+
     internal DbMaintenanceService CreateMaintenanceService(TimeProvider? timeProvider = null)
     {
         var service = new DbMaintenanceService(
@@ -177,7 +194,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     {
         await using var context = CreateDbContext();
         await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys, engine.mailboxes, engine.mailbox_deliveries, engine.mailbox_receivers CASCADE"
+            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys, engine.mailboxes, engine.mailbox_deliveries, engine.mailbox_receivers, engine.namespace_throttles CASCADE"
         );
     }
 }

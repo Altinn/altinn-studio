@@ -4,13 +4,13 @@ use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane, harness, sessions};
+use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
 
 use super::protocol::{
-    DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE,
-    METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE,
-    METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, ReadMessage, Request, Response, SessionListParams,
-    SessionParams, read_message,
+    DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
+    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
+    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, Notification,
+    ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -52,7 +52,7 @@ impl Client {
     ///
     /// Returns an error when the daemon is unavailable or protocol-incompatible.
     pub async fn health(&self) -> Result<(), Error> {
-        let _result: serde_json::Value = self.call(METHOD_HEALTH, serde_json::json!({})).await?;
+        let _result: serde_json::Value = self.call(METHOD_HEALTH, serde_json::json!({}), None).await?;
         Ok(())
     }
 
@@ -62,7 +62,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn apply(&self, request: control_plane::ApplyRequest) -> Result<Agent, Error> {
-        self.call(METHOD_APPLY, request).await
+        self.call(METHOD_APPLY, request, None).await
     }
 
     /// Gets an Agent resource by name.
@@ -71,7 +71,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.call(METHOD_GET, NameParams { name: name.into() }).await
+        self.call(METHOD_GET, NameParams { name: name.into() }, None).await
     }
 
     /// Lists every active Agent.
@@ -80,7 +80,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or storage fails.
     pub async fn list_agents(&self) -> Result<Vec<Agent>, Error> {
-        self.call(METHOD_LIST, serde_json::json!({})).await
+        self.call(METHOD_LIST, serde_json::json!({}), None).await
     }
 
     /// Resolves the closest persisted Agent source directory containing `directory`.
@@ -89,18 +89,36 @@ impl Client {
     ///
     /// Returns an error when no unique Agent matches or the API call fails.
     pub async fn resolve_agent(&self, directory: std::path::PathBuf) -> Result<Agent, Error> {
-        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }).await
+        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }, None)
+            .await
     }
 
     /// Converges an Agent and resolves its exact transient Execution target.
     ///
+    /// `wait` decides whether the call returns after one reconciliation pass or
+    /// follows background retries until Ready; a progress sink independently
+    /// opts in to streamed provisioning events.
+    ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, or fails to reach
-    /// a ready materialized Sandbox.
-    pub async fn ensure_execution(&self, name: &str) -> Result<crate::sandbox::ExecutionTarget, Error> {
-        self.call(METHOD_EXECUTION_ENSURE, NameParams { name: name.into() })
-            .await
+    /// Returns an error when the Agent is missing, deleting, invalid, or fails to
+    /// reach a ready materialized Sandbox.
+    pub async fn ensure_execution(
+        &self,
+        name: &str,
+        wait: WaitPolicy,
+        progress: Option<&mut dyn FnMut(crate::progress::Event)>,
+    ) -> Result<crate::sandbox::ExecutionTarget, Error> {
+        self.call(
+            METHOD_EXECUTION_ENSURE,
+            ExecutionEnsureParams {
+                name: name.into(),
+                progress: progress.is_some(),
+                follow: wait == WaitPolicy::UntilReady,
+            },
+            progress,
+        )
+        .await
     }
 
     /// Requests deletion of an Agent and its owned sandbox.
@@ -109,7 +127,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
-        let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }).await?;
+        let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }, None).await?;
         Ok(())
     }
 
@@ -122,11 +140,25 @@ impl Client {
         &self,
         harness: harness::Harness,
         credential: String,
+        imported: bool,
     ) -> Result<harness::ImportedAuthentication, Error> {
-        self.call(METHOD_AUTH_LOGIN, LoginParams { harness, credential }).await
+        self.call(
+            METHOD_AUTH_LOGIN,
+            LoginParams {
+                harness,
+                credential,
+                imported,
+            },
+            None,
+        )
+        .await
     }
 
     /// Creates or resolves one named session attach target.
+    ///
+    /// `wait` decides whether the call returns after one Agent reconciliation
+    /// pass or follows background retries until Ready; a progress sink
+    /// independently opts in to streamed provisioning events.
     ///
     /// # Errors
     ///
@@ -136,14 +168,19 @@ impl Client {
         agent: &str,
         name: sessions::SessionName,
         harness: Option<harness::Harness>,
+        wait: WaitPolicy,
+        progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<sessions::AttachTarget, Error> {
         self.call(
             METHOD_SESSION_ENSURE,
-            SessionParams {
+            SessionEnsureParams {
                 agent: agent.into(),
                 name,
                 harness,
+                progress: progress.is_some(),
+                follow: wait == WaitPolicy::UntilReady,
             },
+            progress,
         )
         .await
     }
@@ -161,6 +198,7 @@ impl Client {
                 name,
                 harness: None,
             },
+            None,
         )
         .await
     }
@@ -176,11 +214,17 @@ impl Client {
             SessionListParams {
                 agent: agent.map(str::to_owned),
             },
+            None,
         )
         .await
     }
 
-    async fn call<P: Serialize, R: DeserializeOwned>(&self, method: &str, params: P) -> Result<R, Error> {
+    async fn call<P: Serialize, R: DeserializeOwned>(
+        &self,
+        method: &str,
+        params: P,
+        mut progress: Option<&mut dyn FnMut(crate::progress::Event)>,
+    ) -> Result<R, Error> {
         let id = self.next_id.get().wrapping_add(1);
         self.next_id.set(id);
         let request = Request {
@@ -196,24 +240,40 @@ impl Client {
         stream.flush().await?;
 
         let mut stream = BufReader::new(stream);
-        let line = match read_message(&mut stream).await? {
-            ReadMessage::Complete(line) => line,
-            ReadMessage::EndOfStream | ReadMessage::TooLarge => {
+        loop {
+            let line = match read_message(&mut stream).await? {
+                ReadMessage::Complete(line) => line,
+                ReadMessage::EndOfStream | ReadMessage::TooLarge => {
+                    return Err(Error::Invalid("invalid Agent Control API response".into()));
+                }
+            };
+            let value: serde_json::Value = serde_json::from_slice(&line)?;
+            if value.get("id").is_none() {
+                // A well-formed notification this client does not understand is
+                // skipped: rendering is best effort and must never fail the call.
+                let notification: Notification = serde_json::from_value(value)?;
+                if notification.jsonrpc == JSON_RPC_VERSION
+                    && notification.method == METHOD_PROGRESS_EVENT
+                    && let Ok(event) = serde_json::from_value(notification.params)
+                    && let Some(progress) = progress.as_deref_mut()
+                {
+                    progress(event);
+                }
+                continue;
+            }
+            let response: Response = serde_json::from_value(value)?;
+            if response.jsonrpc != JSON_RPC_VERSION || response.id != id {
                 return Err(Error::Invalid("invalid Agent Control API response".into()));
             }
-        };
-        let response: Response = serde_json::from_slice(&line)?;
-        if response.jsonrpc != JSON_RPC_VERSION || response.id != id {
-            return Err(Error::Invalid("invalid Agent Control API response".into()));
+            if let Some(error) = response.error {
+                return Err(Error::Rpc(error));
+            }
+            return serde_json::from_value(
+                response
+                    .result
+                    .ok_or_else(|| Error::Invalid("Agent Control API response has no result".into()))?,
+            )
+            .map_err(Error::from);
         }
-        if let Some(error) = response.error {
-            return Err(Error::Rpc(error));
-        }
-        serde_json::from_value(
-            response
-                .result
-                .ok_or_else(|| Error::Invalid("Agent Control API response has no result".into()))?,
-        )
-        .map_err(Error::from)
     }
 }
