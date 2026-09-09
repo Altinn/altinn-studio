@@ -928,6 +928,25 @@ def test_a_comparison_across_an_undeclared_axis_is_refused():
     assert set(comparison.refused) == {"environment", "dataset", "evaluators"}
 
 
+def test_the_dirty_flag_ignores_changes_outside_the_agents_tree(monkeypatch):
+    """A stray untracked directory at the monorepo root branded a clean run dirty, so
+    the one thing the committed pointer needs to be reproducible never was."""
+    asked = []
+
+    def fake_git(*args):
+        asked.append(args)
+        if args[0] == "status":
+            return "?? .claude/worktrees/" if "--" not in args else ""
+        return "2debfc9"
+
+    monkeypatch.setattr(provenance, "_git", fake_git)
+
+    code = provenance._code()
+
+    assert ("status", "--porcelain", "--", ".") in asked
+    assert code.dirty is False
+
+
 def test_an_axis_neither_run_recorded_refuses_the_comparison():
     """`None == None` counted as agreement, so a comparison could turn on a dataset,
     prompt or evaluator change that neither run had written down."""
