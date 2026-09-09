@@ -10,13 +10,13 @@ instructions say when evidence is expected; this skill says how to produce it.
 
 ## What to capture
 
-| Change                                         | Default evidence                              |
-| ---------------------------------------------- | --------------------------------------------- |
-| Layout, styling or a visible state             | One focused PNG screenshot                    |
-| Visual bug fix                                 | Before and after PNGs, same viewport and data |
-| Interaction or transition                      | Browser GIF of 5 to 15 seconds                |
-| CLI output or interactive terminal behavior    | asciinema recording rendered to GIF           |
-| Longer interaction that is unreadable as a GIF | MP4 (WebM converted with ffmpeg)              |
+| Change                                         | Default evidence                           |
+| ---------------------------------------------- | ------------------------------------------ |
+| Layout, styling or a visible state             | One focused PNG screenshot                 |
+| Visual bug fix                                 | Before and after PNG images, same viewport |
+| Interaction or transition                      | Browser GIF of 5 to 15 seconds             |
+| CLI output or interactive terminal behavior    | asciinema recording rendered to GIF        |
+| Longer interaction that is unreadable as a GIF | MP4 (WebM converted with ffmpeg)           |
 
 One or two images or one short clip should explain the result. Backend-only changes keep using test output and text.
 Before and after captures come from the actual base and changed revisions, not from mocked states.
