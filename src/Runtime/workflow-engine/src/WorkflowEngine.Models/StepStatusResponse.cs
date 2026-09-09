@@ -83,9 +83,10 @@ public sealed record StepStatusResponse
     public string? LastDeferReason { get; init; }
 
     /// <summary>
-    /// The reason the command gave when it skipped the rest of the workflow — a code consumers classify
-    /// on. Present only on the step that returned the skip; omitted on the later steps it caused to be
-    /// skipped and on every step that did not skip.
+    /// Why the rest of the workflow was skipped — the code a command gave, which consumers classify on, or
+    /// the reason an operator gave through the skip endpoint. Present only on the first step that did not
+    /// complete; omitted on the later steps it caused to be skipped, on every step that did not skip, and
+    /// when an operator skipped without a reason.
     /// </summary>
     [JsonPropertyName("skipReason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -519,7 +519,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("UpdatedAt")
                         .HasDatabaseName("ix_workflows_updated_at")
-                        .HasFilter("status IN (3, 4, 5, 6, 7, 10)");
+                        .HasFilter("status IN (3, 4, 5, 6, 7)");
 
                     b.HasIndex("BackoffUntil", "CreatedAt")
                         .HasDatabaseName("ix_workflows_backoff_until_created_at")

@@ -1906,7 +1906,7 @@ internal sealed partial class EngineRepository
                             updated_at = @now
                         WHERE id = @id
                           AND namespace = @ns
-                          AND status IN (@failed, @canceled, @depFailed, @requeued, @abandoned, @waiting)
+                          AND status IN (@failed, @canceled, @depFailed, @requeued, @waiting)
                         RETURNING id
                         """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
@@ -1920,7 +1920,6 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
-                        cmd.Parameters.Add(new NpgsqlParameter<int>("abandoned", (int)PersistentItemStatus.Abandoned));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("waiting", (int)PersistentItemStatus.Waiting));
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", resumedAt));
 
@@ -2073,7 +2072,7 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<WorkflowFailureInfo?> FailWorkflow(
+    public async Task<ManualTransitionInfo?> FailWorkflow(
         Guid workflowId,
         string ns,
         DateTimeOffset failedAt,
@@ -2091,7 +2090,7 @@ internal sealed partial class EngineRepository
 
         try
         {
-            WorkflowFailureInfo? failed = null;
+            ManualTransitionInfo? failed = null;
             await ExecuteWithRetry(
                 async ct =>
                 {
@@ -2142,7 +2141,7 @@ internal sealed partial class EngineRepository
                     {
                         if (await reader.ReadAsync(ct))
                         {
-                            failed = new WorkflowFailureInfo(
+                            failed = new ManualTransitionInfo(
                                 reader.GetGuid(0),
                                 await reader.IsDBNullAsync(1, ct) ? null : reader.GetBoolean(1)
                             );
@@ -2173,19 +2172,20 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<bool> AbandonWorkflow(
+    public async Task<ManualTransitionInfo?> SkipWorkflow(
         Guid workflowId,
         string ns,
-        DateTimeOffset abandonedAt,
+        DateTimeOffset skippedAt,
+        string? reason,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.AbandonWorkflow");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.SkipWorkflow");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            int rowsAffected = 0;
+            ManualTransitionInfo? skipped = null;
             await ExecuteWithRetry(
                 async ct =>
                 {
@@ -2193,47 +2193,68 @@ internal sealed partial class EngineRepository
 
                     // Compare-and-set from the unsuccessful terminal states only. A concurrent resume
                     // moves the row out of the source set and this becomes a no-op — the caller must
-                    // re-read and re-decide rather than write off a workflow that is running again.
-                    //
-                    // The released_keys CTE atomically releases the enqueue fingerprint: abandoned
-                    // means the action may be retried, so replaying the request that created this
-                    // workflow must enqueue a fresh one instead of deduplicating onto the write-off.
-                    // For a batch enqueue the key covers the whole batch — abandoning any member
-                    // releases the fingerprint for all of them. The DELETE joins the CAS result, so
-                    // it only fires when this statement performed the transition (concurrent abandons
-                    // race on the CAS, exactly one releases the key). The unindexed @> containment
-                    // scan is fine: abandon is a rare operator/supersede action and the key table is
-                    // bounded by retention.
+                    // re-read and re-decide rather than skip a workflow that is running again. Every
+                    // step that did not complete becomes Skipped, so the row matches what the handler
+                    // leaves after a command's skip: the reason lands on the first of them and the rest
+                    // carry null. error_history stays — it says why the step failed before the operator
+                    // skipped it; skip_reason says why it was skipped. The idempotency key is not
+                    // released: a replay of the same fingerprint dedups onto the skipped workflow, as
+                    // it does onto a completed one.
                     const string sql = """
-                        WITH abandoned AS (
+                        WITH skipped AS (
                             UPDATE engine.workflows
-                            SET status = @abandoned, updated_at = @now
+                            SET status = @skipped, backoff_until = NULL, updated_at = @now
                             WHERE id = @id
                               AND namespace = @ns
                               AND status IN (@failed, @canceled, @depFailed)
-                            RETURNING id, namespace
+                            RETURNING id, is_head
                         ),
-                        released_keys AS (
-                            DELETE FROM engine.idempotency_keys ik
-                            USING abandoned a
-                            WHERE ik.namespace = a.namespace
-                              AND ik.workflow_ids @> ARRAY[a.id]
+                        first_open AS (
+                            SELECT s.id
+                            FROM engine.steps s
+                            JOIN skipped w ON s.job_id = w.id
+                            WHERE s.status <> @completed
+                            ORDER BY s.processing_order
+                            LIMIT 1
+                        ),
+                        skipped_steps AS (
+                            UPDATE engine.steps s
+                            SET status = @skipped,
+                                skip_reason = CASE WHEN s.id = (SELECT id FROM first_open) THEN @reason END,
+                                updated_at = @now
+                            FROM skipped w
+                            WHERE s.job_id = w.id
+                              AND s.status <> @completed
                         )
-                        SELECT count(*)::int FROM abandoned
+                        SELECT id, is_head FROM skipped
                         """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
-                    cmd.Parameters.Add(new NpgsqlParameter<int>("abandoned", (int)PersistentItemStatus.Abandoned));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("skipped", (int)PersistentItemStatus.Skipped));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled));
                     cmd.Parameters.Add(
                         new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                     );
-                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", abandonedAt));
-                    rowsAffected = (int)(await cmd.ExecuteScalarAsync(ct) ?? 0);
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("completed", (int)PersistentItemStatus.Completed));
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", skippedAt));
+                    cmd.Parameters.Add(
+                        new NpgsqlParameter("reason", NpgsqlDbType.Varchar) { Value = (object?)reason ?? DBNull.Value }
+                    );
 
-                    if (rowsAffected > 0)
+                    await using (var reader = await cmd.ExecuteReaderAsync(ct))
+                    {
+                        if (await reader.ReadAsync(ct))
+                        {
+                            skipped = new ManualTransitionInfo(
+                                reader.GetGuid(0),
+                                await reader.IsDBNullAsync(1, ct) ? null : reader.GetBoolean(1)
+                            );
+                        }
+                    }
+
+                    if (skipped is not null)
                     {
                         await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
                         await notifyCmd.ExecuteNonQueryAsync(ct);
@@ -2242,7 +2263,7 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            return rowsAffected > 0;
+            return skipped;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -2251,7 +2272,7 @@ internal sealed partial class EngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.FailedToUpdateWorkflow("abandon", workflowId, ex.Message, ex);
+            logger.FailedToUpdateWorkflow("skip", workflowId, ex.Message, ex);
             throw;
         }
     }

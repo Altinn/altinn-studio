@@ -1044,12 +1044,6 @@ body {
     border: 1px solid var(--gray);
     background: rgba(var(--gray-rgb), 0.08);
 }
-.status-pill.Abandoned {
-    color: var(--gray);
-    border: 1px dashed var(--gray);
-    background: rgba(var(--gray-rgb), 0.08);
-    text-decoration: line-through;
-}
 .status-pill.Skipped {
     color: var(--gray);
     border: 1px dotted var(--gray);

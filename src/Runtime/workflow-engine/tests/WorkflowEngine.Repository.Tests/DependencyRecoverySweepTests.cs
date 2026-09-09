@@ -47,8 +47,8 @@ public sealed class DependencyRecoverySweepTests(PostgresFixture fixture) : IAsy
     [Fact]
     public async Task Recover_DependencyFailed_WithSkippedDependency_IsReEnqueued()
     {
-        // A skipped upstream ended deliberately and without failing, so — unlike Abandoned — it
-        // satisfies the dependency and a dependent parked behind it recovers.
+        // A skipped upstream ended deliberately and without failing, so it satisfies the dependency
+        // and a dependent parked behind it recovers.
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
         var maintenance = fixture.CreateMaintenanceService();
@@ -61,6 +61,45 @@ public sealed class DependencyRecoverySweepTests(PostgresFixture fixture) : IAsy
             PersistentItemStatus.DependencyFailed,
             ns: ns,
             dependencies: [parent.DatabaseId]
+        );
+
+        await maintenance.RecoverDependencyResolvedWorkflows(
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        var dbChild = await fixture.GetWorkflow(child.DatabaseId);
+        Assert.NotNull(dbChild);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbChild.Status);
+        Assert.Null(dbChild.LeaseToken);
+    }
+
+    [Fact]
+    public async Task Recover_DependencyFailed_WithOperatorSkippedDependency_IsReEnqueued()
+    {
+        // An operator skip satisfies the dependency exactly like a command skip: a dependent parked
+        // behind the workflow while it was Failed is released on the next sweep.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var maintenance = fixture.CreateMaintenanceService();
+        var ns = Guid.NewGuid().ToString("N");
+
+        var parent = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed, ns: ns);
+        var child = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            ns: ns,
+            dependencies: [parent.DatabaseId]
+        );
+        Assert.NotNull(
+            await repo.SkipWorkflow(
+                parent.DatabaseId,
+                ns,
+                DateTimeOffset.UtcNow,
+                "written off by an operator",
+                TestContext.Current.CancellationToken
+            )
         );
 
         await maintenance.RecoverDependencyResolvedWorkflows(

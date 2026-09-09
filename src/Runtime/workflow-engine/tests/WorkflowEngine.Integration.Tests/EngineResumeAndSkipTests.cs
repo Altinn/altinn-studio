@@ -12,18 +12,20 @@ using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Integration tests for the caller-driven terminal transitions — workflow resume and abandon.
+/// Integration tests for the caller-driven terminal transitions — workflow resume and the operator skip.
 /// Each test creates its own <see cref="EngineWebApplicationFactory{TProgram}"/> because their
 /// timing is sensitive and tests must not share in-flight state.
 /// </summary>
-public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
+public sealed class EngineResumeAndSkipTests : IAsyncLifetime
 {
     private const string TestNamespace = "ttd:resume-tests";
+    private const string SkipReason = "Written off by the operator";
 
     private static string WorkflowsPath => $"/api/v1/{Uri.EscapeDataString(TestNamespace)}/workflows";
 
@@ -209,70 +211,86 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Abandon_FailedWorkflow_SuccessorEnqueuedAfterwardsRuns()
+    public async Task Skip_FailedWorkflow_SuccessorEnqueuedAfterwardsRuns()
     {
-        // A caller writing off a failed predecessor (e.g. a process transition abandoning a task whose
-        // workflow failed terminally) marks it Abandoned, then enqueues the successor with an ordinary
-        // dependency on it. Abandoned is terminal but not in the failed set, so the successor runs
+        // An operator writing off a failed predecessor skips it, then enqueues the successor with an
+        // ordinary dependency on it. Skipped is terminal but not in the failed set, so the successor runs
         // instead of becoming DependencyFailed.
         SetupWireMock();
         _wireMock
-            .Given(Request.Create().WithPath("/fail-parent-abandoned").UsingAnyMethod())
+            .Given(Request.Create().WithPath("/fail-parent-skipped").UsingAnyMethod())
             .AtPriority(1)
             .RespondWith(Response.Create().WithStatusCode(500));
 
         await using var factory = CreateFactory();
 
         using var client = factory.CreateClient();
-        var parentId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-parent-abandoned"));
+        var parentId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-parent-skipped"));
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Failed);
 
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{parentId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
+        using var collector = new TelemetryCollector();
+        using var skipResponse = await PostSkip(client, parentId, SkipReason);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
 
-        var abandonBody = await abandonResponse.Content.ReadFromJsonAsync<AbandonWorkflowResponse>(
+        var skipBody = await skipResponse.Content.ReadFromJsonAsync<SkipWorkflowResponse>(
             TestContext.Current.CancellationToken
         );
-        Assert.NotNull(abandonBody);
-        Assert.Equal(parentId, abandonBody.WorkflowId);
-        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+        Assert.NotNull(skipBody);
+        Assert.Equal(parentId, skipBody.WorkflowId);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
 
-        // Replaying the abandon is an idempotent 200 (vs. 202 for the effecting call above), not a
-        // conflict, and reports the original abandonment time — not the replay time. (Millisecond
-        // tolerance covers the microsecond truncation of the timestamptz round-trip.)
-        using var replayResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{parentId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
+        // Counted on each skip counter, tagged manual to tell the operator's skip from a command's. Contains
+        // rather than Single: the meter is process-wide and this class runs in parallel with the shared
+        // collection, whose dashboard test also skips a workflow by hand.
+        Assert.Contains(
+            collector.GetMeasurements("engine.workflows.execution.skipped"),
+            m =>
+                m.Value is 1L
+                && m.Tags.Any(t => t.Key == "reason" && (string?)t.Value == "manual")
+                && m.Tags.Any(t => t.Key == "is_head" && (string?)t.Value == "unset")
         );
+        Assert.Contains(
+            collector.GetMeasurements("engine.steps.execution.skipped"),
+            m => m.Value is 1L && m.Tags.Any(t => t.Key == "reason" && (string?)t.Value == "manual")
+        );
+
+        // The failed step is Skipped with the operator's reason; its error history still says why it failed.
+        var parent = await GetWorkflow(client, parentId);
+        Assert.Null(parent.BackoffUntil);
+        var step = Assert.Single(parent.Steps);
+        Assert.Equal(PersistentItemStatus.Skipped, step.Status);
+        Assert.Equal(SkipReason, step.SkipReason);
+        Assert.NotNull(step.ErrorHistory);
+        Assert.NotEmpty(step.ErrorHistory);
+
+        // Replaying the skip is an idempotent 200 (vs. 202 for the effecting call above), not a conflict,
+        // and reports the original skip time — not the replay time. (Millisecond tolerance covers the
+        // microsecond truncation of the timestamptz round-trip.)
+        using var replayResponse = await PostSkip(client, parentId, SkipReason);
         Assert.Equal(HttpStatusCode.OK, replayResponse.StatusCode);
-        var replayBody = await replayResponse.Content.ReadFromJsonAsync<AbandonWorkflowResponse>(
+        var replayBody = await replayResponse.Content.ReadFromJsonAsync<SkipWorkflowResponse>(
             TestContext.Current.CancellationToken
         );
         Assert.NotNull(replayBody);
-        Assert.Equal(abandonBody.AbandonedAt, replayBody.AbandonedAt, TimeSpan.FromMilliseconds(1));
+        Assert.Equal(skipBody.SkippedAt, replayBody.SkippedAt, TimeSpan.FromMilliseconds(1));
 
-        // Successor enqueued after the marking, depending on the abandoned workflow by database ID.
+        // Successor enqueued after the skip, depending on the skipped workflow by database ID.
         var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");
         await WaitForTerminalStatus(successorId, PersistentItemStatus.Completed);
 
-        // Abandoning is a write-off, not a replacement: the predecessor's state is untouched by the run.
-        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+        // Skipping is a write-off, not a replacement: the predecessor's state is untouched by the run.
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
     }
 
     [Fact]
-    public async Task Abandon_DependencyFailedWorkflow_SuccessorEnqueuedAfterwardsRuns()
+    public async Task Skip_DependencyFailedWorkflow_SuccessorEnqueuedAfterwardsRuns()
     {
         // Derived casualties can be written off too: when the head of a failed chain is DependencyFailed
-        // (its own parent failed), abandoning that head lets a successor build past it while the root
+        // (its own parent failed), skipping that head lets a successor build past it while the root
         // cause stays Failed as historical record.
         SetupWireMock();
         _wireMock
-            .Given(Request.Create().WithPath("/fail-grandparent-abandoned").UsingAnyMethod())
+            .Given(Request.Create().WithPath("/fail-grandparent-skipped").UsingAnyMethod())
             .AtPriority(1)
             .RespondWith(Response.Create().WithStatusCode(500));
 
@@ -281,14 +299,14 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
         using var client = factory.CreateClient();
         var request = new WorkflowEnqueueRequest
         {
-            Context = JsonSerializer.SerializeToElement(new { test = "abandon-dependency-failed" }),
+            Context = JsonSerializer.SerializeToElement(new { test = "skip-dependency-failed" }),
             Workflows =
             [
                 new WorkflowRequest
                 {
                     Ref = "grandparent",
                     OperationId = "grandparent-op",
-                    Steps = [CreateWebhookStep("/fail-grandparent-abandoned")],
+                    Steps = [CreateWebhookStep("/fail-grandparent-skipped")],
                 },
                 new WorkflowRequest
                 {
@@ -320,13 +338,14 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
         await WaitForTerminalStatus(grandparentId, PersistentItemStatus.Failed);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.DependencyFailed);
 
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{parentId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
-        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+        using var skipResponse = await PostSkip(client, parentId, SkipReason);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
+
+        // The never-run step takes the status and the reason, so the row reads like a command's skip.
+        var step = Assert.Single((await GetWorkflow(client, parentId)).Steps);
+        Assert.Equal(PersistentItemStatus.Skipped, step.Status);
+        Assert.Equal(SkipReason, step.SkipReason);
 
         var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");
         await WaitForTerminalStatus(successorId, PersistentItemStatus.Completed);
@@ -336,18 +355,17 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Abandon_DoesNotReleaseExistingDependencyFailedDependent()
+    public async Task Skip_ReleasesExistingDependencyFailedDependent()
     {
-        // Abandoning a workflow writes off its failure for FUTURE evaluations only. A dependent already
-        // condemned to DependencyFailed expressed a success-required dependency that was never satisfied,
-        // so the maintenance sweep must leave it parked (it only releases when every dependency Completed).
+        // A skipped upstream satisfies a dependency exactly like a completed one, so a dependent already
+        // parked in DependencyFailed behind it is re-enqueued by the recovery sweep and runs.
         SetupWireMock();
         _wireMock
             .Given(Request.Create().WithPath("/fail-parent-parked").UsingAnyMethod())
             .AtPriority(1)
             .RespondWith(Response.Create().WithStatusCode(500));
 
-        // Aggressive sweep interval so a wrongful release would be observed within the assertion window.
+        // Aggressive sweep interval so the release is observed within the assertion window.
         await using var factory = new EngineWebApplicationFactory<Program>(
             _postgres.GetConnectionString(),
             builder =>
@@ -361,7 +379,7 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
         using var client = factory.CreateClient();
         var request = new WorkflowEnqueueRequest
         {
-            Context = JsonSerializer.SerializeToElement(new { test = "abandon-keeps-parked" }),
+            Context = JsonSerializer.SerializeToElement(new { test = "skip-releases-parked" }),
             Workflows =
             [
                 new WorkflowRequest
@@ -400,86 +418,102 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Failed);
         await WaitForTerminalStatus(childId, PersistentItemStatus.DependencyFailed);
 
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{parentId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
-        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+        using var skipResponse = await PostSkip(client, parentId, SkipReason);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
 
-        // Several sweep cycles pass; the child must still be parked.
-        await Task.Delay(TimeSpan.FromSeconds(1.5), TestContext.Current.CancellationToken);
-        await WaitForTerminalStatus(childId, PersistentItemStatus.DependencyFailed);
+        // The sweep releases the child, which then runs against the catch-all 200 stub.
+        await WaitForTerminalStatus(childId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
     }
 
     [Fact]
-    public async Task Resume_AbandonedWorkflow_RunsToCompletion()
+    public async Task Skip_CanceledWorkflow_EndsSkipped()
     {
-        // Abandonment is a write-off, not a tombstone: the workflow can still be retried.
+        // A cancel caught mid-flight leaves a Canceled workflow with a step that never completed; an
+        // operator skip without a reason settles it as Skipped with a null skipReason.
         SetupWireMock();
         _wireMock
-            .Given(Request.Create().WithPath("/fail-then-resume-abandoned").UsingAnyMethod())
+            .Given(Request.Create().WithPath("/slow-then-skipped").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
+
+        await using var factory = CreateFactory();
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/slow-then-skipped"));
+        await WaitForStepProcessing(factory, workflowId);
+
+        using var client = factory.CreateClient();
+        using var cancelResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.True(cancelResponse.IsSuccessStatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Canceled);
+
+        using var skipResponse = await PostSkip(client, workflowId);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
+
+        var step = Assert.Single((await GetWorkflow(client, workflowId)).Steps);
+        Assert.Equal(PersistentItemStatus.Skipped, step.Status);
+        Assert.Null(step.SkipReason);
+    }
+
+    [Fact]
+    public async Task Resume_SkippedWorkflow_Returns409()
+    {
+        // A skip is irreversible: the workflow is not resumable. If the work should run, the failed
+        // workflow has to be resumed instead of skipped.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-then-resume-skipped").UsingAnyMethod())
             .AtPriority(1)
             .RespondWith(Response.Create().WithStatusCode(500));
 
         await using var factory = CreateFactory();
 
         using var client = factory.CreateClient();
-        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-then-resume-abandoned"));
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-then-resume-skipped"));
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
 
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
-        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
-
-        // Reconfigure WireMock to succeed, then resume.
-        _wireMock.Reset();
-        SetupWireMock();
+        using var skipResponse = await PostSkip(client, workflowId, SkipReason);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
 
         using var resumeResponse = await client.PostAsync(
             $"{WorkflowsPath}/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.Accepted, resumeResponse.StatusCode);
-
-        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Completed);
+        Assert.Equal(HttpStatusCode.Conflict, resumeResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
     }
 
     [Fact]
-    public async Task Abandon_CompletedWorkflow_Returns409()
+    public async Task Skip_CompletedWorkflow_Returns409()
     {
         SetupWireMock();
 
         await using var factory = CreateFactory();
-        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/quick-done-abandon"));
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/quick-done-skip"));
 
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Completed);
 
         using var client = factory.CreateClient();
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        using var skipResponse = await PostSkip(client, workflowId, SkipReason);
 
-        Assert.Equal(HttpStatusCode.Conflict, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, skipResponse.StatusCode);
     }
 
     [Fact]
-    public async Task Abandon_ReleasesIdempotencyKey_SameKeyDifferentBodyCreatesFreshWorkflow()
+    public async Task Skip_KeepsIdempotencyKey_ReplaySameBodyDedupsOntoSkipped()
     {
-        // Abandoned means the action may be retried: abandoning releases the enqueue fingerprint,
-        // so a corrected request reusing the same idempotency key creates a fresh workflow instead
-        // of conflicting with the write-off.
+        // A skip is a write-off, not a retry ticket: the enqueue fingerprint stays, so an identical replay
+        // keeps deduplicating onto the skipped workflow (200) for as long as the key row is retained.
         SetupWireMock();
         _wireMock
-            .Given(Request.Create().WithPath("/fail-key-release").UsingAnyMethod())
+            .Given(Request.Create().WithPath("/fail-key-kept-replay").UsingAnyMethod())
             .AtPriority(1)
             .RespondWith(Response.Create().WithStatusCode(500));
 
@@ -487,100 +521,158 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
         using var client = factory.CreateClient();
 
         var idempotencyKey = $"idem-{Guid.NewGuid()}";
-        using var enqueueResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-release"), idempotencyKey);
-        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
-        var workflowId = await ReadSingleWorkflowId(enqueueResponse);
-        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
-
-        // Sanity: while the failure stands, the same key with a different body is a 409 conflict.
-        using var conflictResponse = await PostEnqueue(client, CreateWebhookStep("/corrected-step"), idempotencyKey);
-        Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
-
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
+        using var enqueueResponse = await PostEnqueue(
+            client,
+            CreateWebhookStep("/fail-key-kept-replay"),
+            idempotencyKey
         );
-        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
-
-        // The fingerprint is released: the corrected request now creates and runs a fresh workflow.
-        using var retryResponse = await PostEnqueue(client, CreateWebhookStep("/corrected-step"), idempotencyKey);
-        Assert.Equal(HttpStatusCode.Created, retryResponse.StatusCode);
-        var freshWorkflowId = await ReadSingleWorkflowId(retryResponse);
-        Assert.NotEqual(workflowId, freshWorkflowId);
-
-        await WaitForTerminalStatus(freshWorkflowId, PersistentItemStatus.Completed);
-        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
-    }
-
-    [Fact]
-    public async Task Abandon_ReleasesIdempotencyKey_ReplaySameBodyReExecutes()
-    {
-        // Replaying the exact same request after an abandon intentionally re-executes it: the
-        // write-off invalidates the dedup guarantee for that fingerprint, so an identical body
-        // creates a fresh workflow (201) rather than returning the abandoned one (200).
-        SetupWireMock();
-        _wireMock
-            .Given(Request.Create().WithPath("/fail-key-replay").UsingAnyMethod())
-            .AtPriority(1)
-            .RespondWith(Response.Create().WithStatusCode(500));
-
-        await using var factory = CreateFactory();
-        using var client = factory.CreateClient();
-
-        var idempotencyKey = $"idem-{Guid.NewGuid()}";
-        using var enqueueResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-replay"), idempotencyKey);
         Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
         var workflowId = await ReadSingleWorkflowId(enqueueResponse);
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
 
-        // Sanity: before the abandon, an identical replay deduplicates onto the existing workflow.
-        using var dedupResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-replay"), idempotencyKey);
+        // Sanity: while the failure stands, an identical replay deduplicates onto the existing workflow.
+        using var dedupResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-kept-replay"), idempotencyKey);
         Assert.Equal(HttpStatusCode.OK, dedupResponse.StatusCode);
         Assert.Equal(workflowId, await ReadSingleWorkflowId(dedupResponse));
 
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
+        using var skipResponse = await PostSkip(client, workflowId, SkipReason);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
 
-        // Reconfigure WireMock so the re-execution succeeds this time.
+        // Reconfigure WireMock to succeed: nothing re-executes, because nothing new is created.
         _wireMock.Reset();
         SetupWireMock();
 
-        using var replayResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-replay"), idempotencyKey);
-        Assert.Equal(HttpStatusCode.Created, replayResponse.StatusCode);
-        var freshWorkflowId = await ReadSingleWorkflowId(replayResponse);
-        Assert.NotEqual(workflowId, freshWorkflowId);
-        await WaitForTerminalStatus(freshWorkflowId, PersistentItemStatus.Completed);
-
-        // The write-off itself is untouched by the key release, and replaying the abandon is
-        // still an idempotent 200.
-        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
-        using var abandonReplayResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
+        using var replayResponse = await PostEnqueue(
+            client,
+            CreateWebhookStep("/fail-key-kept-replay"),
+            idempotencyKey
         );
-        Assert.Equal(HttpStatusCode.OK, abandonReplayResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, replayResponse.StatusCode);
+        Assert.Equal(workflowId, await ReadSingleWorkflowId(replayResponse));
+        Assert.Equal(PersistentItemStatus.Skipped, (await GetWorkflow(client, workflowId)).OverallStatus);
     }
 
     [Fact]
-    public async Task Abandon_NonExistentWorkflow_Returns404()
+    public async Task Skip_KeepsIdempotencyKey_SameKeyDifferentBodyConflicts()
+    {
+        // The kept fingerprint also keeps refusing a corrected body under the same key: the caller must
+        // use a new key, exactly as after a completed workflow.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-key-kept-conflict").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var idempotencyKey = $"idem-{Guid.NewGuid()}";
+        using var enqueueResponse = await PostEnqueue(
+            client,
+            CreateWebhookStep("/fail-key-kept-conflict"),
+            idempotencyKey
+        );
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+        var workflowId = await ReadSingleWorkflowId(enqueueResponse);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
+
+        using var skipResponse = await PostSkip(client, workflowId, SkipReason);
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
+
+        using var conflictResponse = await PostEnqueue(client, CreateWebhookStep("/corrected-step"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
+    }
+
+    [Fact]
+    public async Task Skip_NonExistentWorkflow_Returns404()
     {
         await using var factory = CreateFactory();
         var fakeId = Guid.NewGuid();
 
         using var client = factory.CreateClient();
-        using var abandonResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{fakeId}/abandon",
-            content: null,
-            cancellationToken: TestContext.Current.CancellationToken
+        using var skipResponse = await PostSkip(client, fakeId, SkipReason);
+
+        Assert.Equal(HttpStatusCode.NotFound, skipResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Skip_AlreadySkippedByCommand_ReturnsOk()
+    {
+        // One status, one replay rule: a workflow a command's skip outcome ended answers the operator's
+        // skip with an idempotent 200 and keeps the command's reason.
+        SetupWireMock();
+
+        await using var factory = CreateFactory();
+        var workflowId = await EnqueueWorkflow(
+            factory,
+            new StepRequest
+            {
+                OperationId = "skip-by-command",
+                Command = CommandDefinition.Create(
+                    "test-skip",
+                    new SkippingCommandData { Reason = "acquireConcurrencyConflict" }
+                ),
+            }
+        );
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
+
+        using var client = factory.CreateClient();
+        using var skipResponse = await PostSkip(client, workflowId, SkipReason);
+        Assert.Equal(HttpStatusCode.OK, skipResponse.StatusCode);
+
+        var step = Assert.Single((await GetWorkflow(client, workflowId)).Steps);
+        Assert.Equal("acquireConcurrencyConflict", step.SkipReason);
+    }
+
+    [Fact]
+    public async Task Skip_BlankReason_WritesNullReason()
+    {
+        // Unlike fail, skip invents no default text: a whitespace-only reason is recorded as none.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-blank-skip-reason").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-blank-skip-reason"));
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
+
+        using var skipResponse = await PostSkip(client, workflowId, "   ");
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Skipped);
+
+        var step = Assert.Single((await GetWorkflow(client, workflowId)).Steps);
+        Assert.Equal(PersistentItemStatus.Skipped, step.Status);
+        Assert.Null(step.SkipReason);
+    }
+
+    [Fact]
+    public async Task Skip_OverLongReason_Returns400()
+    {
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-long-skip-reason").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-long-skip-reason"));
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
+
+        using var skipResponse = await PostSkip(
+            client,
+            workflowId,
+            new string('x', SkipWorkflowRequest.MaxReasonLength + 1)
         );
 
-        Assert.Equal(HttpStatusCode.NotFound, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, skipResponse.StatusCode);
+        Assert.Equal(PersistentItemStatus.Failed, (await GetWorkflow(client, workflowId)).OverallStatus);
     }
 
     [Fact]
@@ -784,7 +876,7 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
     {
         var request = new WorkflowEnqueueRequest
         {
-            Context = JsonSerializer.SerializeToElement(new { test = "abandon-key-release" }),
+            Context = JsonSerializer.SerializeToElement(new { test = "skip-key-kept" }),
             Workflows = [new WorkflowRequest { OperationId = "key-release-op", Steps = [step] }],
         };
 
@@ -795,6 +887,36 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
         msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey);
 
         return await client.SendAsync(msg, TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Posts a skip request, with the body omitted when <paramref name="reason"/> is null, and returns the
+    /// raw response so tests can assert on 202 vs 200 vs 409 vs 400.
+    /// </summary>
+    private static Task<HttpResponseMessage> PostSkip(HttpClient client, Guid workflowId, string? reason = null) =>
+        reason is null
+            ? client.PostAsync(
+                $"{WorkflowsPath}/{workflowId}/skip",
+                content: null,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+            : client.PostAsJsonAsync(
+                $"{WorkflowsPath}/{workflowId}/skip",
+                new SkipWorkflowRequest { Reason = reason },
+                TestContext.Current.CancellationToken
+            );
+
+    /// <summary>
+    /// Reads a workflow with its steps through the status endpoint.
+    /// </summary>
+    private static async Task<WorkflowStatusResponse> GetWorkflow(HttpClient client, Guid workflowId)
+    {
+        var workflow = await client.GetFromJsonAsync<WorkflowStatusResponse>(
+            $"{WorkflowsPath}/{workflowId}",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(workflow);
+        return workflow;
     }
 
     /// <summary>
@@ -813,7 +935,7 @@ public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
     {
         var request = new WorkflowEnqueueRequest
         {
-            Context = JsonSerializer.SerializeToElement(new { test = "abandon-successor" }),
+            Context = JsonSerializer.SerializeToElement(new { test = "skip-successor" }),
             Workflows = [workflow],
         };
 

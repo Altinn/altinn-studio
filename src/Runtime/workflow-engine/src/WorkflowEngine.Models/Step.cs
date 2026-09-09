@@ -63,10 +63,11 @@ public sealed record Step : PersistentItem
     public string? LastDeferReason { get; set; }
 
     /// <summary>
-    /// The reason the command gave when it skipped the rest of the workflow
-    /// (<see cref="ExecutionStatus.Skipped"/>) — a code consumers classify on. Set only on the step
-    /// that returned the skip; the later steps it caused to be <see cref="PersistentItemStatus.Skipped"/>
-    /// carry <c>null</c>. Surfaced on status reads.
+    /// Why the rest of the workflow was skipped: the code a command gave when it returned
+    /// <see cref="ExecutionStatus.Skipped"/> (consumers classify on it), or the optional reason an operator
+    /// gave through the skip endpoint. Set only on the first step that did not complete; the later steps it
+    /// caused to be <see cref="PersistentItemStatus.Skipped"/> carry <c>null</c>, as does an operator skip
+    /// given without a reason. Surfaced on status reads.
     /// </summary>
     public string? SkipReason { get; set; }
 

@@ -19,7 +19,6 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
     - [Cancellation](#cancellation)
     - [Resume](#resume)
-    - [Abandon](#abandon)
     - [Nudge](#nudge)
     - [Fail](#fail)
     - [Mailboxes](#mailboxes)
@@ -134,12 +133,11 @@ Additional states:
 
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
-- **Abandoned** — an unsuccessful terminal workflow whose failure a caller explicitly wrote off. See [Abandon](#abandon).
 - **Waiting** — a step deferred; the workflow is parked until its timer elapses. Non-terminal. See [Deferral](#deferral-durable-yield).
 - **Held** — a receive workflow parked until its mailbox position is delivered or the mailbox closes. Non-terminal. See [Receive workflows](#receive-workflows).
-- **Skipped** — a command skipped the rest of the workflow: the step that returned the skip and every later step are `Skipped`, earlier steps stay `Completed`. Terminal, neither a success nor a failure. See [Skip](#skip).
+- **Skipped** — a command skipped the rest of the workflow, or an operator skipped a failed one: every step that had not completed is `Skipped`, earlier steps stay `Completed`. Terminal, neither a success nor a failure. See [Skip](#skip).
 
-Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume). `Skipped` is terminal too but not resumable: the work was declined, not lost, and a retry is a new workflow.
+Terminal workflows (Failed, Canceled, DependencyFailed) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume). `Skipped` is terminal too but not resumable: the work was declined, not lost, and a retry is a new workflow.
 
 ### Processing Loop
 
@@ -415,16 +413,65 @@ A skip is kept apart from errors and from deferrals alike:
 `Skipped` is in the finished status set, so everything that gates on the workflow afterwards reads
 it as done — the fetch gate lets dependents through, the dependency-recovery sweep releases a
 `DependencyFailed` dependent parked behind it, retention purges it — while `cancel` and `nudge`
-answer 409 and `resume` answers 409 `NotResumable`. Unlike `Abandoned`, which only stops condemning
-new dependents, a skip satisfies a dependency the way `Completed` does. It is counted neither as a
-success nor as a failure: `engine.workflows.execution.skipped` (tagged `is_head`) beside
-`engine.steps.execution.skipped`, and it never fires the failure alert. A retry is a new workflow.
+answer 409 and `resume` answers 409 `NotResumable`. A skip satisfies a dependency the way `Completed`
+does. It is counted neither as a success nor as a failure: `engine.workflows.execution.skipped`
+(tagged `is_head`) beside `engine.steps.execution.skipped`, both tagged `reason` — `command` for a
+command's skip, `manual` for an [operator skip](#skipping-a-failed-workflow) — and it never fires the
+failure alert. A retry is a new workflow.
 
 ### One word, because the semantics coincide
 
 `Skip` is what the command returns; `Skipped` is the state the engine records — the same split as
 `Defer` → `Waiting` and `RetryableError` → `Requeued`, collapsed onto one word here because what the
 command decided and what the engine did about it are the same thing.
+
+### Skipping a failed workflow
+
+An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **skipped** by an
+operator:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/skip
+```
+
+**Request (optional body):**
+
+```json
+{
+    "reason": "Superseded by the resubmission of 2026-03-19"
+}
+```
+
+The result has the shape a command's skip leaves: every step that had not completed becomes
+`Skipped` — the failed step keeps its error history — earlier `Completed` steps are untouched, and
+the workflow ends `Skipped`. `reason` (at most 500 characters) is persisted as `skipReason` on the
+first of the skipped steps. The body may be omitted, and an omitted, null or whitespace-only reason
+is stored as null; nothing is invented in its place. A command's skip always carries a reason, so a
+null `skipReason` on a skipped step means exactly one thing: an operator skipped the workflow without
+stating why.
+
+The consequences are those of any `Skipped` workflow ([above](#terminal-and-settled)): dependents
+enqueued afterwards run, dependents already parked in `DependencyFailed` are released by the
+dependency-recovery sweep, retention purges it, and `cancel`, `nudge` and `resume` answer 409. It is
+irreversible — `Skipped` is not resumable — so if the work should run, [resume](#resume) the failed
+workflow instead of skipping it. The enqueue idempotency key is **not** released: a replay of the same
+fingerprint dedups onto the skipped workflow (`200 OK`, the existing ids) for the key row's lifetime,
+exactly as it would onto a completed one. Counted as `reason="manual"` on both skip counters.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "skippedAt": "2026-03-19T10:02:00+00:00"
+}
+```
+
+The transition is a compare-and-set from the three source states: 202 Accepted when this call skipped
+the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Skipped` state —
+including when a concurrent resume revived it first, which is exactly the race the CAS exists to
+catch — and 400 when `reason` is over-long. Skipping an already-skipped workflow, whether an operator
+or a command skipped it, is an idempotent 200 whose `skippedAt` is the workflow's last update.
 
 ## Concurrency Model
 
@@ -477,7 +524,7 @@ In all cases the database flag guarantees the workflow _will_ be canceled; `canc
 
 ## Resume
 
-Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned — not Skipped) can be resumed for re-processing:
+Terminal workflows (Failed, Canceled, DependencyFailed — not Skipped) can be resumed for re-processing:
 
 ```http
 POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
@@ -500,34 +547,6 @@ When `cascade=true`, all transitively dependent workflows in `DependencyFailed` 
 ```
 
 Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed`, `Processing` or `Skipped` — a skipped workflow is terminal and never resumable, see [Skip](#skip)).
-
-## Abandon
-
-An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **abandoned** — its failure is explicitly written off by a caller:
-
-```http
-POST /api/v1/{namespace}/workflows/{workflowId}/abandon
-```
-
-Dependency edges carry two things: sequencing (a dependent waits until its dependencies are terminal) and outcome gating (a failed dependency condemns dependents to `DependencyFailed`). Abandoning removes only the gating, prospectively:
-
-- **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
-- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed` or `Skipped`. If a written-off casualty should also be built past, abandon it too.
-- **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
-- **The enqueue fingerprint is released.** Abandoned means the action may be retried: atomically with the transition, the idempotency key of the request that created the workflow is deleted, so replaying the same fingerprint — even with an identical body — creates and runs a fresh workflow (`201 Created`) instead of deduplicating onto the write-off or conflicting. For batch enqueues the key covers the whole batch, so abandoning any member releases the fingerprint for all of them (the surviving members themselves are untouched).
-
-The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "abandonedAt": "2026-03-19T10:02:00+00:00"
-}
-```
-
-The transition is a compare-and-set from the three source states: 202 Accepted when this call wrote off the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
 
 ## Nudge
 
@@ -600,7 +619,7 @@ longer wanted.
 ```
 
 Returns `409 Conflict` when the workflow is not parked — including when it is already `Failed`: a manual failure
-is indistinguishable from one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay,
+is indistinguishable from one the engine produced, so unlike [skip](#skipping-a-failed-workflow) there is no idempotent replay,
 and a client that must retry the call reads the workflow's status first. `404 Not Found` when it does not exist,
 `400 Bad Request` when `reason` is blank or over-long. The failure is counted as
 `engine.workflows.execution.failed{reason="manual"}` (and `engine.steps.execution.failed{reason="manual"}` for
@@ -1298,7 +1317,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
 
 **Response (200 OK — duplicate idempotency key):**
 
-Same shape. The original workflow is returned, no new workflow is created. This dedup guarantee lasts for the key row's lifetime: it ends when retention purges the key, or immediately when a workflow it created is [abandoned](#abandon) — the abandon releases the fingerprint so the request can be retried as new work.
+Same shape. The original workflow is returned, no new workflow is created. This dedup guarantee lasts for the key row's lifetime: it ends when retention purges the key, and a [skip](#skipping-a-failed-workflow) of the workflow it created does not shorten it.
 
 **Response (400 Bad Request — validation failure):**
 
@@ -1378,13 +1397,13 @@ GET /api/v1/{namespace}/workflows
 
 Supports the following optional query parameters (all repeatable params can be supplied multiple times):
 
-| Parameter       | Repeatable | Description                                                                                                                                                                                                                                                               |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Waiting`, `Held`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`, `Skipped`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
-| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                                                             |
-| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                                                            |
-| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                                              |
-| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                                               |
+| Parameter       | Repeatable | Description                                                                                                                                                                                                                                                  |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Waiting`, `Held`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Skipped`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                                                |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                                               |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                                 |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                                  |
 
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 
@@ -1500,6 +1519,31 @@ Fails a parked (`Requeued` or `Waiting`) workflow by caller decision, recording 
 parked step's final error entry — see [Fail](#fail). Returns `409 Conflict` when the workflow is not parked
 (including when it is already `Failed`), `404 Not Found` when it doesn't exist, and `400 Bad Request` for a
 blank or over-long reason.
+
+### Skip Workflow
+
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/skip
+Content-Type: application/json
+
+{ "reason": "Superseded by the resubmission of 2026-03-19" }
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "skippedAt": "2026-03-19T10:05:00+00:00"
+}
+```
+
+Skips an unsuccessful terminal (`Failed`, `Canceled` or `DependencyFailed`) workflow by operator decision — see
+[Skipping a failed workflow](#skipping-a-failed-workflow). The body is optional: `reason` (at most 500 characters)
+is recorded as `skipReason` on the first step that did not complete, and an omitted or blank reason records
+nothing. Returns `200 OK` with the original `skippedAt` when the workflow is already `Skipped` (idempotent
+replay), `409 Conflict` when it is in any other state, `404 Not Found` when it doesn't exist, and
+`400 Bad Request` for an over-long reason.
 
 ### List Collections
 

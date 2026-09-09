@@ -1,7 +1,11 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 
@@ -312,6 +316,52 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.Equal("Skipped", doc.RootElement.GetProperty("status").GetString());
         Assert.Equal("acquireConcurrencyConflict", doc.RootElement.GetProperty("skipReason").GetString());
         Assert.False(doc.RootElement.TryGetProperty("lastDeferReason", out _));
+    }
+
+    [Fact]
+    public async Task Step_OperatorSkippedWorkflow_ReturnsSkipReasonAndErrorHistory()
+    {
+        // Arrange — a step that failed and was then skipped by an operator tells both stories in the modal:
+        // why it failed (error history) and why it was skipped (skip reason)
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .RespondWith(Response.Create().WithStatusCode(500).WithBody("boom"));
+
+        var step = _testHelpers.CreateWebhookStep(
+            "/fail-then-skip",
+            retryStrategy: RetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 0)
+        );
+        var enqueueResponse = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-operator-skipped", [step]))
+        );
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        var failed = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+        var stepId = failed.Steps[0].DatabaseId;
+
+        using var client = fixture.CreateEngineClient();
+        using var skipResponse = await client.PostAsJsonAsync(
+            $"/api/v1/{Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}/workflows/{workflowId}/skip",
+            new SkipWorkflowRequest { Reason = "Written off by the operator" },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Skipped);
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("Skipped", doc.RootElement.GetProperty("status").GetString());
+        Assert.Equal("Written off by the operator", doc.RootElement.GetProperty("skipReason").GetString());
+        var error = Assert.Single(doc.RootElement.GetProperty("errorHistory").EnumerateArray());
+        Assert.Equal(500, error.GetProperty("httpStatusCode").GetInt32());
     }
 
     [Fact]

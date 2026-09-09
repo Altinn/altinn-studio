@@ -117,14 +117,15 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of workflows that ended <c>Skipped</c> because a command returned a skip outcome: the
-    /// step and the rest of the workflow did not run, by the command's own decision. Not a failure and
-    /// not a success — counted in neither <see cref="WorkflowsFailed"/> nor <see cref="WorkflowsSucceeded"/>.
-    /// Tagged with <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>).
+    /// Counter of workflows that ended <c>Skipped</c>: the rest of the workflow did not run, by decision rather
+    /// than failure. Tagged with <c>reason</c> — <c>command</c> when a command returned the skip outcome,
+    /// <c>manual</c> when an operator skipped an unsuccessful terminal workflow through the skip endpoint — and
+    /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Not a failure and not a success — counted in
+    /// neither <see cref="WorkflowsFailed"/> nor <see cref="WorkflowsSucceeded"/>.
     /// </summary>
     public static readonly Counter<long> WorkflowsSkipped = Meter.CreateCounter<long>(
         "engine.workflows.execution.skipped",
-        description: "Number of workflows ended by a command's skip outcome — the rest of the workflow did not run. Not a failure and not a success"
+        description: "Number of workflows ended Skipped, by a command's skip outcome or an operator's skip — the rest of the workflow did not run. Not a failure and not a success"
     );
 
     /// <summary>
@@ -140,8 +141,8 @@ public static class Metrics
     /// never arrived, not that the engine or command failed — route it to the owning team instead.
     /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose through the fail
     /// endpoint (the dashboard's Fail button included). Skips are not counted here at all — a workflow
-    /// ended by a command's skip outcome increments <see cref="WorkflowsSkipped"/> instead and never
-    /// fires the failure alert.
+    /// ended by a command's skip outcome or an operator's skip increments <see cref="WorkflowsSkipped"/>
+    /// instead and never fires the failure alert.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
@@ -160,14 +161,6 @@ public static class Metrics
     public static readonly Counter<long> WorkflowsResumed = Meter.CreateCounter<long>(
         "engine.workflows.execution.resumed",
         description: "Number of terminal workflows resumed for re-processing"
-    );
-
-    /// <summary>
-    /// Counter of unsuccessful terminal workflows marked <c>Abandoned</c> (failure written off by a caller).
-    /// </summary>
-    public static readonly Counter<long> WorkflowsAbandoned = Meter.CreateCounter<long>(
-        "engine.workflows.execution.abandoned",
-        description: "Number of unsuccessful terminal workflows whose failure was written off by a caller"
     );
 
     /// <summary>
@@ -263,9 +256,10 @@ public static class Metrics
     public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
 
     /// <summary>
-    /// Counter of steps that returned a skip outcome (ran without error and ended the rest of the workflow).
-    /// Counted once per skipping step, not per step it caused to be skipped. Deliberately separate from
-    /// <see cref="StepsSucceeded"/>/<see cref="StepsFailed"/>: a skip is neither.
+    /// Counter of steps that ended the rest of their workflow by a skip: once per skipping step, not per step
+    /// it caused to be skipped. Tagged with <c>reason</c> — <c>command</c> when the step returned the skip
+    /// outcome, <c>manual</c> when an operator skipped the workflow (once per skipped workflow). Deliberately
+    /// separate from <see cref="StepsSucceeded"/>/<see cref="StepsFailed"/>: a skip is neither.
     /// </summary>
     public static readonly Counter<long> StepsSkipped = Meter.CreateCounter<long>("engine.steps.execution.skipped");
 
@@ -580,8 +574,8 @@ public static class Metrics
 
     /// <summary>
     /// Gauge of all terminal workflows currently retained (success + failure + canceled + dependency-failed).
-    /// Skipped and Abandoned workflows are not counted, so this gauge is narrower than the Finished status set
-    /// retention purges.
+    /// Skipped workflows are not counted, so this gauge is narrower than the Finished status set retention
+    /// purges.
     /// </summary>
     public static readonly ObservableGauge<long> FinishedWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.finished",

@@ -283,8 +283,8 @@ export const stepPhase = (commandDetail) => {
 /**
  * Extra sub-label for a step. A Waiting step shows the reason its command gave for deferring, so
  * the card says what the step is waiting for without opening the modal; a Skipped step shows the
- * reason its command gave for skipping, which only the step that returned the skip carries (the
- * later steps it took with it have none).
+ * reason it was skipped for, which only the first skipped step carries (the later steps it took
+ * with it have none, and an operator skip may have given none).
  * @param {Step} step
  * @returns {string | null}
  */

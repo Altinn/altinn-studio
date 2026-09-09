@@ -108,13 +108,6 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await InsertWorkflow(
             dataSource,
             Guid.NewGuid(),
-            status: PersistentItemStatus.Abandoned,
-            updatedAt: expired,
-            ct: ct
-        );
-        await InsertWorkflow(
-            dataSource,
-            Guid.NewGuid(),
             status: PersistentItemStatus.Skipped,
             updatedAt: expired,
             ct: ct

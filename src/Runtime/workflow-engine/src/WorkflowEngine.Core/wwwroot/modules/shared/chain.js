@@ -15,7 +15,6 @@ const TERMINAL_STATUSES = new Set([
     'Completed',
     'Failed',
     'Canceled',
-    'Abandoned',
     'DependencyFailed',
     'Skipped',
 ]);

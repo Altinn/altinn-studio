@@ -131,7 +131,7 @@ public sealed class WorkflowFailTests(PostgresFixture fixture) : IAsyncLifetime
     [InlineData(PersistentItemStatus.Failed)]
     [InlineData(PersistentItemStatus.Canceled)]
     [InlineData(PersistentItemStatus.DependencyFailed)]
-    [InlineData(PersistentItemStatus.Abandoned)]
+    [InlineData(PersistentItemStatus.Skipped)]
     [InlineData(PersistentItemStatus.Held)]
     public async Task FailWorkflow_NotParked_IsNoOp(PersistentItemStatus status)
     {

@@ -82,11 +82,9 @@ public class PersistentItemStatusMapTests
     public void Skipped_IsTerminalAndNeverFetchable()
     {
         // Finished lets dependents through the fetch gate and retention purge it; SatisfiesDependency
-        // lets the recovery sweep release a DependencyFailed dependent — the one place Skipped and
-        // Abandoned part ways.
+        // lets the recovery sweep release a DependencyFailed dependent.
         Assert.Contains(PersistentItemStatus.Skipped, PersistentItemStatusMap.Finished);
         Assert.Contains(PersistentItemStatus.Skipped, PersistentItemStatusMap.SatisfiesDependency);
-        Assert.DoesNotContain(PersistentItemStatus.Abandoned, PersistentItemStatusMap.SatisfiesDependency);
 
         Assert.DoesNotContain(PersistentItemStatus.Skipped, PersistentItemStatusMap.Fetchable);
         Assert.DoesNotContain(PersistentItemStatus.Skipped, PersistentItemStatusMap.Incomplete);

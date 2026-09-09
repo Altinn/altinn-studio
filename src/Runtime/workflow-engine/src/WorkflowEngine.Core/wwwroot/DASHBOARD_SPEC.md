@@ -341,7 +341,7 @@ Left to right:
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
 5. **Side-chain badge** — Shown when the workflow was enqueued with `IsHead = false` (deliberately invisible to collection head tracking, e.g. the process-next side-effects workflows). Dashed violet "side chain" pill. The card itself also carries the side-chain identity: dashed violet border plus a violet inset left edge (`.workflow-card.side-chain`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).
-6. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts. Likewise `Skipped` is a status — a command declined to run the rest of the workflow — not a step name, and not the nudge action, whose success label is _Nudged_.
+6. **Status pill** — Workflow-level status with color-coded CSS class. Vocabulary: `Skipped` is a status (a command declined to run the rest of the workflow, or an operator skipped a failed one), `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family, and the nudge action's success label is _Nudged_.
 7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
 8. **Copy idempotency key button**
 9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
@@ -359,13 +359,13 @@ Horizontal row of step circles connected by SVG lines.
 - Requeued: ↻ (orange)
 - Waiting: ⌛ (cyan, slow pulse) — deferred, awaiting an external outcome
 - Canceled: — (gray)
-- Skipped: » (gray, dotted outline) — a command skipped this step and everything after it; only the step that returned the skip carries the reason
+- Skipped: » (gray, dotted outline) — a command or an operator skipped this step and everything after it; only the first skipped step carries the reason
 - Enqueued: ◯ outline (gray)
 
 **Below each circle:**
 
 - Command detail label (e.g. "StartTask", "WebhookCall")
-- Sub-label — for a Waiting step, the reason its command gave for deferring (`lastDeferReason`); for a Skipped step, the reason its command gave for skipping (`skipReason`, carried by the step that returned the skip only). Ellipsised to the node's width with the full text in the tooltip
+- Sub-label — for a Waiting step, the reason its command gave for deferring (`lastDeferReason`); for a Skipped step, the reason it was skipped for (`skipReason`, carried by the first skipped step only). Ellipsised to the node's width with the full text in the tooltip
 - Command type badge (`app`, `webhook`, etc.)
 - Retry count (if > 0)
 - Backoff countdown (if requeued with future backoffUntil)
@@ -448,7 +448,7 @@ The modal has four distinct DOM zones:
     - Backoff Until (if set)
     - Deferrals (if > 0), First Deferred and Last Deferred (formatted time + relative age, if set)
     - Defer Reason — the step's `lastDeferReason`, the command's own words for what it is waiting for (if set)
-    - Skip Reason — the step's `skipReason`, the command's reason for skipping the rest of the workflow; only the step that returned the skip carries it (if set)
+    - Skip Reason — the step's `skipReason`, the reason the rest of the workflow was skipped; only the first skipped step carries it, and an operator skip may have given none (if set)
     - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
     - Command Type
     - Max Execution Time (formatted duration, if set)
@@ -574,7 +574,7 @@ compact cards in their original position. Group chrome and the history control l
 wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
 history control) above the shared chain rows. Aggregate status: an in-flight member wins
 (Processing/Requeued/Waiting/Held/Enqueued), then the worst terminal outcome
-(Failed/DependencyFailed/Canceled/Abandoned, then Skipped — a group with a skip and completions reads
+(Failed/DependencyFailed/Canceled, then Skipped — a group with a skip and completions reads
 Skipped, not Completed), then Completed.
 
 **Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
@@ -683,7 +683,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
-- **Recent**: All, Completed, Failed, Abandoned, Skipped
+- **Recent**: All, Completed, Failed, Skipped
 - **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled, Skipped
 
 ### Text Filter
@@ -864,7 +864,7 @@ The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappi
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
 - **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
-- **`skipReason`** — Passed through from `Step.SkipReason`, which only the step that returned the skip carries, so a card can say why a `Skipped` step did not run. Omitted when null.
+- **`skipReason`** — Passed through from `Step.SkipReason`, which only the first skipped step carries (null when an operator skipped without a reason), so a card can say why a `Skipped` step did not run. Omitted when null.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

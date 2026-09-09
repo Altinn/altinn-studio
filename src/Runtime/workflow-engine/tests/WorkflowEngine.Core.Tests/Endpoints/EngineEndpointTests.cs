@@ -1177,74 +1177,89 @@ public class EngineEndpointTests
         Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
     }
 
-    // -- Abandon Workflow --
+    // -- Skip Workflow --
 
     [Fact]
-    public async Task AbandonWorkflow_Succeeded_Returns202()
+    public async Task SkipWorkflow_Succeeded_Returns202()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
         var engine = new Mock<IEngine>();
         engine
-            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AbandonWorkflowResult.Abandoned(workflowId, now));
+            .Setup(e =>
+                e.SkipWorkflow(
+                    workflowId,
+                    It.IsAny<string>(),
+                    "written off by the operator",
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new SkipWorkflowResult.Skipped(workflowId, now));
 
         // Act
-        var result = await EngineRequestHandlers.AbandonWorkflow(
+        var result = await EngineRequestHandlers.SkipWorkflow(
             DefaultNamespace,
             workflowId,
+            new SkipWorkflowRequest { Reason = "written off by the operator" },
             engine.Object,
             TestContext.Current.CancellationToken
         );
 
         // Assert
-        var accepted = Assert.IsType<Accepted<AbandonWorkflowResponse>>(result.Result);
+        var accepted = Assert.IsType<Accepted<SkipWorkflowResponse>>(result.Result);
         Assert.NotNull(accepted.Value);
         Assert.Equal(workflowId, accepted.Value.WorkflowId);
-        Assert.Equal(now, accepted.Value.AbandonedAt);
+        Assert.Equal(now, accepted.Value.SkippedAt);
+        engine.VerifyAll();
     }
 
     [Fact]
-    public async Task AbandonWorkflow_AlreadyAbandoned_ReturnsOkWithOriginalTimestamp()
+    public async Task SkipWorkflow_AlreadySkipped_ReturnsOkWithOriginalTimestamp()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
         var originalTimestamp = DateTimeOffset.UtcNow.AddMinutes(-1);
         var engine = new Mock<IEngine>();
         engine
-            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AbandonWorkflowResult.AlreadyAbandoned(workflowId, originalTimestamp));
+            .Setup(e =>
+                e.SkipWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new SkipWorkflowResult.AlreadySkipped(workflowId, originalTimestamp));
 
         // Act
-        var result = await EngineRequestHandlers.AbandonWorkflow(
+        var result = await EngineRequestHandlers.SkipWorkflow(
             DefaultNamespace,
             workflowId,
+            request: null,
             engine.Object,
             TestContext.Current.CancellationToken
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<AbandonWorkflowResponse>>(result.Result);
+        var ok = Assert.IsType<Ok<SkipWorkflowResponse>>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Equal(workflowId, ok.Value.WorkflowId);
-        Assert.Equal(originalTimestamp, ok.Value.AbandonedAt);
+        Assert.Equal(originalTimestamp, ok.Value.SkippedAt);
     }
 
     [Fact]
-    public async Task AbandonWorkflow_NotFound_Returns404()
+    public async Task SkipWorkflow_NotFound_Returns404()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
         var engine = new Mock<IEngine>();
         engine
-            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AbandonWorkflowResult.NotFound());
+            .Setup(e =>
+                e.SkipWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new SkipWorkflowResult.NotFound());
 
         // Act
-        var result = await EngineRequestHandlers.AbandonWorkflow(
+        var result = await EngineRequestHandlers.SkipWorkflow(
             DefaultNamespace,
             workflowId,
+            request: null,
             engine.Object,
             TestContext.Current.CancellationToken
         );
@@ -1254,19 +1269,22 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task AbandonWorkflow_NotAbandonable_Returns409()
+    public async Task SkipWorkflow_NotSkippable_Returns409()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
         var engine = new Mock<IEngine>();
         engine
-            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AbandonWorkflowResult.NotAbandonable(PersistentItemStatus.Completed));
+            .Setup(e =>
+                e.SkipWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new SkipWorkflowResult.NotSkippable(PersistentItemStatus.Completed));
 
         // Act
-        var result = await EngineRequestHandlers.AbandonWorkflow(
+        var result = await EngineRequestHandlers.SkipWorkflow(
             DefaultNamespace,
             workflowId,
+            request: null,
             engine.Object,
             TestContext.Current.CancellationToken
         );
@@ -1275,5 +1293,57 @@ public class EngineEndpointTests
         var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
         Assert.NotNull(conflict.Value);
         Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
+        Assert.Contains("Completed", conflict.Value.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SkipWorkflow_NoBody_PassesNullReason()
+    {
+        // Arrange — no default text is invented: an omitted body reaches the engine as a null reason
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.SkipWorkflow(workflowId, It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SkipWorkflowResult.Skipped(workflowId, DateTimeOffset.UtcNow));
+
+        // Act
+        var result = await EngineRequestHandlers.SkipWorkflow(
+            DefaultNamespace,
+            workflowId,
+            request: null,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.IsType<Accepted<SkipWorkflowResponse>>(result.Result);
+        engine.VerifyAll();
+    }
+
+    [Fact]
+    public async Task SkipWorkflow_OverLongReason_Returns400()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.SkipWorkflow(workflowId, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new SkipWorkflowResult.Invalid("Reason is 501 characters, maximum is 500."));
+
+        // Act
+        var result = await EngineRequestHandlers.SkipWorkflow(
+            DefaultNamespace,
+            workflowId,
+            new SkipWorkflowRequest { Reason = new string('x', SkipWorkflowRequest.MaxReasonLength + 1) },
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequest<ProblemDetails>>(result.Result);
+        Assert.NotNull(badRequest.Value);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequest.Value.Status);
     }
 }

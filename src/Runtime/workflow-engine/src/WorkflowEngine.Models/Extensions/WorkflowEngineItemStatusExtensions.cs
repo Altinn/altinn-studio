@@ -9,7 +9,7 @@ public static class WorkflowEngineItemStatusExtensions
     {
         /// <summary>
         /// Returns <c>true</c> when the status is terminal (completed, failed, canceled,
-        /// dependency-failed, abandoned, or skipped).
+        /// dependency-failed, or skipped).
         /// </summary>
         public bool IsDone() =>
             status
@@ -17,7 +17,6 @@ public static class WorkflowEngineItemStatusExtensions
                     or PersistentItemStatus.Failed
                     or PersistentItemStatus.Canceled
                     or PersistentItemStatus.DependencyFailed
-                    or PersistentItemStatus.Abandoned
                     or PersistentItemStatus.Skipped;
 
         /// <summary>

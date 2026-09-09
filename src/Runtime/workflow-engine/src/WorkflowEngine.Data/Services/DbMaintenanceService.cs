@@ -500,12 +500,10 @@ internal sealed class DbMaintenanceService(
     /// is purely derived — a workflow lands there because a dependency was in a failed state when it
     /// was evaluated — so once every dependency settles that way (typically after the upstream was resumed
     /// without cascade) the original reason no longer holds and the workflow should run.
-    /// A still-Canceled, still-Failed or Abandoned dependency keeps the workflow parked: a default
-    /// dependency edge requires the upstream to <em>succeed</em>, and abandoning a workflow writes off
-    /// its failure without ever satisfying that requirement — only an actual Completed, or a Skipped
-    /// upstream that ended deliberately without failing, does. (Abandoned differs from the others at
-    /// <em>evaluation</em> time instead: it does not condemn dependents that have not yet been
-    /// evaluated.) Deep chains heal one layer per sweep as each intermediate completes. Idempotent:
+    /// A still-Canceled or still-Failed dependency keeps the workflow parked: a default dependency edge
+    /// requires the upstream to <em>succeed</em>, and only an actual Completed, or a Skipped upstream that
+    /// ended deliberately without failing (by a command's skip outcome or an operator's skip), does.
+    /// Deep chains heal one layer per sweep as each intermediate completes. Idempotent:
     /// re-enqueued rows no longer match the predicate.
     /// </summary>
     internal async Task RecoverDependencyResolvedWorkflows(DateTimeOffset now, CancellationToken ct)

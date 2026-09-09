@@ -12,8 +12,8 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260908212918_AddSkippedStatus")]
-    partial class AddSkippedStatus
+    [Migration("20260909113441_AddSkipReason")]
+    partial class AddSkipReason
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -522,7 +522,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("UpdatedAt")
                         .HasDatabaseName("ix_workflows_updated_at")
-                        .HasFilter("status IN (3, 4, 5, 6, 7, 10)");
+                        .HasFilter("status IN (3, 4, 5, 6, 7)");
 
                     b.HasIndex("BackoffUntil", "CreatedAt")
                         .HasDatabaseName("ix_workflows_backoff_until_created_at")

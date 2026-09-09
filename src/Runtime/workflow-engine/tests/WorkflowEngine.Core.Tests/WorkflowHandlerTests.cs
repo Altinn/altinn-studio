@@ -1056,9 +1056,12 @@ public class WorkflowHandlerTests
 
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
-        // One skipping step, however many it took with it; one skipped workflow tagged by head visibility
+        // One skipping step, however many it took with it; one skipped workflow tagged by head visibility.
+        // Both carry reason=command, which tells them apart from an operator's skip
         Assert.Equal(1, meters.Total("engine.steps.execution.skipped"));
+        Assert.Equal(1, meters.ByTag("engine.steps.execution.skipped", "reason")["command"]);
         Assert.Equal(1, meters.Total("engine.workflows.execution.skipped"));
+        Assert.Equal(1, meters.ByTag("engine.workflows.execution.skipped", "reason")["command"]);
         Assert.Equal(1, meters.ByTag("engine.workflows.execution.skipped", "is_head")["unset"]);
 
         Assert.Equal(0, meters.Total("engine.steps.execution.success"));

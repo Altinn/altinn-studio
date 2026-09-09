@@ -84,7 +84,7 @@ internal static class EngineEndpoints
             .WithSummary("Resume workflow")
             .WithDescription(
                 """
-                Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) back to Enqueued
+                Resumes a terminal workflow (Failed, Canceled, DependencyFailed) back to Enqueued
                 for re-processing. Pass cascade=true to also resume workflows left in DependencyFailed by this one.
 
                 202 Accepted when the workflow was resumed (the processor picks it up on its next cycle).
@@ -93,25 +93,28 @@ internal static class EngineEndpoints
             );
 
         workflowGroup
-            .MapPost("/{workflowId:guid}/abandon", EngineRequestHandlers.AbandonWorkflow)
-            .WithName("AbandonWorkflow")
-            .WithSummary("Abandon workflow")
+            .MapPost("/{workflowId:guid}/skip", EngineRequestHandlers.SkipWorkflow)
+            .WithName("SkipWorkflow")
+            .WithSummary("Skip workflow")
             .WithDescription(
                 """
-                Marks an unsuccessful terminal workflow (Failed, Canceled, DependencyFailed) as Abandoned,
-                writing off its failure: it no longer condemns dependents evaluated after the marking, so new
-                workflows may depend on it and run. Dependents already in DependencyFailed stay put as
-                historical record. An abandoned workflow can still be resumed.
+                Skips an unsuccessful terminal workflow (Failed, Canceled or DependencyFailed) by operator decision —
+                the way to write off work that should not run after all. The workflow moves to Skipped with its
+                backoff cleared, and every step that did not complete is marked Skipped with the optional body's
+                reason recorded on the first of them (nothing is recorded when it is omitted or blank), so the result
+                reads exactly like a workflow a command's skip outcome ended: dependents evaluated afterwards run,
+                dependents already parked in DependencyFailed are released by the recovery sweep, and it counts
+                as neither a success nor a failure. Error history stays in place.
 
-                Abandoning also releases the idempotency key of the enqueue request that created the workflow:
-                the action may be retried, so replaying the same fingerprint (even with an identical body)
-                creates and runs a fresh workflow instead of deduplicating onto the write-off. For batch
-                enqueues the key covers the whole batch — abandoning any member releases it for all.
+                Skip is irreversible: a Skipped workflow cannot be resumed, so resume the failed workflow instead
+                if the work should run. The idempotency key of the enqueue request that created the workflow is
+                not released: replaying the same fingerprint deduplicates onto the skipped workflow for as long
+                as the key is retained.
 
-                The transition is a compare-and-set: 202 Accepted when this call wrote off the workflow, 409 Conflict
-                when the workflow is in any other state — including when a concurrent resume revived it first — and
-                404 Not Found when it does not exist. Abandoning an already-abandoned workflow is an idempotent 200
-                that reports the original abandonedAt.
+                202 Accepted when this call skipped the workflow. 200 OK when it was already Skipped, by an
+                operator or by a command (idempotent replay), reporting the original skippedAt. 409 Conflict when
+                it is in any other state — including when a concurrent resume revived it first — 404 Not Found
+                when it does not exist, 400 Bad Request when the reason is longer than 500 characters.
                 """
             );
 
@@ -515,35 +518,49 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<
-        Results<Accepted<AbandonWorkflowResponse>, Ok<AbandonWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
-    > AbandonWorkflow(
+        Results<
+            Accepted<SkipWorkflowResponse>,
+            Ok<SkipWorkflowResponse>,
+            NotFound,
+            Conflict<ProblemDetails>,
+            BadRequest<ProblemDetails>
+        >
+    > SkipWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] SkipWorkflowRequest? request,
         [FromServices] IEngine engine,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "abandon"));
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "skip"));
 
         var ns = NormalizeNamespace(@namespace);
-        var result = await engine.AbandonWorkflow(workflowId, ns, cancellationToken);
+        var result = await engine.SkipWorkflow(workflowId, ns, request?.Reason, cancellationToken);
 
         return result switch
         {
-            AbandonWorkflowResult.Abandoned r => TypedResults.Accepted(
+            SkipWorkflowResult.Skipped r => TypedResults.Accepted(
                 (string?)null,
-                new AbandonWorkflowResponse(r.WorkflowId, r.AbandonedAt)
+                new SkipWorkflowResponse(r.WorkflowId, r.SkippedAt)
             ),
-            AbandonWorkflowResult.AlreadyAbandoned r => TypedResults.Ok(
-                new AbandonWorkflowResponse(r.WorkflowId, r.AbandonedAt)
-            ),
-            AbandonWorkflowResult.NotFound => TypedResults.NotFound(),
-            AbandonWorkflowResult.NotAbandonable r => TypedResults.Conflict(
+            SkipWorkflowResult.AlreadySkipped r => TypedResults.Ok(new SkipWorkflowResponse(r.WorkflowId, r.SkippedAt)),
+            SkipWorkflowResult.NotFound => TypedResults.NotFound(),
+            SkipWorkflowResult.NotSkippable r => TypedResults.Conflict(
                 new ProblemDetails
                 {
-                    Title = "Workflow cannot be abandoned",
-                    Detail = $"Workflow {workflowId} is in {r.CurrentStatus} state and cannot be abandoned.",
+                    Title = "Workflow cannot be skipped",
+                    Detail =
+                        $"Workflow {workflowId} is in {r.CurrentStatus} state; only a Failed, Canceled or DependencyFailed workflow can be skipped.",
                     Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            SkipWorkflowResult.Invalid r => TypedResults.BadRequest(
+                new ProblemDetails
+                {
+                    Title = "Invalid skip request",
+                    Detail = r.Message,
+                    Status = StatusCodes.Status400BadRequest,
                 }
             ),
             _ => throw new UnreachableException(),

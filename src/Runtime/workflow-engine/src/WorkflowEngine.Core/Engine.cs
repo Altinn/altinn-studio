@@ -48,12 +48,15 @@ internal interface IEngine
     );
 
     /// <summary>
-    /// Marks an unsuccessful terminal workflow as Abandoned, writing off its failure so it
-    /// no longer condemns dependents evaluated after the marking.
+    /// Skips an unsuccessful terminal workflow (Failed, Canceled or DependencyFailed) by operator decision,
+    /// leaving it and its non-completed steps in the state a command's skip outcome produces, with the optional
+    /// <paramref name="reason"/> on the first of them. Compare-and-set: a workflow in any other state is left
+    /// alone; one already Skipped is an idempotent replay.
     /// </summary>
-    Task<AbandonWorkflowResult> AbandonWorkflow(
+    Task<SkipWorkflowResult> SkipWorkflow(
         Guid workflowId,
         string ns,
+        string? reason,
         CancellationToken cancellationToken = default
     );
 
@@ -412,32 +415,49 @@ internal sealed class Engine(
     }
 
     /// <inheritdoc/>
-    public async Task<AbandonWorkflowResult> AbandonWorkflow(
+    public async Task<SkipWorkflowResult> SkipWorkflow(
         Guid workflowId,
         string ns,
+        string? reason,
         CancellationToken cancellationToken = default
     )
     {
-        var now = timeProvider.GetUtcNow();
-        var abandoned = await repository.AbandonWorkflow(workflowId, ns, now, cancellationToken);
+        var skipReason = string.IsNullOrWhiteSpace(reason) ? null : reason;
+        if (skipReason is { Length: > SkipWorkflowRequest.MaxReasonLength })
+            return new SkipWorkflowResult.Invalid(
+                $"Reason is {skipReason.Length} characters, maximum is {SkipWorkflowRequest.MaxReasonLength}."
+            );
 
-        if (abandoned)
+        var now = timeProvider.GetUtcNow();
+        var skipped = await repository.SkipWorkflow(workflowId, ns, now, skipReason, cancellationToken);
+
+        if (skipped is not null)
         {
-            Metrics.WorkflowsAbandoned.Add(1);
-            return new AbandonWorkflowResult.Abandoned(workflowId, now);
+            Metrics.StepsSkipped.Add(1, ("reason", "manual"));
+            Metrics.WorkflowsSkipped.Add(
+                1,
+                ("reason", "manual"),
+                ("is_head", WorkflowExtensions.IsHeadTagValue(skipped.IsHead))
+            );
+
+            // A skipped upstream satisfies dependents blocked at the fetch gate; signal so they are
+            // re-evaluated on the next fetch cycle rather than the next poll tick.
+            workflowSignal.Signal();
+
+            return new SkipWorkflowResult.Skipped(workflowId, now);
         }
 
         var info = await repository.GetWorkflowStatusInfo(workflowId, ns, cancellationToken);
         if (info is null)
-            return new AbandonWorkflowResult.NotFound();
+            return new SkipWorkflowResult.NotFound();
 
-        // Idempotent replay: the write-off already exists, report success rather than conflict.
-        // The abandon CAS stamped UpdatedAt with the abandonment time, so the replay reports the
-        // original timestamp instead of the replay time.
-        if (info.Status == PersistentItemStatus.Abandoned)
-            return new AbandonWorkflowResult.AlreadyAbandoned(workflowId, info.UpdatedAt ?? now);
+        // Idempotent replay: the skip already exists — an operator's or a command's — so report success
+        // rather than conflict. The skip write stamped UpdatedAt, so the replay reports the original
+        // timestamp instead of the replay time.
+        if (info.Status == PersistentItemStatus.Skipped)
+            return new SkipWorkflowResult.AlreadySkipped(workflowId, info.UpdatedAt ?? now);
 
-        return new AbandonWorkflowResult.NotAbandonable(info.Status);
+        return new SkipWorkflowResult.NotSkippable(info.Status);
     }
 
     /// <inheritdoc/>
