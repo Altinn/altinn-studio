@@ -8,6 +8,9 @@ use crate::{Error, persistence};
 mod claude_code;
 mod codex;
 mod session_start;
+mod skills;
+
+pub(crate) use skills::{Skill, SkillFile};
 
 /// Supported harnesses.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -189,10 +192,11 @@ pub(crate) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[Skill],
 ) -> Result<(), Error> {
     match harness {
-        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions).await,
-        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions).await,
+        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions, skills).await,
+        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions, skills).await,
     }
 }
 

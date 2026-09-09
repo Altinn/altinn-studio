@@ -8,7 +8,13 @@ use crate::{Error, sandbox::platform::run_checked};
 
 use super::super::{ACCESS_PLACEHOLDER, ACCOUNT_PLACEHOLDER, REFRESH_PLACEHOLDER};
 
-pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions: Option<&[u8]>) -> Result<(), Error> {
+pub(super) async fn configure(
+    sandbox: &SandboxHandle,
+    home: &str,
+    instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
+) -> Result<(), Error> {
+    let skills_path = format!("{home}/.agents/skills");
     let config = format!("{home}/.codex");
     let hooks_path = format!("{config}/hooks");
     let auth_path = format!("{config}/auth.json");
@@ -94,5 +100,5 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
         .await?;
         run_checked(sandbox, "/usr/bin/chmod", ["644", instructions_path.as_str()]).await?;
     }
-    Ok(())
+    crate::harness::skills::install_linux(sandbox, &skills_path, skills).await
 }

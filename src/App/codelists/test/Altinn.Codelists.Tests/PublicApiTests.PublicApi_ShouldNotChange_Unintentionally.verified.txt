@@ -1,4 +1,6 @@
-﻿[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+﻿[assembly: System.Reflection.AssemblyMetadata("PackageReference.Altinn.App.Core", "")]
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/altinn-studio")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
 namespace Altinn.Codelists.Extensions
 {
     public static class ServiceCollectionExtensions
