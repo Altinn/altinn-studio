@@ -246,7 +246,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
             vec![
                 Line::from("No agent manifests found."),
                 Line::from(Span::styled(
-                    format!("Start the TUI from a directory containing {MANIFEST_FILE},"),
+                    format!("Start the TUI inside a repository or directory tree containing {MANIFEST_FILE},"),
                     Style::new().fg(Color::DarkGray),
                 )),
                 Line::from(Span::styled(
