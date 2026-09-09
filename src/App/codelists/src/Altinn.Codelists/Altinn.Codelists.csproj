@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <PackageReference Include="Altinn.App.Core" />
   </ItemGroup>
 
   <Target Name="GenerateDependencyAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">

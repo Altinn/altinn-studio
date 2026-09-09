@@ -21,8 +21,8 @@ pub use controller::{FailureKind, ReconcileFailure};
 pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
 pub use manifest::{
     API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec,
-    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec, SecretSpec, Spec,
-    Status,
+    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec, SecretSpec,
+    SkillSpec, Spec, Status,
 };
 
 use thiserror::Error;

@@ -87,9 +87,12 @@ pub struct Spec {
     pub sandbox: SandboxManifestSpec,
     /// Host directory synchronized into the sandbox user's home at bootstrap.
     pub home: HomeSpec,
-    /// Optional Agent-wide guidance installed through every declared Harness Adapter.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub instructions: Option<InstructionsSpec>,
+    /// Agent-wide guidance installed through every declared Harness Adapter, concatenated in order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub instructions: Vec<InstructionsSpec>,
+    /// Skill directories installed through every declared Harness Adapter.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub skills: Vec<SkillSpec>,
     /// Harness installations available to Sessions in this Agent.
     pub harnesses: Vec<HarnessSpec>,
     /// Host-owned values made available only through mediated requests.
@@ -307,13 +310,16 @@ impl Spec {
         if self.home.source.as_os_str().is_empty() {
             return Err(Error::Invalid("spec.home.source must not be empty".into()));
         }
-        if self
+        if let Some(index) = self
             .instructions
-            .as_ref()
-            .is_some_and(|instructions| instructions.source.as_os_str().is_empty())
+            .iter()
+            .position(|instructions| instructions.source.as_os_str().is_empty())
         {
-            return Err(Error::Invalid("spec.instructions.source must not be empty".into()));
+            return Err(Error::Invalid(format!(
+                "spec.instructions[{index}].source must not be empty"
+            )));
         }
+        self.validate_skills()?;
         if self.harnesses.is_empty() {
             return Err(Error::Invalid("spec.harnesses must not be empty".into()));
         }
@@ -378,6 +384,25 @@ impl Spec {
     }
 }
 
+impl Spec {
+    fn validate_skills(&self) -> Result<(), Error> {
+        let mut skill_names = std::collections::BTreeSet::new();
+        for (index, skill) in self.skills.iter().enumerate() {
+            let Some(name) = skill.name() else {
+                return Err(Error::Invalid(format!(
+                    "spec.skills[{index}].source must end in the skill's directory name"
+                )));
+            };
+            if !skill_names.insert(name) {
+                return Err(Error::Invalid(format!(
+                    "spec.skills[{index}] duplicates skill {name:?}"
+                )));
+            }
+        }
+        Ok(())
+    }
+}
+
 fn valid_sandbox_path(path: &str) -> bool {
     path.starts_with('/')
         && path != "/"
@@ -395,12 +420,31 @@ pub struct HomeSpec {
     pub source: std::path::PathBuf,
 }
 
-/// Harness-neutral Agent-wide instruction source.
+/// One harness-neutral instruction file; several are concatenated in manifest order.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct InstructionsSpec {
     /// Host file, resolved relative to the manifest directory.
     pub source: std::path::PathBuf,
+}
+
+/// One skill directory installed for every declared harness.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SkillSpec {
+    /// Host directory holding `SKILL.md`, resolved relative to the manifest directory.
+    pub source: std::path::PathBuf,
+}
+
+impl SkillSpec {
+    /// Returns the skill name: the final component of the source directory.
+    #[must_use]
+    pub fn name(&self) -> Option<&str> {
+        self.source
+            .file_name()?
+            .to_str()
+            .filter(|name| !name.is_empty() && *name != ".")
+    }
 }
 
 /// One host-owned value exposed to Sandbox processes only as an inert environment placeholder.
