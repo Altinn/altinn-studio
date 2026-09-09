@@ -248,7 +248,8 @@ export const Config = new CG.component({
               'Turning this on makes it possible to display the edit mode for a repeating group with multiple ' +
                 'inner pages. Every component referenced in the "children" property should have a prefix with the ' +
                 'page number it should be displayed on (e.g. "1:component1", "2:component2", etc.)',
-              'Gjør det mulig å redigere en repeterende gruppe over flere interne sider.',
+              'Gjør det mulig å redigere en repeterende gruppe over flere interne sider. Hver komponent i ' +
+                '"children" må ha et prefiks med sidenummeret den skal vises på, for eksempel "1:component1" eller "2:component2".',
             ),
         ),
         new CG.prop(

@@ -107,7 +107,8 @@ export const Config = asOptionsComponent(
         .setDescription(
           'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones' +
             '(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)',
-          'Filtrerer radene i Likert-gruppen med start- og stoppindekser.',
+          'Filtrerer radene i Likert-gruppen med start- og stoppindekser. Startindeksen teller fra null, ' +
+            'og stoppindeksen teller fra én. For eksempel viser {start, stop} = {0, 3} tre rader, ikke fire.',
         )
         .exportAs('ILikertFilter'),
     ),

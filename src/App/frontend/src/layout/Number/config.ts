@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Number', en: 'Number' },
+    name: { nb: 'Tall', en: 'Number' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

@@ -98,7 +98,7 @@ export const Config = new CG.component({
     new CG.prop(
       'zebra',
       new CG.bool()
-        .setTitle('Size', 'Størrelse')
+        .setTitle('Zebra striping', 'Stripete rader')
         .setDescription('If true, the table will have zebra striping', 'Viser tabellen med stripete rader.')
         .optional(),
     ),
@@ -116,7 +116,7 @@ export const Config = new CG.component({
     new CG.prop(
       'enableEdit',
       new CG.bool()
-        .setTitle('Enable delete', 'Tillat sletting')
+        .setTitle('Enable edit', 'Tillat redigering')
         .setDescription('If true, will allow user to edit row', 'Lar brukeren redigere raden.')
         .optional(),
     ),

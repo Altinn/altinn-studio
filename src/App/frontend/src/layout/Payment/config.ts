@@ -28,7 +28,7 @@ export const Config = new CG.component({
     new CG.trb({
       name: 'title',
       title: { en: 'Title', nb: 'Ledetekst' },
-      description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
+      description: { en: 'The title of the payment component', nb: 'Ledeteksten til betalingskomponenten.' },
     }),
   )
   .addTextResource(

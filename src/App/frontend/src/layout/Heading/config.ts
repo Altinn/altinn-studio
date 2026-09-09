@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Tittel', en: 'Header' },
+    name: { nb: 'Tittel', en: 'Heading' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {
