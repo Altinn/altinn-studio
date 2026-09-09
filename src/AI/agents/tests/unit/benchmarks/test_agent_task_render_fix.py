@@ -1,6 +1,4 @@
-"""Tests for the runner's render-fix loop: the pure parts (gating, fix
-goal, after-fix scores). The agent round-trip itself is exercised
-manually against the local stack."""
+"""The render-fix loop's pure parts: gating, the fix goal, the after-fix scores."""
 
 from __future__ import annotations
 
