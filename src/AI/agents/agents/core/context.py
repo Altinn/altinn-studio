@@ -1,14 +1,4 @@
-"""System-prompt assembler for the agentic loop.
-
-One immutable prompt per session, composed in a stable order so Anthropic's
-prompt cache stays warm: identity, operating principles, Altinn anatomy,
-critical rules, tool-use guidance, then the session-specific tail (mode, goal,
-repo path, optional context) where cache misses are cheapest.
-
-Tool descriptions are not assembled here. They travel per request on the
-adapter's own tools field, so the tool-use section describes patterns rather
-than individual tools.
-"""
+"""System-prompt assembler for the agentic loop."""
 
 from __future__ import annotations
 
@@ -210,24 +200,14 @@ class SessionContext:
     today: date | None = None
 
 
+def stable_prefix_sections() -> tuple[str, ...]:
+    """The deployment-static part of the actor's system prompt."""
+    return (_IDENTITY, _OPERATING_PRINCIPLES, _ALTINN_ANATOMY, _CRITICAL_RULES, _TOOL_USE)
+
+
 def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -> str:
-    """Compose the immutable system prompt for a session.
-
-    Stable sections come first so the cacheable prefix is as long as
-    possible.  Variable session info (mode, goal, repo facts, form
-    spec) goes at the end where cache misses cost least.
-
-    `skill_listing` is the compact one-line-per-skill index from
-    `format_skill_listing`.  It is deployment-static, so it sits in the
-    stable prefix with the other cacheable sections.
-    """
-    sections: list[str] = [
-        _IDENTITY,
-        _OPERATING_PRINCIPLES,
-        _ALTINN_ANATOMY,
-        _CRITICAL_RULES,
-        _TOOL_USE,
-    ]
+    """Compose the immutable system prompt for a session."""
+    sections: list[str] = list(stable_prefix_sections())
 
     if skill_listing:
         sections.append(
@@ -266,12 +246,7 @@ def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -
 
 
 def _format_repo_facts(facts: dict[str, Any]) -> str:
-    """Render the repo_facts dict as bullet points.
-
-    Values that are themselves lists/dicts are stringified compactly; full
-    structured rendering happens when the model calls `scan_repo` and
-    sees the canonical output.  This section is a header summary only.
-    """
+    """Render the repo_facts dict as bullet points."""
     lines: list[str] = []
     for key, value in facts.items():
         if isinstance(value, (list, tuple)):

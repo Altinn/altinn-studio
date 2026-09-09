@@ -31,3 +31,8 @@ trace-*.json
 benchmarks/assets/
 benchmarks/.env
 benchmarks/.playwright-auth.json
+
+benchmarks/reports/
+
+# Recorded runs (BASELINE.json is committed)
+benchmarks/runs/

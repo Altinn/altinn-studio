@@ -1,0 +1,9 @@
+{
+  "language": "nb",
+  "resources": [
+    { "id": "appName", "value": "Benchmark-app" },
+    { "id": "bench.field.input1", "value": "Fornavn" },
+    { "id": "bench.field.input2", "value": "Etternavn" },
+    { "id": "bench.field.input3", "value": "E-postadresse" }
+  ]
+}

@@ -1,9 +1,18 @@
-# Agent quality benchmark
+# The end to end benchmark
 
-Verifies that changes to the agent still produce the same quality by
-running it against a golden dataset in Langfuse and recording a scored
-**dataset run** per agent version. Compare runs side-by-side in
-Langfuse under *Datasets → Benchmarks/large-pdf → Runs*.
+The only eval that builds a real app: it runs the agent with tools, pushes a session
+branch, loads every page in a browser and scores the result against a structural rubric.
+Minutes rather than seconds, which is why `check` leaves it out unless asked.
+
+```bash
+python -m benchmarks.runner check --include-e2e
+```
+
+## Start here
+
+[EVALS.md](EVALS.md) is the entry point: the manifest, the one command, and what a run
+records. This page is the end to end benchmark in detail, because it is the one with real
+prerequisites.
 
 ## When to run it
 
@@ -30,9 +39,14 @@ no agent run and posts nothing to Langfuse.
 
 ## How it works
 
+Orchestration is `langfuse.run_experiment`. It runs the items, traces each task,
+isolates a failing item, records item and run level scores, and links the dataset
+run. Ours is the task and the scorers.
+
 ```
-dataset item (goal + attachments + structural rubric)
+langfuse.run_experiment(dataset items, task=AgentTask, evaluators, run_evaluators)
         │
+        │  per item, one at a time
         ▼
 POST /api/agent/start on the local stack ──► agent works ──► pushes altinity_session_<id>
         │                                                          │
@@ -42,8 +56,28 @@ poll /api/agent/status until terminal                     clone the session bran
         └────────────► deterministic evaluators (repo vs rubric) ◄─┘
                                 │
                                 ▼
-        scores on the workflow trace + dataset-run-item link in Langfuse
+                    scores returned as the task output
+                                │
+                    ┌───────────┴───────────┐
+                    ▼                       ▼
+        item scores on the task     run scores across items
+        trace, in the dataset run   (completion rate, per-score means)
 ```
+
+Two traces exist per item and both belong to the run. The SDK traces the task on
+the runner side and hangs the item scores off it. The agent is a separate service
+with its own workflow trace, carrying the LLM calls and the Langfuse-managed
+judges, so it is handed the experiment context at start and joins the same
+dataset run.
+
+Items run one at a time. An agent run pushes to a single repo and drives a single
+browser preview, so they cannot overlap however willing the SDK is to
+parallelise; `--max-concurrency` is there if that ever stops being true.
+
+An item that cannot be scored raises. `run_experiment` records it as a failed
+item rather than dropping it, which is the point: the previous runner printed a
+warning and continued, so a silently skipped item made a comparison
+into a four-item one without anybody noticing.
 
 The committed **repo is the ground truth**: evaluation never
 reconstructs the app from trace spans (spans truncate long payloads and
@@ -84,6 +118,13 @@ enumeration), so naming style doesn't matter but missing fields do.
 | `bench_pages_render` | 0–1 | fraction of ordered pages that render without error |
 | `bench_render_fix_rounds` | numeric | fix rounds sent back to the agent (only when a fix ran) |
 | `bench_pages_render_after_fix` | 0–1 | render fraction after the fix loop (only when a fix ran) |
+
+Run-level scores are computed across the items of one run rather than per item:
+
+| Score | Type | Meaning |
+| --- | --- | --- |
+| `run_items_scored` | 0–1 | fraction of items that produced a scored app |
+| `run_mean_<score>` | 0–1 | that structural score, averaged over the items |
 
 ## Prerequisites
 
@@ -149,10 +190,14 @@ regression shows up as a column that got worse.
 
 ### Reading the results
 
-The runner prints every score as it posts it, which is usually enough to
-see what happened. For comparison across versions go to *Datasets →
-Benchmarks/large-pdf → Runs* in Langfuse; each run is a column and each
-score a row.
+The run prints each score as it is computed, then a summary of the item averages
+and the run-level scores. For comparison across versions go to *Datasets → the
+dataset → Runs* in Langfuse; each run is a column and each score a row.
+
+Start with the run-level scores, which is what the SDK port added. `run_items_scored`
+is the fraction of items that produced an app at all: a run where that is below 1
+is not comparable with one where it is 1, however good the surviving scores look.
+`run_mean_<score>` is the number to compare between two model sets.
 
 Read the boolean scores first. `bench_completed`, `bench_pages`,
 `bench_order_integrity`, `bench_navigation` are pass/fail statements
@@ -252,7 +297,7 @@ BENCH_RENDER_FIX_ROUNDS=1 # max fix rounds per item (default)
 
 **Scores missing from Langfuse after a run that printed them.** The
 standalone `python -m benchmarks.preview_check --branch …` only prints
-to stdout. Nothing reaches Langfuse; only `runner run` posts scores.
+to stdout. Nothing reaches Langfuse; only `runner check --include-e2e` records scores.
 
 **A new `bench_*` score never appears.** Run `ensure-configs` again;
 score configs are created once and adding a score to the code does not
