@@ -96,7 +96,6 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         "Failed",
         "Canceled",
         "DependencyFailed",
-        "Abandoned",
         "Skipped",
     ];
 

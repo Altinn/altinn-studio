@@ -48,8 +48,7 @@ internal sealed class MintMailbox(
                     $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "
                         + $"{payload.StageIndex} when this workflow was enqueued, but its pipeline now composes no "
                         + "mailbox-opening stage at that index — stages were inserted, reordered or removed since "
-                        + "it was enqueued. Resume the workflow on the code that enqueued it, or abandon it "
-                        + "deliberately.",
+                        + "it was enqueued. Resume the workflow on the code that enqueued it.",
                     "MailboxDeclarationNotFound"
                 );
             }

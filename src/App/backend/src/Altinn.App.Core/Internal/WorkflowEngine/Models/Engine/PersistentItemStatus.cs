@@ -30,10 +30,18 @@ internal enum PersistentItemStatus
     DependencyFailed = 6,
 
     /// <summary>
-    /// The workflow ended unsuccessfully and a caller explicitly wrote it off. Terminal, but not a
-    /// failure for dependency evaluation: workflows enqueued afterwards may depend on it and run.
+    /// The item's work did not run and was not needed. A command skipped the rest of the workflow: on a
+    /// step, the step that returned the skip (which carries the reason in
+    /// <see cref="StepStatusResponse.SkipReason"/>) and every step after it; on a workflow, any step is
+    /// skipped, and steps before the skipping one stay <see cref="Completed"/>. An operator can put a
+    /// <see cref="Failed"/>, <see cref="Canceled"/> or <see cref="DependencyFailed"/> workflow into the same
+    /// state through the engine's skip endpoint, with an optional reason on the first step that did not
+    /// complete — a null <see cref="StepStatusResponse.SkipReason"/> on a skipped step means exactly that,
+    /// since a command's skip always carries one. Terminal and not a failure: workflows depending on it run
+    /// and it satisfies a dependency for the engine's recovery sweep. Not <see cref="Completed"/>, because
+    /// the work did not happen. Not resumable.
     /// </summary>
-    Abandoned = 7,
+    Skipped = 7,
 
     /// <summary>
     /// A step ran without error but the outcome it awaits is not available yet, so the engine parked
@@ -48,15 +56,4 @@ internal enum PersistentItemStatus
     /// fetches it, and it has no timer of its own.
     /// </summary>
     Held = 9,
-
-    /// <summary>
-    /// A command skipped the rest of the workflow: the item's work did not run and was not needed. On a
-    /// step: the step that returned the skip (which carries the reason in
-    /// <see cref="StepStatusResponse.SkipReason"/>) and every step after it. On a workflow: any step is
-    /// skipped; steps before the skipping one stay <see cref="Completed"/>. Terminal and not a failure:
-    /// workflows depending on it run, and unlike <see cref="Abandoned"/> it satisfies a dependency for
-    /// the engine's recovery sweep. Not <see cref="Completed"/>, because the work did not happen. Not
-    /// resumable.
-    /// </summary>
-    Skipped = 10,
 }

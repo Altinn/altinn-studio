@@ -1144,37 +1144,6 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public void BuildWorkflowFailure_ReportsFailureWhenTheNewestWorkflowIsAbandoned()
-    {
-        // A wait that ends on an abandoned workflow must never look like success: the abandoned
-        // workflow was written off without a superseding workflow, so the action never ran.
-        var olderCompleted = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow.AddMinutes(-5));
-        var abandoned = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, status: PersistentItemStatus.Abandoned);
-
-        WorkflowFailure? failure = WorkflowEngineService.BuildWorkflowFailure([olderCompleted, abandoned]);
-
-        Assert.NotNull(failure);
-        Assert.Equal(WorkflowFailureKind.EngineFault, failure.Kind);
-        Assert.Equal(abandoned.DatabaseId, failure.WorkflowId);
-        Assert.NotNull(failure.LastError);
-        Assert.Contains("abandoned", failure.LastError.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public void BuildWorkflowFailure_IgnoresAbandonedWorkflowsSupersededByANewerOne()
-    {
-        // An abandoned workflow with a newer (superseding) workflow on top of it is background
-        // noise - the newer workflow's outcome is what counts.
-        var abandoned = CreateWorkflowStatus(
-            createdAt: DateTimeOffset.UtcNow.AddMinutes(-5),
-            status: PersistentItemStatus.Abandoned
-        );
-        var newerCompleted = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
-
-        Assert.Null(WorkflowEngineService.BuildWorkflowFailure([abandoned, newerCompleted]));
-    }
-
-    [Fact]
     public void BuildWorkflowFailure_NewestSkippedAcquire_IsAcquireConflict()
     {
         Guid workflowId = Guid.NewGuid();
@@ -1211,6 +1180,23 @@ public class WorkflowEngineServiceTests
         Assert.Equal(AcquireProcessingStatus.Key, failure.StepOperationId);
         Assert.NotNull(failure.LastError);
         Assert.Contains("someOtherReason", failure.LastError.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildWorkflowFailure_NewestSkippedWithoutReason_IsEngineFaultWithPlainMessage()
+    {
+        Guid workflowId = Guid.NewGuid();
+        WorkflowStatusResponse skipped = CreateSkippedWorkflow(workflowId, skipReason: null);
+
+        WorkflowFailure? failure = WorkflowEngineService.BuildWorkflowFailure([skipped]);
+
+        Assert.NotNull(failure);
+        Assert.Equal(WorkflowFailureKind.EngineFault, failure.Kind);
+        Assert.Equal(workflowId, failure.WorkflowId);
+        Assert.Equal(AcquireProcessingStatus.Key, failure.StepOperationId);
+        Assert.NotNull(failure.LastError);
+        Assert.False(failure.LastError.WasRetryable);
+        Assert.Equal("The workflow was skipped before the process action completed.", failure.LastError.Message);
     }
 
     [Fact]
@@ -2008,7 +1994,7 @@ public class WorkflowEngineServiceTests
             ],
         };
 
-    private static WorkflowStatusResponse CreateSkippedWorkflow(Guid workflowId, string skipReason) =>
+    private static WorkflowStatusResponse CreateSkippedWorkflow(Guid workflowId, string? skipReason) =>
         new()
         {
             DatabaseId = workflowId,

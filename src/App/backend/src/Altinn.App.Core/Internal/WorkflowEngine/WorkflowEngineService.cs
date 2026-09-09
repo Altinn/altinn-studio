@@ -228,10 +228,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
             // Terminal heads linger in the collection (it is shared by every transition of the
             // instance), but only Failed, Canceled and DependencyFailed heads block. A Skipped head
-            // (an acquire conflict skipped the transition) and an Abandoned head (an operator wrote
-            // the workflow off) are settled like a Completed one, and
-            // IsResumeRequiredCollectionHeadStatus excludes them - the outcome lives in the
-            // workflow's own state, so no dating heuristics are needed here.
+            // (an acquire conflict skipped the transition, or an operator skipped the workflow) is
+            // settled like a Completed one, and IsResumeRequiredCollectionHeadStatus excludes it -
+            // the outcome lives in the workflow's own state, so no dating heuristics are needed here.
             CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
                 IsResumeRequiredCollectionHeadStatus
             );
@@ -279,8 +278,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         // A head that is active means a transition is in flight (processing); a head that failed
         // terminally means it needs resuming (failed). Active wins if both are somehow present.
-        // Everything else is settled: Completed, Skipped (an acquire conflict skipped the
-        // transition) and Abandoned (an operator wrote the workflow off) heads.
+        // Everything else is settled: Completed and Skipped (an acquire conflict skipped the
+        // transition, or an operator skipped the workflow) heads.
         CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
 
         // A processing transition is fully described by the collection view: the head's labels carry
@@ -778,65 +777,49 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {
-        // A skipped or abandoned workflow is only background noise when a superseding workflow was
-        // enqueued after it. When the newest workflow in view carries one of those statuses, nothing
-        // superseded it, so the action being waited on never ran - that must be reported as a
-        // failure, never success. Only the anchored wait can see a skipped newest workflow: the
-        // unanchored callers (the read path and the resume-target lookup) strip skipped workflows
-        // (ExcludeSkipped) before classifying, so a lingering skipped head never lands here.
+        // A skipped workflow is only background noise when a superseding workflow was enqueued
+        // after it. When the newest workflow in view is skipped, nothing superseded it, so the
+        // action being waited on never ran - that must be reported as a failure, never success.
+        // Only the anchored wait can see a skipped newest workflow: the unanchored callers (the
+        // read path and the resume-target lookup) strip skipped workflows (ExcludeSkipped) before
+        // classifying, so a lingering skipped head never lands here.
         WorkflowStatusResponse? newestWorkflow = hierarchyWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
             .FirstOrDefault();
-        switch (newestWorkflow?.OverallStatus)
+        if (newestWorkflow?.OverallStatus == PersistentItemStatus.Skipped)
         {
-            case PersistentItemStatus.Abandoned:
-                // An operator wrote the workflow off through the engine's admin API. Normally
-                // unreachable in a wait (the engine releases the idempotency key on abandon, so a
-                // superseding enqueue always creates a fresh, newer workflow), but the unscoped
-                // fallback wait can still land on an abandoned head.
-                return new WorkflowFailure
-                {
-                    Kind = WorkflowFailureKind.EngineFault,
-                    WorkflowId = newestWorkflow.DatabaseId,
-                    WorkflowOperationId = newestWorkflow.OperationId,
-                    LastError = new WorkflowFailureError
-                    {
-                        Timestamp = newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
-                        Message =
-                            "The workflow was abandoned before the process action completed. Try the action again.",
-                        WasRetryable = true,
-                    },
-                };
-            case PersistentItemStatus.Skipped:
+            // The one skip the app produces is the acquire conflict: AcquireProcessingStatus, as
+            // the first step, lost to a concurrent change of the instance and skipped the
+            // transition without side effects. Any other skip - another reason, or an operator
+            // skip through the engine's admin API, which may carry no reason at all - is reported
+            // as an engine fault.
+            StepStatusResponse skippedStep = newestWorkflow
+                .Steps.OrderBy(step => step.ProcessingOrder)
+                .First(step => step.Status == PersistentItemStatus.Skipped);
+            bool acquireConflict =
+                skippedStep.OperationId == AcquireProcessingStatus.Key
+                && skippedStep.ProcessingOrder == newestWorkflow.Steps.Min(step => step.ProcessingOrder)
+                && skippedStep.SkipReason == AcquireProcessingStatus.ConcurrencyConflictSkipReason;
+            return new WorkflowFailure
             {
-                // The one skip the app produces is the acquire conflict: AcquireProcessingStatus, as
-                // the first step, lost to a concurrent change of the instance and skipped the
-                // transition without side effects. Any other skip is reported as an engine fault.
-                StepStatusResponse skippedStep = newestWorkflow
-                    .Steps.OrderBy(step => step.ProcessingOrder)
-                    .First(step => step.Status == PersistentItemStatus.Skipped);
-                bool acquireConflict =
-                    skippedStep.OperationId == AcquireProcessingStatus.Key
-                    && skippedStep.ProcessingOrder == newestWorkflow.Steps.Min(step => step.ProcessingOrder)
-                    && skippedStep.SkipReason == AcquireProcessingStatus.ConcurrencyConflictSkipReason;
-                return new WorkflowFailure
+                Kind = acquireConflict ? WorkflowFailureKind.AcquireConflict : WorkflowFailureKind.EngineFault,
+                WorkflowId = newestWorkflow.DatabaseId,
+                WorkflowOperationId = newestWorkflow.OperationId,
+                StepOperationId = skippedStep.OperationId,
+                CommandType = skippedStep.Command.Type,
+                RetryCount = skippedStep.RetryCount,
+                LastError = new WorkflowFailureError
                 {
-                    Kind = acquireConflict ? WorkflowFailureKind.AcquireConflict : WorkflowFailureKind.EngineFault,
-                    WorkflowId = newestWorkflow.DatabaseId,
-                    WorkflowOperationId = newestWorkflow.OperationId,
-                    StepOperationId = skippedStep.OperationId,
-                    CommandType = skippedStep.Command.Type,
-                    RetryCount = skippedStep.RetryCount,
-                    LastError = new WorkflowFailureError
-                    {
-                        Timestamp = skippedStep.UpdatedAt ?? newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
-                        Message = acquireConflict
+                    Timestamp = skippedStep.UpdatedAt ?? newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
+                    Message =
+                        acquireConflict
                             ? "The instance changed before the process transition could start. Refresh the instance and try again."
-                            : $"The workflow was skipped before the process action completed ({skippedStep.SkipReason}).",
-                        WasRetryable = false,
-                    },
-                };
-            }
+                        : skippedStep.SkipReason is null
+                            ? "The workflow was skipped before the process action completed."
+                        : $"The workflow was skipped before the process action completed ({skippedStep.SkipReason}).",
+                    WasRetryable = false,
+                },
+            };
         }
 
         WorkflowStatusResponse? stepFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>

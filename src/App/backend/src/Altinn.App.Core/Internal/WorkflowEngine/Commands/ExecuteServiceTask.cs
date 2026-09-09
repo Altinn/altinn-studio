@@ -390,7 +390,7 @@ internal sealed class ExecuteServiceTask(
             $"Service task '{serviceTaskType}' composes no pipeline item at index {itemIndex}. A pipeline's "
                 + "indexes are positions in its composition: if stages or reply handlers were inserted, "
                 + "reordered or removed since this workflow was enqueued, every index behind the change has "
-                + "moved. Resume the workflow on the code that enqueued it, or abandon it deliberately.",
+                + "moved. Resume the workflow on the code that enqueued it.",
             "PipelineItemNotFound"
         );
 
@@ -419,8 +419,8 @@ internal sealed class ExecuteServiceTask(
                 + $"{itemIndex}, and a message is answered by a reply handler, never by the step that concludes "
                 + "the pipeline. Either the pipeline was reshaped since this workflow was enqueued, so the index "
                 + "this step carries now lands on the conclusion, or the workflow was not built by this "
-                + "application's pipeline expansion. Abandon the workflow, and close its mailbox by hand if the "
-                + "exchange is no longer wanted.",
+                + "application's pipeline expansion. Its mailbox can be closed by hand if the exchange is no "
+                + "longer wanted.",
             "MailboxReceiptOnConclusion"
         );
 
@@ -429,8 +429,7 @@ internal sealed class ExecuteServiceTask(
             $"A step of service task '{serviceTaskType}' names no pipeline item. Every step of a pipeline — "
                 + "its stages, its reply handlers and its conclusion alike — names the one item it runs by "
                 + "that item's index, so this workflow was enqueued by a version of this app-lib that "
-                + "identified steps differently. Resume it on the version that enqueued it, or abandon it "
-                + "deliberately.",
+                + "identified steps differently. Resume it on the version that enqueued it.",
             "InvalidPayloadException"
         );
 

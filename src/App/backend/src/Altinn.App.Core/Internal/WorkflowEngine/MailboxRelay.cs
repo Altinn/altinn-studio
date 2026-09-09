@@ -123,9 +123,9 @@ internal sealed class MailboxRelay
                 $"Service task '{serviceTaskType}' composes nothing after the item at index {afterItemIndex}, so "
                     + "completing that item starts nothing and the rest of the task would be dropped silently. "
                     + "A pipeline always ends with its conclusion, so the composition resolved here ends on the "
-                    + "very item this step ran. Resume the workflow on the code that enqueued it, or abandon it "
-                    + "deliberately — any mailbox of its stays open until its deadline, and can be closed by "
-                    + "hand if the exchange is no longer wanted.",
+                    + "very item this step ran. Resume the workflow on the code that enqueued it. Any mailbox of "
+                    + "its stays open until its deadline, and can be closed by hand if the exchange is no longer "
+                    + "wanted.",
                 "PipelineSegmentNotFound"
             );
             return false;
