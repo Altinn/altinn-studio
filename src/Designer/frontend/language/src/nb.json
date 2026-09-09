@@ -524,7 +524,7 @@
   "code_list_editor.text_resource.helpText.search_mode": "Søkemodus for hjelpetekst til kode nummer {{number}}",
   "code_list_editor.text_resource.helpText.select": "Finn hjelpetekst for kode nummer {{number}}",
   "code_list_editor.text_resource.helpText.value": "Oppgi hjelpetekst for kode nummer {{number}}",
-  "code_list_editor.text_resource.id_label": "ID.:",
+  "code_list_editor.text_resource.id_label": "ID:",
   "code_list_editor.text_resource.label.edit_mode": "Redigeringsmodus for ledetekst til kode nummer {{number}}",
   "code_list_editor.text_resource.label.search_mode": "Søkemodus for ledetekst til kode nummer {{number}}",
   "code_list_editor.text_resource.label.select": "Finn ledetekst for kode nummer {{number}}",
