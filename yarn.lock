@@ -232,6 +232,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@app/layout-contract@workspace:src/common/ts/layout-contract":
+  version: 0.0.0-use.local
+  resolution: "@app/layout-contract@workspace:src/common/ts/layout-contract"
+  dependencies:
+    "@eslint/js": "npm:^10.0.1"
+    "@typescript-eslint/eslint-plugin": "npm:8.66.0"
+    "@typescript-eslint/parser": "npm:8.66.0"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    globals: "npm:17.9.0"
+    prettier: "npm:3.9.6"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+    vitest: "npm:4.1.10"
+  languageName: unknown
+  linkType: soft
+
 "@asamuzakjp/css-color@npm:^3.2.0":
   version: 3.2.0
   resolution: "@asamuzakjp/css-color@npm:3.2.0"
