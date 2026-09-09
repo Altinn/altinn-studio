@@ -284,6 +284,15 @@ public class JsonValue
     public JsonValue? GetProperty(string propertyName) =>
         GetObjectValues().FirstOrDefault(item => item.IsPropertyName(propertyName.AsSpan()))?.Value;
 
+    /// <summary>
+    /// Looks a property up ignoring case, the way <c>System.Text.Json</c> does with
+    /// <c>PropertyNameCaseInsensitive</c>. Use this for a document the app backend itself deserializes
+    /// that way — <c>applicationmetadata.json</c> above all — so the analyzer sees the same properties
+    /// the runtime will, rather than silently skipping a <c>"DataTypeId"</c> that the runtime honors.
+    /// </summary>
+    public JsonValue? GetPropertyIgnoreCase(string propertyName) =>
+        GetObjectValues().FirstOrDefault(item => item.IsPropertyNameIgnoreCase(propertyName))?.Value;
+
     public class JsonProperty
     {
         private readonly JsonValue _key;
@@ -302,6 +311,9 @@ public class JsonValue
 
         public bool IsPropertyName(ReadOnlySpan<char> propertyName) =>
             JsonReader.CompareStringWithBuffer(propertyName, _key.GetStringSpan());
+
+        public bool IsPropertyNameIgnoreCase(string propertyName) =>
+            string.Equals(Key, propertyName, StringComparison.OrdinalIgnoreCase);
     }
 }
 

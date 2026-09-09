@@ -9,12 +9,18 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Two new build-time checks on the `presentationFields` and `dataFields` entries in `applicationmetadata.json`. `ALTINNAPP0900` (error): two entries in the same collection may not share an `id` when they also name the same `dataTypeId`. An entry's `id` is the key its value is stored under on the instance — `presentationTexts` for presentation fields, `dataValues` for data fields — and the entries for one data type are computed together into a map that cannot hold the same key twice, so such a pair takes the app down rather than storing either value: every instantiation and every save of that data type fails. The build now stops on it and points at the second entry's `id`, naming both paths. Reusing an `id` across *different* data types is untouched — it resolves to whichever data type was saved last, which apps use deliberately to feed one presentation slot from whichever model an instance carries. `ALTINNAPP0901` (warning): an entry whose `dataTypeId` is not one of the app's declared `dataTypes` is never computed, so its value never reaches the instance and the field simply stays empty; the build now says so instead of leaving you to work out why. Both checks read the file the way the app backend does, so entries spelled `Id`/`Path`/`DataTypeId` are checked too.
+
 ### Changed
 
 - A `reject` action no longer replaces a failed workflow. While the current task's workflow has failed, `POST .../process/next` is refused with `409 Conflict` and `processNextState: "resumeRequired"` for every action, `reject` included, until the workflow is resumed with `POST .../process/resume`. Previously a BPMN-allowed `reject` wrote the failed workflow off and moved the process along the reject flow, which could not undo work the failed task had already done.
 
 ### Fixed
 
+- `presentationFields` and `dataFields` entries are no longer skipped because of the order they are written in. Computing the values for one data type stopped at the first entry belonging to a *different* data type, so every matching entry written after that one was silently never computed — and an app whose very first entry named another data type got no values at all for the later ones. If your app has a presentation text or data value that has always stayed empty for no apparent reason, and its entry sits below an entry for another data type, this is why; it will start being filled in. The values themselves are unchanged, and entries are still only computed for their own data type.
+- When two `presentationFields` or `dataFields` entries do collide at runtime, the error now names the file, which of the two collections it is in, the duplicated `id`, both paths and the data type, instead of reporting only `An item with the same key has already been added`. That message named neither the app configuration nor the field at fault, so a misconfiguration that stopped every instantiation read as an unexplained internal error.
 - Breaking: the signing metric `altinn_app_lib_singing_get_service_owner_party` is now spelled `altinn_app_lib_signing_get_service_owner_party`. It counts the service owner party lookups an app makes when a signing task starts, and its name has carried the typo since the metric was added. Repoint any dashboard or alert matching the old name.
 - Running an app locally no longer logs Maskinporten errors at startup. The background refresh of Maskinporten's well-known metadata now only runs in deployed environments, where an app process is long-lived enough for the metadata to change under it. Apps that use Maskinporten locally are unaffected: the metadata is looked up the first time a token is requested, as before.
 

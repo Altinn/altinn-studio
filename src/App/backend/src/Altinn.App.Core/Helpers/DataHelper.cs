@@ -1,4 +1,5 @@
 using System.Reflection;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Helpers;
@@ -21,9 +22,35 @@ public static class DataHelper
         Dictionary<string, string?> currentDataValues,
         string dataType,
         object updatedData
+    ) => GetUpdatedDataValues(dataFields, currentDataValues, dataType, updatedData, fieldCollectionName: null);
+
+    /// <summary>
+    /// Identifies updated data values texts by extracting data fields from data object and comparing to dictionary of current values.
+    /// </summary>
+    /// <param name="dataFields">The data fields to monitor</param>
+    /// <param name="currentDataValues">The current dictionary of data values </param>
+    /// <param name="dataType">The type of the updated data objects</param>
+    /// <param name="updatedData">The updated data object</param>
+    /// <param name="fieldCollectionName">
+    /// The <c>applicationmetadata.json</c> property <paramref name="dataFields"/> was read from —
+    /// <c>presentationFields</c> or <c>dataFields</c>. Only used to name the offending configuration when
+    /// the fields turn out to be unusable, so the app owner is told which of the two to go and fix.
+    /// </param>
+    /// <returns>A dictionary with the new or changed data values</returns>
+    public static Dictionary<string, string?> GetUpdatedDataValues(
+        List<DataField>? dataFields,
+        Dictionary<string, string?> currentDataValues,
+        string dataType,
+        object updatedData,
+        string? fieldCollectionName
     )
     {
-        Dictionary<string, string?> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
+        Dictionary<string, string?> dataFieldValues = GetDataFieldValues(
+            dataFields,
+            dataType,
+            updatedData,
+            fieldCollectionName
+        );
         return CompareDictionaries(currentDataValues, dataFieldValues);
     }
 
@@ -83,21 +110,36 @@ public static class DataHelper
     private static Dictionary<string, string?> GetDataFieldValues(
         List<DataField>? dataFields,
         string dataType,
-        object data
+        object data,
+        string? fieldCollectionName
     )
     {
         Dictionary<string, string?> dataFieldValues = new Dictionary<string, string?>();
 
-        if (dataFields == null || !dataFields.Any(pf => pf.DataTypeId == dataType))
+        if (dataFields == null)
         {
             return dataFieldValues;
         }
 
         foreach (DataField field in dataFields)
         {
+            // Skip the entries belonging to other data types rather than stopping at the first one.
+            // This loop used to `break` here, which made the result depend on the order the entries
+            // happen to be written in: an entry for another data type sitting ahead of a matching one
+            // ended the pass, and every matching entry after it was silently never computed.
             if (dataType != field.DataTypeId)
             {
-                break;
+                continue;
+            }
+
+            // Every id becomes a key in instance.presentationTexts / instance.dataValues, so two entries
+            // sharing one cannot both be stored. Dictionary.Add would report only "an item with the same
+            // key has already been added", which says nothing about applicationmetadata.json being at
+            // fault - the analyzer rule ALTINNAPP0900 rejects this at build time, and this is the backstop
+            // for an app that was built before it existed. Keep the wording aligned with that rule.
+            if (dataFieldValues.ContainsKey(field.Id))
+            {
+                throw DuplicateFieldId(dataFields, field, dataType, fieldCollectionName);
             }
 
             string fixedPath = field.Path.Replace("-", string.Empty);
@@ -108,6 +150,30 @@ public static class DataHelper
         }
 
         return dataFieldValues;
+    }
+
+    /// <summary>
+    /// Builds the exception for two field entries sharing an id. Scanning for the first claimant here
+    /// rather than tracking it in the loop keeps the successful path allocation-free. The scan is
+    /// restricted to <paramref name="dataType"/> so it names the entry actually in the dictionary,
+    /// whichever entries the loop above chose to visit.
+    /// </summary>
+    private static ApplicationConfigException DuplicateFieldId(
+        List<DataField> dataFields,
+        DataField duplicate,
+        string dataType,
+        string? fieldCollectionName
+    )
+    {
+        string firstPath = dataFields.First(f => f.Id == duplicate.Id && f.DataTypeId == dataType).Path;
+        string collection = fieldCollectionName ?? "presentationFields/dataFields";
+
+        return new ApplicationConfigException(
+            $"applicationmetadata.json declares the id '{duplicate.Id}' twice in '{collection}', on "
+                + $"'{firstPath}' and on '{duplicate.Path}', and both name the dataTypeId '{dataType}'. Each "
+                + "entry's id is the key its value is stored under on the instance, so the two cannot both "
+                + "survive. Give each entry its own id."
+        );
     }
 
     /// <summary>

@@ -1,0 +1,13 @@
+﻿[
+  {
+    Id: ALTINNAPP0901,
+    Title: Field references an unknown data type,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/config/applicationmetadata.json(5,58),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0901,
+    MessageFormat: '{0}' entry '{1}' names the dataTypeId '{2}', which no entry in 'dataTypes' declares. Nothing computes it, so its value never reaches the instance. Point it at one of the app's data types, or remove the entry.,
+    Message: 'presentationFields' entry 'Navn' names the dataTypeId 'typo-model', which no entry in 'dataTypes' declares. Nothing computes it, so its value never reaches the instance. Point it at one of the app's data types, or remove the entry.,
+    Category: Metadata
+  }
+]

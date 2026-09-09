@@ -1292,7 +1292,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _appMetadata.PresentationFields,
             currentPresentationTexts,
             dataType.Id,
-            dataWrapper.BackingData<object>()
+            dataWrapper.BackingData<object>(),
+            fieldCollectionName: "presentationFields"
         );
         if (updatedTexts.Count > 0)
         {
@@ -1304,7 +1305,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _appMetadata.DataFields,
             currentDataValues,
             dataType.Id,
-            dataWrapper.BackingData<object>()
+            dataWrapper.BackingData<object>(),
+            fieldCollectionName: "dataFields"
         );
         if (updatedValues.Count > 0)
         {
