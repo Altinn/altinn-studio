@@ -51,7 +51,7 @@ impl Preparation {
             let environment = if record.agent.spec.secrets.is_empty() {
                 BTreeMap::new()
             } else {
-                read_environment(&record.source_directory.join(".env")).await?
+                read_environment(&record.env_file_path()).await?
             };
             let mut secret_writes = Vec::with_capacity(record.agent.spec.secrets.len());
             for secret in &record.agent.spec.secrets {
@@ -144,7 +144,10 @@ impl Preparation {
 async fn read_environment(path: &std::path::Path) -> Result<BTreeMap<String, Zeroizing<String>>, Error> {
     let bytes = Zeroizing::new(tokio::fs::read(path).await.map_err(|error| {
         if error.kind() == std::io::ErrorKind::NotFound {
-            Error::Invalid("manifest secrets require a .env file beside the manifest".into())
+            Error::Invalid(format!(
+                "manifest secrets require the secret file {} (default: .env beside the manifest; override with `agentctl apply --env-file`)",
+                path.display()
+            ))
         } else {
             Error::Io(error)
         }

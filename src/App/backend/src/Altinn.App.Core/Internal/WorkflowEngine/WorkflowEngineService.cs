@@ -74,7 +74,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        bool takeOverProcessingStatus = false,
         CancellationToken ct = default
     )
     {
@@ -88,8 +87,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 state,
                 isInstantiation: isInstantiation,
                 prefill: prefill,
-                notification: notification,
-                takeOverProcessingStatus: takeOverProcessingStatus
+                notification: notification
             );
         }
         catch (Exception exception) when (!ct.IsCancellationRequested)
@@ -349,9 +347,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
     }
 
-    public Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default) =>
-        _workflowEngineClient.AbandonWorkflow(GetNamespace(), workflowId, ct);
-
     private async Task<Guid> EnqueueDependentWorkflow(
         Instance instance,
         ProcessStateChange processStateChange,
@@ -382,8 +377,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null,
-        bool takeOverProcessingStatus = false
+        InstantiationNotification? notification = null
     ) =>
         _processNextRequestFactory.CreateChainInitiating(
             instance,
@@ -392,8 +386,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             isInstantiation: isInstantiation,
             prefill: prefill,
-            notification: notification,
-            takeOverProcessingStatus: takeOverProcessingStatus
+            notification: notification
         );
 
     private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowEnvelope(
@@ -501,8 +494,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     );
 
                     // The engine buffers enqueues, so the workflow we just submitted may not be
-                    // visible yet - and a lingering terminal head from a previous failure (e.g. a
-                    // failed workflow a reject is superseding) makes the heads look inactive before
+                    // visible yet - and a lingering terminal head from a previous failure (e.g. an
+                    // acquire conflict written off as abandoned) makes the heads look inactive before
                     // our workflow has even started. When we know which workflow we submitted, keep
                     // polling until it is visible and its chain has settled.
                     bool anchoredChainSettled =
@@ -909,10 +902,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         StepStatusResponse failedStep,
         ErrorEntry? lastError
     ) =>
-        (
-            failedStep.OperationId == AcquireProcessingStatus.Key
-            || failedStep.OperationId == TakeOverProcessingStatus.Key
-        )
+        failedStep.OperationId == AcquireProcessingStatus.Key
         && failedStep.ProcessingOrder == workflow.Steps.Min(step => step.ProcessingOrder)
         && lastError is { WasRetryable: false }
         && HasWorkflowFailureCode(lastError.Message, AcquireProcessingStatus.ConcurrencyFailureCode);

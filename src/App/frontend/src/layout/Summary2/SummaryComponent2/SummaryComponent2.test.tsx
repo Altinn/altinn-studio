@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { CompSummary2External } from '@app/layout-contract/generated/components/Summary2/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
@@ -9,7 +10,6 @@ import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/Summary
 import printStyles from 'src/styles/print.module.css';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
-import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 describe('SummaryComponent', () => {
   const layoutMock = (components: string[] = ['Input', 'Group', 'FileUpload', 'Checkboxes']): ILayoutCollection => ({

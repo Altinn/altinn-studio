@@ -10,7 +10,7 @@ use zeroize::Zeroizing;
 
 use crate::{Error, harness::ImportedAuthentication, persistence};
 
-use super::{ACCESS_SECRET, ACCOUNT_SECRET, PROVIDER, REFRESH_SECRET};
+use super::{ACCESS_SECRET, ACCOUNT_PLACEHOLDER, ACCOUNT_SECRET, PROVIDER, REFRESH_PLACEHOLDER, REFRESH_SECRET};
 
 const REFRESH_URL: &str = "https://auth.openai.com/oauth/token";
 const OAUTH_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
@@ -70,9 +70,17 @@ impl Authentication {
     }
 
     /// Imports the independent `ChatGPT` grant produced in agentctl's private Codex home.
+    ///
+    /// An `auth.json` carrying the platform's own placeholders is the credential an Agent
+    /// Sandbox already holds. Importing it makes this `agentd` a nested one: the tokens are
+    /// stored verbatim, never refreshed, and the enclosing Sandbox's mediator substitutes the
+    /// real grant. No real credential exists at this level. An `imported` credential must be
+    /// such a placeholder file: importing a user's real `auth.json` would let this `agentd` and
+    /// the user's own Codex CLI rotate the same refresh token against each other.
     pub(in crate::harness) async fn login(
         &self,
         credential: Zeroizing<String>,
+        imported: bool,
     ) -> Result<ImportedAuthentication, Error> {
         let source: LoginFile = serde_json::from_str(&credential)
             .map_err(|_| Error::Invalid("Codex login did not produce valid authentication data".into()))?;
@@ -93,8 +101,17 @@ impl Authentication {
         if access_token.is_empty() || refresh_token.is_empty() {
             return Err(Error::Invalid("Codex login produced incomplete ChatGPT tokens".into()));
         }
+        let kind = if *refresh_token == REFRESH_PLACEHOLDER && account_id == ACCOUNT_PLACEHOLDER {
+            CredentialKind::Mediated
+        } else if imported {
+            return Err(Error::Invalid(
+                "only an Agent's mediated Codex credential file can be imported; run `agentctl codex login` on the host to sign in".into(),
+            ));
+        } else {
+            CredentialKind::ChatgptOauth
+        };
         let metadata = CodexMetadata {
-            kind: CredentialKind::ChatgptOauth,
+            kind,
             account_id,
             expires_at: jwt_expiry(&access_token)?,
         };
@@ -118,7 +135,9 @@ impl Authentication {
     #[allow(clippy::option_if_let_else)]
     async fn refresh_if_needed(&self) -> Result<(), Error> {
         let metadata = self.metadata().await?;
-        if metadata.expires_at > unix_time()?.saturating_add(REFRESH_AHEAD_SECONDS) {
+        if matches!(metadata.kind, CredentialKind::Mediated)
+            || metadata.expires_at > unix_time()?.saturating_add(REFRESH_AHEAD_SECONDS)
+        {
             return Ok(());
         }
         if let Some(error) = self.cached_refresh_failure() {
@@ -352,7 +371,10 @@ struct LoginTokens {
 #[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 enum CredentialKind {
+    /// A real `ChatGPT` OAuth grant, refreshed by this `agentd`.
     ChatgptOauth,
+    /// Placeholders from an enclosing Sandbox; an outer mediator holds the real grant.
+    Mediated,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -535,7 +557,7 @@ mod tests {
         let access_token = jwt(unix_time().expect("time") + 3_600);
 
         let imported = manager
-            .login(login_file(&access_token, "refresh-canary"))
+            .login(login_file(&access_token, "refresh-canary"), false)
             .await
             .expect("login");
 
@@ -575,14 +597,64 @@ mod tests {
         let manager = Authentication::new(database.clone());
 
         let error = manager
-            .login(Zeroizing::new(
-                serde_json::json!({ "auth_mode": "apikey", "OPENAI_API_KEY": "secret-canary" }).to_string(),
-            ))
+            .login(
+                Zeroizing::new(
+                    serde_json::json!({ "auth_mode": "apikey", "OPENAI_API_KEY": "secret-canary" }).to_string(),
+                ),
+                false,
+            )
             .await
             .expect_err("reject API key");
 
         assert!(error.to_string().contains("ChatGPT subscription grant"));
         assert!(!error.to_string().contains("secret-canary"));
+        assert!(!is_ready(&database).await.expect("readiness"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn placeholder_credentials_are_stored_verbatim_and_never_refreshed() {
+        let directory = TempDir::new().expect("temporary directory");
+        let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+        let expired_access = jwt(unix_time().expect("time") - 1);
+        let (endpoint, refresh_calls) = serve_refresh_failure("500 Internal Server Error", "{}").await;
+        let manager = Authentication::new(database.clone()).with_refresh_url(endpoint);
+        let credential = Zeroizing::new(
+            serde_json::json!({
+                "auth_mode": "chatgpt",
+                "OPENAI_API_KEY": null,
+                "tokens": {
+                    "id_token": expired_access,
+                    "access_token": expired_access,
+                    "refresh_token": REFRESH_PLACEHOLDER,
+                    "account_id": ACCOUNT_PLACEHOLDER
+                },
+                "last_refresh": "2026-08-24T00:00:00Z"
+            })
+            .to_string(),
+        );
+        manager.login(credential, true).await.expect("placeholder login");
+
+        let resolved = manager.resolve_access().await.expect("placeholder access token");
+
+        assert_eq!(resolved.expose(), expired_access.as_bytes());
+        assert_eq!(refresh_calls.get(), 0);
+        assert!(is_ready(&database).await.expect("readiness"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn a_real_credential_file_cannot_be_imported() {
+        let directory = TempDir::new().expect("temporary directory");
+        let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+        let manager = Authentication::new(database.clone());
+        let access = jwt(unix_time().expect("time") + 3_600);
+
+        let error = manager
+            .login(login_file(&access, "refresh-canary"), true)
+            .await
+            .expect_err("a real ChatGPT grant must not be imported");
+
+        assert!(error.to_string().contains("agentctl codex login"));
+        assert!(!error.to_string().contains("refresh-canary"));
         assert!(!is_ready(&database).await.expect("readiness"));
     }
 
@@ -595,7 +667,7 @@ mod tests {
         let endpoint = serve_refresh(new_access.clone(), Some("rotated-refresh")).await;
         let manager = Authentication::new(database.clone()).with_refresh_url(endpoint);
         manager
-            .login(login_file(&old_access, "refresh-canary"))
+            .login(login_file(&old_access, "refresh-canary"), false)
             .await
             .expect("login");
 
@@ -623,7 +695,7 @@ mod tests {
         let (endpoint, requests) = serve_refresh_failure("502 Bad Gateway", r#"{"error":"upstream_error"}"#).await;
         let manager = Authentication::new(database).with_refresh_url(endpoint);
         manager
-            .login(login_file(&expired_access, "refresh-canary"))
+            .login(login_file(&expired_access, "refresh-canary"), false)
             .await
             .expect("login");
 
@@ -645,7 +717,7 @@ mod tests {
             serve_refresh_failure("400 Bad Request", r#"{"error":{"code":"refresh_token_reused"}}"#).await;
         let manager = Authentication::new(database).with_refresh_url(endpoint);
         manager
-            .login(login_file(&expired_access, "refresh-canary"))
+            .login(login_file(&expired_access, "refresh-canary"), false)
             .await
             .expect("login");
 

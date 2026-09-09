@@ -3,7 +3,7 @@ members = [
   "src/experimental/agent",
   "src/experimental/sandbox-authorization",
   "src/experimental/sandbox",
-  "src/experimental/sandbox/examples/self-dev",
+  "src/experimental/sandbox/examples/worktree",
   "src/experimental/sandbox-microsandbox",
   "src/ci/github-runner/coordinator",
 ]
@@ -50,6 +50,7 @@ time = { version = "0.3.55", features = ["formatting", "parsing", "serde"] }
 tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
 tokio-util = { version = "0.7.19", features = ["io"] }
 tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 uuid = { version = "1.24.1", features = ["serde", "v4"] }
 zeroize = "1.9.0"
 

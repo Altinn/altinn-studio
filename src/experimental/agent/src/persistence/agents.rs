@@ -59,6 +59,7 @@ pub(super) fn put(connection: &mut Connection, record: &AgentRecord, expected_ge
     let source = serde_json::to_string(&crate::Provenance {
         source_directory: record.source_directory.clone(),
         manifest_path: record.manifest_path.clone(),
+        env_file: record.env_file.clone(),
     })?;
     let desired = encode_desired(&record.agent)?;
     let transaction = connection.transaction().map_err(database_error)?;
@@ -200,9 +201,13 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
     let deletion = row.get::<_, Option<i64>>(4)?;
     let status = row.get::<_, String>(5)?;
     let id = id.parse::<AgentId>().map_err(conversion_error)?;
-    let (source_directory, manifest_path) = match serde_json::from_str(&source).map_err(conversion_error)? {
-        StoredSource::Provenance(provenance) => (provenance.source_directory, provenance.manifest_path),
-        StoredSource::Directory(directory) => (directory, None),
+    let (source_directory, manifest_path, env_file) = match serde_json::from_str(&source).map_err(conversion_error)? {
+        StoredSource::Provenance(provenance) => (
+            provenance.source_directory,
+            provenance.manifest_path,
+            provenance.env_file,
+        ),
+        StoredSource::Directory(directory) => (directory, None, None),
     };
     let mut agent = serde_json::from_str::<Agent>(&desired).map_err(conversion_error)?;
     if agent.metadata.name != active_name {
@@ -217,6 +222,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
         id,
         source_directory,
         manifest_path,
+        env_file,
         agent,
     })
 }
