@@ -28,7 +28,11 @@ internal sealed record V8Tov9UpgradeOptions(
 
 internal static class V8Tov9Upgrade
 {
-    private sealed record RuleMigrationOutcome(int ExitCode, IReadOnlySet<string> LayoutSetsToKeep);
+    private sealed record RuleMigrationOutcome(
+        int ExitCode,
+        IReadOnlySet<string> LayoutSetsToKeep,
+        bool CanCleanUp = true
+    );
 
     private static readonly Regex _programCsPathMatcher = new(
         @"^Program\.cs$",
@@ -194,10 +198,19 @@ internal static class V8Tov9Upgrade
         var layoutSetsToKeep = layoutOutcome
             .LayoutSetsToKeep.Concat(dataProcessorOutcome.LayoutSetsToKeep)
             .ToHashSet(StringComparer.Ordinal);
-        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder, layoutSetsToKeep));
+        if (layoutOutcome.CanCleanUp && dataProcessorOutcome.CanCleanUp)
+        {
+            returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder, layoutSetsToKeep));
 
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder, layoutSetsToKeep));
+            options.CancellationToken.ThrowIfCancellationRequested();
+            returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder, layoutSetsToKeep));
+        }
+        else
+        {
+            UpgradeConsole.Todo(
+                "Kept all legacy rule files and layout-set folders because a migration failed. Resolve the reported error before rerunning."
+            );
+        }
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -760,6 +773,8 @@ internal static class V8Tov9Upgrade
             };
 
             var messages = new List<UpgradeMessage>();
+            foreach (var issue in workspace.Conflicts)
+                messages.Todo($"{issue.FilePath}: {issue.Reason} Resolve the conflicting bindings before rerunning.");
             var deprecatedResult = new DeprecatedLayoutPropertiesMigrator(projectFolder).Apply(workspace);
             messages.WarnRange(deprecatedResult.Warnings);
             if (deprecatedResult.ManualActionRequired)
@@ -790,7 +805,7 @@ internal static class V8Tov9Upgrade
             foreach (var issue in workspace.UnreadableFiles)
             {
                 layoutSetsToKeep.Add(LayoutSetNameFor(issue.FilePath));
-                messages.Todo($"{issue.FilePath} is not valid JSON and was left untouched: {issue.Reason}");
+                messages.Todo($"{issue.FilePath} was left untouched: {issue.Reason}");
             }
 
             await workspace.Save();
@@ -824,7 +839,8 @@ internal static class V8Tov9Upgrade
         {
             return new RuleMigrationOutcome(
                 Fail("Error migrating layout files", ex),
-                FindLegacyRuleLayoutSets(projectFolder)
+                new HashSet<string>(StringComparer.Ordinal),
+                CanCleanUp: false
             );
         }
     }
@@ -991,28 +1007,10 @@ internal static class V8Tov9Upgrade
         {
             return new RuleMigrationOutcome(
                 Fail("Error generating data processors", ex),
-                FindLegacyRuleLayoutSets(projectFolder)
+                new HashSet<string>(StringComparer.Ordinal),
+                CanCleanUp: false
             );
         }
-    }
-
-    private static HashSet<string> FindLegacyRuleLayoutSets(string projectFolder)
-    {
-        var uiDirectory = Path.Combine(projectFolder, "App", "ui");
-        if (!Directory.Exists(uiDirectory))
-            uiDirectory = Path.Combine(projectFolder, "ui");
-        if (!Directory.Exists(uiDirectory))
-            return new HashSet<string>(StringComparer.Ordinal);
-
-        return Directory
-            .EnumerateDirectories(uiDirectory)
-            .Where(directory =>
-                File.Exists(Path.Combine(directory, "RuleConfiguration.json"))
-                || File.Exists(Path.Combine(directory, "RuleHandler.js"))
-            )
-            .Select(Path.GetFileName)
-            .OfType<string>()
-            .ToHashSet(StringComparer.Ordinal);
     }
 
     /// <summary>

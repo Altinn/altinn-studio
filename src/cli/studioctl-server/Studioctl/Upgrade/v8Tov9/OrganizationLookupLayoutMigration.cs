@@ -30,15 +30,39 @@ internal static class OrganizationLookupLayoutMigration
     }
 
     internal static LayoutMutationResult Apply(LayoutMigrationWorkspace workspace) =>
-        workspace.Apply(RenameLegacyContract);
+        workspace.ApplyDocuments(document =>
+            RenameLegacyContract(
+                document.Root,
+                reason => workspace.Conflicts.Add(new LayoutFileIssue(document.FilePath, reason))
+            )
+        );
 
-    private static int RenameLegacyContract(JsonNode node)
+    private static int RenameLegacyContract(JsonNode node, Action<string> reportConflict)
     {
         var changes = 0;
         if (node is JsonObject obj)
         {
             if (HasLookupComponentType(obj, out var isLegacyComponent))
             {
+                if (obj["dataModelBindings"] is JsonObject existingBindings)
+                {
+                    foreach (
+                        var (oldKey, newKey) in new[]
+                        {
+                            (OldOrganizationNumberBinding, "organization_lookup_orgnr"),
+                            (OldOrganizationNameBinding, "organization_lookup_name"),
+                        }
+                    )
+                    {
+                        if (existingBindings.ContainsKey(oldKey) && existingBindings.ContainsKey(newKey))
+                        {
+                            reportConflict(
+                                $"Cannot rename '{oldKey}' to '{newKey}' because both properties exist. The component was left unchanged."
+                            );
+                            return 0;
+                        }
+                    }
+                }
                 if (isLegacyComponent)
                 {
                     obj["type"] = NewComponentType;
@@ -46,15 +70,25 @@ internal static class OrganizationLookupLayoutMigration
                 }
                 if (obj["dataModelBindings"] is JsonObject bindings)
                 {
-                    changes += RenameProperty(bindings, OldOrganizationNumberBinding, "organization_lookup_orgnr");
-                    changes += RenameProperty(bindings, OldOrganizationNameBinding, "organization_lookup_name");
+                    changes += RenameProperty(
+                        bindings,
+                        OldOrganizationNumberBinding,
+                        "organization_lookup_orgnr",
+                        reportConflict
+                    );
+                    changes += RenameProperty(
+                        bindings,
+                        OldOrganizationNameBinding,
+                        "organization_lookup_name",
+                        reportConflict
+                    );
                 }
             }
 
             foreach (var child in obj.Select(property => property.Value).ToList())
             {
                 if (child is not null)
-                    changes += RenameLegacyContract(child);
+                    changes += RenameLegacyContract(child, reportConflict);
             }
         }
         else if (node is JsonArray array)
@@ -62,7 +96,7 @@ internal static class OrganizationLookupLayoutMigration
             foreach (var child in array.ToList())
             {
                 if (child is not null)
-                    changes += RenameLegacyContract(child);
+                    changes += RenameLegacyContract(child, reportConflict);
             }
         }
 
@@ -79,14 +113,15 @@ internal static class OrganizationLookupLayoutMigration
         return isLegacyComponent || componentType == NewComponentType;
     }
 
-    private static int RenameProperty(JsonObject obj, string oldName, string newName)
+    private static int RenameProperty(JsonObject obj, string oldName, string newName, Action<string> reportConflict)
     {
         if (!obj.TryGetPropertyValue(oldName, out var value))
             return 0;
         if (obj.ContainsKey(newName))
-            throw new InvalidOperationException(
-                $"Cannot rename layout property '{oldName}' to '{newName}' because both properties exist."
-            );
+        {
+            reportConflict($"Cannot rename layout property '{oldName}' to '{newName}' because both properties exist.");
+            return 0;
+        }
 
         obj.Remove(oldName);
         obj[newName] = value?.DeepClone();

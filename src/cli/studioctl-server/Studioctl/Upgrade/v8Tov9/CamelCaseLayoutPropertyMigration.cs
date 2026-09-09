@@ -65,9 +65,14 @@ internal static class CamelCaseLayoutPropertyMigration
     }
 
     internal static LayoutMutationResult Apply(LayoutMigrationWorkspace workspace) =>
-        workspace.Apply(RenameLegacyProperties);
+        workspace.ApplyDocuments(document =>
+            RenameLegacyProperties(
+                document.Root,
+                reason => workspace.Conflicts.Add(new LayoutFileIssue(document.FilePath, reason))
+            )
+        );
 
-    private static int RenameLegacyProperties(JsonNode node)
+    private static int RenameLegacyProperties(JsonNode node, Action<string> reportConflict)
     {
         var changes = 0;
         if (node is JsonObject obj)
@@ -84,30 +89,37 @@ internal static class CamelCaseLayoutPropertyMigration
                 if (container is JsonObject propertyObject && properties is not null)
                 {
                     foreach (var (oldName, newName) in properties)
-                        changes += RenameProperty(propertyObject, oldName, newName, type);
+                        changes += RenameProperty(propertyObject, oldName, newName, type, reportConflict);
                 }
             }
 
             foreach (var child in obj.Select(static property => property.Value).OfType<JsonNode>().ToList())
-                changes += RenameLegacyProperties(child);
+                changes += RenameLegacyProperties(child, reportConflict);
         }
         else if (node is JsonArray array)
         {
             foreach (var child in array.OfType<JsonNode>().ToList())
-                changes += RenameLegacyProperties(child);
+                changes += RenameLegacyProperties(child, reportConflict);
         }
 
         return changes;
     }
 
-    private static int RenameProperty(JsonObject obj, string oldName, string newName, string componentType)
+    private static int RenameProperty(
+        JsonObject obj,
+        string oldName,
+        string newName,
+        string componentType,
+        Action<string> reportConflict
+    )
     {
         if (!obj.TryGetPropertyValue(oldName, out var value))
             return 0;
         if (obj.ContainsKey(newName))
-            throw new InvalidOperationException(
-                $"Cannot rename {oldName} to {newName}: both properties exist on {componentType}"
-            );
+        {
+            reportConflict($"Cannot rename {oldName} to {newName}: both properties exist on {componentType}");
+            return 0;
+        }
 
         obj.Remove(oldName);
         obj[newName] = value?.DeepClone();

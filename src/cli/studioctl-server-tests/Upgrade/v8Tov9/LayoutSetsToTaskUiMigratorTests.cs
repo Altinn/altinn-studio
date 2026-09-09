@@ -9,6 +9,29 @@ public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
     public void Dispose() => _app.Dispose();
 
     [Fact]
+    public void FileAtDestinationPreventsEveryCopy()
+    {
+        const string mapping = """
+            { "sets": [
+              { "id": "first", "dataType": "Main", "tasks": ["Task_1"] },
+              { "id": "second", "dataType": "Main", "tasks": ["Task_2"] }
+            ] }
+            """;
+        _app.Write("ui/layout-sets.json", mapping);
+        _app.Write("ui/first/layouts/Page.json", "{}");
+        _app.Write("ui/second/layouts/Page.json", "{}");
+        _app.Write("ui/Task_2", "Keep this file");
+
+        var result = new LayoutSetsToTaskUiMigrator(_app.Root).Migrate();
+
+        Assert.Single(result.Todos);
+        Assert.False(result.LayoutSetsDeleted);
+        Assert.Equal(mapping, _app.Read("ui/layout-sets.json"));
+        Assert.Equal("Keep this file", _app.Read("ui/Task_2"));
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1")));
+    }
+
+    [Fact]
     public void ConflictingTaskMappingsAreReportedWithoutPartiallyMovingAnything()
     {
         const string layoutSets = """

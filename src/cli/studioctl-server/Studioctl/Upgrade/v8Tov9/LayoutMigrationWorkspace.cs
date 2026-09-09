@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -41,6 +40,7 @@ internal sealed class LayoutMigrationWorkspace
     public IReadOnlyList<LayoutDocument> Documents => _documents;
     public IReadOnlyList<string> ManualConversionFiles => _manualConversionFiles;
     public IReadOnlyList<LayoutFileIssue> UnreadableFiles => _unreadableFiles;
+    public List<LayoutFileIssue> Conflicts { get; } = [];
 
     public static async Task<LayoutMigrationWorkspace?> Load(string projectFolder)
     {
@@ -135,6 +135,7 @@ internal sealed class LayoutMigrationWorkspace
         foreach (var document in _documents.Where(static document => document.IsModified))
         {
             var text = document.Root.ToJsonString(_jsonOptions);
+            text = LayoutJsonComments.Restore(document.OriginalText, text);
             text = document.AddManualConversionComments(text);
             text = document.NormalizeLineEndings(text);
             if (document.HadTrailingNewline)
@@ -208,7 +209,6 @@ internal sealed class LayoutMigrationWorkspace
             Root = root;
             HadTrailingNewline = originalText.EndsWith('\n');
             LineEnding = originalText.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
-            HasComments = ContainsComments(originalText);
         }
 
         public string FilePath { get; }
@@ -216,7 +216,6 @@ internal sealed class LayoutMigrationWorkspace
         public bool HadBom { get; }
         public bool HadTrailingNewline { get; }
         public string LineEnding { get; }
-        public bool HasComments { get; }
         public JsonNode Root { get; private set; }
         public bool IsModified { get; private set; }
 
@@ -274,21 +273,6 @@ internal sealed class LayoutMigrationWorkspace
             }
 
             return string.Join("\n", output);
-        }
-
-        private static bool ContainsComments(string text)
-        {
-            var reader = new Utf8JsonReader(
-                Encoding.UTF8.GetBytes(text),
-                new JsonReaderOptions { CommentHandling = JsonCommentHandling.Allow, AllowTrailingCommas = true }
-            );
-            while (reader.Read())
-            {
-                if (reader.TokenType == JsonTokenType.Comment)
-                    return true;
-            }
-
-            return false;
         }
     }
 }

@@ -204,6 +204,13 @@ internal sealed class LayoutSetsToTaskUiMigrator
             foreach (var destinationId in plan.DestinationIds)
             {
                 var destinationPath = Path.Combine(uiPath, destinationId);
+                if (File.Exists(destinationPath))
+                {
+                    todos.Add(
+                        $"Layout set '{plan.SourceId}' maps to '{destinationId}', but that path is a file. Resolve the collision and rerun; layout-sets.json and source folders were kept."
+                    );
+                    continue;
+                }
                 if (
                     !plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal)
                     && Directory.Exists(destinationPath)

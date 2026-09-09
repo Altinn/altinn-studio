@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -69,7 +68,13 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
 
         var result = Apply(workspace);
         await workspace.Save();
-        return result;
+        return result with
+        {
+            ManualActionRequired = result.ManualActionRequired || workspace.UnreadableFiles.Count > 0,
+            Warnings = result
+                .Warnings.Concat(workspace.UnreadableFiles.Select(issue => $"{issue.FilePath}: {issue.Reason}"))
+                .ToList(),
+        };
     }
 
     internal DeprecatedLayoutPropertiesMigrationResult Apply(LayoutMigrationWorkspace workspace)
@@ -89,19 +94,6 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             if (!changes.Changed)
                 continue;
 
-            // Comments never make it into the node tree, so rewriting the file from it would delete
-            // them without a trace. Leave the file as it is and say so instead.
-            if (ContainsComments(document.OriginalText))
-            {
-                _warnings.Add(
-                    $"{fileName}: left untouched because it has comments, which a rewrite would delete. "
-                        + "Convert `mapping` to `queryParameters` (and `bindingToShowInSummary` to "
-                        + "`summaryBinding`) in this file by hand."
-                );
-                manualActionRequired = true;
-                continue;
-            }
-
             document.ReplaceRoot(root);
             filesChanged++;
             queryParametersConverted += changes.QueryParameters;
@@ -115,35 +107,6 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             manualActionRequired,
             _warnings
         );
-    }
-
-    /// <summary>
-    /// Whether <paramref name="text"/> holds a JSON comment. Uses the reader rather than a text search so
-    /// that "//" inside a string value - a URL, say - is not mistaken for one.
-    /// </summary>
-    private static bool ContainsComments(string text)
-    {
-        var reader = new Utf8JsonReader(
-            Encoding.UTF8.GetBytes(text),
-            new JsonReaderOptions { CommentHandling = JsonCommentHandling.Allow, AllowTrailingCommas = true }
-        );
-
-        try
-        {
-            while (reader.Read())
-            {
-                if (reader.TokenType == JsonTokenType.Comment)
-                    return true;
-            }
-        }
-        catch (JsonException)
-        {
-            // The document already parsed above, so this cannot be malformed content. Treat an
-            // unreadable file as commented anyway: skipping it is the safe answer either way.
-            return true;
-        }
-
-        return false;
     }
 
     private ComponentChanges MigrateComponents(JsonNode node, string fileName)

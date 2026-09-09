@@ -31,6 +31,7 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
             """
                 {
                   "data": {
+                    // Keep the app developer's explanation: æøå
                     "layout": [
                       { "id": "target", "type": "Header" },
                       { "id": "navigation", "type": "NavigationButtons", "showBackButton": true },
@@ -91,6 +92,7 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
         Assert.Contains("\"orgnr\": \"Party.OrgNumber\"", firstText, StringComparison.Ordinal);
         Assert.Contains("MANUAL_CONVERSION_REQUIRED", firstText, StringComparison.Ordinal);
         Assert.Contains("_conversionFailureInfo", firstText, StringComparison.Ordinal);
+        Assert.Contains("// Keep the app developer's explanation: æøå", firstText);
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "RuleConfiguration.json")));
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "RuleHandler.js")));
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "layout-sets.json")));
@@ -260,4 +262,92 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
     }
 
     private sealed record UpgradeRun(int ExitCode, IReadOnlyList<UpgradeMessage> Messages, string Error);
+
+    [Theory]
+    [InlineData("PersonLookup", "person_lookup_ssn", "ssn")]
+    [InlineData("OrganisationLookup", "organisation_lookup_orgnr", "organization_lookup_orgnr")]
+    public async Task BindingConflictDoesNotBlockOtherLayoutChanges(string type, string oldKey, string newKey)
+    {
+        WriteV9Project();
+        _app.Write(
+            LayoutPath,
+            $$"""
+            { "data": { "layout": [
+              { "id": "conflict", "type": "{{type}}", "dataModelBindings": { "{{oldKey}}": "Old", "{{newKey}}": "New" } },
+              { "id": "heading", "type": "Header" }
+            ] } }
+            """
+        );
+
+        var result = await RunUpgrade();
+
+        Assert.Equal(3, result.ExitCode);
+        Assert.Contains("Heading", _app.Read(LayoutPath));
+        Assert.Contains("Old", _app.Read(LayoutPath));
+        Assert.Contains("New", _app.Read(LayoutPath));
+        Assert.Contains(
+            result.Messages,
+            message => message.Status == UpgradeMessageStatus.Todo && message.Text.Contains(oldKey)
+        );
+        var first = _app.Read(LayoutPath);
+        var repeated = await RunUpgrade();
+        Assert.Equal(3, repeated.ExitCode);
+        Assert.Equal(first, _app.Read(LayoutPath));
+    }
+
+    [Fact]
+    public async Task CommentedLayoutMigratesAndIsStableOnRepeatedRuns()
+    {
+        WriteV9Project();
+        const string layout =
+            "{ /* Keep this explanation */ \"data\": { \"layout\": [{ \"id\": \"heading\", \"type\": \"Header\" }] } }";
+        _app.Write(LayoutPath, layout);
+        _app.Write("ui/Task_1/RuleConfiguration.json", "{}");
+        _app.Write("ui/Task_1/RuleHandler.js", "// Legacy source");
+
+        string? first = null;
+        for (var run = 0; run < 2; run++)
+        {
+            var result = await RunUpgrade();
+            Assert.Equal(0, result.ExitCode);
+            var after = _app.Read(LayoutPath);
+            Assert.Contains("/* Keep this explanation */", after);
+            Assert.Contains("Heading", after);
+            if (first is not null)
+                Assert.Equal(first, after);
+            first = after;
+        }
+    }
+
+    [Fact]
+    public async Task FailedLayoutMigrationPreservesAllLegacySources()
+    {
+        WriteV9Project();
+        _app.Write(LayoutPath, "null");
+        _app.Write("ui/Task_1/RuleConfiguration.json", "{}");
+        _app.Write("ui/Task_1/RuleHandler.js", "// Legacy source");
+        _app.Write("ui/layout-sets.json", "{\"sets\":[{\"id\":\"Task_1\",\"tasks\":[\"Task_2\"]}]}");
+
+        var result = await RunUpgrade();
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Equal("{}", _app.Read("ui/Task_1/RuleConfiguration.json"));
+        Assert.Equal("// Legacy source", _app.Read("ui/Task_1/RuleHandler.js"));
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "Task_2")));
+        Assert.Contains(
+            result.Messages,
+            message => message.Status == UpgradeMessageStatus.Todo && message.Text.Contains("Kept all legacy")
+        );
+    }
+
+    private void WriteV9Project() =>
+        _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web"><ItemGroup>
+              <PackageReference Include="Altinn.App.Api" Version="9.0.0" />
+              <PackageReference Include="Altinn.App.Core" Version="9.0.0" />
+            </ItemGroup></Project>
+            """
+        );
 }
