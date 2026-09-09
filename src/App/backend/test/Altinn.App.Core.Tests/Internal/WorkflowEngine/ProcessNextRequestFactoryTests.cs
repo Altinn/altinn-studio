@@ -1398,6 +1398,98 @@ public class ProcessNextRequestFactoryTests
         );
     }
 
+    [Theory]
+    [InlineData("next")]
+    [InlineData("initial")]
+    [InlineData("reentry")]
+    public async Task Create_DelegatedSigning_FreezesTailAndOptionsBeforeRuntimeExpansion(string transition)
+    {
+        var factory = CreateFactory(configureServices: services =>
+        {
+            services.AddSingleton<IProcessTask>(
+                new FakeProcessTask(
+                    "data",
+                    startCommands:
+                    [
+                        new WorkflowCommandRef(
+                            "ResolveSignees",
+                            CommandPayloadSerializer.Serialize(new ProcessTaskPayload("Task_2"))
+                        ),
+                        new WorkflowCommandRef(
+                            ScheduleSigneeInitialization.Key,
+                            CommandPayloadSerializer.Serialize(new ScheduleSigneeInitializationPayload("Task_2"))
+                        ),
+                        new WorkflowCommandRef("CustomerAfterSigningInitialization", "opaque customer payload"),
+                    ]
+                )
+            );
+            services.AddSingleton<IWorkflowEngineCommand>(
+                new FakeProcessTaskCommand(
+                    "DelegateSigneeRights",
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(45) }
+                )
+            );
+            services.AddSingleton<IWorkflowEngineCommand>(
+                new FakeProcessTaskCommand(
+                    "NotifySignee",
+                    new ProcessStepOptions
+                    {
+                        RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(2), maxRetries: 3),
+                    }
+                )
+            );
+        });
+        Guid priorWorkflow = Guid.NewGuid();
+        ProcessStateChange stateChange =
+            transition == "initial"
+                ? CreateInitialTaskStart("Task_2")
+                : CreateTaskToTaskTransition(fromTaskId: transition == "reentry" ? "Task_2" : "Task_1");
+        if (transition == "reentry")
+        {
+            stateChange.OldProcessState!.CurrentTask!.Flow = 1;
+            stateChange.NewProcessState!.CurrentTask!.Flow = 2;
+        }
+
+        WorkflowEnqueueEnvelope bundle = await factory.Create(
+            TestInstance,
+            stateChange,
+            "frozen-lock",
+            SignedTestState,
+            dependsOn: [WorkflowRef.FromDatabaseId(priorWorkflow)]
+        );
+
+        WorkflowRequest preparation = Assert.Single(bundle.Request.Workflows);
+        Assert.Equal(ScheduleSigneeInitialization.Key, preparation.Steps[^1].OperationId);
+        Assert.Contains(preparation.Steps, step => step.OperationId == "ResolveSignees");
+        List<string> preparationKeys = preparation.Steps.Select(step => step.OperationId).ToList();
+        Assert.True(preparationKeys.IndexOf(CleanupGeneratedFromTask.Key) < preparationKeys.IndexOf("ResolveSignees"));
+        Assert.True(preparationKeys.IndexOf(OnTaskStartingHook.Key) < preparationKeys.IndexOf("ResolveSignees"));
+        if (transition == "reentry")
+            Assert.Equal("Task_2:2", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.DoesNotContain(preparation.Steps, step => step.OperationId == SaveProcessStateToStorage.Key);
+        Assert.Equal(priorWorkflow, Assert.Single(preparation.DependsOn!).Id);
+        Assert.Equal(SignedTestState, preparation.State);
+        var data = JsonSerializer.Deserialize<AppCommandData>(preparation.Steps[^1].Command.Data!.Value)!;
+        var payload = CommandPayloadSerializer.Deserialize<ScheduleSigneeInitializationPayload>(data.Payload)!;
+        Assert.Null(payload.Validate());
+        WorkflowRequest continuation = Assert.Single(payload.Continuation!.Workflows);
+        Assert.Null(continuation.State);
+        Assert.Null(continuation.DependsOn);
+        Assert.True(continuation.IsHead);
+        Assert.False(continuation.DependsOnHeads);
+        Assert.Equal(preparation.OperationId, continuation.OperationId);
+        Assert.Equal(bundle.Request.Context!.Value.GetRawText(), payload.Continuation.Context!.Value.GetRawText());
+        Assert.Equal(bundle.Request.Labels, payload.Continuation.Labels);
+        Assert.Equal("CustomerAfterSigningInitialization", continuation.Steps[0].OperationId);
+        var customerCommand = JsonSerializer.Deserialize<AppCommandData>(continuation.Steps[0].Command.Data!.Value)!;
+        Assert.Equal("opaque customer payload", customerCommand.Payload);
+        Assert.Single(continuation.Steps, step => step.OperationId == SaveProcessStateToStorage.Key);
+        Assert.Contains(continuation.Steps, step => step.OperationId == EnqueueSideEffectsWorkflow.Key);
+        Assert.Equal(TimeSpan.FromSeconds(45), payload.DelegationStep!.Command.MaxExecutionTime);
+        Assert.Equal(3, payload.NotificationStep!.RetryStrategy!.MaxRetries);
+        Assert.Equal(ScheduleSigneeNotifications.Key, payload.NotificationSchedulerStep!.OperationId);
+    }
+
     // ---- Step options resolution (execution timeout / retry strategy): tier 1/2/3 ----
 
     [Fact]

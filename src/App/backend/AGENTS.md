@@ -89,7 +89,7 @@ The solution follows a **layered architecture** with feature-based organization:
 
 - **Authentication** - OAuth2, JWT, Maskinporten integration
 - **Data** - Form data processing and validation
-- **Signing** - Digital signature workflows. Signee initialization for user-controlled signing runs as three workflow-engine steps declared by `SigningProcessTask`; see the process engine doc below for how they retry, resume and report failures.
+- **Signing** - Digital signature workflows. Runtime-delegated signing resolves a frozen recipient list, delegates through one workflow step per recipient, then schedules independent notifications after commit. See [the experiment guide](docs/per-signee-signing-experiment.md) and the process engine doc below for retries, locking, and recovery.
 - **Payment** - Payment gateway integrations (Nets, etc.)
 - **Correspondence** - External communications
 - **Validation** - Data validation pipelines

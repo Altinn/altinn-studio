@@ -4,6 +4,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.InstanceLocking;
+using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -13,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
@@ -103,7 +107,96 @@ public class WorkflowEngineCallbackControllerCommandTests : ApiTestBase, IClassF
         Assert.Equal(cancellation.Token, exception.CancellationToken);
     }
 
-    private AppCallbackPayload CreatePayload(Guid instanceGuid, string input)
+    [Theory]
+    [InlineData("success", HttpStatusCode.OK)]
+    [InlineData("permanent", HttpStatusCode.UnprocessableEntity)]
+    public async Task DecoratedNotification_OwnsFreshLockThroughExecution_AndReleasesIt(
+        string outcome,
+        HttpStatusCode expectedStatus
+    )
+    {
+        bool lockHeld = false;
+        var probe = new Probe { WhenExecuting = () => Assert.True(lockHeld) };
+        var lease = new Mock<IInstanceLock>(MockBehavior.Strict);
+        lease.Setup(x => x.Lock(TimeSpan.FromMinutes(10))).Callback(() => lockHeld = true).Returns(Task.CompletedTask);
+        lease.Setup(x => x.DisposeAsync()).Callback(() => lockHeld = false).Returns(ValueTask.CompletedTask);
+        var locker = new Mock<IInstanceLocker>(MockBehavior.Strict);
+        locker.Setup(x => x.InitLock(OwnerId, It.IsAny<Guid>())).Returns(lease.Object);
+        OverrideServicesForThisTest = services =>
+        {
+            var original = services.Single(x => x.ImplementationType == typeof(NotifySigneeCommand));
+            services.Remove(original);
+            // Framework command decorators retain their key but no longer have the concrete command type.
+            services.AddScoped<IWorkflowEngineCommand>(_ => new CustomerCommand(
+                outcome,
+                probe,
+                NotifySigneeCommand.Key
+            ));
+            services.AddSingleton(locker.Object);
+        };
+        Guid instanceGuid = Guid.NewGuid();
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+        );
+
+        using var response = await client.PostAsJsonAsync(
+            $"{Org}/{App}/instances/{OwnerId}/{instanceGuid}/workflow-engine-callbacks/{NotifySigneeCommand.Key}",
+            CreatePayload(instanceGuid, "{}", NotifySigneeCommand.Key)
+        );
+
+        Assert.Equal(expectedStatus, response.StatusCode);
+        Assert.Equal(1, probe.ExecutionCount);
+        Assert.False(lockHeld);
+        locker.Verify(x => x.UseExternalLockToken(It.IsAny<string>()), Times.Never);
+        lease.Verify(x => x.DisposeAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Notification_LockContention_DefersWithoutExecutingOrChangingState()
+    {
+        var probe = new Probe();
+        var lease = new Mock<IInstanceLock>(MockBehavior.Strict);
+        using var conflictResponse = new HttpResponseMessage(HttpStatusCode.Conflict);
+        var conflict = await PlatformHttpException.Create(conflictResponse);
+        lease.Setup(x => x.Lock(TimeSpan.FromMinutes(10))).ThrowsAsync(conflict);
+        lease.Setup(x => x.DisposeAsync()).Returns(ValueTask.CompletedTask);
+        var locker = new Mock<IInstanceLocker>(MockBehavior.Strict);
+        locker.Setup(x => x.InitLock(OwnerId, It.IsAny<Guid>())).Returns(lease.Object);
+        OverrideServicesForThisTest = services =>
+        {
+            services.Remove(services.Single(x => x.ImplementationType == typeof(NotifySigneeCommand)));
+            services.AddScoped<IWorkflowEngineCommand>(_ => new CustomerCommand(
+                "success",
+                probe,
+                NotifySigneeCommand.Key
+            ));
+            services.AddSingleton(locker.Object);
+        };
+        Guid instanceGuid = Guid.NewGuid();
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+        );
+        var payload = CreatePayload(instanceGuid, "{}", NotifySigneeCommand.Key);
+
+        using var response = await client.PostAsJsonAsync(
+            $"{Org}/{App}/instances/{OwnerId}/{instanceGuid}/workflow-engine-callbacks/{NotifySigneeCommand.Key}",
+            payload
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<AppCallbackResponse>();
+        Assert.Equal(payload.State, body!.State);
+        Assert.Equal(TimeSpan.FromSeconds(1), body.Defer!.Delay);
+        Assert.Equal(0, probe.ExecutionCount);
+        locker.Verify(x => x.UseExternalLockToken(It.IsAny<string>()), Times.Never);
+        lease.Verify(x => x.DisposeAsync(), Times.Once);
+    }
+
+    private AppCallbackPayload CreatePayload(Guid instanceGuid, string input, string key = CommandKey)
     {
         var instance = new Instance
         {
@@ -119,7 +212,7 @@ public class WorkflowEngineCallbackControllerCommandTests : ApiTestBase, IClassF
         };
         return new AppCallbackPayload
         {
-            CommandKey = CommandKey,
+            CommandKey = key,
             Actor = new Actor { Language = "nb" },
             LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
@@ -139,18 +232,21 @@ public class WorkflowEngineCallbackControllerCommandTests : ApiTestBase, IClassF
     {
         internal int ExecutionCount { get; set; }
         internal ProcessEngineCommandContext Context { get; set; }
+        internal Action? WhenExecuting { get; init; }
     }
 
-    private sealed class CustomerCommand(string outcome, Probe probe) : IWorkflowEngineCommand
+    private sealed class CustomerCommand(string outcome, Probe probe, string key = CommandKey) : IWorkflowEngineCommand
     {
-        public string GetKey() => CommandKey;
+        public string GetKey() => key;
 
         public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
         {
             probe.ExecutionCount++;
             probe.Context = context;
+            probe.WhenExecuting?.Invoke();
             return outcome switch
             {
+                "success" => Task.FromResult(ProcessEngineCommandResult.Completed()),
                 "retry" => Task.FromResult(ProcessEngineCommandResult.FailedRetryable("Try again", "CustomerRetry")),
                 "permanent" => Task.FromResult(
                     ProcessEngineCommandResult.FailedPermanent("Fix input", "CustomerPermanent")

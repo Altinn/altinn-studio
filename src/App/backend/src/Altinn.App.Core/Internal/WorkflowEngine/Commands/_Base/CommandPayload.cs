@@ -20,6 +20,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 [JsonDerivedType(typeof(EnqueueSideEffectsWorkflowPayload), typeDiscriminator: "enqueueSideEffectsWorkflow")]
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
 [JsonDerivedType(typeof(ProcessTaskPayload), typeDiscriminator: "processTask")]
+[JsonDerivedType(typeof(SigneeCommandPayload), typeDiscriminator: "signee")]
+[JsonDerivedType(typeof(ScheduleSigneeInitializationPayload), typeDiscriminator: "scheduleSigneeInitialization")]
+[JsonDerivedType(typeof(ScheduleSigneeNotificationsPayload), typeDiscriminator: "scheduleSigneeNotifications")]
 internal abstract record CommandRequestPayload
 {
     internal virtual string? Validate() => null;
@@ -45,6 +48,9 @@ internal sealed record ProcessTaskPayload(string TaskId) : CommandRequestPayload
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
 [JsonSerializable(typeof(ProcessTaskPayload))]
+[JsonSerializable(typeof(SigneeCommandPayload))]
+[JsonSerializable(typeof(ScheduleSigneeInitializationPayload))]
+[JsonSerializable(typeof(ScheduleSigneeNotificationsPayload))]
 [JsonSerializable(typeof(InstantiationNotification))]
 [JsonSerializable(typeof(InstantiationNotificationReminder))]
 [JsonSerializable(typeof(CustomSms))]

@@ -119,6 +119,27 @@ public class WorkflowEngineCommandValidatorTests
         Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), exception.Message);
     }
 
+    [Theory]
+    [InlineData("DelegateSigneeRights")]
+    [InlineData("NotifySignee")]
+    public void Validate_RuntimeExpandedSigningCommands_MustBeRegistered(string missingKey)
+    {
+        IWorkflowEngineCommand[] signingCommands =
+        [
+            new Command("ScheduleSigneeInitialization"),
+            new Command("DelegateSigneeRights"),
+            new Command("NotifySignee"),
+        ];
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
+            WorkflowEngineCommandValidator.Validate([
+                .. AllCommands(),
+                .. signingCommands.Where(command => command.GetKey() != missingKey),
+            ])
+        );
+
+        Assert.Contains($"Required workflow command '{missingKey}' is not registered", exception.Message);
+    }
+
     private static IEnumerable<IWorkflowEngineCommand> AllCommands() =>
         WorkflowEngineCommandValidator.FrameworkCommandKeys.Select(key => new Command(key));
 

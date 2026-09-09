@@ -1,29 +1,17 @@
 using Altinn.App.Core.Features.Signing.Exceptions;
+using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 
 namespace Altinn.App.Core.Features.Signing.Services;
 
 /// <summary>
-/// The three operations that initialize the signees of a runtime-delegated signing task, each run as a step of
-/// its own by the signing task's commands: resolve the signees and persist their initial state, delegate rights
-/// to each, and send each the call to action. Every operation resumes from the persisted signee state, so a
-/// retried or resumed step skips what earlier attempts recorded.
+/// Resolves a frozen signing plan and executes one recipient's delegation or notification. Permanent failures
+/// fail the recipient's workflow step; transient failures propagate for retry. Only successful work is persisted.
 /// </summary>
-/// <remarks>
-/// Failure contract: a transient failure (a dependency that did not answer, a throttled call) is thrown, so the
-/// engine retries the step and nothing from the attempt is persisted. A permanent failure that concerns one
-/// signee is recorded on that signee and the operation continues with the others. A permanent failure that
-/// concerns every signee is recorded on every signee still waiting for the operation, or, when nothing can
-/// proceed at all, thrown as <see cref="SigneeInitializationPermanentException"/>.
-/// </remarks>
 internal interface ISigneeInitializationService
 {
     /// <summary>
-    /// Resolves the signees through the app's <see cref="ISigneeProvider"/>, looks up their parties and persists
-    /// the signee-state element with every flag unset. An element tagged with the task that already exists — in
-    /// the callback state or in Storage — is adopted instead, so a retried attempt never consults the provider
-    /// again and never creates a second element. Elements of the type not tagged with the task (from before
-    /// elements were tagged, or from another visit) are removed first.
+    /// Resolves and persists the frozen signee list, or adopts an earlier attempt's saved state.
     /// </summary>
     Task<SigneeInitializationOutcome> ResolveSignees(
         IInstanceDataMutator instanceDataMutator,
@@ -32,26 +20,36 @@ internal interface ISigneeInitializationService
         CancellationToken ct
     );
 
-    /// <summary>
-    /// Delegates rights to every signee not yet delegated and persists the outcome per signee.
-    /// </summary>
+    /// <summary>Reads the saved recipient identities after the resolve command's save boundary.</summary>
+    Task<SigneeInitializationPlan> GetResolvedSignees(
+        IInstanceDataAccessor instanceDataAccessor,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId,
+        CancellationToken ct
+    );
+
+    /// <summary>Delegates rights to one frozen recipient and persists its successful result.</summary>
     Task ExecuteDelegation(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         string taskId,
+        Guid signeeStateElementId,
+        Guid signeeId,
         Guid workflowId,
         CancellationToken ct
     );
 
     /// <summary>
-    /// Sends the call to action to every delegated signee not yet messaged, with an idempotency key derived from
-    /// the workflow, the step and the signee so a repeated send is deduplicated by Correspondence, and persists
-    /// the outcome per signee.
+    /// Sends one recipient's call to action using a stable task-entry key and persists success. The caller must
+    /// hold a fresh instance lock through execution and saving, so notifications merge safely and task exit
+    /// cannot race a send. A job for an ended or replaced task entry fails without sending or writing.
     /// </summary>
     Task ExecuteNotification(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         string taskId,
+        Guid signeeStateElementId,
+        Guid signeeId,
         Guid workflowId,
         Guid stepId,
         CancellationToken ct
@@ -79,7 +77,12 @@ internal abstract record SigneeInitializationOutcome
 }
 
 /// <summary>
-/// A permanent failure that concerns every signee and stops the operation outright: the instance owner or the
-/// signee state cannot be resolved. Never thrown for a transient cause, which propagates as the original exception.
+/// A permanent initialization or recipient failure. Transient causes propagate as their original exceptions.
 /// </summary>
-internal sealed class SigneeInitializationPermanentException(string message) : SigningException(message);
+internal sealed class SigneeInitializationPermanentException(
+    string message,
+    string errorCode = "SigneeInitializationFailed"
+) : SigningException(message)
+{
+    public string ErrorCode { get; } = errorCode;
+}

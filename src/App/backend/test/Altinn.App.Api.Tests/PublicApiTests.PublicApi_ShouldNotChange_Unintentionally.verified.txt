@@ -620,6 +620,25 @@ namespace Altinn.App.Api.Controllers
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSigneesState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
+    [Microsoft.AspNetCore.Mvc.ApiController]
+    [Microsoft.AspNetCore.Mvc.ResponseCache(Duration=0, Location=Microsoft.AspNetCore.Mvc.ResponseCacheLocation.None, NoStore=true)]
+    [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/signing/noti" +
+        "fications")]
+    public sealed class SigningNotificationController : Microsoft.AspNetCore.Mvc.ControllerBase
+    {
+        public SigningNotificationController(System.IServiceProvider services, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.Process.IProcessReader processReader) { }
+        [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(403)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.IReadOnlyList<Altinn.App.Api.Models.SigningNotificationWorkflowResponse>), 200)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct) { }
+        [Microsoft.AspNetCore.Mvc.HttpPost("{workflowId:guid}/resume")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(202)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(403)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(409)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Resume([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid workflowId, System.Threading.CancellationToken ct) { }
+    }
+    [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/v1/data")]
     public class StatelessDataController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
@@ -1205,6 +1224,16 @@ namespace Altinn.App.Api.Models
     {
         public SigningDataElementsResponse() { }
         public required System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.DataElement> DataElements { get; set; }
+    }
+    public sealed class SigningNotificationWorkflowResponse : System.IEquatable<Altinn.App.Api.Models.SigningNotificationWorkflowResponse>
+    {
+        public SigningNotificationWorkflowResponse() { }
+        public string? ErrorCode { get; init; }
+        public required int PartyId { get; init; }
+        public required int RetryCount { get; init; }
+        public required System.Guid SigneeId { get; init; }
+        public required string Status { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public class SigningStateResponse
     {

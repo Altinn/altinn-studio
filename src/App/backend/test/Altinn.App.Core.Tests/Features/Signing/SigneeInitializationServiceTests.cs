@@ -10,6 +10,7 @@ using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.AltinnCdn;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -33,6 +34,7 @@ public sealed class SigneeInitializationServiceTests
     private readonly Mock<IAltinnPartyClient> _altinnPartyClient = new(MockBehavior.Strict);
     private readonly Mock<IAltinnCdnClient> _altinnCdnClient = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironment = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClient = new(MockBehavior.Strict);
     private readonly Mock<ILogger<SigneeInitializationService>> _logger = new();
 
     private static OrganizationNumber GetOrgNumber(int index) =>
@@ -46,6 +48,7 @@ public sealed class SigneeInitializationServiceTests
             _altinnPartyClient.Object,
             _altinnCdnClient.Object,
             _hostEnvironment.Object,
+            _instanceClient.Object,
             _logger.Object
         );
 
@@ -92,6 +95,7 @@ public sealed class SigneeInitializationServiceTests
         new()
         {
             TaskId = taskId,
+            SigneeId = Guid.NewGuid(),
             Signee = new PersonSignee
             {
                 SocialSecurityNumber = "12345678910",
@@ -200,6 +204,8 @@ public sealed class SigneeInitializationServiceTests
         );
 
         Assert.IsType<SigneeInitializationOutcome.Completed>(outcome);
+        Assert.NotNull(Assert.Single(generated).SigneeId);
+        Assert.NotEqual(Guid.Empty, generated[0].SigneeId);
         _signeeContextsManager.VerifyAll();
         _signeeContextsManager.VerifyNoOtherCalls();
     }
@@ -240,420 +246,413 @@ public sealed class SigneeInitializationServiceTests
 
     #endregion
 
-    #region ExecuteDelegation
+    [Fact]
+    public async Task GetResolvedSignees_ReturnsFrozenOrderAndStateElementIdentity()
+    {
+        var setup = PrepareRecipients();
+        SigneeInitializationPlan plan = await CreateService()
+            .GetResolvedSignees(setup.Mutator.Object, setup.Config, TaskId, CancellationToken.None);
+        Assert.Equal(Guid.Parse(setup.Element.Id), plan.SigneeStateElementId);
+        Assert.Equal(setup.Contexts.Select(x => x.SigneeId!.Value), plan.SigneeIds);
+        _instanceClient.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetResolvedSignees_InvalidFrozenIdentities_FailsPermanently(bool duplicate)
+    {
+        var setup = PrepareRecipients();
+        setup.Contexts[1].SigneeId = duplicate ? setup.Contexts[0].SigneeId : null;
+        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() =>
+            CreateService().GetResolvedSignees(setup.Mutator.Object, setup.Config, TaskId, CancellationToken.None)
+        );
+    }
 
     [Fact]
-    public async Task ExecuteDelegation_AllSigneesAlreadyDelegated_ReturnsWithoutPartyLookupOrDelegation()
+    public async Task Delegate_OnlySelectedRecipientIsGrantedAndSaved()
     {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true)];
+        var setup = PrepareRecipients();
+        SetupOwnerParty();
+        List<SigneeContext>? granted = null;
+        _signingDelegationService
+            .Setup(x =>
+                x.DelegateRights(
+                    TaskId,
+                    setup.Mutator.Object.Instance.Id,
+                    It.IsAny<Guid>(),
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<List<SigneeContext>>(),
+                    It.IsAny<Guid>(),
+                    CancellationToken.None
+                )
+            )
+            .Callback<string, string, Guid, AppIdentifier, List<SigneeContext>, Guid, CancellationToken>(
+                (_, _, _, _, recipients, _, _) =>
+                {
+                    granted = recipients;
+                    Assert.Single(recipients).SigneeState.IsAccessDelegated = true;
+                }
+            )
+            .Returns(Task.CompletedTask);
+        SetupPersistence(setup);
 
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
+        await Delegate(setup, recipient: 1);
 
-        SigneeInitializationService service = CreateService();
+        Assert.Same(setup.Contexts[1], Assert.Single(granted!));
+        Assert.False(setup.Contexts[0].SigneeState.IsAccessDelegated);
+        Assert.True(setup.Contexts[1].SigneeState.IsAccessDelegated);
+        _signeeContextsManager.Verify(
+            x => x.PersistSigneeContexts(setup.Mutator.Object, setup.Config, TaskId, setup.Contexts),
+            Times.Once
+        );
+    }
 
-        await service.ExecuteDelegation(mutator.Object, config, TaskId, Guid.NewGuid(), CancellationToken.None);
-
-        _signeeContextsManager.VerifyAll();
-        _signeeContextsManager.VerifyNoOtherCalls();
+    [Fact]
+    public async Task Delegate_AlreadyGranted_SkipsExternalCallAndWrite()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        await Delegate(setup);
         _altinnPartyClient.VerifyNoOtherCalls();
         _signingDelegationService.VerifyNoOtherCalls();
+        VerifyNoPersistence();
     }
 
     [Fact]
-    public async Task ExecuteDelegation_MissingTaggedElement_ThrowsPermanentException()
+    public async Task Delegate_PermanentRecipientRejection_FailsWithoutSaving()
     {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns((DataElement?)null);
-
-        SigneeInitializationService service = CreateService();
-
-        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() =>
-            service.ExecuteDelegation(mutator.Object, config, TaskId, Guid.NewGuid(), CancellationToken.None)
-        );
-
-        _signeeContextsManager.VerifyAll();
-        _signeeContextsManager.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task ExecuteDelegation_InstanceOwnerIsTtdOutsideProduction_SubstitutesDigdirOrgNumber()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance(orgNumber: "ttd");
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid())];
-        Guid workflowId = Guid.NewGuid();
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _hostEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
-        _altinnPartyClient
-            .Setup(x =>
-                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827"), It.IsAny<StorageAuthenticationMethod?>())
-            )
-            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid, OrgNumber = "991825827" });
+        var setup = PrepareRecipients();
+        SetupOwnerParty();
         _signingDelegationService
             .Setup(x =>
                 x.DelegateRights(
                     TaskId,
-                    instance.Id,
-                    instanceOwnerPartyUuid,
-                    It.Is<AppIdentifier>(a => a.Equals(new AppIdentifier(instance.AppId))),
-                    contexts,
-                    workflowId,
-                    CancellationToken.None
-                )
-            )
-            .Returns(Task.CompletedTask);
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteDelegation(mutator.Object, config, TaskId, workflowId, CancellationToken.None);
-
-        _altinnPartyClient.VerifyAll();
-        _signingDelegationService.VerifyAll();
-        _signeeContextsManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ExecuteDelegation_InstanceOwnerIsTtdInProduction_DoesNotSubstitute()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance(orgNumber: "ttd");
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid())];
-        Guid workflowId = Guid.NewGuid();
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _hostEnvironment.Setup(x => x.EnvironmentName).Returns("Production");
-        _altinnPartyClient
-            .Setup(x =>
-                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "ttd"), It.IsAny<StorageAuthenticationMethod?>())
-            )
-            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid, OrgNumber = "ttd" });
-        _signingDelegationService
-            .Setup(x =>
-                x.DelegateRights(
-                    TaskId,
-                    instance.Id,
-                    instanceOwnerPartyUuid,
+                    setup.Mutator.Object.Instance.Id,
+                    It.IsAny<Guid>(),
                     It.IsAny<AppIdentifier>(),
-                    contexts,
-                    workflowId,
+                    It.IsAny<List<SigneeContext>>(),
+                    It.IsAny<Guid>(),
                     CancellationToken.None
                 )
             )
-            .Returns(Task.CompletedTask);
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteDelegation(mutator.Object, config, TaskId, workflowId, CancellationToken.None);
-
-        _altinnPartyClient.VerifyAll();
-        _signingDelegationService.VerifyAll();
-        _signeeContextsManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ExecuteDelegation_PartyLookupTransientFailure_Rethrows()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid())];
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _hostEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
-        _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
-            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.ServiceUnavailable, "boom"));
-
-        SigneeInitializationService service = CreateService();
-
-        await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            service.ExecuteDelegation(mutator.Object, config, TaskId, Guid.NewGuid(), CancellationToken.None)
-        );
-
-        // DelegateRights and PersistSigneeContexts were never set up: strict mocks would throw if called anyway.
-        _signingDelegationService.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task ExecuteDelegation_PartyLookupPermanentFailure_ThrowsPermanentException()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid())];
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _hostEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
-        _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
-            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.BadRequest, "boom"));
-
-        SigneeInitializationService service = CreateService();
-
-        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() =>
-            service.ExecuteDelegation(mutator.Object, config, TaskId, Guid.NewGuid(), CancellationToken.None)
-        );
-
-        _signingDelegationService.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task ExecuteDelegation_InstanceOwnerPartyHasNoPartyUuid_ThrowsPermanentException()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid())];
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _hostEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
-        _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Party { PartyUuid = null, OrgNumber = "123456789" });
-
-        SigneeInitializationService service = CreateService();
-
-        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() =>
-            service.ExecuteDelegation(mutator.Object, config, TaskId, Guid.NewGuid(), CancellationToken.None)
-        );
-
-        _signingDelegationService.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task ExecuteDelegation_HappyPath_DelegatesThenPersists()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts = [CreateSigneeContext(Guid.NewGuid()), CreateSigneeContext(Guid.NewGuid())];
-        Guid workflowId = Guid.NewGuid();
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
-        List<string> callOrder = [];
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _hostEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
-        _altinnPartyClient
-            .Setup(x =>
-                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "123456789"), It.IsAny<StorageAuthenticationMethod?>())
+            .Callback<string, string, Guid, AppIdentifier, List<SigneeContext>, Guid, CancellationToken>(
+                (_, _, _, _, recipients, _, _) =>
+                    Assert.Single(recipients).SigneeState.DelegationFailedReason = "Recipient rejected"
             )
-            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid, OrgNumber = "123456789" });
-        _signingDelegationService
+            .Returns(Task.CompletedTask);
+
+        var failure = await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Delegate(setup));
+
+        Assert.Equal("SigneeDelegationFailed", failure.ErrorCode);
+        VerifyNoPersistence();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, false)]
+    [InlineData(HttpStatusCode.TooManyRequests, true)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
+    public async Task Delegate_OwnerLookupFailure_PreservesClassification(HttpStatusCode status, bool retryable)
+    {
+        var setup = PrepareRecipients();
+        var error = new HttpRequestException("Lookup failed", null, status);
+        _altinnPartyClient.Setup(x => x.LookupParty(It.IsAny<PartyLookup>())).ThrowsAsync(error);
+        if (retryable)
+            Assert.Same(error, await Assert.ThrowsAsync<HttpRequestException>(() => Delegate(setup)));
+        else
+            await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Delegate(setup));
+        _signingDelegationService.VerifyNoOtherCalls();
+        VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Delegate_OwnerWithoutUuid_FailsPermanently()
+    {
+        var setup = PrepareRecipients();
+        _altinnPartyClient.Setup(x => x.LookupParty(It.IsAny<PartyLookup>())).ReturnsAsync(new Party());
+        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Delegate(setup));
+        VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Notify_SelectedRecipient_MergesSiblingStateAndPersistsCorrespondenceId()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        Guid siblingCorrespondence = Guid.NewGuid();
+        setup.Contexts[0].SigneeState.HasBeenMessagedForCallToSign = true;
+        setup.Contexts[0].SigneeState.CtaCorrespondenceId = siblingCorrespondence;
+        Guid correspondenceId = Guid.NewGuid();
+        SetupNotificationResponse(correspondenceId);
+        SetupPersistence(setup);
+        Instance carried = setup.Mutator.Object.Instance;
+        ProcessState virtualProcess = carried.Process;
+        DataElement unrelated = new() { Id = Guid.NewGuid().ToString(), DataType = "unrelated" };
+        carried.Data.Add(unrelated);
+        setup.Stored.Data.Add(new DataElement { Id = Guid.NewGuid().ToString(), DataType = "unrelated-stored" });
+
+        await Notify(setup, recipient: 1);
+
+        Assert.Same(virtualProcess, carried.Process);
+        Assert.Contains(unrelated, carried.Data);
+        Assert.DoesNotContain(carried.Data, x => x.DataType == "unrelated-stored");
+        Assert.Equal(siblingCorrespondence, setup.Contexts[0].SigneeState.CtaCorrespondenceId);
+        Assert.True(setup.Contexts[1].SigneeState.HasBeenMessagedForCallToSign);
+        Assert.Equal(correspondenceId, setup.Contexts[1].SigneeState.CtaCorrespondenceId);
+        _signingCallToActionService.Verify(
+            x =>
+                x.SendSignCallToAction(
+                    setup.Contexts[1].CommunicationConfig,
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<InstanceIdentifier>(),
+                    setup.Contexts[1].Signee.GetParty(),
+                    It.IsAny<Party>(),
+                    setup.Config.CorrespondenceResources,
+                    CancellationToken.None,
+                    SigningIdempotencyKey.ForCallToAction(
+                        Guid.Parse(setup.Element.Id),
+                        setup.Contexts[1].SigneeId!.Value
+                    )
+                ),
+            Times.Once
+        );
+        _signeeContextsManager.Verify(
+            x => x.PersistSigneeContexts(setup.Mutator.Object, setup.Config, TaskId, setup.Contexts),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Notify_SavedSuccess_SkipsSendAndWrite()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        setup.Contexts[0].SigneeState.HasBeenMessagedForCallToSign = true;
+        await Notify(setup);
+        _altinnCdnClient.VerifyNoOtherCalls();
+        _signingCallToActionService.VerifyNoOtherCalls();
+        VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Notify_WithoutGrant_FailsPermanentlyWithoutSending()
+    {
+        var setup = PrepareRecipients();
+        var failure = await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
+        Assert.Equal("SigneeDelegationMissing", failure.ErrorCode);
+        _signingCallToActionService.VerifyNoOtherCalls();
+        VerifyNoPersistence();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Notify_EndedOrReenteredTask_FailsObsoleteWithoutSending(bool reentered)
+    {
+        var setup = PrepareRecipients(delegated: true);
+        if (reentered)
+            setup.Stored.Data[0] = new DataElement
+            {
+                Id = Guid.NewGuid().ToString(),
+                DataType = setup.Config.SigneeStatesDataTypeId,
+            };
+        else
+            setup.Stored.Process.CurrentTask.ElementId = "Task_AfterSigning";
+        var failure = await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
+        Assert.Equal("SigneeTaskEntryObsolete", failure.ErrorCode);
+        _signingCallToActionService.VerifyNoOtherCalls();
+        VerifyNoPersistence();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, false)]
+    [InlineData(HttpStatusCode.Forbidden, false)]
+    [InlineData(HttpStatusCode.TooManyRequests, true)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
+    public async Task Notify_DependencyFailure_PreservesClassificationAndDoesNotSave(
+        HttpStatusCode status,
+        bool retryable
+    )
+    {
+        var setup = PrepareRecipients(delegated: true);
+        SetupServiceOwnerParty();
+        var error = new CorrespondenceRequestException("Send failed", null, status, null);
+        SetupSendFailure(error);
+        if (retryable)
+            Assert.Same(error, await Assert.ThrowsAsync<CorrespondenceRequestException>(() => Notify(setup)));
+        else
+            await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
+        VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Notify_Conflict_RecordsPreviouslyAcceptedSend()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        SetupServiceOwnerParty();
+        SetupSendFailure(new CorrespondenceRequestException("Already sent", null, HttpStatusCode.Conflict, null));
+        SetupPersistence(setup);
+        await Notify(setup);
+        Assert.True(setup.Contexts[0].SigneeState.HasBeenMessagedForCallToSign);
+        Assert.Null(setup.Contexts[0].SigneeState.CtaCorrespondenceId);
+        _signeeContextsManager.Verify(
+            x => x.PersistSigneeContexts(setup.Mutator.Object, setup.Config, TaskId, setup.Contexts),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Notify_MissingServiceOwner_FailsWithoutSaving()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        _altinnCdnClient.Setup(x => x.GetOrgDetails(CancellationToken.None)).ReturnsAsync((AltinnCdnOrgDetails?)null);
+        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
+        _signingCallToActionService.VerifyNoOtherCalls();
+        VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Notify_RequestedCancellation_PropagatesWithoutSaving()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        SetupServiceOwnerParty();
+        using var cts = new CancellationTokenSource();
+        var error = new OperationCanceledException(cts.Token);
+        _signingCallToActionService
             .Setup(x =>
-                x.DelegateRights(
-                    TaskId,
-                    instance.Id,
-                    instanceOwnerPartyUuid,
-                    It.Is<AppIdentifier>(a => a.Equals(new AppIdentifier(instance.AppId))),
-                    contexts,
-                    workflowId,
-                    CancellationToken.None
+                x.SendSignCallToAction(
+                    It.IsAny<CommunicationConfig?>(),
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<Party>(),
+                    It.IsAny<Party>(),
+                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<Guid?>()
                 )
             )
-            .Callback(() => callOrder.Add("delegate"))
-            .Returns(Task.CompletedTask);
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Callback(() => callOrder.Add("persist"))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteDelegation(mutator.Object, config, TaskId, workflowId, CancellationToken.None);
-
-        Assert.Equal(["delegate", "persist"], callOrder);
-        _altinnPartyClient.VerifyAll();
-        _signingDelegationService.VerifyAll();
-        _signeeContextsManager.VerifyAll();
+            .Callback(() => cts.Cancel())
+            .ThrowsAsync(error);
+        Assert.Same(error, await Assert.ThrowsAsync<OperationCanceledException>(() => Notify(setup, ct: cts.Token)));
+        VerifyNoPersistence();
     }
 
-    #endregion
+    private sealed record RecipientSetup(
+        AltinnSignatureConfiguration Config,
+        Mock<IInstanceDataMutator> Mutator,
+        Instance Stored,
+        DataElement Element,
+        List<SigneeContext> Contexts
+    );
 
-    #region ExecuteNotification
+    private RecipientSetup PrepareRecipients(bool delegated = false)
+    {
+        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
+        DataElement element = CreateSigneeStateElement(config);
+        Instance carried = CreateInstance();
+        carried.Data.Add(element);
+        Instance stored = CreateInstance();
+        stored.Data.Add(element);
+        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(carried);
+        List<SigneeContext> contexts =
+        [
+            CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: delegated),
+            CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: delegated),
+        ];
+        _instanceClient
+            .Setup(x =>
+                x.GetInstance(
+                    carried,
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(stored);
+        _signeeContextsManager
+            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
+            .Returns(() => carried.Data.SingleOrDefault(x => x.DataType == config.SigneeStatesDataTypeId));
+        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
+        return new RecipientSetup(config, mutator, stored, element, contexts);
+    }
 
-    private void SetupServiceOwnerPartyResolution(Party serviceOwnerParty, string orgNr = "987654321")
+    private Task Delegate(RecipientSetup setup, int recipient = 0) =>
+        CreateService()
+            .ExecuteDelegation(
+                setup.Mutator.Object,
+                setup.Config,
+                TaskId,
+                Guid.Parse(setup.Element.Id),
+                setup.Contexts[recipient].SigneeId!.Value,
+                Guid.NewGuid(),
+                CancellationToken.None
+            );
+
+    private Task Notify(RecipientSetup setup, int recipient = 0, CancellationToken ct = default) =>
+        CreateService()
+            .ExecuteNotification(
+                setup.Mutator.Object,
+                setup.Config,
+                TaskId,
+                Guid.Parse(setup.Element.Id),
+                setup.Contexts[recipient].SigneeId!.Value,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                ct
+            );
+
+    private void SetupPersistence(RecipientSetup setup) =>
+        _signeeContextsManager
+            .Setup(x => x.PersistSigneeContexts(setup.Mutator.Object, setup.Config, TaskId, setup.Contexts))
+            .Returns(Task.CompletedTask);
+
+    private void VerifyNoPersistence() =>
+        _signeeContextsManager.Verify(
+            x =>
+                x.PersistSigneeContexts(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<SigneeContext>>()
+                ),
+            Times.Never
+        );
+
+    private void SetupOwnerParty() =>
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
+
+    private void SetupServiceOwnerParty()
     {
         _altinnCdnClient
             .Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new AltinnCdnOrgDetails
                 {
+                    Orgnr = "123456789",
                     Name = new AltinnCdnOrgName
                     {
-                        Nb = "Testdepartementet",
-                        Nn = "Testdepartementet",
-                        En = "Test",
+                        Nb = "Service owner",
+                        Nn = "Service owner",
+                        En = "Service owner",
                     },
                     Environments = [],
-                    Orgnr = orgNr,
                 }
             );
-        _altinnPartyClient
-            .Setup(x =>
-                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == orgNr), It.IsAny<StorageAuthenticationMethod?>())
-            )
-            .ReturnsAsync(serviceOwnerParty);
+        SetupOwnerParty();
     }
 
-    [Fact]
-    public async Task ExecuteNotification_NoDelegatedAndUnmessagedTargets_ReturnsWithoutServiceOwnerLookup()
+    private void SetupNotificationResponse(Guid correspondenceId)
     {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(CreateInstance());
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts =
-        [
-            CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: false, hasBeenMessaged: false),
-            CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true, hasBeenMessaged: true),
-        ];
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteNotification(
-            mutator.Object,
-            config,
-            TaskId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            CancellationToken.None
-        );
-
-        _signeeContextsManager.VerifyAll();
-        _signeeContextsManager.VerifyNoOtherCalls();
-        _altinnCdnClient.VerifyNoOtherCalls();
-        _altinnPartyClient.VerifyNoOtherCalls();
-        _signingCallToActionService.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task ExecuteNotification_ServiceOwnerUnresolvable_RecordsFailureOnEveryTargetAndPersists()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts =
-        [
-            CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true),
-            CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true),
-        ];
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        _altinnCdnClient
-            .Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>()))
-            .ReturnsAsync((AltinnCdnOrgDetails?)null);
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteNotification(
-            mutator.Object,
-            config,
-            TaskId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            CancellationToken.None
-        );
-
-        foreach (SigneeContext context in contexts)
-        {
-            Assert.Equal(NotificationFailureCode.ServiceOwnerUnavailable, context.SigneeState.NotificationFailure);
-            Assert.Equal(
-                "The service owner's party could not be resolved.",
-                context.SigneeState.CallToSignFailedReason
-            );
-            Assert.False(context.SigneeState.HasBeenMessagedForCallToSign);
-        }
-
-        _altinnPartyClient.VerifyNoOtherCalls();
-        _signingCallToActionService.VerifyNoOtherCalls();
-        _signeeContextsManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ExecuteNotification_Success_MarksMessagedAndStoresCorrespondenceIdWithExpectedKey()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        Guid workflowId = Guid.NewGuid();
-        Guid stepId = Guid.NewGuid();
-        Guid partyUuid = Guid.NewGuid();
-        SigneeContext context = CreateSigneeContext(partyUuid, isAccessDelegated: true);
-        List<SigneeContext> contexts = [context];
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(1) };
-        Guid correspondenceId = Guid.NewGuid();
-        Guid expectedKey = SigningIdempotencyKey.ForCallToAction(workflowId, stepId, partyUuid.ToString("D"));
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        SetupServiceOwnerPartyResolution(serviceOwnerParty);
+        SetupServiceOwnerParty();
         _signingCallToActionService
             .Setup(x =>
                 x.SendSignCallToAction(
-                    context.CommunicationConfig,
-                    It.Is<AppIdentifier>(a => a.Equals(new AppIdentifier(instance.AppId))),
+                    It.IsAny<CommunicationConfig?>(),
+                    It.IsAny<AppIdentifier>(),
                     It.IsAny<InstanceIdentifier>(),
-                    context.Signee.GetParty(),
-                    serviceOwnerParty,
-                    config.CorrespondenceResources,
-                    CancellationToken.None,
-                    expectedKey
+                    It.IsAny<Party>(),
+                    It.IsAny<Party>(),
+                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<Guid?>()
                 )
             )
             .ReturnsAsync(
@@ -664,40 +663,14 @@ public sealed class SigneeInitializationServiceTests
                         new CorrespondenceDetailsResponse
                         {
                             CorrespondenceId = correspondenceId,
-                            Recipient = OrganizationOrPersonIdentifier.Parse(GetOrgNumber(2)),
+                            Recipient = GetOrgNumber(0),
                         },
                     ],
                 }
             );
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteNotification(mutator.Object, config, TaskId, workflowId, stepId, CancellationToken.None);
-
-        Assert.True(context.SigneeState.HasBeenMessagedForCallToSign);
-        Assert.Equal(correspondenceId, context.SigneeState.CtaCorrespondenceId);
-        Assert.Null(context.SigneeState.NotificationFailure);
-        Assert.Null(context.SigneeState.CallToSignFailedReason);
-        _signeeContextsManager.VerifyAll();
-        _signingCallToActionService.VerifyAll();
     }
 
-    [Fact]
-    public async Task ExecuteNotification_SameSigneeSameWorkflowAndStep_ProducesTheSameIdempotencyKeyOnARetry()
-    {
-        // Simulates a retried attempt (the first attempt's response was lost before the state could be
-        // persisted): two independent loads for the same signee identity, workflow and step must derive the same
-        // idempotency key, so Correspondence recognises the retry as a duplicate of the earlier send.
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Guid workflowId = Guid.NewGuid();
-        Guid stepId = Guid.NewGuid();
-        Guid partyUuid = Guid.NewGuid();
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(3) };
-        List<Guid?> capturedKeys = [];
-
+    private void SetupSendFailure(Exception error) =>
         _signingCallToActionService
             .Setup(x =>
                 x.SendSignCallToAction(
@@ -705,293 +678,11 @@ public sealed class SigneeInitializationServiceTests
                     It.IsAny<AppIdentifier>(),
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<Party>(),
-                    serviceOwnerParty,
-                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
-                    CancellationToken.None,
-                    It.IsAny<Guid?>()
-                )
-            )
-            .Callback<
-                CommunicationConfig?,
-                AppIdentifier,
-                InstanceIdentifier,
-                Party,
-                Party,
-                List<AltinnEnvironmentConfig>?,
-                CancellationToken,
-                Guid?
-            >((_, _, _, _, _, _, _, key) => capturedKeys.Add(key))
-            .ReturnsAsync(new SendCorrespondenceResponse { Correspondences = [] });
-
-        SigneeInitializationService service = CreateService();
-
-        // First attempt.
-        Instance instance1 = CreateInstance();
-        Mock<IInstanceDataMutator> mutator1 = CreateInstanceDataMutator(instance1);
-        DataElement element1 = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts1 = [CreateSigneeContext(partyUuid, isAccessDelegated: true)];
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator1.Object, config, TaskId))
-            .Returns(element1);
-        _signeeContextsManager
-            .Setup(x => x.LoadSigneeContexts(mutator1.Object, config, element1))
-            .ReturnsAsync(contexts1);
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator1.Object, config, TaskId, contexts1))
-            .Returns(Task.CompletedTask);
-        SetupServiceOwnerPartyResolution(serviceOwnerParty, "555555555");
-
-        await service.ExecuteNotification(mutator1.Object, config, TaskId, workflowId, stepId, CancellationToken.None);
-
-        // Second attempt: a fresh, not-yet-messaged context for the same signee, workflow and step.
-        Instance instance2 = CreateInstance();
-        Mock<IInstanceDataMutator> mutator2 = CreateInstanceDataMutator(instance2);
-        DataElement element2 = CreateSigneeStateElement(config);
-        List<SigneeContext> contexts2 = [CreateSigneeContext(partyUuid, isAccessDelegated: true)];
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator2.Object, config, TaskId))
-            .Returns(element2);
-        _signeeContextsManager
-            .Setup(x => x.LoadSigneeContexts(mutator2.Object, config, element2))
-            .ReturnsAsync(contexts2);
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator2.Object, config, TaskId, contexts2))
-            .Returns(Task.CompletedTask);
-
-        await service.ExecuteNotification(mutator2.Object, config, TaskId, workflowId, stepId, CancellationToken.None);
-
-        Assert.Equal(2, capturedKeys.Count);
-        Assert.NotNull(capturedKeys[0]);
-        Assert.Equal(capturedKeys[0], capturedKeys[1]);
-    }
-
-    [Fact]
-    public async Task ExecuteNotification_AlreadySent409_IsTreatedAsSentWithNoCorrespondenceId()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        SigneeContext context = CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true);
-        List<SigneeContext> contexts = [context];
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(4) };
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        SetupServiceOwnerPartyResolution(serviceOwnerParty, "555555556");
-        _signingCallToActionService
-            .Setup(x =>
-                x.SendSignCallToAction(
-                    It.IsAny<CommunicationConfig?>(),
-                    It.IsAny<AppIdentifier>(),
-                    It.IsAny<InstanceIdentifier>(),
                     It.IsAny<Party>(),
-                    serviceOwnerParty,
                     It.IsAny<List<AltinnEnvironmentConfig>?>(),
-                    CancellationToken.None,
+                    It.IsAny<CancellationToken>(),
                     It.IsAny<Guid?>()
                 )
             )
-            .ThrowsAsync(new CorrespondenceRequestException("duplicate", null, HttpStatusCode.Conflict, null));
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteNotification(
-            mutator.Object,
-            config,
-            TaskId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            CancellationToken.None
-        );
-
-        Assert.True(context.SigneeState.HasBeenMessagedForCallToSign);
-        Assert.Null(context.SigneeState.CtaCorrespondenceId);
-        Assert.Null(context.SigneeState.NotificationFailure);
-        _signeeContextsManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ExecuteNotification_TransientFailure_RethrowsAndDoesNotPersist()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        SigneeContext context = CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true);
-        List<SigneeContext> contexts = [context];
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(5) };
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        SetupServiceOwnerPartyResolution(serviceOwnerParty, "555555557");
-        _signingCallToActionService
-            .Setup(x =>
-                x.SendSignCallToAction(
-                    It.IsAny<CommunicationConfig?>(),
-                    It.IsAny<AppIdentifier>(),
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<Party>(),
-                    serviceOwnerParty,
-                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
-                    CancellationToken.None,
-                    It.IsAny<Guid?>()
-                )
-            )
-            .ThrowsAsync(new CorrespondenceRequestException("boom", null, HttpStatusCode.ServiceUnavailable, null));
-
-        SigneeInitializationService service = CreateService();
-
-        await Assert.ThrowsAsync<CorrespondenceRequestException>(() =>
-            service.ExecuteNotification(
-                mutator.Object,
-                config,
-                TaskId,
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                CancellationToken.None
-            )
-        );
-
-        // PersistSigneeContexts was never set up: the strict mock would throw if the code called it anyway.
-        _signeeContextsManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ExecuteNotification_AppWidePermanentFailureOnFirstTarget_RecordsOnBothAndNeverSendsSecond()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        SigneeContext context1 = CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true);
-        SigneeContext context2 = CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true);
-        List<SigneeContext> contexts = [context1, context2];
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(6) };
-        ConfigurationException configurationException = new("no correspondence resource configured");
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        SetupServiceOwnerPartyResolution(serviceOwnerParty, "555555558");
-        _signingCallToActionService
-            .Setup(x =>
-                x.SendSignCallToAction(
-                    It.IsAny<CommunicationConfig?>(),
-                    It.IsAny<AppIdentifier>(),
-                    It.IsAny<InstanceIdentifier>(),
-                    context1.Signee.GetParty(),
-                    serviceOwnerParty,
-                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
-                    CancellationToken.None,
-                    It.IsAny<Guid?>()
-                )
-            )
-            .ThrowsAsync(configurationException);
-        // context2's SendSignCallToAction is deliberately not set up: the strict mock would throw if it were sent.
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteNotification(
-            mutator.Object,
-            config,
-            TaskId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            CancellationToken.None
-        );
-
-        string expectedReason = SigningFailureClassifier.ShortReason(configurationException);
-        foreach (SigneeContext context in contexts)
-        {
-            Assert.Equal(NotificationFailureCode.Configuration, context.SigneeState.NotificationFailure);
-            Assert.Equal(expectedReason, context.SigneeState.CallToSignFailedReason);
-            Assert.False(context.SigneeState.HasBeenMessagedForCallToSign);
-        }
-
-        _signingCallToActionService.VerifyAll();
-        _signeeContextsManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ExecuteNotification_PerSigneePermanentFailureOnFirstTarget_SecondIsStillSent()
-    {
-        AltinnSignatureConfiguration config = CreateSignatureConfiguration();
-        Instance instance = CreateInstance();
-        Mock<IInstanceDataMutator> mutator = CreateInstanceDataMutator(instance);
-        DataElement element = CreateSigneeStateElement(config);
-        SigneeContext context1 = CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true);
-        SigneeContext context2 = CreateSigneeContext(Guid.NewGuid(), isAccessDelegated: true);
-        List<SigneeContext> contexts = [context1, context2];
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(7) };
-
-        _signeeContextsManager
-            .Setup(x => x.FindTaskSigneeStateElement(mutator.Object, config, TaskId))
-            .Returns(element);
-        _signeeContextsManager.Setup(x => x.LoadSigneeContexts(mutator.Object, config, element)).ReturnsAsync(contexts);
-        SetupServiceOwnerPartyResolution(serviceOwnerParty, "555555559");
-        _signingCallToActionService
-            .Setup(x =>
-                x.SendSignCallToAction(
-                    It.IsAny<CommunicationConfig?>(),
-                    It.IsAny<AppIdentifier>(),
-                    It.IsAny<InstanceIdentifier>(),
-                    context1.Signee.GetParty(),
-                    serviceOwnerParty,
-                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
-                    CancellationToken.None,
-                    It.IsAny<Guid?>()
-                )
-            )
-            .ThrowsAsync(new CorrespondenceRequestException("rejected", null, HttpStatusCode.BadRequest, null));
-        _signingCallToActionService
-            .Setup(x =>
-                x.SendSignCallToAction(
-                    It.IsAny<CommunicationConfig?>(),
-                    It.IsAny<AppIdentifier>(),
-                    It.IsAny<InstanceIdentifier>(),
-                    context2.Signee.GetParty(),
-                    serviceOwnerParty,
-                    It.IsAny<List<AltinnEnvironmentConfig>?>(),
-                    CancellationToken.None,
-                    It.IsAny<Guid?>()
-                )
-            )
-            .ReturnsAsync(new SendCorrespondenceResponse { Correspondences = [] });
-        _signeeContextsManager
-            .Setup(x => x.PersistSigneeContexts(mutator.Object, config, TaskId, contexts))
-            .Returns(Task.CompletedTask);
-
-        SigneeInitializationService service = CreateService();
-
-        await service.ExecuteNotification(
-            mutator.Object,
-            config,
-            TaskId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            CancellationToken.None
-        );
-
-        Assert.Equal(NotificationFailureCode.Rejected, context1.SigneeState.NotificationFailure);
-        Assert.False(context1.SigneeState.HasBeenMessagedForCallToSign);
-        Assert.True(context2.SigneeState.HasBeenMessagedForCallToSign);
-        Assert.Null(context2.SigneeState.NotificationFailure);
-
-        _signingCallToActionService.VerifyAll();
-        _signeeContextsManager.VerifyAll();
-    }
-
-    #endregion
+            .ThrowsAsync(error);
 }

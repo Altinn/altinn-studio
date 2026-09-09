@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using System.Globalization;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -22,6 +22,7 @@ internal sealed class SigneeInitializationService(
     IAltinnPartyClient altinnPartyClient,
     IAltinnCdnClient altinnCdnClient,
     IHostEnvironment hostEnvironment,
+    IInstanceClient instanceClient,
     ILogger<SigneeInitializationService> logger,
     Telemetry? telemetry = null
 ) : ISigneeInitializationService
@@ -76,6 +77,11 @@ internal sealed class SigneeInitializationService(
             return new SigneeInitializationOutcome.ContractViolation(e.Message);
         }
 
+        foreach (SigneeContext signeeContext in signeeContexts)
+        {
+            signeeContext.SigneeId = Guid.NewGuid();
+        }
+
         await signeeContextsManager.PersistSigneeContexts(
             instanceDataMutator,
             signatureConfiguration,
@@ -87,32 +93,78 @@ internal sealed class SigneeInitializationService(
     }
 
     /// <inheritdoc />
+    public async Task<SigneeInitializationPlan> GetResolvedSignees(
+        IInstanceDataAccessor instanceDataAccessor,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId,
+        CancellationToken ct
+    )
+    {
+        ct.ThrowIfCancellationRequested();
+        DataElement element =
+            signeeContextsManager.FindTaskSigneeStateElement(instanceDataAccessor, signatureConfiguration, taskId)
+            ?? throw new SigneeInitializationPermanentException("The resolved signee state is missing.");
+        List<SigneeContext> contexts = await signeeContextsManager.LoadSigneeContexts(
+            instanceDataAccessor,
+            signatureConfiguration,
+            element
+        );
+        Guid[] signeeIds = contexts
+            .Select(context =>
+                context.SigneeId is { } id && id != Guid.Empty
+                    ? id
+                    : throw new SigneeInitializationPermanentException("A resolved signee has no frozen identity.")
+            )
+            .ToArray();
+        if (signeeIds.Distinct().Count() != signeeIds.Length)
+        {
+            throw new SigneeInitializationPermanentException("The resolved signee identities are not unique.");
+        }
+        return new SigneeInitializationPlan(Guid.Parse(element.Id), signeeIds);
+    }
+
+    /// <inheritdoc />
     public async Task ExecuteDelegation(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         string taskId,
+        Guid signeeStateElementId,
+        Guid signeeId,
         Guid workflowId,
         CancellationToken ct
     )
     {
-        List<SigneeContext> signeeContexts = await LoadSigneeState(instanceDataMutator, signatureConfiguration, taskId);
-
-        if (signeeContexts.All(context => context.SigneeState.IsAccessDelegated))
+        var (signeeContexts, signeeContext) = await LoadRecipient(
+            instanceDataMutator,
+            signatureConfiguration,
+            taskId,
+            signeeStateElementId,
+            signeeId,
+            requireCurrentTask: false,
+            ct
+        );
+        if (signeeContext.SigneeState.IsAccessDelegated)
         {
             return;
         }
 
         Guid instanceOwnerPartyUuid = await ResolveInstanceOwnerPartyUuid(instanceDataMutator.Instance, ct);
-
         await signingDelegationService.DelegateRights(
             taskId,
             instanceDataMutator.Instance.Id,
             instanceOwnerPartyUuid,
             new AppIdentifier(instanceDataMutator.Instance.AppId),
-            signeeContexts,
+            [signeeContext],
             workflowId,
             ct
         );
+        if (!signeeContext.SigneeState.IsAccessDelegated)
+        {
+            throw new SigneeInitializationPermanentException(
+                signeeContext.SigneeState.DelegationFailedReason ?? "Rights could not be delegated to the signee.",
+                "SigneeDelegationFailed"
+            );
+        }
 
         await signeeContextsManager.PersistSigneeContexts(
             instanceDataMutator,
@@ -127,133 +179,93 @@ internal sealed class SigneeInitializationService(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         string taskId,
+        Guid signeeStateElementId,
+        Guid signeeId,
         Guid workflowId,
         Guid stepId,
         CancellationToken ct
     )
     {
-        List<SigneeContext> signeeContexts = await LoadSigneeState(instanceDataMutator, signatureConfiguration, taskId);
-
-        List<SigneeContext> targets = signeeContexts
-            .Where(context =>
-                context.SigneeState.IsAccessDelegated && !context.SigneeState.HasBeenMessagedForCallToSign
-            )
-            .ToList();
-        if (targets.Count == 0)
+        // The callback owns a fresh instance lock through this read, the send and the final save.
+        // Its carried state may predate successful sibling notifications, so merge from Storage first.
+        var (signeeContexts, signeeContext) = await LoadRecipient(
+            instanceDataMutator,
+            signatureConfiguration,
+            taskId,
+            signeeStateElementId,
+            signeeId,
+            requireCurrentTask: true,
+            ct
+        );
+        if (signeeContext.SigneeState.HasBeenMessagedForCallToSign)
         {
             return;
+        }
+        if (!signeeContext.SigneeState.IsAccessDelegated)
+        {
+            throw new SigneeInitializationPermanentException(
+                "Rights must be delegated before notifying the signee.",
+                "SigneeDelegationMissing"
+            );
         }
 
         Instance instance = instanceDataMutator.Instance;
-        AppIdentifier appIdentifier = new(instance.AppId);
-        InstanceIdentifier instanceIdentifier = new(instance);
-
-        Party? serviceOwnerParty = await ResolveServiceOwnerParty(ct);
-        if (serviceOwnerParty is null)
-        {
-            RecordAppWideNotificationFailure(
-                targets,
-                NotificationFailureCode.ServiceOwnerUnavailable,
+        Party serviceOwnerParty =
+            await ResolveServiceOwnerParty(ct)
+            ?? throw new SigneeInitializationPermanentException(
                 "The service owner's party could not be resolved.",
-                instance,
-                taskId,
-                workflowId,
-                stepId
+                "SigneeNotificationFailed"
             );
-            await signeeContextsManager.PersistSigneeContexts(
-                instanceDataMutator,
-                signatureConfiguration,
-                taskId,
-                signeeContexts
-            );
-            return;
-        }
+        Party signingParty = signeeContext.Signee.GetParty();
+        Guid idempotentKey = SigningIdempotencyKey.ForCallToAction(signeeStateElementId, signeeId);
 
-        for (int index = 0; index < targets.Count; index++)
+        try
         {
-            SigneeContext signeeContext = targets[index];
-            Party signingParty = signeeContext.Signee.GetParty();
-            string signeeIdentity =
-                signingParty.PartyUuid?.ToString("D")
-                ?? $"partyId:{signingParty.PartyId.ToString(CultureInfo.InvariantCulture)}";
-            Guid idempotentKey = SigningIdempotencyKey.ForCallToAction(workflowId, stepId, signeeIdentity);
-
-            try
-            {
-                SendCorrespondenceResponse? response = await signingCallToActionService.SendSignCallToAction(
-                    signeeContext.CommunicationConfig,
-                    appIdentifier,
-                    instanceIdentifier,
-                    signingParty,
-                    serviceOwnerParty,
-                    signatureConfiguration.CorrespondenceResources,
-                    ct,
-                    idempotentKey
-                );
-                RecordNotified(signeeContext, response?.Correspondences.SingleOrDefault()?.CorrespondenceId);
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            SendCorrespondenceResponse? response = await signingCallToActionService.SendSignCallToAction(
+                signeeContext.CommunicationConfig,
+                new AppIdentifier(instance.AppId),
+                new InstanceIdentifier(instance),
+                signingParty,
+                serviceOwnerParty,
+                signatureConfiguration.CorrespondenceResources,
+                ct,
+                idempotentKey
+            );
+            RecordNotified(signeeContext, response?.Correspondences.SingleOrDefault()?.CorrespondenceId);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception e) when (SigningFailureClassifier.IsAlreadySent(e))
+        {
+            logger.LogInformation(
+                "Call to action for signee {SigneeId} on task {TaskId} was already sent (idempotency key {IdempotentKey}).",
+                signeeId,
+                taskId,
+                idempotentKey
+            );
+            RecordNotified(signeeContext, correspondenceId: null);
+        }
+        catch (Exception e)
+        {
+            SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(e, ct);
+            telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
+            if (classification.IsTransient)
             {
                 throw;
             }
-            catch (Exception e) when (SigningFailureClassifier.IsAlreadySent(e))
-            {
-                // A retried attempt re-sending what an earlier attempt sent before it failed. The message exists;
-                // Correspondence does not replay its id.
-                logger.LogInformation(
-                    "Call to action for signee {PartyUuid} on task {TaskId} was already sent (idempotency key {IdempotentKey}).",
-                    signingParty.PartyUuid,
-                    taskId,
-                    idempotentKey
-                );
-                RecordNotified(signeeContext, correspondenceId: null);
-            }
-            catch (Exception e)
-            {
-                SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(e, ct);
-                if (classification.IsTransient)
-                {
-                    // Nothing from this attempt is persisted; the retry re-sends with the same keys.
-                    throw;
-                }
-
-                NotificationFailureCode code = SigningFailureClassifier.NotificationCode(e, classification);
-                if (classification.Kind == SigningFailureKind.PermanentAppWide)
-                {
-                    logger.LogError(
-                        e,
-                        "Call to action cannot be sent for any signee of task {TaskId} on instance {InstanceId} (workflow {WorkflowId}, step {StepId}): {Reason}",
-                        taskId,
-                        instance.Id,
-                        workflowId,
-                        stepId,
-                        classification.Reason
-                    );
-                    RecordAppWideNotificationFailure(
-                        targets.Skip(index).ToList(),
-                        code,
-                        classification.Reason,
-                        instance,
-                        taskId,
-                        workflowId,
-                        stepId,
-                        logOnce: false
-                    );
-                    break;
-                }
-
-                logger.LogError(
-                    e,
-                    "Call to action failed permanently for signee {PartyUuid} on task {TaskId} of instance {InstanceId} (workflow {WorkflowId}, step {StepId}): {Reason}",
-                    signingParty.PartyUuid,
-                    taskId,
-                    instance.Id,
-                    workflowId,
-                    stepId,
-                    classification.Reason
-                );
-                RecordNotificationFailure(signeeContext, code, classification.Reason);
-            }
+            logger.LogError(
+                e,
+                "Call to action failed permanently for signee {SigneeId} on task {TaskId} of instance {InstanceId} (workflow {WorkflowId}, step {StepId}): {Reason}",
+                signeeId,
+                taskId,
+                instance.Id,
+                workflowId,
+                stepId,
+                classification.Reason
+            );
+            throw new SigneeInitializationPermanentException(classification.Reason, "SigneeNotificationFailed");
         }
 
         await signeeContextsManager.PersistSigneeContexts(
@@ -264,26 +276,61 @@ internal sealed class SigneeInitializationService(
         );
     }
 
-    /// <summary>
-    /// Loads the task's signee state for the delegation and notification steps. Unlike
-    /// <see cref="ResolveSignees"/>, this does not look in Storage for an element the callback state lacks: the
-    /// resolve step publishes its state only after the element was saved, so a later step, retried or resumed,
-    /// always receives a state that lists it. The element's content is read from Storage, so progress an earlier
-    /// attempt of this step saved before its response was lost is still seen.
-    /// </summary>
-    private async Task<List<SigneeContext>> LoadSigneeState(
+    private async Task<(List<SigneeContext> Contexts, SigneeContext Recipient)> LoadRecipient(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        string taskId
+        string taskId,
+        Guid signeeStateElementId,
+        Guid signeeId,
+        bool requireCurrentTask,
+        CancellationToken ct
     )
     {
-        DataElement element =
-            signeeContextsManager.FindTaskSigneeStateElement(instanceDataMutator, signatureConfiguration, taskId)
-            ?? throw new SigneeInitializationPermanentException(
-                $"No signee state element tagged with task '{taskId}' exists. The resolve step must complete before delegation and notification."
+        Instance stored = await instanceClient.GetInstance(
+            instanceDataMutator.Instance,
+            StorageAuthenticationMethod.ServiceOwner(),
+            ct
+        );
+        if (requireCurrentTask && stored.Process?.CurrentTask?.ElementId != taskId)
+        {
+            throw new SigneeInitializationPermanentException(
+                "The signing task is no longer current; this notification is obsolete.",
+                "SigneeTaskEntryObsolete"
             );
+        }
 
-        return await signeeContextsManager.LoadSigneeContexts(instanceDataMutator, signatureConfiguration, element);
+        DataElement[] storedStateElements = (stored.Data ?? [])
+            .Where(element => element.DataType == signatureConfiguration.SigneeStatesDataTypeId)
+            .ToArray();
+        List<DataElement> data = instanceDataMutator.Instance.Data ??= [];
+        data.RemoveAll(element => element.DataType == signatureConfiguration.SigneeStatesDataTypeId);
+        data.AddRange(storedStateElements);
+        DataElement? stateElement = signeeContextsManager.FindTaskSigneeStateElement(
+            instanceDataMutator,
+            signatureConfiguration,
+            taskId
+        );
+        if (stateElement is null || Guid.Parse(stateElement.Id) != signeeStateElementId)
+        {
+            throw new SigneeInitializationPermanentException(
+                "The resolved signing task entry no longer exists; this recipient command is obsolete.",
+                "SigneeTaskEntryObsolete"
+            );
+        }
+
+        List<SigneeContext> signeeContexts = await signeeContextsManager.LoadSigneeContexts(
+            instanceDataMutator,
+            signatureConfiguration,
+            stateElement
+        );
+        SigneeContext recipient =
+            signeeContexts.SingleOrDefault(context => context.SigneeId == signeeId)
+            ?? throw new SigneeInitializationPermanentException("The frozen signee identity was not found.");
+        if (recipient.TaskId != taskId || signeeId == Guid.Empty)
+        {
+            throw new SigneeInitializationPermanentException("The frozen signee does not belong to this task.");
+        }
+        return (signeeContexts, recipient);
     }
 
     private async Task<Guid> ResolveInstanceOwnerPartyUuid(Instance instance, CancellationToken ct)
@@ -378,43 +425,5 @@ internal sealed class SigneeInitializationService(
         state.NotificationFailure = null;
         state.CallToSignFailedReason = null;
         telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Success);
-    }
-
-    private void RecordNotificationFailure(SigneeContext signeeContext, NotificationFailureCode code, string reason)
-    {
-        SigneeContextState state = signeeContext.SigneeState;
-        state.HasBeenMessagedForCallToSign = false;
-        state.NotificationFailure = code;
-        state.CallToSignFailedReason = reason;
-        telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
-    }
-
-    private void RecordAppWideNotificationFailure(
-        IReadOnlyList<SigneeContext> targets,
-        NotificationFailureCode code,
-        string reason,
-        Instance instance,
-        string taskId,
-        Guid workflowId,
-        Guid stepId,
-        bool logOnce = true
-    )
-    {
-        if (logOnce)
-        {
-            logger.LogError(
-                "Call to action cannot be sent for any signee of task {TaskId} on instance {InstanceId} (workflow {WorkflowId}, step {StepId}): {Reason}",
-                taskId,
-                instance.Id,
-                workflowId,
-                stepId,
-                reason
-            );
-        }
-
-        foreach (SigneeContext target in targets)
-        {
-            RecordNotificationFailure(target, code, reason);
-        }
     }
 }

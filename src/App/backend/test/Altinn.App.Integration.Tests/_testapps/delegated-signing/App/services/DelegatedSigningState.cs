@@ -46,7 +46,14 @@ public sealed record NotificationAttempt(
     int StatusCode
 );
 
-public sealed record CallbackAttempt(string CommandKey, Guid WorkflowId, Guid StepId, int RetryCount, int StatusCode);
+public sealed record CallbackAttempt(
+    string CommandKey,
+    Guid WorkflowId,
+    Guid StepId,
+    int RetryCount,
+    int StatusCode,
+    bool Deferred
+);
 
 // This ledger represents external acceptance, so it deliberately survives failed app callbacks and /allow.
 internal sealed class DelegatedSigningState : IEndpointConfigurator
@@ -217,7 +224,7 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
         }
     }
 
-    public int RecordCallback(AppCallbackPayload payload, string commandKey, int statusCode)
+    public int RecordCallback(AppCallbackPayload payload, string commandKey, int statusCode, bool deferred = false)
     {
         lock (_gate)
         {
@@ -237,7 +244,9 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
                 _lostAbortResponses++;
                 statusCode = 503;
             }
-            _callbacks.Add(new(commandKey, payload.WorkflowId, payload.StepId, payload.RetryCount, statusCode));
+            _callbacks.Add(
+                new(commandKey, payload.WorkflowId, payload.StepId, payload.RetryCount, statusCode, deferred)
+            );
             return statusCode;
         }
     }

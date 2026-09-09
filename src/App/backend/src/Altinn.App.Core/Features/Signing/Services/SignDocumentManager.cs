@@ -107,6 +107,7 @@ internal sealed class SignDocumentManager(
             .. signeeContexts.Select(context => new SigneeContext
             {
                 TaskId = context.TaskId,
+                SigneeId = context.SigneeId,
                 Signee = context.Signee,
                 SigneeState = context.SigneeState,
                 SignDocument = context.SignDocument,
@@ -206,6 +207,7 @@ internal sealed class SignDocumentManager(
         SigneeContext updatedContext = new()
         {
             TaskId = signeeContext.TaskId,
+            SigneeId = signeeContext.SigneeId,
             Signee = signeeContext.Signee,
             SigneeState = signeeContext.SigneeState,
             SignDocument = matchedSignDocument,
@@ -245,6 +247,7 @@ internal sealed class SignDocumentManager(
         return new SigneeContext
         {
             TaskId = context.TaskId,
+            SigneeId = context.SigneeId,
             Signee = updatedSignee,
             SigneeState = context.SigneeState,
             SignDocument = context.SignDocument,

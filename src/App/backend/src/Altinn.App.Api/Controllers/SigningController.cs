@@ -1,3 +1,4 @@
+using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
@@ -11,6 +12,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
@@ -26,6 +28,7 @@ namespace Altinn.App.Api.Controllers;
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/signing")]
 public class SigningController : ControllerBase
 {
+    private readonly IServiceProvider _services;
     private readonly IInstanceClient _instanceClient;
     private readonly IProcessReader _processReader;
     private readonly IAuthenticationContext _authenticationContext;
@@ -46,6 +49,7 @@ public class SigningController : ControllerBase
         ILogger<SigningController> logger
     )
     {
+        _services = serviceProvider;
         _instanceClient = instanceClient;
         _processReader = processReader;
         _authenticationContext = authenticationContext;
@@ -117,6 +121,32 @@ public class SigningController : ControllerBase
             ct
         );
 
+        // Old instances have only persisted notification facts. New entries additionally expose terminal
+        // execution failures from their independent jobs without duplicating retry bookkeeping in Storage.
+        Dictionary<Guid, SigningNotificationWorkflow> notificationJobs = [];
+        if (signeeContexts.Any(signee => signee.SigneeId.HasValue && !signee.SigneeState.HasBeenMessagedForCallToSign))
+        {
+            try
+            {
+                var jobs = await _services
+                    .GetRequiredService<SigningNotificationWorkflowService>()
+                    .List(instanceDataAccessor, signingConfiguration, finalTaskId, ct);
+                notificationJobs = jobs.ToDictionary(job => job.SigneeId);
+            }
+            catch (Exception exception)
+                when (!ct.IsCancellationRequested && IsTransientNotificationStatusFailure(exception))
+            {
+                // Notification jobs enrich this response. Their temporary unavailability must not hide
+                // persisted delegation, signatures or notification facts from the signing UI.
+                _logger.LogWarning(
+                    exception,
+                    "Notification workflow status is temporarily unavailable for task {TaskId} of instance {InstanceGuid}. Returning persisted signing state.",
+                    finalTaskId,
+                    instanceGuid
+                );
+            }
+        }
+
         var response = new SigningStateResponse
         {
             SigneeStates =
@@ -124,6 +154,10 @@ public class SigningController : ControllerBase
                 .. signeeContexts
                     .Select(signeeContext =>
                     {
+                        notificationJobs.TryGetValue(signeeContext.SigneeId ?? Guid.Empty, out var notificationJob);
+                        bool notificationFailed =
+                            !signeeContext.SigneeState.HasBeenMessagedForCallToSign
+                            && notificationJob?.Status is PersistentItemStatus.Failed or PersistentItemStatus.Canceled;
                         string? name = null;
                         string? organization = null;
 
@@ -155,9 +189,13 @@ public class SigningController : ControllerBase
                             Organization = organization,
                             SignedTime = signeeContext.SignDocument?.SignedTime,
                             DelegationSuccessful = signeeContext.SigneeState.IsAccessDelegated,
-                            NotificationStatus = GetNotificationState(signeeContext),
+                            NotificationStatus = notificationFailed
+                                ? NotificationStatus.Failed
+                                : GetNotificationState(signeeContext),
                             DelegationFailure = GetDelegationFailure(signeeContext.SigneeState),
-                            NotificationFailure = GetNotificationFailure(signeeContext.SigneeState),
+                            NotificationFailure = notificationFailed
+                                ? SigneeNotificationFailure.Unknown
+                                : GetNotificationFailure(signeeContext.SigneeState),
                             PartyId = signeeContext.Signee.GetParty().PartyId,
                         };
                     })
@@ -334,6 +372,18 @@ public class SigningController : ControllerBase
             }
         );
     }
+
+    private static bool IsTransientNotificationStatusFailure(Exception exception) =>
+        exception switch
+        {
+            HttpRequestException { StatusCode: null } => true,
+            HttpRequestException { StatusCode: HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests } =>
+                true,
+            HttpRequestException { StatusCode: { } status } when (int)status >= 500 => true,
+            TimeoutException => true,
+            TaskCanceledException { InnerException: TimeoutException } => true,
+            _ => false,
+        };
 
     private static NotificationStatus GetNotificationState(SigneeContext signeeContext)
     {

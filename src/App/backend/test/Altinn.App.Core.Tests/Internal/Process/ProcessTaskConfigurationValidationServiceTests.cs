@@ -180,8 +180,9 @@ public class ProcessTaskConfigurationValidationServiceTests
             string command in new[]
             {
                 ResolveSigneesCommand.Key,
+                ScheduleSigneeInitialization.Key,
                 DelegateSigneeRightsCommand.Key,
-                NotifySigneesCommand.Key,
+                NotifySigneeCommand.Key,
                 RevokeSigneeRightsCommand.Key,
                 AbortRuntimeDelegatedSigningCommand.Key,
             }

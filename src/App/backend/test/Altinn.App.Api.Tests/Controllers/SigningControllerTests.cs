@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
@@ -15,6 +16,8 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -1586,6 +1589,241 @@ public class SigningControllerTests
             "This endpoint is only callable while the current task is a signing task, or when taskId query param is set to a signing task's ID.",
             problemDetails.Detail
         );
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(408)]
+    [InlineData(429)]
+    [InlineData(503)]
+    [InlineData(-1)]
+    [InlineData(-2)]
+    public async Task GetSigneesState_TransientNotificationLookupFailure_PreservesStoredSigningFacts(int failureKind)
+    {
+        Exception exception = failureKind switch
+        {
+            -1 => new TimeoutException("Engine timed out"),
+            -2 => new TaskCanceledException("Engine timed out", new TimeoutException()),
+            _ => new HttpRequestException(
+                "Engine unavailable",
+                null,
+                failureKind == 0 ? null : (HttpStatusCode)failureKind
+            ),
+        };
+        var client = SetupNotificationProjection(_ =>
+            Task.FromException<IReadOnlyList<WorkflowStatusResponse>>(exception)
+        );
+        await using var services = _serviceCollection.BuildStrictServiceProvider();
+        var controller = services.GetRequiredService<SigningController>();
+
+        var result = Assert.IsType<OkObjectResult>(
+            await controller.GetSigneesState("tdd", "app", 1337, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        var response = Assert.IsType<SigningStateResponse>(result.Value);
+        Assert.Equal(3, response.SigneeStates.Count);
+        var pending = response.SigneeStates.Single(signee => signee.PartyId == 1);
+        Assert.True(pending.DelegationSuccessful);
+        Assert.Equal(NotificationStatus.NotSent, pending.NotificationStatus);
+        Assert.Null(pending.NotificationFailure);
+        var sent = response.SigneeStates.Single(signee => signee.PartyId == 2);
+        Assert.Equal(NotificationStatus.Sent, sent.NotificationStatus);
+        Assert.NotNull(sent.SignedTime);
+        var legacyFailure = response.SigneeStates.Single(signee => signee.PartyId == 3);
+        Assert.Equal(NotificationStatus.Failed, legacyFailure.NotificationStatus);
+        Assert.Equal(SigneeNotificationFailure.Unknown, legacyFailure.NotificationFailure);
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetSigneesState_NotificationLookupRequestCanceled_PropagatesCancellation()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var client = SetupNotificationProjection(ct =>
+        {
+            cancellation.Cancel();
+            return Task.FromCanceled<IReadOnlyList<WorkflowStatusResponse>>(ct);
+        });
+        await using var services = _serviceCollection.BuildStrictServiceProvider();
+        var controller = services.GetRequiredService<SigningController>();
+
+        var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            controller.GetSigneesState("tdd", "app", 1337, Guid.NewGuid(), cancellation.Token)
+        );
+
+        Assert.Equal(cancellation.Token, exception.CancellationToken);
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(400)]
+    [InlineData(403)]
+    public async Task GetSigneesState_PermanentNotificationLookupFailure_IsNotSuppressed(int statusCode)
+    {
+        var failure = new HttpRequestException("Engine rejected request", null, (HttpStatusCode)statusCode);
+        var client = SetupNotificationProjection(_ =>
+            Task.FromException<IReadOnlyList<WorkflowStatusResponse>>(failure)
+        );
+        await using var services = _serviceCollection.BuildStrictServiceProvider();
+        var controller = services.GetRequiredService<SigningController>();
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            controller.GetSigneesState("tdd", "app", 1337, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        Assert.Same(failure, exception);
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetSigneesState_MalformedNotificationResponse_IsNotSuppressed()
+    {
+        var failure = new JsonException("Malformed engine response");
+        var client = SetupNotificationProjection(_ =>
+            Task.FromException<IReadOnlyList<WorkflowStatusResponse>>(failure)
+        );
+        await using var services = _serviceCollection.BuildStrictServiceProvider();
+        var controller = services.GetRequiredService<SigningController>();
+
+        var exception = await Assert.ThrowsAsync<JsonException>(() =>
+            controller.GetSigneesState("tdd", "app", 1337, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        Assert.Same(failure, exception);
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetSigneesState_LegacyRecipients_DoNotNeedWorkflowEngine()
+    {
+        var client = SetupNotificationProjection(
+            _ => throw new InvalidOperationException("Legacy state must not query the engine"),
+            legacyOnly: true
+        );
+        await using var services = _serviceCollection.BuildStrictServiceProvider();
+        var controller = services.GetRequiredService<SigningController>();
+
+        var result = Assert.IsType<OkObjectResult>(
+            await controller.GetSigneesState("tdd", "app", 1337, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        Assert.Equal(3, Assert.IsType<SigningStateResponse>(result.Value).SigneeStates.Count);
+        client.VerifyNoOtherCalls();
+    }
+
+    private Mock<IWorkflowEngineClient> SetupNotificationProjection(
+        Func<CancellationToken, Task<IReadOnlyList<WorkflowStatusResponse>>> query,
+        bool legacyOnly = false
+    )
+    {
+        SetupAuthenticationContextMock();
+        var instance = new Instance
+        {
+            Id = $"1337/{Guid.NewGuid()}",
+            AppId = "tdd/app",
+            Org = "tdd",
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "signing" },
+            },
+            Data = [],
+        };
+        _instanceClientMock
+            .Setup(value =>
+                value.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(instance);
+        List<SigneeContext> contexts = Enumerable
+            .Range(1, 3)
+            .Select(partyId => new SigneeContext
+            {
+                TaskId = "task1",
+                SigneeId = legacyOnly || partyId == 3 ? null : Guid.NewGuid(),
+                Signee = new OrganizationSignee
+                {
+                    OrgName = $"Organization {partyId}",
+                    OrgNumber = "123456789",
+                    OrgParty = new Party { PartyId = partyId },
+                },
+                SigneeState = new SigneeContextState
+                {
+                    IsAccessDelegated = true,
+                    HasBeenMessagedForCallToSign = partyId == 2,
+                    CallToSignFailedReason = partyId == 3 ? "Legacy notification failure" : null,
+                },
+                SignDocument =
+                    partyId == 2
+                        ? new SignDocument
+                        {
+                            Id = "signature",
+                            InstanceGuid = instance.Id.Split('/')[1],
+                            DataElementSignatures = [],
+                            SignedTime = new DateTime(2026, 1, 1),
+                        }
+                        : null,
+            })
+            .ToList();
+        _signingServiceMock
+            .Setup(service =>
+                service.GetSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(contexts);
+        var stateElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "signeeStatesDataTypeId" };
+        var manager = new Mock<ISigneeContextsManager>(MockBehavior.Strict);
+        manager
+            .Setup(service =>
+                service.FindTaskSigneeStateElement(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    "task1"
+                )
+            )
+            .Returns(stateElement);
+        manager
+            .Setup(service =>
+                service.LoadSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    stateElement
+                )
+            )
+            .ReturnsAsync(contexts);
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(value =>
+                value.ListWorkflows(
+                    "tdd/app",
+                    It.IsAny<string?>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                (
+                    string _,
+                    string? _,
+                    Dictionary<string, string>? _,
+                    IReadOnlyList<PersistentItemStatus>? _,
+                    CancellationToken ct
+                ) => query(ct)
+            );
+        _serviceCollection.AddSingleton(manager.Object);
+        _serviceCollection.AddSingleton(client.Object);
+        _serviceCollection.AddTransient<SigningNotificationWorkflowService>();
+        return client;
     }
 
     private void SetupAuthenticationContextMock(Authenticated? authenticated = null)

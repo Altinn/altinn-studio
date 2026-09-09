@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Services;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,20 +9,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
 /// <summary>
-/// Sends the call to action to every delegated signee not yet messaged and records the outcome per signee. The
-/// last of the signing task's three start commands. Each send carries an idempotency key derived from the
-/// workflow, the step and the signee, so a retried attempt cannot notify anyone twice. A transient failure fails
-/// the step for retry; a permanent failure, for one signee or for all of them, is recorded and the step still
-/// completes.
+/// Sends one frozen signee's call to action as an independent workflow. The callback holds a fresh instance
+/// lock through execution and saving; the service refreshes stored state and rejects obsolete task entries.
 /// </summary>
-internal sealed class NotifySigneesCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
+internal sealed class NotifySigneeCommand : WorkflowEngineCommandBase<SigneeCommandPayload>
 {
-    public static string Key => "NotifySignees";
+    public static string Key => "NotifySignee";
 
     private readonly IServiceProvider _services;
     private readonly IProcessReader _processReader;
 
-    public NotifySigneesCommand(IServiceProvider services, IProcessReader processReader)
+    public NotifySigneeCommand(IServiceProvider services, IProcessReader processReader)
     {
         _services = services;
         _processReader = processReader;
@@ -31,27 +29,36 @@ internal sealed class NotifySigneesCommand : WorkflowEngineCommandBase<ProcessTa
     public override string GetKey() => Key;
 
     /// <inheritdoc/>
-    public override ProcessStepOptions DefaultStepOptions => SigningStepOptions.PlatformCallsPerSignee;
+    public override ProcessStepOptions DefaultStepOptions =>
+        SigningStepOptions.PlatformCallsPerSignee with
+        {
+            WaitBudget = TimeSpan.FromMinutes(10),
+        };
 
     /// <inheritdoc/>
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
-        ProcessTaskPayload payload
+        SigneeCommandPayload payload
     )
     {
-        AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
-        if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
-        {
-            return ProcessEngineCommandResult.Completed();
-        }
-
-        ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
         try
         {
+            AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
+            if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
+            {
+                return ProcessEngineCommandResult.FailedPermanent(
+                    "Runtime-delegated signing is no longer configured for the frozen recipient's task.",
+                    "SigneeConfigurationChanged"
+                );
+            }
+
+            ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
             await initialization.ExecuteNotification(
                 context.InstanceDataMutator,
                 configuration,
                 payload.TaskId,
+                payload.SigneeStateElementId,
+                payload.SigneeId,
                 context.WorkflowId,
                 context.StepId,
                 context.CancellationToken
@@ -62,11 +69,18 @@ internal sealed class NotifySigneesCommand : WorkflowEngineCommandBase<ProcessTa
         {
             throw;
         }
+        catch (ApplicationConfigException e)
+        {
+            return ProcessEngineCommandResult.FailedPermanent(
+                $"Process task command '{Key}' failed: {e.Message}",
+                "SigneeConfigurationChanged"
+            );
+        }
         catch (SigneeInitializationPermanentException e)
         {
             return ProcessEngineCommandResult.FailedPermanent(
                 $"Process task command '{Key}' failed: {e.Message}",
-                "ProcessTaskCommandFailed"
+                e.ErrorCode
             );
         }
         catch (Exception e)

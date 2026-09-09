@@ -204,7 +204,7 @@ public class SigningFailureClassifierTests
     [Theory]
     [InlineData(HttpStatusCode.BadRequest, HttpStatusCode.ServiceUnavailable, false)]
     [InlineData(HttpStatusCode.ServiceUnavailable, HttpStatusCode.BadRequest, true)]
-    [InlineData(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable, false)]
+    [InlineData(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable, true)]
     public void ClassifyNotification_OuterResponseStatus_TakesPrecedenceOverDependencyStatus(
         HttpStatusCode outerStatus,
         HttpStatusCode innerStatus,
@@ -311,7 +311,7 @@ public class SigningFailureClassifierTests
     }
 
     [Fact]
-    public void ClassifyNotification_UnknownFailureWithoutStatus_RemainsPermanent()
+    public void ClassifyNotification_UnknownFailureWithoutStatus_IsRetryable()
     {
         var exception = new CorrespondenceRequestException("response was empty");
 
@@ -320,7 +320,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        Assert.False(classification.IsTransient);
+        Assert.True(classification.IsTransient);
         Assert.Null(classification.Status);
     }
 
@@ -340,14 +340,14 @@ public class SigningFailureClassifierTests
     [Theory]
     [InlineData("delegation")]
     [InlineData("notification")]
-    public void Classify_PlainException_IsPermanentPerSignee(string kind)
+    public void Classify_PlainException_IsRetryable(string kind)
     {
         InvalidOperationException exception = new("boom");
 
         SigningFailureClassification classification = ClassifyByKind(kind, exception, NotCancelled);
 
-        Assert.False(classification.IsTransient);
-        Assert.Equal(SigningFailureKind.PermanentPerSignee, classification.Kind);
+        Assert.True(classification.IsTransient);
+        Assert.Equal(SigningFailureKind.Transient, classification.Kind);
         Assert.Null(classification.Status);
     }
 
@@ -385,10 +385,8 @@ public class SigningFailureClassifierTests
     }
 
     [Fact]
-    public void ClassifyDelegation_NeverAppWide_EvenForConfigurationLikeExceptions()
+    public void ClassifyDelegation_ConfigurationFailure_IsPermanentAppWide()
     {
-        // ClassifyDelegation never special-cases configuration exceptions the way ClassifyNotification does: the
-        // app-wide cases for delegation are decided by the caller before delegation starts.
         ConfigurationException exception = new("no config");
 
         SigningFailureClassification classification = SigningFailureClassifier.ClassifyDelegation(
@@ -396,7 +394,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        Assert.Equal(SigningFailureKind.PermanentPerSignee, classification.Kind);
+        Assert.Equal(SigningFailureKind.PermanentAppWide, classification.Kind);
     }
 
     [Fact]
@@ -607,7 +605,7 @@ public class SigningFailureClassifierTests
     }
 
     [Fact]
-    public void ClassifyPartyLookup_PlainException_BecomesAppWide()
+    public void ClassifyPartyLookup_PlainException_IsRetryable()
     {
         InvalidOperationException exception = new("boom");
 
@@ -616,7 +614,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        Assert.Equal(SigningFailureKind.PermanentAppWide, classification.Kind);
+        Assert.Equal(SigningFailureKind.Transient, classification.Kind);
         Assert.Null(classification.Status);
     }
 

@@ -172,13 +172,16 @@ public sealed class SigneeInitializationRetryTests
     }
 
     [Fact]
-    public async Task Notify_SecondRecipientFails_RetryUsesSameKeysAndDeduplicatesFirstRecipient()
+    public async Task Notify_IndependentRecipientRetry_MergesFreshSiblingCheckpointAndKeepsKey()
     {
         await using var fixture = new Fixture(signeeCount: 2);
         await fixture.ResolveAndCommit();
         InstanceDataUnitOfWork delegation = fixture.Restore(fixture.Snapshot());
         await fixture.Delegate(delegation);
         await Fixture.Commit(delegation);
+        InstanceDataUnitOfWork secondDelegation = fixture.Restore(fixture.Snapshot());
+        await fixture.Delegate(secondDelegation, recipient: 1);
+        await Fixture.Commit(secondDelegation);
         string incomingState = fixture.Snapshot();
         var sent = new HashSet<Guid>();
         var attempts = new List<Guid>();
@@ -213,22 +216,78 @@ public sealed class SigneeInitializationRetryTests
                 }
             );
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => fixture.Notify(fixture.Restore(incomingState)));
-        Assert.All(
-            await fixture.ReadState(),
-            context => Assert.False(context.SigneeState.HasBeenMessagedForCallToSign)
+        InstanceDataUnitOfWork firstNotification = fixture.Restore(incomingState);
+        await fixture.Notify(firstNotification);
+        await Fixture.Commit(firstNotification);
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            fixture.Notify(fixture.Restore(incomingState), recipient: 1)
         );
+        List<SigneeContext> afterFailure = await fixture.ReadState();
+        Assert.True(afterFailure[0].SigneeState.HasBeenMessagedForCallToSign);
+        Assert.False(afterFailure[1].SigneeState.HasBeenMessagedForCallToSign);
+        Guid? firstCorrespondenceId = afterFailure[0].SigneeState.CtaCorrespondenceId;
         InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
-        await fixture.Notify(retry);
+        await fixture.Notify(retry, recipient: 1);
         await Fixture.Commit(retry);
 
-        Assert.Equal(4, attempts.Count);
-        Assert.Equal(attempts[0], attempts[2]);
-        Assert.Equal(attempts[1], attempts[3]);
+        Assert.Equal(3, attempts.Count);
+        Assert.Equal(attempts[1], attempts[2]);
+        Assert.Equal(firstCorrespondenceId, (await fixture.ReadState())[0].SigneeState.CtaCorrespondenceId);
         Assert.NotEqual(attempts[0], attempts[1]);
         Assert.Equal(2, sent.Count);
         Assert.All(await fixture.ReadState(), context => Assert.True(context.SigneeState.HasBeenMessagedForCallToSign));
         Assert.Equal("SigningTask", Assert.Single(Assert.Single(fixture.Stored.Data).References).Value);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Notify_ResponseLost_ReusesTaskEntryKeyAndSavedSuccess(bool responseLostAfterSave)
+    {
+        await using var fixture = new Fixture();
+        await fixture.ResolveAndCommit();
+        InstanceDataUnitOfWork delegation = fixture.Restore(fixture.Snapshot());
+        await fixture.Delegate(delegation);
+        await Fixture.Commit(delegation);
+        string incomingState = fixture.Snapshot();
+        var accepted = new HashSet<Guid>();
+        var attempts = new List<Guid>();
+        fixture
+            .Correspondence.Setup(x => x.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()))
+            .Returns(
+                (SendCorrespondencePayload payload, CancellationToken _) =>
+                {
+                    Guid key = Assert.IsType<Guid>(payload.CorrespondenceRequest.IdempotentKey);
+                    attempts.Add(key);
+                    if (!accepted.Add(key))
+                        throw new CorrespondenceRequestException("Already sent", null, HttpStatusCode.Conflict, null);
+                    return Task.FromResult(
+                        new SendCorrespondenceResponse
+                        {
+                            Correspondences =
+                            [
+                                new CorrespondenceDetailsResponse
+                                {
+                                    CorrespondenceId = Guid.NewGuid(),
+                                    Recipient = payload.CorrespondenceRequest.Recipients[0],
+                                },
+                            ],
+                        }
+                    );
+                }
+            );
+        InstanceDataUnitOfWork first = fixture.Restore(incomingState);
+        await fixture.Notify(first);
+        if (responseLostAfterSave)
+            await Fixture.Commit(first);
+        InstanceDataUnitOfWork retry = fixture.Restore(incomingState);
+        await fixture.Notify(retry, newWorkflowIdentity: true);
+        await Fixture.Commit(retry);
+
+        Assert.Single(accepted);
+        Assert.Single(attempts.Distinct());
+        Assert.Equal(responseLostAfterSave ? 1 : 2, attempts.Count);
+        Assert.True(Assert.Single(await fixture.ReadState()).SigneeState.HasBeenMessagedForCallToSign);
     }
 
     [Fact]
@@ -612,6 +671,7 @@ public sealed class SigneeInitializationRetryTests
                 partyClient.Object,
                 cdn.Object,
                 environment.Object,
+                _instances.Object,
                 NullLogger<SigneeInitializationService>.Instance
             );
         }
@@ -635,11 +695,36 @@ public sealed class SigneeInitializationRetryTests
         public Task<SigneeInitializationOutcome> Resolve(InstanceDataUnitOfWork data) =>
             _initialization.ResolveSignees(data, _config, TaskId, CancellationToken.None);
 
-        public Task Delegate(InstanceDataUnitOfWork data) =>
-            _initialization.ExecuteDelegation(data, _config, TaskId, _workflowId, CancellationToken.None);
+        public async Task Delegate(InstanceDataUnitOfWork data, int recipient = 0)
+        {
+            Guid stateId = Guid.Parse(data.Instance.Data.Single(x => x.DataType == DataTypeId).Id);
+            Guid signeeId = (await ReadState())[recipient].SigneeId!.Value;
+            await _initialization.ExecuteDelegation(
+                data,
+                _config,
+                TaskId,
+                stateId,
+                signeeId,
+                _workflowId,
+                CancellationToken.None
+            );
+        }
 
-        public Task Notify(InstanceDataUnitOfWork data) =>
-            _initialization.ExecuteNotification(data, _config, TaskId, _workflowId, _stepId, CancellationToken.None);
+        public async Task Notify(InstanceDataUnitOfWork data, int recipient = 0, bool newWorkflowIdentity = false)
+        {
+            Guid stateId = Guid.Parse(data.Instance.Data.Single(x => x.DataType == DataTypeId).Id);
+            Guid signeeId = (await ReadState())[recipient].SigneeId!.Value;
+            await _initialization.ExecuteNotification(
+                data,
+                _config,
+                TaskId,
+                stateId,
+                signeeId,
+                newWorkflowIdentity ? Guid.NewGuid() : _workflowId,
+                newWorkflowIdentity ? Guid.NewGuid() : _stepId,
+                CancellationToken.None
+            );
+        }
 
         public Task Revoke(InstanceDataUnitOfWork data) =>
             _signing.RevokeSigneeRightsOnTaskEnd(data, _config, CancellationToken.None);

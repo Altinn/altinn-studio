@@ -184,8 +184,8 @@ internal sealed class SigningDelegationService(
         Exception? exception
     )
     {
-        // A permanent per-signee failure never fails the step, so it never appears as an engine error: the log is
-        // where ops sees it.
+        // Keep the dependency details in the log; the initialization service fails the recipient's workflow step
+        // using a short reason that does not expose the recipient's identifier.
         logger.LogError(
             exception,
             "Delegation failed permanently for signee {PartyUuid} on instance {InstanceId}, task {TaskId} (workflow {WorkflowId}): {Reason}",

@@ -1,11 +1,14 @@
 using System.Diagnostics;
+using System.Net;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -146,9 +149,66 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // The lock token is applied only after the state blob has been validated against the route instance.
+        // An independent notification may run after its originating transition released the lock or after
+        // another transition started. Acquire its own lease and hold it through the command AND data save.
+        // Its handler reads current signee state under this lease, so sibling jobs cannot lose each other's
+        // updates and a task exit cannot race the decision to send.
         var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
-        instanceLocker.UseExternalLockToken(payload.LockToken);
+        await using IInstanceLock? independentLock =
+            command.GetKey() == NotifySigneeCommand.Key
+                ? instanceLocker.InitLock(instanceOwnerPartyId, instanceGuid)
+                : null;
+        if (independentLock is not null)
+        {
+            try
+            {
+                TimeSpan lockTtl = TimeSpan.FromMinutes(10);
+                if (payload.ExecutionDeadline is { } deadline)
+                {
+                    TimeSpan requiredTtl = deadline - DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5);
+                    if (requiredTtl > lockTtl)
+                    {
+                        lockTtl = requiredTtl;
+                    }
+                }
+                await independentLock.Lock(lockTtl);
+                ct.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (PlatformHttpException exception) when (exception.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                // Contention is waiting for another legitimate instance operation, not a failed send. Keep
+                // the notification's retry allowance intact while the transition or a sibling owns the lease.
+                return Ok(
+                    new AppCallbackResponse
+                    {
+                        State = payload.State,
+                        Defer = new AppCallbackDeferral
+                        {
+                            Delay = TimeSpan.FromSeconds(1),
+                            Reason = "Waiting for another instance operation to finish.",
+                        },
+                    }
+                );
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(exception, "Could not acquire the notification lock for {InstanceId}.", instanceId);
+                return Problem(
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    title: "NotificationLockUnavailable",
+                    detail: "The notification could not acquire the instance lock. Retry the operation."
+                );
+            }
+        }
+        else
+        {
+            // The inherited token is applied only after validating the signed state against the route instance.
+            instanceLocker.UseExternalLockToken(payload.LockToken);
+        }
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
 

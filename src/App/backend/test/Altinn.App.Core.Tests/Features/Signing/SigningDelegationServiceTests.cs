@@ -536,13 +536,14 @@ public class SigningDelegationServiceTests
     }
 
     [Fact]
-    public async Task DelegateRights_RecordsFailedDelegationOnError()
+    public async Task DelegateRights_UnknownFailure_PropagatesForRetry()
     {
         // Arrange
+        var error = new Exception("Delegation failed");
         var accessManagementClient = new Mock<IAccessManagementClient>();
         accessManagementClient
             .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Delegation failed"));
+            .ThrowsAsync(error);
         var logger = new Mock<ILogger<SigningDelegationService>>();
         var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
         var taskId = "taskId";
@@ -563,21 +564,22 @@ public class SigningDelegationServiceTests
         var ct = CancellationToken.None;
 
         // Act
-        // A generic exception with no HTTP status and no transport cause classifies as a permanent per-signee
-        // failure, so this does not throw - the failure is recorded on the signee instead.
-        await service.DelegateRights(
-            taskId,
-            instanceId,
-            instanceOwnerPartyUuid,
-            appIdentifier,
-            signeeContexts,
-            workflowId,
-            ct
+        Exception thrown = await Assert.ThrowsAsync<Exception>(() =>
+            service.DelegateRights(
+                taskId,
+                instanceId,
+                instanceOwnerPartyUuid,
+                appIdentifier,
+                signeeContexts,
+                workflowId,
+                ct
+            )
         );
 
         // Assert
+        Assert.Same(error, thrown);
         Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
-        Assert.NotNull(signeeContexts[0].SigneeState.DelegationFailure);
+        Assert.Null(signeeContexts[0].SigneeState.DelegationFailure);
     }
 
     [Fact]

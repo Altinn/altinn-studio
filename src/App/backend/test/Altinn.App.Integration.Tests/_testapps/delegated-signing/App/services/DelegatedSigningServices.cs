@@ -270,7 +270,8 @@ internal sealed class SigningCallbackFilter(DelegatedSigningState state) : IAsyn
                 StatusCodeResult result => result.StatusCode,
                 _ => context.HttpContext.Response.StatusCode,
             };
-        int outgoingStatus = state.RecordCallback(payload, commandKey, status);
+        bool deferred = executed.Result is ObjectResult { Value: AppCallbackResponse { Defer: not null } };
+        int outgoingStatus = state.RecordCallback(payload, commandKey, status, deferred);
         if (outgoingStatus != status)
             executed.Result = new StatusCodeResult(outgoingStatus);
     }

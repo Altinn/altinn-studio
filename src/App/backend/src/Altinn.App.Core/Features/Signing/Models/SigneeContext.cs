@@ -14,6 +14,11 @@ internal sealed class SigneeContext
     [JsonPropertyName("taskId")]
     public required string TaskId { get; init; }
 
+    /// <summary>The frozen identity of this recipient within a signing task entry. Absent in pre-engine state.</summary>
+    [JsonPropertyName("signeeId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? SigneeId { get; set; }
+
     /// <summary>The signee.</summary>
     public required Signee Signee { get; set; }
 

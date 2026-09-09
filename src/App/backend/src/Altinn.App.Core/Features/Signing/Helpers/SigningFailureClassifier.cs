@@ -1,9 +1,9 @@
 using System.Net;
-using System.Net.Sockets;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Models;
+using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.AccessManagement.Exceptions;
 using Altinn.App.Core.Internal.App;
@@ -18,7 +18,7 @@ internal enum SigningFailureKind
     /// <summary>May heal: throw so the engine retries the step.</summary>
     Transient,
 
-    /// <summary>Cannot heal for this signee; record it on the signee and continue with the others.</summary>
+    /// <summary>Cannot heal for this signee; fail its workflow step.</summary>
     PermanentPerSignee,
 
     /// <summary>Cannot heal for any signee: configuration, or a dependency every signee needs.</summary>
@@ -39,10 +39,9 @@ internal sealed record SigningFailureClassification(SigningFailureKind Kind, Htt
 /// </summary>
 /// <remarks>
 /// The first received status in the exception chain decides: 408, 429 and 5xx are transient, every other 4xx is
-/// permanent. Wrappers without a status retain the classification of the dependency that failed. A missing
-/// status is transient only when a transport failure caused it. The Correspondence client also throws with no
-/// status after a response was received (a 200 with an empty body, an attachment that never published), so a
-/// missing status must never be read as "no response" by itself.
+/// permanent. Wrappers without a status retain the classification of the dependency that failed. Unknown
+/// failures receive bounded retries; only a known rejection or explicit configuration/contract failure is
+/// permanent. A missing status alone does not establish either success or a permanent rejection.
 /// </remarks>
 internal static class SigningFailureClassifier
 {
@@ -54,8 +53,8 @@ internal static class SigningFailureClassifier
         exception is CorrespondenceRequestException { HttpStatusCode: HttpStatusCode.Conflict };
 
     /// <summary>
-    /// Classifies a failure to delegate rights to one signee. Never app-wide: the app-wide cases (an instance
-    /// owner that cannot be resolved) are decided before delegation starts.
+    /// Classifies a failure to delegate rights to one signee. Explicit configuration failures are app-wide;
+    /// known recipient rejections are permanent for the recipient, and unknown failures receive bounded retries.
     /// </summary>
     public static SigningFailureClassification ClassifyDelegation(Exception exception, CancellationToken ct) =>
         Classify(exception, ct);
@@ -163,11 +162,18 @@ internal static class SigningFailureClassifier
             );
         }
 
-        return new SigningFailureClassification(
-            HasTransportCause(exception) ? SigningFailureKind.Transient : SigningFailureKind.PermanentPerSignee,
-            null,
-            reason
-        );
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
+            {
+                return new SigningFailureClassification(SigningFailureKind.PermanentAppWide, null, reason);
+            }
+            if (current is SigneeInitializationPermanentException)
+            {
+                return new SigningFailureClassification(SigningFailureKind.PermanentPerSignee, null, reason);
+            }
+        }
+        return new SigningFailureClassification(SigningFailureKind.Transient, null, reason);
     }
 
     private static HttpStatusCode? StatusOf(Exception exception)
@@ -193,27 +199,5 @@ internal static class SigningFailureClassifier
     }
 
     private static bool IsTransientStatus(HttpStatusCode status) =>
-        status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests || (int)status >= 500;
-
-    /// <summary>
-    /// Whether the exception, or anything in its inner chain, is a transport failure: the request never got an
-    /// answer. The classifier propagates the command's own cancellation before consulting this helper; any
-    /// remaining cancellation represents a dependency timeout.
-    /// </summary>
-    private static bool HasTransportCause(Exception exception)
-    {
-        for (Exception? current = exception; current is not null; current = current.InnerException)
-        {
-            switch (current)
-            {
-                case HttpRequestException { StatusCode: null }:
-                case TimeoutException:
-                case SocketException:
-                case OperationCanceledException:
-                    return true;
-            }
-        }
-
-        return false;
-    }
+        status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests || (int)status is < 400 or >= 500;
 }

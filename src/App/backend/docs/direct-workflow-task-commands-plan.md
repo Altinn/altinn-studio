@@ -1,5 +1,9 @@
 # Direct workflow commands from process tasks
 
+This document records the ordinary-command refactor preserved on `feat/robust-signee-initialization`.
+The experimental branch changes signing orchestration as described in
+[Per-signee signing initialization](per-signee-signing-experiment.md).
+
 Implementation plan and record, 2026-09-08. Starting point:
 `feat/robust-signee-initialization` at `1f40300a3c`. The direct-command refactor is implemented on
 this branch. The original implementation sequence is retained below, followed by verification results.

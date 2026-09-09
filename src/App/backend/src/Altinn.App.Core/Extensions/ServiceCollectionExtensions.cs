@@ -336,6 +336,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ISigningService, SigningService>();
 
         services.AddTransient<ISigneeInitializationService, SigneeInitializationService>();
+        services.AddTransient<SigningNotificationWorkflowService>();
 
         // The signing task's own lifecycle work, one durable step each
         services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.ResolveSigneesCommand>();
@@ -343,7 +344,7 @@ public static class ServiceCollectionExtensions
             IWorkflowEngineCommand,
             Internal.Process.ProcessTasks.Signing.DelegateSigneeRightsCommand
         >();
-        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.NotifySigneesCommand>();
+        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.NotifySigneeCommand>();
         services.AddTransient<
             IWorkflowEngineCommand,
             Internal.Process.ProcessTasks.Signing.GenerateSigningPdfCommand

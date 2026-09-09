@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Integration.Tests;
@@ -9,6 +11,22 @@ public partial class AppFixture
 
     internal sealed class SigningOperations(AppFixture fixture)
     {
+        public Task<ApiResponse> Sign(string token, ReadApiResponse<Instance> instance)
+        {
+            var model = instance.Data.Model ?? throw new InvalidOperationException("Instance data model is null");
+            return fixture.Generic.Post(
+                $"{fixture.OriginalAppPath}/instances/{model.Id}/actions",
+                token,
+                JsonContent.Create(new UserActionRequest { Action = "sign" })
+            );
+        }
+
+        public string NotificationJobsEndpoint(ReadApiResponse<Instance> instance)
+        {
+            var model = instance.Data.Model ?? throw new InvalidOperationException("Instance data model is null");
+            return $"{fixture.OriginalAppPath}/instances/{model.Id}/signing/notifications";
+        }
+
         public Task<ApiResponse> GetState(string token, ReadApiResponse<Instance> instance, string? taskId = null)
         {
             var model = instance.Data.Model ?? throw new InvalidOperationException("Instance data model is null");
