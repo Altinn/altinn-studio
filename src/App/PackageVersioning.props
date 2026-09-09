@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Shared package version resolution for the independently released App packages.
+  Shared package version resolution for the independently released App packages: the Altinn.App
+  libraries (`app/v*`), Altinn.Codelists (`codelists/v*`) and Altinn.FileAnalyzers
+  (`fileanalyzers/v*`).
 
   Derives the package version from the component's own git release tags, so that packages sharing
   this monorepo with the Designer are not affected by the Designer's weekly `vYYYY.NN` tags.
@@ -13,7 +15,11 @@
   Consumers may override the computed values (a release pipeline passes the version it is releasing):
     ReleasePackageVersion, ReleaseAssemblyVersion, ReleaseInformationalVersion
 
-  Version shape, mirroring src/App/backend/src/Directory.Build.props:
+  An unrecognized override name is NOT an error — it falls back to the derived version, and the
+  release then ships as <version>.dev.N. Renaming these means updating every caller; today that is
+  `runDotnetPack` in src/tools/releaser/builder_app.go and the two release-*.yaml pack steps.
+
+  Version shape:
     on a release tag        9.0.0-preview.1
     N commits past a tag    9.0.0-preview.1.dev.N   (prerelease base)
                             9.0.1-dev.N             (stable base)
