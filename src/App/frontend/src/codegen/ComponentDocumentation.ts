@@ -184,6 +184,9 @@ function formatType(definition: PropertyValueDefinition): string {
   ) {
     type = `${type} (${definition.minimum ?? '−∞'}–${definition.maximum ?? '∞'})`;
   }
+  if (definition.type === 'array' && (definition.minItems !== undefined || definition.maxItems !== undefined)) {
+    type = `${type} (minItems: ${definition.minItems ?? 0}, maxItems: ${definition.maxItems ?? '∞'})`;
+  }
   return 'expression' in definition && definition.expression ? `${type} | expression<${type}>` : type;
 }
 

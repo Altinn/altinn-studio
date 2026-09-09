@@ -75,7 +75,13 @@ export type PropertyValueDefinition =
   | Readonly<{ type: 'null' }>
   | Readonly<{ type: 'any'; expression?: true }>
   | Readonly<{ type: 'constant'; value: string | number | boolean | null }>
-  | Readonly<{ type: 'array'; expression?: true; items: PropertyValueDefinition }>
+  | Readonly<{
+      type: 'array';
+      expression?: true;
+      items: PropertyValueDefinition;
+      minItems?: number;
+      maxItems?: number;
+    }>
   | Readonly<{
       type: 'object';
       expression?: true;

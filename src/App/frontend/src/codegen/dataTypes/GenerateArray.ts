@@ -47,6 +47,12 @@ export class GenerateArray<Inner extends CodeGenerator<any>> extends Describable
   }
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
-    return { type: 'array', items: this.innerType.toComponentCatalog(), ...this.componentCatalogMetadata() };
+    return {
+      type: 'array',
+      items: this.innerType.toComponentCatalog(),
+      minItems: this._minItems,
+      maxItems: this._maxItems,
+      ...this.componentCatalogMetadata(),
+    };
   }
 }

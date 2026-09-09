@@ -25,6 +25,28 @@ const exampleComponent = {
 } as const;
 
 describe('generateComponentDocumentation', () => {
+  it.each([
+    [1, 3, 'minItems: 1, maxItems: 3'],
+    [0, 0, 'minItems: 0, maxItems: 0'],
+    [undefined, 3, 'minItems: 0, maxItems: 3'],
+    [1, undefined, 'minItems: 1, maxItems: ∞'],
+  ])('renders array cardinality limits %s and %s', (minItems, maxItems, expected) => {
+    const catalog = {
+      Example: {
+        ...exampleComponent,
+        properties: {
+          values: { type: 'array', items: { type: 'string' }, minItems, maxItems, required: false },
+        },
+      },
+    } as const satisfies ComponentCatalog;
+
+    for (const language of ['en', 'nb'] as const) {
+      expect(generateComponentDocumentation(catalog, {}, language).get('Example')).toContain(
+        `| \`values\` | \`string[] (${expected})\` |`,
+      );
+    }
+  });
+
   it('renders nested object and array properties with expression result types', () => {
     const catalog = {
       Example: {
