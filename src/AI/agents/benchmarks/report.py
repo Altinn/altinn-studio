@@ -27,15 +27,15 @@ VERDICT_WORDS = {
 }
 VERDICT_CLASS = {
     "holding": "hold",
-    "improved": "moved",
+    "improved": "hold",
     "regressed": "broken",
     "failing": "broken",
     "output-changed": "moved",
+    "variance": "moved",
     "unpinned": "unpinned",
-    "not-run": "unpinned",
-    "no-score": "broken",
-    "new": "hold",
-    "variance": "hold",
+    "not-run": "unknown",
+    "no-score": "unknown",
+    "new": "unknown",
 }
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "eval_report_judge.md"
@@ -607,11 +607,13 @@ def _references(
     """Every run the page can be read against, newest first."""
     from benchmarks.runstore import all_runs
 
+    others = [r for r in all_runs(directory=directory) if r.name != current.name]
     kinds = {}
     if adopted:
         kinds[adopted.name] = "baseline"
-    if previous and previous.name not in kinds:
-        kinds[previous.name] = "previous"
+    prior = previous or next((r for r in others if r.name not in kinds), None)
+    if prior and prior.name not in kinds:
+        kinds[prior.name] = "previous"
     built = []
     for run in all_runs(directory=directory):
         if run.name == current.name:
