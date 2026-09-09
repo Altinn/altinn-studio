@@ -88,5 +88,21 @@ The focused signing tests cover:
 - lost external responses and recovery from facts already saved in Storage;
 - legacy pre-engine instances completing and rejecting without initialization.
 
-Current-main port testing is in progress. Final readiness and validation results belong in the change review after that
-port is complete.
+## Verification
+
+Verified on September 9, 2026, against main through `804449c4d5`:
+
+- The full backend solution builds. Existing dependency audit warnings remain.
+- Core: 3,971 passed, two platform-specific skips. API: 603 passed, one platform-specific skip.
+- All 106 enabled integration cases passed across the full run and focused rerun; one fixture test is skipped.
+  The full run found four snapshot/harness issues, which were corrected; all 37 cases in the affected classes
+  and the signing smoke test then passed. Tests used freshly packed libraries and a private current-main
+  workflow engine/localtest environment.
+- Localtest: 98 passed, including delegation and revocation idempotency.
+- Fiks client, analyzer, source-generator, and source-generator integration suites: 501 passed.
+- Frontend: 102 signing/process tests passed, and TypeScript checking passed.
+- Changed-file spelling and agent-documentation checks passed.
+
+Integration verification exercises HTTP behavior with the real local engine and Storage emulator. Frontend component
+tests used current sources; the HTTP test harness reused existing frontend assets, and browser rendering was not
+manually verified. External delegation and Correspondence failure injection remains simulated by the test app.
