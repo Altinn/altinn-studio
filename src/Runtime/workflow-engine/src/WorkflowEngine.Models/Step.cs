@@ -71,6 +71,14 @@ public sealed record Step : PersistentItem
     /// </summary>
     public string? SkipReason { get; set; }
 
+    /// <summary>
+    /// Who caused the skip: <see cref="Models.SkipOrigin.Command"/> or <see cref="Models.SkipOrigin.Manual"/>.
+    /// Set on the same step that carries <see cref="SkipReason"/> (the first step that did not complete, whether or
+    /// not a reason was given); <c>null</c> on the later steps it caused to be skipped and on steps that were never
+    /// skipped.
+    /// </summary>
+    public SkipOrigin? SkipOrigin { get; set; }
+
 #pragma warning disable CA1002, CA2227 // Mutable domain entity — List<T> with setter is intentional
     /// <summary>
     /// Errors recorded across this step's execution attempts, in chronological order.

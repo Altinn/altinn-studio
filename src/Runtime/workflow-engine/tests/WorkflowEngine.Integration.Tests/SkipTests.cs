@@ -65,16 +65,19 @@ public sealed class SkipTests(EngineAppFixture<Program> fixture) : IAsyncLifetim
         var before = workflow.Steps.Single(s => s.ProcessingOrder == 0);
         Assert.Equal(PersistentItemStatus.Completed, before.Status);
         Assert.Null(before.SkipReason);
+        Assert.Null(before.SkipOrigin);
 
         var skipping = workflow.Steps.Single(s => s.ProcessingOrder == 1);
         Assert.Equal(PersistentItemStatus.Skipped, skipping.Status);
         Assert.Equal(SkipReason, skipping.SkipReason);
+        Assert.Equal(SkipOrigin.Command, skipping.SkipOrigin);
         Assert.Null(skipping.ErrorHistory);
         Assert.Equal(0, skipping.RetryCount);
 
         var after = workflow.Steps.Single(s => s.ProcessingOrder == 2);
         Assert.Equal(PersistentItemStatus.Skipped, after.Status);
         Assert.Null(after.SkipReason);
+        Assert.Null(after.SkipOrigin);
         Assert.Null(after.ErrorHistory);
 
         // The later step never ran, yet its row was stamped by the skipping step's write-back (the typed

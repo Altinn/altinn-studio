@@ -38,11 +38,8 @@ internal static class PersistentItemStatusMap
         [PersistentItemStatus.Canceled, PersistentItemStatus.Failed, PersistentItemStatus.DependencyFailed];
 
     /// <summary>
-    /// Terminal states that satisfy a default dependency edge for the recovery sweep. Wider than
-    /// <see cref="Successful"/>: a <see cref="PersistentItemStatus.Skipped"/> upstream did not do its work,
-    /// but ended deliberately and without failure — by a command's skip outcome or an operator's skip — so a
-    /// dependent parked behind it may run. Narrower than <see cref="Finished"/>: the failed states never
-    /// satisfy the requirement.
+    /// Terminal states that satisfy a default dependency edge for the recovery sweep: <see cref="Successful"/>, plus
+    /// <see cref="PersistentItemStatus.Skipped"/> because a skip ends deliberately and without failure.
     /// </summary>
     public static IReadOnlyCollection<PersistentItemStatus> SatisfiesDependency =>
         [.. Successful, PersistentItemStatus.Skipped];

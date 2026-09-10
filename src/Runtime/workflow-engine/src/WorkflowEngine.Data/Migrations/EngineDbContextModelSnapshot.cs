@@ -333,6 +333,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("retry_strategy_json");
 
+                    b.Property<int?>("SkipOrigin")
+                        .HasColumnType("integer")
+                        .HasColumnName("skip_origin");
+
                     b.Property<string>("SkipReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")

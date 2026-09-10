@@ -500,16 +500,17 @@ internal sealed class WorkflowHandler(
     }
 
     /// <summary>
-    /// Ends the workflow without running the rest of it: the skipping step and every step after it
-    /// become <see cref="PersistentItemStatus.Skipped"/>, with the command's reason recorded on the
-    /// skipping step only. A skip is a successful execution: no error history, no retry scheduled,
-    /// and the later steps' counters and state are left untouched.
+    /// Ends the workflow at the current step: it and every later step become
+    /// <see cref="PersistentItemStatus.Skipped"/>, the command's reason and <see cref="SkipOrigin.Command"/> are
+    /// recorded on the current step only, and the workflow's backoff is cleared. A skip is a successful execution:
+    /// no error entry, no retry, and the later steps only change status.
     /// </summary>
     private void ApplySkipDecision(Workflow workflow, Step currentStep, ExecutionResult result)
     {
         var now = timeProvider.GetUtcNow();
 
         currentStep.SkipReason = result.Message is { Length: > 500 } longReason ? longReason[..500] : result.Message;
+        currentStep.SkipOrigin = SkipOrigin.Command;
         currentStep.Status = PersistentItemStatus.Skipped;
 
         var skippedSuccessorCount = 0;

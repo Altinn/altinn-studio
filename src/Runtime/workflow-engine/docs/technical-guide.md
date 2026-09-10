@@ -392,9 +392,14 @@ return ExecutionResult.Skip("acquireConcurrencyConflict");
 The engine marks the step `Skipped` together with every later step in the workflow; steps before it
 stay `Completed`. The workflow ends `Skipped`. The reason is required and non-blank, truncated to
 500 characters, persisted as `skipReason` on the step that returned the skip only (the later steps it
-took with it carry null) and surfaced on workflow status reads. It is the code a consumer classifies
-on, so phrase it as one. Like the defer reason it is app-supplied text and is never written to logs
-or trace tags.
+took with it carry null) and surfaced on workflow status reads beside `skipOrigin` — `Command` here,
+`Manual` for an [operator skip](#skipping-a-failed-workflow), absent on the later steps. It is the
+code a consumer classifies on, so phrase it as one — and a consumer classifies on it only when
+`skipOrigin` is `Command`, because an operator's reason is free text. It is app-supplied text and,
+unlike the defer reason, is never written to logs: the executor's Information line for a skip
+(`Step … skipped the rest of the workflow after …`) omits it and the app host logs neither reason,
+whereas the executor logs a deferral's reason at Information (`Step … deferred after …: <reason>`).
+Neither reason is put on trace tags.
 
 A skip is kept apart from errors and from deferrals alike:
 
@@ -445,10 +450,12 @@ POST /api/v1/{namespace}/workflows/{workflowId}/skip
 The result has the shape a command's skip leaves: every step that had not completed becomes
 `Skipped` — the failed step keeps its error history — earlier `Completed` steps are untouched, and
 the workflow ends `Skipped`. `reason` (at most 500 characters) is persisted as `skipReason` on the
-first of the skipped steps. The body may be omitted, and an omitted, null or whitespace-only reason
-is stored as null; nothing is invented in its place. A command's skip always carries a reason, so a
-null `skipReason` on a skipped step means exactly one thing: an operator skipped the workflow without
-stating why.
+first of the skipped steps, with `skipOrigin` = `Manual` beside it. The body may be omitted, and an
+omitted, null or whitespace-only reason is stored as null; nothing is invented in its place. A
+command's skip always carries a reason, so a null `skipReason` on a skipped step means exactly one
+thing: an operator skipped the workflow without stating why — and `skipOrigin` says who skipped even
+when a reason was given, so a consumer knows not to read it as a code and an audit does not have to
+consult the metrics.
 
 The consequences are those of any `Skipped` workflow ([above](#terminal-and-settled)): dependents
 enqueued afterwards run, dependents already parked in `DependencyFailed` are released by the
@@ -1539,11 +1546,11 @@ Content-Type: application/json
 ```
 
 Skips an unsuccessful terminal (`Failed`, `Canceled` or `DependencyFailed`) workflow by operator decision — see
-[Skipping a failed workflow](#skipping-a-failed-workflow). The body is optional: `reason` (at most 500 characters)
-is recorded as `skipReason` on the first step that did not complete, and an omitted or blank reason records
-nothing. Returns `200 OK` with the original `skippedAt` when the workflow is already `Skipped` (idempotent
-replay), `409 Conflict` when it is in any other state, `404 Not Found` when it doesn't exist, and
-`400 Bad Request` for an over-long reason.
+[Skipping a failed workflow](#skipping-a-failed-workflow). The first step that did not complete records
+`skipOrigin` = `Manual` and, as `skipReason`, the optional `reason` (at most 500 characters) — an omitted or
+blank reason is stored as null. Returns `200 OK` with the original `skippedAt` when the workflow is already
+`Skipped` (idempotent replay), `409 Conflict` when it is in any other state, `404 Not Found` when it doesn't
+exist, and `400 Bad Request` for an over-long reason.
 
 ### List Collections
 

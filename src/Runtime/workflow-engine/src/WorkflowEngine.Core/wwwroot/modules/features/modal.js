@@ -215,6 +215,7 @@ const buildDetailsContent = (data) => {
     html += timeRow('Last Deferred', /** @type {string} */ (data.lastDeferredAt));
     html += row('Defer Reason', data.lastDeferReason);
     html += row('Skip Reason', data.skipReason);
+    html += row('Skip Origin', data.skipOrigin);
 
     const rs = /** @type {Record<string, unknown>|null} */ (data.retryStrategy);
     if (rs) {

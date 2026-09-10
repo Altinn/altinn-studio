@@ -122,10 +122,27 @@ internal class SqlBulkInserter(IDbContextFactory<EngineDbContext> dbContextFacto
         if (converterExpression != null)
         {
             var converterParam = converterExpression.Parameters[0];
-            body = Expression.Invoke(converterExpression, Expression.Convert(body, converterParam.Type));
+            Expression converted = Expression.Convert(
+                Expression.Invoke(converterExpression, Expression.Convert(body, converterParam.Type)),
+                typeof(object)
+            );
+            // A nullable enum's converter takes the underlying enum, so the Convert above unwraps the value and
+            // throws on null; null has to bypass the converter.
+            body =
+                Nullable.GetUnderlyingType(body.Type) is not null
+                && Nullable.GetUnderlyingType(converterParam.Type) is null
+                    ? Expression.Condition(
+                        Expression.Property(body, nameof(Nullable<int>.HasValue)),
+                        converted,
+                        Expression.Constant(null, typeof(object))
+                    )
+                    : converted;
+        }
+        else
+        {
+            body = Expression.Convert(body, typeof(object));
         }
 
-        body = Expression.Convert(body, typeof(object));
         return Expression.Lambda<Func<T, object?>>(body, param).Compile();
     }
 }

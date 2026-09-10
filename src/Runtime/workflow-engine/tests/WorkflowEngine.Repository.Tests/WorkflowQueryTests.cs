@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
 
@@ -304,7 +305,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ResumeWorkflow_CanceledWithSkippedStep_ResetsStepAndClearsSkipReason()
+    public async Task ResumeWorkflow_CanceledWithSkippedStep_ResetsStepAndClearsSkipReasonAndOrigin()
     {
         // A cancel or shutdown that lands while the skip write-back is awaited leaves a Canceled
         // workflow holding a Skipped step, and Canceled is resumable. The re-run must start from a
@@ -318,7 +319,8 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
             $"""
             UPDATE engine.steps
             SET status = {(int)PersistentItemStatus.Skipped},
-                skip_reason = 'acquireConcurrencyConflict'
+                skip_reason = 'acquireConcurrencyConflict',
+                skip_origin = {(int)SkipOrigin.Command}
             WHERE id = {stepId}
             """,
             TestContext.Current.CancellationToken
@@ -339,6 +341,92 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
         Assert.Null(step.SkipReason);
+        Assert.Null(step.SkipOrigin);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_Cascade_DependentSkippedUnderTheCascadeLock_StaysSkipped()
+    {
+        // The cascade's recursive CTE picks its DependencyFailed dependents from the statement snapshot. When the
+        // UPDATE then blocks on a dependent an operator skip has locked, Postgres re-checks only the UPDATE's own
+        // WHERE against the committed row, so the status has to be restated there or Skipped is overwritten.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+        var parent = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed, ns: ns);
+        var dependent = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            ns: ns,
+            dependencies: [parent.DatabaseId]
+        );
+        var dependentStepId = Assert.Single(dependent.Steps).DatabaseId;
+
+        await using var skipConnection = await fixture.DataSource.OpenConnectionAsync(
+            TestContext.Current.CancellationToken
+        );
+        await using var skipTransaction = await skipConnection.BeginTransactionAsync(
+            TestContext.Current.CancellationToken
+        );
+        await using (
+            var skip = new NpgsqlCommand(
+                """
+                UPDATE engine.workflows SET status = @skipped, updated_at = now() WHERE id = @id;
+                UPDATE engine.steps
+                SET status = @skipped, skip_reason = @reason, skip_origin = @origin, updated_at = now()
+                WHERE job_id = @id
+                """,
+                skipConnection,
+                skipTransaction
+            )
+        )
+        {
+            skip.Parameters.Add(new NpgsqlParameter<Guid>("id", dependent.DatabaseId));
+            skip.Parameters.Add(new NpgsqlParameter<int>("skipped", (int)PersistentItemStatus.Skipped));
+            skip.Parameters.Add(new NpgsqlParameter<string>("reason", "Written off by an operator"));
+            skip.Parameters.Add(new NpgsqlParameter<int>("origin", (int)SkipOrigin.Manual));
+            await skip.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var resume = repo.ResumeWorkflow(
+            parent.DatabaseId,
+            ns,
+            DateTimeOffset.UtcNow,
+            cascade: true,
+            TestContext.Current.CancellationToken
+        );
+
+        using var lockWait = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        lockWait.CancelAfter(TimeSpan.FromSeconds(10));
+        await using var pollConnection = await fixture.DataSource.OpenConnectionAsync(lockWait.Token);
+        await using (
+            var waiters = new NpgsqlCommand(
+                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'",
+                pollConnection
+            )
+        )
+        {
+            while ((long)(await waiters.ExecuteScalarAsync(lockWait.Token))! == 0)
+                await Task.Delay(TimeSpan.FromMilliseconds(20), lockWait.Token);
+        }
+
+        await skipTransaction.CommitAsync(TestContext.Current.CancellationToken);
+        var resumed = await resume;
+
+        Assert.Equal([parent.DatabaseId], resumed);
+        var dbParent = await fixture.GetWorkflow(parent.DatabaseId);
+        Assert.NotNull(dbParent);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbParent.Status);
+
+        var dbDependent = await fixture.GetWorkflow(dependent.DatabaseId);
+        Assert.NotNull(dbDependent);
+        Assert.Equal(PersistentItemStatus.Skipped, dbDependent.Status);
+        var dependentStep = Assert.Single(dbDependent.Steps);
+        Assert.Equal(dependentStepId, dependentStep.DatabaseId);
+        Assert.Equal(PersistentItemStatus.Skipped, dependentStep.Status);
+        Assert.Equal("Written off by an operator", dependentStep.SkipReason);
+        Assert.Equal(SkipOrigin.Manual, dependentStep.SkipOrigin);
     }
 
     [Fact]

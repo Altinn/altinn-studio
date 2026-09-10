@@ -545,6 +545,7 @@ internal static class DashboardEndpoints
                             lastDeferredAt = s.LastDeferredAt,
                             lastDeferReason = s.LastDeferReason,
                             skipReason = s.SkipReason,
+                            skipOrigin = s.SkipOrigin?.ToString(),
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,

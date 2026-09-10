@@ -315,6 +315,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var doc = JsonDocument.Parse(json);
         Assert.Equal("Skipped", doc.RootElement.GetProperty("status").GetString());
         Assert.Equal("acquireConcurrencyConflict", doc.RootElement.GetProperty("skipReason").GetString());
+        Assert.Equal("Command", doc.RootElement.GetProperty("skipOrigin").GetString());
         Assert.False(doc.RootElement.TryGetProperty("lastDeferReason", out _));
     }
 
@@ -360,6 +361,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var doc = JsonDocument.Parse(json);
         Assert.Equal("Skipped", doc.RootElement.GetProperty("status").GetString());
         Assert.Equal("Written off by the operator", doc.RootElement.GetProperty("skipReason").GetString());
+        Assert.Equal("Manual", doc.RootElement.GetProperty("skipOrigin").GetString());
         var error = Assert.Single(doc.RootElement.GetProperty("errorHistory").EnumerateArray());
         Assert.Equal(500, error.GetProperty("httpStatusCode").GetInt32());
     }

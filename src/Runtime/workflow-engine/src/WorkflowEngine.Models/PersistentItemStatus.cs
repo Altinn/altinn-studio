@@ -45,15 +45,10 @@ public enum PersistentItemStatus
     DependencyFailed = 6,
 
     /// <summary>
-    /// The item's work did not run and was not needed. A command returned <see cref="ExecutionStatus.Skipped"/>:
-    /// the handler marks the step (with the reason in <see cref="Step.SkipReason"/>) and every later step Skipped
-    /// and ends the workflow Skipped; earlier steps stay <see cref="Completed"/>. An operator can put a
-    /// <see cref="Failed"/>, <see cref="Canceled"/> or <see cref="DependencyFailed"/> workflow into the same state
-    /// through the skip endpoint, with an optional reason on the first step that did not complete — a null
-    /// <see cref="Step.SkipReason"/> on a Skipped step means exactly that, since a command's skip always carries
-    /// one. Terminal and not a failure: dependents evaluated against it run and it satisfies a dependency for the
-    /// recovery sweep. Not <see cref="Completed"/>, because the work did not happen. A Skipped workflow is not
-    /// resumable.
+    /// The item's work did not run and was not needed: a command returned <see cref="ExecutionStatus.Skipped"/>, or
+    /// an operator skipped an unsuccessful terminal workflow through the skip endpoint (<see cref="Step.SkipOrigin"/>
+    /// says which, <see cref="Step.SkipReason"/> why). Terminal and not a failure, so it satisfies dependencies; not
+    /// <see cref="Completed"/>, because the work did not happen; not resumable.
     /// </summary>
     Skipped = 7,
 

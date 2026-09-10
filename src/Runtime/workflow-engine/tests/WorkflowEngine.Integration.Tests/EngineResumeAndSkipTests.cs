@@ -239,8 +239,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
         Assert.Equal(parentId, skipBody.WorkflowId);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
 
-        // Counted on each skip counter, tagged manual to tell the operator's skip from a command's. Contains
-        // rather than Single: the meter is process-wide and this class runs in parallel with the shared
+        // Contains rather than Single: the meter is process-wide and this class runs in parallel with the shared
         // collection, whose dashboard test also skips a workflow by hand.
         Assert.Contains(
             collector.GetMeasurements("engine.workflows.execution.skipped"),
@@ -254,12 +253,12 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
             m => m.Value is 1L && m.Tags.Any(t => t.Key == "reason" && (string?)t.Value == "manual")
         );
 
-        // The failed step is Skipped with the operator's reason; its error history still says why it failed.
         var parent = await GetWorkflow(client, parentId);
         Assert.Null(parent.BackoffUntil);
         var step = Assert.Single(parent.Steps);
         Assert.Equal(PersistentItemStatus.Skipped, step.Status);
         Assert.Equal(SkipReason, step.SkipReason);
+        Assert.Equal(SkipOrigin.Manual, step.SkipOrigin);
         Assert.NotNull(step.ErrorHistory);
         Assert.NotEmpty(step.ErrorHistory);
 
@@ -342,10 +341,10 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
 
-        // The never-run step takes the status and the reason, so the row reads like a command's skip.
         var step = Assert.Single((await GetWorkflow(client, parentId)).Steps);
         Assert.Equal(PersistentItemStatus.Skipped, step.Status);
         Assert.Equal(SkipReason, step.SkipReason);
+        Assert.Equal(SkipOrigin.Manual, step.SkipOrigin);
 
         var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");
         await WaitForTerminalStatus(successorId, PersistentItemStatus.Completed);
@@ -422,7 +421,6 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Accepted, skipResponse.StatusCode);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
 
-        // The sweep releases the child, which then runs against the catch-all 200 stub.
         await WaitForTerminalStatus(childId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Skipped);
     }
@@ -430,8 +428,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
     [Fact]
     public async Task Skip_CanceledWorkflow_EndsSkipped()
     {
-        // A cancel caught mid-flight leaves a Canceled workflow with a step that never completed; an
-        // operator skip without a reason settles it as Skipped with a null skipReason.
+        // Canceled mid-flight, so the workflow still holds an open step for the skip to take.
         SetupWireMock();
         _wireMock
             .Given(Request.Create().WithPath("/slow-then-skipped").UsingAnyMethod())
@@ -458,6 +455,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
         var step = Assert.Single((await GetWorkflow(client, workflowId)).Steps);
         Assert.Equal(PersistentItemStatus.Skipped, step.Status);
         Assert.Null(step.SkipReason);
+        Assert.Equal(SkipOrigin.Manual, step.SkipOrigin);
     }
 
     [Fact]
@@ -509,8 +507,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
     [Fact]
     public async Task Skip_KeepsIdempotencyKey_ReplaySameBodyDedupsOntoSkipped()
     {
-        // A skip is a write-off, not a retry ticket: the enqueue fingerprint stays, so an identical replay
-        // keeps deduplicating onto the skipped workflow (200) for as long as the key row is retained.
+        // Deliberate: the enqueue fingerprint stays for the key row's lifetime, as after a completed workflow.
         SetupWireMock();
         _wireMock
             .Given(Request.Create().WithPath("/fail-key-kept-replay").UsingAnyMethod())
@@ -556,8 +553,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
     [Fact]
     public async Task Skip_KeepsIdempotencyKey_SameKeyDifferentBodyConflicts()
     {
-        // The kept fingerprint also keeps refusing a corrected body under the same key: the caller must
-        // use a new key, exactly as after a completed workflow.
+        // A corrected body needs a new key, as after a completed workflow.
         SetupWireMock();
         _wireMock
             .Given(Request.Create().WithPath("/fail-key-kept-conflict").UsingAnyMethod())
@@ -601,8 +597,6 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
     [Fact]
     public async Task Skip_AlreadySkippedByCommand_ReturnsOk()
     {
-        // One status, one replay rule: a workflow a command's skip outcome ended answers the operator's
-        // skip with an idempotent 200 and keeps the command's reason.
         SetupWireMock();
 
         await using var factory = CreateFactory();
@@ -625,6 +619,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
 
         var step = Assert.Single((await GetWorkflow(client, workflowId)).Steps);
         Assert.Equal("acquireConcurrencyConflict", step.SkipReason);
+        Assert.Equal(SkipOrigin.Command, step.SkipOrigin);
     }
 
     [Fact]
@@ -649,6 +644,7 @@ public sealed class EngineResumeAndSkipTests : IAsyncLifetime
         var step = Assert.Single((await GetWorkflow(client, workflowId)).Steps);
         Assert.Equal(PersistentItemStatus.Skipped, step.Status);
         Assert.Null(step.SkipReason);
+        Assert.Equal(SkipOrigin.Manual, step.SkipOrigin);
     }
 
     [Fact]

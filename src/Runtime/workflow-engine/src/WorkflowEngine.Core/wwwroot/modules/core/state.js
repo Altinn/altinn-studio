@@ -18,6 +18,7 @@
  *   firstDeferredAt: string | null,
  *   lastDeferReason: string | null,
  *   skipReason:     string | null,
+ *   skipOrigin:     'Command' | 'Manual' | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   executionStartedAt: string | null,

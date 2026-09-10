@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Models;
@@ -193,6 +194,40 @@ public class WorkflowExecutorTests
         Assert.Equal("application/json", captured.ContentType);
     }
 
+    // === Outcome Logging Tests ===
+
+    [Fact]
+    public async Task Execute_SkippedStep_LogsInformationWithoutTheReason()
+    {
+        // Arrange - a skip is routine (every acquire conflict is one), so it must not raise the error entry the
+        // failure branch writes, and the reason is app-supplied text the engine never logs
+        using var logs = new LogCollector();
+        using var fixture = WorkflowEngineTestFixture.Create(services =>
+        {
+            services.AddSingleton<ICommand>(new SkippingCommand("acquireConcurrencyConflict"));
+            services.AddSingleton<ILoggerProvider>(logs);
+        });
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+        var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "test-skip" });
+        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
+
+        // Act
+        var result = await executor.Execute(workflow, step, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.Skipped, result.Status);
+        var skipped = Assert.Single(
+            logs.Entries,
+            e => e.Message.Contains("skipped the rest of the workflow after", StringComparison.Ordinal)
+        );
+        Assert.Equal(LogLevel.Information, skipped.Level);
+        Assert.DoesNotContain(logs.Entries, e => e.Level >= LogLevel.Warning);
+        Assert.DoesNotContain(
+            logs.Entries,
+            e => e.Message.Contains("acquireConcurrencyConflict", StringComparison.Ordinal)
+        );
+    }
+
     // === Delegate Tests ===
 
     [Fact]
@@ -361,6 +396,24 @@ public class WorkflowExecutorTests
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
         Assert.Contains("Delegate failed", result.Message, StringComparison.Ordinal);
     }
+}
+
+/// <summary>
+/// Skips the rest of the workflow with the given reason on every execution.
+/// </summary>
+internal sealed class SkippingCommand(string reason) : ICommand
+{
+    public string CommandType => "test-skip";
+
+    public Type? CommandDataType => null;
+
+    public Type? WorkflowContextType => null;
+
+    public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
+        new CommandValidationResult.Valid();
+
+    public Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        Task.FromResult(ExecutionResult.Skip(reason));
 }
 
 /// <summary>

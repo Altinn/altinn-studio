@@ -21,6 +21,7 @@ public class StepEntityTests
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 11, 0, 0, TimeSpan.Zero),
             RequeueCount = 2,
             SkipReason = "acquireConcurrencyConflict",
+            SkipOrigin = SkipOrigin.Command,
             CommandJson = commandJson ?? """{"type":"app","data":{"value":1}}""",
             RetryStrategyJson = includeRetryStrategy
                 ? (retryStrategyJson ?? """{"backoffType":"Exponential","baseInterval":"00:00:05","maxRetries":3}""")
@@ -47,6 +48,8 @@ public class StepEntityTests
         Assert.Equal(entity.RequeueCount, roundTripped.RequeueCount);
         Assert.Equal(entity.SkipReason, domain.SkipReason);
         Assert.Equal(entity.SkipReason, roundTripped.SkipReason);
+        Assert.Equal(entity.SkipOrigin, domain.SkipOrigin);
+        Assert.Equal(entity.SkipOrigin, roundTripped.SkipOrigin);
     }
 
     [Fact]

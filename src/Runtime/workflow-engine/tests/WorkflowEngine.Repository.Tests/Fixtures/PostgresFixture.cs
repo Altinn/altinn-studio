@@ -54,7 +54,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     /// a private pool that lives until disposed, and one per <c>CreateRepository</c> call exhausts the
     /// container's 100-connection limit — failing whichever test class happens to run last.
     /// </summary>
-    private NpgsqlDataSource DataSource =>
+    internal NpgsqlDataSource DataSource =>
         _dataSource ?? throw new InvalidOperationException("The fixture has not been initialized yet.");
 
     public async ValueTask InitializeAsync()

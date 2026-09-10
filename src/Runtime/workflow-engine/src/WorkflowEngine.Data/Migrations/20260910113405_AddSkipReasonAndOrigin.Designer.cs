@@ -12,8 +12,8 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260909113441_AddSkipReason")]
-    partial class AddSkipReason
+    [Migration("20260910113405_AddSkipReasonAndOrigin")]
+    partial class AddSkipReasonAndOrigin
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -335,6 +335,10 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("RetryStrategyJson")
                         .HasColumnType("jsonb")
                         .HasColumnName("retry_strategy_json");
+
+                    b.Property<int?>("SkipOrigin")
+                        .HasColumnType("integer")
+                        .HasColumnName("skip_origin");
 
                     b.Property<string>("SkipReason")
                         .HasMaxLength(500)

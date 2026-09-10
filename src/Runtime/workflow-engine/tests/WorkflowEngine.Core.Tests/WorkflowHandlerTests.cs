@@ -940,7 +940,6 @@ public class WorkflowHandlerTests
         Assert.All(workflow.Steps, s => Assert.Equal(PersistentItemStatus.Skipped, s.Status));
         Assert.All(workflow.Steps, s => Assert.Empty(s.ErrorHistory));
         Assert.All(workflow.Steps, s => Assert.NotNull(s.UpdatedAt));
-        // Only the skipping step ran; the later ones were never executed
         executor.Verify(
             e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
             Times.Once
@@ -971,7 +970,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_StepSkips_PersistsReasonOnTriggeringStepOnly()
+    public async Task Handle_StepSkips_PersistsReasonAndOriginOnTriggeringStepOnly()
     {
         var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Skip("acquireConcurrencyConflict"));
         var handler = CreateHandler(executor.Object);
@@ -984,8 +983,11 @@ public class WorkflowHandlerTests
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
         Assert.Null(workflow.Steps[0].SkipReason);
+        Assert.Null(workflow.Steps[0].SkipOrigin);
         Assert.Equal("acquireConcurrencyConflict", workflow.Steps[1].SkipReason);
+        Assert.Equal(SkipOrigin.Command, workflow.Steps[1].SkipOrigin);
         Assert.Null(workflow.Steps[2].SkipReason);
+        Assert.Null(workflow.Steps[2].SkipOrigin);
     }
 
     [Fact]
@@ -1004,8 +1006,7 @@ public class WorkflowHandlerTests
     [Fact]
     public async Task Handle_StepSkips_SubmitsAllLaterStepsInOneWrite()
     {
-        // The later steps change status without ever being processed, so the skipping step's own
-        // write-back must carry them — nothing else writes them before the terminal workflow submit.
+        // Nothing else writes the later steps before the terminal workflow submit.
         var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Skip("acquireConcurrencyConflict"));
         List<IReadOnlyList<Step>?> stepWrites = [];
         var buffer = new Mock<IWorkflowUpdateBuffer>();
@@ -1056,8 +1057,7 @@ public class WorkflowHandlerTests
 
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
-        // One skipping step, however many it took with it; one skipped workflow tagged by head visibility.
-        // Both carry reason=command, which tells them apart from an operator's skip
+        // Once per skipping step, not per step it took with it
         Assert.Equal(1, meters.Total("engine.steps.execution.skipped"));
         Assert.Equal(1, meters.ByTag("engine.steps.execution.skipped", "reason")["command"]);
         Assert.Equal(1, meters.Total("engine.workflows.execution.skipped"));
@@ -1073,7 +1073,6 @@ public class WorkflowHandlerTests
     [Fact]
     public async Task Handle_StepSkips_NoRetryScheduled()
     {
-        // A skip is terminal: no backoff for a next attempt, and the retry counter untouched.
         var executor = MockExecutor(ExecutionResult.Skip("acquireConcurrencyConflict"));
         var settings = _defaultSettings with
         {

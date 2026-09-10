@@ -1720,6 +1720,7 @@ internal sealed partial class EngineRepository
                         var stepLastDeferredAt = new object[allSteps.Count];
                         var stepLastDeferReasons = new object[allSteps.Count];
                         var stepSkipReasons = new object[allSteps.Count];
+                        var stepSkipOrigins = new object[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
@@ -1737,6 +1738,7 @@ internal sealed partial class EngineRepository
                             stepLastDeferredAt[i] = s.LastDeferredAt.HasValue ? s.LastDeferredAt.Value : DBNull.Value;
                             stepLastDeferReasons[i] = (object?)s.LastDeferReason ?? DBNull.Value;
                             stepSkipReasons[i] = (object?)s.SkipReason ?? DBNull.Value;
+                            stepSkipOrigins[i] = s.SkipOrigin.HasValue ? (int)s.SkipOrigin.Value : DBNull.Value;
                             stepErrorHistories[i] =
                                 s.ErrorHistory.Count > 0
                                     ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
@@ -1754,14 +1756,15 @@ internal sealed partial class EngineRepository
                                 last_deferred_at     = v.last_deferred_at,
                                 last_defer_reason    = v.last_defer_reason,
                                 skip_reason          = v.skip_reason,
+                                skip_origin          = v.skip_origin,
                                 error_history        = v.error_history,
                                 state_out            = v.state_out,
                                 engine_trace_context = v.engine_trace_context,
                                 updated_at           = @now
                             FROM (
                                 SELECT *
-                                FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @skip_reasons, @error_histories, @engine_trace_contexts, @state_outs)
-                                    AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, skip_reason, error_history, engine_trace_context, state_out)
+                                FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @skip_reasons, @skip_origins, @error_histories, @engine_trace_contexts, @state_outs)
+                                    AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, skip_reason, skip_origin, error_history, engine_trace_context, state_out)
                                 ORDER BY t.id
                             ) AS v
                             WHERE s.id = v.id
@@ -1794,6 +1797,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("skip_reasons", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
                                 Value = stepSkipReasons,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("skip_origins", NpgsqlDbType.Array | NpgsqlDbType.Integer)
+                            {
+                                Value = stepSkipOrigins,
                             }
                         );
                         cmd.Parameters.Add(
@@ -1961,6 +1970,7 @@ internal sealed partial class EngineRepository
                                 updated_at = @now
                             FROM dependents d
                             WHERE w.id = d.id
+                              AND w.status = @depFailed
                             RETURNING w.id
                             """;
                         await using var cmd = new NpgsqlCommand(cascadeSql, conn, tx);
@@ -1986,6 +1996,7 @@ internal sealed partial class EngineRepository
                             last_deferred_at = NULL,
                             last_defer_reason = NULL,
                             skip_reason = NULL,
+                            skip_origin = NULL,
                             updated_at = @now
                         WHERE job_id = ANY(@ids)
                           AND status != @completed
@@ -2191,15 +2202,10 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
 
-                    // Compare-and-set from the unsuccessful terminal states only. A concurrent resume
-                    // moves the row out of the source set and this becomes a no-op — the caller must
-                    // re-read and re-decide rather than skip a workflow that is running again. Every
-                    // step that did not complete becomes Skipped, so the row matches what the handler
-                    // leaves after a command's skip: the reason lands on the first of them and the rest
-                    // carry null. error_history stays — it says why the step failed before the operator
-                    // skipped it; skip_reason says why it was skipped. The idempotency key is not
-                    // released: a replay of the same fingerprint dedups onto the skipped workflow, as
-                    // it does onto a completed one.
+                    // A concurrent resume moves the row out of the source set and makes this a no-op; the
+                    // caller re-reads rather than skip a workflow that is running again. error_history is
+                    // kept (why the step failed, as opposed to why it was skipped), and the idempotency key
+                    // is deliberately not released.
                     const string sql = """
                         WITH skipped AS (
                             UPDATE engine.workflows
@@ -2221,6 +2227,7 @@ internal sealed partial class EngineRepository
                             UPDATE engine.steps s
                             SET status = @skipped,
                                 skip_reason = CASE WHEN s.id = (SELECT id FROM first_open) THEN @reason END,
+                                skip_origin = CASE WHEN s.id = (SELECT id FROM first_open) THEN @origin END,
                                 updated_at = @now
                             FROM skipped w
                             WHERE s.job_id = w.id
@@ -2242,6 +2249,7 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(
                         new NpgsqlParameter("reason", NpgsqlDbType.Varchar) { Value = (object?)reason ?? DBNull.Value }
                     );
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("origin", (int)SkipOrigin.Manual));
 
                     await using (var reader = await cmd.ExecuteReaderAsync(ct))
                     {

@@ -794,6 +794,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         workflow.Status = PersistentItemStatus.Skipped;
         skipping.Status = PersistentItemStatus.Skipped;
         skipping.SkipReason = "acquireConcurrencyConflict";
+        skipping.SkipOrigin = SkipOrigin.Command;
         later.Status = PersistentItemStatus.Skipped;
 
         // Act
@@ -811,12 +812,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotNull(dbSkipping);
         Assert.Equal(PersistentItemStatus.Skipped, dbSkipping.Status);
         Assert.Equal("acquireConcurrencyConflict", dbSkipping.SkipReason);
+        Assert.Equal(SkipOrigin.Command, dbSkipping.SkipOrigin);
         Assert.Empty(dbSkipping.ErrorHistory);
 
         var dbLater = await fixture.GetStep(later.DatabaseId);
         Assert.NotNull(dbLater);
         Assert.Equal(PersistentItemStatus.Skipped, dbLater.Status);
         Assert.Null(dbLater.SkipReason);
+        Assert.Null(dbLater.SkipOrigin);
         Assert.NotNull(dbLater.UpdatedAt);
     }
 

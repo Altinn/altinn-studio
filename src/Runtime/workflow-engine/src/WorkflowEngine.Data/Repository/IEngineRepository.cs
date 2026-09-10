@@ -247,12 +247,12 @@ internal interface IEngineRepository
     /// <summary>
     /// Skips an unsuccessful terminal workflow (<c>Failed</c>, <c>Canceled</c> or <c>DependencyFailed</c>) by
     /// operator decision. The workflow moves to <c>Skipped</c> with its backoff cleared, and every step that did
-    /// not complete moves to <c>Skipped</c> with <paramref name="reason"/> recorded on the first of them, so the
-    /// row reads exactly like one a command's skip outcome produced. Error history is left in place, and the
-    /// enqueue idempotency key is not released: a replay of the same fingerprint dedups onto the skipped
-    /// workflow. Compare-and-set: returns the skipped workflow when this call performed the transition, and
-    /// <c>null</c> when it was not found or not in one of the three source states (including a concurrent
-    /// resume that revived it first) — a no-op, not an error.
+    /// not complete moves to <c>Skipped</c> with <paramref name="reason"/> and <see cref="SkipOrigin.Manual"/>
+    /// recorded on the first of them, so the row reads like one a command's skip outcome produced. Error history
+    /// is left in place, and the enqueue idempotency key is not released: a replay of the same fingerprint dedups
+    /// onto the skipped workflow. Compare-and-set: returns the skipped workflow when this call performed the
+    /// transition, and <c>null</c> when it was not found or not in one of the three source states (including a
+    /// concurrent resume that revived it first) — a no-op, not an error.
     /// </summary>
     Task<ManualTransitionInfo?> SkipWorkflow(
         Guid workflowId,

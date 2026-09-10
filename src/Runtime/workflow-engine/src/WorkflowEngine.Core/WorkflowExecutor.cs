@@ -136,6 +136,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
                     Stopwatch.GetElapsedTime(startTimestamp),
                     result.Message ?? "outcome not available yet"
                 );
+            else if (result.IsSkipped())
+                _logger.SkippedExecution(step, Stopwatch.GetElapsedTime(startTimestamp));
             else
                 _logger.FailedExecution(
                     step,
@@ -294,6 +296,10 @@ internal static partial class WorkflowExecutorLogs
         TimeSpan elapsed,
         string message
     );
+
+    // Without the reason: it is app-supplied text that is persisted and surfaced on status reads, never logged.
+    [LoggerMessage(LogLevel.Information, "Step {Step} skipped the rest of the workflow after {Elapsed}")]
+    internal static partial void SkippedExecution(this ILogger<WorkflowExecutor> logger, Step step, TimeSpan elapsed);
 
     [LoggerMessage(LogLevel.Error, "Step {Step} executed with error in {Elapsed}: {Message}")]
     internal static partial void FailedExecution(

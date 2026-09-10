@@ -13,9 +13,8 @@ namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
 /// Tests for the operator-skip compare-and-set: an unsuccessful terminal workflow (<c>Failed</c>, <c>Canceled</c>
-/// or <c>DependencyFailed</c>) moves to <c>Skipped</c> together with every step that did not complete, the reason
-/// on the first of them and error history left in place; any other state is a no-op, and the enqueue idempotency
-/// key is kept.
+/// or <c>DependencyFailed</c>) and every step that did not complete move to <c>Skipped</c> together; any other
+/// state is a no-op.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class WorkflowSkipTests(PostgresFixture fixture) : IAsyncLifetime
@@ -64,11 +63,14 @@ public sealed class WorkflowSkipTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(3, steps.Count);
         Assert.Equal(PersistentItemStatus.Completed, steps[0].Status);
         Assert.Null(steps[0].SkipReason);
+        Assert.Null(steps[0].SkipOrigin);
         Assert.Equal(PersistentItemStatus.Skipped, steps[1].Status);
         Assert.Equal(Reason, steps[1].SkipReason);
+        Assert.Equal(SkipOrigin.Manual, steps[1].SkipOrigin);
         Assert.Equal("boom", Assert.Single(steps[1].ErrorHistory).Message);
         Assert.Equal(PersistentItemStatus.Skipped, steps[2].Status);
         Assert.Null(steps[2].SkipReason);
+        Assert.Null(steps[2].SkipOrigin);
         Assert.Empty(steps[2].ErrorHistory);
     }
 
@@ -101,10 +103,12 @@ public sealed class WorkflowSkipTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotNull(reloaded);
         Assert.Equal(PersistentItemStatus.Skipped, reloaded.Status);
         Assert.All(reloaded.Steps, s => Assert.Null(s.SkipReason));
+        var steps = reloaded.Steps.OrderBy(s => s.ProcessingOrder).ToList();
         Assert.Equal(
             [PersistentItemStatus.Completed, PersistentItemStatus.Skipped, PersistentItemStatus.Skipped],
-            reloaded.Steps.OrderBy(s => s.ProcessingOrder).Select(s => s.Status)
+            steps.Select(s => s.Status)
         );
+        Assert.Equal([null, SkipOrigin.Manual, null], steps.Select(s => s.SkipOrigin));
     }
 
     [Theory]
@@ -165,6 +169,7 @@ public sealed class WorkflowSkipTests(PostgresFixture fixture) : IAsyncLifetime
         var step = Assert.Single(reloaded.Steps);
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
         Assert.Null(step.SkipReason);
+        Assert.Null(step.SkipOrigin);
     }
 
     [Fact]
@@ -195,8 +200,7 @@ public sealed class WorkflowSkipTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SkipWorkflow_DoesNotReleaseIdempotencyKey()
     {
-        // A skip is not a retry ticket: the same fingerprint still deduplicates onto the skipped
-        // workflow for the key row's lifetime, exactly as it does onto a completed one.
+        // Deliberate: the key stays for its row's lifetime, as after a completed workflow.
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
         var (request, metadata, ns, _) = WorkflowTestHelper.CreateRequest();
@@ -237,9 +241,8 @@ public sealed class WorkflowSkipTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// Synthesizes a three-step workflow the way a failed run leaves one: the first step completed, the second in
-    /// <paramref name="openStepStatus"/> with one error entry, the third never reached, and a pending backoff on
-    /// the workflow.
+    /// A three-step workflow as a failed run leaves it: first step completed, second in <paramref name="openStepStatus"/>
+    /// with one error entry, third never reached, backoff pending.
     /// </summary>
     private static async Task<Workflow> InsertThreeStepWorkflow(
         IEngineRepository repo,

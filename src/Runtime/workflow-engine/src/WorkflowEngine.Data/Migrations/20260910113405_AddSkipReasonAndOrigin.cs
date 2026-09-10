@@ -5,15 +5,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WorkflowEngine.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSkipReason : Migration
+    public partial class AddSkipReasonAndOrigin : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Status 7 used to be the operator write-off and is now Skipped. An old write-off left its failed
-            // step in place, while a Skipped workflow holds only Completed (3) and Skipped steps, so the steps
-            // of existing status-7 rows are normalized. The literals mirror PersistentItemStatus (hardcoded
-            // here because migrations are frozen history).
+            // Status 7 was the operator write-off, which left its failed step in place; a Skipped workflow holds
+            // only Completed (3) and Skipped (7) steps.
             migrationBuilder.Sql(
                 """
                 UPDATE engine.steps s
@@ -21,6 +19,14 @@ namespace WorkflowEngine.Data.Migrations
                 FROM engine.workflows w
                 WHERE s.job_id = w.id AND w.status = 7 AND s.status <> 3;
                 """
+            );
+
+            migrationBuilder.AddColumn<int>(
+                name: "skip_origin",
+                schema: "engine",
+                table: "steps",
+                type: "integer",
+                nullable: true
             );
 
             migrationBuilder.AddColumn<string>(
@@ -36,8 +42,9 @@ namespace WorkflowEngine.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // The step normalization is not reversed: a status-7 workflow's steps read as Skipped under the
-            // new engine and as the old write-off status under the old, and both are terminal.
+            // The step normalization is not reversed: both readings of a status-7 workflow are terminal.
+            migrationBuilder.DropColumn(name: "skip_origin", schema: "engine", table: "steps");
+
             migrationBuilder.DropColumn(name: "skip_reason", schema: "engine", table: "steps");
         }
     }

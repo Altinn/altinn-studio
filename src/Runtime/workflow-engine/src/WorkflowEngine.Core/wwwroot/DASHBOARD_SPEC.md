@@ -135,6 +135,7 @@ Response:
     "lastDeferredAt": "ISO | null",
     "lastDeferReason": "string | null",
     "skipReason": "string | null",
+    "skipOrigin": "Command | Manual | null",
     "errorHistory": [
         { "timestamp": "ISO", "message": "string", "httpStatusCode": 500, "wasRetryable": true }
     ],
@@ -359,7 +360,7 @@ Horizontal row of step circles connected by SVG lines.
 - Requeued: ↻ (orange)
 - Waiting: ⌛ (cyan, slow pulse) — deferred, awaiting an external outcome
 - Canceled: — (gray)
-- Skipped: » (gray, dotted outline) — a command or an operator skipped this step and everything after it; only the first skipped step carries the reason
+- Skipped: » (gray, dotted outline) — a command or an operator skipped this step and everything after it; only the first skipped step carries the reason and `skipOrigin`
 - Enqueued: ◯ outline (gray)
 
 **Below each circle:**
@@ -449,6 +450,7 @@ The modal has four distinct DOM zones:
     - Deferrals (if > 0), First Deferred and Last Deferred (formatted time + relative age, if set)
     - Defer Reason — the step's `lastDeferReason`, the command's own words for what it is waiting for (if set)
     - Skip Reason — the step's `skipReason`, the reason the rest of the workflow was skipped; only the first skipped step carries it, and an operator skip may have given none (if set)
+    - Skip Origin — the step's `skipOrigin`, `Command` (the command returned a skip) or `Manual` (the skip endpoint), shown as-is; carried by the same step as the reason (if set)
     - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
     - Command Type
     - Max Execution Time (formatted duration, if set)
@@ -742,6 +744,7 @@ interface Step {
     firstDeferredAt: string | null;
     lastDeferReason: string | null;
     skipReason: string | null;
+    skipOrigin: 'Command' | 'Manual' | null;
     backoffUntil: string | null;
     createdAt: string;
     executionStartedAt: string | null;
@@ -865,6 +868,7 @@ The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappi
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
 - **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
 - **`skipReason`** — Passed through from `Step.SkipReason`, which only the first skipped step carries (null when an operator skipped without a reason), so a card can say why a `Skipped` step did not run. Omitted when null.
+- **`skipOrigin`** — Passed through from `Step.SkipOrigin` (`Command` or `Manual`), carried by the same step as `skipReason`, so the modal can say who skipped. Omitted when null.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.
