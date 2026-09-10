@@ -151,6 +151,7 @@
     "react-number-format": "5.4.5",
     "react-router": "8.3.0",
     "react-toastify": "11.1.0",
+    "slugify": "1.6.9",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "8.66.0",
     "uuid": "14.0.1",

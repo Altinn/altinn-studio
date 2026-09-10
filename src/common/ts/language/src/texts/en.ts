@@ -190,6 +190,7 @@ export function en() {
     'general.full_width': 'Expand width',
     'general.standard_width': 'Reduce width',
     'general.for': 'for',
+    'general.or': 'or',
     'general.header_profile_icon_label': 'Profile icon button',
     'general.label': 'Label',
     'general.loading': 'Loading content',
@@ -450,6 +451,17 @@ export function en() {
       "Data type '{0}' was not found in applicationmetadata.json",
     'config_error.subform_misconfigured_add_button':
       "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",
+    'config_error.lommebok_datatype_not_found':
+      "Data type '{0}' (configured as saveToDataType for document '{1}') was not found in applicationmetadata.json",
+    'config_error.lommebok_datatype_invalid_settings':
+      "Data type '{0}' (configured as saveToDataType for document '{1}') has invalid settings: {2}",
+    'config_error.lommebok_upload_datatype_not_found':
+      "Data type '{0}' (configured as alternativeUploadToDataType for document '{1}') was not found in applicationmetadata.json",
+    'config_error.lommebok_upload_datatype_invalid_mimetype':
+      "Data type '{0}' (configured as alternativeUploadToDataType for document '{1}') must allow 'application/pdf' in its allowedContentTypes",
+    'config_error.lommebok_issue_datatype_not_found':
+      "Data type '{0}' (configured as urlDataType for document '{1}') was not found in applicationmetadata.json",
+    'config_error.lommebok_issue_missing_url_field': "Document '{0}' is missing a required urlField setting",
     'config_error.file_upload_same_binding':
       'There are multiple FileUpload components with the same data model binding. Each component must have a unique binding. Other components with the same binding: {0}',
     'config_error.deletion_strategy_no_group':
@@ -592,5 +604,37 @@ export function en() {
       'You can try to process again by clicking "Try again". If the problem persists, contact customer service at +47 75 00 60 00.',
     'service_task_custom_pdf_default.retry_button': 'Try again',
     'service_task_custom_pdf_default.back_button': 'Go back',
+    'wallet.request_document': 'Request from wallet',
+    'wallet.upload_document': 'Upload document',
+    'wallet.remove_data': 'Remove data',
+    'wallet.confirm_request_title': 'Request document from wallet',
+    'wallet.confirm_request_description': 'You are about to request the following document from your wallet:',
+    'wallet.confirm_claims_description': 'The following information will be requested:',
+    'wallet.confirm_proceed': 'Proceed',
+    'wallet.verification_failed': 'The verification failed. Please try again.',
+    'wallet.data_received_title': 'Data received',
+    'wallet.data_received_description': 'The following information was received from your wallet:',
+    'wallet.no_configured_fields': 'No fields have been configured for display.',
+    'wallet.save_button': 'Save',
+    'wallet.received_claims_title': 'Received data',
+    'wallet.download_xsd': 'Download XSD',
+    'wallet.verification_title': 'Verify with wallet',
+    'wallet.verification_description': 'Scan the QR code with your wallet app, or use the button below to open it directly.',
+    'wallet.open_wallet': 'Open wallet',
+    'wallet.cancel_request': 'Cancel',
+    'wallet.issue_title': 'Add to wallet',
+    'wallet.issue_description': 'Scan the QR code with your wallet app to add {0}, or use the button below to open it directly.',
+    'wallet.open_wallet_accept': 'Open wallet',
+    'wallet.issue_no_url': 'No credential is available to issue yet.',
+    'wallet.issue_to_wallet': 'Add to wallet',
+    'wallet.image_alt': 'Image from wallet',
+    'wallet.yes': 'Yes',
+    'wallet.no': 'No',
+    'wallet.no_data_to_save': 'No data to save. Check the field configuration for this document.',
+    'wallet.upload_success': 'The data was saved.',
+    'wallet.pdf_only': 'Only PDF files can be uploaded.',
+    'wallet.pdf_upload_success': 'The file was uploaded.',
+    'wallet.pdf_upload_conflict': 'A file has already been uploaded for this document.',
+    'wallet.pdf_upload_failed': 'The file could not be uploaded. Please try again.',
   };
 }

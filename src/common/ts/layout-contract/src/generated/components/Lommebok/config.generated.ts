@@ -1,7 +1,6 @@
 import {
   ComponentBase,
   FormComponentProps,
-  ISummaryOverridesCommon,
   LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
@@ -14,18 +13,220 @@ export interface CompLommebokExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'Lommebok';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  request?: RequestedDocument[];
+  issue?: IssuableDocument[];
   dataModelBindings?: undefined;
 }
 
-export type LommebokSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Lommebok' } & ISummaryOverridesCommon);
+export type IssuableDocument =
+  | {
+      type: 'minid-pid';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'norsk-identitetsnummer';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'advokatbevilling';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'norsk-id-bevis';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'digital-kontaktinformasjon';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'norsk-foererkort';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'handicapbevis';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'aldersbevis';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'legeerklaeringbevis';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'inntektsbevis';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    };
+
+export type RequestedDocument =
+  | {
+      type: 'minid-pid';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'norsk-identitetsnummer';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'advokatbevilling';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'norsk-id-bevis';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'digital-kontaktinformasjon';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'norsk-foererkort';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'handicapbevis';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'aldersbevis';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'legeerklaeringbevis';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    }
+  | {
+      type: 'inntektsbevis';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
+    };
 
 export const componentConfig = {
   category: CompCategory.Form,
   availability: 'configurable',
   capabilities: {
-    renderInTable: true,
+    renderInTable: false,
     renderInButtonGroup: false,
     renderInAccordion: true,
     renderInAccordionGroup: false,
@@ -45,8 +246,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompLommebokExternal;
-  summaryOverrides: ISummaryOverridesCommon;
-  summaryOverridesWithRef: LommebokSummaryOverridesWithRef;
+  summaryOverrides: undefined;
+  summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 895dbe7c74a8763cf21c62a1cd7a7533ab09286e06bee4490904a7a05ec68980
+// Source hash: 4ced97030e2ba6ef5cb1d1c26119ddc9d40d688c2eaabf75ac173ff80db42094

@@ -191,6 +191,7 @@ export function nn() {
     'general.full_width': 'Utvid breidda',
     'general.standard_width': 'Reduser breidda',
     'general.for': 'for',
+    'general.or': 'eller',
     'general.header_profile_icon_label': 'Profil ikon knapp',
     'general.label': 'Namn',
     'general.loading': 'Lastar innhald',
@@ -450,6 +451,17 @@ export function nn() {
       "Datatype '{0}' vart ikkje funnen i applicationmetadata.json.",
     'config_error.subform_misconfigured_add_button':
       "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er ei motseiing, Sidan brukaren aldri vil få lov til å utføre handlingane bak legg-til knappen.",
+    'config_error.lommebok_datatype_not_found':
+      "Datatypen '{0}' (sett som saveToDataType for dokumentet '{1}') vart ikkje funnen i applicationmetadata.json.",
+    'config_error.lommebok_datatype_invalid_settings':
+      "Datatypen '{0}' (sett som saveToDataType for dokumentet '{1}') har ugyldige innstillingar: {2}",
+    'config_error.lommebok_upload_datatype_not_found':
+      "Datatypen '{0}' (sett som alternativeUploadToDataType for dokumentet '{1}') vart ikkje funnen i applicationmetadata.json.",
+    'config_error.lommebok_upload_datatype_invalid_mimetype':
+      "Datatypen '{0}' (sett som alternativeUploadToDataType for dokumentet '{1}') må tillate 'application/pdf' i allowedContentTypes.",
+    'config_error.lommebok_issue_datatype_not_found':
+      "Datatypen '{0}' (sett som urlDataType for dokumentet '{1}') vart ikkje funnen i applicationmetadata.json.",
+    'config_error.lommebok_issue_missing_url_field': "Dokumentet '{0}' manglar den påkravde innstillinga urlField.",
     'config_error.file_upload_same_binding':
       'Det er fleire filopplastingskomponentar med same datamodellbinding. Kvar komponent må ha ein unik binding. Andre komponentar med same binding: {0}',
     'config_error.deletion_strategy_no_group':
@@ -590,5 +602,39 @@ export function nn() {
       'Du kan prøve å utføre handsaminga på nytt ved å klikke på "Prøv igjen". Om problemet held fram, ta kontakt med oss på brukarservice +47 75 00 60 00.',
     'service_task_custom_pdf_default.retry_button': 'Prøv igjen',
     'service_task_custom_pdf_default.back_button': 'Gå tilbake',
+    'wallet.request_document': 'Hent frå lommebok',
+    'wallet.upload_document': 'Last opp dokument',
+    'wallet.remove_data': 'Fjern data',
+    'wallet.confirm_request_title': 'Hent dokument frå lommebok',
+    'wallet.confirm_request_description': 'Du er i ferd med å be om følgjande dokument frå lommeboka di:',
+    'wallet.confirm_claims_description': 'Følgjande opplysningar vil bli førespurde:',
+    'wallet.confirm_proceed': 'Hald fram',
+    'wallet.verification_failed': 'Verifiseringa mislykkast. Prøv igjen.',
+    'wallet.data_received_title': 'Data mottatt',
+    'wallet.data_received_description': 'Følgjande opplysningar vart mottatt frå lommeboka di:',
+    'wallet.no_configured_fields': 'Ingen felt er konfigurert for visning.',
+    'wallet.save_button': 'Lagre',
+    'wallet.received_claims_title': 'Mottatte data',
+    'wallet.download_xsd': 'Last ned XSD',
+    'wallet.verification_title': 'Verifiser med lommebok',
+    'wallet.verification_description':
+      'Skann QR-koden med lommebok-appen din, eller bruk knappen under for å opne henne direkte.',
+    'wallet.open_wallet': 'Opne lommebok',
+    'wallet.cancel_request': 'Avbryt',
+    'wallet.issue_title': 'Legg til i lommebok',
+    'wallet.issue_description':
+      'Skann QR-koden med lommebok-appen din for å leggje til {0}, eller bruk knappen under for å opne henne direkte.',
+    'wallet.open_wallet_accept': 'Opne lommebok',
+    'wallet.issue_no_url': 'Ingen legitimasjon er tilgjengeleg for utferding enno.',
+    'wallet.issue_to_wallet': 'Legg til i lommebok',
+    'wallet.image_alt': 'Bilete frå lommebok',
+    'wallet.yes': 'Ja',
+    'wallet.no': 'Nei',
+    'wallet.no_data_to_save': 'Ingen data å lagre. Sjekk feltkonfigurasjonen for dette dokumentet.',
+    'wallet.upload_success': 'Dataa vart lagra.',
+    'wallet.pdf_only': 'Berre PDF-filer kan lastast opp.',
+    'wallet.pdf_upload_success': 'Fila vart lasta opp.',
+    'wallet.pdf_upload_conflict': 'Det er allereie lasta opp ei fil for dette dokumentet.',
+    'wallet.pdf_upload_failed': 'Fila kunne ikkje lastast opp. Prøv igjen.',
   } satisfies FixedLanguageList;
 }

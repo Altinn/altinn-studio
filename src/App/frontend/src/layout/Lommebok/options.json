@@ -1,0 +1,2321 @@
+{
+  "credential_issuer": "https://utsteder.test.eidas2sandkasse.net",
+  "authorization_servers": [
+    "https://auth.test.eidas2sandkasse.net"
+  ],
+  "credential_endpoint": "https://utsteder.test.eidas2sandkasse.net/openid4vci/credential",
+  "nonce_endpoint": "https://utsteder.test.eidas2sandkasse.net/openid4vci/nonce",
+  "notification_endpoint": "https://utsteder.test.eidas2sandkasse.net/openid4vci/notification",
+  "credential_configurations_supported": {
+    "no.minid.mpid_sd_jwt_vc": {
+      "vct": "no:minid:mpid:1",
+      "scope": "eudiw:no:minid:mpid",
+      "format": "dc+sd-jwt",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "MinID PID",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "personal_administrative_number"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Norsk identitetsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "family_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Etternavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "given_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fornavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "middle_name"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Mellomnavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "birth_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsdato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "expiry_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gyldig til",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "issuance_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Ustedt",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "MinID PID",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "personal_administrative_number"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Norsk identitetsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "family_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Etternavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "given_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fornavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "middle_name"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Mellomnavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "birth_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsdato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "expiry_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gyldig til",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "issuance_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Ustedt",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.skatteetaten.nnid_mso_mdoc": {
+      "doctype": "no.skatteetaten.nnid.1",
+      "scope": "eudiw:no:skatteetaten:nnid",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Norsk identitetsnummer",
+          "locale": "no"
+        },
+        {
+          "name": "Norwegian identification number",
+          "locale": "en"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "no.skatteetaten.nnid.1",
+            "norwegian_national_id_number"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Norwegian identification number",
+              "locale": "en"
+            },
+            {
+              "name": "Norsk identitetsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no.skatteetaten.nnid.1",
+            "norwegian_national_id_number_type"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Type of Norwegian identification number",
+              "locale": "en"
+            },
+            {
+              "name": "Type norsk identitetsnummer",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Norsk identitetsnummer",
+            "locale": "no"
+          },
+          {
+            "name": "Norwegian identification number",
+            "locale": "en"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "no.skatteetaten.nnid.1",
+              "norwegian_national_id_number"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Norwegian identification number",
+                "locale": "en"
+              },
+              {
+                "name": "Norsk identitetsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no.skatteetaten.nnid.1",
+              "norwegian_national_id_number_type"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Type of Norwegian identification number",
+                "locale": "en"
+              },
+              {
+                "name": "Type norsk identitetsnummer",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.advokattilsynet.advokatregisteret_mso_mdoc": {
+      "doctype": "no.advokattilsynet.advokatregisteret.1",
+      "scope": "eudiw:no:advokattilsynet:advokatregisteret",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Advokatbevilling",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "no.advokattilsynet.advokatregisteret.1",
+            "personidentifikator"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Personidentifikator",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no.advokattilsynet.advokatregisteret.1",
+            "tittel"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Tittel",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no.advokattilsynet.advokatregisteret.1",
+            "mellomnavn"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Mellomnavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no.advokattilsynet.advokatregisteret.1",
+            "etternavn"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Etternavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no.advokattilsynet.advokatregisteret.1",
+            "fornavn"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fornavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no.advokattilsynet.advokatregisteret.1",
+            "regnr"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Regnr",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Advokatbevilling",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "no.advokattilsynet.advokatregisteret.1",
+              "personidentifikator"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Personidentifikator",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no.advokattilsynet.advokatregisteret.1",
+              "tittel"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Tittel",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no.advokattilsynet.advokatregisteret.1",
+              "mellomnavn"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Mellomnavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no.advokattilsynet.advokatregisteret.1",
+              "etternavn"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Etternavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no.advokattilsynet.advokatregisteret.1",
+              "fornavn"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fornavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no.advokattilsynet.advokatregisteret.1",
+              "regnr"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Regnr",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.digdir.eudiw.pid_mso_mdoc": {
+      "doctype": "eu.europa.ec.eudi.pid.1",
+      "scope": "eudiw:no:pid",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Norsk ID-bevis",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "personal_administrative_number"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "given_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Førenamn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "family_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Etternamn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "birth_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsdato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "place_of_birth"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødeland",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "nationality"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Nasjonalitet",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "expiry_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gyldig til dato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "issuing_authority"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Utsteda av",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.eudi.pid.1",
+            "issuing_country"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Utsteda i land",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Norsk ID-bevis",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "personal_administrative_number"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "given_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Førenamn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "family_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Etternamn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "birth_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsdato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "place_of_birth"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødeland",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "nationality"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Nasjonalitet",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "expiry_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gyldig til dato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "issuing_authority"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Utsteda av",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.eudi.pid.1",
+              "issuing_country"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Utsteda i land",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc": {
+      "vct": "no:kontaktregisteret:kontaktinformasjon:1",
+      "scope": "eudiw:no:kontaktregisteret:kontaktinformasjon",
+      "format": "dc+sd-jwt",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Digital kontaktinformasjon",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "personidentifikator"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Personidentifikator",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "epostadresse"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Epost",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "mobiltelefonnummer"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Telefonnummer",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Digital kontaktinformasjon",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "personidentifikator"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Personidentifikator",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "epostadresse"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Epost",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "mobiltelefonnummer"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Telefonnummer",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "org.iso.18013.5.1.mDL_mso_mdoc": {
+      "doctype": "org.iso.18013.5.1.mDL:1",
+      "scope": "eudiw:no:vegvesen:mdl",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Norsk førerkort",
+          "description": "MERK: dette er ikkje eit reelt førarkort kobla til test-førarkortregisteret. Alle testbrukarar får statisk satt klasse B.",
+          "locale": "no"
+        },
+        {
+          "name": "Norwegian driver's license",
+          "description": "NOTE: this is not a real driver's license tied to the test license register. All test users are granted class B license.",
+          "locale": "en"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "family_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Family name",
+              "locale": "en"
+            },
+            {
+              "name": "Etternavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "given_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Given name",
+              "locale": "en"
+            },
+            {
+              "name": "Fornavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "birth_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Date of birth",
+              "locale": "en"
+            },
+            {
+              "name": "Fødselsdato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "issue_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Issue date",
+              "locale": "en"
+            },
+            {
+              "name": "Gyldig fra dato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "expiry_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Expiry date",
+              "locale": "en"
+            },
+            {
+              "name": "Gyldig til dato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "issuing_country"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Issuing country",
+              "locale": "en"
+            },
+            {
+              "name": "Utsted av land",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "issuing_authority"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Issuing authority",
+              "locale": "en"
+            },
+            {
+              "name": "Utsteder myndighet",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "document_number"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Document number",
+              "locale": "en"
+            },
+            {
+              "name": "Førerkort nummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "portrait"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Portrait Photos",
+              "locale": "en"
+            },
+            {
+              "name": "Portrett bilde",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "driving_privileges"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Driving privileges",
+              "locale": "en"
+            },
+            {
+              "name": "Førerkort klasser",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "org.iso.18013.5.1.mDL:1",
+            "un_distinguishing_sign"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Country",
+              "locale": "en"
+            },
+            {
+              "name": "Land",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Norsk førerkort",
+            "description": "MERK: dette er ikkje eit reelt førarkort kobla til test-førarkortregisteret. Alle testbrukarar får statisk satt klasse B.",
+            "locale": "no"
+          },
+          {
+            "name": "Norwegian driver's license",
+            "description": "NOTE: this is not a real driver's license tied to the test license register. All test users are granted class B license.",
+            "locale": "en"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "family_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Family name",
+                "locale": "en"
+              },
+              {
+                "name": "Etternavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "given_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Given name",
+                "locale": "en"
+              },
+              {
+                "name": "Fornavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "birth_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Date of birth",
+                "locale": "en"
+              },
+              {
+                "name": "Fødselsdato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "issue_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Issue date",
+                "locale": "en"
+              },
+              {
+                "name": "Gyldig fra dato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "expiry_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Expiry date",
+                "locale": "en"
+              },
+              {
+                "name": "Gyldig til dato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "issuing_country"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Issuing country",
+                "locale": "en"
+              },
+              {
+                "name": "Utsted av land",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "issuing_authority"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Issuing authority",
+                "locale": "en"
+              },
+              {
+                "name": "Utsteder myndighet",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "document_number"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Document number",
+                "locale": "en"
+              },
+              {
+                "name": "Førerkort nummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "portrait"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Portrait Photos",
+                "locale": "en"
+              },
+              {
+                "name": "Portrett bilde",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "driving_privileges"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Driving privileges",
+                "locale": "en"
+              },
+              {
+                "name": "Førerkort klasser",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "org.iso.18013.5.1.mDL:1",
+              "un_distinguishing_sign"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Country",
+                "locale": "en"
+              },
+              {
+                "name": "Land",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.kommunalsektor.hcregister_mso_mdoc": {
+      "doctype": "no:kommunalsektor:hcregister:1",
+      "scope": "eudiw:no:kommunalsektor:hcregister",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Handicapbevis",
+          "description": "Handicapbevis utstedt av kommune (Hackathon Brukerrådet 2025)",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "fodselsnummer"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "bevis_nummer"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Bevisnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "kommune_nummer"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Kommunenummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "status"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Status",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "bruker_kode"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Brukerkode",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "type"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Type",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "gyldig_fra"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gyldig fra",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:kommunalsektor:hcregister:1",
+            "gyldig_til"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gyldig til",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Handicapbevis",
+            "description": "Handicapbevis utstedt av kommune (Hackathon Brukerrådet 2025)",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "fodselsnummer"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "bevis_nummer"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Bevisnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "kommune_nummer"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Kommunenummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "status"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Status",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "bruker_kode"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Brukerkode",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "type"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Type",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "gyldig_fra"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gyldig fra",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:kommunalsektor:hcregister:1",
+              "gyldig_til"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gyldig til",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "proof_of_age": {
+      "doctype": "eu.europa.ec.av.1",
+      "scope": "proof_of_age",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Aldersbevis",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "eu.europa.ec.av.1",
+            "age_over_18"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Over 18 år",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "eu.europa.ec.av.1",
+            "age_over_15"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Over 15 år",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Aldersbevis",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "eu.europa.ec.av.1",
+              "age_over_18"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Over 18 år",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "eu.europa.ec.av.1",
+              "age_over_15"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Over 15 år",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.helsesektor.legeerklaring_mso_mdoc": {
+      "doctype": "no:helsesektor:legeerklaring:1",
+      "scope": "eudiw:no:helsesektor:legeerklaring",
+      "format": "mso_mdoc",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Legeerklæringbevis",
+          "description": "Legeerklæringbevis utstedt av kommune (Hackathon Brukerrådet 2025)",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "fodselsnummer"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "fornavn"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fornavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "etternavn"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Etternavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "mellomnavn"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Mellomnavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "pasienten_kjorer_bil"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Pasienten kjører bil selv",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "behov"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Behov",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "bor_ha_forerkort"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Pasienten bør ha førerkort",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "beskrivelse"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Beskrivelse",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "hjelpemidler"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Hjelpemidler",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "gangdistanse_med_hjelpemiddel"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gangdistanse med hjelpemiddel (meter)",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "gangdistanse_uten_hjelpemiddel"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gangdistanse uten hjelpemiddel (meter)",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "no:helsesektor:legeerklaring:1",
+            "gangdistanse_prognose"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gangdistanse prognose",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Legeerklæringbevis",
+            "description": "Legeerklæringbevis utstedt av kommune (Hackathon Brukerrådet 2025)",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "fodselsnummer"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "fornavn"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fornavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "etternavn"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Etternavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "mellomnavn"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Mellomnavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "pasienten_kjorer_bil"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Pasienten kjører bil selv",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "behov"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Behov",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "bor_ha_forerkort"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Pasienten bør ha førerkort",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "beskrivelse"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Beskrivelse",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "hjelpemidler"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Hjelpemidler",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "gangdistanse_med_hjelpemiddel"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gangdistanse med hjelpemiddel (meter)",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "gangdistanse_uten_hjelpemiddel"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gangdistanse uten hjelpemiddel (meter)",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "no:helsesektor:legeerklaring:1",
+              "gangdistanse_prognose"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gangdistanse prognose",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.skatteetaten.inntekt_sd_jwt_vc": {
+      "vct": "no.skatteetaten.inntekt.1",
+      "scope": "eudiw:no:skatteetaten:inntekt",
+      "format": "dc+sd-jwt",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Inntektsbevis",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "fastlonn"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fastlønn",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Inntektsbevis",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "fastlonn"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fastlønn",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    },
+    "no.digdir.eudiw.pid_sd_jwt_vc": {
+      "vct": "urn:eudi:pid:1",
+      "scope": "eudiw:no:pid",
+      "format": "dc+sd-jwt",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Norsk ID-bevis",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "personal_administrative_number"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "given_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Førenamn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "family_name"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Etternamn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "birth_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsdato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "place_of_birth"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødeland",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "nationality"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Nasjonalitet",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "expiry_date"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gyldig til dato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "issuing_authority"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Utsteda av",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "issuing_country"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Utsteda i land",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Norsk ID-bevis",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "personal_administrative_number"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "given_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Førenamn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "family_name"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Etternamn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "birth_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsdato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "place_of_birth"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødeland",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "nationality"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Nasjonalitet",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "expiry_date"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gyldig til dato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "issuing_authority"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Utsteda av",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "issuing_country"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Utsteda i land",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
+    }
+  },
+  "display": [
+    {
+      "name": "Digitaliseringsdirektoratet",
+      "locale": "no"
+    }
+  ]
+}

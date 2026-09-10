@@ -36,8 +36,6 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'List' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Lommebok' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Map' } & ISummaryOverridesCommon)
   | MultipleSelectSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
@@ -642,4 +640,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: de1ac695eb83d6886297c7b552de159148e182966abfe86b5db480cc31d2a4c7
+// Source hash: aa97438caa1a24d90e781cab15a32b10483a7767b1343fb9025a55f3988ae0ed

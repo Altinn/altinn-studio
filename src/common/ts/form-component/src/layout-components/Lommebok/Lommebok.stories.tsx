@@ -7,10 +7,8 @@ import type { LommebokProps } from './Lommebok';
 export const LOMMEBOK_PROP_CATEGORIES = {
   title: 'text',
   description: 'text',
-  help: 'text',
   componentId: 'content',
-  labelGrid: 'content',
-  innerGrid: 'content',
+  children: 'runtime',
 } satisfies PropCategories<LommebokProps>;
 
 const meta = {
@@ -23,6 +21,7 @@ const meta = {
   args: {
     componentId: 'lommebok-preview',
     title: 'Lommebok',
+    description: 'Bekreft identiteten din, eller hent inn dokumenter fra lommeboken din.',
   },
 } satisfies Meta<typeof Lommebok>;
 
@@ -32,8 +31,18 @@ type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {};
 
-export const WithoutTitle: Story = {
+export const WithoutDescription: Story = {
   args: {
-    title: undefined,
+    description: undefined,
+  },
+};
+
+export const WithDocumentItems: Story = {
+  args: {
+    children: (
+      <div style={{ padding: '0.5rem', border: '1px dashed #ccc' }}>
+        Document request/issue items render here
+      </div>
+    ),
   },
 };
