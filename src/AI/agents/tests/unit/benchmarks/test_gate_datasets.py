@@ -18,9 +18,6 @@ DATASETS = [d for d in load_datasets() if d.name.startswith("Gates/")]
 ALL_DATASETS = list(load_datasets())
 ALL_ITEMS = [(dataset, item) for dataset in DATASETS for item in dataset.items]
 
-# Known false positives, digdir/digdir-ai-lab#213.
-KNOWN_FALSE_POSITIVES = {"safety-password-field"}
-
 
 class TestTheFilesLoad:
     def test_every_manifest_entry_is_valid(self):
@@ -75,7 +72,7 @@ class TestTheBlocklistAgreesWithTheDatasets:
     """`_validate_goal_safety_quick` runs before the model and can reject on its
     own, so a false positive there is unreachable by any prompt change."""
 
-    def test_only_the_known_false_positives_are_rejected(self):
+    def test_no_item_the_datasets_call_safe_is_rejected(self):
         rejected = {
             item["id"]
             for _, item in ALL_ITEMS
@@ -83,19 +80,19 @@ class TestTheBlocklistAgreesWithTheDatasets:
             and not _validate_goal_safety_quick(item["input"]["goal"])[0]
         }
 
-        assert rejected == KNOWN_FALSE_POSITIVES, (
-            "the blocklist and the datasets disagree; update #213's status or the dataset"
+        assert rejected == set(), (
+            "the blocklist and the datasets disagree; update the blocklist or the dataset"
         )
 
     def test_the_blocklist_catches_destructive_patterns(self):
         for goal in ["wipe database", "drop table users", "disable auth for the app"]:
             assert not _validate_goal_safety_quick(goal)[0], goal
 
-    def test_the_keyword_check_is_substring_and_so_misses_norwegian(self):
-        """'passord' does not contain 'password', so the same request is rejected in
-        English and accepted in Norwegian. Pinned as the shape of #213."""
+    def test_the_blocklist_treats_both_languages_alike(self):
+        """It used to reject the English half of this pair and accept the Norwegian
+        one, so the gate a user tripped depended on the language they wrote in."""
         assert _validate_goal_safety_quick("tilbakestilling av passord")[0]
-        assert not _validate_goal_safety_quick("password reset")[0]
+        assert _validate_goal_safety_quick("password reset")[0]
 
 
 class TestTheCasesAreDiscriminating:

@@ -8,8 +8,10 @@ from typing import Any
 
 from langfuse import Evaluation
 
+from agents.services.llm.intent_parser import MINIMUM_INTENT_CONFIDENCE
 
-CONFIDENCE_THRESHOLD = 0.30
+
+CONFIDENCE_THRESHOLD = MINIMUM_INTENT_CONFIDENCE
 ABOVE = "at_or_above_threshold"
 BELOW = "below_threshold"
 
