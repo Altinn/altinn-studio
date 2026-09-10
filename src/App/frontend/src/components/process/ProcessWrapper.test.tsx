@@ -1,7 +1,7 @@
 import React from 'react';
 import type { createMemoryRouter } from 'react-router';
 
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
@@ -36,12 +36,16 @@ async function renderProcessWrapper(workflow?: IProcessWorkflow, waitUntilLoaded
   });
 }
 
+async function expectWorkflowLoader() {
+  await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
+}
+
 describe('ProcessWrapper workflow state machine', () => {
   it('idle renders the current task children', async () => {
     await renderProcessWrapper({ status: 'idle' });
 
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
-    expect(screen.queryByText(/vi jobber med skjemaet ditt/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 
   it('renders children when no workflow annotation is present', async () => {
@@ -111,14 +115,12 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
   });
 
-  it('processing shows the spinner state and suppresses the task', async () => {
-    // waitUntilLoaded is disabled because the blocking state intentionally renders a spinner.
-    // targetTask is set but deliberately NOT rendered in the message (task ids aren't user-facing).
+  it('processing shows the standard loader and suppresses the task', async () => {
+    // waitUntilLoaded is disabled because the blocking state intentionally renders a loader.
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
 
-    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
-    expect(screen.getByText(/du trenger ikke gjøre noe/i)).toBeInTheDocument();
-    expect(screen.queryByText(/task_2/i)).not.toBeInTheDocument();
+    await expectWorkflowLoader();
+    expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
@@ -148,14 +150,14 @@ describe('ProcessWrapper workflow state machine', () => {
     });
 
     expect(await screen.findByTestId('task-content')).toBeInTheDocument();
-    expect(screen.queryByText(/vi jobber med skjemaet ditt/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
     expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
   });
 
-  it('processing FROM a layouted service task toward another task keeps the spinner', async () => {
+  it('processing FROM a layouted service task toward another task shows the loader', async () => {
     // Once the deferring task resolves and auto-advances, the dependent transition targets the
     // next task: the process is in flight AWAY from the service task, so its layout no longer
-    // owns the presentation and the advancing view takes over until the transition settles.
+    // owns the presentation and the loader takes over until the transition settles.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
     instance.process.workflow = { status: 'processing', targetTask: 'Task_Somewhere_Else' };
@@ -174,13 +176,13 @@ describe('ProcessWrapper workflow state machine', () => {
       },
     });
 
-    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    await expectWorkflowLoader();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
   });
 
-  it('processing parked ON a service task WITHOUT a layout keeps the advancing view', async () => {
+  it('processing parked ON a service task WITHOUT a layout shows the loader', async () => {
     // The layout is the app's opt-in to owning this state. Without one, a deferring task shows
-    // the ordinary advancing view (pinned by the e2e suite) - NOT the parked waiting view, which
+    // the standard loader (pinned by the e2e suite), not the parked waiting view, which
     // is reserved for a task that has succeeded and idles awaiting an external release.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask = {
@@ -207,7 +209,7 @@ describe('ProcessWrapper workflow state machine', () => {
       },
     });
 
-    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    await expectWorkflowLoader();
     expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
   });
@@ -217,31 +219,27 @@ describe('ProcessWrapper workflow state machine', () => {
       { status: 'processing', targetTask: 'Task_2', progress: { completed: 7, total: 12 } },
       false,
     );
-    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    await expectWorkflowLoader();
     expect(screen.queryByText(/steg \d+ av \d+/i)).not.toBeInTheDocument();
   });
 
-  it('processing escalates once to the safe-to-leave alert after ~30s - a single tier, not a series', async () => {
-    // A transition can be stuck server-side for hours; a bare spinner is infuriating at that scale.
-    // We deliberately do NOT graduate through several near-identical "this is slow" notes: nothing
-    // extra before the threshold, then one honest message once the wait is clearly abnormal - the
-    // data is durably stored and the processing continues on its own, so the page can be closed.
+  it('processing shows the safe-to-leave alert after five seconds', async () => {
+    // Keep the initial state quiet, then explain what the user can do once a bare loader has lasted
+    // long enough to need context.
     // No startedAt here (older backend), so the wait falls back to being measured from mount.
     vi.useFakeTimers();
     try {
       await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
-      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+      await expectWorkflowLoader();
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
-      // Just before the threshold: still only the base spinner + body, no escalation yet.
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(25_000);
+        await vi.advanceTimersByTimeAsync(4_000);
       });
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
-      // Past ~30s: the single safe-to-leave alert appears.
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(10_000);
+        await vi.advanceTimersByTimeAsync(2_000);
       });
       expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
     } finally {
@@ -263,7 +261,7 @@ describe('ProcessWrapper workflow state machine', () => {
         },
         false,
       );
-      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+      await expectWorkflowLoader();
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
@@ -275,7 +273,7 @@ describe('ProcessWrapper workflow state machine', () => {
   });
 
   it('processing subtracts the already-elapsed server-side wait from the escalation threshold', async () => {
-    // Reconnecting 20s into the transition leaves ~10s of the 30s threshold: still quiet just
+    // Reconnecting three seconds into the transition leaves two seconds of the five-second threshold: still quiet just
     // before that remainder elapses, escalated just after.
     vi.useFakeTimers();
     try {
@@ -283,71 +281,23 @@ describe('ProcessWrapper workflow state machine', () => {
         {
           status: 'processing',
           targetTask: 'Task_2',
-          startedAt: new Date(Date.now() - 20_000).toISOString(),
+          startedAt: new Date(Date.now() - 3_000).toISOString(),
         },
         false,
       );
-      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+      await expectWorkflowLoader();
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(5_000);
+        await vi.advanceTimersByTimeAsync(1_000);
       });
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(6_000);
+        await vi.advanceTimersByTimeAsync(2_000);
       });
       expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
-    }
-  });
-
-  it('processing shows the connection-trouble note only after repeated poll failures', async () => {
-    // A single swallowed poll blip stays invisible; from the second consecutive failed cycle the
-    // advancing view honestly tells the user we're having trouble reaching the server (while
-    // InstanceProvider keeps the view alive and the poll loop keeps retrying underneath).
-    // Each failed poll cycle takes at most ~10s incl. the poll tick and the query's internal
-    // retries/backoff, so advancing 12s completes exactly one cycle.
-    vi.useFakeTimers();
-    // Swallowed poll failures log a warning by design; setupTests makes window.log* throw.
-    const logWarnOnce = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
-    try {
-      let failing = false;
-      await renderWithInstanceAndLayout({
-        renderer: () => <ProcessWrapper>{null}</ProcessWrapper>,
-        waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => {
-              if (failing) {
-                throw new Error('poll failed');
-              }
-              return getInstanceWithWorkflow({ status: 'processing', targetTask: 'Task_2' });
-            },
-          },
-        },
-      });
-
-      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
-      failing = true;
-
-      // Cycle 1: swallowed silently - no hint yet.
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(12_000);
-      });
-      expect(screen.queryByText(/får ikke kontakt med tjenesten/i)).not.toBeInTheDocument();
-
-      // Cycle 2: the advancing view is still alive (below the escalation threshold) and now
-      // carries the honest connection-trouble note.
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(12_000);
-      });
-      expect(screen.getByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
-      expect(screen.getByText(/får ikke kontakt med tjenesten/i)).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-      logWarnOnce.mockRestore();
     }
   });
 
@@ -358,7 +308,7 @@ describe('ProcessWrapper workflow state machine', () => {
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, true, 'pdf=1');
 
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
-    expect(screen.queryByText(/vi jobber med skjemaet ditt/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 
   it('failed shows the error page with support info and safe structured details - and no Retry', async () => {
@@ -485,7 +435,7 @@ describe('ProcessWrapper workflow state machine', () => {
         },
       });
 
-      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+      await expectWorkflowLoader();
 
       // The transition commits out-of-band (this session never called process/next).
       committed = true;
@@ -538,7 +488,7 @@ describe('ProcessWrapper workflow state machine', () => {
 
       resumedByOps = true;
 
-      // Well past both the processing (~2-3s) and the old failed (~10-12s) poll windows: no ticks,
+      // Well past any active polling interval: no ticks,
       // so the settled workflow is never observed and the error page deliberately stays.
       await act(async () => {
         await vi.advanceTimersByTimeAsync(60_000);

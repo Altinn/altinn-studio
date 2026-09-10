@@ -4,21 +4,13 @@
   gap: 10px;
 }
 
-.processingContainer {
+.stillWorkingContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-  padding: 48px 16px;
-}
-
-.processingNote {
-  max-width: 60ch;
+  justify-content: center;
+  padding: 0 16px 48px;
 }
 
 .stillWorkingAlert {
-  margin-top: 24px;
   max-width: 65ch;
 }
 
