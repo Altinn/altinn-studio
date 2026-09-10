@@ -44,4 +44,4 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only "$BASE_REF"...HEAD | tee /tmp/changed.txt
-          xargs -a /tmp/changed.txt -r python -m benchmarks.impact --strict
+          python -m benchmarks.impact --strict < /tmp/changed.txt

@@ -126,6 +126,9 @@ get_prompt_with_langfuse("intake_planning")
 | `templates/spec_extraction_user.md` | `spec_extraction_user`      |
 | `templates/semantic_query_user.md`  | `semantic_query_user`       |
 
+One exception: the intent gate loads Langfuse prompt `intent_check` from local
+`intent_security.md`. Pass `local_path` when the two names diverge.
+
 ### LLM-as-a-judge prompts
 
 The files under `llm-as-a-judge/` are NOT loaded by application code.
