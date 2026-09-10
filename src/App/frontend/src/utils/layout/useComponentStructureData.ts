@@ -1,8 +1,9 @@
+import type { IGridStyling } from '@app/layout-contract/generated/common.generated';
+
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getComponentDef } from 'src/layout/index';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import type { IGridStyling } from 'src/layout/common.generated';
 
 export interface ComponentStructureData {
   componentId: string;

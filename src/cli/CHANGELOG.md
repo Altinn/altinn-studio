@@ -9,6 +9,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` now rewrites the removed `IText` interface to `IAppResources.GetTexts(org, app, language)` - the same method under its v9 name. A field, parameter or property typed `IText` is retyped to `IAppResources`, and the `.GetText(..)` call reached through it is renamed to `.GetTexts(..)`. A class implementing `IText` directly, or a direct reference to the concrete `TextClient` type, has no mechanical fix and is reported instead.
+- `studioctl app upgrade v9` now reports (rather than staying silent about) two more removed APIs that need manual porting: `IAppResources.GetApplication()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()` (replaced by the asynchronous `IAppMetadata.GetApplicationMetadata()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()`), and the two `IDataClient.UpdateBinaryData` overloads that took an `HttpRequest` and separate `org`/`app` strings (replaced by the overload taking an `InstanceIdentifier` and a `Stream`).
+
 ### Changed
 
 - `studioctl app upgrade v9` removes `moveToNextTask` from the Fiks Arkiv `successHandling` and `errorHandling` settings in your appsettings files. A Fiks Arkiv task in v9 always moves the process on once the archiving is decided, so the setting no longer exists; left in place it would be ignored without notice. Where it was `false`, the upgrade reports a TODO explaining what changes: a success that used to leave the instance on the task now moves on with the success action, and a rejection that used to fail the task now moves on with the error action, `reject` by default. The upgrade also reports a TODO for a Fiks Arkiv task that is not followed by an exclusive gateway, since the v9 app refuses to start until one separates a confirmed archiving from a rejected one.

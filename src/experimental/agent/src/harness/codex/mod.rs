@@ -122,8 +122,9 @@ pub(super) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
 ) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home, instructions).await
+    bootstrap::configure_linux(sandbox, home, instructions, skills).await
 }
 
 pub(super) async fn verify_linux(

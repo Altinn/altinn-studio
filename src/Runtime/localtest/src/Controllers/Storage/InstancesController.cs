@@ -1073,6 +1073,11 @@ public class InstancesController : ControllerBase
     /// <summary>
     /// Updates the data values on an instance.
     /// </summary>
+    /// <remarks>
+    /// Applies only the supplied keys, including while processing, without advancing either version.
+    /// Optional preconditions fence versioned changes, not other standalone data-values patches.
+    /// Null or empty values remove keys.
+    /// </remarks>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
     /// <param name="dataValues">Collection of changes to the data values collection.</param>
@@ -1083,6 +1088,8 @@ public class InstancesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
     [Consumes("application/json")]
     [Produces("application/json")]
     public async Task<ActionResult<Instance>> UpdateDataValues(
@@ -1103,6 +1110,11 @@ public class InstancesController : ControllerBase
             cancellationToken
         );
 
+        if (instance is null)
+        {
+            return NotFound($"Unable to find instance {instanceOwnerPartyId}/{instanceGuid}.");
+        }
+
         if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance))
         {
             return Forbid();
@@ -1115,28 +1127,13 @@ public class InstancesController : ControllerBase
             return versionError;
         }
 
-        instance.DataValues ??= new Dictionary<string, string>();
-
-        List<string> updateProperties = [];
-        updateProperties.Add(nameof(instance.DataValues));
-        foreach (KeyValuePair<string, string> entry in dataValues.Values)
-        {
-            if (string.IsNullOrEmpty(entry.Value))
-            {
-                instance.DataValues.Remove(entry.Key);
-            }
-            else
-            {
-                instance.DataValues[entry.Key] = entry.Value;
-            }
-        }
-
         Instance updatedInstance;
+        InstanceVersionResult versions;
         try
         {
-            updatedInstance = await _instanceRepository.Update(
-                instance,
-                updateProperties,
+            (updatedInstance, versions) = await _instanceRepository.UpdateDataValues(
+                instanceGuid,
+                dataValues.Values,
                 cancellationToken,
                 preconditions.InstanceVersion,
                 preconditions.ProcessStateVersion
@@ -1151,7 +1148,7 @@ public class InstancesController : ControllerBase
             return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
         }
 
-        await WriteVersionResponseHeaders(instanceGuid, cancellationToken);
+        VersionPreconditionHelper.WriteVersionResponseHeaders(Response, versions);
         return Ok(updatedInstance);
     }
 

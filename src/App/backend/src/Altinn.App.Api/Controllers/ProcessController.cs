@@ -11,7 +11,6 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Storage;
-using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
@@ -37,7 +36,6 @@ public class ProcessController : ControllerBase
     private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessClient _processClient;
     private readonly IProcessEngine _processEngine;
-    private readonly IProcessReader _processReader;
     private readonly ProcessStateEnricher _processStateEnricher;
     private readonly IRegisterClient _registerClient;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
@@ -49,23 +47,15 @@ public class ProcessController : ControllerBase
         ILogger<ProcessController> logger,
         IInstanceClient instanceClient,
         IProcessClient processClient,
-        IValidationService validationService,
-        IProcessReader processReader,
         IServiceProvider serviceProvider,
-        IProcessEngineAuthorizer processEngineAuthorizer,
         ProcessStateEnricher processStateEnricher
     )
     {
         _logger = logger;
         _instanceClient = instanceClient;
         _processClient = processClient;
-        _processReader = processReader;
         _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _processEngine = serviceProvider.GetRequiredService<IProcessEngine>();
-        // Retain these public constructor parameters for compatibility. ProcessEngine owns both checks so that
-        // workflow recovery and process-status dispositions precede action and validation execution.
-        _ = validationService;
-        _ = processEngineAuthorizer;
         _processStateEnricher = processStateEnricher;
         _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
@@ -238,76 +228,6 @@ public class ProcessController : ControllerBase
             return ExceptionResponse(
                 startException,
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}"
-            );
-        }
-    }
-
-    /// <summary>
-    /// Gets a list of the next process elements that can be reached from the current process element.
-    /// If process is not started it returns the possible start events.
-    /// </summary>
-    /// <param name="org">unique identifier of the organization responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organization</param>
-    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
-    /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <returns>list of next process element identifiers (tasks or events)</returns>
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-    [HttpGet("next")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [Obsolete(
-        "From v8 of nuget package navigation is done by sending performed action to the next api. Available actions are returned in the GET /process endpoint"
-    )]
-    public async Task<ActionResult<List<string>>> GetNextElements(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid
-    )
-    {
-        Instance? instance = null;
-        string? currentTaskId = null;
-
-        try
-        {
-            instance = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-
-            if (instance.Process == null)
-            {
-                return Ok(_processReader.GetStartEventIds());
-            }
-
-            currentTaskId = instance.Process.CurrentTask?.ElementId;
-
-            if (currentTaskId == null)
-            {
-                return Conflict($"Instance does not have valid info about currentTask");
-            }
-
-            return Ok(new List<string>());
-        }
-        catch (PlatformHttpException e)
-        {
-            return HandlePlatformHttpException(
-                e,
-                $"Unable to find next process element for instance {instance?.Id} and current task {currentTaskId}. Exception was {e.Message}. Is the process file OK?"
-            );
-        }
-        catch (Exception processException)
-        {
-            _logger.LogError(
-                $"Unable to find next process element for instance {instance?.Id} and current task {currentTaskId}. {processException}"
-            );
-            return ExceptionResponse(
-                processException,
-                $"Unable to find next process element for instance {instance?.Id} and current task {currentTaskId}. Exception was {processException.Message}. Is the process file OK?"
             );
         }
     }

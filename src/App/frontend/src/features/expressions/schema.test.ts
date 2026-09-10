@@ -69,6 +69,16 @@ describe('expression schema tests', () => {
   const ajv = new Ajv({ strict: false });
   const validate = ajv.compile(expressionSchema);
 
+  it.each(['object', 'strict-object', 'any'])('accepts JMESPath in %s contexts', (context) => {
+    const validateContext = ajv.compile({
+      $ref: `#/definitions/${context}`,
+      definitions: expressionSchema.definitions,
+    });
+
+    expect(validateContext(['jmespath', ['object', 'key', 'value'], '@'])).toBe(true);
+    expect(validateContext(['invalid_function'])).toBe(false);
+  });
+
   it.each(functions)('$name should validate against generated function calls', ({ name, args }) => {
     if (name === 'if' || name === 'compare') {
       // if is a special case, we'll skip it here

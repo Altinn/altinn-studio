@@ -3,6 +3,7 @@ kind: PodDisruptionBudget
 metadata:
   name: workflow-engine-app-pdb
 spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
   maxUnavailable: 1
   selector:
     matchLabels:

@@ -16,6 +16,9 @@ const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
 const UTF8_LOCALE: &str = "C.UTF-8";
 const PORTABLE_TERMINAL: &str = "xterm-256color";
 const PODMAN: &str = "/usr/bin/podman";
+const SETUP_STDERR_LINES: usize = 3;
+const SYSTEMD_READY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
+const SYSTEMD_READY_POLL: std::time::Duration = std::time::Duration::from_secs(1);
 // Podman reads these files when it creates containers. The default mount also
 // reaches Buildah RUN containers and exposes the guest's superset bundle at a
 // path no distro package owns. Distro trust paths are populated by an OCI hook
@@ -149,8 +152,9 @@ impl Linux {
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
         let instructions = read_instructions(record).await?;
+        let skills = read_skills(record).await?;
         for installation in &record.agent.spec.harnesses {
-            harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref()).await?;
+            harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
         }
         Ok(())
     }
@@ -173,6 +177,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
         }
     }
 
+    wait_for_systemd(sandbox).await?;
     run_checked(
         sandbox,
         "/usr/bin/sudo",
@@ -215,6 +220,58 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
     .await
 }
 
+/// Waits until systemd is PID 1 and has finished booting the guest.
+///
+/// Sandbox setup starts as soon as the Sandbox accepts Executions, which on an
+/// image-init guest is before the image entrypoint has become systemd; `systemctl`
+/// then reports "System has not been booted with systemd". `is-system-running
+/// --wait` blocks until startup finishes once systemd is up. It runs as root
+/// because the guest has no D-Bus system bus and only root reaches systemd's
+/// private socket. A `degraded` system counts as ready: a failed optional unit,
+/// such as a best-effort workspace clone, must not block the Podman configuration.
+async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
+    let deadline = tokio::time::Instant::now() + SYSTEMD_READY_TIMEOUT;
+    loop {
+        // `--wait` blocks for as long as boot takes, so the deadline bounds the wait itself
+        // and a still-running check is killed rather than left behind in the guest.
+        let started = sandbox
+            .start_execution(::sandbox::execution::StartExecutionRequest::new(
+                ExecutionSpec::command(
+                    SandboxPath::new("/usr/bin/sudo"),
+                    ["-n", "/usr/bin/systemctl", "is-system-running", "--wait"].map(str::to_owned),
+                ),
+            ))
+            .await?;
+        let execution_id = started.id.clone();
+        let output = match tokio::time::timeout_at(deadline, started.collect()).await {
+            Ok(output) => output?,
+            Err(_elapsed) => {
+                let _ = sandbox.kill_execution(&execution_id).await;
+                return Err(Error::SandboxSetup(format!(
+                    "systemd did not finish booting within {}s",
+                    SYSTEMD_READY_TIMEOUT.as_secs()
+                )));
+            }
+        };
+        let state = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        if output.status.success() || matches!(state.as_str(), "running" | "degraded") {
+            return Ok(());
+        }
+        if tokio::time::Instant::now() >= deadline {
+            let last = if state.is_empty() {
+                String::from_utf8_lossy(&output.stderr).trim().to_owned()
+            } else {
+                state
+            };
+            return Err(Error::SandboxSetup(format!(
+                "systemd did not become ready within {}s: {last}",
+                SYSTEMD_READY_TIMEOUT.as_secs()
+            )));
+        }
+        tokio::time::sleep(SYSTEMD_READY_POLL).await;
+    }
+}
+
 async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Result<(), Error> {
     sandbox
         .write_file(&SandboxPath::new(path), Box::pin(Cursor::new(contents.to_vec())))
@@ -222,32 +279,108 @@ async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Res
         .map_err(Error::from)
 }
 
+/// Concatenates the instruction files in manifest order, each terminated by a newline and
+/// separated by a blank line, so independent documents read as sections of one file.
 async fn read_instructions(record: &control_plane::AgentRecord) -> Result<Option<Vec<u8>>, Error> {
-    let Some(spec) = &record.agent.spec.instructions else {
-        return Ok(None);
-    };
-    let source = if spec.source.is_absolute() {
-        spec.source.clone()
-    } else {
-        record.source_directory.join(&spec.source)
-    };
-    let metadata = tokio::fs::metadata(&source).await?;
-    if !metadata.is_file() {
-        return Err(Error::Invalid("spec.instructions.source must identify a file".into()));
+    let mut combined = Vec::new();
+    for (index, spec) in record.agent.spec.instructions.iter().enumerate() {
+        let source = if spec.source.is_absolute() {
+            spec.source.clone()
+        } else {
+            record.source_directory.join(&spec.source)
+        };
+        let metadata = tokio::fs::metadata(&source).await?;
+        if !metadata.is_file() {
+            return Err(Error::Invalid(format!(
+                "spec.instructions[{index}].source must identify a file"
+            )));
+        }
+        let contents = tokio::fs::read(source).await?;
+        if !combined.is_empty() {
+            combined.push(b'\n');
+        }
+        combined.extend_from_slice(contents.strip_suffix(b"\n").unwrap_or(&contents));
+        combined.push(b'\n');
     }
-    tokio::fs::read(source).await.map(Some).map_err(Error::from)
+    Ok((!combined.is_empty()).then_some(combined))
+}
+
+async fn read_skills(record: &control_plane::AgentRecord) -> Result<Vec<harness::Skill>, Error> {
+    let mut skills = Vec::with_capacity(record.agent.spec.skills.len());
+    for (index, spec) in record.agent.spec.skills.iter().enumerate() {
+        let field = format!("spec.skills[{index}].source");
+        let name = spec
+            .name()
+            .ok_or_else(|| Error::Invalid(format!("{field} must end in the skill's directory name")))?;
+        let source = resolve_source(&record.source_directory, &spec.source, &field)?;
+        if !source.join("SKILL.md").is_file() {
+            return Err(Error::Invalid(format!("{field} must contain SKILL.md")));
+        }
+        let files = tokio::task::spawn_blocking(move || read_skill_files(&source, &field))
+            .await
+            .map_err(|error| Error::Daemon(format!("Agent skill scan task failed: {error}")))??;
+        skills.push(harness::Skill {
+            name: name.to_owned(),
+            files,
+        });
+    }
+    Ok(skills)
+}
+
+fn read_skill_files(source: &Path, field: &str) -> Result<Vec<harness::SkillFile>, Error> {
+    let mut files = Vec::new();
+    walk_source(source, field, |relative, path, is_dir| {
+        if is_dir {
+            return Ok(());
+        }
+        let relative_path = relative
+            .components()
+            .map(|component| component.as_os_str().to_str())
+            .collect::<Option<Vec<_>>>()
+            .ok_or_else(|| Error::Invalid(format!("{field} contains a non-UTF-8 file name")))?
+            .join("/");
+        files.push(harness::SkillFile {
+            relative_path,
+            contents: std::fs::read(path)?,
+        });
+        Ok(())
+    })?;
+    Ok(files)
 }
 
 async fn archive_home(manifest_directory: std::path::PathBuf, source: std::path::PathBuf) -> Result<Vec<u8>, Error> {
-    tokio::task::spawn_blocking(move || archive_home_blocking(&manifest_directory, &source))
-        .await
-        .map_err(|error| Error::Daemon(format!("Agent home scan task failed: {error}")))?
+    let source = resolve_source(&manifest_directory, &source, "spec.home.source")?;
+    archive_directory(source, "spec.home.source".to_owned()).await
 }
 
-fn archive_home_blocking(manifest_directory: &Path, source: &Path) -> Result<Vec<u8>, Error> {
-    let source = resolve_source(manifest_directory, source)?;
+/// Archives a resolved host directory on a blocking thread; `field` names the manifest field in errors.
+async fn archive_directory(source: std::path::PathBuf, field: String) -> Result<Vec<u8>, Error> {
+    let task = format!("Agent {field} scan task failed");
+    tokio::task::spawn_blocking(move || archive_directory_blocking(&source, &field))
+        .await
+        .map_err(|error| Error::Daemon(format!("{task}: {error}")))?
+}
+
+fn archive_directory_blocking(source: &Path, field: &str) -> Result<Vec<u8>, Error> {
     let mut archive = tar::Builder::new(Vec::new());
-    for result in WalkBuilder::new(&source)
+    walk_source(source, field, |relative, path, is_dir| {
+        if is_dir {
+            archive.append_dir(relative, path)?;
+        } else {
+            archive.append_path_with_name(path, relative)?;
+        }
+        Ok(())
+    })?;
+    archive.into_inner().map_err(Error::from)
+}
+
+/// Visits every entry below `source` with its relative path, rejecting symbolic links.
+fn walk_source(
+    source: &Path,
+    field: &str,
+    mut visit: impl FnMut(&Path, &Path, bool) -> Result<(), Error>,
+) -> Result<(), Error> {
+    for result in WalkBuilder::new(source)
         .hidden(false)
         .ignore(false)
         .git_ignore(false)
@@ -256,27 +389,34 @@ fn archive_home_blocking(manifest_directory: &Path, source: &Path) -> Result<Vec
         .follow_links(false)
         .build()
     {
-        let entry = result.map_err(|error| Error::Invalid(format!("cannot traverse spec.home.source: {error}")))?;
+        let entry = result.map_err(|error| Error::Invalid(format!("cannot traverse {field}: {error}")))?;
         let relative = entry
             .path()
-            .strip_prefix(&source)
-            .map_err(|_| Error::Invalid("spec.home.source traversal escaped its root".into()))?;
+            .strip_prefix(source)
+            .map_err(|_| Error::Invalid(format!("{field} traversal escaped its root")))?;
         if relative.as_os_str().is_empty() {
             continue;
         }
-        if entry.file_type().is_some_and(|kind| kind.is_symlink()) {
+        // Only directories and regular files are carried into the Sandbox. A symbolic link would
+        // point at host content outside the source, and reading a FIFO or device would block setup.
+        let kind = entry
+            .file_type()
+            .ok_or_else(|| Error::Invalid(format!("{field} entry {} has no file type", relative.display())))?;
+        if kind.is_symlink() {
             return Err(Error::Invalid(format!(
-                "spec.home.source contains unsupported symbolic link {}",
+                "{field} contains unsupported symbolic link {}",
                 relative.display()
             )));
         }
-        if entry.file_type().is_some_and(|kind| kind.is_dir()) {
-            archive.append_dir(relative, entry.path())?;
-        } else {
-            archive.append_path_with_name(entry.path(), relative)?;
+        if !kind.is_dir() && !kind.is_file() {
+            return Err(Error::Invalid(format!(
+                "{field} contains unsupported non-regular file {}",
+                relative.display()
+            )));
         }
+        visit(relative, entry.path(), kind.is_dir())?;
     }
-    archive.into_inner().map_err(Error::from)
+    Ok(())
 }
 
 async fn sync_home(sandbox: &SandboxHandle, archive: Vec<u8>) -> Result<(), Error> {
@@ -286,7 +426,16 @@ async fn sync_home(sandbox: &SandboxHandle, archive: Vec<u8>) -> Result<(), Erro
     run_checked(sandbox, "/usr/bin/tar", ["-xf", HOME_ARCHIVE, "-C", HOME]).await
 }
 
-async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, args: [&str; N]) -> Result<(), Error> {
+/// Runs one setup command in the Sandbox and fails with what it ran and what it printed.
+///
+/// # Errors
+///
+/// Returns an error when the Execution cannot start or exits unsuccessfully.
+pub(crate) async fn run_checked<const N: usize>(
+    sandbox: &SandboxHandle,
+    executable: &str,
+    args: [&str; N],
+) -> Result<(), Error> {
     let output = sandbox
         .run_execution(ExecutionSpec::command(
             SandboxPath::new(executable),
@@ -294,16 +443,32 @@ async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, 
         ))
         .await?;
     if output.status.success() {
-        Ok(())
-    } else {
-        Err(Error::SandboxSetup(format!(
-            "command {executable:?} exited with code {}",
-            output.status.code
-        )))
+        return Ok(());
     }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stderr = stderr.trim();
+    let detail = if stderr.is_empty() {
+        String::new()
+    } else {
+        let tail = stderr
+            .lines()
+            .rev()
+            .take(SETUP_STDERR_LINES)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect::<Vec<_>>()
+            .join(" | ");
+        format!(": {tail}")
+    };
+    Err(Error::SandboxSetup(format!(
+        "command `{executable} {}` exited with code {}{detail}",
+        args.join(" "),
+        output.status.code
+    )))
 }
 
-fn resolve_source(manifest_directory: &Path, source: &Path) -> Result<std::path::PathBuf, Error> {
+fn resolve_source(manifest_directory: &Path, source: &Path, field: &str) -> Result<std::path::PathBuf, Error> {
     let source = if source.is_absolute() {
         source.to_path_buf()
     } else {
@@ -311,7 +476,7 @@ fn resolve_source(manifest_directory: &Path, source: &Path) -> Result<std::path:
     };
     let source = std::fs::canonicalize(source)?;
     if !source.is_dir() {
-        return Err(Error::Invalid("spec.home.source must identify a directory".into()));
+        return Err(Error::Invalid(format!("{field} must identify a directory")));
     }
     Ok(source)
 }

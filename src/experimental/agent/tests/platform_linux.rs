@@ -41,6 +41,14 @@ fn is_podman_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_systemd_readiness_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo" && args == &["-n", "/usr/bin/systemctl", "is-system-running", "--wait"]
+    )
+}
+
 fn completed(code: i32) -> Vec<ExecutionEvent> {
     vec![
         ExecutionEvent::Started { process_id: None },
@@ -90,6 +98,19 @@ fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]
             .count()
     };
     assert_eq!(count(&["-n", "/usr/bin/systemctl", "daemon-reload"]), 2);
+    // systemd readiness is confirmed before the first systemctl call of a setup pass.
+    let daemon_reload = executions
+        .iter()
+        .position(|spec| matches!(spec.program(), Program::Command { args, .. } if args.contains(&"daemon-reload".to_owned())))
+        .expect("daemon-reload runs");
+    assert!(executions.iter().take(daemon_reload).any(is_systemd_readiness_check));
+    assert!(
+        executions
+            .iter()
+            .filter(|spec| is_systemd_readiness_check(spec))
+            .count()
+            >= 2
+    );
     assert_eq!(
         count(&["-n", "/usr/bin/systemctl", "enable", "--now", "podman.socket"]),
         2
@@ -115,11 +136,26 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
     std::fs::create_dir_all(&home).expect("home directory");
-    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions\n").expect("instruction file");
+    std::fs::write(
+        directory.path().join("environment.md"),
+        "# Environment\n\nhas a browser\n",
+    )
+    .expect("environment file");
+    let skill = directory.path().join("skills").join("evidence");
+    std::fs::create_dir_all(skill.join("references")).expect("skill directory");
+    std::fs::write(skill.join("SKILL.md"), "---\nname: evidence\n---\ncapture").expect("skill file");
+    std::fs::write(skill.join("references").join("gif.md"), "palette").expect("skill reference");
     let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     let mut resource = support::agent("worker");
     resource.metadata.generation = 1;
     resource.spec.home.source = home;
+    resource.spec.skills = vec![agent::SkillSpec {
+        source: PathBuf::from("skills/evidence"),
+    }];
+    resource.spec.instructions.push(agent::InstructionsSpec {
+        source: PathBuf::from("environment.md"),
+    });
     resource.spec.harnesses[0].default = true;
     resource.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
@@ -184,9 +220,15 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let preserved = read_file(&sandbox, "/home/agent/.claude/.claude.json").await;
     assert_eq!(preserved, mutable_state);
     let instructions = read_file(&sandbox, "/home/agent/.claude/CLAUDE.md").await;
-    assert_eq!(instructions, b"test instructions");
+    assert_eq!(instructions, b"test instructions\n\n# Environment\n\nhas a browser\n");
     let codex_instructions = read_file(&sandbox, "/home/agent/.codex/AGENTS.md").await;
-    assert_eq!(codex_instructions, b"test instructions");
+    assert_eq!(codex_instructions, instructions);
+    for root in ["/home/agent/.claude/skills", "/home/agent/.agents/skills"] {
+        let skill = read_file(&sandbox, &format!("{root}/evidence/SKILL.md")).await;
+        assert_eq!(skill, b"---\nname: evidence\n---\ncapture");
+        let reference = read_file(&sandbox, &format!("{root}/evidence/references/gif.md")).await;
+        assert_eq!(reference, b"palette");
+    }
     let codex_auth: serde_json::Value =
         serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/auth.json").await).expect("Codex auth JSON");
     assert_eq!(codex_auth["auth_mode"], "chatgpt");
@@ -247,6 +289,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
 }
 
 #[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
 async fn linux_setup_convergently_configures_podman_container_trust() {
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
@@ -289,6 +332,25 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         .await
         .expect("Sandbox");
 
+    // The first setup pass races the image init: systemd is not PID 1 yet, then boots degraded.
+    backend.queue_execution_events_matching(
+        is_systemd_readiness_check,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stderr(
+                "System has not been booted with systemd as init system (PID 1). Can't operate.\n".into(),
+            ),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
+    backend.queue_execution_events_matching(
+        is_systemd_readiness_check,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("degraded\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
     Linux.setup(&record, &sandbox).await.expect("first setup");
     sandbox
         .write_file(
@@ -348,6 +410,15 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
     assert!(hook.contains("/.msb/tls/ca.pem"));
 
     assert_podman_setup_commands(&backend.execution_specs());
+    // Two setup passes; the first retried once while systemd was not yet PID 1.
+    assert_eq!(
+        backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_systemd_readiness_check(spec))
+            .count(),
+        3
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -454,5 +525,67 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
         backend.execution_specs().len(),
         1,
         "verification must happen before injection"
+    );
+}
+
+// The host is what holds the FIFO; Windows has no mkfifo, and the Linux Sandbox setup runs the same
+// walker on every host, so one Unix host exercising it is enough.
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    let skill = directory.path().join("skills").join("evidence");
+    std::fs::create_dir_all(&skill).expect("skill directory");
+    std::fs::write(skill.join("SKILL.md"), "capture").expect("skill file");
+    let status = std::process::Command::new("mkfifo")
+        .arg(skill.join("pipe"))
+        .status()
+        .expect("mkfifo runs");
+    assert!(status.success());
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    resource.spec.instructions.clear();
+    resource.spec.skills = vec![agent::SkillSpec {
+        source: PathBuf::from("skills/evidence"),
+    }];
+    let record = AgentRecord {
+        id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    let service = SandboxService::new(backend);
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("Sandbox");
+
+    let error = Linux.setup(&record, &sandbox).await.expect_err("FIFO must be rejected");
+
+    assert!(
+        matches!(&error, agent::Error::Invalid(message) if message.contains("non-regular file pipe")),
+        "unexpected error: {error:?}"
     );
 }

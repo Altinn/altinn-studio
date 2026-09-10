@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    PendingOperation, Platform, Sandbox, SandboxCapabilities, SandboxFeature, SandboxFeatureSet, SandboxName,
+    Hostname, PendingOperation, Platform, Sandbox, SandboxCapabilities, SandboxFeature, SandboxFeatureSet, SandboxName,
     SandboxPath, SandboxResources, SandboxState,
     backend::{SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer, image,
@@ -341,6 +341,8 @@ impl SandboxSpec {
 pub struct EnsureSandboxRequest {
     /// Stable Sandbox name.
     name: SandboxName,
+    /// Hostname overriding the Sandbox name inside the guest.
+    hostname: Option<Hostname>,
     /// Desired backend-neutral configuration.
     spec: SandboxSpec,
     /// Attachments contributed by the caller or a higher platform layer.
@@ -357,11 +359,22 @@ impl EnsureSandboxRequest {
     pub const fn new(name: SandboxName, spec: SandboxSpec) -> Self {
         Self {
             name,
+            hostname: None,
             spec,
             mounts: Vec::new(),
             environment: std::collections::BTreeMap::new(),
             required_features: SandboxFeatureSet::new(),
         }
+    }
+
+    /// Reports a hostname other than the Sandbox name inside the guest.
+    ///
+    /// The hostname is applied when the Sandbox is created; an existing Sandbox
+    /// keeps the hostname it was created with.
+    #[must_use]
+    pub fn with_hostname(mut self, hostname: Hostname) -> Self {
+        self.hostname = Some(hostname);
+        self
     }
 
     /// Adds filesystem attachments materialized with the Sandbox.
@@ -389,6 +402,12 @@ impl EnsureSandboxRequest {
     #[must_use]
     pub const fn name(&self) -> &SandboxName {
         &self.name
+    }
+
+    /// Returns the hostname the guest reports, defaulting to the Sandbox name.
+    #[must_use]
+    pub fn hostname(&self) -> Hostname {
+        self.hostname.clone().unwrap_or_else(|| self.name.clone().into())
     }
 
     /// Returns the desired Sandbox configuration.
@@ -649,6 +668,7 @@ impl SandboxService {
                     .create(crate::backend::CreateSandboxRequest {
                         id: id.clone(),
                         name: request.name.clone(),
+                        hostname: request.hostname(),
                         image,
                         resources: request.spec.resources,
                         init_system: request.spec.init_system,

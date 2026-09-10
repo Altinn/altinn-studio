@@ -328,8 +328,9 @@ impl MicrosandboxProvider {
             self.materialize_direct_root_image(&image).await?;
             step.complete(started.elapsed()).await;
         }
-        let mut builder =
-            Client::sandbox_builder(&record.runtime_name, image, record.resources)?.pull_policy(PullPolicy::Never);
+        let mut builder = Client::sandbox_builder(&record.runtime_name, image, record.resources)?
+            .pull_policy(PullPolicy::Never)
+            .hostname(record.hostname().as_str());
         builder = builder.envs(record.environment.clone());
         if record
             .network
@@ -665,6 +666,7 @@ impl SandboxRecord {
             init_system: self.init_system,
             id: self.id.clone(),
             name: self.name.clone(),
+            hostname: self.hostname(),
             resources: self.resources,
             state,
             mounts: self.mounts.clone(),

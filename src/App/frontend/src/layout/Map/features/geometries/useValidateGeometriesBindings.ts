@@ -1,7 +1,8 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export function validateGeometriesBindings(
