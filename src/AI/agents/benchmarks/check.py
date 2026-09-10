@@ -18,8 +18,11 @@ from benchmarks.runstore import BehaviorResult, ItemResult, Run
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 
+DEFAULT_AGENT_BASE_URL = "http://localhost:8071"
+E2E_KIND = "e2e"
+
 # Slow: opt in.
-SLOW_KINDS = ("e2e",)
+SLOW_KINDS = (E2E_KIND,)
 
 E2E_MAX_CONCURRENCY = 1
 
@@ -43,7 +46,7 @@ class EvalOutcome:
 
 
 def _agent_base() -> str:
-    return os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/")
+    return os.environ.get("AGENT_BASE_URL", DEFAULT_AGENT_BASE_URL).rstrip("/")
 
 
 def _agent_models_or_die(agent_base: str) -> dict[str, str]:
@@ -61,14 +64,14 @@ def _agent_models_or_die(agent_base: str) -> dict[str, str]:
 
 def agent_models_for(planned) -> dict[str, str]:
     """One snapshot of the agent's models per run, read only when an e2e eval is selected."""
-    if not any(entry.kind == "e2e" for entry in planned):
+    if not any(entry.kind == E2E_KIND for entry in planned):
         return {}
     return _agent_models_or_die(_agent_base())
 
 
 def task_for(args, dataset, agent_models: dict[str, str] | None = None):
     """The task and scorers for a dataset, chosen by its kind."""
-    if dataset.kind == "e2e":
+    if dataset.kind == E2E_KIND:
         agent_base = _agent_base()
         role_models = agent_models or _agent_models_or_die(agent_base)
         run_name = getattr(args, "run_name", None) or dataset.name
