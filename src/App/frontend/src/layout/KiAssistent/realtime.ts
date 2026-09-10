@@ -26,6 +26,8 @@ export interface IOktOpsjoner {
   taledeteksjon: string;
   utaalmodighet: string;
   stillhetMs: number;
+  stoyreduksjon: string;
+  terskel: number;
   verktoy: IVerktoy[];
   lydElement: HTMLAudioElement;
   onStatus: (status: string) => void;
@@ -73,12 +75,21 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
             // nettopp der den gjetter feil.
             input: {
               transcription: { model: o.transkripsjonsmodell, language: o.sprak },
+              // Filtrerer lyden før taledeteksjonen, ikke etter. Det er dette som
+              // hindrer at en dør som smeller eller noen som prater i bakgrunnen
+              // blir oppfattet som at søkeren har begynt å snakke.
+              noise_reduction: { type: o.stoyreduksjon },
               // Standard er et halvsekund stillhet. Det er altfor kort for noen som
               // snakker sakte eller har talevansker - og det er nettopp dem dette
               // skjemaet er til for. Vi lar heller assistenten vente for lenge.
               turn_detection:
                 o.taledeteksjon === 'server_vad'
-                  ? { type: 'server_vad', silence_duration_ms: o.stillhetMs, prefix_padding_ms: 600 }
+                  ? {
+                      type: 'server_vad',
+                      threshold: o.terskel,
+                      silence_duration_ms: o.stillhetMs,
+                      prefix_padding_ms: 600,
+                    }
                   : { type: 'semantic_vad', eagerness: o.utaalmodighet },
             },
           },
@@ -92,9 +103,15 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
       }),
     );
     // Be modellen ta ordet først, slik at søkeren slipper å begynne.
+    svarPaagaar = true;
     kanal.send(JSON.stringify({ type: 'response.create' }));
     o.onStatus('i-gang');
   });
+
+  // Ett svar av gangen. Uten dette kan vi be om et nytt mens ett allerede er i gang,
+  // og da hakker stemmen fordi to svar overlapper.
+  let svarPaagaar = false;
+  let venterPaaSvar = false;
 
   kanal.addEventListener('message', async (e) => {
     let hendelse: { type?: string; [k: string]: unknown };
@@ -121,8 +138,26 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
           item: { type: 'function_call_output', call_id: kallId, output: JSON.stringify(resultat) },
         }),
       );
-      // Uten denne står modellen stille og venter i stedet for å snakke videre.
-      kanal.send(JSON.stringify({ type: 'response.create' }));
+      // Vi ber ikke om nytt svar her. Kaller modellen flere verktøy i samme svar,
+      // fyrer denne hendelsen én gang per kall - og ett response.create per kall
+      // gir overlappende svar som stopper og starter. Vi venter på response.done
+      // og ber om nøyaktig ett nytt svar der.
+      venterPaaSvar = true;
+      return;
+    }
+
+    if (hendelse.type === 'response.done') {
+      svarPaagaar = false;
+      if (venterPaaSvar) {
+        venterPaaSvar = false;
+        svarPaagaar = true;
+        kanal.send(JSON.stringify({ type: 'response.create' }));
+      }
+      return;
+    }
+
+    if (hendelse.type === 'response.created') {
+      svarPaagaar = true;
       return;
     }
 

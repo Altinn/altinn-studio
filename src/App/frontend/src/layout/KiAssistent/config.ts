@@ -174,6 +174,30 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
+      'stoyreduksjon',
+      new CG.str()
+        .optional({ default: 'far_field' })
+        .setTitle('Noise reduction', 'Støyreduksjon')
+        .setDescription(
+          'far_field for laptop or room microphones, near_field for headsets. Filters audio before turn detection.',
+          'far_field for maskin- eller rommikrofon, near_field for headset. Filtrerer lyden før taledeteksjon.',
+        ),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
+      'terskel',
+      new CG.num()
+        .optional({ default: 0.6 })
+        .setTitle('Voice activity threshold', 'Terskel for taledeteksjon')
+        .setDescription(
+          'For server_vad, 0-1. Higher means less sensitive to sound that is not speech.',
+          'For server_vad, 0-1. Høyere gjør den mindre følsom for lyd som ikke er tale.',
+        ),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
       'sprak',
       new CG.str()
         .optional({ default: 'no' })
