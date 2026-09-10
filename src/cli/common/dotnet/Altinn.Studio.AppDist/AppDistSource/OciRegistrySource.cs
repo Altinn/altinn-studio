@@ -76,11 +76,14 @@ public sealed partial class OciRegistrySource : IAppDistSource
     public async Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken)
     {
         var tags = new List<string>();
+        var visited = new HashSet<string>(StringComparer.Ordinal);
         var url = $"https://{_host}/v2/{_repository}/tags/list";
         try
         {
             while (url is not null)
             {
+                if (!visited.Add(url))
+                    throw new AppDistSourceException($"{_host}/{_repository}: registry repeated tag list page {url}");
                 var pageUrl = url;
                 using var response = await SendAsync(
                     () => new HttpRequestMessage(HttpMethod.Get, pageUrl),
@@ -294,6 +297,8 @@ public sealed partial class OciRegistrySource : IAppDistSource
         var url = query.Count > 0 ? $"{realm}?{string.Join('&', query)}" : realm;
         if (!Uri.TryCreate(url, UriKind.Absolute, out var tokenUrl))
             throw new AppDistSourceException($"{_host}: bearer challenge has an invalid realm");
+        if (tokenUrl.Scheme != Uri.UriSchemeHttps)
+            throw new AppDistSourceException($"{_host}: bearer challenge realm is not HTTPS");
 
         using var response = await _http.GetAsync(tokenUrl, ct);
         EnsureSuccess(response, "request bearer token");

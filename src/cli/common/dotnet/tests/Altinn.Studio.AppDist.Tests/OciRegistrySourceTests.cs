@@ -195,6 +195,33 @@ public sealed class OciRegistrySourceTests
     }
 
     [Fact]
+    public async Task ListVersions_RepeatedPageLinkThrowsSourceError()
+    {
+        var handler = new FakeRegistry { TagPageLinkLoops = true };
+        handler.AddTags("1", "2");
+
+        var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
+            Source(handler).ListVersionsAsync(CancellationToken.None)
+        );
+
+        Assert.Contains("repeated tag list page", ex.Message);
+        Assert.Equal(1, handler.TagListRequests);
+    }
+
+    [Fact]
+    public async Task ListVersions_NonHttpsTokenRealmThrowsSourceError()
+    {
+        var handler = new FakeRegistry { TokenRealm = $"http://{FakeRegistry.Host}/token" };
+        handler.AddTags("1");
+
+        var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
+            Source(handler).ListVersionsAsync(CancellationToken.None)
+        );
+
+        Assert.Contains("realm is not HTTPS", ex.Message);
+    }
+
+    [Fact]
     public async Task ListVersions_UnreachableRegistryThrowsUnavailable()
     {
         var handler = new FakeRegistry { Offline = true };

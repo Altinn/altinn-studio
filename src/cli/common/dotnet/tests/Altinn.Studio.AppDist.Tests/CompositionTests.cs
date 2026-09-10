@@ -52,6 +52,26 @@ public sealed class CompositionTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateDefault_WithCallerHttpClient_DoesNotDisposeIt()
+    {
+        var handler = RegistryWithVersion("4");
+        using var httpClient = new HttpClient(handler);
+        using (
+            var provider = AppDist.CreateDefault(_root, httpClient, $"{FakeRegistry.Host}/{FakeRegistry.Repository}")
+        )
+        {
+            Assert.NotNull(await provider.GetVersionAsync("4", TestContext.Current.CancellationToken));
+        }
+
+        // A disposed HttpClient throws ObjectDisposedException here.
+        using var response = await httpClient.GetAsync(
+            $"https://{FakeRegistry.Host}/v2/{FakeRegistry.Repository}/tags/list",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(response);
+    }
+
+    [Fact]
     public async Task CreateDefault_ComposesOciSourceAndFileStore()
     {
         var handler = RegistryWithVersion("4");

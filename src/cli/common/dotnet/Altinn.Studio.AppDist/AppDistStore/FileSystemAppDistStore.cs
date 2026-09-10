@@ -30,6 +30,7 @@ public sealed partial class FileSystemAppDistStore : IAppDistStore
     )
     {
         ArgumentNullException.ThrowIfNull(files);
+        cancellationToken.ThrowIfCancellationRequested();
         var (contentDir, marker) = EntryPaths(version, layer);
 
         var staging = Path.Combine(_root, "tmp", Guid.NewGuid().ToString("N"));
@@ -44,6 +45,8 @@ public sealed partial class FileSystemAppDistStore : IAppDistStore
                 await File.WriteAllBytesAsync(target, file.Content, cancellationToken);
             }
 
+            // Commit is not cancellable: the previous layer is gone once the swap starts.
+            cancellationToken.ThrowIfCancellationRequested();
             Directory.CreateDirectory(Path.Combine(_root, "contents", version));
             File.Delete(marker);
             if (Directory.Exists(contentDir))
@@ -52,7 +55,7 @@ public sealed partial class FileSystemAppDistStore : IAppDistStore
             await File.WriteAllTextAsync(
                 marker,
                 DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
-                cancellationToken
+                CancellationToken.None
             );
         }
         finally

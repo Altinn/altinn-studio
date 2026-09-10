@@ -111,11 +111,7 @@ public sealed class AppDist : IAppDistProvider, IDisposable
     internal static AppDist CreateDefault(string cacheDirectory, HttpClient httpClient, string repository)
     {
         ArgumentException.ThrowIfNullOrEmpty(cacheDirectory);
-        return new AppDist(
-            new OciRegistrySource(httpClient, repository),
-            new FileSystemAppDistStore(cacheDirectory),
-            httpClient
-        );
+        return new AppDist(new OciRegistrySource(httpClient, repository), new FileSystemAppDistStore(cacheDirectory));
     }
 
     public Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default) =>

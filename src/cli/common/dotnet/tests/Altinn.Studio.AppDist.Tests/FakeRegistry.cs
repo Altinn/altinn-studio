@@ -25,6 +25,8 @@ internal sealed class FakeRegistry : HttpMessageHandler
     public string? ManifestErrorCode { get; set; }
     public HttpStatusCode? BlobErrorStatus { get; set; }
     public HttpStatusCode? TagListErrorStatus { get; set; }
+    public bool TagPageLinkLoops { get; set; }
+    public string TokenRealm { get; set; } = $"https://{Host}/token";
 
     public void AddTags(params string[] tags) => _tags.AddRange(tags);
 
@@ -86,7 +88,7 @@ internal sealed class FakeRegistry : HttpMessageHandler
             challenge.Headers.WwwAuthenticate.Add(
                 new AuthenticationHeaderValue(
                     "Bearer",
-                    $"realm=\"https://{Host}/token\",service=\"{Host}\",scope=\"repository:{Repository}:pull\""
+                    $"realm=\"{TokenRealm}\",service=\"{Host}\",scope=\"repository:{Repository}:pull\""
                 )
             );
             return Task.FromResult(challenge);
@@ -143,7 +145,9 @@ internal sealed class FakeRegistry : HttpMessageHandler
         var page = TagPageSize > 0 ? remaining.Take(TagPageSize).ToList() : remaining.ToList();
         var tagsJson = string.Join(",", page.Select(t => $"\"{t}\""));
         var response = Json($$"""{"name":"{{Repository}}","tags":[{{tagsJson}}]}""");
-        if (TagPageSize > 0 && remaining.Count > page.Count)
+        if (TagPageLinkLoops)
+            response.Headers.TryAddWithoutValidation("Link", $"</v2/{Repository}/tags/list>; rel=\"next\"");
+        else if (TagPageSize > 0 && remaining.Count > page.Count)
             response.Headers.TryAddWithoutValidation(
                 "Link",
                 $"</v2/{Repository}/tags/list?n={TagPageSize}&last={page[^1]}>; rel=\"next\""

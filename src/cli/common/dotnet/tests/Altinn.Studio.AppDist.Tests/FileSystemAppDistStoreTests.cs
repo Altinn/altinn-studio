@@ -59,6 +59,29 @@ public sealed class FileSystemAppDistStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Write_CancelledReplacementKeepsPreviousLayer()
+    {
+        await _store.WriteAsync(
+            "4",
+            AppDistLayer.Schemas,
+            [new AppDistFileEntry("old.json", "{}"u8.ToArray())],
+            CancellationToken.None
+        );
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _store.WriteAsync("4", AppDistLayer.Schemas, [], cancelled.Token)
+        );
+
+        Assert.True(await _store.ContainsAsync("4", AppDistLayer.Schemas, CancellationToken.None));
+        string[] expected = ["old.json"];
+        Assert.Equal(expected, await _store.ListFilesAsync("4", AppDistLayer.Schemas, CancellationToken.None));
+        var staging = Path.Combine(_root, "tmp");
+        Assert.True(!Directory.Exists(staging) || !Directory.EnumerateFileSystemEntries(staging).Any());
+    }
+
+    [Fact]
     public async Task Layers_AreStoredIndependently()
     {
         await _store.WriteAsync(
