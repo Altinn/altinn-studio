@@ -9,8 +9,6 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.App.Tests.Common.Auth;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -510,7 +508,16 @@ public class FiksArkivConfigResolverTest
         );
         fixture
             .PartyClientMock.Setup(x => x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(registeredName is null ? null : new Party { PartyId = 123, Name = registeredName });
+            .ReturnsAsync(
+                registeredName is null
+                    ? null
+                    : new Party
+                    {
+                        PartyId = 123,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000123"),
+                        Name = registeredName,
+                    }
+            );
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(instance);
