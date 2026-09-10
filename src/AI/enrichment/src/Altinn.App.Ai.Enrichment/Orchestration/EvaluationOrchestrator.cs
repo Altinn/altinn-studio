@@ -2,7 +2,10 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Altinn.App.Ai.Enrichment.Chat;
+using Altinn.App.Ai.Enrichment.Configuration;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Ai.Enrichment.Tools;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Ai.Enrichment.Orchestration;
 
@@ -21,6 +24,8 @@ public sealed partial class EvaluationOrchestrator(
     IChatService chatService,
     IToolRegistry toolRegistry,
     ISystemPromptProvider systemPromptProvider,
+    IOptions<AgentOptions> agentOptions,
+    EnrichmentTrace trace,
     ILogger<EvaluationOrchestrator> logger) : IEvaluationOrchestrator
 {
 
@@ -56,16 +61,16 @@ public sealed partial class EvaluationOrchestrator(
             }
         }).ToList();
 
-        var traces = await Task.WhenAll(tasks);
+        var itemTraces = await Task.WhenAll(tasks);
         wallSw.Stop();
 
-        var verdicts = traces.ToDictionary(t => t.Key, t => t.Verdict, StringComparer.Ordinal);
+        var verdicts = itemTraces.ToDictionary(t => t.Key, t => t.Verdict, StringComparer.Ordinal);
 
         return new OrchestratorResult
         {
             Verdicts = verdicts,
-            TotalLlmCalls = traces.Sum(t => t.LlmCallCount),
-            TotalToolCalls = traces.Sum(t => t.ToolCallCount),
+            TotalLlmCalls = itemTraces.Sum(t => t.LlmCallCount),
+            TotalToolCalls = itemTraces.Sum(t => t.ToolCallCount),
             WallTimeMs = wallSw.ElapsedMilliseconds,
         };
     }
@@ -78,6 +83,12 @@ public sealed partial class EvaluationOrchestrator(
         CancellationToken ct)
     {
         var itemSw = Stopwatch.StartNew();
+
+        // Started here rather than in RunAsync's Select: Activity.Current flows with the
+        // execution context, so each concurrent item nests under the step span while
+        // seeing only its own children.
+        using var itemActivity = trace.StartItem(rule.Key, rule.Markdown);
+
         var userPrompt =
             $"# Item: {rule.Key}\n\n" +
             $"## Rule\n\n{rule.Markdown}\n\n" +
@@ -106,7 +117,17 @@ public sealed partial class EvaluationOrchestrator(
                 Temperature = 0.0,
             };
 
-            var resp = await chatService.RunAsync(chatReq, ct);
+            // The configured id, not the one the gateway echoes back: gateways rewrite the
+            // name, and Langfuse matches its price list on what we send here.
+            var configuredModel = chatReq.Model ?? agentOptions.Value.Model ?? "unknown";
+
+            ChatResponse resp;
+            using (var generation = trace.StartGeneration(configuredModel, iteration, chatReq))
+            {
+                resp = await chatService.RunAsync(chatReq, ct);
+                trace.CompleteGeneration(generation, resp);
+            }
+
             llmCallCount++;
             finishReason = resp.FinishReason;
 
@@ -144,6 +165,7 @@ public sealed partial class EvaluationOrchestrator(
             foreach (var tc in resp.ToolCalls)
             {
                 JsonElement parsedArgs;
+                var argumentsParseFailed = false;
                 try
                 {
                     parsedArgs = string.IsNullOrWhiteSpace(tc.ArgumentsRaw)
@@ -153,10 +175,12 @@ public sealed partial class EvaluationOrchestrator(
                 catch (JsonException)
                 {
                     parsedArgs = JsonDocument.Parse("{}").RootElement;
+                    argumentsParseFailed = true;
                 }
 
                 var resultJson = toolRegistry.Dispatch(tc.Name, parsedArgs, application);
                 toolCallCount++;
+                trace.RecordTool(tc.Name, tc.Id, tc.ArgumentsRaw, resultJson, argumentsParseFailed);
                 messages.Add(ChatMessage.Tool(tc.Id, resultJson));
             }
         }
@@ -169,7 +193,9 @@ public sealed partial class EvaluationOrchestrator(
         };
 
         itemSw.Stop();
-        var trace = new ItemTrace
+        trace.CompleteItem(itemActivity, verdict.Status, verdict.Merknad, llmCallCount, toolCallCount, finishReason);
+
+        var itemTrace = new ItemTrace
         {
             Key = rule.Key,
             Verdict = verdict,
@@ -181,9 +207,9 @@ public sealed partial class EvaluationOrchestrator(
         };
 
         if (!string.IsNullOrEmpty(options.TraceDirAbsolutePath))
-            await WriteTraceAsync(options.TraceDirAbsolutePath, trace, ct);
+            await WriteTraceAsync(options.TraceDirAbsolutePath, itemTrace, ct);
 
-        return trace;
+        return itemTrace;
     }
 
     internal static ItemVerdict ParseFinalVerdict(string text)

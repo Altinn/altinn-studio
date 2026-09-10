@@ -153,6 +153,59 @@ In the app repo, drop the `.nupkg` in a `packages/` folder, point a `nuget.confi
 then `dotnet add App package Altinn.App.Ai.Enrichment --prerelease`. Replace the local
 feed with a published package when/if the library moves to a real feed.
 
+## Observability (Langfuse)
+
+Off by default. When enabled, each execution of the `ai` task becomes one Langfuse
+**trace**, and everything the run did hangs under it:
+
+```
+session = instance id ......... one submission, including engine retries and replays
+ └─ trace  ai-enrichment:<taskId>
+     └─ chain  step:<step name>
+         └─ span  rule:<rule key>            (one per item, evaluated concurrently)
+             ├─ generation  llm:<model> #1   input, output, tokens, finish reason
+             ├─ tool        tool:<name>      arguments and result
+             └─ generation  llm:<model> #2
+```
+
+A generation carries `tool_names` in its metadata, so whether a given response caused
+a tool call is visible without expanding the tree. `rule_key`, `step_name`,
+`iteration` and `tool_name` are flat metadata keys, so a question like "every
+`frist.klagefrist` that came back `ikke_vurdert` this month" is one filter rather
+than a text search through prompts.
+
+```json
+"AiEnrichment": {
+  "Langfuse": {
+    "Enabled": true,
+    "Host": "https://langfuse.digdir.cloud",
+    "PublicKey": "pk-lf-...",
+    "SecretKeySecretName": "<key-vault-secret-name>",
+    "Environment": "tt02"
+  }
+}
+```
+
+`SecretKey` can be set directly for local development and wins over
+`SecretKeySecretName`, exactly like the gateway API key. Keys are project-scoped, so
+each app points at its own Langfuse project.
+
+Notes worth knowing before you turn it on:
+
+- **Traces contain the full submission.** `PayloadCapture` is `Full` and that is the
+  only mode implemented — prompts, application data, model output and tool results all
+  reach Langfuse. Point it at an instance you are allowed to send that to.
+- **Spans go only to Langfuse.** The library runs its own `TracerProvider` listening to
+  one `ActivitySource`, so enrichment spans never reach the app's Application Insights
+  exporter and app spans never reach Langfuse.
+- **Credentials are checked at start-up.** A rejected key disables tracing with one
+  clear log line rather than silently exporting into the void; an unreachable Langfuse
+  only warns, since it may be back before the first submission.
+- **Token counts need `AiEnrichment:Agent:StreamIncludeUsage`** (default on). Without it
+  a streaming gateway returns no usage block and every generation shows zero tokens.
+- **Cost needs a model price in Langfuse.** Token counts arrive regardless, but
+  `totalCost` stays zero until the model is registered in the project.
+
 ## Running tests
 
 ```bash

@@ -4,6 +4,7 @@ using Altinn.App.Ai.Enrichment.Chat;
 using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Orchestration;
 using Altinn.App.Ai.Enrichment.Rendering;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Ai.Enrichment.ServiceTasks;
 using Altinn.App.Ai.Enrichment.Tests.Helpers;
 using Altinn.App.Core.Configuration;
@@ -238,6 +239,8 @@ public class AiServiceTaskTests
             new StubChatService(),
             new TypstRenderer(NullLogger<TypstRenderer>.Instance, Options.Create(new TypstOptions())),
             new MarkdownRulesLoader(),
+            Options.Create(new AgentOptions { Model = "test-model" }),
+            EnrichmentTrace.Disabled,
             NullLoggerFactory.Instance);
 
 #if NET10_0_OR_GREATER
@@ -257,6 +260,7 @@ public class AiServiceTaskTests
 #if NET10_0_OR_GREATER
             instanceClient,
 #endif
+            EnrichmentTrace.Disabled,
             NullLogger<AiServiceTask>.Instance);
     }
 
