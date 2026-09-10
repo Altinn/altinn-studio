@@ -54,8 +54,9 @@ public sealed record WorkflowStatusResponse
     /// <summary>
     /// When a worker most recently began processing this workflow. The gap from <see cref="CreatedAt"/> is
     /// queue wait; the gap to <see cref="UpdatedAt"/> on a settled workflow is its last attempt's
-    /// processing time. Omitted while the workflow is <see cref="PersistentItemStatus.Enqueued"/>: before
-    /// the first attempt, and again after resume, a stale reclaim or dependency recovery return it there.
+    /// processing time. Omitted while the workflow is <see cref="PersistentItemStatus.Enqueued"/> — before
+    /// the first attempt, and again after resume, a stale reclaim or dependency recovery return it there —
+    /// and for a <see cref="PersistentItemStatus.Processing"/> workflow whose attempt has not written back yet.
     /// </summary>
     [JsonPropertyName("executionStartedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

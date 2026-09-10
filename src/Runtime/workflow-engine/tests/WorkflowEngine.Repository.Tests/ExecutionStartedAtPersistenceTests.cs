@@ -266,6 +266,7 @@ public sealed class ExecutionStartedAtPersistenceTests(PostgresFixture fixture) 
             TestContext.Current.CancellationToken
         );
         Assert.Equal([workflow.DatabaseId], written.Accepted);
+        Assert.Equal(_t0, (await fixture.GetWorkflow(workflow.DatabaseId))?.ExecutionStartedAt);
 
         await context.Database.ExecuteSqlAsync(
             $"""
