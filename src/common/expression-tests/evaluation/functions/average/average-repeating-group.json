@@ -1,0 +1,45 @@
+{
+  "name": "Average a field across the rows in a repeating group",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": {
+        "scores": [{ "points": 1 }, { "points": 3 }],
+        "emptyScores": []
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "name": "Should calculate the average of the field across all the rows",
+      "expression": ["average", ["jmespath", ["dataModel", "scores"], "[].points"], 0],
+      "expects": 2
+    },
+    {
+      "name": "Should compare the average to a number",
+      "expression": [
+        "equals",
+        2,
+        ["average", ["jmespath", ["dataModel", "scores"], "[].points"], 0]
+      ],
+      "expects": true
+    },
+    {
+      "name": "Should return the empty value for a repeating group without rows",
+      "expression": ["average", ["jmespath", ["dataModel", "emptyScores"], "[].points"], -1],
+      "expects": -1
+    },
+    {
+      "name": "Should return the empty value for a repeating group that is missing from the data model",
+      "expression": [
+        "average",
+        ["jmespath", ["dataModel", "missingScores"], "not_null(@, `[]`)[].points"],
+        -1
+      ],
+      "expects": -1
+    }
+  ]
+}

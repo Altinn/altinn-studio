@@ -1,0 +1,55 @@
+{
+  "name": "Sum a field across the rows in a repeating group",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": {
+        "orderLines": [{ "quantity": 2 }, { "quantity": 3 }, { "quantity": 5 }],
+        "partiallyFilledLines": [{ "quantity": 2 }, {}, { "quantity": 3 }],
+        "emptyLines": []
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "name": "Should sum the field across all the rows",
+      "expression": ["sum", ["jmespath", ["dataModel", "orderLines"], "[].quantity"]],
+      "expects": 10
+    },
+    {
+      "name": "Should compare the sum to a number",
+      "expression": [
+        "equals",
+        10,
+        ["sum", ["jmespath", ["dataModel", "orderLines"], "[].quantity"]]
+      ],
+      "expects": true
+    },
+    {
+      "name": "Should skip the rows where the field is not set",
+      "expression": ["sum", ["jmespath", ["dataModel", "partiallyFilledLines"], "[].quantity"]],
+      "expects": 5
+    },
+    {
+      "name": "Should return 0 for a repeating group without rows",
+      "expression": ["sum", ["jmespath", ["dataModel", "emptyLines"], "[].quantity"]],
+      "expects": 0
+    },
+    {
+      "name": "Should return 0 for a repeating group that is missing from the data model",
+      "expression": [
+        "sum",
+        ["jmespath", ["dataModel", "missingLines"], "not_null(@, `[]`)[].quantity"]
+      ],
+      "expects": 0
+    },
+    {
+      "name": "Should fail without a projection, because the rows are objects and not numbers",
+      "expression": ["sum", ["dataModel", "orderLines"]],
+      "expectsFailure": "Expected number, got value {\"quantity\":2}"
+    }
+  ]
+}
