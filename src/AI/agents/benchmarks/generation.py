@@ -603,6 +603,8 @@ def failure_mode(
 
 
 def _components_in(node: Any) -> Iterator[dict[str, Any]]:
+    if not isinstance(node, (dict, list)):
+        return
     for value in node.values() if isinstance(node, dict) else node:
         if isinstance(value, (dict, list)):
             yield from _components_in(value)
@@ -627,13 +629,20 @@ def written_components(output: Any) -> list[dict[str, Any]]:
     return components
 
 
+def _carries(component: dict[str, Any], prop: str, required: Any) -> bool:
+    if prop not in component:
+        return False
+    value = component[prop]
+    if isinstance(required, bool) or isinstance(value, bool):
+        return value is required
+    return value == required
+
+
 def content_pairings(
     *, output: Any = None, expected_output: Any = None, **_: Any
 ) -> list[Evaluation]:
-    """Do the components this turn wrote carry the properties their bindings need."""
-    required: list[tuple[str, str, str]] = []
-    if rule_of(expected_output).get("datepicker_sets_timestamp"):
-        required.append(("Datepicker", "timeStamp", "the page will not render"))
+    """Do the components this turn wrote carry the property values their bindings need."""
+    required = rule_of(expected_output).get("content_pairings") or []
     if not required:
         return []
 
@@ -641,16 +650,20 @@ def content_pairings(
     total = 0
     satisfied = 0
     comments = []
-    for component_type, prop, consequence in required:
+    for pairing in required:
+        component_type = pairing["component"]
+        prop = pairing["property"]
+        value = pairing["value"]
         written = [c for c in components if c.get("type") == component_type]
-        setting = [c for c in written if prop in c]
+        setting = [c for c in written if _carries(c, prop, value)]
         if not written:
             continue
         total += len(written)
         satisfied += len(setting)
         comments.append(
-            f"{len(setting)}/{len(written)} {component_type}(s) set {prop}"
-            + ("" if len(setting) == len(written) else f"; {consequence}")
+            f"{len(setting)}/{len(written)} {component_type}(s) set {prop} to "
+            f"{json.dumps(value)}"
+            + ("" if len(setting) == len(written) else f"; {pairing['consequence']}")
         )
     if not total:
         return []
