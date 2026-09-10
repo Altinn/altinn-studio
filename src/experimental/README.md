@@ -76,6 +76,8 @@ runtime must establish the common interface before one is introduced.
 
 ## Images, home and harnesses
 
+See the [harness compatibility test plan](agent/HARNESSES.md) when updating harness installations.
+
 Agent images own installed tools and optional workspace initialization. Repository checkouts are persistent runtime
 data beneath `/home/agent/code`; they are not declared, updated or deleted by the Agent controller. Sessions may clone
 repositories they can access, and image init may make a simple best-effort checkout for convenience.
