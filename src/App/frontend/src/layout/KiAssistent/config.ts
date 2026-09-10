@@ -138,30 +138,6 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
-      'taledeteksjon',
-      new CG.str()
-        .optional({ default: 'semantic_vad' })
-        .setTitle('Turn detection', 'Taledeteksjon')
-        .setDescription(
-          'semantic_vad waits until the sentence seems finished. server_vad waits a fixed silence.',
-          'semantic_vad venter til setningen virker ferdig. server_vad venter en fast stillhet.',
-        ),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'utaalmodighet',
-      new CG.str()
-        .optional({ default: 'low' })
-        .setTitle('Eagerness', 'Utålmodighet')
-        .setDescription(
-          'For semantic_vad. low lets the person speak uninterrupted.',
-          'For semantic_vad. low lar personen snakke uavbrutt.',
-        ),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
       'stillhetMs',
       new CG.int()
         .optional({ default: 4000 })
@@ -169,30 +145,6 @@ export const Config = new CG.component({
         .setDescription(
           'For server_vad. Milliseconds of silence before the turn is considered over.',
           'For server_vad. Millisekunder stillhet før turen regnes som slutt.',
-        ),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'stoyreduksjon',
-      new CG.str()
-        .optional({ default: 'av' })
-        .setTitle('Noise reduction', 'Støyreduksjon')
-        .setDescription(
-          'av turns it off, near_field for headsets, far_field for laptop or room microphones. Filters audio before turn detection, and can suppress a weak voice.',
-          'av slår den av, near_field for headset, far_field for maskin- eller rommikrofon. Filtrerer lyden før taledeteksjon, og kan dempe en svak stemme.',
-        ),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'terskel',
-      new CG.num()
-        .optional({ default: 0.6 })
-        .setTitle('Voice activity threshold', 'Terskel for taledeteksjon')
-        .setDescription(
-          'For server_vad, 0-1. Higher means less sensitive to sound that is not speech.',
-          'For server_vad, 0-1. Høyere gjør den mindre følsom for lyd som ikke er tale.',
         ),
     ),
   )

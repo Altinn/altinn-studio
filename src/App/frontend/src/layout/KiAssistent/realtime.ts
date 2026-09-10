@@ -23,11 +23,8 @@ export interface IOktOpsjoner {
   /** ISO-639-1, for eksempel «no». Gjør at talegjenkjenningen vet hva den hører. */
   sprak: string;
   transkripsjonsmodell: string;
-  taledeteksjon: string;
-  utaalmodighet: string;
+  /** Hvor lenge det skal være stille før turen regnes som slutt. */
   stillhetMs: number;
-  stoyreduksjon: string;
-  terskel: number;
   verktoy: IVerktoy[];
   lydElement: HTMLAudioElement;
   onStatus: (status: string) => void;
@@ -75,25 +72,18 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
             // nettopp der den gjetter feil.
             input: {
               transcription: { model: o.transkripsjonsmodell, language: o.sprak },
-              // Støyreduksjonen filtrerer lyden før taledeteksjonen. Den demper
-              // bakgrunnslyd, men den kan også spise en svak eller utydelig stemme -
-              // og det er dyrere enn litt støy. Derfor er «av» et gyldig valg, og
-              // feltet utelates helt da i stedet for å sendes tomt.
-              ...(o.stoyreduksjon && o.stoyreduksjon !== 'av'
-                ? { noise_reduction: { type: o.stoyreduksjon } }
-                : {}),
-              // Standard er et halvsekund stillhet. Det er altfor kort for noen som
-              // snakker sakte eller har talevansker - og det er nettopp dem dette
-              // skjemaet er til for. Vi lar heller assistenten vente for lenge.
-              turn_detection:
-                o.taledeteksjon === 'server_vad'
-                  ? {
-                      type: 'server_vad',
-                      threshold: o.terskel,
-                      silence_duration_ms: o.stillhetMs,
-                      prefix_padding_ms: 600,
-                    }
-                  : { type: 'semantic_vad', eagerness: o.utaalmodighet },
+              // Vi rører ikke følsomheten. Verken støyreduksjon eller threshold
+              // settes, så tjenesten bruker sine egne standardverdier for om
+              // stemmen oppdages. Vi prøvde å skru dem, og resultatet var at den
+              // ikke hørte folk som snakket inn i en maskinmikrofon.
+              //
+              // Det eneste vi styrer er hvor lenge den venter FØR den regner turen
+              // som slutt. Det påvirker ikke om stemmen fanges opp, bare om noen
+              // som tar en pause midt i en setning blir avbrutt.
+              turn_detection: {
+                type: 'server_vad',
+                silence_duration_ms: o.stillhetMs,
+              },
             },
           },
           tools: o.verktoy.map((v) => ({
@@ -111,10 +101,35 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
     o.onStatus('i-gang');
   });
 
-  // Ett svar av gangen. Uten dette kan vi be om et nytt mens ett allerede er i gang,
-  // og da hakker stemmen fordi to svar overlapper.
+  /*
+   * Når skal vi be om et nytt svar?
+   *
+   * Etter et verktøykall må vi si fra at modellen kan snakke videre, men nøyaktig én
+   * gang - kaller den to verktøy i samme svar, gir to response.create overlappende
+   * tale. Vi må altså vente til både svaret er ferdig OG alle verktøyene har levert.
+   *
+   * De to kan komme i hvilken som helst rekkefølge, og det er hele vanskeligheten:
+   * hendelseslytteren er async, så en response.done kan behandles mens vi står og
+   * venter på et verktøy. Derfor telles utestående verktøykall opp SYNKRONT, før
+   * ventingen - og den som blir sist ferdig av de to er den som ber om nytt svar.
+   */
   let svarPaagaar = false;
-  let venterPaaSvar = false;
+  let utestaaendeVerktoy = 0;
+  let svarFerdig = false;
+  let skylderSvar = false;
+  let soekerenSnakker = false;
+
+  const beOmSvarNaarKlar = () => {
+    // Snakker søkeren nå, lager tjenesten selv et svar når hen blir ferdig. Ber vi
+    // om ett i tillegg, får vi to som snakker i munnen på hverandre.
+    if (!skylderSvar || utestaaendeVerktoy > 0 || !svarFerdig || svarPaagaar || soekerenSnakker) {
+      return;
+    }
+    skylderSvar = false;
+    svarFerdig = false;
+    svarPaagaar = true;
+    kanal.send(JSON.stringify({ type: 'response.create' }));
+  };
 
   kanal.addEventListener('message', async (e) => {
     let hendelse: { type?: string; [k: string]: unknown };
@@ -125,6 +140,12 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
     }
 
     if (hendelse.type === 'response.function_call_arguments.done') {
+      // Begge disse må settes før vi venter på verktøyet. Gjør vi det etterpå, kan
+      // response.done rekke å bli behandlet i mellomtiden, se at ingenting er
+      // utestående, og la være å be om nytt svar - da blir assistenten stum.
+      utestaaendeVerktoy += 1;
+      skylderSvar = true;
+
       const navn = hendelse.name as string;
       const kallId = hendelse.call_id as string;
       const verktoy = o.verktoy.find((v) => v.name === navn);
@@ -141,26 +162,34 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
           item: { type: 'function_call_output', call_id: kallId, output: JSON.stringify(resultat) },
         }),
       );
-      // Vi ber ikke om nytt svar her. Kaller modellen flere verktøy i samme svar,
-      // fyrer denne hendelsen én gang per kall - og ett response.create per kall
-      // gir overlappende svar som stopper og starter. Vi venter på response.done
-      // og ber om nøyaktig ett nytt svar der.
-      venterPaaSvar = true;
+      utestaaendeVerktoy -= 1;
+      beOmSvarNaarKlar();
       return;
     }
 
     if (hendelse.type === 'response.done') {
       svarPaagaar = false;
-      if (venterPaaSvar) {
-        venterPaaSvar = false;
-        svarPaagaar = true;
-        kanal.send(JSON.stringify({ type: 'response.create' }));
-      }
+      svarFerdig = true;
+      beOmSvarNaarKlar();
       return;
     }
 
     if (hendelse.type === 'response.created') {
       svarPaagaar = true;
+      // Nullstilles her, ikke bare når vi sender. Ellers henger flagget igjen fra
+      // et tidligere svar og kan utløse et nytt på feil tidspunkt.
+      svarFerdig = false;
+      return;
+    }
+
+    if (hendelse.type === 'input_audio_buffer.speech_started') {
+      soekerenSnakker = true;
+      return;
+    }
+
+    if (hendelse.type === 'input_audio_buffer.speech_stopped') {
+      soekerenSnakker = false;
+      beOmSvarNaarKlar();
       return;
     }
 

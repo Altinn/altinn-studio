@@ -26,11 +26,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
     tokenUrl,
     sprak,
     transkripsjonsmodell,
-    taledeteksjon,
-    utaalmodighet,
     stillhetMs,
-    stoyreduksjon,
-    terskel,
     brukesBinding,
   } = useItemWhenType(
     baseComponentId,
@@ -95,9 +91,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'sjekk_kontekst',
         description:
-          'Sier hva som allerede står i skjemaet og hva som gjenstår. Kall dette først i samtalen, ' +
-          'og igjen hvis du er usikker på om noe er lagret. Merk forskjellen: noe kan være sagt i samtalen ' +
-          'uten å være lagret her. Er det tilfelle, lagre det med lagre_svar - ikke spør personen på nytt.',
+          'Hva som allerede er fylt ut, og hva som gjenstår. Kall denne først.',
         parameters: { type: 'object', properties: {} },
         kjoer: () =>
           finnKontekst(
@@ -110,8 +104,8 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'hent_neste_sporsmaal',
         description:
-          'Gir neste spørsmål som ennå ikke er besvart, med svaralternativene hvis det er et valg. ' +
-          'Kall dette før du spør om noe, og etter hvert svar du har lagret.',
+          'Neste spørsmål som mangler svar. Gir spørsmålet og eventuelle svaralternativer. ' +
+          'Kall denne før hvert spørsmål du stiller.',
         parameters: { type: 'object', properties: {} },
         kjoer: () => {
           const neste = aktuelleFelt().find((f) => {
@@ -135,9 +129,8 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'lagre_svar',
         description:
-          'Lagrer svaret på ett felt. Brukes både på spørsmålene og på kontaktinfo som kan rettes. ' +
-          'For felt med alternativer må verdien være en av dem som ble oppgitt. ' +
-          'For flervalg oppgis flere verdier kommaseparert. For fritekst brukes personens egne ord.',
+          'Lagrer ett svar. Har feltet alternativer, må verdien være en av dem du fikk. ' +
+          'Flere verdier skilles med komma.',
         parameters: {
           type: 'object',
           properties: {
@@ -162,10 +155,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'les_opp_forhaandsutfylt',
         description:
-          'Gir de opplysningene som allerede er fylt ut om personen, med ledetekst og verdi. ' +
-          'Les dem opp og spør om de stemmer. Feltene som har kanRettes=false kommer fra et register ' +
-          'og kan ikke endres her - stemmer de ikke, bruk meld_feil_i_forhaandsutfylt. ' +
-          'Feltene med kanRettes=true retter du med lagre_svar.',
+          'Opplysningene vi allerede har om personen, med ledetekst og verdi.',
         parameters: { type: 'object', properties: {} },
         kjoer: () =>
           (forhaandsutfylt ?? []).map((f) => ({
@@ -178,9 +168,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'meld_feil_i_forhaandsutfylt',
         description:
-          'Brukes når personen sier at en opplysning fra registeret er feil, og den ikke kan rettes her. ' +
-          'Da noteres det til saksbehandleren. Si til personen at opplysningen må rettes hos Folkeregisteret, ' +
-          'og at du har notert det i søknaden.',
+          'Noterer at en opplysning med kanRettes=false er feil. Den kan ikke rettes her.',
         parameters: {
           type: 'object',
           properties: {
@@ -208,8 +196,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'vis_send_inn_knappen',
         description:
-          'Ruller til «Send inn»-knappen og markerer den. Du kan ikke sende inn søknaden selv - ' +
-          'det må personen gjøre. Bruk dette når alt er fylt ut, og be personen se over og trykke selv.',
+          'Markerer «Send inn»-knappen på skjermen. Du kan ikke sende inn selv.',
         parameters: { type: 'object', properties: {} },
         kjoer: () => {
           const markert = markerFelt(sendKnappId);
@@ -224,17 +211,11 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       {
         name: 'vurder_beskrivelse',
         description:
-          'Gir deg den lagrede fritekstbeskrivelsen sammen med målbare signaler om hva den dekker og ikke. ' +
-          'Kall dette etter at beskrivelsen er lagret. Bruk svaret til å vurdere om den er god nok, ' +
-          'og til å utfordre personen på det som mangler.',
-        parameters: {
-          type: 'object',
-          properties: { felt: { type: 'string', description: 'Felt-id for beskrivelsen' } },
-          required: ['felt'],
-        },
-        kjoer: (a) => {
-          const id = String(a.felt ?? '');
-          const tekst = typeof data.current[id] === 'string' ? (data.current[id] as string) : '';
+          'Fritekstbeskrivelsen med målbare signaler om hva den dekker, og kravene til en god ' +
+          'beskrivelse. Kall denne etter at beskrivelsen er lagret.',
+        parameters: { type: 'object', properties: {} },
+        kjoer: () => {
+          const tekst = typeof data.current.forklaring === 'string' ? (data.current.forklaring as string) : '';
           if (!tekst.trim()) {
             return { feil: 'Beskrivelsen er tom ennå.' };
           }
@@ -266,11 +247,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
         instruksjon: langAsString('kiassistent.instruksjon'),
         sprak: sprak ?? 'no',
         transkripsjonsmodell: transkripsjonsmodell ?? 'gpt-4o-transcribe',
-        taledeteksjon: taledeteksjon ?? 'semantic_vad',
-        utaalmodighet: utaalmodighet ?? 'low',
         stillhetMs: stillhetMs ?? 4000,
-        stoyreduksjon: stoyreduksjon ?? 'far_field',
-        terskel: terskel ?? 0.6,
         verktoy,
         lydElement: lyd.current!,
         onStatus: (s) => settStatus(s === 'i-gang' ? 'i-gang' : 'starter'),
@@ -287,12 +264,8 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
     setValue,
     sprak,
     stillhetMs,
-    stoyreduksjon,
-    taledeteksjon,
-    terskel,
     tokenUrl,
     transkripsjonsmodell,
-    utaalmodighet,
     verktoy,
   ]);
 
