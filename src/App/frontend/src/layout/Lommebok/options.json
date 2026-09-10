@@ -3138,6 +3138,23 @@
           ]
         }
       }
+    },
+    "net.eidas2sandkasse:tt_kort_sd_jwt_vc": {
+      "vct": "net.eidas2sandkasse:tt_kort_sd_jwt_vc",
+      "scope": "eudiw:net.eidas2sandkasse:tt_kort",
+      "format": "dc+sd-jwt",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "TT-kort",
+          "locale": "no"
+        }
+      ]
     }
   },
   "display": [
