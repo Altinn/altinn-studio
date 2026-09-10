@@ -157,16 +157,14 @@ public class FiksArkivServiceTaskTest
         dataMutator.VerifyNoOtherCalls();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SendToArchive_FailedSend_ReturnsRetryableFailureRegardlessOfMoveToNextTask(bool moveToNextTask)
+    [Fact]
+    public async Task SendToArchive_FailedSend_ReturnsRetryableFailure()
     {
-        // A transient failure may succeed on the retry, so MoveToNextTask does not divert it: errorHandling
-        // covers only an archiving that cannot succeed.
+        // A transient failure may succeed on the retry, so errorHandling does not divert it: it covers only an
+        // archiving that cannot succeed.
         var settings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "reject" },
         };
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
@@ -191,15 +189,13 @@ public class FiksArkivServiceTaskTest
         sender.Verify();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SendToArchive_CutOffAtTheExecutionDeadline_FailsRatherThanReportingSuccess(bool moveToNextTask)
+    [Fact]
+    public async Task SendToArchive_CutOffAtTheExecutionDeadline_FailsRatherThanReportingSuccess()
     {
         // Cut off at the execution deadline, the shipment may or may not have left — never a conclusion.
         var settings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "reject" },
         };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         var sender = FailingSenderMockFactory(new OperationCanceledException("attempt deadline"));
@@ -232,14 +228,12 @@ public class FiksArkivServiceTaskTest
     /// process past a shipment that never left, or close the mailbox over a passing outage — so it retries,
     /// whatever <c>errorHandling</c> says.
     /// </summary>
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SendToArchive_MaskinportenFailure_ReturnsRetryableFailureAndConcludesNothing(bool moveToNextTask)
+    [Fact]
+    public async Task SendToArchive_MaskinportenFailure_ReturnsRetryableFailureAndConcludesNothing()
     {
         var settings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "reject" },
         };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         var sender = FailingSenderMockFactory(
@@ -273,8 +267,45 @@ public class FiksArkivServiceTaskTest
         // fails identically every time and concludes exactly as an archive rejection does.
         var settings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "reject" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "archive-failed" },
         };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var sender = FailingSenderMockFactory(
+            new KS.Fiks.IO.Send.Client.Exceptions.FiksIOSendUnexpectedResponseException(
+                "Send failed with status code NotFound"
+            )
+        );
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(sender.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
+            CreateContext(dataMutator.Object),
+            MailboxFactory()
+        );
+
+        var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
+        var success = Assert.IsType<ServiceTaskSuccessResult>(concluded.Result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("archive-failed", success.Action);
+        sender.Verify();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendToArchive_RecipientNotFound_WithoutAnAction_ConcludesWithReject(bool errorHandlingConfigured)
+    {
+        // An omitted errorHandling block and one without an action mean the same thing: the archiving cannot
+        // succeed, so the process moves on with `reject` for the gateway after the task to route.
+        var settings = errorHandlingConfigured
+            ? new FiksArkivSettings { ErrorHandling = new FiksArkivErrorHandlingSettings() }
+            : new FiksArkivSettings();
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         var sender = FailingSenderMockFactory(
             new KS.Fiks.IO.Send.Client.Exceptions.FiksIOSendUnexpectedResponseException(
@@ -302,58 +333,18 @@ public class FiksArkivServiceTaskTest
         sender.Verify();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SendToArchive_RecipientNotFound_WithoutMoveToNextTask_ConcludesAsPermanentFailure(
-        bool errorHandlingConfigured
-    )
-    {
-        var settings = errorHandlingConfigured
-            ? new FiksArkivSettings { ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false } }
-            : new FiksArkivSettings();
-        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
-        var sender = FailingSenderMockFactory(
-            new KS.Fiks.IO.Send.Client.Exceptions.FiksIOSendUnexpectedResponseException(
-                "Send failed with status code NotFound"
-            )
-        );
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(sender.Object);
-            },
-            [("CustomFiksArkivSettings", settings)]
-        );
-
-        ServiceTaskOpeningStageResult result = await SendStage(fixture)(
-            CreateContext(dataMutator.Object),
-            MailboxFactory()
-        );
-
-        var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
-        var failed = Assert.IsType<ServiceTaskFailedResult>(concluded.Result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        Assert.Contains("recipient account does not exist", failed.ErrorMessage);
-        Assert.Contains("Retrying cannot succeed", failed.ErrorMessage);
-        sender.Verify();
-    }
-
     /// <summary>
     /// Deterministic but app-level: refused integration credentials are an operations problem no citizen
     /// action helps, so errorHandling is never consulted — and a plain stage failure, never a conclusion,
     /// because concluding closes the mailbox and an operator who fixes the credentials and resumes would
     /// re-run a send whose answers could never be delivered.
     /// </summary>
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SendToArchive_CredentialsRefused_FailsTheWorkflowRegardlessOfMoveToNextTask(bool moveToNextTask)
+    [Fact]
+    public async Task SendToArchive_CredentialsRefused_FailsTheWorkflow()
     {
         var settings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "reject" },
         };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         var sender = FailingSenderMockFactory(
@@ -494,12 +485,7 @@ public class FiksArkivServiceTaskTest
     public async Task HandleArchiveMessage_Receipt_WithMarkInstanceComplete_MarksBeforeConcluding()
     {
         var settings = SettingsWithReceipt(
-            successHandling: new FiksArkivSuccessHandlingSettings
-            {
-                MoveToNextTask = true,
-                Action = "confirm",
-                MarkInstanceComplete = true,
-            }
+            successHandling: new FiksArkivSuccessHandlingSettings { Action = "confirm", MarkInstanceComplete = true }
         );
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         AllowAnyBinaryDataElement(dataMutator);
@@ -522,55 +508,10 @@ public class FiksArkivServiceTaskTest
     }
 
     [Fact]
-    public async Task HandleArchiveMessage_Receipt_WhenMoveToNextTaskIsDisabled_ConcludesWithoutAutoAdvance()
+    public async Task HandleArchiveMessage_Receipt_WithoutSuccessHandlingConfigured_MarksCompleteAndAdvancesWithNoAction()
     {
-        var settings = SettingsWithReceipt(
-            successHandling: new FiksArkivSuccessHandlingSettings { MoveToNextTask = false }
-        );
-        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
-        AllowAnyBinaryDataElement(dataMutator);
-
-        await using var fixture = CreateFixture(settings);
-
-        ServiceTaskExchangeResult result = await OnMessage(fixture)(
-            CreateContext(dataMutator.Object),
-            ReceiptReplyFactory(SuccessfulArchiveReceipt())
-        );
-
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-    }
-
-    [Fact]
-    public async Task HandleArchiveMessage_Receipt_WithoutSuccessHandlingConfigured_AdvancesWithNoAction()
-    {
+        // The defaults: the instance is marked complete, and the process moves on along its default flow.
         var settings = SettingsWithReceipt(successHandling: null);
-        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
-        AllowAnyBinaryDataElement(dataMutator);
-        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
-        await using var fixture = CreateFixture(settings, instanceClient: instanceClient);
-
-        ServiceTaskExchangeResult result = await OnMessage(fixture)(
-            CreateContext(dataMutator.Object),
-            ReceiptReplyFactory(SuccessfulArchiveReceipt())
-        );
-
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Null(success.Action);
-        instanceClient.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task HandleArchiveMessage_Receipt_MoveToNextTaskDisabledButMarkComplete_MarksAndStaysPut()
-    {
-        var settings = SettingsWithReceipt(
-            successHandling: new FiksArkivSuccessHandlingSettings
-            {
-                MoveToNextTask = false,
-                MarkInstanceComplete = true,
-            }
-        );
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         AllowAnyBinaryDataElement(dataMutator);
         var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
@@ -586,19 +527,39 @@ public class FiksArkivServiceTaskTest
         );
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Null(success.Action);
         instanceClient.Verify();
+    }
+
+    [Fact]
+    public async Task HandleArchiveMessage_Receipt_WithMarkInstanceCompleteDisabled_AdvancesWithoutMarking()
+    {
+        var settings = SettingsWithReceipt(
+            successHandling: new FiksArkivSuccessHandlingSettings { MarkInstanceComplete = false }
+        );
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        AllowAnyBinaryDataElement(dataMutator);
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        await using var fixture = CreateFixture(settings, instanceClient: instanceClient);
+
+        ServiceTaskExchangeResult result = await OnMessage(fixture)(
+            CreateContext(dataMutator.Object),
+            ReceiptReplyFactory(SuccessfulArchiveReceipt())
+        );
+
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        instanceClient.VerifyNoOtherCalls();
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task HandleArchiveMessage_ErrorMessage_WithoutExplicitMoveToNextTask_FailsPermanently(
-        bool blockPresent
-    )
+    public async Task HandleArchiveMessage_ErrorMessage_WithoutAnAction_ConcludesWithReject(bool blockPresent)
     {
-        // An omitted errorHandling block and a block leaving moveToNextTask at its default mean the same
-        // thing: an archive error fails the task, so the rejection reaches monitoring.
+        // An omitted errorHandling block and one without an action mean the same thing: the archive will not
+        // answer differently if asked again, so the process moves on with `reject` for the gateway to route.
         var settings = new FiksArkivSettings
         {
             ErrorHandling = blockPresent ? new FiksArkivErrorHandlingSettings() : null,
@@ -611,22 +572,20 @@ public class FiksArkivServiceTaskTest
             ReplyFactory(FiksArkivMeldingtype.Ikkefunnet)
         );
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        Assert.Contains("rejected the record", failed.ErrorMessage);
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("reject", success.Action);
     }
 
     [Theory]
     [InlineData(FiksArkivMeldingtype.Ugyldigforespørsel)]
     [InlineData(FiksArkivMeldingtype.Serverfeil)]
     [InlineData(FiksArkivMeldingtype.Ikkefunnet)]
-    public async Task HandleArchiveMessage_ErrorMessage_WhenMoveToNextTask_ConcludesDownTheConfiguredPath(
-        string messageType
-    )
+    public async Task HandleArchiveMessage_ErrorMessage_ConcludesDownTheConfiguredPath(string messageType)
     {
         var settings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "reject" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "archive-failed" },
         };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         await using var fixture = CreateFixture(settings);
@@ -638,36 +597,13 @@ public class FiksArkivServiceTaskTest
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
         Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.Action);
-    }
-
-    [Fact]
-    public async Task HandleArchiveMessage_ErrorMessage_WhenNotMoveToNextTask_FailsPermanently()
-    {
-        var settings = new FiksArkivSettings
-        {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
-        };
-        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
-        await using var fixture = CreateFixture(settings);
-
-        ServiceTaskExchangeResult result = await OnMessage(fixture)(
-            CreateContext(dataMutator.Object),
-            ReplyFactory(FiksArkivMeldingtype.Serverfeil)
-        );
-
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        Assert.Contains("rejected the record", failed.ErrorMessage);
+        Assert.Equal("archive-failed", success.Action);
     }
 
     [Fact]
     public async Task HandleArchiveMessage_ReceiptReportingFailure_IsTreatedAsAnError()
     {
-        var settings = new FiksArkivSettings
-        {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
-        };
+        var settings = new FiksArkivSettings();
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         await using var fixture = CreateFixture(settings);
 
@@ -681,8 +617,9 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(failedReceipt)
         );
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("reject", success.Action);
     }
 
     [Fact]

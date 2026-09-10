@@ -15,9 +15,6 @@ internal sealed record AppCallbackPayload
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
 
-    [JsonPropertyName("lockToken")]
-    public required string LockToken { get; init; }
-
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }
 

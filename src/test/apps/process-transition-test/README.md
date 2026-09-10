@@ -7,7 +7,8 @@ transition; the workflow-status e2e suite (`test/e2e/integration/process-transit
 drives the real workflow engine through this app.
 
 Process shape: `Task_1 (data) → gateway → [Task_Service | Task_ServiceLayout (service task) →
-gateway →] Task_2 (data) → gateway → EndEvent`, where reject actions route backwards to Task_1.
+gateway →] Task_2 (data) → gateway → EndEvent`, where Task_2's reject action routes back to Task_1.
+Recovery from a failed service task uses `process/resume`.
 
 ## Levers (on Task_1)
 
@@ -68,7 +69,7 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   learned. `context.Wait.DeferCount` and `context.Wait.Deadline` tell it which check it is on and how
   much budget is left.
 - **Recoverable failure:** `postCommit` + `endState: failureThenSuccess` → the failure view with
-  «Prøv igjen» (POST `process/resume`) and «Gå tilbake» (reject → Task_1).
+  «Prøv igjen» (POST `process/resume`).
 - **Failure beats layout:** `postCommit` + `serviceView: layout` + `endState: failure` → the
   failure view renders even though the task has a custom layout.
 

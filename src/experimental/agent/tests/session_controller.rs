@@ -6,7 +6,7 @@ use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
-    control_plane::{AgentRecord, AgentStore as _},
+    control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{Reconcile, SessionId, SessionName, SessionStore as _},
@@ -53,21 +53,21 @@ impl Reconcile<AgentId> for BlockingAgentReady {
                 .update_status(
                     id,
                     record.agent.metadata.generation,
-                    Status {
-                        observed_generation: record.agent.metadata.generation,
-                        sandbox: Some(SandboxAssignment::Materialized {
+                    Status::observed(
+                        record.agent.metadata.generation,
+                        Some(SandboxAssignment::Materialized {
                             provider: ProviderId::new("memory")?,
                             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af"
                                 .parse()
                                 .map_err(|error| Error::Database(format!("test Sandbox ID: {error}")))?,
                         }),
-                        conditions: vec![Condition {
+                        vec![Condition {
                             kind: "Ready".into(),
                             status: ConditionStatus::True,
                             reason: "SandboxReady".into(),
                             message: String::new(),
                         }],
-                    },
+                    ),
                 )
                 .await
         })
@@ -133,7 +133,11 @@ impl Provider for CountingProvider {
         Box::pin(async { Ok(true) })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        _progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             self.ensure_calls.set(self.ensure_calls.get() + 1);
             let spec = record
@@ -200,22 +204,24 @@ impl Reconcile<SessionId> for BlockingReconcile {
 fn ready_record(name: &str, id: AgentId) -> AgentRecord {
     let mut resource = support::agent(name);
     resource.metadata.generation = 1;
-    resource.status = Status {
-        observed_generation: 1,
-        sandbox: Some(SandboxAssignment::Materialized {
+    resource.status = Status::observed(
+        1,
+        Some(SandboxAssignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
         }),
-        conditions: vec![Condition {
+        vec![Condition {
             kind: "Ready".into(),
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
         }],
-    };
+    );
     AgentRecord {
         id,
         source_directory: PathBuf::from("/source"),
+        manifest_path: None,
+        env_file: None,
         agent: resource,
     }
 }
@@ -229,7 +235,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     record.agent.spec.harnesses[0].default = true;
     record.agent.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
-        version: "0.149.1".into(),
+        version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
     });
@@ -250,18 +256,31 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
     let session_task = tokio::task::spawn_local(session_controller.run());
-    let service = agent::sessions::Service::new(session_store, agent_store, agent_wakeup, session_wakeup);
+    let service = agent::sessions::Service::new(
+        session_store,
+        agent_store,
+        Convergence::new(agent_wakeup, Observers::new()),
+        session_wakeup,
+    );
 
     let explicit = service
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::Codex),
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect("explicit harness Session");
     let implicit = service
-        .ensure("worker", &SessionName::new("implicit").expect("name"), None)
+        .ensure(
+            "worker",
+            &SessionName::new("implicit").expect("name"),
+            None,
+            WaitPolicy::FirstPass,
+            None,
+        )
         .await
         .expect("implicit default Session");
 
@@ -273,6 +292,8 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("explicit").expect("name"),
             Some(agent::Harness::ClaudeCode),
+            WaitPolicy::FirstPass,
+            None,
         )
         .await
         .expect_err("an existing Session keeps its harness");
@@ -546,6 +567,8 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             AgentRecord {
                 id: agent_id,
                 source_directory: PathBuf::from("/source"),
+                manifest_path: None,
+                env_file: None,
                 agent: resource,
             },
             0,
@@ -555,13 +578,19 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
     let service = Rc::new(agent::sessions::Service::new(
         session_store,
         agent_store,
-        agent_wakeup,
+        Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
     ));
     let ensure_service = service.clone();
     let ensure = tokio::task::spawn_local(async move {
         ensure_service
-            .ensure("worker", &SessionName::new("s1").expect("name"), None)
+            .ensure(
+                "worker",
+                &SessionName::new("s1").expect("name"),
+                None,
+                WaitPolicy::FirstPass,
+                None,
+            )
             .await
     });
 

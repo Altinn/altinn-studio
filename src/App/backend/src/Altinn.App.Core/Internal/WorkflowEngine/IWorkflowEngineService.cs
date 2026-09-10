@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -9,9 +10,8 @@ internal interface IWorkflowEngineService
 {
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
         Instance instance,
+        StorageVersionMetadata instanceVersions,
         ProcessStateChange processStateChange,
-        string resolvedAction,
-        string lockToken,
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
@@ -30,18 +30,6 @@ internal interface IWorkflowEngineService
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default);
 
-    /// <summary>
-    /// Writes off an unsuccessful terminal workflow (Failed -> Abandoned in the engine) so that a
-    /// subsequently enqueued workflow can depend on it and run. Returns <see langword="false"/> when
-    /// the engine's compare-and-set rejected the transition - e.g. a concurrent resume revived the
-    /// workflow - in which case the caller must treat the task as still blocked.
-    /// Side effects need no special handling here: the side-effects workflow is enqueued by the
-    /// EnqueueSideEffectsWorkflow step at the commit boundary, so an abandoned pre-commit failure
-    /// never scheduled any, and a committed transition's side effects run independently of the
-    /// abandoned Main.
-    /// </summary>
-    Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default);
-
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
@@ -57,7 +45,6 @@ internal interface IWorkflowEngineService
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,

@@ -23,6 +23,7 @@ public class AppProcessState : ProcessState
         {
             return;
         }
+        Status = processState.Status;
         Started = processState.Started;
         StartEvent = processState.StartEvent;
         if (processState.CurrentTask != null)

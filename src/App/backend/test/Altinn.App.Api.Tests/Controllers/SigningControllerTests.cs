@@ -14,6 +14,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -31,6 +32,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class SigningControllerTests
 {
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClientWithStorageMetadata> _metadataInstanceClientMock;
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
@@ -57,14 +59,20 @@ public class SigningControllerTests
 
     public SigningControllerTests(ITestOutputHelper output)
     {
+        _metadataInstanceClientMock = _instanceClientMock.As<IInstanceClientWithStorageMetadata>();
+        var metadataDataClientMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
+        var mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
         _serviceCollection.AddTransient<ModelSerializationService>();
         _serviceCollection.AddTransient<InstanceDataUnitOfWorkInitializer>();
         _serviceCollection.AddTransient<SigningController>();
         _serviceCollection.AddSingleton(Options.Create(new FrontEndSettings()));
         _serviceCollection.AddSingleton(_instanceClientMock.Object);
+        _serviceCollection.AddSingleton(_metadataInstanceClientMock.Object);
         _serviceCollection.AddSingleton(_signingServiceMock.Object);
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
+        _serviceCollection.AddSingleton(metadataDataClientMock.Object);
+        _serviceCollection.AddSingleton(mutationClientMock.Object);
         _serviceCollection.AddSingleton(_applicationMetadataMock.Object);
         _serviceCollection.AddSingleton(_translationServiceMock.Object);
         _serviceCollection.AddSingleton(_appResourcesMock.Object);
@@ -72,6 +80,14 @@ public class SigningControllerTests
         _serviceCollection.AddSingleton(_httpContextAccessorMock.Object);
         _serviceCollection.AddFakeLoggingWithXunit(output);
 
+        var defaultInstance = new Instance
+        {
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "signing" },
+            },
+        };
         _instanceClientMock
             .Setup(x =>
                 x.GetInstance(
@@ -83,16 +99,19 @@ public class SigningControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new Instance
-                {
-                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                    Process = new ProcessState
-                    {
-                        CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "signing" },
-                    },
-                }
-            );
+            .ReturnsAsync(defaultInstance);
+        _metadataInstanceClientMock
+            .Setup(x =>
+                x.GetInstanceWithStorageMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(defaultInstance, StorageVersionMetadata.Empty));
 
         _processReaderMock.Setup(s => s.GetAltinnTaskExtension(It.IsAny<string>())).Returns(_altinnTaskExtension);
         _processReaderMock
@@ -671,9 +690,9 @@ public class SigningControllerTests
         await using var sp = _serviceCollection.BuildStrictServiceProvider();
         var controller = sp.GetRequiredService<SigningController>();
 
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(x =>
-                x.GetInstance(
+                x.GetInstanceWithStorageMetadata(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
@@ -683,18 +702,21 @@ public class SigningControllerTests
                 )
             )
             .ReturnsAsync(
-                new Instance
-                {
-                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                    Process = new ProcessState
+                new InstanceWithStorageMetadata(
+                    new Instance
                     {
-                        CurrentTask = new ProcessElementInfo
+                        InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                        Process = new ProcessState
                         {
-                            ElementId = "task-not-signing",
-                            AltinnTaskType = "data",
+                            CurrentTask = new ProcessElementInfo
+                            {
+                                ElementId = "task-not-signing",
+                                AltinnTaskType = "data",
+                            },
                         },
                     },
-                }
+                    StorageVersionMetadata.Empty
+                )
             );
 
         // Act
@@ -975,9 +997,9 @@ public class SigningControllerTests
         var controller = sp.GetRequiredService<SigningController>();
 
         // Setup instance with current task as a data task
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(x =>
-                x.GetInstance(
+                x.GetInstanceWithStorageMetadata(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
@@ -987,14 +1009,17 @@ public class SigningControllerTests
                 )
             )
             .ReturnsAsync(
-                new Instance
-                {
-                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                    Process = new ProcessState
+                new InstanceWithStorageMetadata(
+                    new Instance
                     {
-                        CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "data" },
+                        InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                        Process = new ProcessState
+                        {
+                            CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "data" },
+                        },
                     },
-                }
+                    StorageVersionMetadata.Empty
+                )
             );
 
         // Setup multiple tasks - current task is a data task, but we'll override to a signing task
@@ -1209,9 +1234,9 @@ public class SigningControllerTests
         var controller = sp.GetRequiredService<SigningController>();
 
         // Setup instance with current task as a data task
-        _instanceClientMock
+        _metadataInstanceClientMock
             .Setup(x =>
-                x.GetInstance(
+                x.GetInstanceWithStorageMetadata(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
@@ -1221,14 +1246,17 @@ public class SigningControllerTests
                 )
             )
             .ReturnsAsync(
-                new Instance
-                {
-                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                    Process = new ProcessState
+                new InstanceWithStorageMetadata(
+                    new Instance
                     {
-                        CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "data" },
+                        InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                        Process = new ProcessState
+                        {
+                            CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "data" },
+                        },
                     },
-                }
+                    StorageVersionMetadata.Empty
+                )
             );
 
         // Setup multiple tasks - current task is a data task, but we'll override to a signing task

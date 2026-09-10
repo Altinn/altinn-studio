@@ -19,10 +19,12 @@ spec:
   home:
     source: home
   instructions:
-    source: ../instructions.md
+    - source: ../instructions.md
+    - source: environment.md
+  skills:
+    - source: ../skills/pr-evidence
   harnesses:
     - type: claudeCode
-      version: "2.1.239"
       auth: mediated
       default: true
     # - type: codex
@@ -30,10 +32,14 @@ spec:
     #   auth: mediated
   secrets:
     - environment: GITHUB_TOKEN
+      # gh only attaches files with a token it classifies by prefix; the inert placeholder
+      # therefore carries the fine-grained PAT prefix and is far shorter than a real token.
+      placeholder: github_pat_AGENT_MEDIATED_GITHUB_TOKEN
       allowedHosts:
         - github.com
         - api.github.com
         - gist.github.com
+        - uploads.github.com
   network:
     mode: mediated
     allow: all

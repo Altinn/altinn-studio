@@ -2,6 +2,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -18,7 +19,7 @@ namespace Altinn.App.Api.Controllers;
 [ApiController]
 public class ValidateController : ControllerBase
 {
-    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAppMetadata _appMetadata;
     private readonly IValidationService _validationService;
@@ -33,9 +34,9 @@ public class ValidateController : ControllerBase
         IServiceProvider serviceProvider
     )
     {
-        _instanceClient = instanceClient;
         _validationService = validationService;
         _appMetadata = appMetadata;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
@@ -69,7 +70,7 @@ public class ValidateController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -77,6 +78,7 @@ public class ValidateController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            Instance instance = fetchedInstance.Instance;
 
             string? taskId = instance.Process?.CurrentTask?.ElementId;
             if (taskId == null)
@@ -88,7 +90,12 @@ public class ValidateController : ControllerBase
                 );
             }
 
-            var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                instance,
+                fetchedInstance.Metadata,
+                taskId,
+                language
+            );
 
             var ignoredSources = ignoredValidators
                 ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -129,6 +136,7 @@ public class ValidateController : ControllerBase
     [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate")]
     [ProducesResponseType(typeof(List<ValidationIssueWithSource>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ValidateData(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -138,15 +146,16 @@ public class ValidateController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        Instance? instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerId,
-            instanceId,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance == null)
+        InstanceWithStorageMetadata? fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerId,
+                instanceId,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+        if (fetchedInstance?.Instance is not { } instance)
         {
             return NotFound();
         }
@@ -194,7 +203,12 @@ public class ValidateController : ControllerBase
             messages.Add(message);
         }
 
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, dataType.TaskId, language);
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            fetchedInstance.Metadata,
+            dataType.TaskId,
+            language
+        );
 
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(

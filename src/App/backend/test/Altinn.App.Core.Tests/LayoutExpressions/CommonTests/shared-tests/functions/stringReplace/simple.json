@@ -1,5 +1,0 @@
-{
-  "name": "Should find and replace a substring",
-  "expression": ["stringReplace", "Hello, world!", "world", "planet"],
-  "expects": "Hello, planet!"
-}

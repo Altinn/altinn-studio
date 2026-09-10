@@ -15,22 +15,35 @@ import type { IParty } from 'src/types/shared';
 
 export interface IAltinnPartyProps {
   party: IParty;
-  onSelectParty: (party: IParty) => void;
+  onSelectParty: (party: IParty) => Promise<void> | void;
   showSubUnits: boolean;
+  /** The party selected by user and is currently in flight*/
+  pendingPartyId?: number;
 }
 
-export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
+/** Selection state of a party. 'selectable' means it can be selected, 'submitting' means its selection is in flight, and 'blocked' means another party's selection is in flight. */
+type SelectionState = 'selectable' | 'submitting' | 'blocked';
+
+function getSelectionState(party: IParty, pendingPartyId: number | undefined): SelectionState {
+  if (pendingPartyId !== undefined) {
+    return pendingPartyId === party.partyId ? 'submitting' : 'blocked';
+  }
+  return 'selectable';
+}
+
+export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId }: IAltinnPartyProps) {
   const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const isOrg = party.partyTypeName === PartyType.Organization;
+  const selectionState = getSelectionState(party, pendingPartyId);
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();
     onSelectParty(selectedParty);
   }
 
-  function onKeyPress(selectedParty: IParty, event: React.KeyboardEvent) {
+  function onKeyPressParty(selectedParty: IParty, event: React.KeyboardEvent) {
     event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {
       onSelectParty(selectedParty);
@@ -91,39 +104,15 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
           </Flex>
         }
       >
-        {party.childParties.map((childParty: IParty, index: number) => (
-          <Flex
-            data-testid='AltinnParty-SubUnitWrapper'
-            key={index}
-            container
-            direction='column'
-            className={classes.subUnitWrapper}
-          >
-            <Flex
-              key={index}
-              role='button'
-              className={classes.subUnit}
-              container
-              direction='column'
-              onClick={onClickParty.bind(null, childParty)}
-              onKeyPress={onKeyPress.bind(null, childParty)}
-              tabIndex={subUnitsExpanded ? 0 : undefined}
-            >
-              <Flex
-                container
-                direction='row'
-                alignItems='center'
-                className={classes.subUnitTextWrapper}
-              >
-                <Paragraph className={classes.partyName}>{childParty.name}</Paragraph>
-                <Paragraph className={classes.partyInfo}>
-                  &nbsp;
-                  <Lang id='party_selection.unit_org_number' />
-                  &nbsp;{childParty.orgNumber}
-                </Paragraph>
-              </Flex>
-            </Flex>
-          </Flex>
+        {party.childParties.map((childParty: IParty) => (
+          <SubUnit
+            key={childParty.partyId}
+            party={childParty}
+            pendingPartyId={pendingPartyId}
+            tabbable={subUnitsExpanded}
+            onClick={(event) => onClickParty(childParty, event)}
+            onKeyPress={(event) => onKeyPressParty(childParty, event)}
+          />
         ))}
       </AltinnCollapsibleList>
     );
@@ -133,15 +122,22 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
     <div className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
       <Flex
         id={`party-${party.partyId}`}
-        role='button'
+        role={party.onlyHierarchyElementWithNoAccess ? undefined : 'button'}
         data-testid='AltinnParty-PartyWrapper'
         container
         direction='row'
         alignItems='center'
-        className={cn(classes.partyWrapper, { [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess })}
-        onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
-        onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
+        className={cn(classes.partyWrapper, {
+          [classes.partySelectable]: !party.onlyHierarchyElementWithNoAccess && selectionState === 'selectable',
+          [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess,
+          [classes.partySubmitting]: selectionState === 'submitting',
+          [classes.partyBlocked]: selectionState === 'blocked',
+        })}
+        onClick={!party.onlyHierarchyElementWithNoAccess ? (event) => onClickParty(party, event) : undefined}
+        onKeyPress={!party.onlyHierarchyElementWithNoAccess ? (event) => onKeyPressParty(party, event) : undefined}
         tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
+        aria-busy={selectionState === 'submitting'}
+        aria-disabled={selectionState === 'blocked'}
       >
         {isOrg ? (
           <Buildings3Icon
@@ -167,5 +163,56 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
       </Flex>
       {renderSubunits()}
     </div>
+  );
+}
+
+interface ISubUnitProps {
+  party: IParty;
+  pendingPartyId: number | undefined;
+  tabbable: boolean;
+  onClick: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onKeyPress: (event: React.KeyboardEvent) => void;
+}
+
+function SubUnit({ party, pendingPartyId, tabbable, onClick, onKeyPress }: ISubUnitProps) {
+  const selectionState = getSelectionState(party, pendingPartyId);
+
+  return (
+    <Flex
+      data-testid='AltinnParty-SubUnitWrapper'
+      container
+      direction='column'
+      className={classes.subUnitWrapper}
+    >
+      <Flex
+        role='button'
+        className={cn(classes.subUnit, {
+          [classes.partySelectable]: selectionState === 'selectable',
+          [classes.partySubmitting]: selectionState === 'submitting',
+          [classes.partyBlocked]: selectionState === 'blocked',
+        })}
+        container
+        direction='column'
+        onClick={onClick}
+        onKeyPress={onKeyPress}
+        tabIndex={tabbable ? 0 : undefined}
+        aria-busy={selectionState === 'submitting'}
+        aria-disabled={selectionState === 'blocked'}
+      >
+        <Flex
+          container
+          direction='row'
+          alignItems='center'
+          className={classes.subUnitTextWrapper}
+        >
+          <Paragraph className={classes.partyName}>{party.name}</Paragraph>
+          <Paragraph className={classes.partyInfo}>
+            &nbsp;
+            <Lang id='party_selection.unit_org_number' />
+            &nbsp;{party.orgNumber}
+          </Paragraph>
+        </Flex>
+      </Flex>
+    </Flex>
   );
 }

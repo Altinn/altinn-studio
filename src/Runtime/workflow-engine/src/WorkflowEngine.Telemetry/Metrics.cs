@@ -118,7 +118,7 @@ public static class Metrics
 
     /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
-    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c>) and
+    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c> / <c>manual</c>) and
     /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
     /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
     /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
@@ -127,6 +127,8 @@ public static class Metrics
     /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
     /// the default alert: a step's wait budget running out means the awaited external outcome
     /// never arrived, not that the engine or command failed — route it to the owning team instead.
+    /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose through the fail
+    /// endpoint (the dashboard's Fail button included).
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
@@ -425,6 +427,63 @@ public static class Metrics
     /// </summary>
     public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>("engine.db.operations.failed");
 
+    /// <summary>
+    /// Counter of namespace circuit breaker trips, tagged with <c>namespace</c> — including
+    /// re-trips from a failed recovery. Namespace is a safe tag here: trips are rare events whose
+    /// cardinality is bounded by incident count, not fleet size (a documented decision in the
+    /// failure-throttling ADR).
+    /// </summary>
+    public static readonly Counter<long> ThrottleTripped = Meter.CreateCounter<long>(
+        "engine.throttle.tripped",
+        description: "Number of namespace circuit breaker trips, including re-trips from failed recovery"
+    );
+
+    /// <summary>
+    /// Counter of throttle window extensions (every canary failed its probe), tagged with <c>namespace</c>.
+    /// </summary>
+    public static readonly Counter<long> ThrottleExtended = Meter.CreateCounter<long>(
+        "engine.throttle.extended",
+        description: "Number of throttle window extensions after unanimous canary failure"
+    );
+
+    /// <summary>
+    /// Counter of workflows released from throttling in recovery cohorts, tagged with <c>namespace</c>.
+    /// Incremented by the cohort size actually released, not by 1 per cohort.
+    /// </summary>
+    public static readonly Counter<long> ThrottleCohortReleased = Meter.CreateCounter<long>(
+        "engine.throttle.released",
+        description: "Number of workflows released from throttling in recovery cohorts"
+    );
+
+    /// <summary>
+    /// Counter of namespace circuit breakers cleared after successful recovery, tagged with <c>namespace</c>.
+    /// </summary>
+    public static readonly Counter<long> ThrottleCleared = Meter.CreateCounter<long>(
+        "engine.throttle.cleared",
+        description: "Number of namespace circuit breakers cleared after successful recovery"
+    );
+
+    /// <summary>
+    /// Counter of workflows parked cooperatively by the workflow handler — a retryable failure in
+    /// a namespace whose breaker was tripped in the handler's snapshot — tagged with <c>namespace</c>.
+    /// The sweep's own parking is not counted here.
+    /// </summary>
+    public static readonly Counter<long> ThrottleHandlerParked = Meter.CreateCounter<long>(
+        "engine.throttle.handler_parked",
+        description: "Number of workflows parked by the workflow handler on retryable failure in a tripped namespace"
+    );
+
+    private static long _trippedThrottleBreakersCount;
+
+    /// <summary>
+    /// Gauge of namespace circuit breakers currently in the Tripped state.
+    /// </summary>
+    public static readonly ObservableGauge<long> TrippedThrottleBreakers = Meter.CreateObservableGauge(
+        "engine.throttle.breakers.tripped",
+        static () => _trippedThrottleBreakersCount,
+        description: "Number of namespace circuit breakers currently tripped"
+    );
+
     private static long _maintenanceConsecutiveFailures;
 
     /// <summary>
@@ -627,6 +686,11 @@ public static class Metrics
     /// Sets the value reported by <see cref="MaintenanceConsecutiveFailures"/>.
     /// </summary>
     public static void SetMaintenanceConsecutiveFailures(int count) => _maintenanceConsecutiveFailures = count;
+
+    /// <summary>
+    /// Sets the value reported by <see cref="TrippedThrottleBreakers"/>.
+    /// </summary>
+    public static void SetTrippedThrottleBreakersCount(long count) => _trippedThrottleBreakersCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="HealthStatus"/>.

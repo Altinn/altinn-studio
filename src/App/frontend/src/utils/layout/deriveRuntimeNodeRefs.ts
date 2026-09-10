@@ -1,4 +1,5 @@
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { MissingRowIdException } from 'src/features/formData/MissingRowIdException';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
@@ -6,7 +7,6 @@ import { getComponentDef } from 'src/layout';
 import { applyRowContextToComponentId } from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, RuntimeChild } from 'src/layout/LayoutComponent';
 import type { RowContext } from 'src/utils/layout/rowContext';

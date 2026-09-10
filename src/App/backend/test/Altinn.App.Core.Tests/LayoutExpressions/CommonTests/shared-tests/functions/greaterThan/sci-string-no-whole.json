@@ -1,5 +1,0 @@
-{
-  "name": "Should parse string scientific notation with no whole number part (false)",
-  "expression": ["greaterThan", ".5e2", 100],
-  "expects": false
-}

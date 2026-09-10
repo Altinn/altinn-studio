@@ -1,22 +1,15 @@
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
-using Altinn.App.Clients.Fiks.Factories;
-using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
-using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.App.Tests.Common.Auth;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Time.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
@@ -26,109 +19,244 @@ public class FiksArkivDefaultPayloadGeneratorTest
     //Example Instance ID = "12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90"
 
     private static readonly XsdValidator _xsdValidator = new();
-    private static readonly Guid _fiksIOSenderAccount = Guid.Parse("f41af07b-47c3-4d3a-9a34-1baa0f575101");
     private static readonly DateTimeOffset _now = DateTimeOffset.Parse("2025-10-24T09:58:00.000000Z");
 
-    private static readonly Instance _defaultInstance = Factories.Instance(
-        "12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90",
-        [
-            Factories.DataElement("model", null, "application/xml"),
-            Factories.DataElement("ref-data-as-pdf", null, "application/pdf"),
-            Factories.DataElement("something-uploaded", "receipt2.pdf", null),
-            Factories.DataElement("something-uploaded", "letter.docx", null),
-            Factories.DataElement("something-uploaded", "drawing_1a.jpg", null),
-        ]
-    );
-
-    private static class Auth
+    /// <summary>
+    /// Who owns the instance being archived. The owner drives both the sender korrespondansepart and the
+    /// <see cref="FiksArkivClassificationSource.InstanceOwner"/> classification, so the two always agree.
+    /// </summary>
+    internal enum TestInstanceOwner
     {
-        public static readonly Authenticated User = TestAuthentication.GetUserAuthentication();
-        public static readonly Authenticated SystemUser = TestAuthentication.GetSystemUserAuthentication();
-        public static readonly Authenticated ServiceOwner = TestAuthentication.GetServiceOwnerAuthentication();
-        public static readonly Authenticated Org = TestAuthentication.GetOrgAuthentication();
+        Person,
+        Organization,
+
+        // The register does not know the party and the instance carries no identifier, modelling an owner that
+        // cannot be resolved (no Avsender emitted).
+        Unresolved,
     }
+
+    // Built fresh per test invocation so no test case can leak instance state into another.
+    private static Instance NewDefaultInstance(TestInstanceOwner owner) =>
+        new()
+        {
+            Id = "12345/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90",
+            AppId = "ttd/test-app",
+            InstanceOwner = new InstanceOwner
+            {
+                PartyId = "12345",
+                PersonNumber = owner is TestInstanceOwner.Person ? Factories.PersonNumber : null,
+                OrganisationNumber = owner is TestInstanceOwner.Organization ? Factories.OrganizationNumber : null,
+            },
+            Data =
+            [
+                Factories.DataElement("model", null, "application/xml"),
+                Factories.DataElement("ref-data-as-pdf", null, "application/pdf"),
+                Factories.DataElement("something-uploaded", "receipt2.pdf", null),
+                Factories.DataElement("something-uploaded", "letter.docx", null),
+                Factories.DataElement("something-uploaded", "drawing_1a.jpg", null),
+            ],
+        };
 
     public static IEnumerable<object[]> TestCases =>
         [
-            TestCase.Create(
-                testIdentifier: "1",
-                fiksArkivMessageType: FiksArkivConstants.MessageTypes.CreateArchiveRecord,
-                expectedAttachmentFilenames: ["model.xml", "ref-data-as-pdf.pdf"],
-                primaryDocumentSettings: Factories.DocumentSettings("model"),
-                attachmentSettings: [Factories.DocumentSettings("ref-data-as-pdf")],
-                archiveDocumentMetadata: null,
-                recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
-                instanceOwnerParty: null,
-                instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+            new TestCase(
+                TestIdentifier: "1",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings
+                    {
+                        PrimaryDocument = Factories.DocumentSettings("model"),
+                        Attachments = [Factories.DocumentSettings("ref-data-as-pdf")],
+                    },
+                    Metadata = new FiksArkivMetadataSettings
+                    {
+                        CaseFileClassifications = [Factories.InstanceOwnerClassification()],
+                    },
+                },
+                Owner: TestInstanceOwner.Person,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
+                ExpectedAttachmentFilenames: ["model.xml", "ref-data-as-pdf.pdf"]
             ),
-            TestCase.Create(
-                testIdentifier: "2",
-                fiksArkivMessageType: FiksArkivConstants.MessageTypes.CreateArchiveRecord,
-                expectedAttachmentFilenames: ["Form.xml", "Form.pdf", "receipt2.pdf", "letter.docx", "drawing_1a.jpg"],
-                primaryDocumentSettings: Factories.DocumentSettings("model", "Form.xml"),
-                attachmentSettings:
+            new TestCase(
+                TestIdentifier: "2",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings
+                    {
+                        PrimaryDocument = Factories.DocumentSettings("model", "Form.xml"),
+                        Attachments =
+                        [
+                            Factories.DocumentSettings("ref-data-as-pdf", "Form.pdf"),
+                            Factories.DocumentSettings("something-uploaded"),
+                        ],
+                    },
+                    Metadata = new FiksArkivMetadataSettings
+                    {
+                        SystemId = TestHelpers.BindableValueFactory("custom-system-id"),
+                        RuleId = TestHelpers.BindableValueFactory("custom-rule-id"),
+                        CaseFileId = TestHelpers.BindableValueFactory("custom-case-file-id"),
+                        CaseFileTitle = TestHelpers.BindableValueFactory("Custom Case File Title"),
+                        JournalEntryTitle = TestHelpers.BindableValueFactory("Custom Journal Entry Title"),
+                        CaseFileClassifications = [Factories.InstanceOwnerClassification()],
+                    },
+                },
+                Owner: TestInstanceOwner.Organization,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
+                ExpectedAttachmentFilenames: ["Form.xml", "Form.pdf", "receipt2.pdf", "letter.docx", "drawing_1a.jpg"]
+            ),
+            new TestCase(
+                TestIdentifier: "3",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings
+                    {
+                        PrimaryDocument = Factories.DocumentSettings("model", "Form.xml"),
+                        Attachments = [Factories.DocumentSettings("doesnt-exist")],
+                    },
+                    Metadata = new FiksArkivMetadataSettings
+                    {
+                        CaseFileClassifications = [Factories.InstanceOwnerClassification()],
+                    },
+                },
+                Owner: TestInstanceOwner.Organization,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name", "123456789"),
+                ExpectedAttachmentFilenames: ["Form.xml"]
+            ),
+            new TestCase(
+                TestIdentifier: "4",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings
+                    {
+                        PrimaryDocument = Factories.DocumentSettings("model", "Form.xml"),
+                        Attachments = null,
+                    },
+                    Metadata = new FiksArkivMetadataSettings
+                    {
+                        SystemId = TestHelpers.BindableValueFactory("custom-system-id"),
+                        CaseFileTitle = TestHelpers.BindableValueFactory("Custom Case File Title"),
+                        JournalEntryTitle = TestHelpers.BindableValueFactory("Custom Journal Entry Title"),
+                        CaseFileClassifications = [Factories.InstanceOwnerClassification()],
+                    },
+                },
+                Owner: TestInstanceOwner.Organization,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
+                ExpectedAttachmentFilenames: ["Form.xml"]
+            ),
+            new TestCase(
+                TestIdentifier: "5",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings
+                    {
+                        PrimaryDocument = Factories.DocumentSettings(
+                            "model",
+                            "Form.pdf",
+                            formatCode: "PDF/A",
+                            variant: new FiksArkivCode { Code = "A", Description = "Arkivformat" }
+                        ),
+                        Attachments = [Factories.DocumentSettings("ref-data-as-pdf")],
+                    },
+                    Metadata = new FiksArkivMetadataSettings
+                    {
+                        CaseFileClassifications =
+                        [
+                            Factories.InstanceOwnerClassification(),
+                            Factories.ConfiguredClassification(
+                                "custom-system",
+                                "custom-class",
+                                "Custom Classification"
+                            ),
+                            Factories.ConfiguredClassification(
+                                "custom-system-2",
+                                "custom-class-2",
+                                "Restricted Classification",
+                                isRestricted: true
+                            ),
+                        ],
+                    },
+                },
+                Owner: TestInstanceOwner.Person,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
+                ExpectedAttachmentFilenames: ["Form.pdf", "ref-data-as-pdf.pdf"]
+            ),
+            // Bare-minimum configuration: only the required PrimaryDocument is set. No metadata, attachments
+            // or classifications are configured, so the generated payload exercises the library defaults
+            // (default system id, application title fallbacks, instance id as case file key, no classifications).
+            new TestCase(
+                TestIdentifier: "6",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings { PrimaryDocument = Factories.DocumentSettings("model") },
+                },
+                // An unresolved owner has no register party, asserting the generator omits the Avsender
+                // korrespondansepart and still produces a schema-valid arkivmelding.
+                Owner: TestInstanceOwner.Unresolved,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name"),
+                ExpectedAttachmentFilenames: ["model.xml"]
+            ),
+            // Maximal configuration: every payload-relevant override turned on at once. Primary document and an
+            // attachment both carry custom filename/format/variant, all metadata fields are set, the classification
+            // list mixes the dynamic instance-owner source with explicit (incl. restricted) entries, and an instance
+            // owner party is resolved so both a recipient and a sender korrespondansepart are emitted.
+            new TestCase(
+                TestIdentifier: "7",
+                Settings: new FiksArkivSettings
+                {
+                    Documents = new FiksArkivDocumentSettings
+                    {
+                        PrimaryDocument = Factories.DocumentSettings(
+                            "model",
+                            "Form.pdf",
+                            formatCode: "PDF/A",
+                            variant: new FiksArkivCode { Code = "A", Description = "Arkivformat" }
+                        ),
+                        Attachments =
+                        [
+                            Factories.DocumentSettings(
+                                "ref-data-as-pdf",
+                                "Attachment.pdf",
+                                formatCode: "PDF/A",
+                                variant: new FiksArkivCode { Code = "P", Description = "Produksjonsformat" }
+                            ),
+                            Factories.DocumentSettings("something-uploaded"),
+                        ],
+                    },
+                    Metadata = new FiksArkivMetadataSettings
+                    {
+                        SystemId = TestHelpers.BindableValueFactory("custom-system-id"),
+                        RuleId = TestHelpers.BindableValueFactory("custom-rule-id"),
+                        CaseFileId = TestHelpers.BindableValueFactory("custom-case-file-id"),
+                        CaseFileTitle = TestHelpers.BindableValueFactory("Custom Case File Title"),
+                        JournalEntryTitle = TestHelpers.BindableValueFactory("Custom Journal Entry Title"),
+                        CaseFileAdministrativeUnit = TestHelpers.BindableValueFactory("Custom Administrative Unit"),
+                        CaseFileClassifications =
+                        [
+                            Factories.InstanceOwnerClassification(),
+                            Factories.ConfiguredClassification(
+                                "custom-system",
+                                "custom-class",
+                                "Custom Classification"
+                            ),
+                            Factories.ConfiguredClassification(
+                                "custom-system-2",
+                                "custom-class-2",
+                                "Restricted Classification",
+                                isRestricted: true
+                            ),
+                        ],
+                    },
+                },
+                Owner: TestInstanceOwner.Organization,
+                Recipient: Factories.Recipient("recipient-id", "Recipient Name", "123456789"),
+                ExpectedAttachmentFilenames:
                 [
-                    Factories.DocumentSettings("ref-data-as-pdf", "Form.pdf"),
-                    Factories.DocumentSettings("something-uploaded"),
-                ],
-                archiveDocumentMetadata: Factories.Metadata(
-                    "custom-system-id",
-                    "custom-rule-id",
-                    "custom-case-file-id",
-                    "Custom Case File Title",
-                    "Custom Journal Entry Title"
-                ),
-                recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
-                instanceOwnerParty: null,
-                instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.SystemUser)
-            ),
-            TestCase.Create(
-                testIdentifier: "3",
-                fiksArkivMessageType: FiksArkivConstants.MessageTypes.CreateArchiveRecord,
-                expectedAttachmentFilenames: ["Form.xml"],
-                primaryDocumentSettings: Factories.DocumentSettings("model", "Form.xml"),
-                attachmentSettings: [Factories.DocumentSettings("doesnt-exist")],
-                archiveDocumentMetadata: null,
-                recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name", "123456789", "Ref-001"),
-                instanceOwnerParty: Factories.InstanceOwnerOwnerParty(
-                    "altinn-party-id",
-                    "Instance Owner Person Name",
-                    "national-id-no",
-                    null,
-                    "phone-no",
-                    "mobile-no",
-                    "Street 1",
-                    "0123",
-                    "City"
-                ),
-                instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.ServiceOwner)
-            ),
-            TestCase.Create(
-                testIdentifier: "4",
-                fiksArkivMessageType: FiksArkivConstants.MessageTypes.CreateArchiveRecord,
-                expectedAttachmentFilenames: ["Form.xml"],
-                primaryDocumentSettings: Factories.DocumentSettings("model", "Form.xml"),
-                attachmentSettings: null,
-                archiveDocumentMetadata: Factories.Metadata(
-                    systemId: "custom-system-id",
-                    caseFileTitle: "Custom Case File Title",
-                    journalEntryTitle: "Custom Journal Entry Title",
-                    ruleId: null,
-                    caseFileId: null
-                ),
-                recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
-                instanceOwnerParty: Factories.InstanceOwnerOwnerParty(
-                    "altinn-party-id",
-                    "Instance Owner Org Name",
-                    null,
-                    "org-number",
-                    "duplicate-phone-no",
-                    "duplicate-mobile-no",
-                    "Street 1",
-                    null,
-                    "City"
-                ),
-                instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.Org)
+                    "Form.pdf",
+                    "Attachment.pdf",
+                    "receipt2.pdf",
+                    "letter.docx",
+                    "drawing_1a.jpg",
+                ]
             ),
         ];
 
@@ -137,13 +265,19 @@ public class FiksArkivDefaultPayloadGeneratorTest
     internal async Task GeneratePayload_GeneratesCorrectPayload(TestCase testCase)
     {
         // Arrange
-        var fixture = testCase.Fixture;
+        await using var fixture = CreateFixture(testCase);
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(testCase.Owner));
 
         // Act
-        var result = await fixture.GeneratePayload(
-            _defaultInstance,
-            FiksArkivConstants.MessageTypes.CreateArchiveRecord
-        );
+        var result = (
+            await fixture.FiksArkivPayloadGenerator.GeneratePayload(
+                "",
+                testCase.Recipient,
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                _now,
+                dataAccessor.Object
+            )
+        ).ToList();
 
         // Assert
         Assert.NotNull(result);
@@ -163,10 +297,16 @@ public class FiksArkivDefaultPayloadGeneratorTest
     [Fact]
     public async Task GeneratePayload_ThrowsException_ForUnsupportedMessageType()
     {
-        var fixture = PayloadGeneratorFixture.Create(null!, null!, null, null!, null!, null!, null!);
+        await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
 
         var ex = await Assert.ThrowsAsync<FiksArkivException>(() =>
-            fixture.GeneratePayload(Factories.Instance(null!, []), "non-create-type")
+            fixture.FiksArkivPayloadGenerator.GeneratePayload(
+                "",
+                Factories.Recipient("-", "-"),
+                "non-create-type",
+                _now,
+                Mock.Of<IInstanceDataAccessor>()
+            )
         );
 
         Assert.Contains("Unsupported message type", ex.Message);
@@ -175,66 +315,53 @@ public class FiksArkivDefaultPayloadGeneratorTest
     [Fact]
     internal async Task GeneratePayload_ReadsDocumentBytesFromAccessor()
     {
-        var fixture = PayloadGeneratorFixture.Create(
-            Factories.DocumentSettings("model"),
-            [Factories.DocumentSettings("ref-data-as-pdf")],
-            archiveDocumentMetadata: null,
-            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
-            instanceOwnerParty: null,
-            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+        // Arrange: one primary document and one attachment => exactly two reads, all through the caller's unit of
+        // work, or a retried step could archive different bytes than the ones staged on it. The strict mock pins
+        // down exactly which accessor members the pipeline touches; a new read fails here instead of going unnoticed.
+        var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
+        await using var fixture = CreateFixture(testCase);
+        var dataAccessor = Factories.DataAccessor(
+            NewDefaultInstance(testCase.Owner),
+            "Accessor content",
+            MockBehavior.Strict
         );
-        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
-        dataAccessor.Setup(x => x.Instance).Returns(_defaultInstance);
-        dataAccessor
-            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
-            .ReturnsAsync("Accessor content"u8.ToArray());
 
-        var result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+        // Act
+        var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
             "",
-            Factories.Recipient(),
+            testCase.Recipient,
             FiksArkivConstants.MessageTypes.CreateArchiveRecord,
             _now,
             dataAccessor.Object
         );
 
+        // Assert
         Assert.NotNull(result);
         dataAccessor.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Exactly(2));
     }
 
     [Fact]
-    internal async Task GeneratePayload_WithExecutionReferenceTime_UsesOneLocalTimeForEveryGeneratedDate()
+    internal async Task GeneratePayload_WithExecutionReferenceTime_UsesOneUtcInstantForEveryGeneratedDate()
     {
-        var fixture = PayloadGeneratorFixture.Create(
-            Factories.DocumentSettings("model"),
-            [Factories.DocumentSettings("ref-data-as-pdf")],
-            archiveDocumentMetadata: null,
-            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
-            instanceOwnerParty: null,
-            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
-        );
-        TimeZoneInfo localTimeZone = TimeZoneInfo.CreateCustomTimeZone(
-            "Fiks-Test-UTC-05-45",
-            TimeSpan.FromMinutes(345),
-            "Fiks test time",
-            "Fiks test time"
-        );
-        fixture.FakeTime.SetLocalTimeZone(localTimeZone);
-        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2025-12-31T20:30:45Z");
-        DateTime expectedLocalTime = new(2026, 1, 1, 2, 15, 45);
-        var dataAccessor = new Mock<IInstanceDataAccessor>();
-        dataAccessor.Setup(x => x.Instance).Returns(_defaultInstance);
-        dataAccessor
-            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
-            .ReturnsAsync("Mocked content"u8.ToArray());
+        // Arrange: half past midnight on New Year's Day in Oslo, which is still New Year's Eve in UTC. Every generated
+        // date must derive from the same UTC instant: the offset-less date and year fields follow the UTC calendar
+        // day, and the timestamps carry the UTC designator, so the archive never has to guess the offset.
+        var testCase = TestCases.Select(x => (TestCase)x[0]).Single(x => x.TestIdentifier == "1");
+        await using var fixture = CreateFixture(testCase);
+        var dataAccessor = Factories.DataAccessor(NewDefaultInstance(testCase.Owner));
+        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2026-01-01T00:30:45+01:00");
+        DateTime expectedUtcTime = new(2025, 12, 31, 23, 30, 45, DateTimeKind.Utc);
 
-        IEnumerable<FiksIOMessagePayload> result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+        // Act
+        var result = await fixture.FiksArkivPayloadGenerator.GeneratePayload(
             "Task_1",
-            Factories.Recipient(),
+            testCase.Recipient,
             FiksArkivConstants.MessageTypes.CreateArchiveRecord,
             executionReferenceTime,
             dataAccessor.Object
         );
 
+        // Assert
         string archiveMessageXml = result
             .Single(x => x.Filename == FiksArkivConstants.Filenames.ArchiveRecord)
             .Data.ReadToString();
@@ -242,211 +369,103 @@ public class FiksArkivDefaultPayloadGeneratorTest
         Saksmappe caseFile = Assert.IsType<Saksmappe>(archiveMessage.Mappe);
         Journalpost journalEntry = Assert.IsType<Journalpost>(archiveMessage.Registrering);
 
-        Assert.Equal(expectedLocalTime.Year, caseFile.Saksaar);
-        Assert.Equal(expectedLocalTime.Date, caseFile.Saksdato);
-        Assert.Equal(expectedLocalTime.Year, journalEntry.Journalaar);
-        Assert.Equal(expectedLocalTime.Date, journalEntry.DokumentetsDato);
-        Assert.Equal(expectedLocalTime, journalEntry.SendtDato);
+        Assert.Equal(expectedUtcTime.Year, caseFile.Saksaar);
+        Assert.Equal(expectedUtcTime.Date, caseFile.Saksdato);
+        Assert.Equal(expectedUtcTime.Year, journalEntry.Journalaar);
+        Assert.Equal(expectedUtcTime.Date, journalEntry.DokumentetsDato);
+        Assert.Equal(expectedUtcTime, journalEntry.SendtDato);
         Assert.NotEmpty(journalEntry.Dokumentbeskrivelse);
-        Assert.All(
-            journalEntry.Dokumentbeskrivelse,
-            document => Assert.Equal(expectedLocalTime, document.OpprettetDato)
+        Assert.All(journalEntry.Dokumentbeskrivelse, document => Assert.Equal(expectedUtcTime, document.OpprettetDato));
+
+        Assert.Contains("<saksaar>2025</saksaar>", archiveMessageXml);
+        Assert.Contains("<saksdato>2025-12-31</saksdato>", archiveMessageXml);
+        Assert.Contains("<journalaar>2025</journalaar>", archiveMessageXml);
+        Assert.Contains("<dokumentetsDato>2025-12-31</dokumentetsDato>", archiveMessageXml);
+        Assert.Contains("<sendtDato>2025-12-31T23:30:45Z</sendtDato>", archiveMessageXml);
+        Assert.Contains("<opprettetDato>2025-12-31T23:30:45Z</opprettetDato>", archiveMessageXml);
+    }
+
+    private static TestFixture CreateFixture(TestCase testCase)
+    {
+        var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.Configure<GeneralSettings>(options =>
+                {
+                    options.HostName = "the-hostname";
+                    options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
+                });
+            },
+            [("CustomFiksArkivSettings", testCase.Settings)],
+            useDefaultFiksArkivSettings: false
         );
+
+        fixture
+            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("ttd/test-app"));
+        fixture
+            .TranslationServiceMock.Setup(x => x.TranslateTextKey("appName", LanguageConst.Nb, null))
+            .ReturnsAsync("Test app");
+        // The register lookup serves both the sender korrespondansepart and the instance owner classification's
+        // title, so the two are driven from the same owner rather than being hand-rolled per case.
+        fixture
+            .PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .ReturnsAsync(Factories.RegisterParty(testCase.Owner));
+
+        return fixture;
     }
 
     internal sealed record TestCase(
-        PayloadGeneratorFixture Fixture,
-        string MessageType,
-        IEnumerable<string> ExpectedAttachmentFilenames,
-        string TestIdentifier
+        string TestIdentifier,
+        FiksArkivSettings Settings,
+        TestInstanceOwner Owner,
+        FiksArkivRecipient Recipient,
+        IEnumerable<string> ExpectedAttachmentFilenames
     )
     {
-        public static TestCase Create(
-            string testIdentifier,
-            string fiksArkivMessageType,
-            IEnumerable<string> expectedAttachmentFilenames,
-            FiksArkivDataTypeSettings primaryDocumentSettings,
-            IReadOnlyList<FiksArkivDataTypeSettings>? attachmentSettings,
-            FiksArkivDocumentMetadata? archiveDocumentMetadata,
-            Korrespondansepart recipientParty,
-            Korrespondansepart? instanceOwnerParty,
-            Klassifikasjon instanceOwnerClassification,
-            string applicationTitle = "Test app",
-            string appId = "ttd/test-app"
-        )
-        {
-            return new TestCase(
-                PayloadGeneratorFixture.Create(
-                    primaryDocumentSettings,
-                    attachmentSettings,
-                    archiveDocumentMetadata,
-                    recipientParty,
-                    instanceOwnerParty,
-                    instanceOwnerClassification,
-                    applicationTitle,
-                    appId
-                ),
-                fiksArkivMessageType,
-                expectedAttachmentFilenames,
-                testIdentifier
-            );
-        }
-
         public override string ToString() => TestIdentifier;
 
         public static implicit operator object[](TestCase testCase) => [testCase];
     }
 
-    internal sealed record PayloadGeneratorFixture(
-        FiksArkivDefaultPayloadGenerator FiksArkivDefaultPayloadGenerator,
-        Mock<IAppMetadata> AppMetadataMock,
-        Mock<IFiksArkivConfigResolver> ConfigResolverMock,
-        FakeTimeProvider FakeTime,
-        Mock<ILogger<FiksArkivDefaultPayloadGenerator>> LoggerMock
-    )
-    {
-        public async Task<IReadOnlyList<FiksIOMessagePayload>> GeneratePayload(Instance instance, string messageType)
-        {
-            var dataAccessor = new Mock<IInstanceDataAccessor>();
-            dataAccessor.Setup(x => x.Instance).Returns(instance);
-            dataAccessor
-                .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
-                .ReturnsAsync("Mocked content"u8.ToArray());
-            var payload = await FiksArkivDefaultPayloadGenerator.GeneratePayload(
-                "",
-                Factories.Recipient(),
-                messageType,
-                _now,
-                dataAccessor.Object
-            );
-            return payload.ToList();
-        }
-
-        public static PayloadGeneratorFixture Create(
-            FiksArkivDataTypeSettings primaryDocumentSettings,
-            IReadOnlyList<FiksArkivDataTypeSettings>? attachmentSettings,
-            FiksArkivDocumentMetadata? archiveDocumentMetadata,
-            Korrespondansepart recipientParty,
-            Korrespondansepart? instanceOwnerParty,
-            Klassifikasjon instanceOwnerClassification,
-            string applicationTitle = "Test app",
-            string appId = "ttd/test-app"
-        )
-        {
-            var appMetadataMock = new Mock<IAppMetadata>();
-            var configResolverMock = new Mock<IFiksArkivConfigResolver>();
-            var loggerMock = new Mock<ILogger<FiksArkivDefaultPayloadGenerator>>();
-            var fakeTime = new FakeTimeProvider(_now);
-
-            appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata(appId));
-
-            configResolverMock.SetupGet(x => x.PrimaryDocumentSettings).Returns(primaryDocumentSettings);
-            configResolverMock.SetupGet(x => x.AttachmentSettings).Returns(attachmentSettings ?? []);
-            configResolverMock
-                .Setup(x => x.GetApplicationTitle(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(applicationTitle);
-            configResolverMock
-                .Setup(x =>
-                    x.GetArchiveDocumentMetadata(It.IsAny<IInstanceDataAccessor>(), It.IsAny<CancellationToken>())
-                )
-                .ReturnsAsync(archiveDocumentMetadata);
-            configResolverMock
-                .Setup(x => x.GetInstanceReference(It.IsAny<Instance>()))
-                .Returns("https://hostname/org/app/instances/instance-owner/instance-id");
-            configResolverMock
-                .Setup(x => x.GetRecipientParty(It.IsAny<Instance>(), It.IsAny<FiksArkivRecipient>()))
-                .Returns(recipientParty);
-            configResolverMock
-                .Setup(x => x.GetInstanceOwnerParty(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(instanceOwnerParty);
-            configResolverMock
-                .Setup(x => x.GetInstanceOwnerClassification(It.IsAny<Authenticated>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(instanceOwnerClassification);
-
-            var payloadGenerator = new FiksArkivDefaultPayloadGenerator(
-                appMetadataMock.Object,
-                Mock.Of<IAuthenticationContext>(),
-                loggerMock.Object,
-                Mock.Of<IHostEnvironment>(x => x.EnvironmentName == Environments.Development),
-                configResolverMock.Object,
-                Mock.Of<IAppModel>(),
-                Options.Create(TestHelpers.DefaultFiksArkivSettings),
-                Options.Create(Factories.FiksIOSettings(_fiksIOSenderAccount)),
-                fakeTime
-            );
-
-            return new PayloadGeneratorFixture(
-                payloadGenerator,
-                appMetadataMock,
-                configResolverMock,
-                fakeTime,
-                loggerMock
-            );
-        }
-    }
-
     private static class Factories
     {
-        public static FiksIOSettings FiksIOSettings(Guid accountId) =>
+        public const string PersonNumber = "12345678901";
+        public const string OrganizationNumber = "405003309";
+
+        public static FiksArkivRecipient Recipient(string identifier, string name, string? orgNumber = null) =>
+            new(Guid.Empty, identifier, name, orgNumber);
+
+        public static FiksArkivDataTypeSettings DocumentSettings(
+            string dataType,
+            string? filename = null,
+            string? formatCode = null,
+            FiksArkivCode? variant = null
+        ) =>
             new()
             {
-                AccountId = accountId,
-                IntegrationId = Guid.Empty,
-                IntegrationPassword = "-",
-                AccountPrivateKeyBase64 = "-",
+                DataType = dataType,
+                Filename = filename,
+                Format = formatCode is null ? null : new FiksArkivCode { Code = formatCode },
+                Variant = variant,
             };
 
-        public static Instance Instance(string id, IEnumerable<DataElement> dataElements) =>
-            new() { Id = id, Data = [.. dataElements] };
+        public static FiksArkivClassification InstanceOwnerClassification() =>
+            new() { Source = FiksArkivClassificationSource.InstanceOwner };
 
-        public static FiksArkivRecipient Recipient() => new(Guid.NewGuid(), "-", "-", "-");
-
-        public static FiksArkivDataTypeSettings DocumentSettings(string dataType, string? filename = null) =>
-            new() { DataType = dataType, Filename = filename };
-
-        public static FiksArkivDocumentMetadata Metadata(
-            string? systemId,
-            string? ruleId,
-            string? caseFileId,
-            string? caseFileTitle,
-            string? journalEntryTitle
-        ) => new(systemId, ruleId, caseFileId, caseFileTitle, journalEntryTitle);
-
-        public static Korrespondansepart RecipientParty(
-            string id,
-            string name,
-            string? orgNumber = null,
-            string? reference = null
-        ) => KorrespondansepartFactory.CreateRecipient(id, name, orgNumber, reference);
-
-        public static Korrespondansepart InstanceOwnerOwnerParty(
-            string id,
-            string name,
-            string? personId,
-            string? orgNumber,
-            string? phoneNumber,
-            string? mobileNumber,
-            string? address,
-            string? postcode,
-            string? city
-        )
-        {
-            var party = KorrespondansepartFactory.CreateSender(id, name, personId, orgNumber);
-            party.AddContactInfo(phoneNumber, mobileNumber, address, postcode, city);
-
-            return party;
-        }
-
-        public static Klassifikasjon InstanceOwnerClassification(Authenticated auth) =>
-            auth switch
+        public static FiksArkivClassification ConfiguredClassification(
+            string systemId,
+            string classificationId,
+            string title,
+            bool? isRestricted = null
+        ) =>
+            new()
             {
-                Authenticated.User user => KlassifikasjonFactory.CreateUser(user).GetAwaiter().GetResult(),
-                Authenticated.SystemUser systemUser => KlassifikasjonFactory.CreateSystemUser(systemUser),
-                Authenticated.ServiceOwner serviceOwner => KlassifikasjonFactory.CreateServiceOwner(serviceOwner),
-                Authenticated.Org org => KlassifikasjonFactory.CreateOrganization(org),
-                _ => throw new FiksArkivException(
-                    $"Could not determine submitter details from authentication context: {auth}"
-                ),
+                SystemId = systemId,
+                ClassificationId = classificationId,
+                Title = title,
+                IsRestricted = isRestricted,
             };
 
         public static DataElement DataElement(string dataType, string? filename, string? contentType) =>
@@ -457,5 +476,65 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 Filename = filename,
                 ContentType = contentType,
             };
+
+        // What a real register lookup (IAltinnPartyClient.GetParty) returns for the owner: the nested
+        // Person/Organisation with contact details that the sender korrespondansepart renders.
+        public static Party? RegisterParty(TestInstanceOwner owner) =>
+            owner switch
+            {
+                TestInstanceOwner.Person => new Party
+                {
+                    PartyId = 12345,
+                    Name = "Test Testesen",
+                    SSN = PersonNumber,
+                    Person = new Person
+                    {
+                        SSN = PersonNumber,
+                        TelephoneNumber = "phone-no",
+                        MobileNumber = "mobile-no",
+                        MailingAddress = "Street 1",
+                        MailingPostalCode = "0123",
+                        MailingPostalCity = "City",
+                    },
+                },
+                TestInstanceOwner.Organization => new Party
+                {
+                    PartyId = 12345,
+                    Name = "Test AS",
+                    OrgNumber = OrganizationNumber,
+                    Organization = new Organization
+                    {
+                        OrgNumber = OrganizationNumber,
+                        TelephoneNumber = "phone-no",
+                        MobileNumber = "mobile-no",
+                        MailingAddress = "Street 1",
+                        MailingPostalCode = "0123",
+                        MailingPostalCity = "City",
+                    },
+                },
+                TestInstanceOwner.Unresolved => null,
+                _ => throw new ArgumentOutOfRangeException(nameof(owner), owner, null),
+            };
+
+        // The generator reads every document through the caller's unit of work, never through Storage directly,
+        // so the accessor is the only data source a test has to provide.
+        public static Mock<IInstanceDataAccessor> DataAccessor(
+            Instance instance,
+            string content = "Mocked content",
+            MockBehavior behavior = MockBehavior.Default
+        )
+        {
+            var dataAccessor = new Mock<IInstanceDataAccessor>(behavior);
+            dataAccessor.Setup(x => x.Instance).Returns(instance);
+            // The config resolver initializes layout state for the accessor's task and language when it resolves
+            // bound metadata. Under MockBehavior.Strict these are the only reads allowed besides the document bytes.
+            dataAccessor.Setup(x => x.TaskId).Returns("Task_1");
+            dataAccessor.Setup(x => x.Language).Returns((string?)null);
+            dataAccessor
+                .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+                .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(content));
+
+            return dataAccessor;
+        }
     }
 }

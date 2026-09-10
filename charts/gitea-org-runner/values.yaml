@@ -97,7 +97,7 @@ keda:
 # Per-org concurrency caps. The chart applies maxConcurrentDefault to every
 # org unless overridden by an explicit entry in maxConcurrentOverrides.
 # maxConcurrentOverrides is keyed by org code (matching runners[].name).
-maxConcurrentDefault: 2
+maxConcurrentDefault: 4
 maxConcurrentOverrides: {}
 
 # List of orgs to render a ScaledJob for. Populated by the consumer (typically

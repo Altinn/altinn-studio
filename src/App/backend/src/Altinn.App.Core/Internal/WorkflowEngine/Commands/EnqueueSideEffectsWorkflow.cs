@@ -14,7 +14,7 @@ internal sealed record EnqueueSideEffectsWorkflowPayload(WorkflowEnqueueRequest 
 /// <summary>
 /// Critical post-commit command that enqueues the transition's side-effects workflows — one
 /// independent single-step workflow per side effect, submitted as a single atomic batch. Runs
-/// immediately after <see cref="SaveProcessStateToStorage"/>, so the side effects exist if and
+/// immediately after <see cref="CommitProcessState"/>, so the side effects exist if and
 /// only if the transition committed — and, as independent roots each carrying their own
 /// commit-time state, they survive whatever happens to Main afterwards and fail independently of
 /// each other. Idempotent per Main workflow: the derived idempotency key covers the whole batch,

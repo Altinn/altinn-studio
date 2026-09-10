@@ -84,7 +84,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const sub = stepSubLabel(step);
     html += `<div class="step-label-wrap">`;
     html += `<div class="step-label" title="${escAttr(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
-    if (sub) html += `<div class="step-sublabel">${esc(sub)}</div>`;
+    if (sub) html += `<div class="step-sublabel" title="${escAttr(sub)}">${esc(sub)}</div>`;
     html += `</div>`;
 
     html += `<div class="step-meta">`;
@@ -102,6 +102,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
         const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${escAttr(backoff)}"></span>`;
         html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${action}">${label}</button>`;
+    }
+    if (isBackedOff) {
+        const failTitle =
+            step.status === 'Waiting'
+                ? 'Fail now (stop waiting, mark the step Failed)'
+                : 'Fail now (stop retrying, mark the step Failed)';
+        html += `<button class="fail-btn" onclick="failWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${failTitle}">fail</button>`;
     }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
@@ -218,6 +225,24 @@ export const buildPipelineHTML = (wf, isStatic) => {
     });
     html += '</div>';
     return html;
+};
+
+/**
+ * Replaces a card's inner HTML while keeping its pipeline scrolled where the operator left it.
+ * A rebuild swaps the `.pipeline` element, and a fresh element starts at scrollLeft 0 — so without
+ * this every retry or deferral write-back snapped a sideways-scrolled pipeline back to its start.
+ * Callers that want the active step centered instead call {@link scrollPipelineToActive} afterwards.
+ * @param {HTMLElement} card
+ * @param {string} html
+ */
+export const setCardHTMLKeepingPipelineScroll = (card, html) => {
+    const before = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+    const scrollLeft = before ? before.scrollLeft : 0;
+    card.innerHTML = html;
+    if (scrollLeft > 0) {
+        const after = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+        if (after) after.scrollLeft = scrollLeft;
+    }
 };
 
 /** @param {HTMLElement} card */

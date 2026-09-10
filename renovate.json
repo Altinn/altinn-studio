@@ -8,6 +8,18 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Update the shared Gitea version ARG using published rootless Docker tags",
+      "managerFilePatterns": ["/^src/gitea/Dockerfile$/"],
+      "matchStrings": [
+        "(?:^|\\r?\\n)ARG GITEA_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:\\r?\\n|$)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "docker.io/gitea/gitea",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)-rootless$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
       "managerFilePatterns": [
         "//\\.github/workflows/app-frontend-k6-browser\\.yml$//"
       ],
@@ -16,6 +28,30 @@
       "depNameTemplate": "grafana/k6",
       "versioningTemplate": "docker",
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Claude Code release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CLAUDE_CODE_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@anthropic-ai/claude-code"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Codex release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@playwright/cli"
     }
   ],
   "separateMultipleMajor": true,
@@ -68,9 +104,28 @@
       "matchPackageNames": ["LibGit2Sharp"]
     },
     {
+      "description": "Let the custom manager update GITEA_VERSION without rewriting the ARG-based FROM instructions",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/gitea/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
+      "enabled": false
+    },
+    {
+      "description": "Keep Gitea server updates in their own PR",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
-      "matchPackageNames": ["gitea/gitea"]
+      "pinDigests": false
+    },
+    {
+      "description": "Keep Gitea runner image updates together, including digests for the rolling runner base image",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner", "docker.io/gitea/runner-images"],
+      "groupName": "gitea runner dependencies",
+      "groupSlug": "gitea-runner",
+      "pinDigests": true
     },
     {
       "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
@@ -104,7 +159,7 @@
       "description": "Skip @percy/cypress 3.1.9: it depends on a beta @percy/sdk-utils (1.32.3-beta.1) whose waitForReady DOM-readiness step hangs, timing out all Cypress Percy snapshots. Allow again once a fixed release (>3.1.9) ships.",
       "matchManagers": ["npm"],
       "matchPackageNames": ["@percy/cypress"],
-      "allowedVersions": "!=3.1.9"
+      "allowedVersions": "<3.1.9 || >3.1.9"
     },
     {
       "description": "Automerge non-major Altinn app template package updates (v8)",
@@ -125,6 +180,15 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Altinn app template NuGet packages (v9)",
       "groupSlug": "app-template-nuget-v9",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["@anthropic-ai/claude-code", "@openai/codex"],
+      "matchUpdateTypes": ["minor", "patch"],
       "addLabels": ["approve"],
       "automerge": true
     },

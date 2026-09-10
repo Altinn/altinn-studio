@@ -24,10 +24,12 @@ spec:
   home:
     source: home
   instructions:
-    source: ../instructions.md
+    - source: ../instructions.md
+    - source: ../full/environment.md
+  skills:
+    - source: ../skills/pr-evidence
   harnesses:
     - type: claudeCode
-      version: "2.1.239"
       auth: mediated
   network:
     mode: mediated

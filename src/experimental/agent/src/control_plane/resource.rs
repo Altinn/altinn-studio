@@ -43,11 +43,28 @@ pub struct AgentRecord {
     pub id: AgentId,
     /// Absolute directory against which manifest-relative sources are resolved.
     pub source_directory: std::path::PathBuf,
+    /// Absolute path of the manifest last applied, when the client reported it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest_path: Option<std::path::PathBuf>,
+    /// Absolute path of the secret file, when it is not [`ENV_FILE`] beside the manifest.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub env_file: Option<std::path::PathBuf>,
     /// Desired state and most recently observed status.
     pub agent: Agent,
 }
 
+/// Default secret file name, resolved in the source directory.
+pub const ENV_FILE: &str = ".env";
+
 impl AgentRecord {
+    /// Returns the host file that supplies manifest secret values.
+    #[must_use]
+    pub fn env_file_path(&self) -> std::path::PathBuf {
+        self.env_file
+            .clone()
+            .unwrap_or_else(|| self.source_directory.join(ENV_FILE))
+    }
+
     /// Derives the Provider-independent Sandbox name for this Agent incarnation.
     ///
     /// # Errors
@@ -56,5 +73,15 @@ impl AgentRecord {
     pub fn sandbox_name(&self) -> Result<::sandbox::SandboxName, Error> {
         ::sandbox::SandboxName::new(format!("agent-{}", self.id))
             .map_err(|error| Error::Database(format!("Agent ID cannot identify its Sandbox: {error}")))
+    }
+
+    /// Derives the hostname the Sandbox reports: the Agent name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error only if the validated Agent name cannot form a hostname.
+    pub fn sandbox_hostname(&self) -> Result<::sandbox::Hostname, Error> {
+        ::sandbox::Hostname::new(self.agent.metadata.name.clone())
+            .map_err(|error| Error::Database(format!("Agent name cannot be its Sandbox hostname: {error}")))
     }
 }

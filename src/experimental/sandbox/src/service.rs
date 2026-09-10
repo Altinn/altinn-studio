@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    PendingOperation, Platform, Sandbox, SandboxCapabilities, SandboxFeature, SandboxFeatureSet, SandboxName,
+    Hostname, PendingOperation, Platform, Sandbox, SandboxCapabilities, SandboxFeature, SandboxFeatureSet, SandboxName,
     SandboxPath, SandboxResources, SandboxState,
     backend::{SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer, image,
     init::InitSystem,
     mount::{Mount, MountKind},
     network,
-    progress::{PendingSandbox, PhaseOutcome, SandboxEvents, SandboxPhase},
+    progress::{PendingSandbox, PhaseOutcome, SandboxEvents, SandboxPhase, SandboxProgress},
     provider::SandboxProvider,
     terminal, volume,
 };
@@ -341,6 +341,8 @@ impl SandboxSpec {
 pub struct EnsureSandboxRequest {
     /// Stable Sandbox name.
     name: SandboxName,
+    /// Hostname overriding the Sandbox name inside the guest.
+    hostname: Option<Hostname>,
     /// Desired backend-neutral configuration.
     spec: SandboxSpec,
     /// Attachments contributed by the caller or a higher platform layer.
@@ -357,11 +359,22 @@ impl EnsureSandboxRequest {
     pub const fn new(name: SandboxName, spec: SandboxSpec) -> Self {
         Self {
             name,
+            hostname: None,
             spec,
             mounts: Vec::new(),
             environment: std::collections::BTreeMap::new(),
             required_features: SandboxFeatureSet::new(),
         }
+    }
+
+    /// Reports a hostname other than the Sandbox name inside the guest.
+    ///
+    /// The hostname is applied when the Sandbox is created; an existing Sandbox
+    /// keeps the hostname it was created with.
+    #[must_use]
+    pub fn with_hostname(mut self, hostname: Hostname) -> Self {
+        self.hostname = Some(hostname);
+        self
     }
 
     /// Adds filesystem attachments materialized with the Sandbox.
@@ -389,6 +402,12 @@ impl EnsureSandboxRequest {
     #[must_use]
     pub const fn name(&self) -> &SandboxName {
         &self.name
+    }
+
+    /// Returns the hostname the guest reports, defaulting to the Sandbox name.
+    #[must_use]
+    pub fn hostname(&self) -> Hostname {
+        self.hostname.clone().unwrap_or_else(|| self.name.clone().into())
     }
 
     /// Returns the desired Sandbox configuration.
@@ -628,8 +647,7 @@ impl SandboxService {
                 if sandbox.network != network {
                     return Err(Error::Immutable("network"));
                 }
-                let sandbox = self.ensure_environment(sandbox, &request.environment, events).await?;
-                let sandbox = self.ensure_resources(sandbox, request.spec.resources, events).await?;
+                let sandbox = self.ensure_updates(sandbox, request, events).await?;
                 self.ensure_running(sandbox, events).await
             }
             Err(error) if error.is_not_found() => {
@@ -650,6 +668,7 @@ impl SandboxService {
                     .create(crate::backend::CreateSandboxRequest {
                         id: id.clone(),
                         name: request.name.clone(),
+                        hostname: request.hostname(),
                         image,
                         resources: request.spec.resources,
                         init_system: request.spec.init_system,
@@ -706,24 +725,26 @@ impl SandboxService {
         Ok(image)
     }
 
-    async fn ensure_resources(
+    /// Converges mutable Sandbox settings in one `SandboxUpdate` phase.
+    async fn ensure_updates(
         &self,
         sandbox: Sandbox,
-        resources: SandboxResources,
+        request: &EnsureSandboxRequest,
         events: &SandboxEvents,
     ) -> Result<Sandbox, Error> {
         let started = Instant::now();
         events.phase_started(SandboxPhase::SandboxUpdate).await;
-        let (sandbox, outcome) = if sandbox.resources == resources {
-            (sandbox, PhaseOutcome::Reused)
+        let progress = events.progress(SandboxPhase::SandboxUpdate);
+        let (sandbox, environment) = self
+            .ensure_environment(sandbox, &request.environment, events, &progress)
+            .await?;
+        let (sandbox, resources) = self
+            .ensure_resources(sandbox, request.spec.resources, events, &progress)
+            .await?;
+        let outcome = if environment == PhaseOutcome::Reused && resources == PhaseOutcome::Reused {
+            PhaseOutcome::Reused
         } else {
-            let sandbox = self
-                .backend()
-                .update_resources(&sandbox.id, resources)
-                .forward(events)
-                .await
-                .map_err(|error| Error::component("update Sandbox resources", error))?;
-            (sandbox, PhaseOutcome::Completed)
+            PhaseOutcome::Completed
         };
         events
             .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
@@ -731,41 +752,60 @@ impl SandboxService {
         Ok(sandbox)
     }
 
+    async fn ensure_resources(
+        &self,
+        sandbox: Sandbox,
+        resources: SandboxResources,
+        events: &SandboxEvents,
+        progress: &SandboxProgress,
+    ) -> Result<(Sandbox, PhaseOutcome), Error> {
+        if sandbox.resources == resources {
+            return Ok((sandbox, PhaseOutcome::Reused));
+        }
+        let started = Instant::now();
+        let step = progress.start_step("Update Sandbox resources").await;
+        let sandbox = self
+            .backend()
+            .update_resources(&sandbox.id, resources)
+            .forward(events)
+            .await
+            .map_err(|error| Error::component("update Sandbox resources", error))?;
+        step.complete(started.elapsed()).await;
+        Ok((sandbox, PhaseOutcome::Completed))
+    }
+
     async fn ensure_environment(
         &self,
         sandbox: Sandbox,
         environment: &std::collections::BTreeMap<String, String>,
         events: &SandboxEvents,
-    ) -> Result<Sandbox, Error> {
+        progress: &SandboxProgress,
+    ) -> Result<(Sandbox, PhaseOutcome), Error> {
+        if &sandbox.environment == environment {
+            return Ok((sandbox, PhaseOutcome::Reused));
+        }
         let started = Instant::now();
-        events.phase_started(SandboxPhase::SandboxUpdate).await;
-        let (sandbox, outcome) = if &sandbox.environment == environment {
-            (sandbox, PhaseOutcome::Reused)
-        } else {
-            if sandbox.state != SandboxState::Stopped {
-                self.backend()
+        let step = progress.start_step("Update Sandbox environment").await;
+        if sandbox.state != SandboxState::Stopped {
+            self.backend()
+                .stop(&sandbox.id)
+                .await
+                .map_err(|error| Error::component("stop Sandbox for environment update", error))?;
+            if let Some(network_backend) = self.network_backend_for(&sandbox)? {
+                network_backend
                     .stop(&sandbox.id)
                     .await
-                    .map_err(|error| Error::component("stop Sandbox for environment update", error))?;
-                if let Some(network_backend) = self.network_backend_for(&sandbox)? {
-                    network_backend
-                        .stop(&sandbox.id)
-                        .await
-                        .map_err(|error| Error::component("stop Sandbox Network for environment update", error))?;
-                }
+                    .map_err(|error| Error::component("stop Sandbox Network for environment update", error))?;
             }
-            let sandbox = self
-                .backend()
-                .update_environment(&sandbox.id, environment.clone())
-                .forward(events)
-                .await
-                .map_err(|error| Error::component("update Sandbox environment", error))?;
-            (sandbox, PhaseOutcome::Completed)
-        };
-        events
-            .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
-            .await;
-        Ok(sandbox)
+        }
+        let sandbox = self
+            .backend()
+            .update_environment(&sandbox.id, environment.clone())
+            .forward(events)
+            .await
+            .map_err(|error| Error::component("update Sandbox environment", error))?;
+        step.complete(started.elapsed()).await;
+        Ok((sandbox, PhaseOutcome::Completed))
     }
 
     async fn require_backend_features_observed(

@@ -128,11 +128,10 @@ internal static class TestHelpers
             },
             SuccessHandling = new FiksArkivSuccessHandlingSettings
             {
-                MoveToNextTask = true,
                 MarkInstanceComplete = true,
                 Action = "fiks-arkiv-success",
             },
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "fiks-arkiv-error" },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "fiks-arkiv-error" },
         };
 
     public static MaskinportenSettings RandomMaskinportenSettings =>

@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -26,6 +27,8 @@ public class WorkflowCallbackStateCarryTests
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
     private static readonly DateTimeOffset _deadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
     private static readonly Guid _secondMailboxId = new("018f4e00-0000-7000-8000-0000000000ab");
+
+    private static readonly StorageVersionMetadata _versions = new(InstanceVersion: 9, ProcessStateVersion: 4);
 
     /// <summary>The item index whose stage's mailbox the tests carry.</summary>
     private const int OpeningIndex = 0;
@@ -239,6 +242,8 @@ public class WorkflowCallbackStateCarryTests
         var state = new WorkflowCallbackState
         {
             Instance = CreateInstance(),
+            InstanceVersion = 9,
+            ProcessStateVersion = 4,
             FormData = [],
             Mailboxes = new Dictionary<string, CarriedMailbox>
             {
@@ -260,6 +265,8 @@ public class WorkflowCallbackStateCarryTests
         var state = new WorkflowCallbackState
         {
             Instance = CreateInstance(),
+            InstanceVersion = 9,
+            ProcessStateVersion = 4,
             FormData = [],
             Mailboxes = new Dictionary<string, CarriedMailbox>(StringComparer.Ordinal)
             {
@@ -282,12 +289,17 @@ public class WorkflowCallbackStateCarryTests
     }
 
     private static Task<InstanceDataUnitOfWork> CreateUnitOfWork() =>
-        CreateInitializer(CreateAppMetadata()).Init(CreateInstance(), "Task_1", "nb");
+        CreateInitializer(CreateAppMetadata()).Init(CreateInstance(), _versions, "Task_1", "nb");
 
-    private static InstanceDataUnitOfWorkInitializer CreateInitializer(IAppMetadata appMetadata) =>
-        new(
-            Mock.Of<IDataClient>(),
-            Mock.Of<IInstanceClient>(),
+    private static InstanceDataUnitOfWorkInitializer CreateInitializer(IAppMetadata appMetadata)
+    {
+        var dataClient = new Mock<IDataClient>();
+        Mock<IDataClientWithStorageMetadata> metadataClient = dataClient.As<IDataClientWithStorageMetadata>();
+        Mock<IInstanceMutationClient> mutationClient = dataClient.As<IInstanceMutationClient>();
+        return new InstanceDataUnitOfWorkInitializer(
+            metadataClient.Object,
+            mutationClient.Object,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             appMetadata,
             Mock.Of<ITranslationService>(),
             // Only reached for form data, and every blob here carries none.
@@ -295,6 +307,7 @@ public class WorkflowCallbackStateCarryTests
             Mock.Of<IAppResources>(),
             Options.Create(new FrontEndSettings())
         );
+    }
 
     private static IAppMetadata CreateAppMetadata()
     {

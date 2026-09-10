@@ -122,11 +122,15 @@ pub(super) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
 ) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home, instructions).await
+    bootstrap::configure_linux(sandbox, home, instructions, skills).await
 }
 
-pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {
+pub(super) async fn verify_linux(
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
     use sandbox::{SandboxPath, execution::ExecutionSpec};
 
     let output = sandbox
@@ -136,10 +140,14 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         ))
         .await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
-            "declared Codex {expected_version:?} is missing or `codex --version` exited with code {}",
-            output.status.code
-        )));
+        let message = format!("`codex --version` exited with code {}", output.status.code);
+        // 126/127 mean the image does not provide the harness; retrying cannot change that.
+        // Any other failure this early in the guest's life may be transient.
+        return Err(if matches!(output.status.code, 126 | 127) {
+            Error::Invalid(format!("Codex is missing: {message}"))
+        } else {
+            Error::SandboxSetup(message)
+        });
     }
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|_| Error::SandboxSetup("`codex --version` returned non-UTF-8 output".into()))?;
@@ -147,9 +155,9 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .split_whitespace()
         .nth(1)
         .ok_or_else(|| Error::SandboxSetup("`codex --version` returned no version".into()))?;
-    if installed != expected_version {
-        return Err(Error::SandboxSetup(format!(
-            "declared Codex version {expected_version:?} does not match installed version {installed:?}"
+    if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
+        return Err(Error::Invalid(format!(
+            "declared Codex version {expected:?} does not match installed version {installed:?}"
         )));
     }
     Ok(())

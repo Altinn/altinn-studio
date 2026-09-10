@@ -7,7 +7,8 @@
     "test": "vitest",
     "test:ci": "vitest run",
     "typecheck": "yarn workspaces foreach -A --include '@app/*' run typecheck",
-    "lint": "yarn workspaces foreach -A --include '@app/*' run lint"
+    "lint": "yarn workspaces foreach -A --include '@app/*' run lint",
+    "format:check": "yarn workspaces foreach -A --include '@app/*' run format:check"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",

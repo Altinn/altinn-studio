@@ -98,11 +98,15 @@ pub(super) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
 ) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home, instructions).await
+    bootstrap::configure_linux(sandbox, home, instructions, skills).await
 }
 
-pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {
+pub(super) async fn verify_linux(
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
     use sandbox::{SandboxPath, execution::ExecutionSpec};
 
     let output = sandbox
@@ -112,10 +116,14 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         ))
         .await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
-            "declared Claude Code {expected_version:?} is missing or `claude --version` exited with code {}",
-            output.status.code
-        )));
+        let message = format!("`claude --version` exited with code {}", output.status.code);
+        // 126/127 mean the image does not provide the harness; retrying cannot change that.
+        // Any other failure this early in the guest's life may be transient.
+        return Err(if matches!(output.status.code, 126 | 127) {
+            Error::Invalid(format!("Claude Code is missing: {message}"))
+        } else {
+            Error::SandboxSetup(message)
+        });
     }
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|_| Error::SandboxSetup("`claude --version` returned non-UTF-8 output".into()))?;
@@ -123,9 +131,9 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .split_whitespace()
         .next()
         .ok_or_else(|| Error::SandboxSetup("`claude --version` returned no version".into()))?;
-    if installed != expected_version {
-        return Err(Error::SandboxSetup(format!(
-            "declared Claude Code version {expected_version:?} does not match installed version {installed:?}"
+    if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
+        return Err(Error::Invalid(format!(
+            "declared Claude Code version {expected:?} does not match installed version {installed:?}"
         )));
     }
     Ok(())
@@ -133,12 +141,12 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
 
 pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.claude");
-    // The mediated setup token cannot enumerate models, so Fable 5 never appears in the /model
+    // The mediated setup token cannot enumerate models, so Fable never appears in the /model
     // picker (same inference-only-scope limitation as the usage-credits gate handled in bootstrap).
-    // Launch on Fable 5 directly; users can still switch to the listed models via /model. Revisit
-    // when github.com/anthropics/claude-code#79360 ships.
-    let base =
-        format!("claude --dangerously-skip-permissions --model claude-fable-5 --settings {config}/agent-settings.json");
+    // Launch on the `fable` alias directly so the sandbox tracks the latest Fable release; users
+    // can still switch to the listed models via /model. Revisit when
+    // github.com/anthropics/claude-code#79360 ships.
+    let base = format!("claude --dangerously-skip-permissions --model fable --settings {config}/agent-settings.json");
     // Claude Code currently reports UUID conversation IDs. Keep that
     // harness-specific constraint out of the generic Session reconciler.
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());

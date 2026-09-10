@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/fileanalyzers/**'
+      - 'src/App/PackageVersioning.props'
       - '.github/workflows/app-fileanalyzers-tests.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'

@@ -67,6 +67,55 @@ public sealed class SemanticDetectionTests : IDisposable
                 }
             }
 
+            namespace Altinn.App.Core.Internal.App
+            {
+                public interface IAppResources
+                {
+                    object GetApplication();
+                    object GetApplicationXACMLPolicy();
+                    object GetApplicationBPMNProcess();
+                    byte[] GetText(string org, string app, string textResource);
+                }
+
+                public interface IAppMetadata
+                {
+                    System.Threading.Tasks.Task<object> GetApplicationMetadata();
+                    System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy();
+                    System.Threading.Tasks.Task<string> GetApplicationBPMNProcess();
+                }
+            }
+
+            namespace Altinn.App.Core.Internal.Data
+            {
+                public interface IDataClient
+                {
+                    System.Threading.Tasks.Task<object> UpdateBinaryData(
+                        string org,
+                        string app,
+                        int instanceOwnerPartyId,
+                        System.Guid instanceGuid,
+                        System.Guid dataGuid,
+                        Microsoft.AspNetCore.Http.HttpRequest request
+                    );
+
+                    System.Threading.Tasks.Task<object> UpdateBinaryData(
+                        Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier,
+                        string? contentType,
+                        string? filename,
+                        System.Guid dataGuid,
+                        System.IO.Stream stream
+                    );
+                }
+            }
+
+            namespace Altinn.App.Core.Models
+            {
+                public sealed class InstanceIdentifier
+                {
+                    public InstanceIdentifier(int instanceOwnerPartyId, System.Guid instanceGuid) { }
+                }
+            }
+
             """
         )
     );
@@ -368,6 +417,66 @@ public sealed class SemanticDetectionTests : IDisposable
         // Syntax detector on the live view: does not re-report the no-op call the rewriter removed.
         Assert.DoesNotContain(": WithSender", text);
         Assert.Equal(3, exitCode);
+    }
+
+    // --- RemovedAppResourcesApiDetector -----------------------------------------------------------
+
+    [Fact]
+    public void AppResources_XacmlPolicy_OnlySemanticSeparatesRemovedFromReplacement()
+    {
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class Reader
+            {
+                public object Removed(IAppResources resources) => resources.GetApplicationXACMLPolicy();
+
+                public object Replacement(IAppMetadata metadata) => metadata.GetApplicationXACMLPolicy();
+            }
+            """
+        );
+
+        var syntax = new RemovedAppResourcesApiDetector(SyntaxScanner()).Detect();
+        var semantic = new RemovedAppResourcesApiDetector(SemanticScanner()).Detect();
+
+        // Syntax cannot tell the two calls apart by name and arity alone, so it reports neither.
+        Assert.Empty(syntax.Warnings);
+
+        // Semantic binds each call to its declaring interface: only the IAppResources one is removed.
+        var callLines = semantic.Warnings.Where(static w => w.Contains("Reader.cs:")).ToList();
+        Assert.Single(callLines);
+        Assert.Contains("Reader.cs:5: GetApplicationXACMLPolicy", callLines[0]);
+        Assert.NotEmpty(semantic.Todos);
+    }
+
+    [Fact]
+    public void UpdateBinaryData_OverloadResolution_SeparatesRemovedFromSurviving()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            using Altinn.App.Core.Internal.Data;
+            using Altinn.App.Core.Models;
+            using Microsoft.AspNetCore.Http;
+
+            public class Uploader
+            {
+                public void Removed(IDataClient client, string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, HttpRequest request) =>
+                    client.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, request);
+
+                public void Surviving(IDataClient client, InstanceIdentifier id, System.Guid dataGuid, System.IO.Stream stream) =>
+                    client.UpdateBinaryData(id, "application/pdf", "file.pdf", dataGuid, stream);
+            }
+            """
+        );
+
+        var semantic = new RemovedAppResourcesApiDetector(SemanticScanner()).Detect();
+
+        var callLines = semantic.Warnings.Where(static w => w.Contains("Uploader.cs:")).ToList();
+        Assert.Single(callLines);
+        Assert.Contains("Uploader.cs:8: UpdateBinaryData", callLines[0]);
     }
 
     // --- Scanner.Update keeps semantic models current --------------------------------------------

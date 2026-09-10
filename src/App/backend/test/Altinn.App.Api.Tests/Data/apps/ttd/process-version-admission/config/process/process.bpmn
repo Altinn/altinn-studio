@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="ProcessVersionAdmission" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="TwoDataTasks" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_Start_Task1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Before transition">
+      <bpmn:incoming>Flow_Start_Task1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task1_Task2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="PATCH-admissible task">
+      <bpmn:incoming>Flow_Task1_Task2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task2_End</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_Task2_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Task1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_Task1_Task2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_Task2_End" sourceRef="Task_2" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
+using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
@@ -49,15 +50,31 @@ public class WorkflowHandlerTests
         IWorkflowExecutor executor,
         EngineSettings? settings = null,
         IWorkflowUpdateBuffer? buffer = null,
-        TimeProvider? timeProvider = null
+        TimeProvider? timeProvider = null,
+        IThrottleStateView? throttleStateView = null
     ) =>
         new(
             executor,
             buffer ?? MockBuffer().Object,
             Options.Create(settings ?? _defaultSettings),
             timeProvider ?? _fixedTime,
+            throttleStateView ?? new FakeThrottleStateView(),
             NullLogger<WorkflowHandler>.Instance
         );
+
+    /// <summary>
+    /// Fake tripped-breaker snapshot for the handler's cooperative throttle parking.
+    /// Empty by default — the healthy-path shape every other test runs against.
+    /// </summary>
+    private sealed class FakeThrottleStateView(IReadOnlyDictionary<string, TimeSpan>? trippedBreakers = null)
+        : IThrottleStateView
+    {
+        public IReadOnlyDictionary<string, TimeSpan> TrippedBreakers { get; } =
+            trippedBreakers ?? new Dictionary<string, TimeSpan>(StringComparer.Ordinal);
+    }
+
+    private static FakeThrottleStateView OpenBreakerFor(string ns, TimeSpan window) =>
+        new(new Dictionary<string, TimeSpan>(StringComparer.Ordinal) { [ns] = window });
 
     /// <summary>
     /// Builds a mock <see cref="IWorkflowUpdateBuffer"/>. Without <paramref name="onSubmit"/> all
@@ -930,6 +947,197 @@ public class WorkflowHandlerTests
             durations.Measurements,
             m => Assert.True(m.Value >= 0, $"{m.Instrument} recorded a negative duration: {m.Value}")
         );
+    }
+
+    [Fact]
+    public async Task Handle_RetryableFailure_OpenNamespaceBreaker_ParksWithJitteredWindow_BackoffUntouched()
+    {
+        // Cooperative throttle parking (see the failure-throttling ADR): a retryable failure in a
+        // namespace with a tripped breaker parks the workflow immediately — alongside, never instead
+        // of, the normal Requeued transition and backoff scheduling.
+        var window = TimeSpan.FromMinutes(10);
+        var executor = MockExecutor(ExecutionResult.RetryableError("callback down"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromSeconds(5), maxRetries: 3),
+        };
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(
+            executor.Object,
+            settings,
+            timeProvider: time,
+            throttleStateView: OpenBreakerFor("test-ns", window)
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Requeued, workflow.Steps[0].Status);
+        Assert.Equal(1, workflow.Steps[0].RequeueCount);
+
+        // The stamp is now + window, jittered ±JitterFraction.
+        Assert.NotNull(workflow.ThrottledUntil);
+        var park = workflow.ThrottledUntil.Value - _t0;
+        Assert.InRange(
+            park,
+            window * (1 - ThrottlingSettings.JitterFraction),
+            window * (1 + ThrottlingSettings.JitterFraction)
+        );
+
+        // The retry clock is untouched: backoff keeps today's semantics (5 s constant ± the retry
+        // delay's own ±20% jitter) — throttle effects live only in ThrottledUntil.
+        Assert.NotNull(workflow.BackoffUntil);
+        var backoff = workflow.BackoffUntil.Value - _t0;
+        Assert.InRange(backoff, TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(6));
+    }
+
+    [Fact]
+    public async Task Handle_RetryableFailure_OpenBreaker_NearDeadline_ClampsToRetryDeadline()
+    {
+        // The window overshoots the step's retry deadline: the stamp is clamped to the deadline so
+        // throttling never costs the workflow its final attempt within the MaxDuration budget.
+        var window = TimeSpan.FromMinutes(10);
+        var maxDuration = TimeSpan.FromMinutes(5);
+        var executor = MockExecutor(ExecutionResult.RetryableError("callback down"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromSeconds(1), maxDuration: maxDuration),
+        };
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(
+            executor.Object,
+            settings,
+            timeProvider: time,
+            throttleStateView: OpenBreakerFor("test-ns", window)
+        );
+
+        // Anchor the retry allowance at t0 via the last deferral (ResolveRetryAnchor's first pick),
+        // making the deadline exactly t0 + maxDuration regardless of the step's CreatedAt.
+        var step = CreateStep();
+        step.DeferCount = 1;
+        step.FirstDeferredAt = _t0;
+        step.LastDeferredAt = _t0;
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
+        Assert.Equal(_t0 + maxDuration, workflow.ThrottledUntil);
+    }
+
+    [Fact]
+    public void ParkIfNamespaceThrottled_DeadlineAtOrPassed_DoesNotStamp()
+    {
+        // Through Handle the retryable branch is only reachable while the deadline is ahead, so the
+        // guard is exercised directly: when the wall clock crosses the deadline between the retry
+        // decision and the stamp, the final attempt is due and must never be delayed.
+        var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(1), maxDuration: TimeSpan.FromMinutes(5));
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(
+            MockExecutor().Object,
+            timeProvider: time,
+            throttleStateView: OpenBreakerFor("test-ns", TimeSpan.FromMinutes(10))
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        // Deadline exactly at now (anchor + 5 min == t0), and in the past (anchor + 5 min < t0).
+        handler.ParkIfNamespaceThrottled(workflow, strategy, retryAnchor: _t0.AddMinutes(-5));
+        Assert.Null(workflow.ThrottledUntil);
+
+        handler.ParkIfNamespaceThrottled(workflow, strategy, retryAnchor: _t0.AddMinutes(-6));
+        Assert.Null(workflow.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task Handle_RetryableFailure_NamespaceNotInView_DoesNotPark()
+    {
+        var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromSeconds(5), maxRetries: 3),
+        };
+        var handler = CreateHandler(
+            executor.Object,
+            settings,
+            throttleStateView: OpenBreakerFor("some-other-ns", TimeSpan.FromMinutes(10))
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
+        Assert.Null(workflow.ThrottledUntil);
+        Assert.NotNull(workflow.BackoffUntil);
+    }
+
+    [Fact]
+    public async Task Handle_CriticalError_OpenBreaker_DoesNotPark()
+    {
+        // Only the retryable-error path cooperates: a critical failure is terminal — parking it
+        // would gate a workflow that is never fetched again anyway.
+        var executor = MockExecutor(ExecutionResult.CriticalError("fatal"));
+        var handler = CreateHandler(
+            executor.Object,
+            throttleStateView: OpenBreakerFor("test-ns", TimeSpan.FromMinutes(10))
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Null(workflow.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task Handle_RetriesExhausted_OpenBreaker_DoesNotPark()
+    {
+        var executor = MockExecutor(ExecutionResult.RetryableError("still failing"));
+        var handler = CreateHandler(
+            executor.Object,
+            throttleStateView: OpenBreakerFor("test-ns", TimeSpan.FromMinutes(10))
+        );
+        var step = CreateStep();
+        step.RequeueCount = 10; // Already exhausted (default RetryStrategy.None() = 0 max retries)
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Null(workflow.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task Handle_Deferral_OpenBreaker_DoesNotPark()
+    {
+        // A deferral is a successful execution, not a failure — the breaker never touches it.
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5), "not delivered yet"));
+        var handler = CreateHandler(
+            executor.Object,
+            throttleStateView: OpenBreakerFor("test-ns", TimeSpan.FromMinutes(10))
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Null(workflow.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task Handle_Success_OpenBreaker_DoesNotPark()
+    {
+        var executor = MockExecutor(ExecutionResult.Success());
+        var handler = CreateHandler(
+            executor.Object,
+            throttleStateView: OpenBreakerFor("test-ns", TimeSpan.FromMinutes(10))
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
+        Assert.Null(workflow.ThrottledUntil);
     }
 
     /// <summary>

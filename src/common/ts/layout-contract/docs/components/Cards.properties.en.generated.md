@@ -1,0 +1,20 @@
+The component also supports the common properties [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/), and [`pageBreak`](../page-break/).
+
+| Property                                      | Type                             | Required | Default   | Description                                                                                                 |
+| --------------------------------------------- | -------------------------------- | -------- | --------- | ----------------------------------------------------------------------------------------------------------- |
+| `renderAsSummary`                             | `boolean`                        | No       | `false`   | Boolean value indicating if the component should be rendered as a summary. Defaults to false.               |
+| `forceShowInSummary`                          | `boolean \| expression<boolean>` | No       | `false`   | Will force show the component in a summary even if hideEmptyFields is set to true in the summary component. |
+| `type`                                        | `"Cards"`                        | Yes      |           | Identifies which component type this configuration represents.                                              |
+| `textResourceBindings`                        | `object`                         | No       |           | Connects component texts to text resources or expressions.                                                  |
+| `textResourceBindings.summaryTitle`           | `string \| expression<string>`   | No       |           | Title used in the summary view (overrides the default title)                                                |
+| `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>`   | No       |           | Title used for aria-label on the edit button in the summary view (overrides the default and summary title)  |
+| `mediaPosition`                               | `"top" \| "bottom"`              | No       | `"top"`   | Position of the media (image/video/audio) in each card Allowed values: "top", "bottom".                     |
+| `minMediaHeight`                              | `string`                         | No       | `"150px"` | Fixed minimum height of media (if media is present)                                                         |
+| `minWidth`                                    | `string`                         | No       | `"250px"` | Fixed minimum width of the card                                                                             |
+| `color`                                       | `"neutral" \| "subtle"`          | Yes      |           | The color style for these cards Allowed values: "neutral", "subtle".                                        |
+| `cards`                                       | `object[]`                       | Yes      |           |                                                                                                             |
+| `cards[].media`                               | `string`                         | No       |           | Media to display on the top/bottom of the card (must reference an Image, Audio or Video component           |
+| `cards[].title`                               | `string`                         | No       |           | Title of the card                                                                                           |
+| `cards[].description`                         | `string`                         | No       |           | Full text displayed underneath the title, above any component children                                      |
+| `cards[].footer`                              | `string`                         | No       |           | Footer text of the card                                                                                     |
+| `cards[].children`                            | `string[]`                       | No       |           | Child component IDs to show inside the card                                                                 |

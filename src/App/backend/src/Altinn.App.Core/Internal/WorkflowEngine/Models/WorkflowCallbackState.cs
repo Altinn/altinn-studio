@@ -13,6 +13,12 @@ internal sealed record WorkflowCallbackState
     [JsonPropertyName("instance")]
     public required Instance Instance { get; init; }
 
+    [JsonPropertyName("instanceVersion")]
+    public required int InstanceVersion { get; init; }
+
+    [JsonPropertyName("processStateVersion")]
+    public required int ProcessStateVersion { get; init; }
+
     /// <summary>
     /// Form data elements (those with AppLogic.ClassRef), not binary attachments.
     /// </summary>

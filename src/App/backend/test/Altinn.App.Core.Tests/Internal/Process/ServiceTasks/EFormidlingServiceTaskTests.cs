@@ -1,17 +1,26 @@
+using System.Net;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
@@ -25,7 +34,6 @@ public class EFormidlingServiceTaskTests
     private readonly Mock<IEFormidlingService> _eFormidlingServiceMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new();
-    private readonly Mock<IInstanceClient> _instanceClientMock = new();
     private readonly EFormidlingServiceTask _serviceTask;
 
     public EFormidlingServiceTaskTests()
@@ -35,7 +43,6 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             _eFormidlingServiceMock.Object
         );
     }
@@ -143,7 +150,6 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             null
         );
 
@@ -169,7 +175,6 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             null
         );
 
@@ -194,10 +199,9 @@ public class EFormidlingServiceTaskTests
         // Arrange
         Instance instance = GetInstance();
 
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -209,7 +213,7 @@ public class EFormidlingServiceTaskTests
         _eFormidlingServiceMock.Verify(
             x =>
                 x.SendEFormidlingShipment(
-                    instanceMutatorMock.Object,
+                    unitOfWork,
                     It.IsAny<ValidAltinnEFormidlingConfiguration>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -247,10 +251,9 @@ public class EFormidlingServiceTaskTests
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = eFormidlingConfig };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         // Act
         await SendShipment(_serviceTask, parameters);
@@ -259,7 +262,7 @@ public class EFormidlingServiceTaskTests
         _eFormidlingServiceMock.Verify(
             x =>
                 x.SendEFormidlingShipment(
-                    instanceMutatorMock.Object,
+                    unitOfWork,
                     It.IsAny<ValidAltinnEFormidlingConfiguration>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -321,10 +324,9 @@ public class EFormidlingServiceTaskTests
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = eFormidlingConfig };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         // Act
         await SendShipment(_serviceTask, parameters);
@@ -333,7 +335,7 @@ public class EFormidlingServiceTaskTests
         _eFormidlingServiceMock.Verify(
             x =>
                 x.SendEFormidlingShipment(
-                    instanceMutatorMock.Object,
+                    unitOfWork,
                     It.IsAny<ValidAltinnEFormidlingConfiguration>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -347,11 +349,10 @@ public class EFormidlingServiceTaskTests
     public async Task SendShipment_Should_FailPermanently_When_ShipmentOwnedByAnotherWorkflow()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         SetShipmentOwner(instance, Guid.NewGuid().ToString());
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -377,11 +378,10 @@ public class EFormidlingServiceTaskTests
         // A retry of the transition that owns the shipment must go through to the send, which
         // self-heals on the duplicate message id.
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         SetShipmentOwner(instance, _workflowId.ToString());
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -392,7 +392,7 @@ public class EFormidlingServiceTaskTests
         _eFormidlingServiceMock.Verify(
             x =>
                 x.SendEFormidlingShipment(
-                    instanceMutatorMock.Object,
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<ValidAltinnEFormidlingConfiguration>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -404,10 +404,9 @@ public class EFormidlingServiceTaskTests
     public async Task SendShipment_Should_RecordShipmentOwner_AfterSend()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -415,16 +414,9 @@ public class EFormidlingServiceTaskTests
         var result = await SendShipment(_serviceTask, parameters);
 
         Assert.IsType<CompletedServiceTaskStageResult>(result);
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    instance,
-                    EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
-                    _workflowId.ToString(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
+        Assert.Equal(
+            _workflowId.ToString(),
+            unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey]
         );
     }
 
@@ -432,10 +424,9 @@ public class EFormidlingServiceTaskTests
     public async Task SendShipment_Should_NotRecordShipmentOwner_When_SendFails()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -451,27 +442,16 @@ public class EFormidlingServiceTaskTests
 
         await Assert.ThrowsAsync<Exception>(() => SendShipment(_serviceTask, parameters));
 
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
+        Assert.Empty(unitOfWork.StagedInstanceDataValues);
     }
 
     [Fact]
     public async Task SendShipment_Should_FailPermanently_When_DeliveryExceptionThrown()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        ServiceTaskContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -491,19 +471,176 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(FailureKind.Permanent, failed.Kind);
     }
 
+    /// <summary>
+    /// The shape of the integrasjonspunkt's refusal: a JSON body naming the Java exception and
+    /// explaining the problem in <c>message</c>.
+    /// </summary>
+    private const string RejectionBody =
+        "{\n"
+        + "  \"timestamp\" : \"2026-09-03T14:40:16.928+02:00\",\n"
+        + "  \"exception\" : \"no.difi.meldingsutveksling.exceptions.ReceiverDoNotAcceptDocumentStandard\",\n"
+        + "  \"message\" : \"Receiver 0192:910075918 does not accept document standard urn:no:difi:arkivmelding:xsd::arkivmelding\",\n"
+        + "  \"status\" : 400,\n"
+        + "  \"error\" : \"Bad Request\",\n"
+        + "  \"path\" : \"/api/messages/out\"\n"
+        + "}";
+
+    private const string RejectionReason =
+        "Receiver 0192:910075918 does not accept document standard urn:no:difi:arkivmelding:xsd::arkivmelding";
+
+    /// <summary>
+    /// What the client throws when the integrasjonspunkt answers with <paramref name="statusCode"/>:
+    /// the status and captured body on the exception, the operation in its message.
+    /// </summary>
+    private static PlatformHttpException IntegrasjonspunktAnswered(
+        HttpStatusCode statusCode,
+        string body = "",
+        string operation = "create eFormidling message"
+    ) =>
+        new(
+            new PlatformHttpResponse(statusCode) { Content = body },
+            $"The eFormidling integrasjonspunkt returned {(int)statusCode} {statusCode} for: {operation}."
+        );
+
+    private void SetupSendThrows(Exception exception) =>
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
+            )
+            .ThrowsAsync(exception);
+
+    private void SetupStatusThrows(Exception exception) =>
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.GetEFormidlingShipmentStatus(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
+            )
+            .ThrowsAsync(exception);
+
+    private InstanceDataUnitOfWork SetupEnabledTask(Instance instance)
+    {
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        return CreateUnitOfWork(instance);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    public async Task SendShipment_Should_FailPermanently_When_TheIntegrasjonspunktRejectsTheRequest(
+        HttpStatusCode statusCode
+    )
+    {
+        // A 4xx is the integrasjonspunkt's verdict on the request itself. Repeating the request
+        // unchanged gets the same answer, so a retry can only hammer it for the engine's whole retry
+        // budget - which is what happened while this surfaced as a retryable 500.
+        Instance instance = GetInstance();
+        InstanceDataUnitOfWork unitOfWork = SetupEnabledTask(instance);
+        SetupSendThrows(IntegrasjonspunktAnswered(statusCode, RejectionBody));
+
+        var result = await SendShipment(_serviceTask, CreateContext(unitOfWork));
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains($"{(int)statusCode} {statusCode}", failed.ErrorMessage);
+        Assert.Contains("create eFormidling message", failed.ErrorMessage);
+        Assert.Contains("Manual follow-up is required", failed.ErrorMessage);
+
+        // Nothing was sent, so nothing is claimed.
+        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+    }
+
+    [Theory]
+    // The integrasjonspunkt's own JSON: the explanation is its message field, not the whole body.
+    [InlineData(RejectionBody, RejectionReason)]
+    // The gateway's JSON uses the same field name.
+    [InlineData(
+        "{ \"statusCode\": 401, \"message\": \"Access denied due to missing subscription key.\" }",
+        "Access denied due to missing subscription key."
+    )]
+    // Not JSON at all - a proxy's error page. Still the best explanation there is.
+    [InlineData("<html>Forbidden</html>", "<html>Forbidden</html>")]
+    public async Task SendShipment_Should_ExplainTheRejection_InTheIntegrasjonspunktsOwnWords(
+        string body,
+        string expectedReason
+    )
+    {
+        Instance instance = GetInstance();
+        InstanceDataUnitOfWork unitOfWork = SetupEnabledTask(instance);
+        SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest, body));
+
+        var result = await SendShipment(_serviceTask, CreateContext(unitOfWork));
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Contains($"The integrasjonspunkt said: {expectedReason}", failed.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SendShipment_Should_KeepTheRejectionMessage_OnOneLine_AndWithoutAnEmptyExplanation()
+    {
+        Instance instance = GetInstance();
+        InstanceDataUnitOfWork unitOfWork = SetupEnabledTask(instance);
+
+        // The message becomes a log line and an error-history entry, so a multi-line body is flattened.
+        SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest, "first line\r\nsecond line"));
+        var flattened = Assert.IsType<FailedServiceTaskStageResult>(
+            await SendShipment(_serviceTask, CreateContext(unitOfWork))
+        );
+        Assert.Contains("first line", flattened.ErrorMessage);
+        Assert.Contains("second line", flattened.ErrorMessage);
+        Assert.DoesNotContain('\n', flattened.ErrorMessage);
+        Assert.DoesNotContain('\r', flattened.ErrorMessage);
+
+        // No body, no "said" clause: the status line and the consequence stand on their own.
+        SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest));
+        var bare = Assert.IsType<FailedServiceTaskStageResult>(
+            await SendShipment(_serviceTask, CreateContext(unitOfWork))
+        );
+        Assert.DoesNotContain("The integrasjonspunkt said", bare.ErrorMessage);
+        Assert.Contains("400 BadRequest", bare.ErrorMessage);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.BadGateway)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task SendShipment_Should_StayRetryable_When_TheAnswerMayChange(HttpStatusCode statusCode)
+    {
+        // Pressure, timing and server faults are about the moment, not the request: the exception
+        // propagates, and the engine retries with backoff as before.
+        Instance instance = GetInstance();
+        InstanceDataUnitOfWork unitOfWork = SetupEnabledTask(instance);
+        SetupSendThrows(IntegrasjonspunktAnswered(statusCode));
+
+        var exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            SendShipment(_serviceTask, CreateContext(unitOfWork))
+        );
+        Assert.Equal(statusCode, exception.StatusCode);
+    }
+
     // ===== DELIVERY WAIT =====
 
     [Fact]
     public async Task AwaitDelivery_Should_Succeed_Without_Polling_When_BpmnConfigDisabled()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig(disabled: true) };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
-        var result = await AwaitDelivery(_serviceTask, CreateContext(instanceMutatorMock.Object));
+        var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
         // Nothing was sent, so there is nothing to wait for.
         Assert.IsType<ServiceTaskSuccessResult>(result);
@@ -521,41 +658,21 @@ public class EFormidlingServiceTaskTests
     public async Task AwaitDelivery_Should_Defer_While_ShipmentIsPending()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
         SetupShipmentStatus(EFormidlingDeliveryState.Pending, "sendt");
 
-        var result = await AwaitDelivery(_serviceTask, CreateContext(instanceMutatorMock.Object));
+        var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
         var deferred = Assert.IsType<ServiceTaskDeferredResult>(result);
         Assert.Equal(TimeSpan.FromSeconds(15), deferred.Delay);
         Assert.Contains("sendt", deferred.Reason);
 
         // A deferring attempt records nothing - the wait is not what makes the shipment durable.
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-        _instanceClientMock.Verify(
-            x =>
-                x.AddCompleteConfirmation(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
+        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Theory]
@@ -570,15 +687,14 @@ public class EFormidlingServiceTaskTests
     public async Task AwaitDelivery_Should_BackOff_As_TheWaitGoesOn(int deferCount, int expectedDelaySeconds)
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
         SetupShipmentStatus(EFormidlingDeliveryState.Pending);
 
         var context = CreateContext(
-            instanceMutatorMock.Object,
+            unitOfWork,
             new ServiceTaskWait { DeferCount = deferCount, Deadline = DateTimeOffset.UtcNow.AddHours(1) }
         );
         var result = await AwaitDelivery(_serviceTask, context);
@@ -593,90 +709,54 @@ public class EFormidlingServiceTaskTests
     public async Task AwaitDelivery_Should_Conclude_When_ShipmentIsDelivered(string reportedStatus)
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
         SetupShipmentStatus(EFormidlingDeliveryState.Delivered, reportedStatus);
 
-        var result = await AwaitDelivery(_serviceTask, CreateContext(instanceMutatorMock.Object));
+        var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
         // Auto-advance: the process leaves the task once delivery is confirmed, not when the
         // shipment was handed over.
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
         Assert.True(success.AutoAdvanceProcess);
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    instance,
-                    EformidlingConstants.ShipmentStatusDataValueKey,
-                    reportedStatus,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
+        Assert.Equal(
+            reportedStatus,
+            unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
         );
-        _instanceClientMock.Verify(
-            x =>
-                x.AddCompleteConfirmation(
-                    1337,
-                    _instanceGuid,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+
+        // Staged, not written: the confirmation commits with the callback's version-fenced save.
+        Assert.True(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
     public async Task AwaitDelivery_Should_FailPermanently_When_ShipmentFailed()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
         SetupShipmentStatus(EFormidlingDeliveryState.Failed, "feil", "Mottaker er ikke registrert");
 
-        var result = await AwaitDelivery(_serviceTask, CreateContext(instanceMutatorMock.Object));
+        var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
         var failed = Assert.IsType<ServiceTaskFailedResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("feil", failed.ErrorMessage);
         Assert.Contains("Mottaker er ikke registrert", failed.ErrorMessage);
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    instance,
-                    EformidlingConstants.ShipmentStatusDataValueKey,
-                    "feil",
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+        Assert.Equal("feil", unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
 
         // A failed shipment is not something the service owner has harvested.
-        _instanceClientMock.Verify(
-            x =>
-                x.AddCompleteConfirmation(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
     public async Task AwaitDelivery_Should_FailPermanently_OnTheFinalCheck_NamingWhatNeverArrived()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -685,7 +765,7 @@ public class EFormidlingServiceTaskTests
         // The wait allowance is spent: one more deferral would expire it under the engine's generic
         // classification, so the task ends it on its own terms instead.
         var context = CreateContext(
-            instanceMutatorMock.Object,
+            unitOfWork,
             new ServiceTaskWait { DeferCount = 40, Deadline = DateTimeOffset.UtcNow.AddSeconds(-1) }
         );
         var result = await AwaitDelivery(_serviceTask, context);
@@ -694,39 +774,89 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("did not confirm delivery", failed.ErrorMessage);
         Assert.Contains("sendt", failed.ErrorMessage);
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    instance,
-                    EformidlingConstants.ShipmentStatusDataValueKey,
-                    "sendt",
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
+        Assert.Equal("sendt", unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
+    }
+
+    [Fact]
+    public async Task AwaitDelivery_Should_FailPermanently_When_TheIntegrasjonspunktRejectsTheStatusRequest()
+    {
+        // The same verdict on the poll as on the send: a 4xx from the status endpoint will not change
+        // on the next check, so the wait ends now with the reason, rather than after the engine has
+        // spent a day of retries on it.
+        Instance instance = GetInstance();
+        InstanceDataUnitOfWork unitOfWork = SetupEnabledTask(instance);
+        SetupStatusThrows(
+            IntegrasjonspunktAnswered(
+                HttpStatusCode.Forbidden,
+                "{ \"statusCode\": 403, \"message\": \"Access denied due to invalid subscription key.\" }",
+                operation: "read eFormidling message status"
+            )
         );
+
+        var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("403 Forbidden", failed.ErrorMessage);
+        Assert.Contains("read eFormidling message status", failed.ErrorMessage);
+        Assert.Contains("Access denied due to invalid subscription key.", failed.ErrorMessage);
+        Assert.Contains("may still be delivered", failed.ErrorMessage);
+
+        // No verdict was read, so none is recorded and nothing is confirmed.
+        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task AwaitDelivery_Should_StayRetryable_When_TheStatusRequestFailsTransiently()
+    {
+        Instance instance = GetInstance();
+        InstanceDataUnitOfWork unitOfWork = SetupEnabledTask(instance);
+        SetupStatusThrows(
+            IntegrasjonspunktAnswered(HttpStatusCode.ServiceUnavailable, operation: "read eFormidling message status")
+        );
+
+        await Assert.ThrowsAsync<PlatformHttpException>(() => AwaitDelivery(_serviceTask, CreateContext(unitOfWork)));
+        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
     public async Task AwaitDelivery_Should_ThrowException_When_EFormidlingServiceIsNull()
     {
         Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         var serviceTask = new EFormidlingServiceTask(
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             null
         );
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
-        await Assert.ThrowsAsync<ProcessException>(() =>
-            AwaitDelivery(serviceTask, CreateContext(instanceMutatorMock.Object))
+        await Assert.ThrowsAsync<ProcessException>(() => AwaitDelivery(serviceTask, CreateContext(unitOfWork)));
+    }
+
+    private static InstanceDataUnitOfWork CreateUnitOfWork(Instance instance)
+    {
+        var dataClient = new Mock<IDataClientWithStorageMetadata>();
+        IInstanceMutationClient mutationClient = dataClient.As<IInstanceMutationClient>().Object;
+        return new InstanceDataUnitOfWork(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClient.Object,
+            mutationClient,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            new ApplicationMetadata("ttd/test-app") { DataTypes = [] },
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: instance.Process?.CurrentTask?.ElementId,
+            language: null
         );
     }
 
