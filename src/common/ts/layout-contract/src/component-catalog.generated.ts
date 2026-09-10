@@ -2028,6 +2028,89 @@ const IFormatting = {
   ],
 } as const;
 
+const IKiAlternativ = {
+  type: 'object',
+  properties: {
+    value: { type: 'string', required: true },
+    label: { type: 'string', required: true },
+  },
+  additionalProperties: false,
+} as const;
+
+const IKiFelt = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', title: { en: 'Field id', nb: 'Felt-id' }, required: true },
+    binding: {
+      type: 'object',
+      properties: IDataModelReference['properties'],
+      additionalProperties: false,
+      title: { en: 'Binding', nb: 'Databinding' },
+      required: true,
+    },
+    sporsmaal: { type: 'string', title: { en: 'Question', nb: 'Spørsmål' }, required: true },
+    komponentId: {
+      type: 'string',
+      title: { en: 'Component to highlight', nb: 'Komponent som markeres' },
+      description: {
+        en: 'Id of the layout component to scroll to and highlight while working on this field.',
+        nb: 'Id-en til komponenten det skal rulles til og markeres mens feltet fylles ut.',
+      },
+      required: false,
+    },
+    alternativer: {
+      type: 'array',
+      items: IKiAlternativ,
+      minItems: undefined,
+      maxItems: undefined,
+      title: { en: 'Options', nb: 'Alternativer' },
+      required: false,
+    },
+    flervalg: {
+      type: 'boolean',
+      title: { en: 'Multiple choice', nb: 'Flervalg' },
+      default: false,
+      required: false,
+    },
+    kunNaar: {
+      type: 'string',
+      title: { en: 'Only when', nb: 'Bare når' },
+      description: {
+        en: 'Field id and value on the form "id=value". The field is skipped unless it matches.',
+        nb: 'Felt-id og verdi på formen «id=verdi». Feltet hoppes over hvis det ikke stemmer.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const IKiForhaandsutfylt = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', required: true },
+    binding: {
+      type: 'object',
+      properties: IDataModelReference['properties'],
+      additionalProperties: false,
+      required: true,
+    },
+    etikett: { type: 'string', title: { en: 'Label', nb: 'Ledetekst' }, required: true },
+    komponentId: { type: 'string', title: { en: 'Component', nb: 'Komponent' }, required: false },
+    kanRettes: {
+      type: 'boolean',
+      title: { en: 'Correctable here', nb: 'Kan rettes her' },
+      description: {
+        en: 'False for data owned by a register the citizen cannot change from this form.',
+        nb: 'Usann for data som eies av et register søkeren ikke kan endre herfra.',
+      },
+      default: false,
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ILikertColumnProperties = {
   type: 'object',
   properties: {
@@ -3506,6 +3589,67 @@ const IGroupColumnFormatting = {
   additionalProperties: false,
 } as const;
 
+const ISamtaleAlternativ = {
+  type: 'object',
+  properties: {
+    value: { type: 'string', required: true },
+    label: { type: 'string', required: true },
+  },
+  additionalProperties: false,
+} as const;
+
+const ISamtalesteg = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', title: { en: 'Step id', nb: 'Steg-id' }, required: true },
+    binding: {
+      type: 'object',
+      properties: IDataModelReference['properties'],
+      additionalProperties: false,
+      title: { en: 'Data model binding', nb: 'Datamodellbinding' },
+      required: true,
+    },
+    sporsmaal: {
+      type: 'string',
+      title: { en: 'Question text resource', nb: 'Tekstressurs for spørsmålet' },
+      required: true,
+    },
+    hjelp: {
+      type: 'string',
+      title: { en: 'Help text resource', nb: 'Tekstressurs for hjelpetekst' },
+      required: false,
+    },
+    alternativer: {
+      type: 'array',
+      items: ISamtaleAlternativ,
+      minItems: undefined,
+      maxItems: undefined,
+      title: { en: 'Options', nb: 'Alternativer' },
+      description: {
+        en: 'When present the step is a single choice. Without options the step is free text.',
+        nb: 'Når denne finnes er steget et enkeltvalg. Uten alternativer er steget fritekst.',
+      },
+      required: false,
+    },
+    valgfritt: {
+      type: 'boolean',
+      title: { en: 'Optional', nb: 'Valgfritt' },
+      default: false,
+      required: false,
+    },
+    avsluttVerdi: {
+      type: 'string',
+      title: { en: 'Ends the conversation', nb: 'Avslutter samtalen' },
+      description: {
+        en: 'When the step has this value the conversation is complete, and later steps are skipped and not required.',
+        nb: 'Når steget har denne verdien er samtalen ferdig, og senere steg hoppes over og kreves ikke.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const IDataModelBindingsForTable = {
   type: 'object',
   properties: {
@@ -3965,6 +4109,46 @@ const DatepickerSummaryOverridesWithRef = {
       description: {
         en: 'Properties for how to display the summary of all Datepicker components',
         nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Datepicker-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const DiktafonSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for Diktafon',
+        nb: 'Overstyringer av oppsummering for Diktafon',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Diktafon component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Diktafon-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Diktafon', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Diktafon',
+        nb: 'Overstyringer av oppsummering for alle Diktafon-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Diktafon components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Diktafon-komponenter vises.',
       },
     },
   ],
@@ -4992,6 +5176,7 @@ const AnySummaryOverride = {
     CheckboxesSummaryOverridesWithRef,
     DateSummaryOverridesWithRef,
     DatepickerSummaryOverridesWithRef,
+    DiktafonSummaryOverridesWithRef,
     DividerSummaryOverridesWithRef,
     DropdownSummaryOverridesWithRef,
     GridSummaryOverridesWithRef,
@@ -6697,6 +6882,111 @@ const generatedContract = {
         },
       },
     },
+    Diktafon: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: { name: { nb: 'Diktafon', en: 'Dictaphone' }, lifecycle: { status: 'stable' } },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        readOnly: FormComponentProps['properties']['readOnly'],
+        required: FormComponentProps['properties']['required'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
+        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
+        type: {
+          type: 'constant',
+          value: 'Diktafon',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
+        },
+        removeWhenHidden: {
+          type: 'boolean',
+          expression: true,
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
+          required: false,
+        },
+        dataModelBindings: {
+          type: 'object',
+          properties: IDataModelBindingsSimple['properties'],
+          additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
+          required: true,
+        },
+        maxLength: {
+          type: 'integer',
+          title: { en: 'Max length', nb: 'Maksimal lengde' },
+          description: {
+            en: 'Max length of the field. Adds a counter so the user knows how many characters are left.',
+            nb: 'Maksimal lengde for feltet. Viser en teller med antall gjenstående tegn.',
+          },
+          required: false,
+        },
+        sprak: {
+          type: 'string',
+          title: { en: 'Speech recognition language', nb: 'Språk for talegjenkjenning' },
+          description: {
+            en: 'BCP 47 language tag passed to the browser speech recogniser, e.g. nb-NO.',
+            nb: 'BCP 47-språkkode som sendes til nettleserens talegjenkjenning, for eksempel nb-NO.',
+          },
+          default: 'nb-NO',
+          required: false,
+        },
+      },
+    },
     Divider: {
       kind: 'component',
       category: 'Presentation',
@@ -7876,6 +8166,167 @@ const generatedContract = {
           additionalProperties: IMapping['additionalProperties'],
           title: IMapping['title'],
           description: IMapping['description'],
+          required: false,
+        },
+      },
+    },
+    KiAssistent: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: {
+        name: { nb: 'KI-assistert utfylling', en: 'AI assisted filling' },
+        lifecycle: { status: 'beta' },
+      },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        readOnly: FormComponentProps['properties']['readOnly'],
+        required: FormComponentProps['properties']['required'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
+        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        type: {
+          type: 'constant',
+          value: 'KiAssistent',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
+        },
+        felt: {
+          type: 'array',
+          items: IKiFelt,
+          minItems: undefined,
+          maxItems: undefined,
+          title: { en: 'Fields', nb: 'Felter' },
+          required: true,
+        },
+        forhaandsutfylt: {
+          type: 'array',
+          items: IKiForhaandsutfylt,
+          minItems: undefined,
+          maxItems: undefined,
+          title: { en: 'Prefilled fields', nb: 'Forhåndsutfylte felter' },
+          required: false,
+        },
+        brukesBinding: {
+          type: 'object',
+          properties: IDataModelReference['properties'],
+          additionalProperties: false,
+          title: { en: 'Assistant-used marker', nb: 'Markør for at assistenten er i bruk' },
+          description: {
+            en: 'Set to "true" when the conversation starts, so the rest of the form can adapt.',
+            nb: 'Settes til «true» når samtalen starter, slik at resten av skjemaet kan tilpasse seg.',
+          },
+          required: false,
+        },
+        merknadBinding: {
+          type: 'object',
+          properties: IDataModelReference['properties'],
+          additionalProperties: false,
+          title: { en: 'Remark binding', nb: 'Binding for merknad' },
+          description: {
+            en: 'Where to record that prefilled data is wrong but cannot be corrected here.',
+            nb: 'Hvor det skrives at forhåndsutfylte data er feil, men ikke kan rettes herfra.',
+          },
+          required: false,
+        },
+        sendKnappId: {
+          type: 'string',
+          title: { en: 'Submit button id', nb: 'Id for send-knappen' },
+          description: {
+            en: 'The assistant points at this button. It never presses it.',
+            nb: 'Assistenten peker på denne knappen. Den trykker den aldri.',
+          },
+          required: false,
+        },
+        taledeteksjon: {
+          type: 'string',
+          title: { en: 'Turn detection', nb: 'Taledeteksjon' },
+          description: {
+            en: 'semantic_vad waits until the sentence seems finished. server_vad waits a fixed silence.',
+            nb: 'semantic_vad venter til setningen virker ferdig. server_vad venter en fast stillhet.',
+          },
+          default: 'semantic_vad',
+          required: false,
+        },
+        utaalmodighet: {
+          type: 'string',
+          title: { en: 'Eagerness', nb: 'Utålmodighet' },
+          description: {
+            en: 'For semantic_vad. low lets the person speak uninterrupted.',
+            nb: 'For semantic_vad. low lar personen snakke uavbrutt.',
+          },
+          default: 'low',
+          required: false,
+        },
+        stillhetMs: {
+          type: 'integer',
+          title: { en: 'Silence before answering', nb: 'Stillhet før svar' },
+          description: {
+            en: 'For server_vad. Milliseconds of silence before the turn is considered over.',
+            nb: 'For server_vad. Millisekunder stillhet før turen regnes som slutt.',
+          },
+          default: 4000,
+          required: false,
+        },
+        sprak: {
+          type: 'string',
+          title: { en: 'Spoken language', nb: 'Talespråk' },
+          description: {
+            en: 'ISO-639-1 code for the language spoken, e.g. no. Improves speech recognition accuracy. Invalid codes are rejected by the API.',
+            nb: 'ISO-639-1-kode for språket som snakkes, for eksempel no. Gir bedre talegjenkjenning. Ugyldige koder avvises av API-et.',
+          },
+          default: 'no',
+          required: false,
+        },
+        transkripsjonsmodell: {
+          type: 'string',
+          title: { en: 'Transcription model', nb: 'Transkripsjonsmodell' },
+          default: 'gpt-4o-transcribe',
+          required: false,
+        },
+        tokenUrl: {
+          type: 'string',
+          title: { en: 'Token endpoint', nb: 'Tokenendepunkt' },
+          description: { en: 'Relative to the app root.', nb: 'Relativt til approten.' },
+          default: 'api/v1/ki-assistent/token',
           required: false,
         },
       },
@@ -10142,6 +10593,82 @@ const generatedContract = {
             nb: 'Liste over ID-ene til underkomponentene som skal vises. Komponentene gjentas for hver rad i datamodellbindingen.',
           },
           required: true,
+        },
+      },
+    },
+    Samtale: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: { name: { nb: 'Samtale', en: 'Conversation' }, lifecycle: { status: 'beta' } },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        readOnly: FormComponentProps['properties']['readOnly'],
+        required: FormComponentProps['properties']['required'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
+        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        type: {
+          type: 'constant',
+          value: 'Samtale',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
+        },
+        steg: {
+          type: 'array',
+          items: ISamtalesteg,
+          minItems: undefined,
+          maxItems: undefined,
+          title: { en: 'Steps', nb: 'Steg' },
+          required: true,
+        },
+        sprak: {
+          type: 'string',
+          title: { en: 'Speech recognition language', nb: 'Språk for talegjenkjenning' },
+          description: {
+            en: 'BCP 47 language tag, e.g. nb-NO.',
+            nb: 'BCP 47-språkkode, for eksempel nb-NO.',
+          },
+          default: 'nb-NO',
+          required: false,
         },
       },
     },

@@ -16,6 +16,7 @@ import type { TypeConfig as CustomTypeConfig } from '@app/layout-contract/genera
 import type { TypeConfig as CustomButtonTypeConfig } from '@app/layout-contract/generated/components/CustomButton/config.generated';
 import type { TypeConfig as DateTypeConfig } from '@app/layout-contract/generated/components/Date/config.generated';
 import type { TypeConfig as DatepickerTypeConfig } from '@app/layout-contract/generated/components/Datepicker/config.generated';
+import type { TypeConfig as DiktafonTypeConfig } from '@app/layout-contract/generated/components/Diktafon/config.generated';
 import type { TypeConfig as DividerTypeConfig } from '@app/layout-contract/generated/components/Divider/config.generated';
 import type { TypeConfig as DropdownTypeConfig } from '@app/layout-contract/generated/components/Dropdown/config.generated';
 import type { TypeConfig as FileUploadTypeConfig } from '@app/layout-contract/generated/components/FileUpload/config.generated';
@@ -28,6 +29,7 @@ import type { TypeConfig as ImageUploadTypeConfig } from '@app/layout-contract/g
 import type { TypeConfig as InputTypeConfig } from '@app/layout-contract/generated/components/Input/config.generated';
 import type { TypeConfig as InstanceInformationTypeConfig } from '@app/layout-contract/generated/components/InstanceInformation/config.generated';
 import type { TypeConfig as InstantiationButtonTypeConfig } from '@app/layout-contract/generated/components/InstantiationButton/config.generated';
+import type { TypeConfig as KiAssistentTypeConfig } from '@app/layout-contract/generated/components/KiAssistent/config.generated';
 import type { TypeConfig as LikertTypeConfig } from '@app/layout-contract/generated/components/Likert/config.generated';
 import type { TypeConfig as LikertItemTypeConfig } from '@app/layout-contract/generated/components/LikertItem/config.generated';
 import type { TypeConfig as LinkTypeConfig } from '@app/layout-contract/generated/components/Link/config.generated';
@@ -49,6 +51,7 @@ import type { TypeConfig as PersonLookupTypeConfig } from '@app/layout-contract/
 import type { TypeConfig as PrintButtonTypeConfig } from '@app/layout-contract/generated/components/PrintButton/config.generated';
 import type { TypeConfig as RadioButtonsTypeConfig } from '@app/layout-contract/generated/components/RadioButtons/config.generated';
 import type { TypeConfig as RepeatingGroupTypeConfig } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+import type { TypeConfig as SamtaleTypeConfig } from '@app/layout-contract/generated/components/Samtale/config.generated';
 import type { TypeConfig as SigneeListTypeConfig } from '@app/layout-contract/generated/components/SigneeList/config.generated';
 import type { TypeConfig as SigningActionsTypeConfig } from '@app/layout-contract/generated/components/SigningActions/config.generated';
 import type { TypeConfig as SigningDocumentListTypeConfig } from '@app/layout-contract/generated/components/SigningDocumentList/config.generated';
@@ -79,6 +82,7 @@ export type ComponentTypeConfigs = {
   CustomButton: CustomButtonTypeConfig;
   Date: DateTypeConfig;
   Datepicker: DatepickerTypeConfig;
+  Diktafon: DiktafonTypeConfig;
   Divider: DividerTypeConfig;
   Dropdown: DropdownTypeConfig;
   FileUpload: FileUploadTypeConfig;
@@ -91,6 +95,7 @@ export type ComponentTypeConfigs = {
   Input: InputTypeConfig;
   InstanceInformation: InstanceInformationTypeConfig;
   InstantiationButton: InstantiationButtonTypeConfig;
+  KiAssistent: KiAssistentTypeConfig;
   Likert: LikertTypeConfig;
   LikertItem: LikertItemTypeConfig;
   Link: LinkTypeConfig;
@@ -112,6 +117,7 @@ export type ComponentTypeConfigs = {
   PrintButton: PrintButtonTypeConfig;
   RadioButtons: RadioButtonsTypeConfig;
   RepeatingGroup: RepeatingGroupTypeConfig;
+  Samtale: SamtaleTypeConfig;
   SigneeList: SigneeListTypeConfig;
   SigningActions: SigningActionsTypeConfig;
   SigningDocumentList: SigningDocumentListTypeConfig;
@@ -143,6 +149,7 @@ export type ConfigurableComponent =
   | CustomButtonTypeConfig['layout']
   | DateTypeConfig['layout']
   | DatepickerTypeConfig['layout']
+  | DiktafonTypeConfig['layout']
   | DividerTypeConfig['layout']
   | DropdownTypeConfig['layout']
   | FileUploadTypeConfig['layout']
@@ -155,6 +162,7 @@ export type ConfigurableComponent =
   | InputTypeConfig['layout']
   | InstanceInformationTypeConfig['layout']
   | InstantiationButtonTypeConfig['layout']
+  | KiAssistentTypeConfig['layout']
   | LikertTypeConfig['layout']
   | LinkTypeConfig['layout']
   | ListTypeConfig['layout']
@@ -175,6 +183,7 @@ export type ConfigurableComponent =
   | PrintButtonTypeConfig['layout']
   | RadioButtonsTypeConfig['layout']
   | RepeatingGroupTypeConfig['layout']
+  | SamtaleTypeConfig['layout']
   | SigneeListTypeConfig['layout']
   | SigningActionsTypeConfig['layout']
   | SigningDocumentListTypeConfig['layout']
@@ -189,4 +198,4 @@ export type ConfigurableComponent =
   | VideoTypeConfig['layout'];
 export type CompExternal = ComponentTypeConfigs[keyof ComponentTypeConfigs]['layout'];
 
-// Source hash: 3973b2c91baf961c72de8939e686568df28b5140398adfdc9e47be5fd40c8286
+// Source hash: d455fa1746b4ce817cb5545804fc8b3c9a0dd85feb9a4e461a90aa19b4a2bede

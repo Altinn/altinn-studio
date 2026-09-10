@@ -19,6 +19,8 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Datepicker' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Diktafon' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Divider' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Dropdown' } & ISummaryOverridesCommon)
@@ -640,4 +642,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: aa97438caa1a24d90e781cab15a32b10483a7767b1343fb9025a55f3988ae0ed
+// Source hash: b1f040d2f36a6be286c1469d8aad54a2c3e651dd68a3fc1c25a41a68b41dc146

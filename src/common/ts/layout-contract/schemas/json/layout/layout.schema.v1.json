@@ -26,6 +26,7 @@
             "CustomButton",
             "Date",
             "Datepicker",
+            "Diktafon",
             "Divider",
             "Dropdown",
             "FileUpload",
@@ -38,6 +39,7 @@
             "Input",
             "InstanceInformation",
             "InstantiationButton",
+            "KiAssistent",
             "Likert",
             "Link",
             "List",
@@ -58,6 +60,7 @@
             "PrintButton",
             "RadioButtons",
             "RepeatingGroup",
+            "Samtale",
             "SigneeList",
             "SigningActions",
             "SigningDocumentList",
@@ -270,6 +273,18 @@
           "if": {
             "properties": {
               "type": {
+                "const": "Diktafon"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompDiktafon"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
                 "const": "Divider"
               }
             }
@@ -408,6 +423,18 @@
           },
           "then": {
             "$ref": "#/definitions/CompInstantiationButton"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "KiAssistent"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompKiAssistent"
           }
         },
         {
@@ -654,6 +681,18 @@
           "if": {
             "properties": {
               "type": {
+                "const": "Samtale"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompSamtale"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
                 "const": "SigneeList"
               }
             }
@@ -844,6 +883,9 @@
     "CompDatepicker": {
       "$ref": "#/definitions/CompDatepickerExternal"
     },
+    "CompDiktafon": {
+      "$ref": "#/definitions/CompDiktafonExternal"
+    },
     "CompDivider": {
       "$ref": "#/definitions/CompDividerExternal"
     },
@@ -879,6 +921,9 @@
     },
     "CompInstantiationButton": {
       "$ref": "#/definitions/CompInstantiationButtonExternal"
+    },
+    "CompKiAssistent": {
+      "$ref": "#/definitions/CompKiAssistentExternal"
     },
     "CompLikert": {
       "$ref": "#/definitions/CompLikertExternal"
@@ -939,6 +984,9 @@
     },
     "CompRepeatingGroup": {
       "$ref": "#/definitions/CompRepeatingGroupExternal"
+    },
+    "CompSamtale": {
+      "$ref": "#/definitions/CompSamtaleExternal"
     },
     "CompSigneeList": {
       "$ref": "#/definitions/CompSigneeListExternal"
@@ -1093,6 +1141,9 @@
         },
         {
           "$ref": "#/definitions/DatepickerSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/DiktafonSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/DividerSummaryOverridesWithRef"
@@ -3010,6 +3061,112 @@
         }
       ]
     },
+    "CompDiktafonExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/SummarizableComponentProps"
+        },
+        {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
+          "title": "CompDiktafonExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "Diktafon"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "$ref": "#/definitions/TRBLabel"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true,
+                    "title": true,
+                    "description": true,
+                    "help": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "removeWhenHidden": {
+              "title": "Remove fields from component dataModelBindings when hidden expression is true",
+              "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
+              "$ref": "#/definitions/IDataModelBindingsSimple"
+            },
+            "maxLength": {
+              "title": "Max length",
+              "description": "Max length of the field. Adds a counter so the user knows how many characters are left.",
+              "type": "integer"
+            },
+            "sprak": {
+              "title": "Speech recognition language",
+              "description": "BCP 47 language tag passed to the browser speech recogniser, e.g. nb-NO.",
+              "default": "nb-NO",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "dataModelBindings"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "readOnly": true,
+            "required": true,
+            "showValidations": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "labelSettings": true,
+            "type": true,
+            "textResourceBindings": true,
+            "removeWhenHidden": true,
+            "dataModelBindings": true,
+            "maxLength": true,
+            "sprak": true
+          },
+          "required": [
+            "id",
+            "type",
+            "dataModelBindings"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "CompDividerExternal": {
       "allOf": [
         {
@@ -4158,6 +4315,148 @@
           "required": [
             "id",
             "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CompKiAssistentExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/SummarizableComponentProps"
+        },
+        {
+          "title": "CompKiAssistentExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "KiAssistent"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "felt": {
+              "title": "Fields",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/IKiFelt"
+              }
+            },
+            "forhaandsutfylt": {
+              "title": "Prefilled fields",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/IKiForhaandsutfylt"
+              }
+            },
+            "brukesBinding": {
+              "$ref": "#/definitions/IRawDataModelBinding"
+            },
+            "merknadBinding": {
+              "$ref": "#/definitions/IRawDataModelBinding"
+            },
+            "sendKnappId": {
+              "title": "Submit button id",
+              "description": "The assistant points at this button. It never presses it.",
+              "type": "string"
+            },
+            "taledeteksjon": {
+              "title": "Turn detection",
+              "description": "semantic_vad waits until the sentence seems finished. server_vad waits a fixed silence.",
+              "default": "semantic_vad",
+              "type": "string"
+            },
+            "utaalmodighet": {
+              "title": "Eagerness",
+              "description": "For semantic_vad. low lets the person speak uninterrupted.",
+              "default": "low",
+              "type": "string"
+            },
+            "stillhetMs": {
+              "title": "Silence before answering",
+              "description": "For server_vad. Milliseconds of silence before the turn is considered over.",
+              "default": 4000,
+              "type": "integer"
+            },
+            "sprak": {
+              "title": "Spoken language",
+              "description": "ISO-639-1 code for the language spoken, e.g. no. Improves speech recognition accuracy. Invalid codes are rejected by the API.",
+              "default": "no",
+              "type": "string"
+            },
+            "transkripsjonsmodell": {
+              "title": "Transcription model",
+              "default": "gpt-4o-transcribe",
+              "type": "string"
+            },
+            "tokenUrl": {
+              "title": "Token endpoint",
+              "description": "Relative to the app root.",
+              "default": "api/v1/ki-assistent/token",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "felt"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "readOnly": true,
+            "required": true,
+            "showValidations": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "type": true,
+            "textResourceBindings": true,
+            "felt": true,
+            "forhaandsutfylt": true,
+            "brukesBinding": true,
+            "merknadBinding": true,
+            "sendKnappId": true,
+            "taledeteksjon": true,
+            "utaalmodighet": true,
+            "stillhetMs": true,
+            "sprak": true,
+            "transkripsjonsmodell": true,
+            "tokenUrl": true
+          },
+          "required": [
+            "id",
+            "type",
+            "felt"
           ],
           "additionalProperties": false
         }
@@ -6222,6 +6521,92 @@
         }
       ]
     },
+    "CompSamtaleExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/SummarizableComponentProps"
+        },
+        {
+          "title": "CompSamtaleExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "Samtale"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "steg": {
+              "title": "Steps",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ISamtalesteg"
+              }
+            },
+            "sprak": {
+              "title": "Speech recognition language",
+              "description": "BCP 47 language tag, e.g. nb-NO.",
+              "default": "nb-NO",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "steg"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "readOnly": true,
+            "required": true,
+            "showValidations": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "type": true,
+            "textResourceBindings": true,
+            "steg": true,
+            "sprak": true
+          },
+          "required": [
+            "id",
+            "type",
+            "steg"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "CompSigneeListExternal": {
       "allOf": [
         {
@@ -7649,6 +8034,75 @@
               "properties": {
                 "componentType": {
                   "const": "Date"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "DiktafonSummaryOverridesWithRef": {
+      "title": "DiktafonSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for Diktafon",
+              "description": "Properties for how to display the summary of this Diktafon component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all Diktafon",
+              "description": "Properties for how to display the summary of all Diktafon components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Diktafon"
                 }
               },
               "required": [
@@ -9207,6 +9661,100 @@
         "type": "string"
       }
     },
+    "IKiAlternativ": {
+      "title": "IKiAlternativ",
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "IKiFelt": {
+      "title": "IKiFelt",
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "Field id",
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/definitions/IRawDataModelBinding"
+        },
+        "sporsmaal": {
+          "title": "Question",
+          "type": "string"
+        },
+        "komponentId": {
+          "title": "Component to highlight",
+          "description": "Id of the layout component to scroll to and highlight while working on this field.",
+          "type": "string"
+        },
+        "alternativer": {
+          "title": "Options",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IKiAlternativ"
+          }
+        },
+        "flervalg": {
+          "title": "Multiple choice",
+          "default": false,
+          "type": "boolean"
+        },
+        "kunNaar": {
+          "title": "Only when",
+          "description": "Field id and value on the form \"id=value\". The field is skipped unless it matches.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "binding",
+        "sporsmaal"
+      ],
+      "additionalProperties": false
+    },
+    "IKiForhaandsutfylt": {
+      "title": "IKiForhaandsutfylt",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/definitions/IRawDataModelBinding"
+        },
+        "etikett": {
+          "title": "Label",
+          "type": "string"
+        },
+        "komponentId": {
+          "title": "Component",
+          "type": "string"
+        },
+        "kanRettes": {
+          "title": "Correctable here",
+          "description": "False for data owned by a register the citizen cannot change from this form.",
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "binding",
+        "etikett"
+      ],
+      "additionalProperties": false
+    },
     "ILabelSettings": {
       "title": "Label settings",
       "description": "Controls how the component label is displayed.",
@@ -9668,6 +10216,68 @@
       "required": [
         "label",
         "value"
+      ],
+      "additionalProperties": false
+    },
+    "ISamtaleAlternativ": {
+      "title": "ISamtaleAlternativ",
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "ISamtalesteg": {
+      "title": "ISamtalesteg",
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "Step id",
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/definitions/IRawDataModelBinding"
+        },
+        "sporsmaal": {
+          "title": "Question text resource",
+          "type": "string"
+        },
+        "hjelp": {
+          "title": "Help text resource",
+          "type": "string"
+        },
+        "alternativer": {
+          "title": "Options",
+          "description": "When present the step is a single choice. Without options the step is free text.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ISamtaleAlternativ"
+          }
+        },
+        "valgfritt": {
+          "title": "Optional",
+          "default": false,
+          "type": "boolean"
+        },
+        "avsluttVerdi": {
+          "title": "Ends the conversation",
+          "description": "When the step has this value the conversation is complete, and later steps are skipped and not required.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "binding",
+        "sporsmaal"
       ],
       "additionalProperties": false
     },

@@ -16,6 +16,7 @@ import type { CompCustomSerialized } from '@app/layout-contract/generated/compon
 import type { CompCustomButtonSerialized } from '@app/layout-contract/generated/components/CustomButton/serialized.generated';
 import type { CompDateSerialized } from '@app/layout-contract/generated/components/Date/serialized.generated';
 import type { CompDatepickerSerialized } from '@app/layout-contract/generated/components/Datepicker/serialized.generated';
+import type { CompDiktafonSerialized } from '@app/layout-contract/generated/components/Diktafon/serialized.generated';
 import type { CompDividerSerialized } from '@app/layout-contract/generated/components/Divider/serialized.generated';
 import type { CompDropdownSerialized } from '@app/layout-contract/generated/components/Dropdown/serialized.generated';
 import type { CompFileUploadSerialized } from '@app/layout-contract/generated/components/FileUpload/serialized.generated';
@@ -28,6 +29,7 @@ import type { CompImageUploadSerialized } from '@app/layout-contract/generated/c
 import type { CompInputSerialized } from '@app/layout-contract/generated/components/Input/serialized.generated';
 import type { CompInstanceInformationSerialized } from '@app/layout-contract/generated/components/InstanceInformation/serialized.generated';
 import type { CompInstantiationButtonSerialized } from '@app/layout-contract/generated/components/InstantiationButton/serialized.generated';
+import type { CompKiAssistentSerialized } from '@app/layout-contract/generated/components/KiAssistent/serialized.generated';
 import type { CompLikertSerialized } from '@app/layout-contract/generated/components/Likert/serialized.generated';
 import type { CompLinkSerialized } from '@app/layout-contract/generated/components/Link/serialized.generated';
 import type { CompListSerialized } from '@app/layout-contract/generated/components/List/serialized.generated';
@@ -48,6 +50,7 @@ import type { CompPersonLookupSerialized } from '@app/layout-contract/generated/
 import type { CompPrintButtonSerialized } from '@app/layout-contract/generated/components/PrintButton/serialized.generated';
 import type { CompRadioButtonsSerialized } from '@app/layout-contract/generated/components/RadioButtons/serialized.generated';
 import type { CompRepeatingGroupSerialized } from '@app/layout-contract/generated/components/RepeatingGroup/serialized.generated';
+import type { CompSamtaleSerialized } from '@app/layout-contract/generated/components/Samtale/serialized.generated';
 import type { CompSigneeListSerialized } from '@app/layout-contract/generated/components/SigneeList/serialized.generated';
 import type { CompSigningActionsSerialized } from '@app/layout-contract/generated/components/SigningActions/serialized.generated';
 import type { CompSigningDocumentListSerialized } from '@app/layout-contract/generated/components/SigningDocumentList/serialized.generated';
@@ -78,6 +81,7 @@ export enum ComponentType {
   CustomButton = 'CustomButton',
   Date = 'Date',
   Datepicker = 'Datepicker',
+  Diktafon = 'Diktafon',
   Divider = 'Divider',
   Dropdown = 'Dropdown',
   FileUpload = 'FileUpload',
@@ -90,6 +94,7 @@ export enum ComponentType {
   Input = 'Input',
   InstanceInformation = 'InstanceInformation',
   InstantiationButton = 'InstantiationButton',
+  KiAssistent = 'KiAssistent',
   Likert = 'Likert',
   Link = 'Link',
   List = 'List',
@@ -110,6 +115,7 @@ export enum ComponentType {
   PrintButton = 'PrintButton',
   RadioButtons = 'RadioButtons',
   RepeatingGroup = 'RepeatingGroup',
+  Samtale = 'Samtale',
   SigneeList = 'SigneeList',
   SigningActions = 'SigningActions',
   SigningDocumentList = 'SigningDocumentList',
@@ -141,6 +147,7 @@ export type SerializedComponent =
   | CompCustomButtonSerialized
   | CompDateSerialized
   | CompDatepickerSerialized
+  | CompDiktafonSerialized
   | CompDividerSerialized
   | CompDropdownSerialized
   | CompFileUploadSerialized
@@ -153,6 +160,7 @@ export type SerializedComponent =
   | CompInputSerialized
   | CompInstanceInformationSerialized
   | CompInstantiationButtonSerialized
+  | CompKiAssistentSerialized
   | CompLikertSerialized
   | CompLinkSerialized
   | CompListSerialized
@@ -173,6 +181,7 @@ export type SerializedComponent =
   | CompPrintButtonSerialized
   | CompRadioButtonsSerialized
   | CompRepeatingGroupSerialized
+  | CompSamtaleSerialized
   | CompSigneeListSerialized
   | CompSigningActionsSerialized
   | CompSigningDocumentListSerialized
@@ -186,4 +195,4 @@ export type SerializedComponent =
   | CompTimePickerSerialized
   | CompVideoSerialized;
 
-// Source hash: ebf33af3b7669d18a04a1b39972c33b164b690c42ce8c4bb35cdb2ef2d70174c
+// Source hash: 5d8fcf9723fd9aeb0bc353a9984e1522e7624bac516a7a1e37fbae0269b83dfc

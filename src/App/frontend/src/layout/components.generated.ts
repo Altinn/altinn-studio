@@ -18,6 +18,7 @@ import { getConfig as getCustomConfig } from 'src/layout/Custom/config.runtime.g
 import { getConfig as getCustomButtonConfig } from 'src/layout/CustomButton/config.runtime.generated';
 import { getConfig as getDateConfig } from 'src/layout/Date/config.runtime.generated';
 import { getConfig as getDatepickerConfig } from 'src/layout/Datepicker/config.runtime.generated';
+import { getConfig as getDiktafonConfig } from 'src/layout/Diktafon/config.runtime.generated';
 import { getConfig as getDividerConfig } from 'src/layout/Divider/config.runtime.generated';
 import { getConfig as getDropdownConfig } from 'src/layout/Dropdown/config.runtime.generated';
 import { getConfig as getFileUploadConfig } from 'src/layout/FileUpload/config.runtime.generated';
@@ -30,6 +31,7 @@ import { getConfig as getImageUploadConfig } from 'src/layout/ImageUpload/config
 import { getConfig as getInputConfig } from 'src/layout/Input/config.runtime.generated';
 import { getConfig as getInstanceInformationConfig } from 'src/layout/InstanceInformation/config.runtime.generated';
 import { getConfig as getInstantiationButtonConfig } from 'src/layout/InstantiationButton/config.runtime.generated';
+import { getConfig as getKiAssistentConfig } from 'src/layout/KiAssistent/config.runtime.generated';
 import { getConfig as getLikertConfig } from 'src/layout/Likert/config.runtime.generated';
 import { getConfig as getLikertItemConfig } from 'src/layout/LikertItem/config.runtime.generated';
 import { getConfig as getLinkConfig } from 'src/layout/Link/config.runtime.generated';
@@ -51,6 +53,7 @@ import { getConfig as getPersonLookupConfig } from 'src/layout/PersonLookup/conf
 import { getConfig as getPrintButtonConfig } from 'src/layout/PrintButton/config.runtime.generated';
 import { getConfig as getRadioButtonsConfig } from 'src/layout/RadioButtons/config.runtime.generated';
 import { getConfig as getRepeatingGroupConfig } from 'src/layout/RepeatingGroup/config.runtime.generated';
+import { getConfig as getSamtaleConfig } from 'src/layout/Samtale/config.runtime.generated';
 import { getConfig as getSigneeListConfig } from 'src/layout/SigneeList/config.runtime.generated';
 import { getConfig as getSigningActionsConfig } from 'src/layout/SigningActions/config.runtime.generated';
 import { getConfig as getSigningDocumentListConfig } from 'src/layout/SigningDocumentList/config.runtime.generated';
@@ -82,6 +85,7 @@ function createComponentConfigs() {
     CustomButton: getCustomButtonConfig(),
     Date: getDateConfig(),
     Datepicker: getDatepickerConfig(),
+    Diktafon: getDiktafonConfig(),
     Divider: getDividerConfig(),
     Dropdown: getDropdownConfig(),
     FileUpload: getFileUploadConfig(),
@@ -94,6 +98,7 @@ function createComponentConfigs() {
     Input: getInputConfig(),
     InstanceInformation: getInstanceInformationConfig(),
     InstantiationButton: getInstantiationButtonConfig(),
+    KiAssistent: getKiAssistentConfig(),
     Likert: getLikertConfig(),
     LikertItem: getLikertItemConfig(),
     Link: getLinkConfig(),
@@ -115,6 +120,7 @@ function createComponentConfigs() {
     PrintButton: getPrintButtonConfig(),
     RadioButtons: getRadioButtonsConfig(),
     RepeatingGroup: getRepeatingGroupConfig(),
+    Samtale: getSamtaleConfig(),
     SigneeList: getSigneeListConfig(),
     SigningActions: getSigningActionsConfig(),
     SigningDocumentList: getSigningDocumentListConfig(),
@@ -137,4 +143,4 @@ export function getComponentConfigs() {
 
 export type ComponentTypeConfigs = GeneratedComponentTypeConfigs;
 
-// Source hash: 7536a961c0cfa0f9931e353fd57f9dc589d8c6aa37a4efe0772cd107f6682737
+// Source hash: 17f5a69fc8549a41792067c66f96b219f3461310372b9aa1a0b980a7c31d11fc
