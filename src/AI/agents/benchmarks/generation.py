@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterator
 
 from langfuse import Evaluation
 
@@ -602,11 +602,74 @@ def failure_mode(
     ]
 
 
-ITEM_EVALUATORS.extend([required_tools, failure_mode])
+def _components_in(node: Any) -> Iterator[dict[str, Any]]:
+    for value in node.values() if isinstance(node, dict) else node:
+        if isinstance(value, (dict, list)):
+            yield from _components_in(value)
+    if isinstance(node, dict) and isinstance(node.get("type"), str) and "id" in node:
+        yield node
+
+
+def written_components(output: Any) -> list[dict[str, Any]]:
+    """Every component this turn wrote, read out of the write_file payloads."""
+    components = []
+    for call in _calls(output):
+        if call.get("name") != "write_file":
+            continue
+        content = (call.get("input") or {}).get("content")
+        if not isinstance(content, str):
+            continue
+        try:
+            parsed = json.loads(content)
+        except json.JSONDecodeError:
+            continue
+        components.extend(_components_in(parsed))
+    return components
+
+
+def content_pairings(
+    *, output: Any = None, expected_output: Any = None, **_: Any
+) -> list[Evaluation]:
+    """Do the components this turn wrote carry the properties their bindings need."""
+    required: list[tuple[str, str, str]] = []
+    if rule_of(expected_output).get("datepicker_sets_timestamp"):
+        required.append(("Datepicker", "timeStamp", "the page will not render"))
+    if not required:
+        return []
+
+    components = written_components(output)
+    total = 0
+    satisfied = 0
+    comments = []
+    for component_type, prop, consequence in required:
+        written = [c for c in components if c.get("type") == component_type]
+        setting = [c for c in written if prop in c]
+        if not written:
+            continue
+        total += len(written)
+        satisfied += len(setting)
+        comments.append(
+            f"{len(setting)}/{len(written)} {component_type}(s) set {prop}"
+            + ("" if len(setting) == len(written) else f"; {consequence}")
+        )
+    if not total:
+        return []
+    return [
+        Evaluation(
+            name="gen_content_pairings",
+            value=round(satisfied / total, 4),
+            data_type="NUMERIC",
+            comment="; ".join(comments),
+        )
+    ]
+
+
+ITEM_EVALUATORS.extend([required_tools, failure_mode, content_pairings])
 
 
 
 SCORE_NAMES = (
+    "gen_content_pairings",
     "gen_failure_mode",
     "gen_json_parses",
     "gen_no_forbidden_tool",
