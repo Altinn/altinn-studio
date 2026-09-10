@@ -11,6 +11,7 @@ mod hook_script;
 mod skills;
 
 const VERSION_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+const MAX_INITIAL_PROMPT_ARGUMENT_BYTES: usize = 64 * 1024;
 
 pub(crate) use skills::{Skill, SkillFile};
 
@@ -266,6 +267,24 @@ pub(crate) fn shell_single_quoted(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
 
+/// Validates an initial prompt before it is persisted for an argv-based launch.
+pub(crate) fn validate_initial_prompt(prompt: &str) -> Result<(), Error> {
+    if prompt.contains('\0') {
+        return Err(Error::Invalid("initial prompt must not contain NUL".into()));
+    }
+    let quoted_bytes = prompt
+        .len()
+        .saturating_add(prompt.bytes().filter(|byte| *byte == b'\'').count().saturating_mul(3))
+        .saturating_add(2);
+    if quoted_bytes > MAX_INITIAL_PROMPT_ARGUMENT_BYTES {
+        return Err(Error::Invalid(format!(
+            "initial prompt is too large; its encoded launch argument must not exceed {} KiB",
+            MAX_INITIAL_PROMPT_ARGUMENT_BYTES / 1024
+        )));
+    }
+    Ok(())
+}
+
 /// Recognizes an initialized input line before a harness reports its conversation.
 /// The runtime supplies the visible cursor line and pane title.
 pub(crate) fn input_ready_without_report(harness: Harness, cursor_line: &str, title: &str) -> bool {
@@ -287,7 +306,29 @@ pub(crate) fn parse_transcript(harness: Harness, bytes: &[u8]) -> Result<Vec<cra
     }
 }
 
+/// Trims a transcript suffix to its first complete harness turn.
+pub(crate) fn trim_partial_transcript(harness: Harness, bytes: &[u8]) -> &[u8] {
+    match harness {
+        Harness::ClaudeCode => claude_code::transcript::trim_partial(bytes),
+        Harness::Codex => codex::transcript::trim_partial(bytes),
+    }
+}
+
 #[cfg(test)]
 pub(crate) const fn test_harness() -> Harness {
     Harness::ClaudeCode
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn initial_prompt_validation_measures_the_shell_quoted_argument() {
+        validate_initial_prompt(&"a".repeat(MAX_INITIAL_PROMPT_ARGUMENT_BYTES - 2)).expect("boundary prompt");
+
+        let expanded = "'".repeat(MAX_INITIAL_PROMPT_ARGUMENT_BYTES / 4);
+        assert!(validate_initial_prompt(&expanded).is_err());
+        assert!(validate_initial_prompt("before\0after").is_err());
+    }
 }

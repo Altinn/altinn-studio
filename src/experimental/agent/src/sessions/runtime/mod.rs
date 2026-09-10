@@ -86,13 +86,15 @@ pub trait SessionRuntime {
         prompt: &'a str,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
-    /// Reads the Session's conversation so far as ordered turns.
+    /// Reads the Session's conversation so far as ordered turns, optionally
+    /// limiting work and output to the last `last` complete turns.
     ///
     /// A conversation that has not produced a record yet is empty, not an error.
     fn turns<'a>(
         &'a self,
         session: &'a Session,
         sandbox: &'a SandboxHandle,
+        last: Option<usize>,
     ) -> ::sandbox::LocalFuture<'a, Result<Vec<Turn>, Error>>;
 
     /// Attaches a local terminal to the Session; a client capability distinct

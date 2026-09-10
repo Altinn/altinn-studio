@@ -141,6 +141,12 @@ impl Service {
         wait: bool,
         timeout: Option<Duration>,
     ) -> Result<(), Error> {
+        if timeout.is_some_and(|timeout| timeout > PROMPT_TIMEOUT_MAX) {
+            return Err(Error::Invalid(format!(
+                "completion timeout must not exceed {}m",
+                PROMPT_TIMEOUT_MAX.as_secs() / 60
+            )));
+        }
         let (session, sandbox) = self.open_running(agent, name).await?;
         let id = session.id;
         let delivering = Delivering::acquire(&self.deliveries, id).await;
@@ -152,7 +158,7 @@ impl Service {
             return Ok(());
         }
         tokio::time::timeout(
-            timeout.unwrap_or(PROMPT_TIMEOUT_MAX).min(PROMPT_TIMEOUT_MAX),
+            timeout.unwrap_or(PROMPT_TIMEOUT_MAX),
             self.wait_for_completion(id, name, completed_before),
         ).await.map_err(|_| Error::Session(format!(
             "timed out waiting for Session \"{name}\" to complete; the prompt was submitted; inspect turns before retrying"
@@ -239,13 +245,7 @@ impl Service {
         let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
         let session = self.store.get_session(session.id).await?;
-        let mut turns = self.runtime.turns(&session, &sandbox).await?;
-        if let Some(last) = last
-            && turns.len() > last
-        {
-            turns.drain(0..turns.len() - last);
-        }
-        Ok(turns)
+        self.runtime.turns(&session, &sandbox, last).await
     }
 
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
@@ -294,6 +294,9 @@ impl Service {
                 let harness = requested_harness
                     .or_else(|| owner.agent.spec.default_harness().map(|installation| installation.kind))
                     .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?;
+                if let Some(initial_prompt) = initial_prompt {
+                    crate::harness::validate_initial_prompt(initial_prompt)?;
+                }
                 self.store.ensure_session(agent, name, harness, initial_prompt).await?
             }
             Err(error) => return Err(error),

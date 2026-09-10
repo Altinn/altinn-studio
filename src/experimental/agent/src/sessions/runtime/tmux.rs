@@ -289,8 +289,9 @@ impl super::SessionRuntime for Tmux {
         &'a self,
         session: &'a Session,
         sandbox: &'a SandboxHandle,
+        last: Option<usize>,
     ) -> ::sandbox::LocalFuture<'a, Result<Vec<Turn>, Error>> {
-        Box::pin(turns(session, sandbox))
+        Box::pin(turns(session, sandbox, last))
     }
 
     fn attach<'a>(
@@ -391,11 +392,15 @@ fn input_ready_in(activity: &Activity, now: time::OffsetDateTime) -> Option<std:
 /// The path travels as a positional argument, never interpolated into shell
 /// text. A harness that has not reported a transcript yet, or has reported one
 /// it has not created yet, has an empty conversation.
-async fn turns(session: &Session, sandbox: &SandboxHandle) -> Result<Vec<Turn>, Error> {
-    const SCRIPT: &str = "[ -f \"$1\" ] || exit 0; exec /bin/cat \"$1\"";
+async fn turns(session: &Session, sandbox: &SandboxHandle, last: Option<usize>) -> Result<Vec<Turn>, Error> {
+    const MAX_TRANSCRIPT_BYTES: usize = 2 * 1024 * 1024;
+    const SCRIPT: &str = "[ -f \"$1\" ] || exit 0; exec /usr/bin/tail -c \"$2\" -- \"$1\"";
     let Some(path) = session.status.reported.harness_transcript_path.as_deref() else {
         return Ok(Vec::new());
     };
+    if last == Some(0) {
+        return Ok(Vec::new());
+    }
     let read = sandbox
         .run_execution(ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
@@ -404,6 +409,7 @@ async fn turns(session: &Session, sandbox: &SandboxHandle) -> Result<Vec<Turn>, 
                 SCRIPT.into(),
                 "agent-session-transcript".into(),
                 path.into(),
+                (MAX_TRANSCRIPT_BYTES + 1).to_string(),
             ],
         ))
         .await?;
@@ -413,7 +419,44 @@ async fn turns(session: &Session, sandbox: &SandboxHandle) -> Result<Vec<Turn>, 
             session.id, read.status.code
         )));
     }
-    harness::parse_transcript(session.harness, &read.stdout)
+    parse_transcript_suffix(session.harness, &read.stdout, last, MAX_TRANSCRIPT_BYTES)
+}
+
+fn parse_transcript_suffix(
+    kind: crate::Harness,
+    bytes: &[u8],
+    last: Option<usize>,
+    max_bytes: usize,
+) -> Result<Vec<Turn>, Error> {
+    let truncated = bytes.len() > max_bytes;
+    if truncated && last.is_none() {
+        return Err(Error::Session(format!(
+            "conversation exceeds the {} MiB read limit; retry with --last",
+            max_bytes / 1024 / 1024
+        )));
+    }
+    let bytes = if truncated {
+        let after_partial_line = bytes
+            .iter()
+            .position(|byte| *byte == b'\n')
+            .map_or_else(|| &bytes[bytes.len()..], |newline| &bytes[newline + 1..]);
+        harness::trim_partial_transcript(kind, after_partial_line)
+    } else {
+        bytes
+    };
+    let mut turns = harness::parse_transcript(kind, bytes)?;
+    if let Some(last) = last {
+        if truncated && turns.len() < last {
+            return Err(Error::Session(format!(
+                "the last {last} complete turns do not fit within the {} MiB transcript read limit; request fewer turns",
+                max_bytes / 1024 / 1024
+            )));
+        }
+        if turns.len() > last {
+            turns.drain(0..turns.len() - last);
+        }
+    }
+    Ok(turns)
 }
 
 #[cfg(test)]
@@ -421,9 +464,54 @@ mod tests {
     use sandbox::execution::ExitStatus;
     use time::OffsetDateTime;
 
-    use crate::sessions::{Activity, Lifecycle, Phase, Reported, Status};
+    use crate::{
+        harness,
+        sessions::{Activity, Lifecycle, Part, Phase, Reported, Status},
+    };
 
-    use super::{Observation, Session, input_ready_in};
+    use super::{Observation, Session, input_ready_in, parse_transcript_suffix};
+
+    #[test]
+    fn a_truncated_suffix_starts_at_the_first_complete_turn() {
+        let transcript = concat!(
+            "partial record\n",
+            r#"{"type":"assistant","message":{"id":"old","content":[{"type":"text","text":"partial answer"}]}}"#,
+            "\n",
+            r#"{"type":"user","message":{"content":"latest prompt"}}"#,
+            "\n",
+            r#"{"type":"assistant","message":{"id":"new","content":[{"type":"text","text":"latest answer"}]}}"#,
+            "\n",
+        );
+        let turns = parse_transcript_suffix(
+            harness::test_harness(),
+            transcript.as_bytes(),
+            Some(1),
+            transcript.len() - 1,
+        )
+        .expect("last complete turn");
+        assert!(matches!(
+            turns[0].messages[0].parts[0],
+            Part::Text { ref text } if text == "latest prompt"
+        ));
+    }
+
+    #[test]
+    fn a_truncated_transcript_requires_a_satisfiable_last_bound() {
+        let transcript = concat!(
+            "partial record\n",
+            r#"{"type":"user","message":{"content":"only complete prompt"}}"#,
+            "\n",
+        );
+        let max_bytes = transcript.len() - 1;
+
+        let unbounded = parse_transcript_suffix(harness::test_harness(), transcript.as_bytes(), None, max_bytes)
+            .expect_err("unbounded truncated transcript");
+        assert!(unbounded.to_string().contains("retry with --last"));
+
+        let too_many = parse_transcript_suffix(harness::test_harness(), transcript.as_bytes(), Some(2), max_bytes)
+            .expect_err("too many complete turns");
+        assert!(too_many.to_string().contains("request fewer turns"));
+    }
 
     #[test]
     #[ignore = "requires Node.js and tmux; exercises input in an isolated terminal server"]

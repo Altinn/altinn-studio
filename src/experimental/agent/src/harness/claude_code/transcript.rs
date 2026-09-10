@@ -37,6 +37,42 @@ pub(crate) fn parse(bytes: &[u8]) -> Result<Vec<Turn>, Error> {
     Ok(builder.turns)
 }
 
+/// Drops records before the first operator prompt in a bounded file suffix.
+pub(crate) fn trim_partial(bytes: &[u8]) -> &[u8] {
+    let mut offset = 0;
+    for line in bytes.split_inclusive(|byte| *byte == b'\n') {
+        if serde_json::from_slice::<Value>(line).is_ok_and(|entry| starts_turn(&entry)) {
+            return &bytes[offset..];
+        }
+        offset += line.len();
+    }
+    &bytes[bytes.len()..]
+}
+
+fn starts_turn(entry: &Value) -> bool {
+    if flag(entry, "isSidechain") || flag(entry, "isMeta") || flag(entry, "isCompactSummary") {
+        return false;
+    }
+    if entry.get("type").and_then(Value::as_str) != Some("user") {
+        return false;
+    }
+    let Some(message) = entry.get("message") else {
+        return false;
+    };
+    match message.get("content") {
+        Some(Value::String(text)) => !is_injected(text),
+        Some(Value::Array(blocks)) => {
+            let text = blocks
+                .iter()
+                .filter(|block| block.get("type").and_then(Value::as_str) == Some("text"))
+                .filter_map(|block| block.get("text").and_then(Value::as_str))
+                .collect::<String>();
+            !text.is_empty() && !is_injected(&text)
+        }
+        _ => false,
+    }
+}
+
 #[derive(Default)]
 struct Builder {
     turns: Vec<Turn>,
@@ -240,6 +276,20 @@ mod tests {
     use super::*;
 
     const FIXTURE: &str = include_str!("../../../tests/fixtures/claude-code-transcript.jsonl");
+
+    #[test]
+    fn a_bounded_suffix_discards_a_partial_turn() {
+        let suffix = concat!(
+            r#"{"type":"assistant","message":{"id":"old","content":[{"type":"text","text":"partial"}]}}"#,
+            "\n",
+            r#"{"type":"user","message":{"content":"complete"}}"#,
+            "\n",
+        );
+
+        let turns = parse(trim_partial(suffix.as_bytes())).expect("suffix");
+
+        assert!(matches!(turns[0].messages[0].parts[0], Part::Text { ref text } if text == "complete"));
+    }
 
     #[test]
     fn recorded_transcript_yields_operator_turns_only() {

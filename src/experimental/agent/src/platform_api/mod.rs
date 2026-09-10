@@ -12,7 +12,7 @@
 //! authentication is a per-launch bearer token, and failures return nothing
 //! but a status code.
 
-use std::{path::Path, rc::Rc};
+use std::{io, path::Path, rc::Rc};
 
 use futures_util::{FutureExt as _, StreamExt as _, stream::FuturesUnordered};
 use tokio::{
@@ -39,28 +39,41 @@ type ConnectionFuture = futures_util::future::LocalBoxFuture<'static, ()>;
 ///
 /// The port is persisted at `port_path` so Sandbox environments composed at
 /// earlier launches keep pointing at a live endpoint across daemon restarts.
-/// When the persisted port is unavailable, a fresh port is bound and persisted;
-/// hooks from launches before the change retry and expire harmlessly.
 ///
 /// # Errors
 ///
-/// Returns an error when no loopback port can be bound or the port cannot be
-/// persisted.
+/// Returns an error when the persisted port is invalid or unavailable, no
+/// loopback port can be bound on first use, or that first port cannot be persisted.
 pub async fn bind_persistent(port_path: &Path) -> Result<TcpListener, Error> {
     let preferred = match tokio::fs::read_to_string(port_path).await {
-        Ok(content) => content.trim().parse::<u16>().ok(),
+        Ok(content) => {
+            let port = content.trim().parse::<u16>().map_err(|error| {
+                Error::Io(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("invalid persisted Platform API port: {error}"),
+                ))
+            })?;
+            if port == 0 {
+                return Err(Error::Io(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "persisted Platform API port must not be zero",
+                )));
+            }
+            Some(port)
+        }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
         Err(error) => return Err(Error::Io(error)),
     };
-    let listener = match preferred {
-        Some(port) => match TcpListener::bind(("127.0.0.1", port)).await {
-            Ok(listener) => listener,
-            Err(_) => TcpListener::bind(("127.0.0.1", 0)).await?,
-        },
-        None => TcpListener::bind(("127.0.0.1", 0)).await?,
-    };
-    let port = listener.local_addr()?.port();
-    tokio::fs::write(port_path, format!("{port}\n")).await?;
+    if let Some(port) = preferred {
+        return TcpListener::bind(("127.0.0.1", port)).await.map_err(|error| {
+            Error::Io(io::Error::new(
+                error.kind(),
+                format!("persisted Platform API port {port} is unavailable: {error}"),
+            ))
+        });
+    }
+    let listener = TcpListener::bind(("127.0.0.1", 0)).await?;
+    tokio::fs::write(port_path, format!("{}\n", listener.local_addr()?.port())).await?;
     Ok(listener)
 }
 
@@ -295,4 +308,42 @@ async fn respond(stream: &mut TcpStream, status: u16) -> Result<(), Error> {
     stream.write_all(response.as_bytes()).await?;
     stream.shutdown().await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn an_unavailable_persisted_port_is_not_replaced() {
+        let directory = tempfile::TempDir::new().expect("temporary directory");
+        let path = directory.path().join("platform-api-port");
+        let occupied = TcpListener::bind(("127.0.0.1", 0)).await.expect("occupied port");
+        let port = occupied.local_addr().expect("address").port();
+        tokio::fs::write(&path, format!("{port}\n")).await.expect("port file");
+
+        let error = bind_persistent(&path).await.expect_err("occupied persisted port");
+        assert!(error.to_string().contains(&format!("port {port} is unavailable")));
+        assert_eq!(
+            tokio::fs::read_to_string(&path).await.expect("port file"),
+            format!("{port}\n")
+        );
+
+        drop(occupied);
+        let rebound = bind_persistent(&path).await.expect("same port after release");
+        assert_eq!(rebound.local_addr().expect("address").port(), port);
+    }
+
+    #[tokio::test]
+    async fn the_first_bound_port_is_persisted() {
+        let directory = tempfile::TempDir::new().expect("temporary directory");
+        let path = directory.path().join("platform-api-port");
+
+        let listener = bind_persistent(&path).await.expect("first bind");
+
+        assert_eq!(
+            tokio::fs::read_to_string(path).await.expect("port file"),
+            format!("{}\n", listener.local_addr().expect("address").port())
+        );
+    }
 }

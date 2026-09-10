@@ -61,6 +61,24 @@ pub(crate) fn parse(bytes: &[u8]) -> Result<Vec<Turn>, Error> {
     Ok(builder.finish())
 }
 
+/// Drops records before the first turn boundary in a bounded rollout suffix.
+pub(crate) fn trim_partial(bytes: &[u8]) -> &[u8] {
+    let mut offset = 0;
+    for line in bytes.split_inclusive(|byte| *byte == b'\n') {
+        if serde_json::from_slice::<Value>(line).is_ok_and(|entry| {
+            entry.get("type").and_then(Value::as_str) == Some("event_msg")
+                && matches!(
+                    entry.pointer("/payload/type").and_then(Value::as_str),
+                    Some("task_started" | "turn_started")
+                )
+        }) {
+            return &bytes[offset..];
+        }
+        offset += line.len();
+    }
+    &bytes[bytes.len()..]
+}
+
 #[derive(Default)]
 struct Builder {
     turns: Vec<Turn>,
@@ -227,6 +245,22 @@ mod tests {
     use super::*;
 
     const FIXTURE: &str = include_str!("../../../tests/fixtures/codex-rollout.jsonl");
+
+    #[test]
+    fn a_bounded_suffix_discards_a_partial_turn() {
+        let suffix = concat!(
+            r#"{"type":"response_item","payload":{"type":"message","role":"assistant","content":[{"text":"partial"}]}}"#,
+            "\n",
+            r#"{"type":"event_msg","payload":{"type":"task_started"}}"#,
+            "\n",
+            r#"{"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"complete"}]}}"#,
+            "\n",
+        );
+
+        let turns = parse(trim_partial(suffix.as_bytes())).expect("suffix");
+
+        assert!(matches!(turns[0].messages[0].parts[0], Part::Text { ref text } if text == "complete"));
+    }
 
     fn prompts(turns: &[Turn]) -> Vec<&str> {
         turns

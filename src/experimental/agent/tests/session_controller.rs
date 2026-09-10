@@ -371,8 +371,14 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         &'a self,
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
+        last: Option<usize>,
     ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
-        let turns = self.conversation.borrow().clone();
+        let mut turns = self.conversation.borrow().clone();
+        if let Some(last) = last
+            && turns.len() > last
+        {
+            turns.drain(0..turns.len() - last);
+        }
         Box::pin(async move {
             if self.fail_transcript.get() {
                 return Err(Error::Session("transcript unavailable".into()));
@@ -1258,7 +1264,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     );
     let (session_controller, session_wakeup) = agent::sessions::Controller::new(
         session_store.clone(),
-        Rc::new(MarkSessionReady(database)),
+        Rc::new(MarkSessionReady(database.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
     );
@@ -1271,6 +1277,25 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
     );
+
+    let invalid_name = SessionName::new("invalid-prompt").expect("name");
+    let oversized_prompt = "'".repeat(17_000);
+    let error = service
+        .ensure(
+            "worker",
+            &invalid_name,
+            None,
+            Some(&oversized_prompt),
+            WaitPolicy::FirstPass,
+            None,
+        )
+        .await
+        .expect_err("oversized initial prompt");
+    assert!(error.to_string().contains("encoded launch argument"));
+    assert!(matches!(
+        database.get_agent_session("worker", &invalid_name).await,
+        Err(Error::NotFound)
+    ));
 
     let explicit = service
         .ensure(
@@ -1761,6 +1786,28 @@ async fn completion_timeout_starts_after_delivery() {
     assert!(error.to_string().contains("prompt was submitted"));
     assert!(started.elapsed() >= Duration::from_millis(400));
     assert_eq!(harness.runtime.sent.borrow().as_slice(), ["go"]);
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_unsupported_completion_timeout_is_rejected_before_delivery() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+
+    let error = harness
+        .service
+        .prompt(
+            "worker",
+            &harness.session.name,
+            "go",
+            true,
+            Some(Duration::from_mins(31)),
+        )
+        .await
+        .expect_err("unsupported completion timeout");
+
+    assert!(error.to_string().contains("must not exceed 30m"));
+    assert!(harness.runtime.sent.borrow().is_empty());
     harness.finish();
 }
 
