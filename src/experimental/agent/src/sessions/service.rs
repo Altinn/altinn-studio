@@ -13,18 +13,15 @@ use tokio::sync::Notify;
 use crate::{Error, Harness, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::{
-    AgentSandboxes, AttachTarget, LifecycleState, Part, Role, Session, SessionId, SessionName, SessionObservers,
-    SessionRuntime, SharedStore, State, Turn, Wakeup,
+    AgentSandboxes, AttachTarget, LifecycleState, Session, SessionId, SessionName, SessionObservers, SessionRuntime,
+    SharedStore, State, Turn, Wakeup,
 };
 
 /// Ceiling for a single waited prompt; the caller may request a shorter one.
-const ANSWER_WAIT_MAX: Duration = Duration::from_mins(30);
+const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
 
-/// Re-read gap while waiting for the harness to flush its final message after
-/// the turn-complete signal, and the window after which an unanswered
-/// completion is taken to belong to an earlier turn.
-const TRANSCRIPT_FLUSH_POLL: Duration = Duration::from_millis(300);
-const TRANSCRIPT_SETTLE: Duration = Duration::from_secs(2);
+/// Gives queued work and transcript writes a short window after completion.
+const COMPLETION_SETTLE: Duration = Duration::from_millis(200);
 
 /// Maximum time to wait for a newly launched harness to accept input.
 const INPUT_READY_TIMEOUT: Duration = Duration::from_secs(15);
@@ -131,12 +128,11 @@ impl Service {
 
     /// Delivers a prompt to a running Session's harness.
     ///
-    /// With `wait`, blocks until the conversation contains the prompt with an
-    /// assistant final message after it, and returns the turns from the one
-    /// holding the prompt onward, so an orchestrator gets the answer in one
-    /// call. Harnesses treat input delivered mid-turn differently (some steer
-    /// the running turn, others queue it as the next turn); matching the prompt
-    /// by content covers both. Without `wait`, returns immediately with no turns.
+    /// With `wait`, snapshots the completed-turn counter before delivery and
+    /// waits for it to advance and activity to settle for 200 ms. Work observed
+    /// during settling requires another completion. This is a timing heuristic,
+    /// not identification of an answer to this prompt.
+    /// Read the conversation separately with [`Self::turns`].
     ///
     /// In both modes delivery waits for input readiness. The runtime may establish
     /// readiness before the harness reports its first conversation.
@@ -153,8 +149,8 @@ impl Service {
         prompt: &str,
         wait: bool,
         timeout: Option<Duration>,
-    ) -> Result<Vec<Turn>, Error> {
-        let deadline = tokio::time::Instant::now() + timeout.unwrap_or(ANSWER_WAIT_MAX).min(ANSWER_WAIT_MAX);
+    ) -> Result<(), Error> {
+        let deadline = tokio::time::Instant::now() + timeout.unwrap_or(PROMPT_TIMEOUT_MAX).min(PROMPT_TIMEOUT_MAX);
         let delivery_started = Rc::new(Cell::new(false));
         tokio::time::timeout_at(
             deadline,
@@ -180,7 +176,7 @@ impl Service {
         wait: bool,
         deadline: tokio::time::Instant,
         delivery_started: Rc<Cell<bool>>,
-    ) -> Result<Vec<Turn>, Error> {
+    ) -> Result<(), Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
         let sandbox = Rc::new(sandbox);
         let delivering = Delivering::acquire(&self.deliveries, session.id).await;
@@ -189,10 +185,6 @@ impl Service {
         let session = self
             .ready_to_prompt(agent, name, &sandbox, &mut changes, deadline)
             .await?;
-        // Snapshot the open turn while delivery is serialized. Only user parts
-        // appended after this boundary can belong to this invocation.
-        let baseline = self.runtime.turns(&session, &sandbox).await?;
-        let boundary = PromptBoundary::after(&baseline);
         let mut completed_before = session.status.reported.activity.turns;
         if tokio::time::Instant::now() >= deadline {
             return Err(Error::Session("timed out before prompt delivery".into()));
@@ -210,38 +202,51 @@ impl Service {
         .await
         .map_err(|error| Error::Session(format!("prompt delivery task failed: {error}")))??;
         if !wait {
-            return Ok(Vec::new());
+            return Ok(());
         }
 
+        let mut settling = None;
         loop {
             let current = self.store.get_agent_session(agent, name).await?;
             match current.status.state {
                 State::Failed => {
                     return Err(Error::Session(format!(
-                        "Session {name:?} failed while waiting for the answer: {}",
+                        "Session {name:?} failed while waiting for turn completion: {}",
                         current.status.lifecycle.failure.as_deref().unwrap_or("unknown error")
                     )));
                 }
                 State::Idle => {
                     return Err(Error::Session(format!(
-                        "Session {name:?} was stopped while waiting for the answer"
+                        "Session {name:?} was stopped while waiting for turn completion"
                     )));
                 }
                 State::Starting | State::Working | State::WaitingForInput => {}
             }
             let activity = &current.status.reported.activity;
-            if activity.turns > completed_before && current.status.state == State::WaitingForInput {
-                if let Some(turns) = self
-                    .answered_turns(agent, name, &sandbox, prompt, boundary, deadline)
-                    .await?
-                {
-                    return Ok(turns);
+            let wake_at = if activity.turns > completed_before && current.status.state == State::WaitingForInput {
+                let (observed, until) =
+                    settling.get_or_insert_with(|| (activity.clone(), tokio::time::Instant::now() + COMPLETION_SETTLE));
+                if observed != activity {
+                    *observed = activity.clone();
+                    *until = tokio::time::Instant::now() + COMPLETION_SETTLE;
                 }
-                // The completed turn was not the one answering this prompt
-                // (queued input starts the next turn); wait for that one.
-                completed_before = activity.turns;
+                if tokio::time::Instant::now() >= *until {
+                    return Ok(());
+                }
+                *until
+            } else {
+                // A new turn can already be running when the previous completion
+                // is observed. Its permission waits must not satisfy this wait.
+                completed_before = completed_before.max(activity.turns);
+                settling = None;
+                deadline
+            };
+            tokio::select! {
+                result = changes.changed() => result.map_err(|_| Error::Session(format!(
+                    "Session {name:?} change feed closed"
+                )))?,
+                () = tokio::time::sleep_until(wake_at) => {},
             }
-            await_change(name, &mut changes, deadline, "to answer").await?;
         }
     }
 
@@ -280,53 +285,6 @@ impl Service {
         })
         .await
         .map_err(|_| Error::Session(format!("timed out waiting for Session {name:?} to accept input")))?
-    }
-
-    /// After a turn completed, reads the conversation and returns the turns from
-    /// the one holding `prompt` onward once that turn answers it, or `None` when
-    /// the completed turn was not the answer.
-    ///
-    /// Only input appended after `boundary` counts, and only while the
-    /// Session is still waiting for input on the same read: a queued prompt
-    /// that has just started its own turn writes commentary after the prompt,
-    /// and that is not an answer. The completion signal can fire a moment
-    /// before the harness flushes its final message, so this re-reads briefly
-    /// (bounded by the settle window and `deadline`) before concluding.
-    async fn answered_turns(
-        &self,
-        agent: &str,
-        name: &SessionName,
-        sandbox: &SandboxHandle,
-        prompt: &str,
-        boundary: PromptBoundary,
-        deadline: tokio::time::Instant,
-    ) -> Result<Option<Vec<Turn>>, Error> {
-        let settle_until = (tokio::time::Instant::now() + TRANSCRIPT_SETTLE).min(deadline);
-        loop {
-            let session = self.store.get_agent_session(agent, name).await?;
-            let mut turns = self.runtime.turns(&session, sandbox).await?;
-            if session.status.state != State::WaitingForInput {
-                return Ok(None);
-            }
-            let start = boundary.turn.min(turns.len());
-            if let Some(offset) = turns[start..].iter().enumerate().position(|(offset, turn)| {
-                answers(
-                    turn,
-                    prompt,
-                    if start + offset == boundary.turn {
-                        boundary.parts
-                    } else {
-                        0
-                    },
-                )
-            }) {
-                return Ok(Some(turns.split_off(start + offset)));
-            }
-            if tokio::time::Instant::now() >= settle_until {
-                return Ok(None);
-            }
-            tokio::time::sleep(TRANSCRIPT_FLUSH_POLL).await;
-        }
     }
 
     /// Reads the Session's conversation as ordered turns, optionally the last `last`.
@@ -421,151 +379,5 @@ impl Service {
         } else {
             self.store.list_all_sessions().await
         }
-    }
-}
-
-/// Waits for the next durable change to the Session, or fails at `deadline`.
-async fn await_change(
-    name: &SessionName,
-    changes: &mut tokio::sync::watch::Receiver<u64>,
-    deadline: tokio::time::Instant,
-    waiting_for: &str,
-) -> Result<(), Error> {
-    tokio::select! {
-        outcome = changes.changed() => {
-            if outcome.is_err() {
-                return Err(Error::Session(format!("Session {name:?} change feed closed")));
-            }
-            Ok(())
-        }
-        () = tokio::time::sleep_until(deadline) => Err(Error::Session(format!(
-            "timed out waiting for Session {name:?} {waiting_for}"
-        ))),
-    }
-}
-
-/// The position immediately after the transcript's last existing content part.
-#[derive(Clone, Copy)]
-struct PromptBoundary {
-    turn: usize,
-    parts: usize,
-}
-
-impl PromptBoundary {
-    fn after(turns: &[Turn]) -> Self {
-        Self {
-            turn: turns.len().saturating_sub(1),
-            parts: turns
-                .last()
-                .map_or(0, |turn| turn.messages.iter().map(|message| message.parts.len()).sum()),
-        }
-    }
-}
-
-/// Whether `turn` contains the operator `prompt` and an assistant final
-/// message after it: assistant text after the prompt with no tool call
-/// following, so commentary before a tool call and answers to earlier input do
-/// not count.
-fn answers(turn: &Turn, prompt: &str, skip_parts: usize) -> bool {
-    let wanted = prompt.trim();
-    let mut seen = false;
-    let mut answered = false;
-    for part in turn
-        .messages
-        .iter()
-        .flat_map(|entry| entry.parts.iter().map(move |part| (entry.role, part)))
-        .skip(skip_parts)
-    {
-        match part {
-            (Role::User, Part::Text { text }) if text.trim() == wanted => {
-                seen = true;
-                answered = false;
-            }
-            (Role::Assistant, Part::Text { .. }) if seen => answered = true,
-            (Role::Assistant, Part::ToolCall { .. }) => answered = false,
-            _ => {}
-        }
-    }
-    answered
-}
-
-#[cfg(test)]
-mod tests {
-    use super::answers;
-    use crate::sessions::{Message, Part, Role, Turn};
-
-    fn user(text: &str) -> Message {
-        Message {
-            role: Role::User,
-            parts: vec![Part::Text { text: text.into() }],
-        }
-    }
-
-    fn assistant(parts: Vec<Part>) -> Message {
-        Message {
-            role: Role::Assistant,
-            parts,
-        }
-    }
-
-    fn text(value: &str) -> Part {
-        Part::Text { text: value.into() }
-    }
-
-    fn tool() -> Part {
-        Part::ToolCall {
-            name: "Bash".into(),
-            failed: false,
-        }
-    }
-
-    #[test]
-    fn a_turn_answers_when_final_text_follows_the_prompt() {
-        let queued = Turn {
-            messages: vec![user("second"), assistant(vec![text("working"), tool(), text("2")])],
-        };
-        assert!(
-            answers(&queued, "second\n", 0),
-            "trailing newline from a file is not a difference"
-        );
-        assert!(!answers(&queued, "first", 0), "another turn's prompt");
-
-        let steered = Turn {
-            messages: vec![
-                user("first"),
-                assistant(vec![text("1")]),
-                user("second"),
-                assistant(vec![text("2")]),
-            ],
-        };
-        assert!(answers(&steered, "second", 0));
-        assert!(answers(&steered, "first", 0), "the earlier input is also answered");
-    }
-
-    #[test]
-    fn a_turn_does_not_answer_yet_while_a_tool_call_or_nothing_follows() {
-        let pending = Turn {
-            messages: vec![
-                user("first"),
-                assistant(vec![text("1")]),
-                user("second"),
-                assistant(vec![tool()]),
-            ],
-        };
-        assert!(
-            !answers(&pending, "second", 0),
-            "steered input is still being worked on"
-        );
-        let unflushed = Turn {
-            messages: vec![user("second")],
-        };
-        assert!(!answers(&unflushed, "second", 0));
-        let earlier_answer_only = Turn {
-            messages: vec![user("first"), assistant(vec![text("1")]), user("second")],
-        };
-        assert!(
-            !answers(&earlier_answer_only, "second", 0),
-            "text before the prompt is not its answer"
-        );
     }
 }

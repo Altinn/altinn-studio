@@ -188,7 +188,10 @@ impl Client {
         .await
     }
 
-    /// Delivers a prompt to a running Session's harness.
+    /// Delivers a prompt to a running Session's harness. With `wait`, waits for
+    /// its completed-turn counter to advance and activity to settle for 200 ms.
+    /// Work observed during settling requires another completion.
+    /// Conversation output is read separately with [`Self::session_turns`].
     ///
     /// # Errors
     ///
@@ -200,19 +203,29 @@ impl Client {
         prompt: String,
         wait: bool,
         timeout: Option<std::time::Duration>,
-    ) -> Result<Vec<sessions::Turn>, Error> {
-        self.call(
-            METHOD_SESSION_PROMPT,
-            SessionPromptParams {
-                agent: agent.into(),
-                name,
-                prompt,
-                wait,
-                timeout_secs: timeout.map(|timeout| timeout.as_secs()),
-            },
-            None,
-        )
-        .await
+    ) -> Result<(), Error> {
+        // An absolute deadline includes time spent connecting and sending the RPC.
+        let deadline = timeout
+            .map(|timeout| {
+                std::time::SystemTime::now()
+                    .checked_add(timeout)
+                    .ok_or_else(|| Error::Invalid("prompt timeout is too large".into()))
+            })
+            .transpose()?;
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_PROMPT,
+                SessionPromptParams {
+                    agent: agent.into(),
+                    name,
+                    prompt,
+                    wait,
+                    deadline,
+                },
+                None,
+            )
+            .await?;
+        Ok(())
     }
 
     /// Reads the harness transcript of a Session as ordered turns.

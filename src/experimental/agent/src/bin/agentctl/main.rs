@@ -77,7 +77,7 @@ enum Command {
         #[command(flatten)]
         input: PromptInput,
         #[command(flatten)]
-        answer: AnswerOptions,
+        completion: CompletionOptions,
     },
     /// Read a Session's conversation as turns.
     Turns {
@@ -86,9 +86,6 @@ enum Command {
         /// Print only the last N turns.
         #[arg(long)]
         last: Option<usize>,
-        /// Print only the harness's final message of the last turn, as plain text.
-        #[arg(long, conflicts_with = "last")]
-        last_message: bool,
     },
     /// Create or update an Agent from a manifest.
     Apply {
@@ -219,18 +216,16 @@ struct SessionTarget {
     agent: Option<String>,
 }
 
-/// Whether and how a prompt waits for its answer.
+/// Whether a prompt waits for the next turn completion.
 #[derive(clap::Args)]
-struct AnswerOptions {
-    /// Block until the harness answers, then print the turns it produced.
+struct CompletionOptions {
+    /// Wait for a turn completion and 200 ms of settled activity, following work
+    /// observed during settling. Inspect output separately with `turns`.
     #[arg(long)]
     wait: bool,
     /// Maximum wait with --wait, written as seconds, minutes, or hours.
     #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
     timeout: Duration,
-    /// With --wait, print only the harness's final message as plain text.
-    #[arg(long, requires = "wait")]
-    last_message: bool,
 }
 
 /// Prompt text from --prompt, --file, or piped standard input.
@@ -274,66 +269,6 @@ enum ClaudeCommand {
 }
 
 #[derive(Subcommand)]
-enum SessionCommand {
-    /// Create a Session and wait until its harness is ready, without attaching.
-    Create {
-        /// Session name.
-        name: String,
-        /// Owning Agent; inferred from the current directory when omitted.
-        #[arg(long)]
-        agent: Option<String>,
-        /// Harness installation to bind when creating the Session.
-        #[arg(long, value_parser = parse_harness)]
-        harness: Option<agent::Harness>,
-        /// First prompt to deliver once the harness is ready. Read from a file
-        /// with --file, or from standard input when neither is given.
-        #[arg(long, conflicts_with = "file", allow_hyphen_values = true)]
-        message: Option<String>,
-        /// Read the first prompt from a file instead of --message.
-        #[arg(short = 'f', long, conflicts_with = "message")]
-        file: Option<PathBuf>,
-    },
-    /// Send a message to a running Session's harness.
-    Send {
-        /// Session name.
-        name: String,
-        /// Owning Agent; inferred from the current directory when omitted.
-        #[arg(long)]
-        agent: Option<String>,
-        /// Message to deliver. Read from a file with --file, or from standard
-        /// input when neither is given.
-        #[arg(long, conflicts_with = "file", allow_hyphen_values = true)]
-        message: Option<String>,
-        /// Read the message from a file instead of --message.
-        #[arg(short = 'f', long, conflicts_with = "message")]
-        file: Option<PathBuf>,
-        /// Block until the harness finishes the turn, then print what it produced.
-        #[arg(long)]
-        wait: bool,
-        /// Maximum wait with --wait, written as seconds, minutes, or hours.
-        #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
-        timeout: Duration,
-        /// With --wait, print only the harness's final message of the turn as plain text.
-        #[arg(long, requires = "wait")]
-        last_message: bool,
-    },
-    /// Read the harness transcript of a Session as turns.
-    Turns {
-        /// Session name.
-        name: String,
-        /// Owning Agent; inferred from the current directory when omitted.
-        #[arg(long)]
-        agent: Option<String>,
-        /// Print only the last N turns.
-        #[arg(long)]
-        last: Option<usize>,
-        /// Print only the harness's final message of the last turn, as plain text.
-        #[arg(long, conflicts_with = "last")]
-        last_message: bool,
-    },
-}
-
-#[derive(Subcommand)]
 enum CodexCommand {
     /// Sign in with `ChatGPT` and store an Agent-only grant.
     Login {
@@ -365,25 +300,10 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        let prompt_timeout = match &arguments.command {
-            Command::Prompt { answer, .. } if answer.wait => Some(answer.timeout),
-            _ => None,
-        };
-        let operation = async {
-            if !matches!(arguments.command, Command::Create { .. }) {
-                ensure_daemon(&home, &client).await?;
-            }
-            execute(arguments.command, &home, &client).await
-        };
-        if let Some(timeout) = prompt_timeout {
-            tokio::time::timeout(timeout, operation).await.map_err(|_| {
-                CommandError::Message(
-                    "timed out prompting Session; delivery may have started; inspect turns before retrying".into(),
-                )
-            })?
-        } else {
-            operation.await
+        if !matches!(arguments.command, Command::Create { .. } | Command::Prompt { .. }) {
+            ensure_daemon(&home, &client).await?;
         }
+        execute(arguments.command, &home, &client).await
     })
 }
 
@@ -477,12 +397,12 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             input,
             timeout,
         } => create_session(home, client, target, harness, input, timeout).await?,
-        Command::Prompt { target, input, answer } => prompt_session(client, target, input, answer).await?,
-        Command::Turns {
+        Command::Prompt {
             target,
-            last,
-            last_message,
-        } => turns(client, target, last, last_message).await?,
+            input,
+            completion,
+        } => prompt_session(home, client, target, input, completion).await?,
+        Command::Turns { target, last } => turns(client, target, last).await?,
         Command::Tui => return tui::run(home, client).await,
         Command::Wait {
             condition,
@@ -730,41 +650,45 @@ async fn create_session(
 }
 
 async fn prompt_session(
+    home: &ControlPlaneHome,
     client: &Client,
     target: SessionTarget,
     input: PromptInput,
-    answer: AnswerOptions,
+    completion: CompletionOptions,
 ) -> CommandResult<()> {
-    let (agent, session) = session_target(client, target).await?;
-    let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
-    let produced = client
-        .prompt_session(
-            &agent,
-            session.clone(),
-            prompt,
-            answer.wait,
-            answer.wait.then_some(answer.timeout),
-        )
-        .await?;
-    if !answer.wait {
+    let deadline = tokio::time::Instant::now() + completion.timeout;
+    let operation = async {
+        ensure_daemon(home, client).await?;
+        let (agent, session) = session_target(client, target).await?;
+        let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
+        client
+            .prompt_session(
+                &agent,
+                session.clone(),
+                prompt,
+                completion.wait,
+                completion
+                    .wait
+                    .then(|| deadline.saturating_duration_since(tokio::time::Instant::now())),
+            )
+            .await?;
         println!("session/{agent}/{session} prompted");
-    } else if answer.last_message {
-        print_last_message(&produced);
+        Ok(())
+    };
+    if completion.wait {
+        tokio::time::timeout_at(deadline, operation).await.map_err(|_| {
+            CommandError::Message(
+                "timed out prompting Session; delivery may have started; inspect turns before retrying".into(),
+            )
+        })?
     } else {
-        print_turns(&produced);
+        operation.await
     }
-    Ok(())
 }
 
-async fn turns(client: &Client, target: SessionTarget, last: Option<usize>, last_message: bool) -> CommandResult<()> {
+async fn turns(client: &Client, target: SessionTarget, last: Option<usize>) -> CommandResult<()> {
     let (agent, session) = session_target(client, target).await?;
-    let effective_last = if last_message { Some(1) } else { last };
-    let turns = client.session_turns(&agent, session, effective_last).await?;
-    if last_message {
-        print_last_message(&turns);
-    } else {
-        print_turns(&turns);
-    }
+    print_turns(&client.session_turns(&agent, session, last).await?);
     Ok(())
 }
 
@@ -786,17 +710,6 @@ fn read_prompt_arg(input: PromptInput) -> CommandResult<Option<String>> {
         }
     }
     Ok(None)
-}
-
-/// Prints the harness's final message of the newest turn, or says why there is none.
-fn print_last_message(turns: &[agent::sessions::Turn]) {
-    match turns.last() {
-        None => eprintln!("No turns yet."),
-        Some(turn) => match turn.final_assistant_message() {
-            Some(text) => println!("{text}"),
-            None => eprintln!("The turn has no final message yet."),
-        },
-    }
 }
 
 fn print_turns(turns: &[agent::sessions::Turn]) {
@@ -1250,6 +1163,104 @@ mod tests {
             )
             .await
             .expect("the command's own deadline must include Agent inference");
+            assert!(matches!(result, Err(CommandError::Message(message)) if message.contains("timed out")));
+        }
+    }
+
+    struct DelayedHealthConnector {
+        remaining: std::rc::Rc<std::cell::Cell<Option<Duration>>>,
+    }
+
+    impl agent::control_api::Connector for DelayedHealthConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async move {
+                use tokio::io::AsyncBufReadExt as _;
+                let (client, server) = tokio::io::duplex(4096);
+                let remaining = self.remaining.clone();
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut line = String::new();
+                    server.read_line(&mut line).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
+                    if request["method"] == "control.v1.health" {
+                        tokio::time::sleep(Duration::from_millis(600)).await;
+                    } else {
+                        assert_eq!(request["method"], "sessions.v1.prompt");
+                        let deadline: SystemTime =
+                            serde_json::from_value(request["params"]["deadline"].clone()).expect("deadline");
+                        remaining.set(Some(
+                            deadline.duration_since(SystemTime::now()).expect("remaining budget"),
+                        ));
+                    }
+                    let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":{}});
+                    server
+                        .write_all(format!("{response}\n").as_bytes())
+                        .await
+                        .expect("response");
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn prompt_setup_consumes_the_delivery_budget() {
+        let remaining = std::rc::Rc::new(std::cell::Cell::new(None));
+        let client = Client::new(std::rc::Rc::new(DelayedHealthConnector {
+            remaining: remaining.clone(),
+        }));
+        let directory = tempfile::TempDir::new().expect("home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        prompt_session(
+            &home,
+            &client,
+            SessionTarget {
+                resource: "session/s1".into(),
+                name: None,
+                agent: Some("worker".into()),
+            },
+            PromptInput {
+                prompt: Some("go".into()),
+                file: None,
+            },
+            CompletionOptions {
+                wait: true,
+                timeout: Duration::from_secs(1),
+            },
+        )
+        .await
+        .expect("prompt");
+        assert!(remaining.get().expect("request captured") <= Duration::from_millis(400));
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn prompt_deadline_includes_daemon_startup_and_agent_resolution() {
+        for (owner, healthy) in [(Some("worker"), false), (None, true)] {
+            let client = Client::new(std::rc::Rc::new(StalledConnector { healthy }));
+            let directory = tempfile::TempDir::new().expect("home");
+            let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+            let result = tokio::time::timeout(
+                Duration::from_secs(2),
+                prompt_session(
+                    &home,
+                    &client,
+                    SessionTarget {
+                        resource: "session/s1".into(),
+                        name: None,
+                        agent: owner.map(str::to_owned),
+                    },
+                    PromptInput {
+                        prompt: Some("go".into()),
+                        file: None,
+                    },
+                    CompletionOptions {
+                        wait: true,
+                        timeout: Duration::from_secs(1),
+                    },
+                ),
+            )
+            .await
+            .expect("command deadline");
             assert!(matches!(result, Err(CommandError::Message(message)) if message.contains("timed out")));
         }
     }

@@ -109,17 +109,13 @@ impl SessionApi for FakeSessions {
         prompt: &'a str,
         wait: bool,
         timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
+    ) -> LocalFuture<'a, Result<(), Error>> {
         self.sent.borrow_mut().push((prompt.to_owned(), wait, timeout));
         Box::pin(async move {
             if agent != "worker" {
                 return Err(Error::NotFound);
             }
-            Ok(if wait {
-                vec![answered_turn(prompt, "done")]
-            } else {
-                Vec::new()
-            })
+            Ok(())
         })
     }
 
@@ -249,12 +245,50 @@ fn api() -> ApiFixture {
     }
 }
 
+struct DelayedConnector {
+    inner: InProcessConnector,
+}
+
+impl Connector for DelayedConnector {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            self.inner.connect().await
+        })
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_deadline_expiring_in_transit_prevents_dispatch() {
+    let fixture = api();
+    let client = Client::new(Rc::new(DelayedConnector {
+        inner: InProcessConnector {
+            server: fixture.server.clone(),
+        },
+    }));
+    let error = client
+        .prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("name"),
+            "expired".into(),
+            true,
+            Some(Duration::from_millis(20)),
+        )
+        .await
+        .expect_err("expired before reaching the service");
+    assert!(error.to_string().contains("deadline expired before delivery"));
+    assert!(
+        fixture.sent.borrow().is_empty(),
+        "expired request must not reach prompt delivery"
+    );
+}
+
 #[tokio::test(flavor = "local")]
 async fn session_send_and_turns_round_trip_with_their_parameters() {
     let fixture = api();
     let name = agent::sessions::SessionName::new("s1").expect("name");
 
-    let produced = fixture
+    fixture
         .client
         .prompt_session(
             "worker",
@@ -265,26 +299,19 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
         )
         .await
         .expect("send with wait");
-    assert_eq!(produced.len(), 1);
-    assert_eq!(produced[0].final_assistant_message(), Some("done"));
-    assert!(matches!(
-        &produced[0].messages[1].parts[0],
-        agent::sessions::Part::ToolCall { name, failed: true } if name == "Bash"
-    ));
-
-    let immediate = fixture
+    fixture
         .client
         .prompt_session("worker", name.clone(), "fire and forget".into(), false, None)
         .await
         .expect("send without wait");
-    assert!(immediate.is_empty());
-    assert_eq!(
-        fixture.sent.borrow().as_slice(),
-        [
-            ("do it".to_owned(), true, Some(std::time::Duration::from_secs(90))),
-            ("fire and forget".to_owned(), false, None),
-        ]
-    );
+    {
+        let sent = fixture.sent.borrow();
+        assert_eq!(sent.len(), 2);
+        assert_eq!((&sent[0].0, sent[0].1), (&"do it".to_owned(), true));
+        let remaining = sent[0].2.expect("remaining deadline");
+        assert!(remaining <= Duration::from_secs(90) && remaining > Duration::from_secs(85));
+        assert_eq!(sent[1], ("fire and forget".to_owned(), false, None));
+    }
 
     let last = fixture
         .client
@@ -292,7 +319,7 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
         .await
         .expect("turns");
     assert_eq!(last.len(), 1);
-    assert_eq!(last[0].final_assistant_message(), Some("2"));
+    assert_eq!(last[0], answered_turn("two", "2"));
     assert_eq!(
         fixture
             .client

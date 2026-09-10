@@ -108,7 +108,7 @@ pub trait SessionApi {
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
 
     /// Delivers a prompt to a running Session's harness, optionally waiting for
-    /// its answer and returning the turns it produced.
+    /// a completed turn and settled activity; see [`sessions::Service::prompt`].
     fn prompt<'a>(
         &'a self,
         agent: &'a str,
@@ -116,7 +116,7 @@ pub trait SessionApi {
         prompt: &'a str,
         wait: bool,
         timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
+    ) -> LocalFuture<'a, Result<(), Error>>;
 
     /// Reads the harness transcript of a Session as ordered turns.
     fn turns<'a>(
@@ -147,7 +147,7 @@ impl SessionApi for sessions::Service {
         prompt: &'a str,
         wait: bool,
         timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>> {
+    ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move { Self::prompt(self, agent, name, prompt, wait, timeout).await })
     }
 
@@ -394,12 +394,19 @@ impl Server {
         let Ok(params) = serde_json::from_value::<SessionPromptParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "agent, session name and prompt are required");
         };
-        let timeout = params.timeout_secs.map(std::time::Duration::from_secs);
+        let timeout = match params.deadline {
+            Some(deadline) => match deadline.duration_since(std::time::SystemTime::now()) {
+                Ok(remaining) if !remaining.is_zero() => Some(remaining),
+                _ => return error_response(id, CODE_INVALID_PARAMS, "prompt deadline expired before delivery"),
+            },
+            None => None,
+        };
         result_response(
             id,
             self.sessions
                 .prompt(&params.agent, &params.name, &params.prompt, params.wait, timeout)
-                .await,
+                .await
+                .map(|()| serde_json::json!({})),
         )
     }
 

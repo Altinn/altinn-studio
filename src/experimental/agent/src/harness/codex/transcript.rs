@@ -230,11 +230,8 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(tools, [("exec_command", false), ("shell", true)]);
-        assert_eq!(first.final_assistant_message(), Some("Drawn to scale."));
-        assert_eq!(
-            turns[1].final_assistant_message(),
-            None,
-            "the second turn is still running"
+        assert!(
+            matches!(first.messages.last().and_then(|message| message.parts.last()), Some(Part::Text { text }) if text == "Drawn to scale.")
         );
     }
 
@@ -252,7 +249,9 @@ mod tests {
         );
         let turns = parse(jsonl.as_bytes()).expect("parse");
         assert_eq!(prompts(&turns), ["hello"]);
-        assert_eq!(turns[0].final_assistant_message(), Some("hi"));
+        assert!(
+            matches!(turns[0].messages.last().and_then(|message| message.parts.last()), Some(Part::Text { text }) if text == "hi")
+        );
     }
 
     #[test]

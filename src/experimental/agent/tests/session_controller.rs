@@ -249,7 +249,7 @@ struct FakeRuntime {
     present: Cell<bool>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
-    transcript_delay: Cell<Duration>,
+    fail_transcript: Cell<bool>,
     delivered: Notify,
     hold_completion: Cell<bool>,
     release_completion: Notify,
@@ -265,7 +265,7 @@ impl Default for FakeRuntime {
             present: Cell::new(true),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
-            transcript_delay: Cell::new(Duration::ZERO),
+            fail_transcript: Cell::new(false),
             delivered: Notify::new(),
             hold_completion: Cell::new(false),
             release_completion: Notify::new(),
@@ -377,7 +377,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
     ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
         let turns = self.conversation.borrow().clone();
         Box::pin(async move {
-            tokio::time::sleep(self.transcript_delay.get()).await;
+            if self.fail_transcript.get() {
+                return Err(Error::Session("transcript unavailable".into()));
+            }
             Ok(turns)
         })
     }
@@ -484,7 +486,7 @@ async fn running_session(
 
 #[tokio::test(flavor = "local")]
 #[allow(clippy::too_many_lines)]
-async fn send_with_wait_returns_the_turns_the_conversation_gained() {
+async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     const TOKEN: &str = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
@@ -497,7 +499,7 @@ async fn send_with_wait_returns_the_turns_the_conversation_gained() {
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let runtime = Rc::new(FakeRuntime::default());
     // An earlier exchange the hook counter never saw (it was folded before a
-    // relaunch); its turn must not leak into the produced turns.
+    // relaunch); it remains available through the separate turns operation.
     let mut earlier = user_turn("earlier prompt");
     earlier.messages.push(assistant_text("earlier answer"));
     runtime.conversation.borrow_mut().push(earlier);
@@ -584,18 +586,13 @@ async fn send_with_wait_returns_the_turns_the_conversation_gained() {
         .await
         .expect("fold");
 
-    let produced = send.await.expect("send task").expect("turns");
-    assert_eq!(produced.len(), 1, "only the exchange this send produced");
-    assert_eq!(produced[0].final_assistant_message(), Some("did the thing"));
-    let user = &produced[0].messages[0];
-    assert!(matches!(&user.parts[0], agent::sessions::Part::Text { text } if text == "do the thing"));
+    send.await.expect("send task").expect("turn completed");
 
     // Without wait the delivery returns immediately and reads nothing.
-    let immediate = service
+    service
         .prompt("worker", &name, "and another", false, None)
         .await
         .expect("send");
-    assert!(immediate.is_empty());
     assert_eq!(runtime.sent.borrow().len(), 2);
 
     // `turns` reads the whole conversation; `last` trims it.
@@ -608,7 +605,7 @@ async fn send_with_wait_returns_the_turns_the_conversation_gained() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn send_with_wait_reports_a_failed_session_instead_of_hanging() {
+async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
     const TOKEN: &str = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
@@ -674,7 +671,7 @@ async fn send_with_wait_reports_a_failed_session_instead_of_hanging() {
 
 #[tokio::test(flavor = "local")]
 #[allow(clippy::too_many_lines)]
-async fn send_with_wait_joins_a_running_turn_and_waits_for_a_late_start_report() {
+async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
     const TOKEN: &str = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) = running_session(&directory, TOKEN, false).await;
@@ -787,14 +784,7 @@ async fn send_with_wait_joins_a_running_turn_and_waits_for_a_late_start_report()
         .await
         .expect("fold");
 
-    let produced = send.await.expect("send task").expect("turns");
-    assert_eq!(produced.len(), 1, "the running turn the input joined is returned");
-    assert_eq!(produced[0].final_assistant_message(), Some("went left"));
-    assert!(
-        produced[0].messages.iter().any(|message| {
-            matches!(&message.parts[0], agent::sessions::Part::Text { text } if text == "steer left")
-        })
-    );
+    send.await.expect("send task").expect("turn completed");
     agent_task.abort();
     session_task.abort();
 }
@@ -882,7 +872,7 @@ impl ServiceHarness {
             .push(message);
     }
 
-    fn prompt(&self, text: &'static str) -> tokio::task::JoinHandle<Result<Vec<agent::sessions::Turn>, Error>> {
+    fn prompt(&self, text: &'static str) -> tokio::task::JoinHandle<Result<(), Error>> {
         let service = self.service.clone();
         tokio::task::spawn_local(async move {
             service
@@ -897,7 +887,7 @@ impl ServiceHarness {
         })
     }
 
-    async fn await_delivery(&self, answer: &mut tokio::task::JoinHandle<Result<Vec<agent::sessions::Turn>, Error>>) {
+    async fn await_delivery(&self, answer: &mut tokio::task::JoinHandle<Result<(), Error>>) {
         tokio::time::timeout(Duration::from_secs(5), async {
             tokio::select! {
                 () = self.runtime.delivered.notified() => {},
@@ -917,83 +907,105 @@ impl ServiceHarness {
 }
 
 #[tokio::test(flavor = "local")]
-async fn a_repeated_prompt_never_matches_an_earlier_exchange() {
-    for current_prompt in ["something else", "continue"] {
-        let directory = TempDir::new().expect("temporary directory");
-        let harness = ServiceHarness::start(&directory, "11111111-1111-4111-8111-111111111111").await;
-        // An older answer and an open turn, which may have the same input as ours.
-        let mut earlier = user_turn("continue");
-        earlier.messages.push(assistant_text("old answer"));
-        harness.runtime.conversation.borrow_mut().push(earlier);
-        harness
-            .runtime
-            .conversation
-            .borrow_mut()
-            .push(user_turn(current_prompt));
-        harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
-
-        harness.runtime.delivery_delay.set(Duration::from_millis(150));
-        let mut answer = harness.prompt("continue");
-        harness.await_delivery(&mut answer).await;
-        // The unrelated turn completes: its answer is not ours, and neither is the old one.
-        let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
-        harness.append_to_last_turn(assistant_text("unrelated done"));
-        harness.runtime.conversation.borrow_mut().push(queued);
-        harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-        tokio::time::sleep(Duration::from_millis(2_500)).await;
-        assert!(
-            !answer.is_finished(),
-            "an older exchange with the same text is not the answer"
-        );
-
-        // Our turn runs and completes.
-        harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
-        harness.append_to_last_turn(assistant_text("new answer"));
-        harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-        let produced = answer.await.expect("task").expect("turns");
-        assert_eq!(produced.len(), 1);
-        assert_eq!(produced[0].final_assistant_message(), Some("new answer"));
-        harness.finish();
+async fn prompt_waits_for_one_more_completion_without_reading_the_transcript() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "11111111-1111-4111-8111-111111111111").await;
+    harness.runtime.fail_transcript.set(true);
+    // A previous completion does not satisfy this invocation. Neither does a
+    // permission wait or tool completion in the current turn.
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let mut waiting = harness.prompt("continue");
+    harness.await_delivery(&mut waiting).await;
+    for event in [
+        agent::sessions::ActivityEvent::TurnStarted,
+        agent::sessions::ActivityEvent::WaitingForInput,
+        agent::sessions::ActivityEvent::ToolFinished,
+    ] {
+        harness.report(event).await;
     }
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), &mut waiting)
+            .await
+            .is_err()
+    );
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    tokio::time::timeout(Duration::from_secs(2), waiting)
+        .await
+        .expect("completion observed")
+        .expect("task")
+        .expect("prompt");
+    harness.finish();
 }
 
 #[tokio::test(flavor = "local")]
-async fn a_queued_prompt_is_not_answered_by_its_own_opening_commentary() {
-    let directory = TempDir::new().expect("temporary directory");
+async fn prompt_waits_for_a_turn_that_started_before_delivery_finished() {
+    let directory = TempDir::new().expect("directory");
     let harness = ServiceHarness::start(&directory, "22222222-2222-4222-8222-222222222222").await;
-    harness.runtime.conversation.borrow_mut().push(user_turn("first task"));
+    harness.runtime.fail_transcript.set(true);
+    harness.runtime.hold_completion.set(true);
     harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
-
-    harness.runtime.delivery_delay.set(Duration::from_millis(150));
-    let mut answer = harness.prompt("second task");
-    harness.await_delivery(&mut answer).await;
-    // The first turn completes; the queued second turn starts and writes commentary
-    // right after our prompt, then calls a tool, before it finally answers.
-    let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
-    harness.append_to_last_turn(assistant_text("first done"));
-    harness.runtime.conversation.borrow_mut().push(queued);
+    let mut waiting = harness.prompt("queued input");
+    harness.await_delivery(&mut waiting).await;
+    // The current turn finishes and queued input starts before delivery returns.
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-    tokio::time::sleep(Duration::from_millis(300)).await;
     harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
-    harness.append_to_last_turn(assistant_text("Let me look."));
-    tokio::time::sleep(Duration::from_millis(700)).await;
+    assert!(!waiting.is_finished(), "delivery must finish first");
+    harness.runtime.release_completion.notify_one();
     assert!(
-        !answer.is_finished(),
-        "commentary of a turn still working is not the answer"
+        tokio::time::timeout(Duration::from_millis(300), &mut waiting)
+            .await
+            .is_err()
     );
-    harness.append_to_last_turn(agent::sessions::Message {
-        role: agent::sessions::Role::Assistant,
-        parts: vec![agent::sessions::Part::ToolCall {
-            name: "Bash".into(),
-            failed: false,
-        }],
-    });
-    harness.append_to_last_turn(assistant_text("second done"));
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-    let produced = answer.await.expect("task").expect("turns");
-    assert_eq!(produced.len(), 1);
-    assert_eq!(produced[0].final_assistant_message(), Some("second done"));
-    assert_eq!(produced[0].messages.len(), 4, "prompt, commentary, tool call, answer");
+    tokio::time::timeout(Duration::from_secs(2), waiting)
+        .await
+        .expect("completion observed")
+        .expect("task")
+        .expect("prompt");
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_settles_after_completion_and_follows_turns_started_in_the_window() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "22222222-2222-4222-8222-222222222222").await;
+    harness.runtime.fail_transcript.set(true);
+    let mut waiting = harness.prompt("steer or queue");
+    harness.await_delivery(&mut waiting).await;
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    for _ in 0..2 {
+        assert!(
+            tokio::time::timeout(Duration::from_millis(20), &mut waiting)
+                .await
+                .is_err(),
+            "a completion must settle before returning"
+        );
+        harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+        assert!(
+            tokio::time::timeout(Duration::from_millis(300), &mut waiting)
+                .await
+                .is_err(),
+            "a turn started during settling must complete"
+        );
+        harness.report(agent::sessions::ActivityEvent::WaitingForInput).await;
+        assert!(
+            tokio::time::timeout(Duration::from_millis(300), &mut waiting)
+                .await
+                .is_err(),
+            "a permission wait does not complete the new turn"
+        );
+        harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    }
+    assert!(
+        tokio::time::timeout(Duration::from_millis(20), &mut waiting)
+            .await
+            .is_err()
+    );
+    tokio::time::timeout(Duration::from_secs(2), waiting)
+        .await
+        .expect("settled completion")
+        .expect("task")
+        .expect("prompt");
     harness.finish();
 }
 
@@ -1024,7 +1036,7 @@ async fn the_first_prompt_can_start_an_unreported_conversation() {
             .await
             .expect("first input must not wait for its own start report");
         if wait {
-            assert!(!answer.is_finished(), "delivery alone is not an answer");
+            assert!(!answer.is_finished(), "delivery alone is not turn completion");
             harness
                 .observed
                 .record_session_start_for_launch(
@@ -1040,12 +1052,7 @@ async fn the_first_prompt_can_start_an_unreported_conversation() {
             harness.append_to_last_turn(assistant_text("first answer"));
             harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
         }
-        let turns = (&mut answer).await.expect("task").expect("prompt");
-        if wait {
-            assert_eq!(turns[0].final_assistant_message(), Some("first answer"));
-        } else {
-            assert!(turns.is_empty());
-        }
+        (&mut answer).await.expect("task").expect("prompt");
         harness.finish();
     }
 }
@@ -1110,8 +1117,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
         )
         .await
         .expect("start report");
-    let produced = fire_and_forget.await.expect("task").expect("delivered");
-    assert!(produced.is_empty());
+    fire_and_forget.await.expect("task").expect("delivered");
     assert_eq!(runtime.sent.borrow().as_slice(), ["go"]);
     agent_task.abort();
     session_task.abort();
@@ -1761,61 +1767,29 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn prompt_deadline_bounds_baseline_reads_and_delivery() {
-    for reading in [true, false] {
+async fn prompt_deadline_bounds_delivery_and_completion_waiting() {
+    for slow_delivery in [true, false] {
         let directory = TempDir::new().expect("directory");
         let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
-        if reading {
-            harness.runtime.transcript_delay.set(Duration::from_secs(2));
-        } else {
+        if slow_delivery {
             harness.runtime.delivery_delay.set(Duration::from_secs(2));
         }
         let result = tokio::time::timeout(
-            Duration::from_millis(500),
+            Duration::from_secs(2),
             harness.service.prompt(
                 "worker",
                 &SessionName::new("s1").expect("name"),
                 "deadline",
                 true,
-                Some(Duration::from_millis(50)),
+                Some(Duration::from_millis(100)),
             ),
         )
         .await
-        .expect("the prompt's deadline must bound runtime I/O");
+        .expect("prompt deadline");
         assert!(result.expect_err("deadline").to_string().contains("timed out"));
-        assert!(harness.runtime.sent.borrow().is_empty(), "expired input was not sent");
+        assert_eq!(harness.runtime.sent.borrow().is_empty(), slow_delivery);
         harness.finish();
     }
-}
-
-#[tokio::test(flavor = "local")]
-async fn prompt_deadline_bounds_answer_transcript_reads() {
-    let directory = TempDir::new().expect("directory");
-    let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
-    let service = harness.service.clone();
-    let answer = tokio::task::spawn_local(async move {
-        service
-            .prompt(
-                "worker",
-                &SessionName::new("s1").expect("name"),
-                "answer deadline",
-                true,
-                Some(Duration::from_secs(5)),
-            )
-            .await
-    });
-    tokio::time::timeout(Duration::from_secs(5), harness.runtime.delivered.notified())
-        .await
-        .expect("delivery acknowledgement");
-    harness.runtime.transcript_delay.set(Duration::from_secs(30));
-    harness.append_to_last_turn(assistant_text("done"));
-    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-    let result = tokio::time::timeout(Duration::from_secs(7), answer)
-        .await
-        .expect("answer read is bounded")
-        .expect("task");
-    assert!(result.expect_err("deadline").to_string().contains("timed out"));
-    harness.finish();
 }
 
 #[tokio::test(flavor = "local")]

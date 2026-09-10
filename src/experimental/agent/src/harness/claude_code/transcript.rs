@@ -285,11 +285,8 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(tools, [("Edit", false), ("Bash", true), ("Bash", false)]);
-        assert_eq!(first.final_assistant_message(), Some("Renamed and the tests pass."));
-        assert_eq!(
-            turns[1].final_assistant_message(),
-            None,
-            "the second turn has not answered yet"
+        assert!(
+            matches!(first.messages.last().and_then(|message| message.parts.last()), Some(Part::Text { text }) if text == "Renamed and the tests pass.")
         );
     }
 
