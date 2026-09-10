@@ -31,7 +31,8 @@ export function BackNavigationButton(props: { className?: string }) {
   const applicationMetadata = getApplicationMetadata();
   const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;
   const dialogId = getDialogIdFromDataValues(dataValues);
-  const messageBoxUrl = getMessageBoxUrl(party?.partyId, dialogId);
+  // party is whoever the user picked to fill out the form; locally that decides whose inbox they return to.
+  const messageBoxUrl = getMessageBoxUrl(party?.partyId, dialogId, party?.ssn);
   const hiddenFromInbox = MessageBoxConfigEvaluator.isHiddenFromInbox(applicationMetadata.messageBoxConfig);
   const returnUrl = window.altinnAppGlobalData.returnUrl;
 

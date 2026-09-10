@@ -177,7 +177,7 @@ export const ReceiptContainer = () => {
           subtitleurl={
             hiddenFromInbox
               ? undefined
-              : returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)
+              : returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId, instanceOwnerParty?.ssn)
           }
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
