@@ -44,6 +44,9 @@ avpubliserer
 avpubliseres
 avpublisering
 avpublisert
+avvisningsdialog
+avvisningsdialogen
+avvisningsknapp
 behandlingsreferanse
 bekreftelseskoden
 beskjæringsområde
@@ -101,6 +104,7 @@ innholdstype
 innloggingsløsningen
 innloggingsmetode
 innloggingsmetoden
+innsendingsknapp
 instansier
 instansiering
 instansieringer
@@ -128,6 +132,7 @@ navigasjonsmeny
 navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
+nedlastingsknapp
 nedtrekksliste
 nedtrekkslisten
 nedtrekksmeny
@@ -183,6 +188,7 @@ samtykkemetadata
 seksjonstittel
 sidenavigasjonen
 signatarliste
+signeringsknapp
 signeringsoppgave
 signeringsstatus
 signeringssteg
