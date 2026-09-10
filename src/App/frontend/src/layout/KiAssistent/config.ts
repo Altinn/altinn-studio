@@ -176,11 +176,11 @@ export const Config = new CG.component({
     new CG.prop(
       'stoyreduksjon',
       new CG.str()
-        .optional({ default: 'far_field' })
+        .optional({ default: 'av' })
         .setTitle('Noise reduction', 'Støyreduksjon')
         .setDescription(
-          'far_field for laptop or room microphones, near_field for headsets. Filters audio before turn detection.',
-          'far_field for maskin- eller rommikrofon, near_field for headset. Filtrerer lyden før taledeteksjon.',
+          'av turns it off, near_field for headsets, far_field for laptop or room microphones. Filters audio before turn detection, and can suppress a weak voice.',
+          'av slår den av, near_field for headset, far_field for maskin- eller rommikrofon. Filtrerer lyden før taledeteksjon, og kan dempe en svak stemme.',
         ),
     ),
   )

@@ -75,10 +75,13 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
             // nettopp der den gjetter feil.
             input: {
               transcription: { model: o.transkripsjonsmodell, language: o.sprak },
-              // Filtrerer lyden før taledeteksjonen, ikke etter. Det er dette som
-              // hindrer at en dør som smeller eller noen som prater i bakgrunnen
-              // blir oppfattet som at søkeren har begynt å snakke.
-              noise_reduction: { type: o.stoyreduksjon },
+              // Støyreduksjonen filtrerer lyden før taledeteksjonen. Den demper
+              // bakgrunnslyd, men den kan også spise en svak eller utydelig stemme -
+              // og det er dyrere enn litt støy. Derfor er «av» et gyldig valg, og
+              // feltet utelates helt da i stedet for å sendes tomt.
+              ...(o.stoyreduksjon && o.stoyreduksjon !== 'av'
+                ? { noise_reduction: { type: o.stoyreduksjon } }
+                : {}),
               // Standard er et halvsekund stillhet. Det er altfor kort for noen som
               // snakker sakte eller har talevansker - og det er nettopp dem dette
               // skjemaet er til for. Vi lar heller assistenten vente for lenge.
