@@ -108,6 +108,16 @@ export type IssuableDocument =
         title: string;
         displayType?: 'string' | 'date' | 'image' | 'boolean';
       }[];
+    }
+  | {
+      type: 'legeerklaering-tt-kort';
+      urlDataType?: string;
+      urlField: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
     };
 
 export type RequestedDocument =
@@ -210,6 +220,16 @@ export type RequestedDocument =
         title: string;
         displayType?: 'string' | 'date' | 'image' | 'boolean';
       }[];
+    }
+  | {
+      type: 'legeerklaering-tt-kort';
+      saveToDataType?: string;
+      alternativeUploadToDataType?: string;
+      data?: {
+        field: string;
+        title: string;
+        displayType?: 'string' | 'date' | 'image' | 'boolean';
+      }[];
     };
 
 export type CompLommebokSerialized = {
@@ -223,4 +243,4 @@ export type CompLommebokSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: e6ebaa8aabc012b29d3cb9cb8072630abfa77b6783f3db4a5355f5408e5164af
+// Source hash: f4c6c87b076bd9d26df6d9cdd062f3b15657b94b4fbfd10aed42c50ad4601787

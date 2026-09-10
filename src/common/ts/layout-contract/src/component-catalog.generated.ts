@@ -2513,6 +2513,34 @@ const RequestedDocument = {
       },
       additionalProperties: false,
     },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'legeerklaering-tt-kort', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
   ],
 } as const;
 
@@ -2803,6 +2831,34 @@ const IssuableDocument = {
       type: 'object',
       properties: {
         type: { type: 'constant', value: 'norsk-id-bevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'legeerklaering-tt-kort', required: true },
         urlDataType: { type: 'string', required: false },
         urlField: { type: 'string', required: true },
         data: {

@@ -10215,6 +10215,52 @@
             "urlField"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "legeerklaering-tt-kort"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -11999,6 +12045,51 @@
           "properties": {
             "type": {
               "const": "inntektsbevis"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "legeerklaering-tt-kort"
             },
             "saveToDataType": {
               "type": "string"
