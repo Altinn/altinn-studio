@@ -48,7 +48,12 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "the actor's system prompt, which every turn of every session carries",
     ),
     (
-        "agents/prompts/*",
+        "agents/prompts/*.md",
+        "prompts",
+        "a published prompt one of the call sites uses",
+    ),
+    (
+        "agents/prompts/*/*.md",
         "prompts",
         "a published prompt one of the call sites uses",
     ),
@@ -63,6 +68,9 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "which tools exist in a session",
     ),
 )
+
+# Documentation and loader code sit beside the prompts without being one.
+CARRIES_NO_AXIS: tuple[str, ...] = ("*/README.md", "README.md", "agents/prompts/loader.py")
 
 BEHAVIOR: tuple[tuple[str, str, str], ...] = (
     (
@@ -219,6 +227,8 @@ def analyze(changed: list[str]) -> Impact:
         path = raw[len(prefix) :] if raw.startswith(prefix) else raw
         if not path or path.startswith("tests/"):
             continue
+        if any(fnmatch.fnmatch(path, rule) for rule in CARRIES_NO_AXIS):
+            continue
         found = _match(path, YARDSTICK)
         if found:
             hits.append(Hit(path, found[0], found[1], yardstick=True))
@@ -238,6 +248,8 @@ def _main() -> int:
     strict = "--strict" in sys.argv
     if args:
         changed = args
+    elif not sys.stdin.isatty():
+        changed = [line.strip() for line in sys.stdin if line.strip()]
     else:
         diff = subprocess.run(
             ("git", "diff", "--name-only", "origin/main...HEAD"),
