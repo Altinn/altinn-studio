@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
@@ -13,6 +14,7 @@ public interface IAltinnNotificationClient
         string body,
         EmailContentType contentType = EmailContentType.Plain,
         SendingTime sendingTimePolicy = SendingTime.Anytime,
+        IReadOnlyList<EmailAttachment>? attachments = null,
         CancellationToken cancellationToken = default
     );
 

@@ -9,7 +9,10 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioFormActions,
+  StudioSelect,
 } from '@studio/components';
+import type { ReportFrequency } from 'app-shared/types/ContactPoint';
+import { reportFrequencies } from 'app-shared/types/ContactPoint';
 import classes from './PersonDialog.module.css';
 import {
   emailRegex,
@@ -30,6 +33,7 @@ export type Person = {
   phone: string;
   isActive: boolean;
   environments: string[];
+  reportFrequency: ReportFrequency;
 };
 
 type PersonDialogProps = {
@@ -150,6 +154,22 @@ export const PersonDialog = ({
             placeholder={phonePlaceholder}
             error={phoneError ?? contactMethodError}
           />
+          <StudioSelect
+            label={t('settings.orgs.contact_points.field_report_frequency')}
+            value={person.reportFrequency}
+            onChange={(e) =>
+              setPerson((prev) => ({
+                ...prev,
+                reportFrequency: e.target.value as ReportFrequency,
+              }))
+            }
+          >
+            {reportFrequencies.map((frequency) => (
+              <StudioSelect.Option key={frequency} value={frequency}>
+                {t(`settings.orgs.contact_points.report_frequency_${frequency}`)}
+              </StudioSelect.Option>
+            ))}
+          </StudioSelect>
           <StudioCheckboxGroup
             legend={t('settings.orgs.contact_points.field_environments')}
             className={classes.environments}

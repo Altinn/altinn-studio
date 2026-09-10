@@ -20,12 +20,14 @@ import { environmentsRoute } from './routes/environments.js';
 import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
 import { notificationRoute } from './routes/notifications.js';
 import { accessibleForAllScopesRoute, accessScopesRoute } from './routes/maskinporten.js';
+import { reportMetricsRoute, generatePdfRoute } from './routes/reports.js';
 
 const app = express();
 
 app.use(cors());
 app.use(morgan('combined'));
-app.use(express.json());
+// Reports attach base64-encoded PDFs to notification orders, which exceed the 100kb default.
+app.use(express.json({ limit: '20mb' }));
 
 app.get('/', (req, res) => res.send('Azure Devops API Mock'));
 app.get('/_apis/build/builds/', buildsRoute);
@@ -41,6 +43,8 @@ app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',
   runtimeGatewayDeploymentDetailsRoute,
 );
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/report', reportMetricsRoute);
+app.post('/apps/:org/:env/runtime/gateway/api/v1/pdf', generatePdfRoute);
 app.get('/apps/:org/:env/:org/:app/api/v1/applicationmetadata', appMetadataRoute);
 app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);

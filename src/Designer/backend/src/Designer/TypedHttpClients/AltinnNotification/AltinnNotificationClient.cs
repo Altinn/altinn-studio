@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -38,6 +39,7 @@ public class AltinnNotificationClient(
         string body,
         EmailContentType contentType = EmailContentType.Plain,
         SendingTime sendingTimePolicy = SendingTime.Anytime,
+        IReadOnlyList<EmailAttachment>? attachments = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -52,7 +54,8 @@ public class AltinnNotificationClient(
                     subject,
                     body,
                     contentType,
-                    sendingTimePolicy
+                    sendingTimePolicy,
+                    attachments
                 )
             ),
             cancellationToken
