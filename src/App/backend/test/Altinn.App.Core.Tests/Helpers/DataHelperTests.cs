@@ -70,7 +70,7 @@ public class DataHelperTests
     }
 
     [Fact]
-    public void GetUpdatedDataValues_Names_DataFields_When_That_Is_The_Collection_At_Fault()
+    public void GetUpdatedDataValues_Names_DataFields_When_That_Is_The_Property_At_Fault()
     {
         List<DataField> fields =
         [
@@ -86,7 +86,7 @@ public class DataHelperTests
     }
 
     [Fact]
-    public void GetUpdatedDataValues_Without_A_Collection_Name_Still_Reports_The_Duplicate()
+    public void GetUpdatedDataValues_Without_A_Property_Name_Names_Both_Properties()
     {
         List<DataField> fields =
         [
@@ -99,6 +99,8 @@ public class DataHelperTests
         );
 
         Assert.Contains("'Navn'", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("'presentationFields' or 'dataFields'", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("presentationFields/dataFields", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

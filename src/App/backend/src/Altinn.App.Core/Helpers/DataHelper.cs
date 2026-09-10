@@ -22,7 +22,7 @@ public static class DataHelper
         Dictionary<string, string?> currentDataValues,
         string dataType,
         object updatedData
-    ) => GetUpdatedDataValues(dataFields, currentDataValues, dataType, updatedData, fieldCollectionName: null);
+    ) => GetUpdatedDataValues(dataFields, currentDataValues, dataType, updatedData, metadataPropertyName: null);
 
     /// <summary>
     /// Identifies updated data values texts by extracting data fields from data object and comparing to dictionary of current values.
@@ -31,25 +31,29 @@ public static class DataHelper
     /// <param name="currentDataValues">The current dictionary of data values </param>
     /// <param name="dataType">The type of the updated data objects</param>
     /// <param name="updatedData">The updated data object</param>
-    /// <param name="fieldCollectionName">
+    /// <param name="metadataPropertyName">
     /// The <c>applicationmetadata.json</c> property <paramref name="dataFields"/> was read from —
     /// <c>presentationFields</c> or <c>dataFields</c>. Only used to name the offending configuration when
     /// the fields turn out to be unusable, so the app owner is told which of the two to go and fix.
     /// </param>
     /// <returns>A dictionary with the new or changed data values</returns>
-    public static Dictionary<string, string?> GetUpdatedDataValues(
+    /// <remarks>
+    /// Internal because only the app backend knows which of the two properties it read the fields from.
+    /// The public overload above is the one apps call, and it reports both property names.
+    /// </remarks>
+    internal static Dictionary<string, string?> GetUpdatedDataValues(
         List<DataField>? dataFields,
         Dictionary<string, string?> currentDataValues,
         string dataType,
         object updatedData,
-        string? fieldCollectionName
+        string? metadataPropertyName
     )
     {
         Dictionary<string, string?> dataFieldValues = GetDataFieldValues(
             dataFields,
             dataType,
             updatedData,
-            fieldCollectionName
+            metadataPropertyName
         );
         return CompareDictionaries(currentDataValues, dataFieldValues);
     }
@@ -111,7 +115,7 @@ public static class DataHelper
         List<DataField>? dataFields,
         string dataType,
         object data,
-        string? fieldCollectionName
+        string? metadataPropertyName
     )
     {
         Dictionary<string, string?> dataFieldValues = new Dictionary<string, string?>();
@@ -139,7 +143,7 @@ public static class DataHelper
             // for an app that was built before it existed. Keep the wording aligned with that rule.
             if (dataFieldValues.ContainsKey(field.Id))
             {
-                throw DuplicateFieldId(dataFields, field, dataType, fieldCollectionName);
+                throw CreateDuplicateFieldIdException(dataFields, field, dataType, metadataPropertyName);
             }
 
             string fixedPath = field.Path.Replace("-", string.Empty);
@@ -158,18 +162,24 @@ public static class DataHelper
     /// restricted to <paramref name="dataType"/> so it names the entry actually in the dictionary,
     /// whichever entries the loop above chose to visit.
     /// </summary>
-    private static ApplicationConfigException DuplicateFieldId(
+    private static ApplicationConfigException CreateDuplicateFieldIdException(
         List<DataField> dataFields,
         DataField duplicate,
         string dataType,
-        string? fieldCollectionName
+        string? metadataPropertyName
     )
     {
         string firstPath = dataFields.First(f => f.Id == duplicate.Id && f.DataTypeId == dataType).Path;
-        string collection = fieldCollectionName ?? "presentationFields/dataFields";
+
+        // Name both properties when the caller did not say which one it read: quoting a single
+        // "presentationFields/dataFields" would send the reader looking for a property that does
+        // not exist in the file.
+        string collection = metadataPropertyName is null
+            ? "'presentationFields' or 'dataFields'"
+            : $"'{metadataPropertyName}'";
 
         return new ApplicationConfigException(
-            $"applicationmetadata.json declares the id '{duplicate.Id}' twice in '{collection}', on "
+            $"applicationmetadata.json declares the id '{duplicate.Id}' twice in {collection}, on "
                 + $"'{firstPath}' and on '{duplicate.Path}', and both name the dataTypeId '{dataType}'. Each "
                 + "entry's id is the key its value is stored under on the instance, so the two cannot both "
                 + "survive. Give each entry its own id."

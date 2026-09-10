@@ -2775,7 +2775,6 @@ namespace Altinn.App.Core.Helpers
     public static class DataHelper
     {
         public static System.Collections.Generic.Dictionary<string, string?> GetUpdatedDataValues(System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.DataField>? dataFields, System.Collections.Generic.Dictionary<string, string?> currentDataValues, string dataType, object updatedData) { }
-        public static System.Collections.Generic.Dictionary<string, string?> GetUpdatedDataValues(System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.DataField>? dataFields, System.Collections.Generic.Dictionary<string, string?> currentDataValues, string dataType, object updatedData, string? fieldCollectionName) { }
         public static void ResetDataFields(System.Collections.Generic.List<string> dataFields, object data) { }
     }
     [System.Obsolete("This functionality will be removed in the future")]

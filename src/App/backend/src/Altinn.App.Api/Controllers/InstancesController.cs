@@ -2056,7 +2056,7 @@ public class InstancesController : ControllerBase
             instance.PresentationTexts,
             dataType,
             data,
-            fieldCollectionName: "presentationFields"
+            metadataPropertyName: "presentationFields"
         );
 
         if (updatedValues.Count > 0)
@@ -2083,7 +2083,7 @@ public class InstancesController : ControllerBase
             instance.DataValues,
             dataType,
             data,
-            fieldCollectionName: "dataFields"
+            metadataPropertyName: "dataFields"
         );
 
         if (updatedValues.Count > 0)
