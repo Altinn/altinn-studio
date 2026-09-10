@@ -2310,6 +2310,834 @@
           ]
         }
       }
+    },
+    "net.eidas2sandkasse.helse_legeerklaering_tt_sd_jwt_vc": {
+      "vct": "net.eidas2sandkasse:helse_legeerklaering_tt",
+      "scope": "eudiw:net.eidas2sandkasse:helse_legeerklaering_tt",
+      "format": "dc+sd-jwt",
+      "cryptographic_binding_methods_supported": [
+        "jwk"
+      ],
+      "credential_signing_alg_values_supported": [
+        "ES256"
+      ],
+      "display": [
+        {
+          "name": "Legeerklæring TT-kort",
+          "locale": "no"
+        }
+      ],
+      "claims": [
+        {
+          "path": [
+            "firstName"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fornavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "lastName"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Etternavn",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "socialSecurityNumber"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsnummer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "birthDate"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Fødselsdato",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "isVisuallyImpaired"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Er synshemmet",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "visuallyImpairedLevel"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Grad av synshemming",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "isWheelchairDependent"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Er rullestolavhengig",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "limitedAbilityToUsePublicTransport"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Redusert evne til å bruke offentlig transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "limitedAbilityToUsePublicTransportReasons"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Årsaker til redusert evne til å bruke offentlig transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "limitedAbilityToUsePublicTransportDiagnoses"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Diagnoser knyttet til redusert evne til å bruke offentlig transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "hasOrientationChallenges"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Har orienteringsutfordringer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "hasWalkingChallenges"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Har gangutfordringer",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "walkingDistanceAbilityWithoutAid"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gangdistanse uten hjelpemiddel",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "walkingDistanceAbilityWithAid"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gangdistanse med hjelpemiddel",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "walkingDistanceAbilityConfirmed"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Gangdistanse bekreftet",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "hasChallengeGettingOnOffPublicTransport"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Har utfordringer med av- og påstigning på offentlig transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "hasChallengeStayingOnPublicTransport"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Har utfordringer med å sitte/stå under transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "limitedAbilityToUsePublicTransportHealthCondition"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Helsetilstand knyttet til redusert evne til å bruke offentlig transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedWheelchair"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Behov for rullestol",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedWheelchairPrivate"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Behov for egen rullestol",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedWheelchairPrivateType"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Type egen rullestol",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedWheelchairMustSitInChairDuringTransport"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Må sitte i rullestol under transport",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedWalker"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Behov for rullator",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedWalkerType"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Type rullator",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedGuideDog"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Behov for førerhund",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedTwoCompanions"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Behov for to ledsagere",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedMustDriveAlone"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Må kjøres alene",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedMustDriveAloneReason"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Årsak til at bruker må kjøres alene",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedOther"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Annet hjelpemiddelbehov",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityAidNeedOtherReason"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Beskrivelse av annet hjelpemiddelbehov",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityExpectation"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Forventet varighet av funksjonsnedsettelse",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityExpectationUnder5Years"
+          ],
+          "mandatory": true,
+          "display": [
+            {
+              "name": "Funksjonsnedsettelse forventes å vare under 5 år",
+              "locale": "no"
+            }
+          ]
+        },
+        {
+          "path": [
+            "disabilityExpectationUnder5YearsReason"
+          ],
+          "mandatory": false,
+          "display": [
+            {
+              "name": "Årsak til forventet varighet under 5 år",
+              "locale": "no"
+            }
+          ]
+        }
+      ],
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "Legeerklæring TT-kort",
+            "locale": "no"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "firstName"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fornavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "lastName"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Etternavn",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "socialSecurityNumber"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsnummer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "birthDate"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Fødselsdato",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "isVisuallyImpaired"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Er synshemmet",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "visuallyImpairedLevel"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Grad av synshemming",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "isWheelchairDependent"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Er rullestolavhengig",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "limitedAbilityToUsePublicTransport"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Redusert evne til å bruke offentlig transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "limitedAbilityToUsePublicTransportReasons"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Årsaker til redusert evne til å bruke offentlig transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "limitedAbilityToUsePublicTransportDiagnoses"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Diagnoser knyttet til redusert evne til å bruke offentlig transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "hasOrientationChallenges"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Har orienteringsutfordringer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "hasWalkingChallenges"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Har gangutfordringer",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "walkingDistanceAbilityWithoutAid"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gangdistanse uten hjelpemiddel",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "walkingDistanceAbilityWithAid"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gangdistanse med hjelpemiddel",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "walkingDistanceAbilityConfirmed"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Gangdistanse bekreftet",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "hasChallengeGettingOnOffPublicTransport"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Har utfordringer med av- og påstigning på offentlig transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "hasChallengeStayingOnPublicTransport"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Har utfordringer med å sitte/stå under transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "limitedAbilityToUsePublicTransportHealthCondition"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Helsetilstand knyttet til redusert evne til å bruke offentlig transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedWheelchair"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Behov for rullestol",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedWheelchairPrivate"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Behov for egen rullestol",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedWheelchairPrivateType"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Type egen rullestol",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedWheelchairMustSitInChairDuringTransport"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Må sitte i rullestol under transport",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedWalker"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Behov for rullator",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedWalkerType"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Type rullator",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedGuideDog"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Behov for førerhund",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedTwoCompanions"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Behov for to ledsagere",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedMustDriveAlone"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Må kjøres alene",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedMustDriveAloneReason"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Årsak til at bruker må kjøres alene",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedOther"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Annet hjelpemiddelbehov",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityAidNeedOtherReason"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Beskrivelse av annet hjelpemiddelbehov",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityExpectation"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Forventet varighet av funksjonsnedsettelse",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityExpectationUnder5Years"
+            ],
+            "mandatory": true,
+            "display": [
+              {
+                "name": "Funksjonsnedsettelse forventes å vare under 5 år",
+                "locale": "no"
+              }
+            ]
+          },
+          {
+            "path": [
+              "disabilityExpectationUnder5YearsReason"
+            ],
+            "mandatory": false,
+            "display": [
+              {
+                "name": "Årsak til forventet varighet under 5 år",
+                "locale": "no"
+              }
+            ]
+          }
+        ]
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": [
+            "ES256"
+          ]
+        }
+      }
     }
   },
   "display": [
