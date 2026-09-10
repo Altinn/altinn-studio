@@ -443,7 +443,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetRunnableWorkflows(throttleGate: settings.Value.Throttling.Enabled)
+                .GetRunnableWorkflows(applyThrottleGate: settings.Value.Throttling.Enabled)
                 .CountAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result);

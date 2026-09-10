@@ -38,11 +38,14 @@ internal static class EngineRepositoryQueryExtensions
         /// makes a parked workflow runnable regardless of its timer, mirroring the fetch gate's
         /// cancellation bypass.
         /// <para>
-        /// <paramref name="throttleGate"/> mirrors the fetch gate variant selected at startup from
-        /// <c>EngineSettings.Throttling.Enabled</c>: when the throttle gate is active, a workflow
-        /// parked behind a future <c>ThrottledUntil</c> is not claimable either. Pass the process's
-        /// actual setting — with throttling disabled the fetch ignores the column, so a stale stamp
-        /// must not hide a claimable workflow.
+        /// <paramref name="applyThrottleGate"/> mirrors the fetch gate variant selected at startup
+        /// from <c>EngineSettings.Throttling.Enabled</c>: when the throttle gate is active, a
+        /// workflow parked behind a future <c>ThrottledUntil</c> is not claimable either. It takes
+        /// the process's actual setting and nothing else — passing <c>true</c> under a disabled
+        /// throttle would let a stale stamp hide a workflow the fetch would claim, and <c>false</c>
+        /// under an enabled one would report parked workflows as runnable forever. Deliberately
+        /// has no default: there is one right answer per process, and no caller should be able to
+        /// omit it into the permissive one.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -50,7 +53,7 @@ internal static class EngineRepositoryQueryExtensions
         /// gate (including the throttle gate and its cancellation bypass), and the dependency gate. Getting any
         /// of them wrong turns the harness's "wait until nothing can start" into a wait that never ends.
         /// </remarks>
-        public IQueryable<WorkflowEntity> GetRunnableWorkflows(bool throttleGate = false) =>
+        public IQueryable<WorkflowEntity> GetRunnableWorkflows(bool applyThrottleGate) =>
             dbContext.Workflows.Where(wf =>
                 wf.Status == PersistentItemStatus.Processing
                 || (
@@ -60,7 +63,7 @@ internal static class EngineRepositoryQueryExtensions
                         || (
                             (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                             && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
-                            && (!throttleGate || wf.ThrottledUntil == null || wf.ThrottledUntil <= DateTime.UtcNow)
+                            && (!applyThrottleGate || wf.ThrottledUntil == null || wf.ThrottledUntil <= DateTime.UtcNow)
                         )
                     )
                     && !wf.Dependencies.Any(dep => !PersistentItemStatusMap.Finished.Contains(dep.Status))
