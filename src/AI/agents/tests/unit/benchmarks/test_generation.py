@@ -963,6 +963,18 @@ def _write(path: str, content: str) -> dict:
     return {"tool": "write_file", "arguments_json": json.dumps({"path": path, "content": content})}
 
 
+_TIMESTAMP_RULE = {
+    "content_pairings": [
+        {
+            "component": "Datepicker",
+            "property": "timeStamp",
+            "value": False,
+            "consequence": "the page will not render",
+        }
+    ]
+}
+
+
 class TestContentPairings:
     def _score(self, calls, rule):
         from benchmarks.generation import content_pairings, ui_output_as_tool_calls
@@ -975,12 +987,12 @@ class TestContentPairings:
     def test_a_datepicker_without_timestamp_is_the_defect_the_comment_names(self):
         scores = self._score(
             [_write("Side1.json", _layout(_datepicker("fodselsdato"), _datepicker("dato")))],
-            {"datepicker_sets_timestamp": True},
+            _TIMESTAMP_RULE,
         )
 
         assert scores[0].name == "gen_content_pairings"
         assert scores[0].value == 0.0
-        assert scores[0].comment == "0/2 Datepicker(s) set timeStamp; the page will not render"
+        assert scores[0].comment == "0/2 Datepicker(s) set timeStamp to false; the page will not render"
 
     def test_partial_credit_when_only_some_datepickers_set_it(self):
         scores = self._score(
@@ -988,25 +1000,25 @@ class TestContentPairings:
                 _write("Side1.json", _layout(_datepicker("fodselsdato", timeStamp=False))),
                 _write("Side2.json", _layout(_datepicker("dato"))),
             ],
-            {"datepicker_sets_timestamp": True},
+            _TIMESTAMP_RULE,
         )
 
         assert scores[0].value == 0.5
-        assert scores[0].comment == "1/2 Datepicker(s) set timeStamp; the page will not render"
+        assert scores[0].comment == "1/2 Datepicker(s) set timeStamp to false; the page will not render"
 
     def test_a_turn_that_sets_it_everywhere_scores_full_and_names_no_consequence(self):
         scores = self._score(
             [_write("Side1.json", _layout(_datepicker("dato", timeStamp=False)))],
-            {"datepicker_sets_timestamp": True},
+            _TIMESTAMP_RULE,
         )
 
         assert scores[0].value == 1.0
-        assert scores[0].comment == "1/1 Datepicker(s) set timeStamp"
+        assert scores[0].comment == "1/1 Datepicker(s) set timeStamp to false"
 
     def test_a_nested_datepicker_is_counted(self):
         nested = {"id": "gruppe", "type": "Group", "children": [_datepicker("dato")]}
         scores = self._score(
-            [_write("Side1.json", _layout(nested))], {"datepicker_sets_timestamp": True}
+            [_write("Side1.json", _layout(nested))], _TIMESTAMP_RULE
         )
 
         assert scores[0].value == 0.0
@@ -1019,12 +1031,25 @@ class TestContentPairings:
         """No subject, so neither 0 nor 1 would be a true claim."""
         header = {"id": "side1-header", "type": "Header"}
         assert self._score(
-            [_write("Side1.json", _layout(header))], {"datepicker_sets_timestamp": True}
+            [_write("Side1.json", _layout(header))], _TIMESTAMP_RULE
         ) == []
+
+    def test_a_datepicker_that_sets_the_wrong_value_is_the_defect_not_a_pass(self):
+        scores = self._score(
+            [_write("Side1.json", _layout(_datepicker("dato", timeStamp=True)))],
+            _TIMESTAMP_RULE,
+        )
+
+        assert scores[0].value == 0.0
+        assert scores[0].comment == "0/1 Datepicker(s) set timeStamp to false; the page will not render"
+
+    def test_a_json_scalar_payload_is_skipped_rather_than_crashing(self):
+        for payload in ("null", "5", '"text"', "true"):
+            assert self._score([_write("Side1.json", payload)], _TIMESTAMP_RULE) == []
 
     def test_content_that_is_not_json_is_skipped_rather_than_crashing(self):
         assert self._score(
-            [_write("Side1.json", "not json at all")], {"datepicker_sets_timestamp": True}
+            [_write("Side1.json", "not json at all")], _TIMESTAMP_RULE
         ) == []
 
     def test_the_regression_item_declares_the_pairing_the_source_run_got_wrong(self):
@@ -1036,7 +1061,7 @@ class TestContentPairings:
             i for i in dataset.items if i["id"] == "convert-writes-layouts-with-valid-datepickers"
         )
 
-        assert rule_of(item["expectedOutput"])["datepicker_sets_timestamp"] is True
+        assert rule_of(item["expectedOutput"])["content_pairings"] == _TIMESTAMP_RULE["content_pairings"]
 
     def test_the_source_run_scores_zero_on_its_own_regression_item(self):
         from benchmarks.dataset_sync import load_datasets
