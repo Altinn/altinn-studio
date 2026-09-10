@@ -1315,6 +1315,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     "namespace": "ttd:my-app",
     "createdAt": "2026-03-19T10:00:00+00:00",
     "updatedAt": "2026-03-19T10:00:05+00:00",
+    "executionStartedAt": "2026-03-19T10:00:01+00:00",
     "overallStatus": "Completed",
     "labels": {
         "org": "ttd",
@@ -1328,6 +1329,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "validate-form",
             "processingOrder": 0,
             "updatedAt": "2026-03-19T10:00:02+00:00",
+            "executionStartedAt": "2026-03-19T10:00:01+00:00",
             "command": { "type": "app" },
             "status": "Completed",
             "retryCount": 0
@@ -1337,6 +1339,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "generate-pdf",
             "processingOrder": 1,
             "updatedAt": "2026-03-19T10:00:04+00:00",
+            "executionStartedAt": "2026-03-19T10:00:03+00:00",
             "command": { "type": "app" },
             "status": "Completed",
             "retryCount": 1,
@@ -1352,6 +1355,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "notify-complete",
             "processingOrder": 2,
             "updatedAt": "2026-03-19T10:00:05+00:00",
+            "executionStartedAt": "2026-03-19T10:00:04+00:00",
             "command": { "type": "webhook" },
             "status": "Completed",
             "retryCount": 0
@@ -1359,6 +1363,20 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     ]
 }
 ```
+
+`executionStartedAt` — on the workflow and on each step — is the start of the **most recent attempt**,
+stamped by the worker as the attempt begins and persisted by that attempt's write-backs. It is absent
+while the workflow is `Enqueued` — before the first attempt, and again after `resume`, a stale reclaim or
+dependency recovery return it there — and every new attempt overwrites it (retries and deferral
+re-executions included). `executionStartedAt − createdAt` is queue wait; on a settled step,
+`updatedAt − executionStartedAt` is the last attempt's duration. Do not substitute `createdAt` when
+deriving a duration: that counts queue wait as processing time.
+
+The persisted value trails the in-memory one by at most one write-back. A step's first write-back of an
+attempt (`step.started`) is fire-and-forget and is dropped when the update buffer is saturated, so under
+pressure a `Processing` step can read with the previous attempt's stamp — or none — until the attempt
+settles. A duration derived from a settled step is exact; one derived from a `Processing` step is
+indicative.
 
 ### List Workflows
 

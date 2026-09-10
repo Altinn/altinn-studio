@@ -18,7 +18,14 @@ public static class ModuleInitializer
         VerifierSettings.AutoVerify(includeBuildServer: false);
 
         // Scrub volatile fields that change between test runs
-        VerifierSettings.ScrubMembers("databaseId", "createdAt", "updatedAt", "backoffUntil", "traceId");
+        VerifierSettings.ScrubMembers(
+            "databaseId",
+            "createdAt",
+            "updatedAt",
+            "executionStartedAt",
+            "backoffUntil",
+            "traceId"
+        );
         VerifierSettings.ScrubInlineGuids();
     }
 }
