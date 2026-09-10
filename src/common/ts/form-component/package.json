@@ -27,6 +27,7 @@
     "marked": "17.0.6",
     "marked-mangle": "1.1.13",
     "mime": "4.1.0",
+    "qrcode.react": "4.2.0",
     "react-content-loader": "7.1.2",
     "react-day-picker": "10.0.1",
     "react-dropzone": "15.0.0",

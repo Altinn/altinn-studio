@@ -1,0 +1,26 @@
+.qrContainer {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: var(--fds-semantic-surface-neutral-default);
+  border-radius: var(--fds-border_radius-medium);
+}
+
+.qrCode {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.linkContainer {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.dialogButtons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

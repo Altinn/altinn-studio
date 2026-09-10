@@ -34,6 +34,7 @@ import { getConfig as getLikertConfig } from 'src/layout/Likert/config.runtime.g
 import { getConfig as getLikertItemConfig } from 'src/layout/LikertItem/config.runtime.generated';
 import { getConfig as getLinkConfig } from 'src/layout/Link/config.runtime.generated';
 import { getConfig as getListConfig } from 'src/layout/List/config.runtime.generated';
+import { getConfig as getLommebokConfig } from 'src/layout/Lommebok/config.runtime.generated';
 import { getConfig as getMapConfig } from 'src/layout/Map/config.runtime.generated';
 import { getConfig as getMultipleSelectConfig } from 'src/layout/MultipleSelect/config.runtime.generated';
 import { getConfig as getNavigationBarConfig } from 'src/layout/NavigationBar/config.runtime.generated';
@@ -97,6 +98,7 @@ function createComponentConfigs() {
     LikertItem: getLikertItemConfig(),
     Link: getLinkConfig(),
     List: getListConfig(),
+    Lommebok: getLommebokConfig(),
     Map: getMapConfig(),
     MultipleSelect: getMultipleSelectConfig(),
     NavigationBar: getNavigationBarConfig(),
@@ -135,4 +137,4 @@ export function getComponentConfigs() {
 
 export type ComponentTypeConfigs = GeneratedComponentTypeConfigs;
 
-// Source hash: 21f57c6038e3d0b81a8f231d17aa2794fbdc7403cb3a75e7e75c4bb405d56421
+// Source hash: 7536a961c0cfa0f9931e353fd57f9dc589d8c6aa37a4efe0772cd107f6682737

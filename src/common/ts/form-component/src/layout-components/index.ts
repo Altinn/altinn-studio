@@ -18,6 +18,7 @@ export * from './Image';
 export * from './InstanceInformation';
 export * from './InstantiationButton';
 export * from './Link';
+export * from './Lommebok';
 export * from './MultipleSelect';
 export * from './NavigationBar';
 export * from './NavigationButtons';
