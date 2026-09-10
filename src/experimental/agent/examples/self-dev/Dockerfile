@@ -118,8 +118,6 @@ RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
 COPY tmpfiles.conf /usr/lib/tmpfiles.d/agent-dev.conf
 COPY --chown=agent:agent --chmod=0600 claude-state.json /home/agent/.claude/.claude.json
 
-# One best-effort clone at boot for the checkout variants; a bind-mounted checkout already has
-# `.git`, so the unit exits without touching it.
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
 
