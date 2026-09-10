@@ -117,8 +117,10 @@ async def favicon():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok"}
+    """Health check endpoint. The models let a caller record what this service runs."""
+    from shared.config.base_config import resolved_role_models
+
+    return {"status": "ok", "models": resolved_role_models()}
 
 
 if __name__ == "__main__":

@@ -164,6 +164,22 @@ class TestTheRunRecordsWhatItRanAgainst:
         assert "Gates/scope" in client.last["description"]
 
 
+class TestTheMetadataAttributesAnE2eRunToTheAgent:
+    """The bug this covers: metadata recorded the checkout's models even for e2e."""
+
+    def test_e2e_metadata_uses_the_agents_model_not_the_checkouts(self, client, monkeypatch):
+        monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": "sentinel-agent-model"})
+        _run_one(client, "Benchmarks/forms")
+        metadata = client.last["metadata"]
+        assert json.loads(metadata["models"])["actor"] == "sentinel-agent-model"
+
+    def test_non_e2e_metadata_is_unaffected_by_the_agent(self, client, monkeypatch):
+        monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": "sentinel-agent-model"})
+        _run_one(client, "Gates/scope")
+        metadata = client.last["metadata"]
+        assert json.loads(metadata["models"])["actor"] != "sentinel-agent-model"
+
+
 class TestTheStructuralScoresStillExist:
     def test_an_e2e_run_scores_with_the_structural_evaluator(self, client):
         from benchmarks.experiment import structural_evaluator

@@ -42,11 +42,24 @@ class EvalOutcome:
     traces: dict[str, str] = field(default_factory=dict)
 
 
+def _agent_models_or_die(agent_base: str) -> dict[str, str]:
+    """The agent's own models, refusing to silently fall back to this checkout's."""
+    models = agent_role_models(agent_base)
+    if not models:
+        raise SystemExit(
+            "The agent service did not report which models it runs, so an end to end "
+            "score cannot be attributed to a model. This would otherwise record the "
+            "models this checkout resolves, which is not what built the apps. Rebuild "
+            "the agent image so /health reports its models, or drop --include-e2e."
+        )
+    return models
+
+
 def task_for(args, dataset):
     """The task and scorers for a dataset, chosen by its kind."""
     if dataset.kind == "e2e":
         agent_base = os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/")
-        role_models = agent_role_models(agent_base)
+        role_models = _agent_models_or_die(agent_base)
         run_name = getattr(args, "run_name", None) or dataset.name
         task = AgentTask(
             agent_base=agent_base,
@@ -335,9 +348,10 @@ def run(
 
     chosen = evals_to_run(include_slow=include_slow, only=only)
     # The agent runs an e2e eval, so its models are what produced the result.
+    runs_e2e = any(entry.kind == "e2e" for entry in chosen)
     agent_models = (
-        agent_role_models(os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/"))
-        if any(entry.kind == "e2e" for entry in chosen)
+        _agent_models_or_die(os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/"))
+        if runs_e2e
         else {}
     )
 
@@ -417,7 +431,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = ""):
             if entry.kind in SLOW_KINDS
             else getattr(args, "max_concurrency", 5)
         )
-        state = provenance.collect()
+        state = provenance.collect(agent_models=getattr(task, "role_models", None))
         result = client.run_experiment(
             name=entry.name,
             run_name=runstore.new_name(f"{entry.name}-{model}"),
