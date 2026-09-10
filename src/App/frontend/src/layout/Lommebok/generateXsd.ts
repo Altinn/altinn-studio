@@ -14,7 +14,7 @@ interface CredentialConfigSupported {
 
 /**
  * Extracts the field name from a claim path.
- * For mso_mdoc format (e.g., ["org.iso.18013.5.1.mDL:1", "family_name"]), returns the last element.
+ * For mso_mdoc format (e.g., ["org.iso.18013.5.1.mDL", "family_name"]), returns the last element.
  * For sd-jwt format (e.g., ["family_name"]), returns the only element.
  */
 function extractFieldName(path: string[]): string {
@@ -23,7 +23,7 @@ function extractFieldName(path: string[]): string {
 
 /**
  * Extracts the root element name from a credential configuration.
- * For mso_mdoc format, uses the doctype (e.g., "org.iso.18013.5.1.mDL:1" -> "foererkort")
+ * For mso_mdoc format, uses the doctype (e.g., "org.iso.18013.5.1.mDL" -> "foererkort")
  * For sd-jwt format, uses a simplified version of the vct
  * Removes hyphens to ensure valid XML element names.
  */
