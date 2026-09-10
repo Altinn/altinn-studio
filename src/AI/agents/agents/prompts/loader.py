@@ -89,7 +89,10 @@ def _system_message(compiled: Any) -> Optional[str]:
 
 
 def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) -> tuple[str, object]:
-    """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls."""
+    """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls.
+
+    ``local_path`` names the fallback ``.md`` when it differs from ``prompt_name``.
+    """
     lf_prompt = get_raw_langfuse_prompt(prompt_name)
     if lf_prompt is not None:
         try:
