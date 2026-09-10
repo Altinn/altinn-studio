@@ -524,6 +524,56 @@
       }
     ]
   },
+  "NamespaceThrottleResponse": {
+    "Name": "NamespaceThrottleResponse",
+    "Fields": [
+      {
+        "Name": "canaryCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "currentWindow",
+        "Kind": "timespan",
+        "Nullable": false
+      },
+      {
+        "Name": "lastActiveCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "lastEvaluatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "lastRequeuedCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "state",
+        "Kind": "enum<string>{Tripped=0,Recovering=1,Clear=2}",
+        "Nullable": false
+      },
+      {
+        "Name": "trippedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "updatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      }
+    ]
+  },
   "NudgeWorkflowResponse": {
     "Name": "NudgeWorkflowResponse",
     "Fields": [
