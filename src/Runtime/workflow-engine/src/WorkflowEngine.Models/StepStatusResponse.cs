@@ -34,6 +34,16 @@ public sealed record StepStatusResponse
     public DateTimeOffset? UpdatedAt { get; internal set; }
 
     /// <summary>
+    /// When the engine most recently began executing this step: the start of the current attempt while
+    /// <see cref="PersistentItemStatus.Processing"/>, otherwise of the last one. Against
+    /// <see cref="UpdatedAt"/> on a settled step it gives the last attempt's duration. Omitted until the
+    /// step has run once.
+    /// </summary>
+    [JsonPropertyName("executionStartedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ExecutionStartedAt { get; init; }
+
+    /// <summary>
     /// Labels associated with the step.
     /// </summary>
     [JsonPropertyName("labels")]
@@ -112,6 +122,7 @@ public sealed record StepStatusResponse
             ProcessingOrder = step.ProcessingOrder,
             Status = step.Status,
             UpdatedAt = step.UpdatedAt,
+            ExecutionStartedAt = step.ExecutionStartedAt,
             Labels = step.Labels,
             RetryCount = step.RequeueCount,
             DeferCount = step.DeferCount,

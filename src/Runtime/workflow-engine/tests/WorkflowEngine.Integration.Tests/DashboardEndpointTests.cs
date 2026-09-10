@@ -98,6 +98,18 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(totalCount.GetInt32() >= 1);
         Assert.True(doc.RootElement.TryGetProperty("workflows", out var workflows));
         Assert.True(workflows.GetArrayLength() >= 1);
+
+        // Timing is read from the database: the workflow and its step both carry when their attempt began,
+        // ordered enqueue → workflow start → step start → step write-back.
+        var workflow = workflows.EnumerateArray().Single(w => w.GetProperty("databaseId").GetGuid() == workflowId);
+        var workflowStartedAt = workflow.GetProperty("executionStartedAt").GetDateTimeOffset();
+        Assert.True(workflow.GetProperty("createdAt").GetDateTimeOffset() <= workflowStartedAt);
+        var step = Assert.Single(workflow.GetProperty("steps").EnumerateArray());
+        Assert.InRange(
+            step.GetProperty("executionStartedAt").GetDateTimeOffset(),
+            workflowStartedAt,
+            step.GetProperty("updatedAt").GetDateTimeOffset()
+        );
     }
 
     [Fact]
@@ -231,6 +243,13 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var id));
         Assert.Equal(stepId.ToString(), id.GetString());
         Assert.True(doc.RootElement.TryGetProperty("status", out _));
+
+        // The modal's "Execution Started" row and per-step duration hang off this field.
+        Assert.InRange(
+            doc.RootElement.GetProperty("executionStartedAt").GetDateTimeOffset(),
+            doc.RootElement.GetProperty("createdAt").GetDateTimeOffset(),
+            doc.RootElement.GetProperty("updatedAt").GetDateTimeOffset()
+        );
     }
 
     [Fact]

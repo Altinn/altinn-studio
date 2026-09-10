@@ -1315,6 +1315,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     "namespace": "ttd:my-app",
     "createdAt": "2026-03-19T10:00:00+00:00",
     "updatedAt": "2026-03-19T10:00:05+00:00",
+    "executionStartedAt": "2026-03-19T10:00:01+00:00",
     "overallStatus": "Completed",
     "labels": {
         "org": "ttd",
@@ -1328,6 +1329,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "validate-form",
             "processingOrder": 0,
             "updatedAt": "2026-03-19T10:00:02+00:00",
+            "executionStartedAt": "2026-03-19T10:00:01+00:00",
             "command": { "type": "app" },
             "status": "Completed",
             "retryCount": 0
@@ -1337,6 +1339,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "generate-pdf",
             "processingOrder": 1,
             "updatedAt": "2026-03-19T10:00:04+00:00",
+            "executionStartedAt": "2026-03-19T10:00:03+00:00",
             "command": { "type": "app" },
             "status": "Completed",
             "retryCount": 1,
@@ -1352,6 +1355,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "notify-complete",
             "processingOrder": 2,
             "updatedAt": "2026-03-19T10:00:05+00:00",
+            "executionStartedAt": "2026-03-19T10:00:04+00:00",
             "command": { "type": "webhook" },
             "status": "Completed",
             "retryCount": 0
@@ -1359,6 +1363,14 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     ]
 }
 ```
+
+`executionStartedAt` — on the workflow and on each step — is the start of the **most recent attempt**:
+stamped by the worker when it begins the attempt and persisted with that attempt's first write-back, so
+it is the same instant whether the read is served from memory or from the database. It is absent until
+the first attempt, overwritten on every retry, deferral re-execution or reclaim, and cleared by `resume`.
+`executionStartedAt − createdAt` is queue wait; on a settled step, `updatedAt − executionStartedAt` is
+the last attempt's duration. Do not substitute `createdAt` when deriving a duration: that counts queue
+wait as processing time.
 
 ### List Workflows
 

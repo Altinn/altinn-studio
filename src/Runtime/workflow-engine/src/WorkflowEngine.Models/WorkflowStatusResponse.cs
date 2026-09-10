@@ -52,6 +52,15 @@ public sealed record WorkflowStatusResponse
     public DateTimeOffset? UpdatedAt { get; init; }
 
     /// <summary>
+    /// When a worker most recently began processing this workflow. The gap from <see cref="CreatedAt"/> is
+    /// queue wait; the gap to <see cref="UpdatedAt"/> on a settled workflow is its last attempt's
+    /// processing time. Omitted until the first attempt begins.
+    /// </summary>
+    [JsonPropertyName("executionStartedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ExecutionStartedAt { get; init; }
+
+    /// <summary>
     /// Optional start time for when the workflow should be executed.
     /// </summary>
     [JsonPropertyName("startAt")]
@@ -143,6 +152,7 @@ public sealed record WorkflowStatusResponse
             OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
+            ExecutionStartedAt = workflow.ExecutionStartedAt,
             StartAt = workflow.StartAt,
             BackoffUntil = workflow.BackoffUntil,
             CancellationRequestedAt = workflow.CancellationRequestedAt,

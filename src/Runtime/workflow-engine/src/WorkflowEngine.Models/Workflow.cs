@@ -130,7 +130,14 @@ public sealed record Workflow : PersistentItem
     /// </summary>
     public Guid? MailboxId { get; init; }
 
-    internal DateTimeOffset? ExecutionStartedAt { get; set; }
+    /// <summary>
+    /// When a worker most recently began processing this workflow. Stamped on every attempt and persisted
+    /// with that attempt's first write-back; <c>null</c> until the first attempt, cleared on resume. The
+    /// gap from <see cref="PersistentItem.CreatedAt"/> is queue wait, and on a settled workflow the gap
+    /// to <see cref="PersistentItem.UpdatedAt"/> is the last attempt's processing time — which is why
+    /// consumers must not substitute <c>CreatedAt</c> for it.
+    /// </summary>
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <summary>
     /// Failure classification for the current in-memory attempt, used to tag the
