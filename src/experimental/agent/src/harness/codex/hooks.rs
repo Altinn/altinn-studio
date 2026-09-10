@@ -14,7 +14,7 @@ const EVENTS: &[(&str, ActivityEvent)] = &[
 
 /// Seconds Codex waits for the hook before continuing; a slow report must not
 /// stall a turn.
-const HOOK_TIMEOUT_SECONDS: u32 = 2;
+const HOOK_TIMEOUT_SECONDS: u32 = 3;
 
 const SCRIPT: HookScript<'static> = HookScript {
     events: EVENTS,
@@ -73,7 +73,7 @@ mod tests {
                 entry["hooks"][0]["command"],
                 "node /home/agent/.codex/hooks/activity-hook.mjs"
             );
-            assert_eq!(entry["hooks"][0]["timeout"], 2);
+            assert_eq!(entry["hooks"][0]["timeout"], 3);
             assert!(entry.get("matcher").is_none());
         }
     }
