@@ -176,13 +176,17 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
             }
 
-            // Captured before classifying the outcome, so a deferral carries state forward exactly as a
-            // completion does — the app's next re-check resumes from what this one produced.
-            if (callbackResponse?.State is not null)
-                context.Step.StateOut = callbackResponse.State;
-
             if (callbackResponse is { Defer: not null, Skip: not null })
                 return ExecutionResult.CriticalError("App returned both defer and skip in one callback response");
+
+            if (callbackResponse?.Skip is { } skip && string.IsNullOrWhiteSpace(skip.Reason))
+                return ExecutionResult.CriticalError("App returned a skip without a reason");
+
+            // Captured once the response is well-formed but before classifying the outcome, so a deferral
+            // carries state forward exactly as a completion does — the app's next re-check resumes from what
+            // this one produced.
+            if (callbackResponse?.State is not null)
+                context.Step.StateOut = callbackResponse.State;
 
             if (callbackResponse?.Defer is { } deferral)
             {
@@ -190,13 +194,10 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 return ExecutionResult.Defer(deferral.Delay, deferral.Reason);
             }
 
-            if (callbackResponse?.Skip is { } skip)
+            if (callbackResponse?.Skip is { Reason: { } skipReason })
             {
-                if (string.IsNullOrWhiteSpace(skip.Reason))
-                    return ExecutionResult.CriticalError("App returned a skip without a reason");
-
                 _logger.AppCommandSkipped(commandData.CommandKey, context.Workflow.DatabaseId);
-                return ExecutionResult.Skip(skip.Reason);
+                return ExecutionResult.Skip(skipReason);
             }
 
             return ExecutionResult.Success();

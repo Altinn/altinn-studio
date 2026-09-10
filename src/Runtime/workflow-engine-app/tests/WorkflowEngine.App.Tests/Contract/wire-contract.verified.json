@@ -718,6 +718,11 @@
         "Nullable": true
       },
       {
+        "Name": "skipOrigin",
+        "Kind": "enum<string>{Command=1,Manual=2}",
+        "Nullable": true
+      },
+      {
         "Name": "skipReason",
         "Kind": "string",
         "Nullable": true
