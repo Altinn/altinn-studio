@@ -14,7 +14,7 @@ namespace Altinn.App.Ai.Enrichment.Orchestration;
 ///   1. Send system + user (rule + application JSON) with the tool array
 ///   2. If the model returns tool_calls, dispatch and feed results back; loop up to MaxToolIterations
 ///   3. Otherwise parse the final JSON {status, merknad}
-/// Verdicts and (optional) per-item traces are produced for downstream rendering.
+/// Verdicts are produced for downstream rendering; the run itself is traced to Langfuse.
 ///
 /// The orchestrator is domain-agnostic: rules, system prompt, and tool definitions
 /// all come from config. Translating the verdict-per-item map into a domain-shaped
@@ -29,8 +29,6 @@ public sealed partial class EvaluationOrchestrator(
     ILogger<EvaluationOrchestrator> logger) : IEvaluationOrchestrator
 {
 
-    private static readonly JsonSerializerOptions TraceJsonOptions = new() { WriteIndented = true };
-
     [GeneratedRegex(@"\{.*\}", RegexOptions.Singleline)]
     private static partial Regex JsonObjectRegex();
 
@@ -40,9 +38,6 @@ public sealed partial class EvaluationOrchestrator(
         OrchestratorOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (!string.IsNullOrEmpty(options.TraceDirAbsolutePath))
-            Directory.CreateDirectory(options.TraceDirAbsolutePath);
-
         var wallSw = Stopwatch.StartNew();
         var sem = new SemaphoreSlim(Math.Max(1, options.Concurrency));
 
@@ -203,11 +198,7 @@ public sealed partial class EvaluationOrchestrator(
             ToolCallCount = toolCallCount,
             FinishReason = finishReason,
             TotalElapsedMs = (int)itemSw.ElapsedMilliseconds,
-            Messages = messages,
         };
-
-        if (!string.IsNullOrEmpty(options.TraceDirAbsolutePath))
-            await WriteTraceAsync(options.TraceDirAbsolutePath, itemTrace, ct);
 
         return itemTrace;
     }
@@ -278,22 +269,6 @@ public sealed partial class EvaluationOrchestrator(
         return System.Text.Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static async Task WriteTraceAsync(string traceDir, ItemTrace trace, CancellationToken ct)
-    {
-        var path = Path.Combine(traceDir, $"{trace.Key}.json");
-        var serialisable = new
-        {
-            item = trace.Key,
-            final = new { status = trace.Verdict.Status, merknad = trace.Verdict.Merknad },
-            totalElapsedMs = trace.TotalElapsedMs,
-            llmCallCount = trace.LlmCallCount,
-            toolCallCount = trace.ToolCallCount,
-            finishReason = trace.FinishReason,
-            messages = trace.Messages,
-        };
-        var json = JsonSerializer.Serialize(serialisable, TraceJsonOptions);
-        await File.WriteAllTextAsync(path, json, ct);
-    }
 }
 
 internal sealed record ItemTrace
@@ -304,5 +279,4 @@ internal sealed record ItemTrace
     public int ToolCallCount { get; init; }
     public string? FinishReason { get; init; }
     public int TotalElapsedMs { get; init; }
-    public required IReadOnlyList<ChatMessage> Messages { get; init; }
 }
