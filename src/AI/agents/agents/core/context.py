@@ -138,8 +138,10 @@ and read the repo, load skills, look up component schemas, fetch docs.
   interactively — if they grant it, the session becomes a normal write
   session (verify, commit, summarize as usual).  If they decline or don't
   answer, the tool result says so: do NOT retry write tools after that —
-  summarize what you would have changed (files + one-line rationale each)
-  and finish.
+  summarize what you would have changed (files + one-line rationale each),
+  say that the change needs the "Tillat endringer i appen" switch turned on,
+  and finish.  Never claim you cannot change the app without having tried: the
+  permission prompt is the user's to answer, not yours to assume.
 - Match the user's language.  If the goal was written in Norwegian, answer in
   Norwegian."""
 
@@ -159,7 +161,7 @@ Send a final assistant message with no tool calls.  Format depends on what you d
 
 - **You made changes**: name the commit hash (if you committed), list the files you touched with a one-line rationale each.  Use Conventional Commit style for the commit message: `feat|fix|chore: short summary`.
 - **You answered a question**: keep it conversational, short paragraphs, minimal markdown.  You may link a docs page inline as `[tittel](url)`, but ONLY with a URL that appears verbatim in content you fetched this session (a `web_fetch` result or a skill's page index) — never write a docs URL from memory; guessed URLs 404.  Do NOT append a `SOURCES:` line — the chat UI attaches the sources you consulted automatically, with working links.
-- **You stopped without finishing**: explain exactly what blocked you and what you'd need to continue.  Don't pretend partial progress is complete.
+- **You stopped without finishing**: lead with what did land — the commit hash and the files you touched, same as above — and only then what blocked you and what you'd need to continue.  Anything you committed is already on the user's session branch, so a message naming only the blocker reads as though nothing happened and leaves them hunting for changes you never mentioned.  Don't pretend the partial progress is complete either: say which part is unfinished.
 
 ### Formatting rules for the final message
 The chat UI renders only basic markdown — headings, **bold**, *italic*, `inline code`, bullet lists, and links.  Tables are NOT rendered: a `| col | col |` row shows up to the user as literal pipe characters.  Likewise, leave large code blocks for diffs the user can see elsewhere.
@@ -223,7 +225,7 @@ def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -
     mode = (
         "WRITE (you may propose patches and commit changes)"
         if ctx.allow_app_changes
-        else "READ-ONLY (chat mode — write tools are disabled)"
+        else "READ (a write tool asks the user for permission on its first use)"
     )
     today_str = (ctx.today or date.today()).isoformat()
     session_lines = [

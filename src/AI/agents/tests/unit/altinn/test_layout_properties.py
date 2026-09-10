@@ -61,5 +61,24 @@ def test_the_constraint_is_stated_before_the_property_list():
     assert keys.index("constraints") < keys.index("allowed_properties")
 
 
-def test_a_component_with_no_such_pairing_gets_an_empty_list():
-    assert _props("Header")["constraints"] == []
+def test_a_component_with_no_such_pairing_is_still_told_not_to_fill_the_list():
+    """Filling every allowed property is the habit that broke the render."""
+    assert _props("Header")["constraints"] == [
+        "allowed_properties is what this component permits, not a list to fill: "
+        "set only the properties the component needs."
+    ]
+
+
+def test_checkboxes_are_warned_off_the_group_binding():
+    stated = " ".join(properties.BINDING_CONSTRAINTS["Checkboxes"])
+
+    assert '"group" is a repeating-group binding' in stated
+    assert "deletionStrategy" in stated
+
+
+def test_a_repeating_group_states_all_three_of_its_rules():
+    stated = properties.BINDING_CONSTRAINTS["RepeatingGroup"]
+
+    assert any("array in the data model" in line for line in stated)
+    assert any('requires "deletionStrategy"' in line for line in stated)
+    assert any("must start with the group binding" in line for line in stated)

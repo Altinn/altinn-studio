@@ -212,7 +212,7 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
                     "done": True,
                     "success": True,
                     "status": "completed",
-                    "message": "Out-of-scope question declined",
+                    "message": "Spørsmålet ligger utenfor det assistenten kan hjelpe med",
                 },
             ),
         ],
@@ -408,7 +408,7 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "done": True,
                     "success": False,
                     "status": "error",
-                    "message": f"Workflow failed: {e!s}"
+                    "message": f"Noe gikk galt: {e!s}"
                 }
             ))
         finally:

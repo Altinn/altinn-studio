@@ -492,3 +492,70 @@ class TestCommitSessionBranch:
         assert result.is_error
         assert "feedface" in result.content
         assert "gitea unreachable" in result.content
+
+
+class TestTextKeysResolve:
+    """A key with no entry renders as the key, and every file validates fine alone."""
+
+    def _app(self, tmp_path: Path, bindings: dict, resources: list[str]) -> Path:
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {
+            "data": {
+                "layout": [
+                    {"id": "submit", "type": "Button", "textResourceBindings": bindings}
+                ]
+            }
+        }
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+        texts = tmp_path / "App" / "config" / "texts"
+        texts.mkdir(parents=True)
+        (texts / "resource.nb.json").write_text(
+            json.dumps({"language": "nb", "resources": [{"id": i, "value": i} for i in resources]}),
+            encoding="utf-8",
+        )
+        return layouts / "Side1.json"
+
+    async def _verify(self, tmp_path: Path):
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={"App/ui/form/layouts/Side1.json"})
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        return result, json.loads(result.content), ctx
+
+    async def test_a_missing_key_fails_verification(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {"title": "app.button.submit"}, ["appName"])
+
+        result, body, ctx = await self._verify(tmp_path)
+
+        assert result.is_error
+        assert not body["passed"]
+        assert any("app.button.submit" in note for note in body["notes"])
+        assert not ctx.extras.get("verified_files")
+
+    async def test_a_resolved_key_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {"title": "app.button.submit"}, ["app.button.submit"])
+
+        result, body, _ = await self._verify(tmp_path)
+
+        assert not result.is_error
+        assert body["passed"]
+
+    async def test_a_layout_with_no_bindings_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {}, ["appName"])
+
+        _, body, _ = await self._verify(tmp_path)
+
+        assert body["passed"]
+
+    async def test_an_app_with_no_text_files_is_not_blocked(
+        self, tmp_path: Path, permissive_schema
+    ):
+        """Nothing to resolve against is the layout validator's problem, not ours."""
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {"data": {"layout": [{"id": "submit", "type": "Button",
+                                     "textResourceBindings": {"title": "app.button.submit"}}]}}
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+
+        _, body, _ = await self._verify(tmp_path)
+
+        assert body["passed"]
