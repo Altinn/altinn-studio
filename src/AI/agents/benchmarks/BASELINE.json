@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "77dd32dbde59",
-    "code": "9c51b37 clean",
+    "actor_prompt": "07e319515e6a",
+    "code": "0eabfe8 clean",
     "dataset": "114 items 5562d4e8298d",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
-    "tools": "e477b1c86c5c"
+    "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260910T015211Z-intent-gates-eb13",
-  "label": "intent gates",
-  "recorded_at": "2026-09-10T01:57:05+00:00",
-  "why": "intent gate: credential blocklist removed, confidence threshold at 0.30"
+  "check_id": "20260910T030031Z-datepicker-timestamp-rule-in-the-prompt-constraint-on-the-tool-pairing-scored-6382",
+  "label": "datepicker timeStamp: rule in the prompt, constraint on the tool, pairing scored",
+  "recorded_at": "2026-09-10T03:05:52+00:00",
+  "why": "datepicker timeStamp: prompt rule and tool constraint added, gen_content_pairings pins the pairing at 0.000 on the source run, which is the recorded defect"
 }
