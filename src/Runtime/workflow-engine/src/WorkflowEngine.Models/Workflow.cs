@@ -132,10 +132,11 @@ public sealed record Workflow : PersistentItem
 
     /// <summary>
     /// When a worker most recently began processing this workflow. Stamped on every attempt and persisted
-    /// with that attempt's first write-back; <c>null</c> until the first attempt, cleared on resume. The
-    /// gap from <see cref="PersistentItem.CreatedAt"/> is queue wait, and on a settled workflow the gap
-    /// to <see cref="PersistentItem.UpdatedAt"/> is the last attempt's processing time — which is why
-    /// consumers must not substitute <c>CreatedAt</c> for it.
+    /// by that attempt's write-backs. <c>null</c> whenever the workflow is <see cref="PersistentItemStatus.Enqueued"/>:
+    /// before the first attempt, and again after resume, a stale reclaim or dependency recovery return it
+    /// there. The gap from <see cref="PersistentItem.CreatedAt"/> is queue wait, and on a settled workflow
+    /// the gap to <see cref="PersistentItem.UpdatedAt"/> is the last attempt's processing time — which is
+    /// why consumers must not substitute <c>CreatedAt</c> for it.
     /// </summary>
     public DateTimeOffset? ExecutionStartedAt { get; set; }
 

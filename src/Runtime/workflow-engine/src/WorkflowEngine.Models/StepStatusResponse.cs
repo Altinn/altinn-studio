@@ -31,7 +31,7 @@ public sealed record StepStatusResponse
     /// </summary>
     [JsonPropertyName("updatedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedAt { get; internal set; }
+    public DateTimeOffset? UpdatedAt { get; init; }
 
     /// <summary>
     /// When the engine most recently began executing this step: the start of the current attempt while

@@ -76,10 +76,12 @@ public sealed record Step : PersistentItem
 
     /// <summary>
     /// When the engine most recently began executing this step. Stamped at the start of every attempt —
-    /// a retry, a re-execution after a deferral and a reclaim alike — and persisted with that attempt's
-    /// first write-back, so a status read sees when the current or last attempt began. <c>null</c> until
-    /// the step has run once; cleared on resume alongside the other per-attempt anchors. Against
-    /// <see cref="PersistentItem.UpdatedAt"/> on a settled step it yields the last attempt's duration.
+    /// a retry, a re-execution after a deferral and a reclaim alike — and persisted by that attempt's
+    /// write-backs (the first of which is fire-and-forget, so a persisted read of a
+    /// <see cref="PersistentItemStatus.Processing"/> step may still show the previous attempt until the
+    /// step settles). <c>null</c> until the step has run once; cleared on resume alongside the other
+    /// per-attempt anchors. Against <see cref="PersistentItem.UpdatedAt"/> on a settled step it yields
+    /// the last attempt's duration.
     /// </summary>
     public DateTimeOffset? ExecutionStartedAt { get; set; }
 

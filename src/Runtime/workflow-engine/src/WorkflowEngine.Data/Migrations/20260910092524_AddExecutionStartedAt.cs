@@ -16,8 +16,8 @@ namespace WorkflowEngine.Data.Migrations
             //
             // execution_started_at is the start of the most recent attempt: the handler stamps it on
             // every attempt and the write-back persists it, so a status read can tell queue wait from
-            // processing time. NULL until the first attempt; resume clears it again with the other
-            // per-attempt anchors.
+            // processing time. NULL whenever the workflow is Enqueued: before the first attempt, and again
+            // after resume, a stale reclaim or dependency recovery return it there.
             migrationBuilder.Sql(
                 """
                 ALTER TABLE engine.workflows

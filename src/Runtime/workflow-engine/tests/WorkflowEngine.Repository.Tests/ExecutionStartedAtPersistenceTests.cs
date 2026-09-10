@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Data;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
@@ -166,9 +167,19 @@ public sealed class ExecutionStartedAtPersistenceTests(PostgresFixture fixture) 
         completedStep.ExecutionStartedAt = _t0;
         failedStep.Status = PersistentItemStatus.Failed;
         failedStep.ExecutionStartedAt = _t0.AddSeconds(1);
-        await repo.BatchUpdateWorkflowsAndSteps(
+        var written = await repo.BatchUpdateWorkflowsAndSteps(
             [new BatchWorkflowStatusUpdate(workflow, [completedStep, failedStep])],
             TestContext.Current.CancellationToken
+        );
+        Assert.Equal([workflow.DatabaseId], written.Accepted);
+
+        // The stamps are really there before the resume, so the nulls below are the resume's doing.
+        var before = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(before);
+        Assert.Equal(_t0, before.ExecutionStartedAt);
+        Assert.Equal(
+            _t0.AddSeconds(1),
+            before.Steps.Single(s => s.DatabaseId == failedStep.DatabaseId).ExecutionStartedAt
         );
 
         var resumed = await repo.ResumeWorkflow(
@@ -236,5 +247,82 @@ public sealed class ExecutionStartedAtPersistenceTests(PostgresFixture fixture) 
         Assert.NotNull(dbDependent);
         Assert.Equal(PersistentItemStatus.Enqueued, dbDependent.Status);
         Assert.Null(dbDependent.ExecutionStartedAt);
+    }
+
+    [Fact]
+    public async Task ReclaimStaleWorkflows_ClearsTheStamp_OnTheReclaimedWorkflow()
+    {
+        // A reclaimed workflow goes back to Enqueued for another worker. Like resume, it must not carry
+        // the dead attempt's stamp into the queue: an Enqueued workflow never has one.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var maintenance = fixture.CreateMaintenanceService();
+
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Processing);
+        workflow.Status = PersistentItemStatus.Processing;
+        workflow.ExecutionStartedAt = _t0;
+        var written = await repo.BatchUpdateWorkflowsAndSteps(
+            [new BatchWorkflowStatusUpdate(workflow, [])],
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal([workflow.DatabaseId], written.Accepted);
+
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.workflows
+            SET heartbeat_at = {DateTimeOffset.UtcNow.AddSeconds(-30)}, reclaim_count = 0
+            WHERE id = {workflow.DatabaseId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        await maintenance.ReclaimStaleWorkflows(
+            DateTimeOffset.UtcNow,
+            fixture.Settings,
+            TestContext.Current.CancellationToken
+        );
+
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
+        Assert.Null(dbWorkflow.ExecutionStartedAt);
+    }
+
+    [Fact]
+    public async Task RecoverDependencyResolvedWorkflows_ClearsTheStamp_OnTheReEnqueuedChild()
+    {
+        // The DependencyFailed early exit runs after the worker stamped the workflow, so without the
+        // clear a recovered child would re-enter the queue carrying that stamp.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var maintenance = fixture.CreateMaintenanceService();
+        var ns = Guid.NewGuid().ToString("N");
+
+        var parent = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
+        var child = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            ns: ns,
+            dependencies: [parent.DatabaseId]
+        );
+        child.Status = PersistentItemStatus.DependencyFailed;
+        child.ExecutionStartedAt = _t0;
+        var written = await repo.BatchUpdateWorkflowsAndSteps(
+            [new BatchWorkflowStatusUpdate(child, [])],
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal([child.DatabaseId], written.Accepted);
+        Assert.Equal(_t0, (await fixture.GetWorkflow(child.DatabaseId))?.ExecutionStartedAt);
+
+        await maintenance.RecoverDependencyResolvedWorkflows(
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        var dbChild = await fixture.GetWorkflow(child.DatabaseId);
+        Assert.NotNull(dbChild);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbChild.Status);
+        Assert.Null(dbChild.ExecutionStartedAt);
     }
 }
