@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
+using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -18,10 +19,16 @@ internal enum SigningFailureKind
     /// <summary>May heal: throw so the engine retries the step.</summary>
     Transient,
 
-    /// <summary>Cannot heal for this signee; fail its workflow step.</summary>
+    /// <summary>
+    /// Cannot heal for this signee: record it on the signee's state and let the transition continue, so the other
+    /// signees are not held up and the reason is shown with the signee it concerns.
+    /// </summary>
     PermanentPerSignee,
 
-    /// <summary>Cannot heal for any signee: configuration, or a dependency every signee needs.</summary>
+    /// <summary>
+    /// Cannot heal for any signee: configuration, the app's own credentials, or a dependency every signee needs.
+    /// Fails the workflow step for the service owner to fix and resume.
+    /// </summary>
     PermanentAppWide,
 }
 
@@ -39,9 +46,12 @@ internal sealed record SigningFailureClassification(SigningFailureKind Kind, Htt
 /// </summary>
 /// <remarks>
 /// The first received status in the exception chain decides: 408, 429 and 5xx are transient, every other 4xx is
-/// permanent. Wrappers without a status retain the classification of the dependency that failed. Unknown
-/// failures receive bounded retries; only a known rejection or explicit configuration/contract failure is
-/// permanent. A missing status alone does not establish either success or a permanent rejection.
+/// permanent. A permanent failure is recorded against the recipient it concerns, except when it cannot be the
+/// recipient's fault: 401 and 403 mean the app's own credentials or scopes were refused, and any Maskinporten
+/// failure means the app could not obtain a token, so those are app-wide and repeat for every signee. Wrappers
+/// without a status retain the classification of the dependency that failed. Unknown failures receive bounded
+/// retries; only a known rejection or explicit configuration/contract failure is permanent. A missing status
+/// alone does not establish either success or a permanent rejection.
 /// </remarks>
 internal static class SigningFailureClassifier
 {
@@ -84,12 +94,10 @@ internal static class SigningFailureClassifier
     /// <summary>
     /// The code to record for a permanent notification failure classified by <see cref="ClassifyNotification"/>.
     /// </summary>
-    public static NotificationFailureCode NotificationCode(
-        Exception exception,
-        SigningFailureClassification classification
-    )
+    public static NotificationFailureCode NotificationCode(SigningFailureClassification classification)
     {
-        if (exception is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
+        // Anything app-wide is the app's configuration or credentials, never the recipient.
+        if (classification.Kind == SigningFailureKind.PermanentAppWide)
         {
             return NotificationFailureCode.Configuration;
         }
@@ -155,16 +163,26 @@ internal static class SigningFailureClassifier
 
         if (status is { } statusCode)
         {
-            return new SigningFailureClassification(
-                IsTransientStatus(statusCode) ? SigningFailureKind.Transient : SigningFailureKind.PermanentPerSignee,
-                statusCode,
-                reason
-            );
+            if (IsTransientStatus(statusCode))
+            {
+                return new SigningFailureClassification(SigningFailureKind.Transient, statusCode, reason);
+            }
+
+            // A refused credential or scope, or a token the app could not obtain, fails every recipient the same
+            // way. Recording it against one signee would hide an app-level problem behind a recipient's name.
+            SigningFailureKind kind =
+                IsAuthenticationStatus(statusCode) || IsAppTokenFailure(exception)
+                    ? SigningFailureKind.PermanentAppWide
+                    : SigningFailureKind.PermanentPerSignee;
+            return new SigningFailureClassification(kind, statusCode, reason);
         }
 
         for (Exception? current = exception; current is not null; current = current.InnerException)
         {
-            if (current is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException)
+            if (
+                current is ConfigurationException or ApplicationConfigException or SigneeProviderNotFoundException
+                || IsAppTokenFailure(current)
+            )
             {
                 return new SigningFailureClassification(SigningFailureKind.PermanentAppWide, null, reason);
             }
@@ -196,6 +214,26 @@ internal static class SigningFailureClassifier
         }
 
         return null;
+    }
+
+    private static bool IsAuthenticationStatus(HttpStatusCode status) =>
+        status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
+
+    /// <summary>
+    /// Whether the app's own token acquisition failed somewhere in the chain. An already expired token is left to
+    /// the default: it is a clock or cache anomaly a later attempt may not repeat, and it is never the recipient's.
+    /// </summary>
+    private static bool IsAppTokenFailure(Exception exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is MaskinportenException and not MaskinportenTokenExpiredException)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsTransientStatus(HttpStatusCode status) =>

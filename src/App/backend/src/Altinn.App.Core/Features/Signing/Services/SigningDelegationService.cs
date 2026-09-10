@@ -94,6 +94,15 @@ internal sealed class SigningDelegationService(
                     throw;
                 }
 
+                // An app-wide failure is not this recipient's fault and repeats for every signee, so it fails the
+                // step for the service owner to fix. A rejection of this recipient alone is recorded below, and
+                // the transition continues so the signing task stays usable for everyone else.
+                if (classification.Kind == SigningFailureKind.PermanentAppWide)
+                {
+                    telemetry?.RecordDelegation(DelegationResult.Error);
+                    throw new SigneeInitializationPermanentException(classification.Reason, "SigneeDelegationFailed");
+                }
+
                 RecordPermanentFailure(
                     state,
                     SigningFailureClassifier.DelegationCode(classification),

@@ -51,17 +51,20 @@ The signee provider can run again when the resolve step itself retries. If the f
 Storage replays that mutation and retains the original recipients and IDs. Downstream recipient retries do not run
 the provider again.
 
-Notifications are ordinary per-recipient commands in the same sequential continuation. A notification failure holds
-the signing initialization workflow and is recovered with the existing process workflow resume operation. There is no
-`signing/notifications` inspection or resume API in this experiment. The frontend shows the ordinary
-processing/failure screen until initialization commits. A failed transition has no citizen retry button;
-recovery uses the existing authorized process resume operation, followed by a refresh. Failure-code
-fields in stored legacy signee state remain readable, but failed recipient attempts in this topology
-are recorded by the engine and do not save their pending signee-state changes.
+Notifications are ordinary per-recipient commands in the same sequential continuation. A permanent failure that
+concerns one recipient does not hold the workflow: a refused delegation or a refused message is recorded on that
+signee's state, with a structured code and a short reason, and the continuation carries on to the commit. The
+signing state API reports the code, the signee list shows it, and the instance owner can reject the task to correct
+the data. A signee whose notification failed can still sign. Only failures that would repeat for every recipient
+fail the step: a refused app credential or scope, a Maskinporten token the app cannot obtain, the instance owner not
+resolving, or a removed configuration. Those are recovered with the existing process workflow resume operation
+after the cause is fixed. The frontend shows the ordinary processing/failure screen while a workflow is failed, and a
+failed transition has no citizen retry button.
 
-A failed delegation or notification must be corrected before resuming the process workflow. Known permanent errors
-fail without automatic retry; transport failures, timeouts, 408/429, and 5xx responses receive the configured bounded
-retry policy. Dependency response text is mapped to the command result and is not exposed as an engine error contract.
+Transport failures, timeouts, 408/429, and 5xx responses receive the configured bounded retry policy. Every other
+4xx is permanent: it is recorded against the recipient, except that 401/403 and any Maskinporten failure are treated
+as app-wide, since the credential is the app's rather than the recipient's. Dependency response text is mapped to
+the command result and is not exposed as an engine error contract.
 
 ## Compatibility and trade-offs
 

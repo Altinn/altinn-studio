@@ -10,7 +10,8 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
 /// <summary>
 /// Delegates the task's rights to one frozen signee. Each recipient has its own sequential workflow step and
-/// save boundary. Permanent failures fail the step; transient failures are retried.
+/// save boundary. A refusal that concerns this recipient alone is recorded on its state and the transition
+/// continues; transient failures are retried, and app-wide failures fail the step.
 /// </summary>
 internal sealed class DelegateSigneeRightsCommand : WorkflowEngineCommandBase<SigneeCommandPayload>
 {

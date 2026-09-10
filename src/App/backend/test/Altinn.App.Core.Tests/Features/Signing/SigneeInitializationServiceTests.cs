@@ -281,10 +281,11 @@ public sealed class SigneeInitializationServiceTests
     }
 
     [Fact]
-    public async Task Delegate_PermanentRecipientRejection_FailsWithoutSaving()
+    public async Task Delegate_PermanentRecipientRejection_RecordsAndContinues()
     {
         var setup = PrepareRecipients();
         SetupOwnerParty();
+        SetupPersistence(setup);
         _signingDelegationService
             .Setup(x =>
                 x.DelegateRights(
@@ -299,14 +300,21 @@ public sealed class SigneeInitializationServiceTests
             )
             .Callback<string, string, Guid, AppIdentifier, List<SigneeContext>, Guid, CancellationToken>(
                 (_, _, _, _, recipients, _, _) =>
-                    Assert.Single(recipients).SigneeState.DelegationFailedReason = "Recipient rejected"
+                {
+                    SigneeState rejected = Assert.Single(recipients).SigneeState;
+                    rejected.DelegationFailure = DelegationFailureCode.Rejected;
+                    rejected.DelegationFailedReason = "Recipient rejected";
+                }
             )
             .Returns(Task.CompletedTask);
 
-        var failure = await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Delegate(setup));
+        await Delegate(setup);
 
-        Assert.Equal("SigneeDelegationFailed", failure.ErrorCode);
-        VerifyNoPersistence();
+        SigneeState recorded = setup.Contexts[0].SigneeState;
+        Assert.False(recorded.IsAccessDelegated);
+        Assert.Equal(DelegationFailureCode.Rejected, recorded.DelegationFailure);
+        Assert.Equal("Recipient rejected", recorded.DelegationFailedReason);
+        VerifyPersistedOnce(setup);
     }
 
     [Theory]
@@ -422,24 +430,36 @@ public sealed class SigneeInitializationServiceTests
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.BadRequest, false)]
-    [InlineData(HttpStatusCode.Forbidden, false)]
-    [InlineData(HttpStatusCode.TooManyRequests, true)]
-    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
-    public async Task Notify_DependencyFailure_PreservesClassificationAndDoesNotSave(
+    [InlineData(HttpStatusCode.BadRequest, false, "Rejected")]
+    [InlineData(HttpStatusCode.Forbidden, false, "Configuration")]
+    [InlineData(HttpStatusCode.TooManyRequests, true, null)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true, null)]
+    public async Task Notify_DependencyFailure_RethrowsTransientAndRecordsPermanent(
         HttpStatusCode status,
-        bool retryable
+        bool retryable,
+        string? expectedCode
     )
     {
         var setup = PrepareRecipients(delegated: true);
         SetupServiceOwnerParty();
+        SetupPersistence(setup);
         var error = new CorrespondenceRequestException("Send failed", null, status, null);
         SetupSendFailure(error);
         if (retryable)
+        {
             Assert.Same(error, await Assert.ThrowsAsync<CorrespondenceRequestException>(() => Notify(setup)));
-        else
-            await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
-        VerifyNoPersistence();
+            VerifyNoPersistence();
+            return;
+        }
+
+        await Notify(setup);
+
+        SigneeState recorded = setup.Contexts[0].SigneeState;
+        Assert.False(recorded.HasBeenMessagedForCallToSign);
+        // A refused credential is the app's problem, so it is reported as configuration rather than a rejection.
+        Assert.Equal(Enum.Parse<NotificationFailureCode>(expectedCode!), recorded.NotificationFailure);
+        Assert.NotNull(recorded.CallToSignFailedReason);
+        VerifyPersistedOnce(setup);
     }
 
     [Fact]
@@ -459,13 +479,48 @@ public sealed class SigneeInitializationServiceTests
     }
 
     [Fact]
-    public async Task Notify_MissingServiceOwner_FailsWithoutSaving()
+    public async Task Notify_DelegationPermanentlyRefused_SkipsWithoutFailingTheStep()
     {
-        var setup = PrepareRecipients(delegated: true);
-        _altinnCdnClient.Setup(x => x.GetOrgDetails(CancellationToken.None)).ReturnsAsync((AltinnCdnOrgDetails?)null);
-        await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
+        var setup = PrepareRecipients();
+        SigneeState refused = setup.Contexts[0].SigneeState;
+        refused.IsAccessDelegated = false;
+        refused.DelegationFailure = DelegationFailureCode.Rejected;
+        refused.DelegationFailedReason = "Recipient rejected";
+
+        await Notify(setup);
+
+        _signingCallToActionService.VerifyNoOtherCalls();
+        Assert.False(refused.HasBeenMessagedForCallToSign);
+        Assert.Equal(DelegationFailureCode.Rejected, refused.DelegationFailure);
+        VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Notify_DelegationNeverAttempted_FailsTheStep()
+    {
+        var setup = PrepareRecipients();
+
+        var failure = await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() => Notify(setup));
+
+        Assert.Equal("SigneeDelegationMissing", failure.ErrorCode);
         _signingCallToActionService.VerifyNoOtherCalls();
         VerifyNoPersistence();
+    }
+
+    [Fact]
+    public async Task Notify_MissingServiceOwner_RecordsServiceOwnerUnavailable()
+    {
+        var setup = PrepareRecipients(delegated: true);
+        SetupPersistence(setup);
+        _altinnCdnClient.Setup(x => x.GetOrgDetails(CancellationToken.None)).ReturnsAsync((AltinnCdnOrgDetails?)null);
+
+        await Notify(setup);
+
+        SigneeState recorded = setup.Contexts[0].SigneeState;
+        Assert.False(recorded.HasBeenMessagedForCallToSign);
+        Assert.Equal(NotificationFailureCode.ServiceOwnerUnavailable, recorded.NotificationFailure);
+        _signingCallToActionService.VerifyNoOtherCalls();
+        VerifyPersistedOnce(setup);
     }
 
     [Fact]
@@ -549,6 +604,12 @@ public sealed class SigneeInitializationServiceTests
         _signeeContextsManager
             .Setup(x => x.PersistSigneeContexts(setup.Mutator.Object, setup.Config, TaskId, setup.Contexts))
             .Returns(Task.CompletedTask);
+
+    private void VerifyPersistedOnce(RecipientSetup setup) =>
+        _signeeContextsManager.Verify(
+            x => x.PersistSigneeContexts(setup.Mutator.Object, setup.Config, TaskId, setup.Contexts),
+            Times.Once
+        );
 
     private void VerifyNoPersistence() =>
         _signeeContextsManager.Verify(

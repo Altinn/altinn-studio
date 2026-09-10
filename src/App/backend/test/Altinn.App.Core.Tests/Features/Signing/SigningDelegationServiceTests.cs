@@ -283,7 +283,7 @@ public class SigningDelegationServiceTests
         var accessManagementClient = new Mock<IAccessManagementClient>();
         accessManagementClient
             .SetupSequence(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new AccessManagementRequestException("Forbidden", null, HttpStatusCode.Forbidden, null))
+            .ThrowsAsync(new AccessManagementRequestException("Bad request", null, HttpStatusCode.BadRequest, null))
             .ReturnsAsync(new DelegationResponse());
         var logger = new Mock<ILogger<SigningDelegationService>>();
         var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
@@ -333,6 +333,59 @@ public class SigningDelegationServiceTests
         accessManagementClient.Verify(
             x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
             Times.Exactly(2)
+        );
+    }
+
+    [Fact]
+    public async Task DelegateRights_AppWideFailure_FailsWithoutRecordingAgainstTheRecipient()
+    {
+        // Arrange: a refused credential is the app's problem and would repeat for every signee.
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        accessManagementClient
+            .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AccessManagementRequestException("Forbidden", null, HttpStatusCode.Forbidden, null));
+        var logger = new Mock<ILogger<SigningDelegationService>>();
+        var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
+        var taskId = "taskId";
+        var instanceId = "instanceOwnerPartyId" + "/" + Guid.NewGuid();
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                SigneeState = new SigneeState() { IsAccessDelegated = false },
+                Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
+            },
+            new()
+            {
+                TaskId = taskId,
+                SigneeState = new SigneeState() { IsAccessDelegated = false },
+                Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
+            },
+        };
+
+        // Act
+        var failure = await Assert.ThrowsAsync<SigneeInitializationPermanentException>(() =>
+            service.DelegateRights(
+                taskId,
+                instanceId,
+                Guid.NewGuid(),
+                new AppIdentifier("testOrg", "testApp"),
+                signeeContexts,
+                Guid.NewGuid(),
+                CancellationToken.None
+            )
+        );
+
+        // Assert: the step fails, nothing is recorded on the recipient, and later recipients are not attempted.
+        Assert.Equal("SigneeDelegationFailed", failure.ErrorCode);
+        Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.Null(signeeContexts[0].SigneeState.DelegationFailure);
+        Assert.Null(signeeContexts[0].SigneeState.DelegationFailedReason);
+        Assert.False(signeeContexts[1].SigneeState.IsAccessDelegated);
+        accessManagementClient.Verify(
+            x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
+            Times.Once
         );
     }
 

@@ -28,7 +28,11 @@ internal interface ISigneeInitializationService
         CancellationToken ct
     );
 
-    /// <summary>Delegates rights to one frozen recipient and persists its successful result.</summary>
+    /// <summary>
+    /// Delegates rights to one frozen recipient and persists the result. A refusal that concerns this recipient
+    /// alone is recorded on its state and does not fail the step; a transient failure is thrown for the engine to
+    /// retry, and an app-wide one (the app's credentials, or a dependency every recipient needs) fails the step.
+    /// </summary>
     Task ExecuteDelegation(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
@@ -40,9 +44,11 @@ internal interface ISigneeInitializationService
     );
 
     /// <summary>
-    /// Sends one recipient's call to action using a stable task-entry key and persists success. The caller must
-    /// retain process ownership and run recipient commands sequentially through their aggregate save boundaries.
-    /// A command for an ended or replaced task entry fails without sending or writing.
+    /// Sends one recipient's call to action using a stable task-entry key and persists the result. The notification
+    /// is a courtesy, so a permanent failure of any kind is recorded on the recipient's state and does not fail the
+    /// step; only a transient failure is thrown for the engine to retry. A recipient whose delegation was refused is
+    /// skipped. The caller must retain process ownership and run recipient commands sequentially through their
+    /// aggregate save boundaries. A command for an ended or replaced task entry fails without sending or writing.
     /// </summary>
     Task ExecuteNotification(
         IInstanceDataMutator instanceDataMutator,

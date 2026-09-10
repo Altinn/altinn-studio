@@ -155,11 +155,17 @@ internal sealed class SigneeInitializationService(
             workflowId,
             ct
         );
+        // A permanent rejection of one recipient is recorded on their state rather than failing the step, so the
+        // other signees can still sign and the reason reaches the signing state API. Transient failures are
+        // rethrown by the delegation service for the engine to retry, and app-wide ones fail the step there.
         if (!signeeContext.SigneeState.IsAccessDelegated)
         {
-            throw new SigneeInitializationPermanentException(
-                signeeContext.SigneeState.DelegationFailedReason ?? "Rights could not be delegated to the signee.",
-                "SigneeDelegationFailed"
+            logger.LogWarning(
+                "Rights could not be delegated to signee {SigneeId} on task {TaskId} (workflow {WorkflowId}): {Reason}",
+                signeeId,
+                taskId,
+                workflowId,
+                signeeContext.SigneeState.DelegationFailedReason
             );
         }
 
@@ -199,6 +205,21 @@ internal sealed class SigneeInitializationService(
         }
         if (!signeeContext.SigneeState.IsAccessDelegated)
         {
+            // A recorded permanent rejection means this signee cannot sign, so there is nothing to call them to
+            // action about. Skipping keeps the transition going for the signees whose delegation did succeed;
+            // their failure is already persisted and reported on the signing state.
+            if (signeeContext.SigneeState.DelegationFailure is not null)
+            {
+                logger.LogInformation(
+                    "Skipping the call to action for signee {SigneeId} on task {TaskId}: rights were permanently refused ({Failure}).",
+                    signeeId,
+                    taskId,
+                    signeeContext.SigneeState.DelegationFailure
+                );
+                return;
+            }
+
+            // No attempt was recorded at all, so the steps ran out of order and retrying cannot fix it.
             throw new SigneeInitializationPermanentException(
                 "Rights must be delegated before notifying the signee.",
                 "SigneeDelegationMissing"
@@ -206,12 +227,23 @@ internal sealed class SigneeInitializationService(
         }
 
         Instance instance = instanceDataMutator.Instance;
-        Party serviceOwnerParty =
-            await ResolveServiceOwnerParty(ct)
-            ?? throw new SigneeInitializationPermanentException(
-                "The service owner's party could not be resolved.",
-                "SigneeNotificationFailed"
+        Party? serviceOwnerParty = await ResolveServiceOwnerParty(ct);
+        if (serviceOwnerParty is null)
+        {
+            RecordNotificationFailure(
+                signeeContext,
+                NotificationFailureCode.ServiceOwnerUnavailable,
+                "The service owner's party could not be resolved."
             );
+            await signeeContextsManager.PersistSigneeContexts(
+                instanceDataMutator,
+                signatureConfiguration,
+                taskId,
+                signeeContexts
+            );
+            return;
+        }
+
         Party signingParty = signeeContext.Signee.GetParty();
         Guid idempotentKey = SigningIdempotencyKey.ForCallToAction(signeeStateElementId, signeeId);
 
@@ -261,7 +293,11 @@ internal sealed class SigneeInitializationService(
                 stepId,
                 classification.Reason
             );
-            throw new SigneeInitializationPermanentException(classification.Reason, "SigneeNotificationFailed");
+            RecordNotificationFailure(
+                signeeContext,
+                SigningFailureClassifier.NotificationCode(classification),
+                classification.Reason
+            );
         }
 
         await signeeContextsManager.PersistSigneeContexts(
@@ -410,5 +446,22 @@ internal sealed class SigneeInitializationService(
         state.NotificationFailure = null;
         state.CallToSignFailedReason = null;
         telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Success);
+    }
+
+    /// <summary>
+    /// Records why the call to action could not be sent to one signee. The notification is a courtesy: the signee
+    /// can still sign without it, so the transition continues and the reason is shown with the signee's status
+    /// instead of holding the whole task. Only a transient failure fails the step, for the engine to retry.
+    /// </summary>
+    private static void RecordNotificationFailure(
+        SigneeContext signeeContext,
+        NotificationFailureCode code,
+        string reason
+    )
+    {
+        SigneeContextState state = signeeContext.SigneeState;
+        state.HasBeenMessagedForCallToSign = false;
+        state.NotificationFailure = code;
+        state.CallToSignFailedReason = reason;
     }
 }

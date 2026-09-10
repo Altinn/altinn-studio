@@ -55,11 +55,11 @@ public class SigningFailureClassifierTests
 
     [Theory]
     [InlineData("delegation", HttpStatusCode.BadRequest)]
-    [InlineData("delegation", HttpStatusCode.Forbidden)]
     [InlineData("delegation", HttpStatusCode.NotFound)]
+    [InlineData("delegation", HttpStatusCode.UnprocessableEntity)]
     [InlineData("notification", HttpStatusCode.BadRequest)]
-    [InlineData("notification", HttpStatusCode.Forbidden)]
     [InlineData("notification", HttpStatusCode.NotFound)]
+    [InlineData("notification", HttpStatusCode.UnprocessableEntity)]
     public void Classify_PermanentStatus_IsPermanentPerSignee(string kind, HttpStatusCode status)
     {
         PlatformHttpException exception = new(status, "boom");
@@ -69,6 +69,64 @@ public class SigningFailureClassifierTests
         Assert.Equal(SigningFailureKind.PermanentPerSignee, classification.Kind);
         Assert.False(classification.IsTransient);
         Assert.Equal(status, classification.Status);
+    }
+
+    [Theory]
+    [InlineData("delegation", HttpStatusCode.Unauthorized)]
+    [InlineData("delegation", HttpStatusCode.Forbidden)]
+    [InlineData("notification", HttpStatusCode.Unauthorized)]
+    [InlineData("notification", HttpStatusCode.Forbidden)]
+    public void Classify_AuthenticationStatus_IsPermanentAppWide(string kind, HttpStatusCode status)
+    {
+        // The app's own credentials or scopes were refused: every recipient fails identically, so the failure is
+        // never recorded against the one that happened to be first.
+        PlatformHttpException exception = new(status, "boom");
+
+        SigningFailureClassification classification = ClassifyByKind(kind, exception, NotCancelled);
+
+        Assert.Equal(SigningFailureKind.PermanentAppWide, classification.Kind);
+        Assert.False(classification.IsTransient);
+        Assert.Equal(status, classification.Status);
+    }
+
+    [Theory]
+    [InlineData("delegation")]
+    [InlineData("notification")]
+    public void Classify_MaskinportenRejection_IsPermanentAppWide(string kind)
+    {
+        // A refused token request carries a status through the wrapper, but the token is the app's, not the
+        // recipient's.
+        CorrespondenceRequestException exception = TokenExchangeFailure(HttpStatusCode.BadRequest);
+
+        SigningFailureClassification classification = ClassifyByKind(kind, exception, NotCancelled);
+
+        Assert.Equal(SigningFailureKind.PermanentAppWide, classification.Kind);
+        Assert.Equal(HttpStatusCode.BadRequest, classification.Status);
+    }
+
+    [Theory]
+    [InlineData("delegation")]
+    [InlineData("notification")]
+    public void Classify_MaskinportenConfigurationFailure_IsPermanentAppWide(string kind)
+    {
+        MaskinportenConfigurationException exception = new("no client configured");
+
+        SigningFailureClassification classification = ClassifyByKind(kind, exception, NotCancelled);
+
+        Assert.Equal(SigningFailureKind.PermanentAppWide, classification.Kind);
+        Assert.Null(classification.Status);
+    }
+
+    [Theory]
+    [InlineData("delegation")]
+    [InlineData("notification")]
+    public void Classify_MaskinportenTokenExpired_StaysTransient(string kind)
+    {
+        MaskinportenTokenExpiredException exception = new("token already expired");
+
+        SigningFailureClassification classification = ClassifyByKind(kind, exception, NotCancelled);
+
+        Assert.Equal(SigningFailureKind.Transient, classification.Kind);
     }
 
     [Theory]
@@ -474,7 +532,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(exception, classification);
+        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(classification);
 
         Assert.Equal(NotificationFailureCode.Configuration, code);
     }
@@ -488,7 +546,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(exception, classification);
+        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(classification);
 
         Assert.Equal(NotificationFailureCode.Configuration, code);
     }
@@ -502,7 +560,21 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(exception, classification);
+        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(classification);
+
+        Assert.Equal(NotificationFailureCode.Configuration, code);
+    }
+
+    [Fact]
+    public void NotificationCode_AuthenticationStatus_ReturnsConfiguration()
+    {
+        CorrespondenceRequestException exception = new("boom", null, HttpStatusCode.Forbidden, null);
+        SigningFailureClassification classification = SigningFailureClassifier.ClassifyNotification(
+            exception,
+            NotCancelled
+        );
+
+        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(classification);
 
         Assert.Equal(NotificationFailureCode.Configuration, code);
     }
@@ -516,7 +588,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(exception, classification);
+        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(classification);
 
         Assert.Equal(NotificationFailureCode.Rejected, code);
     }
@@ -530,7 +602,7 @@ public class SigningFailureClassifierTests
             NotCancelled
         );
 
-        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(exception, classification);
+        NotificationFailureCode code = SigningFailureClassifier.NotificationCode(classification);
 
         Assert.Equal(NotificationFailureCode.Unknown, code);
     }

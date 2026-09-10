@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Services;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,15 +42,19 @@ internal sealed class ResolveSigneesCommand : WorkflowEngineCommandBase<ProcessT
         ProcessTaskPayload payload
     )
     {
-        AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
-        if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
-        {
-            return ProcessEngineCommandResult.Completed();
-        }
-
-        ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
         try
         {
+            // Read the configuration inside the try: a redeploy can remove it while this workflow is in flight,
+            // and that is a permanent configuration failure, not a retryable one. The initialization service is
+            // resolved only after the task is known to be runtime-delegated, so unrelated tasks never build the
+            // signing client graph.
+            AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
+            if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
+            {
+                return ProcessEngineCommandResult.Completed();
+            }
+
+            ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
             SigneeInitializationOutcome outcome = await initialization.ResolveSignees(
                 context.InstanceDataMutator,
                 configuration,
@@ -70,11 +75,18 @@ internal sealed class ResolveSigneesCommand : WorkflowEngineCommandBase<ProcessT
         {
             throw;
         }
+        catch (ApplicationConfigException e)
+        {
+            return ProcessEngineCommandResult.FailedPermanent(
+                $"Process task command '{Key}' failed: {e.Message}",
+                "SigneeConfigurationChanged"
+            );
+        }
         catch (SigneeInitializationPermanentException e)
         {
             return ProcessEngineCommandResult.FailedPermanent(
                 $"Process task command '{Key}' failed: {e.Message}",
-                "ProcessTaskCommandFailed"
+                e.ErrorCode
             );
         }
         catch (Exception e)

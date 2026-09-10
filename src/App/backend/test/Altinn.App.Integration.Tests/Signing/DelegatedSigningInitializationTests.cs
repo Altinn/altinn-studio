@@ -142,7 +142,7 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
     }
 
     [Fact]
-    public async Task ProcessNext_PermanentDelegationRejection_BlocksCommitAndResumesOnlyFailedRecipient()
+    public async Task ProcessNext_PermanentDelegationRejection_RecordsItAndOpensTheTask()
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
         var fixture = fixtureScope.Fixture;
@@ -150,24 +150,26 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
         string token = await fixture.Auth.GetUserToken(userId: 1337);
         using var instance = await CreateInstance(fixture, token);
 
-        await EnterSigning(fixture, token, instance, expectFailure: true);
+        await EnterSigning(fixture, token, instance);
 
         using var response = await fixture.Instances.Get(token, instance);
         using var refreshed = await response.Read<Instance>();
         Assert.Equal(HttpStatusCode.OK, refreshed.Response.StatusCode);
-        Assert.Equal("Task_1", refreshed.Data.Model!.Process.CurrentTask!.ElementId);
-        Assert.Single(refreshed.Data.Model.Data, data => data.DataType == "signee-states");
+        Assert.Equal(SigningTask, refreshed.Data.Model!.Process.CurrentTask!.ElementId);
+        Assert.Equal(ProcessStatus.Idle, refreshed.Data.Model.Process.Status);
+        string originalElement = Assert.Single(refreshed.Data.Model.Data, d => d.DataType == "signee-states").Id;
 
+        // The refused recipient is recorded with a code and the task opens. Nobody is told to sign a document
+        // they cannot sign: the refused recipient's notification step runs and skips.
         var signing = await ReadSigningState(fixture, token, refreshed);
         Assert.Equal(2, signing.SigneeStates.Count);
         var first = Assert.Single(signing.SigneeStates, signee => signee.PartyId == FirstPartyId);
         Assert.True(first.DelegationSuccessful);
         Assert.Null(first.DelegationFailure);
-        Assert.Equal(NotificationStatus.NotSent, first.NotificationStatus);
-        Assert.Null(first.NotificationFailure);
+        Assert.Equal(NotificationStatus.Sent, first.NotificationStatus);
         var second = Assert.Single(signing.SigneeStates, signee => signee.PartyId == SecondPartyId);
         Assert.False(second.DelegationSuccessful);
-        Assert.Null(second.DelegationFailure); // The engine owns the failed execution; Storage holds completed facts.
+        Assert.Equal(SigneeDelegationFailure.Rejected, second.DelegationFailure);
         Assert.Equal(NotificationStatus.NotSent, second.NotificationStatus);
         Assert.Null(second.NotificationFailure);
 
@@ -176,34 +178,125 @@ public class DelegatedSigningInitializationTests(ITestOutputHelper output, AppFi
         Assert.Equal(2, state.Delegations.Length);
         var granted = Assert.Single(state.Delegations, delegation => delegation.Recipient == FirstPartyUuid);
         Assert.True(granted.Forwarded);
-        Assert.Equal(200, granted.StatusCode);
         var rejected = Assert.Single(state.Delegations, delegation => delegation.Recipient == SecondPartyUuid);
         Assert.False(rejected.Forwarded);
         Assert.Equal(400, rejected.StatusCode);
-        Assert.Equal(0, state.AcceptedNotificationCount);
-        Assert.Empty(state.Notifications);
+        Assert.Equal(1, state.AcceptedNotificationCount);
+        Assert.Single(NotificationsFor(state, FirstPerson), notification => notification.Accepted);
+        Assert.Empty(NotificationsFor(state, SecondPerson));
         var callbacks = SigningCallbacks(state);
         Assert.Equal(1, callbacks.Count(c => c.CommandKey == "ResolveSignees"));
         Assert.Equal(2, callbacks.Count(c => c.CommandKey == "DelegateSigneeRights"));
-        Assert.DoesNotContain(callbacks, c => c.CommandKey == "NotifySignee");
-        Assert.Equal(1, callbacks.Count(c => c.StatusCode == 422));
+        Assert.Equal(2, callbacks.Count(c => c.CommandKey == "NotifySignee"));
+        Assert.All(callbacks, callback => Assert.Equal(200, callback.StatusCode));
         Assert.Equal(0, callbacks.Count(c => c.RetryCount > 0));
+        Assert.Contains(state.Callbacks, callback => callback.CommandKey == "CommitProcessState");
+
+        // The instance owner corrects the data by rejecting back to the form and entering signing again.
+        await AllowScenario(fixture);
+        using var reject = await fixture.Instances.ProcessNext(token, instance, new ProcessNext { Action = "reject" });
+        using var rejectedProcess = await reject.Read<AppProcessState>();
+        Assert.Equal(HttpStatusCode.OK, rejectedProcess.Response.StatusCode);
+        Assert.Equal("Task_1", rejectedProcess.Data.Model!.CurrentTask!.ElementId);
+        await EnterSigning(fixture, token, instance);
+        string newElement = await AssertInitialized(fixture, token, instance);
+        Assert.NotEqual(originalElement, newElement);
+        var recovered = await GetScenarioState(fixture);
+        Assert.Equal(2, recovered.ProviderCalls);
+        Assert.Equal(3, recovered.AcceptedNotificationCount);
+        Assert.Equal(2, recovered.Delegations.Count(d => d.Recipient == FirstPartyUuid));
+        Assert.Equal(2, recovered.Delegations.Count(d => d.Recipient == SecondPartyUuid));
+    }
+
+    [Fact]
+    public async Task ProcessNext_AppWideDelegationFailure_BlocksCommitUntilResumed()
+    {
+        await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
+        var fixture = fixtureScope.Fixture;
+        // 403 means the app's own credentials or scopes were refused. That would repeat for every signee, so it is
+        // never recorded against the recipient that happened to be next; the step fails for the service owner.
+        await ResetScenario(fixture, delegationFailure: new FailureRule(2, -1, 403));
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        using var instance = await CreateInstance(fixture, token);
+
+        Guid failedWorkflowId = await FailEnteringSigning(fixture, token, instance);
+
+        using var response = await fixture.Instances.Get(token, instance);
+        using var refreshed = await response.Read<Instance>();
+        Assert.Equal("Task_1", refreshed.Data.Model!.Process.CurrentTask!.ElementId);
+        Assert.Equal(ProcessStatus.Processing, refreshed.Data.Model.Process.Status);
+        var pending = await ReadSigningState(fixture, token, refreshed);
+        Assert.True(Assert.Single(pending.SigneeStates, s => s.PartyId == FirstPartyId).DelegationSuccessful);
+        var second = Assert.Single(pending.SigneeStates, s => s.PartyId == SecondPartyId);
+        Assert.False(second.DelegationSuccessful);
+        Assert.Null(second.DelegationFailure); // The failed step saved nothing; the engine owns this failure.
+
+        var before = await GetScenarioState(fixture);
+        Assert.Equal(2, before.Delegations.Length);
+        var refused = Assert.Single(before.Delegations, d => d.Recipient == SecondPartyUuid);
+        Assert.False(refused.Forwarded);
+        Assert.Equal(403, refused.StatusCode);
+        Assert.Empty(before.Notifications);
+        var callbacks = SigningCallbacks(before);
+        Assert.Equal(1, callbacks.Count(c => c.StatusCode == 422));
+        Assert.DoesNotContain(callbacks, c => c.CommandKey == "NotifySignee");
+        Assert.DoesNotContain(
+            before.Callbacks,
+            c => c.WorkflowId == failedWorkflowId && c.CommandKey == "CommitProcessState"
+        );
 
         await AllowScenario(fixture);
         await ResumeSigning(fixture, token, instance);
         await AssertInitialized(fixture, token, instance);
-        var recovered = await GetScenarioState(fixture);
-        Assert.Equal(2, recovered.AcceptedNotificationCount);
-        Assert.Single(recovered.Delegations, d => d.Recipient == FirstPartyUuid);
-        Assert.Equal(2, recovered.Delegations.Count(d => d.Recipient == SecondPartyUuid));
-        Assert.Single(NotificationsFor(recovered, FirstPerson), notification => notification.Accepted);
-        Assert.Single(NotificationsFor(recovered, SecondPerson), notification => notification.Accepted);
+        var after = await GetScenarioState(fixture);
+        Assert.Equal(2, after.AcceptedNotificationCount);
+        Assert.Single(after.Delegations, d => d.Recipient == FirstPartyUuid);
+        Assert.Equal(2, after.Delegations.Count(d => d.Recipient == SecondPartyUuid));
+    }
+
+    [Fact]
+    public async Task ProcessNext_PermanentNotificationRejection_RecordsItAndOpensTheTask()
+    {
+        await using var fixtureScope = await classFixture.Get(output, TestApps.DelegatedSigning);
+        var fixture = fixtureScope.Fixture;
+        await ResetScenario(fixture, notificationFailure: new FailureRule(2, -1, 400));
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        using var instance = await CreateInstance(fixture, token);
+
+        await EnterSigning(fixture, token, instance);
+
+        // The notification is a courtesy: the refused message is recorded on the recipient, and signing opens.
+        using var response = await fixture.Instances.Get(token, instance);
+        using var refreshed = await response.Read<Instance>();
+        Assert.Equal(SigningTask, refreshed.Data.Model!.Process.CurrentTask!.ElementId);
+        Assert.Equal(ProcessStatus.Idle, refreshed.Data.Model.Process.Status);
+        var signing = await ReadSigningState(fixture, token, refreshed);
+        Assert.All(signing.SigneeStates, signee => Assert.True(signee.DelegationSuccessful));
+        var first = Assert.Single(signing.SigneeStates, signee => signee.PartyId == FirstPartyId);
+        Assert.Equal(NotificationStatus.Sent, first.NotificationStatus);
+        Assert.Null(first.NotificationFailure);
+        var second = Assert.Single(signing.SigneeStates, signee => signee.PartyId == SecondPartyId);
+        Assert.Equal(NotificationStatus.Failed, second.NotificationStatus);
+        Assert.Equal(SigneeNotificationFailure.Rejected, second.NotificationFailure);
+
+        var state = await GetScenarioState(fixture);
+        Assert.Equal(1, state.ProviderCalls);
+        AssertDelegations(state, expectedAttemptsPerRecipient: 1);
+        Assert.Equal(1, state.AcceptedNotificationCount);
+        Assert.Single(NotificationsFor(state, FirstPerson), notification => notification.Accepted);
+        var refused = Assert.Single(NotificationsFor(state, SecondPerson));
+        Assert.False(refused.Accepted);
+        Assert.Equal(400, refused.StatusCode);
+        AssertNotificationKeys(state);
+        var callbacks = SigningCallbacks(state);
+        Assert.Equal(2, callbacks.Count(c => c.CommandKey == "NotifySignee"));
+        Assert.All(callbacks, callback => Assert.Equal(200, callback.StatusCode));
+        Assert.Contains(state.Callbacks, callback => callback.CommandKey == "CommitProcessState");
     }
 
     [Theory]
-    [InlineData(400, 1, 422)]
     [InlineData(503, 3, 500)]
-    public async Task NotificationFailure_BlocksCommitAndProcessResumeRetriesOnlyFailedRecipient(
+    public async Task TransientNotificationFailure_BlocksCommitAndProcessResumeRetriesOnlyFailedRecipient(
         int dependencyStatusCode,
         int expectedFailedAttempts,
         int callbackStatusCode
