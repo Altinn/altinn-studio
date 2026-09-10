@@ -156,7 +156,12 @@
     },
     "list": {
       "title": "Any expression returning a list",
-      "$ref": "#/definitions/strict-list"
+      "anyOf": [
+        { "$ref": "#/definitions/strict-list" },
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/func-component" },
+        { "$ref": "#/definitions/func-dataModel" }
+      ]
     },
     "strict-list": {
       "title": "Any expression returning a list (strict)",
@@ -167,7 +172,12 @@
     },
     "object": {
       "title": "Any expression returning an object",
-      "$ref": "#/definitions/strict-object"
+      "anyOf": [
+        { "$ref": "#/definitions/strict-object" },
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/func-component" },
+        { "$ref": "#/definitions/func-dataModel" }
+      ]
     },
     "strict-object": {
       "title": "Any expression returning an object (strict)",
