@@ -40,15 +40,44 @@ export const returnBaseUrlToAltinn = (host: string): string | undefined => {
   return `https://${altinnHost}/`;
 };
 
-function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
-  if (isLocalEnvironment(host)) {
-    return `http://${host}/`;
+/**
+ * A locally running app must never be sent to a deployed arbeidsflate: the session, the parties and
+ * the dialogs all live in the local stack, so such a link would land the user in a place where their
+ * work does not exist. Locally configured URLs are therefore honoured only when they point somewhere
+ * local themselves — which is what a locally running arbeidsflate configures them to.
+ */
+function isLocalTarget(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return hostname === 'localhost' || hostname.endsWith('.localhost') || hostname === 'local.altinn.cloud';
+  } catch {
+    return false;
   }
+}
+
+function buildArbeidsflateRedirectUrl(
+  host: string,
+  partyId?: number,
+  dialogId?: string,
+  pid?: string | null,
+): string | undefined {
+  const settings = GlobalData.platformFrontendSettings;
+
+  if (isLocalEnvironment(host)) {
+    // Access management is not deployed locally, so there is no party to switch through. The local
+    // arbeidsflate instead accepts the party identifier straight in the URL, which lets it show the
+    // inbox of whichever test user is filling out the form. Only ever substituted for local targets,
+    // so an identifier cannot leak into a deployed URL.
+    const localTarget =
+      (dialogId && fillUrlTemplate(settings.arbeidsflateDialogUrl, { dialogId, pid: pid ?? '' })) ||
+      settings.arbeidsflateInboxUrl;
+    return localTarget && isLocalTarget(localTarget) ? localTarget : `http://${host}/`;
+  }
+
   if (!isRecognizedAltinnHost(host)) {
     return undefined;
   }
 
-  const settings = GlobalData.platformFrontendSettings;
   const inboxUrl = settings.arbeidsflateInboxUrl;
   if (!inboxUrl) {
     return undefined;
@@ -63,8 +92,8 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
   return fillUrlTemplate(settings.accessManagementChangeAndRedirectUrl, { partyId, goTo: targetUrl }) ?? targetUrl;
 }
 
-export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
-  buildArbeidsflateRedirectUrl(window.location.host, partyId, dialogId);
+export const getMessageBoxUrl = (partyId?: number, dialogId?: string, pid?: string | null): string | undefined =>
+  buildArbeidsflateRedirectUrl(window.location.host, partyId, dialogId, pid);
 
 export function getDialogIdFromDataValues(dataValues: unknown): string | undefined {
   const data = dataValues as Record<string, unknown> | null | undefined;
@@ -78,8 +107,12 @@ export function getDialogIdFromDataValues(dataValues: unknown): string | undefin
   return undefined;
 }
 
-export const returnUrlToArchive = (host: string, partyId?: number, dialogId?: string): string | undefined =>
-  buildArbeidsflateRedirectUrl(host, partyId, dialogId);
+export const returnUrlToArchive = (
+  host: string,
+  partyId?: number,
+  dialogId?: string,
+  pid?: string | null,
+): string | undefined => buildArbeidsflateRedirectUrl(host, partyId, dialogId, pid);
 
 export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined => {
   if (isLocalEnvironment(host)) {

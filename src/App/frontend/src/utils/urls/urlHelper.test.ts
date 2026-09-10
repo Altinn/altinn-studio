@@ -178,6 +178,20 @@ describe('Shared urlHelper.ts', () => {
       expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe('http://local.altinn.cloud:8000/');
     });
 
+    test('localtest follows the configured URLs when they are local themselves', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://app.localhost/',
+        arbeidsflateDialogUrl: 'https://app.localhost/inbox/{dialogId}',
+      });
+
+      // A locally running arbeidsflate is the one deployment a local app may link to. The party is
+      // not switched through access management, which is not deployed locally.
+      expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe(
+        'https://app.localhost/inbox/123e4567-e89b-12d3-a456-426614174000',
+      );
+      expect(returnUrlToArchive(hostDocker, undefined)).toBe('https://app.localhost/');
+    });
+
     test('no arbeidsflate link in environments where it is not deployed', () => {
       configureArbeidsflate({});
 
