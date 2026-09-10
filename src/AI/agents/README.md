@@ -195,7 +195,7 @@ python -m scripts.sync_prompts --promote spec_extraction --version 1   # roll ba
 
 Publishing runs from CI, not from a laptop. `.github/workflows/assistant-prompts.yaml` runs `--diff` on every pull request touching `agents/prompts/`, so drift is visible before merge, and runs `--push` on merge to main, which publishes every prompt that differs as a new version labeled `production` with the merge commit URL as its commit message. `--push` refuses to run unless `ALLOW_PROMPT_PUSH=1` is set, which CI does and a laptop should not. Roll back by promoting the previous version.
 
-A full `--diff` also lists the prompts Langfuse holds that have no repo file. Adding a file under one of those names would serve the retired Langfuse version rather than the new file, so archive them in Langfuse instead of leaving them labeled `production`.
+A full `--diff` also lists the prompts Langfuse holds that have no repo file. Adding a file under one of those names serves the retired Langfuse version until CI publishes the new one, and anyone reading the Langfuse list sees a retired prompt labeled `production`. Archive them there rather than leaving them labeled.
 
 At the time of writing 11 of 17 prompts differ from their repo copies, so treat a diff as expected rather than alarming, and read it: the local file may be behind, not ahead.
 
