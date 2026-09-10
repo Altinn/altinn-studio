@@ -17,15 +17,10 @@ def test_render_check_function_is_reachable_on_the_module():
     assert callable(rc.render_check)
 
 
-def test_package_still_re_exports_the_other_engine_symbols():
-    from agents.services.preview import (
-        PageRenderResult,
-        PreviewCheckUnavailable,
-        read_page_order,
-        swap_layout_in_preview_url,
-    )
+def test_package_re_exports_the_engine_symbols_themselves():
+    import agents.services.preview as package
+    import agents.services.preview.render_check as module
 
-    assert PageRenderResult is not None
-    assert PreviewCheckUnavailable is not None
-    assert callable(read_page_order)
-    assert callable(swap_layout_in_preview_url)
+    for name in ("PageRenderResult", "PreviewCheckUnavailable",
+                 "read_page_order", "swap_layout_in_preview_url"):
+        assert getattr(package, name) is getattr(module, name), name
