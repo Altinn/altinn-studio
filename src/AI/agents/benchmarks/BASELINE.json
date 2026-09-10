@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "77dd32dbde59",
-    "code": "7c8760e clean",
+    "code": "9c51b37 clean",
     "dataset": "114 items 5562d4e8298d",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "e477b1c86c5c"
   },
-  "check_id": "20260910T005821Z-clean-baseline-80eb",
-  "label": "clean baseline",
-  "recorded_at": "2026-09-10T01:03:21+00:00",
-  "why": "clean-tree reference: gpt-5.6-terra actor, gpt-5.6-sol planner, EU data zone, dataset and judge recorded"
+  "check_id": "20260910T015211Z-intent-gates-eb13",
+  "label": "intent gates",
+  "recorded_at": "2026-09-10T01:57:05+00:00",
+  "why": "intent gate: credential blocklist removed, confidence threshold at 0.30"
 }
