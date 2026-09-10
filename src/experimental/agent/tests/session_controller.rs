@@ -249,7 +249,10 @@ struct FakeRuntime {
     present: Cell<bool>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
+    transcript_delay: Cell<Duration>,
     delivered: Notify,
+    hold_completion: Cell<bool>,
+    release_completion: Notify,
     ready_without_report: Cell<bool>,
     conversation: RefCell<Vec<agent::sessions::Turn>>,
     sent: RefCell<Vec<String>>,
@@ -262,7 +265,10 @@ impl Default for FakeRuntime {
             present: Cell::new(true),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
+            transcript_delay: Cell::new(Duration::ZERO),
             delivered: Notify::new(),
+            hold_completion: Cell::new(false),
+            release_completion: Notify::new(),
             ready_without_report: Cell::new(false),
             conversation: RefCell::default(),
             sent: RefCell::default(),
@@ -348,12 +354,18 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
         prompt: &'a str,
+        deadline: tokio::time::Instant,
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
-            tokio::time::sleep(self.delivery_delay.get()).await;
+            tokio::time::timeout_at(deadline, tokio::time::sleep(self.delivery_delay.get()))
+                .await
+                .map_err(|_| Error::Session("timed out before delivery".into()))?;
             self.sent.borrow_mut().push(prompt.to_owned());
             self.conversation.borrow_mut().push(user_turn(prompt));
             self.delivered.notify_one();
+            if self.hold_completion.get() {
+                self.release_completion.notified().await;
+            }
             Ok(())
         })
     }
@@ -364,7 +376,10 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
         let turns = self.conversation.borrow().clone();
-        Box::pin(async move { Ok(turns) })
+        Box::pin(async move {
+            tokio::time::sleep(self.transcript_delay.get()).await;
+            Ok(turns)
+        })
     }
 
     fn attach<'a>(
@@ -903,41 +918,43 @@ impl ServiceHarness {
 
 #[tokio::test(flavor = "local")]
 async fn a_repeated_prompt_never_matches_an_earlier_exchange() {
-    let directory = TempDir::new().expect("temporary directory");
-    let harness = ServiceHarness::start(&directory, "11111111-1111-4111-8111-111111111111").await;
-    // An earlier, answered "continue" and an unrelated turn still running.
-    let mut earlier = user_turn("continue");
-    earlier.messages.push(assistant_text("old answer"));
-    harness.runtime.conversation.borrow_mut().push(earlier);
-    harness
-        .runtime
-        .conversation
-        .borrow_mut()
-        .push(user_turn("something else"));
-    harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+    for current_prompt in ["something else", "continue"] {
+        let directory = TempDir::new().expect("temporary directory");
+        let harness = ServiceHarness::start(&directory, "11111111-1111-4111-8111-111111111111").await;
+        // An older answer and an open turn, which may have the same input as ours.
+        let mut earlier = user_turn("continue");
+        earlier.messages.push(assistant_text("old answer"));
+        harness.runtime.conversation.borrow_mut().push(earlier);
+        harness
+            .runtime
+            .conversation
+            .borrow_mut()
+            .push(user_turn(current_prompt));
+        harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
 
-    harness.runtime.delivery_delay.set(Duration::from_millis(150));
-    let mut answer = harness.prompt("continue");
-    harness.await_delivery(&mut answer).await;
-    // The unrelated turn completes: its answer is not ours, and neither is the old one.
-    let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
-    harness.append_to_last_turn(assistant_text("unrelated done"));
-    harness.runtime.conversation.borrow_mut().push(queued);
-    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-    tokio::time::sleep(Duration::from_millis(2_500)).await;
-    assert!(
-        !answer.is_finished(),
-        "an older exchange with the same text is not the answer"
-    );
+        harness.runtime.delivery_delay.set(Duration::from_millis(150));
+        let mut answer = harness.prompt("continue");
+        harness.await_delivery(&mut answer).await;
+        // The unrelated turn completes: its answer is not ours, and neither is the old one.
+        let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
+        harness.append_to_last_turn(assistant_text("unrelated done"));
+        harness.runtime.conversation.borrow_mut().push(queued);
+        harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+        tokio::time::sleep(Duration::from_millis(2_500)).await;
+        assert!(
+            !answer.is_finished(),
+            "an older exchange with the same text is not the answer"
+        );
 
-    // Our turn runs and completes.
-    harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
-    harness.append_to_last_turn(assistant_text("new answer"));
-    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-    let produced = answer.await.expect("task").expect("turns");
-    assert_eq!(produced.len(), 1);
-    assert_eq!(produced[0].final_assistant_message(), Some("new answer"));
-    harness.finish();
+        // Our turn runs and completes.
+        harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
+        harness.append_to_last_turn(assistant_text("new answer"));
+        harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+        let produced = answer.await.expect("task").expect("turns");
+        assert_eq!(produced.len(), 1);
+        assert_eq!(produced[0].final_assistant_message(), Some("new answer"));
+        harness.finish();
+    }
 }
 
 #[tokio::test(flavor = "local")]
@@ -1741,4 +1758,100 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
     rerun.await.expect("rerun task").expect("rerun reconciliation");
     assert_eq!(slow_calls.get(), 2);
     controller_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_deadline_bounds_baseline_reads_and_delivery() {
+    for reading in [true, false] {
+        let directory = TempDir::new().expect("directory");
+        let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+        if reading {
+            harness.runtime.transcript_delay.set(Duration::from_secs(2));
+        } else {
+            harness.runtime.delivery_delay.set(Duration::from_secs(2));
+        }
+        let result = tokio::time::timeout(
+            Duration::from_millis(500),
+            harness.service.prompt(
+                "worker",
+                &SessionName::new("s1").expect("name"),
+                "deadline",
+                true,
+                Some(Duration::from_millis(50)),
+            ),
+        )
+        .await
+        .expect("the prompt's deadline must bound runtime I/O");
+        assert!(result.expect_err("deadline").to_string().contains("timed out"));
+        assert!(harness.runtime.sent.borrow().is_empty(), "expired input was not sent");
+        harness.finish();
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_deadline_bounds_answer_transcript_reads() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+    let service = harness.service.clone();
+    let answer = tokio::task::spawn_local(async move {
+        service
+            .prompt(
+                "worker",
+                &SessionName::new("s1").expect("name"),
+                "answer deadline",
+                true,
+                Some(Duration::from_secs(5)),
+            )
+            .await
+    });
+    tokio::time::timeout(Duration::from_secs(5), harness.runtime.delivered.notified())
+        .await
+        .expect("delivery acknowledgement");
+    harness.runtime.transcript_delay.set(Duration::from_secs(30));
+    harness.append_to_last_turn(assistant_text("done"));
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let result = tokio::time::timeout(Duration::from_secs(7), answer)
+        .await
+        .expect("answer read is bounded")
+        .expect("task");
+    assert!(result.expect_err("deadline").to_string().contains("timed out"));
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn timed_out_delivery_keeps_its_lock_until_external_work_ends() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+    harness.runtime.hold_completion.set(true);
+    let name = SessionName::new("s1").expect("name");
+    let first = harness
+        .service
+        .prompt("worker", &name, "first", false, Some(Duration::from_secs(5)))
+        .await;
+    assert!(first.expect_err("deadline").to_string().contains("timed out"));
+    assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first"]);
+    let queued = harness
+        .service
+        .prompt("worker", &name, "expired", false, Some(Duration::from_millis(50)))
+        .await;
+    assert!(
+        queued
+            .expect_err("queue deadline")
+            .to_string()
+            .contains("before delivery")
+    );
+    assert_eq!(
+        harness.runtime.sent.borrow().as_slice(),
+        ["first"],
+        "expired queued input never starts"
+    );
+    harness.runtime.hold_completion.set(false);
+    harness.runtime.release_completion.notify_one();
+    harness
+        .service
+        .prompt("worker", &name, "after cleanup", false, Some(Duration::from_secs(2)))
+        .await
+        .expect("lock released after completion");
+    assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first", "after cleanup"]);
+    harness.finish();
 }

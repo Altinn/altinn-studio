@@ -88,9 +88,6 @@ impl Builder {
         let Some(prompt) = attachment.get("prompt").and_then(Value::as_str) else {
             return;
         };
-        if is_injected(prompt) {
-            return;
-        }
         self.assistant_message = None;
         self.current_turn().messages.push(Message {
             role: Role::User,
@@ -223,16 +220,19 @@ fn flag(entry: &Value, name: &str) -> bool {
     entry.get(name).and_then(Value::as_bool) == Some(true)
 }
 
-/// Whether a `user` string is client-injected markup rather than a prompt.
-///
-/// Claude Code wraps everything it injects on the operator's behalf in an XML
-/// element (`<command-name>`, `<local-command-stdout>`, `<task-notification>`,
-/// `<system-reminder>`, …). A prompt that is itself one complete XML element
-/// is misread as injected; the harness offers no explicit marker to tell them
-/// apart.
+/// Recognizes the harness's local-command and notification envelopes. Ordinary
+/// XML is operator input; explicitly human queued attachments bypass this filter.
 fn is_injected(text: &str) -> bool {
     let trimmed = text.trim();
-    trimmed.starts_with('<') && trimmed.ends_with('>') && trimmed.contains("</")
+    [
+        "command-name",
+        "local-command-stdout",
+        "local-command-stderr",
+        "task-notification",
+        "system-reminder",
+    ]
+    .iter()
+    .any(|tag| trimmed.starts_with(&format!("<{tag}>")) && trimmed.contains(&format!("</{tag}>")))
 }
 
 #[cfg(test)]
@@ -318,5 +318,25 @@ mod tests {
         assert!(!is_injected("<div>hi"));
         assert!(!is_injected("Compare <a> and <b>"));
         assert!(!is_injected("plain prompt"));
+    }
+}
+
+#[cfg(test)]
+mod input_preservation_tests {
+    #[test]
+    fn human_xml_prompts_survive_normal_and_queued_records() {
+        let prompt = "<task>Reply exactly DONE</task>";
+        let records = [
+            serde_json::json!({"type":"user", "message":{"content":prompt}}),
+            serde_json::json!({"type":"attachment", "attachment":{"type":"queued_command", "origin":{"kind":"human"}, "prompt":prompt}}),
+        ];
+        for record in records {
+            let turns = super::parse(record.to_string().as_bytes()).expect("parse");
+            assert_eq!(turns.len(), 1);
+            assert_eq!(
+                turns[0].messages[0].parts[0],
+                crate::sessions::Part::Text { text: prompt.into() }
+            );
+        }
     }
 }

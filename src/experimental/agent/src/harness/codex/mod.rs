@@ -165,12 +165,20 @@ pub(super) async fn verify_linux(
     Ok(())
 }
 
-/// Codex defers `SessionStart` until the first turn. Its initialized composer
-/// displays this prefix at the visible input cursor, after terminal input has
-/// been enabled. A hidden cursor or a startup/dialog screen is not ready.
-/// Keep this terminal detail in the adapter for the pinned harness version.
-pub(super) fn input_ready_without_report(cursor_line: &str) -> bool {
+/// Codex defers `SessionStart` until the first turn. Its provisional startup
+/// composer already shows a visible input cursor and accepts pastes, but drops
+/// submission keys. Wait for the session header to replace `model: loading`
+/// with the configured model as well as the visible composer cursor.
+/// Keep these terminal details in the adapter for the pinned harness version.
+pub(super) fn input_ready_without_report(cursor_line: &str, screen: &str) -> bool {
     cursor_line.trim_start().starts_with("› ")
+        && screen.lines().any(|line| {
+            line.trim_start()
+                .strip_prefix('│')
+                .and_then(|line| line.trim_start().strip_prefix("model:"))
+                .and_then(|model| model.split_whitespace().next())
+                .is_some_and(|model| model != "loading" && model != "│")
+        })
 }
 
 pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
@@ -216,12 +224,30 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn input_readiness_recognizes_the_composer_not_startup_or_dialog_text() {
-        assert!(super::input_ready_without_report("› Ask Codex to do anything"));
-        assert!(super::input_ready_without_report("  › Find a bug in this code"));
-        assert!(!super::input_ready_without_report("Starting Codex..."));
-        assert!(!super::input_ready_without_report("Select a model"));
-        assert!(!super::input_ready_without_report(""));
+    fn input_readiness_waits_for_the_initialized_composer() {
+        let loading = "╭─────────────────────────────────────────╮\n\
+                       │ >_ OpenAI Codex (v0.153.4)              │\n\
+                       │ model:       loading   /model to change │\n\
+                       │ directory:   ~/code                     │\n\
+                       ╰─────────────────────────────────────────╯\n\
+                       › Ask Codex to do anything\n";
+        assert!(!super::input_ready_without_report(
+            "› Ask Codex to do anything",
+            loading
+        ));
+        let initialized = loading.replace("loading", "gpt-6-astra");
+        assert!(super::input_ready_without_report(
+            "› Ask Codex to do anything",
+            &initialized
+        ));
+        assert!(super::input_ready_without_report(
+            "  › Find a bug in this code",
+            &initialized
+        ));
+        for cursor in ["Starting Codex...", "Select a model", ""] {
+            assert!(!super::input_ready_without_report(cursor, &initialized));
+        }
+        assert!(!super::input_ready_without_report("› Ask Codex to do anything", ""));
     }
 
     #[test]

@@ -1,6 +1,11 @@
 //! User-facing Session operations coordinated with the reconciler.
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    rc::Rc,
+    time::Duration,
+};
 
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
@@ -149,19 +154,61 @@ impl Service {
         wait: bool,
         timeout: Option<Duration>,
     ) -> Result<Vec<Turn>, Error> {
+        let deadline = tokio::time::Instant::now() + timeout.unwrap_or(ANSWER_WAIT_MAX).min(ANSWER_WAIT_MAX);
+        let delivery_started = Rc::new(Cell::new(false));
+        tokio::time::timeout_at(
+            deadline,
+            self.prompt_until(agent, name, prompt, wait, deadline, delivery_started.clone()),
+        )
+        .await
+        .map_err(|_| {
+            Error::Session(if delivery_started.get() {
+                format!(
+                    "timed out prompting Session {name:?}; delivery may have started; inspect turns before retrying"
+                )
+            } else {
+                format!("timed out prompting Session {name:?} before delivery")
+            })
+        })?
+    }
+
+    async fn prompt_until(
+        &self,
+        agent: &str,
+        name: &SessionName,
+        prompt: &str,
+        wait: bool,
+        deadline: tokio::time::Instant,
+        delivery_started: Rc<Cell<bool>>,
+    ) -> Result<Vec<Turn>, Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
-        let budget = timeout.unwrap_or(ANSWER_WAIT_MAX).min(ANSWER_WAIT_MAX);
-        let deadline = tokio::time::Instant::now() + budget;
+        let sandbox = Rc::new(sandbox);
+        let delivering = Delivering::acquire(&self.deliveries, session.id).await;
         // Subscribe before reading so no change can slip between them.
         let mut changes = self.observers.subscribe(session.id);
         let session = self
             .ready_to_prompt(agent, name, &sandbox, &mut changes, deadline)
             .await?;
-        // Answers are looked for from the turn open at delivery onward, so an
-        // earlier exchange with the same text can never be mistaken for this one.
-        let first_candidate = self.runtime.turns(&session, &sandbox).await?.len().saturating_sub(1);
+        // Snapshot the open turn while delivery is serialized. Only user parts
+        // appended after this boundary can belong to this invocation.
+        let baseline = self.runtime.turns(&session, &sandbox).await?;
+        let boundary = PromptBoundary::after(&baseline);
         let mut completed_before = session.status.reported.activity.turns;
-        self.deliver(&session, &sandbox, prompt).await?;
+        if tokio::time::Instant::now() >= deadline {
+            return Err(Error::Session("timed out before prompt delivery".into()));
+        }
+        let runtime = self.runtime.clone();
+        let delivery_sandbox = sandbox.clone();
+        let input = prompt.to_owned();
+        delivery_started.set(true);
+        // A caller deadline must not release serialization while external input
+        // delivery is still being cancelled. The runtime owns that cleanup.
+        tokio::task::spawn_local(async move {
+            let _delivering = delivering;
+            runtime.prompt(&session, &delivery_sandbox, &input, deadline).await
+        })
+        .await
+        .map_err(|error| Error::Session(format!("prompt delivery task failed: {error}")))??;
         if !wait {
             return Ok(Vec::new());
         }
@@ -185,7 +232,7 @@ impl Service {
             let activity = &current.status.reported.activity;
             if activity.turns > completed_before && current.status.state == State::WaitingForInput {
                 if let Some(turns) = self
-                    .answered_turns(agent, name, &sandbox, prompt, first_candidate, deadline)
+                    .answered_turns(agent, name, &sandbox, prompt, boundary, deadline)
                     .await?
                 {
                     return Ok(turns);
@@ -235,17 +282,11 @@ impl Service {
         .map_err(|_| Error::Session(format!("timed out waiting for Session {name:?} to accept input")))?
     }
 
-    /// Delivers one prompt, serialized against other deliveries to the same Session.
-    async fn deliver(&self, session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Result<(), Error> {
-        let _delivering = Delivering::acquire(&self.deliveries, session.id).await;
-        self.runtime.prompt(session, sandbox, prompt).await
-    }
-
     /// After a turn completed, reads the conversation and returns the turns from
     /// the one holding `prompt` onward once that turn answers it, or `None` when
     /// the completed turn was not the answer.
     ///
-    /// Only turns from `first_candidate` onward count, and only while the
+    /// Only input appended after `boundary` counts, and only while the
     /// Session is still waiting for input on the same read: a queued prompt
     /// that has just started its own turn writes commentary after the prompt,
     /// and that is not an answer. The completion signal can fire a moment
@@ -257,7 +298,7 @@ impl Service {
         name: &SessionName,
         sandbox: &SandboxHandle,
         prompt: &str,
-        first_candidate: usize,
+        boundary: PromptBoundary,
         deadline: tokio::time::Instant,
     ) -> Result<Option<Vec<Turn>>, Error> {
         let settle_until = (tokio::time::Instant::now() + TRANSCRIPT_SETTLE).min(deadline);
@@ -267,8 +308,18 @@ impl Service {
             if session.status.state != State::WaitingForInput {
                 return Ok(None);
             }
-            let start = first_candidate.min(turns.len());
-            if let Some(offset) = turns[start..].iter().rposition(|turn| answers(turn, prompt)) {
+            let start = boundary.turn.min(turns.len());
+            if let Some(offset) = turns[start..].iter().enumerate().position(|(offset, turn)| {
+                answers(
+                    turn,
+                    prompt,
+                    if start + offset == boundary.turn {
+                        boundary.parts
+                    } else {
+                        0
+                    },
+                )
+            }) {
                 return Ok(Some(turns.split_off(start + offset)));
             }
             if tokio::time::Instant::now() >= settle_until {
@@ -393,11 +444,29 @@ async fn await_change(
     }
 }
 
+/// The position immediately after the transcript's last existing content part.
+#[derive(Clone, Copy)]
+struct PromptBoundary {
+    turn: usize,
+    parts: usize,
+}
+
+impl PromptBoundary {
+    fn after(turns: &[Turn]) -> Self {
+        Self {
+            turn: turns.len().saturating_sub(1),
+            parts: turns
+                .last()
+                .map_or(0, |turn| turn.messages.iter().map(|message| message.parts.len()).sum()),
+        }
+    }
+}
+
 /// Whether `turn` contains the operator `prompt` and an assistant final
 /// message after it: assistant text after the prompt with no tool call
 /// following, so commentary before a tool call and answers to earlier input do
 /// not count.
-fn answers(turn: &Turn, prompt: &str) -> bool {
+fn answers(turn: &Turn, prompt: &str, skip_parts: usize) -> bool {
     let wanted = prompt.trim();
     let mut seen = false;
     let mut answered = false;
@@ -405,6 +474,7 @@ fn answers(turn: &Turn, prompt: &str) -> bool {
         .messages
         .iter()
         .flat_map(|entry| entry.parts.iter().map(move |part| (entry.role, part)))
+        .skip(skip_parts)
     {
         match part {
             (Role::User, Part::Text { text }) if text.trim() == wanted => {
@@ -455,10 +525,10 @@ mod tests {
             messages: vec![user("second"), assistant(vec![text("working"), tool(), text("2")])],
         };
         assert!(
-            answers(&queued, "second\n"),
+            answers(&queued, "second\n", 0),
             "trailing newline from a file is not a difference"
         );
-        assert!(!answers(&queued, "first"), "another turn's prompt");
+        assert!(!answers(&queued, "first", 0), "another turn's prompt");
 
         let steered = Turn {
             messages: vec![
@@ -468,8 +538,8 @@ mod tests {
                 assistant(vec![text("2")]),
             ],
         };
-        assert!(answers(&steered, "second"));
-        assert!(answers(&steered, "first"), "the earlier input is also answered");
+        assert!(answers(&steered, "second", 0));
+        assert!(answers(&steered, "first", 0), "the earlier input is also answered");
     }
 
     #[test]
@@ -482,16 +552,19 @@ mod tests {
                 assistant(vec![tool()]),
             ],
         };
-        assert!(!answers(&pending, "second"), "steered input is still being worked on");
+        assert!(
+            !answers(&pending, "second", 0),
+            "steered input is still being worked on"
+        );
         let unflushed = Turn {
             messages: vec![user("second")],
         };
-        assert!(!answers(&unflushed, "second"));
+        assert!(!answers(&unflushed, "second", 0));
         let earlier_answer_only = Turn {
             messages: vec![user("first"), assistant(vec![text("1")]), user("second")],
         };
         assert!(
-            !answers(&earlier_answer_only, "second"),
+            !answers(&earlier_answer_only, "second", 0),
             "text before the prompt is not its answer"
         );
     }

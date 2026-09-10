@@ -365,10 +365,25 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        if !matches!(arguments.command, Command::Create { .. }) {
-            ensure_daemon(&home, &client).await?;
+        let prompt_timeout = match &arguments.command {
+            Command::Prompt { answer, .. } if answer.wait => Some(answer.timeout),
+            _ => None,
+        };
+        let operation = async {
+            if !matches!(arguments.command, Command::Create { .. }) {
+                ensure_daemon(&home, &client).await?;
+            }
+            execute(arguments.command, &home, &client).await
+        };
+        if let Some(timeout) = prompt_timeout {
+            tokio::time::timeout(timeout, operation).await.map_err(|_| {
+                CommandError::Message(
+                    "timed out prompting Session; delivery may have started; inspect turns before retrying".into(),
+                )
+            })?
+        } else {
+            operation.await
         }
-        execute(arguments.command, &home, &client).await
     })
 }
 

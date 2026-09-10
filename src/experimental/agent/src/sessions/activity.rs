@@ -62,11 +62,12 @@ impl Activity {
     #[must_use]
     pub const fn folded(mut self, event: ActivityEvent, at: OffsetDateTime) -> Self {
         match event {
-            ActivityEvent::SessionStart | ActivityEvent::TurnStarted | ActivityEvent::ToolStarted => {
+            ActivityEvent::SessionStart
+            | ActivityEvent::TurnStarted
+            | ActivityEvent::ToolStarted
+            | ActivityEvent::ToolFinished => {
                 self.phase = Phase::Working;
             }
-            // Keeps Working; a turn completion follows when the turn ends.
-            ActivityEvent::ToolFinished => {}
             ActivityEvent::TurnCompleted => {
                 self.phase = Phase::WaitingForInput;
                 self.turns = self.turns.saturating_add(1);
@@ -96,7 +97,7 @@ mod tests {
             (ActivityEvent::ToolStarted, Phase::Working, 0),
             (ActivityEvent::ToolFinished, Phase::Working, 0),
             (ActivityEvent::WaitingForInput, Phase::WaitingForInput, 0),
-            (ActivityEvent::ToolFinished, Phase::WaitingForInput, 0),
+            (ActivityEvent::ToolFinished, Phase::Working, 0),
             (ActivityEvent::TurnCompleted, Phase::WaitingForInput, 1),
             (ActivityEvent::TurnStarted, Phase::Working, 1),
             (ActivityEvent::TurnCompleted, Phase::WaitingForInput, 2),

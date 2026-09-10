@@ -78,12 +78,17 @@ pub trait SessionRuntime {
 
     /// Delivers `prompt` to the running harness as operator input, returning
     /// once the harness has taken it. The runtime owns the question of when the
-    /// harness can take input; callers only see the delivery.
+    /// harness can take input; callers only see the delivery. Do not start delivery
+    /// after `deadline`. If dispatch has begun, cancel it at the deadline and
+    /// finish observing its termination before returning, so another delivery
+    /// cannot interleave with uncertain external work. The service bounds the
+    /// caller's wait independently while retaining the delivery guard.
     fn prompt<'a>(
         &'a self,
         session: &'a Session,
         sandbox: &'a SandboxHandle,
         prompt: &'a str,
+        deadline: tokio::time::Instant,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
     /// Reads the Session's conversation so far as ordered turns.

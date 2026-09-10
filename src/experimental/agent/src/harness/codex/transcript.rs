@@ -131,10 +131,12 @@ impl Builder {
     }
 
     fn push_user(&mut self, text: String) {
-        let text = match text.find(REQUEST_MARKER) {
-            Some(index) => text[index + REQUEST_MARKER.len()..].trim().to_owned(),
-            None => text,
-        };
+        let request = text
+            .strip_prefix("<environment_context>")
+            .and_then(|context| context.split_once("</environment_context>"))
+            .and_then(|(_, suffix)| suffix.trim_start().strip_prefix(REQUEST_MARKER))
+            .map(|request| request.trim().to_owned());
+        let text = request.unwrap_or(text);
         if self.answered {
             // Operator input injected mid-turn (steering) is conversation.
             self.current_turn().messages.push(Message {
@@ -269,5 +271,19 @@ mod tests {
         );
         let turns = parse(jsonl.as_bytes()).expect("parse");
         assert_eq!(prompts(&turns), ["first", "second"]);
+    }
+}
+
+#[cfg(test)]
+mod input_preservation_tests {
+    #[test]
+    fn a_literal_request_heading_does_not_truncate_operator_input() {
+        let prompt = "Explain this heading: ## My request for Codex: keep all of this";
+        let record = serde_json::json!({"type":"response_item", "payload":{"type":"message", "role":"user", "content":[{"type":"input_text", "text":prompt}]}});
+        let turns = super::parse(record.to_string().as_bytes()).expect("parse");
+        assert_eq!(
+            turns[0].messages[0].parts[0],
+            crate::sessions::Part::Text { text: prompt.into() }
+        );
     }
 }

@@ -271,10 +271,8 @@ impl super::SessionRuntime for Tmux {
             }
             let screen = std::str::from_utf8(&output.stdout)
                 .map_err(|error| Error::Session(format!("invalid terminal input state: {error}")))?;
-            Ok(
-                ready_cursor_line(screen)
-                    .is_some_and(|line| harness::input_ready_without_report(session.harness, line)),
-            )
+            Ok(ready_cursor_line(screen)
+                .is_some_and(|line| harness::input_ready_without_report(session.harness, line, screen)))
         })
     }
 
@@ -283,8 +281,9 @@ impl super::SessionRuntime for Tmux {
         session: &'a Session,
         sandbox: &'a SandboxHandle,
         prompt: &'a str,
+        deadline: tokio::time::Instant,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>> {
-        Box::pin(deliver(session, sandbox, prompt))
+        Box::pin(deliver(session, sandbox, prompt, deadline))
     }
 
     fn turns<'a>(
@@ -332,20 +331,32 @@ fn ready_cursor_line(screen: &str) -> Option<&str> {
 /// File and buffer carry a per-delivery name, so two deliveries in flight for
 /// the same Session cannot overwrite each other's payload; the Session service
 /// additionally serializes deliveries per Session.
-async fn deliver(session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Result<(), Error> {
+async fn deliver(
+    session: &Session,
+    sandbox: &SandboxHandle,
+    prompt: &str,
+    deadline: tokio::time::Instant,
+) -> Result<(), Error> {
     use std::io::Cursor;
 
-    if let Some(quiet) = input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()) {
-        tokio::time::sleep(quiet).await;
-    }
     let buffer = format!("agent-prompt-{}-{}", session.id, uuid::Uuid::new_v4());
     let file = format!("/tmp/{buffer}");
-    sandbox
-        .write_file(
-            &SandboxPath::new(file.clone()),
-            Box::pin(Cursor::new(prompt.as_bytes().to_vec())),
-        )
-        .await?;
+    tokio::time::timeout_at(deadline, async {
+        if let Some(quiet) = input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()) {
+            tokio::time::sleep(quiet).await;
+        }
+        sandbox
+            .write_file(
+                &SandboxPath::new(file.clone()),
+                Box::pin(Cursor::new(prompt.as_bytes().to_vec())),
+            )
+            .await
+    })
+    .await
+    .map_err(|_| Error::Session("timed out preparing prompt delivery".into()))??;
+    if tokio::time::Instant::now() >= deadline {
+        return Err(Error::Session("timed out before prompt delivery".into()));
+    }
     let target = pane_target(session);
     let script = format!(
         "/usr/bin/tmux load-buffer -b {buffer} {file} \
@@ -353,12 +364,26 @@ async fn deliver(session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Re
          && /bin/sleep 0.2 \
          && /usr/bin/tmux send-keys -t {target} Enter"
     );
-    let delivered = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/bin/sh"),
-            ["-c".into(), script],
-        ))
-        .await?;
+    let request = ::sandbox::execution::StartExecutionRequest::new(ExecutionSpec::command(
+        SandboxPath::new("/bin/sh"),
+        ["-c".into(), script],
+    ));
+    let id = request.id().clone();
+    let execution = async { sandbox.start_execution(request).await?.collect().await };
+    tokio::pin!(execution);
+    let delivered = if let Ok(result) = tokio::time::timeout_at(deadline, execution.as_mut()).await {
+        result?
+    } else {
+        // The service has already bounded the caller's wait. Keep its delivery
+        // guard alive until the external execution ends, even if kill fails.
+        tokio::select! {
+            _ = execution.as_mut() => {},
+            _ = sandbox.kill_execution(&id) => { let _ = execution.await; },
+        }
+        return Err(Error::Session(
+            "timed out during prompt delivery; inspect turns before retrying".into(),
+        ));
+    };
     // Best-effort cleanup of the transient input file; failure is not fatal.
     let _ = sandbox
         .run_execution(ExecutionSpec::command(SandboxPath::new("/bin/rm"), ["-f".into(), file]))
