@@ -156,3 +156,10 @@ def test_the_readme_is_not_treated_as_a_prompt():
     """`*.md` swept up the README, which was then diffed against Langfuse."""
     assert "README" not in sync_prompts._local_prompt_names()
     assert "README" not in sync_prompts._every_local_name()
+
+
+@pytest.mark.parametrize("name", [LOCAL_TEMPLATE, LOCAL_JUDGE])
+def test_bulk_discovery_reaches_nested_prompts(name):
+    """Bulk --diff and --push globbed one level, so a change to a template or a judge
+    prompt was never reported and never published."""
+    assert name in sync_prompts._local_prompt_names()
