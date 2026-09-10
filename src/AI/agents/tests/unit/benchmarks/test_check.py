@@ -62,6 +62,38 @@ class TestAnE2eRunRequiresAgentModels:
 class TestTaskForAlsoRefusesWithoutAgentModels:
     """A second, independent call to the agent must not reopen the hole `run` closes."""
 
+    def test_a_given_snapshot_is_used_rather_than_asked_for_again(self, monkeypatch):
+        def fail(_base):
+            raise AssertionError("the snapshot the run resolved should be reused")
+
+        monkeypatch.setattr(check, "agent_role_models", fail)
+        args = argparse.Namespace(run_name=None, assets_dir=None)
+
+        task, _, _, model = check.task_for(
+            args, registry.by_name("Benchmarks/forms"), {"actor": "gpt-9-snapshot"}
+        )
+
+        assert task.role_models["actor"] == "gpt-9-snapshot"
+        assert model == "gpt-9-snapshot"
+
+    def test_the_run_and_the_task_are_handed_the_same_snapshot(self, monkeypatch):
+        reported = ["gpt-9-first", "gpt-9-rebuilt"]
+        monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": reported.pop(0)})
+        planned = (registry.by_name("Benchmarks/forms"),)
+
+        snapshot = check.agent_models_for(planned)
+        run = check.run(
+            label="test",
+            include_slow=True,
+            only=("Benchmarks/forms",),
+            agent_models=snapshot,
+            run_eval=_run_eval_stub([]),
+        )
+
+        assert snapshot["actor"] == "gpt-9-first"
+        assert run.provenance.models["actor"] == "gpt-9-first"
+        assert reported == ["gpt-9-rebuilt"], "one lookup for the whole run"
+
     def test_task_for_refuses_when_the_agent_reports_no_models(self, monkeypatch):
         monkeypatch.setattr(check, "agent_role_models", lambda _base: {})
         args = argparse.Namespace(run_name=None, assets_dir=None)
