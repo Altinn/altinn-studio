@@ -249,6 +249,9 @@ export const queriesMock: ServicesContextProps = {
   getAccessPackages: jest.fn().mockImplementation(() => Promise.resolve([])),
   getAccessPackageServices: jest.fn().mockImplementation(() => Promise.resolve([])),
   getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
+  getResourceEnvironments: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<string[]>(['tt02', 'prod'])),
   getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
   getResourcePublishStatus: jest
     .fn()

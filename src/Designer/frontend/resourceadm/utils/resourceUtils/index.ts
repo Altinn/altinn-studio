@@ -1,7 +1,6 @@
 export {
   getResourceIdentifierErrorMessage,
   deepCompare,
-  getAvailableEnvironments,
   getEnvLabel,
   availableForTypeMap,
   resourceStatusMap,
@@ -14,4 +13,4 @@ export {
   getResourceSubjects,
   getValidIdentifierPrefixes,
 } from './resourceUtils';
-export type { EnvId, Environment } from './resourceUtils';
+export type { EnvId } from './resourceUtils';

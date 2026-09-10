@@ -11,11 +11,12 @@ import {
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
+import { useGetResourceEnvironmentsQuery } from '../../hooks/queries';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { EnvId } from '../../utils/resourceUtils';
-import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
+import { getEnvLabel } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
@@ -24,6 +25,9 @@ export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { org, app, env: selectedEnv } = useUrlParams();
+
+  const { data: availableEnvironments, isLoading: isLoadingEnvironments } =
+    useGetResourceEnvironmentsQuery(org);
 
   const {
     data: envListData,
@@ -42,11 +46,10 @@ export const ListAdminPage = (): React.JSX.Element => {
   );
 
   useEffect(() => {
-    if (!selectedEnv) {
-      const availableEnvs = getAvailableEnvironments(org);
-      navigateToListEnv(availableEnvs[0].id, true);
+    if (!selectedEnv && availableEnvironments?.length) {
+      navigateToListEnv(availableEnvironments[0], true);
     }
-  }, [org, selectedEnv, navigateToListEnv]);
+  }, [availableEnvironments, selectedEnv, navigateToListEnv]);
 
   const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
     event.preventDefault();
@@ -64,19 +67,23 @@ export const ListAdminPage = (): React.JSX.Element => {
         {t('resourceadm.listadmin_header')}
       </StudioHeading>
       <div className={classes.environmentSelectorWrapper}>
-        <StudioToggleGroup
-          data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
-          onChange={(value) => navigateToListEnv(value as EnvId)}
-          value={selectedEnv}
-        >
-          {getAvailableEnvironments(org).map((environment) => {
-            return (
-              <StudioToggleGroup.Item key={environment.id} value={environment.id}>
-                {t(environment.label)}
-              </StudioToggleGroup.Item>
-            );
-          })}
-        </StudioToggleGroup>
+        {isLoadingEnvironments ? (
+          <StudioSpinner aria-label={t('resourceadm.loading_environments')} />
+        ) : (
+          <StudioToggleGroup
+            data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+            onChange={(value) => navigateToListEnv(value as EnvId)}
+            value={selectedEnv}
+          >
+            {(availableEnvironments ?? []).map((environment) => {
+              return (
+                <StudioToggleGroup.Item key={environment} value={environment}>
+                  {t(getEnvLabel(environment))}
+                </StudioToggleGroup.Item>
+              );
+            })}
+          </StudioToggleGroup>
+        )}
         {selectedEnv && (
           <>
             <NewAccessListModal
