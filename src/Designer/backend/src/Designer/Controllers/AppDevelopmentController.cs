@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -32,6 +33,13 @@ namespace Altinn.Studio.Designer.Controllers;
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
 public class AppDevelopmentController : Controller
 {
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
+
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly IRepository _repository;
     private readonly ISourceControl _sourceControl;
@@ -426,7 +434,7 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        JsonSerializer.SerializeToNode(layoutSettings)
+                        JsonSerializer.SerializeToNode(layoutSettings, s_jsonSerializerOptions)
                             ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
@@ -444,7 +452,7 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        JsonSerializer.SerializeToNode(newLayoutSettings)
+                        JsonSerializer.SerializeToNode(newLayoutSettings, s_jsonSerializerOptions)
                             ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
