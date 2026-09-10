@@ -189,8 +189,10 @@ impl Client {
     }
 
     /// Delivers a prompt to a running Session's harness. With `wait`, waits for
-    /// its completed-turn counter to advance and activity to settle for 200 ms.
+    /// its completed-turn counter to advance with identical waiting activity in
+    /// two consecutive polls, 250 ms apart.
     /// Work observed during settling requires another completion.
+    /// The timeout bounds completion waiting after submission, excluding setup and delivery.
     /// Conversation output is read separately with [`Self::session_turns`].
     ///
     /// # Errors
@@ -204,14 +206,6 @@ impl Client {
         wait: bool,
         timeout: Option<std::time::Duration>,
     ) -> Result<(), Error> {
-        // An absolute deadline includes time spent connecting and sending the RPC.
-        let deadline = timeout
-            .map(|timeout| {
-                std::time::SystemTime::now()
-                    .checked_add(timeout)
-                    .ok_or_else(|| Error::Invalid("prompt timeout is too large".into()))
-            })
-            .transpose()?;
         let _result: serde_json::Value = self
             .call(
                 METHOD_SESSION_PROMPT,
@@ -220,7 +214,7 @@ impl Client {
                     name,
                     prompt,
                     wait,
-                    deadline,
+                    timeout,
                 },
                 None,
             )

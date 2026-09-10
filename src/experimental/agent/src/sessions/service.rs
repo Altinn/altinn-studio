@@ -1,11 +1,6 @@
 //! User-facing Session operations coordinated with the reconciler.
 
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    rc::Rc,
-    time::Duration,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
@@ -13,15 +8,15 @@ use tokio::sync::Notify;
 use crate::{Error, Harness, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::{
-    AgentSandboxes, AttachTarget, LifecycleState, Session, SessionId, SessionName, SessionObservers, SessionRuntime,
-    SharedStore, State, Turn, Wakeup,
+    AgentSandboxes, AttachTarget, LifecycleState, Session, SessionId, SessionName, SessionRuntime, SharedStore, State,
+    Turn, Wakeup,
 };
 
-/// Ceiling for a single waited prompt; the caller may request a shorter one.
+/// Ceiling for completion waiting after prompt submission.
 const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
 
-/// Gives queued work and transcript writes a short window after completion.
-const COMPLETION_SETTLE: Duration = Duration::from_millis(200);
+/// Polls durable activity while a caller waits for completion.
+const ACTIVITY_POLL: Duration = Duration::from_millis(250);
 
 /// Maximum time to wait for a newly launched harness to accept input.
 const INPUT_READY_TIMEOUT: Duration = Duration::from_secs(15);
@@ -34,22 +29,21 @@ pub struct Service {
     runtime: Rc<dyn SessionRuntime>,
     convergence: control_plane::Convergence,
     wakeup: Wakeup,
-    observers: SessionObservers,
     /// Sessions with a delivery in flight, each with the signal its waiters
     /// sleep on. Two concurrent prompts would interleave their keystrokes in
     /// the harness's single input line, so deliveries are serialized per Session.
-    deliveries: Rc<RefCell<HashMap<SessionId, Rc<Notify>>>>,
+    deliveries: RefCell<HashMap<SessionId, Rc<Notify>>>,
 }
 
 /// Marks one Session busy delivering for as long as it lives; dropping it,
 /// including on cancellation, releases the Session and wakes the next sender.
-struct Delivering {
-    deliveries: Rc<RefCell<HashMap<SessionId, Rc<Notify>>>>,
+struct Delivering<'a> {
+    deliveries: &'a RefCell<HashMap<SessionId, Rc<Notify>>>,
     session: SessionId,
 }
 
-impl Delivering {
-    async fn acquire(deliveries: &Rc<RefCell<HashMap<SessionId, Rc<Notify>>>>, session: SessionId) -> Self {
+impl<'a> Delivering<'a> {
+    async fn acquire(deliveries: &'a RefCell<HashMap<SessionId, Rc<Notify>>>, session: SessionId) -> Self {
         loop {
             let busy = {
                 let mut map = deliveries.borrow_mut();
@@ -62,14 +56,11 @@ impl Delivering {
             };
             busy.notified().await;
         }
-        Self {
-            deliveries: deliveries.clone(),
-            session,
-        }
+        Self { deliveries, session }
     }
 }
 
-impl Drop for Delivering {
+impl Drop for Delivering<'_> {
     fn drop(&mut self) {
         if let Some(released) = self.deliveries.borrow_mut().remove(&self.session) {
             released.notify_waiters();
@@ -78,9 +69,8 @@ impl Drop for Delivering {
 }
 
 impl Service {
-    /// Creates a Session service over durable storage (which must publish its
-    /// changes to `observers`), Agent Sandboxes, Agent convergence and the
-    /// Session controller.
+    /// Creates a Session service over durable storage, Agent Sandboxes,
+    /// Agent convergence and the Session controller.
     #[must_use]
     pub fn new(
         store: SharedStore,
@@ -88,7 +78,6 @@ impl Service {
         runtime: Rc<dyn SessionRuntime>,
         convergence: control_plane::Convergence,
         wakeup: Wakeup,
-        observers: SessionObservers,
     ) -> Self {
         Self {
             store,
@@ -96,8 +85,7 @@ impl Service {
             runtime,
             convergence,
             wakeup,
-            observers,
-            deliveries: Rc::default(),
+            deliveries: RefCell::default(),
         }
     }
 
@@ -129,13 +117,16 @@ impl Service {
     /// Delivers a prompt to a running Session's harness.
     ///
     /// With `wait`, snapshots the completed-turn counter before delivery and
-    /// waits for it to advance and activity to settle for 200 ms. Work observed
-    /// during settling requires another completion. This is a timing heuristic,
-    /// not identification of an answer to this prompt.
+    /// waits for it to advance with identical waiting activity in two consecutive
+    /// polls, 250 ms apart. Work observed during settling requires another
+    /// completion. This is a timing heuristic, not identification of an answer
+    /// to this prompt.
     /// Read the conversation separately with [`Self::turns`].
     ///
     /// In both modes delivery waits for input readiness. The runtime may establish
-    /// readiness before the harness reports its first conversation.
+    /// readiness before the harness reports its first conversation. The completion
+    /// timeout starts after submission; queuing, readiness and delivery are excluded.
+    /// Activity is polled from the local database every 250 ms.
     ///
     /// # Errors
     ///
@@ -150,102 +141,60 @@ impl Service {
         wait: bool,
         timeout: Option<Duration>,
     ) -> Result<(), Error> {
-        let deadline = tokio::time::Instant::now() + timeout.unwrap_or(PROMPT_TIMEOUT_MAX).min(PROMPT_TIMEOUT_MAX);
-        let delivery_started = Rc::new(Cell::new(false));
-        tokio::time::timeout_at(
-            deadline,
-            self.prompt_until(agent, name, prompt, wait, deadline, delivery_started.clone()),
-        )
-        .await
-        .map_err(|_| {
-            Error::Session(if delivery_started.get() {
-                format!(
-                    "timed out prompting Session {name:?}; delivery may have started; inspect turns before retrying"
-                )
-            } else {
-                format!("timed out prompting Session {name:?} before delivery")
-            })
-        })?
-    }
-
-    async fn prompt_until(
-        &self,
-        agent: &str,
-        name: &SessionName,
-        prompt: &str,
-        wait: bool,
-        deadline: tokio::time::Instant,
-        delivery_started: Rc<Cell<bool>>,
-    ) -> Result<(), Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
         let id = session.id;
-        let sandbox = Rc::new(sandbox);
-        let delivering = Delivering::acquire(&self.deliveries, session.id).await;
-        // Subscribe before reading so no change can slip between them.
-        let mut changes = self.observers.subscribe(session.id);
-        let session = self.ready_to_prompt(id, name, &sandbox, &mut changes, deadline).await?;
-        let mut completed_before = session.status.reported.activity.turns;
-        if tokio::time::Instant::now() >= deadline {
-            return Err(Error::Session("timed out before prompt delivery".into()));
-        }
-        let runtime = self.runtime.clone();
-        let delivery_sandbox = sandbox.clone();
-        let input = prompt.to_owned();
-        delivery_started.set(true);
-        // A caller deadline must not release serialization while the runtime
-        // is still submitting staged input or recovering a partial delivery.
-        tokio::task::spawn_local(async move {
-            let _delivering = delivering;
-            runtime.prompt(&session, &delivery_sandbox, &input, deadline).await
-        })
-        .await
-        .map_err(|error| Error::Session(format!("prompt delivery task failed: {error}")))??;
+        let delivering = Delivering::acquire(&self.deliveries, id).await;
+        let session = self.ready_to_prompt(id, name, &sandbox).await?;
+        let completed_before = session.status.reported.activity.turns;
+        self.runtime.prompt(&session, &sandbox, prompt).await?;
+        drop(delivering);
         if !wait {
             return Ok(());
         }
+        tokio::time::timeout(
+            timeout.unwrap_or(PROMPT_TIMEOUT_MAX).min(PROMPT_TIMEOUT_MAX),
+            self.wait_for_completion(id, name, completed_before),
+        ).await.map_err(|_| Error::Session(format!(
+            "timed out waiting for Session \"{name}\" to complete; the prompt was submitted; inspect turns before retrying"
+        )))?
+    }
 
+    async fn wait_for_completion(
+        &self,
+        id: SessionId,
+        name: &SessionName,
+        mut completed_before: u64,
+    ) -> Result<(), Error> {
         let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
             match current.status.state {
                 State::Failed => {
                     return Err(Error::Session(format!(
-                        "Session {name:?} failed while waiting for turn completion: {}",
+                        "Session \"{name}\" failed while waiting for turn completion: {}",
                         current.status.lifecycle.failure.as_deref().unwrap_or("unknown error")
                     )));
                 }
                 State::Idle => {
                     return Err(Error::Session(format!(
-                        "Session {name:?} was stopped while waiting for turn completion"
+                        "Session \"{name}\" was stopped while waiting for turn completion"
                     )));
                 }
                 State::Starting | State::Working | State::WaitingForInput => {}
             }
             let activity = &current.status.reported.activity;
-            let wake_at = if activity.turns > completed_before && current.status.state == State::WaitingForInput {
-                let (observed, until) =
-                    settling.get_or_insert_with(|| (activity.clone(), tokio::time::Instant::now() + COMPLETION_SETTLE));
-                if observed != activity {
-                    *observed = activity.clone();
-                    *until = tokio::time::Instant::now() + COMPLETION_SETTLE;
-                }
-                if tokio::time::Instant::now() >= *until {
+            if activity.turns > completed_before && current.status.state == State::WaitingForInput {
+                if settling.as_ref() == Some(activity) {
                     return Ok(());
                 }
-                *until
+                settling = Some(activity.clone());
             } else {
                 // A new turn can already be running when the previous completion
                 // is observed. Its permission waits must not satisfy this wait.
                 completed_before = completed_before.max(activity.turns);
                 settling = None;
-                deadline
-            };
-            tokio::select! {
-                result = changes.changed() => result.map_err(|_| Error::Session(format!(
-                    "Session {name:?} change feed closed"
-                )))?,
-                () = tokio::time::sleep_until(wake_at) => {},
             }
+            tokio::time::sleep(ACTIVITY_POLL).await;
         }
     }
 
@@ -257,17 +206,14 @@ impl Service {
         id: SessionId,
         name: &SessionName,
         sandbox: &SandboxHandle,
-        changes: &mut tokio::sync::watch::Receiver<u64>,
-        deadline: tokio::time::Instant,
     ) -> Result<Session, Error> {
-        let ready_deadline = (tokio::time::Instant::now() + INPUT_READY_TIMEOUT).min(deadline);
-        tokio::time::timeout_at(ready_deadline, async {
+        tokio::time::timeout(INPUT_READY_TIMEOUT, async {
             loop {
                 let session = self.store.get_session(id).await?;
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
                     State::Idle | State::Failed => {
-                        return Err(Error::Invalid(format!("Session {name:?} is not running")));
+                        return Err(session.not_running_error());
                     }
                     State::Starting => {
                         if self.runtime.input_ready(&session, sandbox).await? {
@@ -275,15 +221,11 @@ impl Service {
                         }
                     }
                 }
-                // Runtime readiness can change before any report exists.
-                tokio::select! {
-                    result = changes.changed() => result.map_err(|_| Error::Session("Session observer closed".into()))?,
-                    () = tokio::time::sleep(INPUT_READY_POLL) => {},
-                }
+                tokio::time::sleep(INPUT_READY_POLL).await;
             }
         })
         .await
-        .map_err(|_| Error::Session(format!("timed out waiting for Session {name:?} to accept input")))?
+        .map_err(|_| Error::Session(format!("timed out waiting for Session \"{name}\" to accept input")))?
     }
 
     /// Reads the Session's conversation as ordered turns, optionally the last `last`.
@@ -309,7 +251,7 @@ impl Service {
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
         let session = self.store.get_agent_session(agent, name).await?;
         if session.status.lifecycle.state != LifecycleState::Running {
-            return Err(Error::Invalid(format!("Session {name:?} is not running")));
+            return Err(session.not_running_error());
         }
         let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
@@ -341,7 +283,7 @@ impl Service {
                     && harness != session.harness
                 {
                     return Err(Error::Invalid(format!(
-                        "Session {name:?} already uses harness {:?}, not {:?}",
+                        "Session \"{name}\" already uses harness {:?}, not {:?}",
                         session.harness.as_str(),
                         harness.as_str()
                     )));

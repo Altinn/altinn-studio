@@ -166,21 +166,6 @@ impl crate::sessions::SessionStore for Database {
         })
     }
 
-    fn confirm_session_launch<'a>(
-        &'a self,
-        id: crate::sessions::SessionId,
-        token: &'a crate::sessions::LaunchToken,
-    ) -> sandbox::LocalFuture<'a, Result<(), Error>> {
-        Box::pin(async move {
-            self.request(|response| Command::ConfirmSessionLaunch {
-                id,
-                token: token.clone(),
-                response,
-            })
-            .await
-        })
-    }
-
     fn get_session(
         &self,
         id: crate::sessions::SessionId,
@@ -465,11 +450,6 @@ enum Command {
         initial_prompt: Option<String>,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
-    ConfirmSessionLaunch {
-        id: crate::sessions::SessionId,
-        token: crate::sessions::LaunchToken,
-        response: oneshot::Sender<Result<(), Error>>,
-    },
     GetSession {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
@@ -645,9 +625,6 @@ fn execute_session(connection: &mut Connection, command: Command) {
                 harness,
                 initial_prompt.as_deref(),
             ));
-        }
-        Command::ConfirmSessionLaunch { id, token, response } => {
-            let _ = response.send(sessions::confirm_launch(connection, id, &token));
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));

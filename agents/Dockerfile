@@ -140,7 +140,12 @@ COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.serv
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
 COPY --chown=agent:agent --chmod=0600 common/claude-state.json /home/agent/.claude/.claude.json
 
-RUN systemctl enable agent-workspace-init.service \
+# Microsandbox Executions and harnesses inherit init.scope. Keep the kernel pid
+# limit as their task boundary instead of systemd's much lower default.
+RUN install -d /etc/systemd/system/init.scope.d \
+    && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && systemctl mask serial-getty@hvc0.service \
+    && systemctl enable agent-workspace-init.service \
     && dotnet --version \
     && go version \
     && node --version \

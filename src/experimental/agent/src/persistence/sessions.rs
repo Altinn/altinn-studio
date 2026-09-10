@@ -47,7 +47,7 @@ pub(super) fn ensure(
     if let Some(session) = query_named(&transaction, agent_id, name)? {
         if session.harness != harness {
             return Err(Error::Invalid(format!(
-                "Session {name:?} already uses harness {:?}, not {:?}",
+                "Session \"{name}\" already uses harness {:?}, not {:?}",
                 session.harness.as_str(),
                 harness.as_str()
             )));
@@ -272,33 +272,20 @@ pub(super) fn record_launch(
     attempts: u32,
 ) -> Result<Option<String>, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
-    let (prompt, activation, pending): (Option<String>, i64, Option<i64>) = transaction
+    let prompt: Option<String> = transaction
         .query_row(
-            "SELECT initial_prompt, activation_generation, initial_prompt_claim
-             FROM sessions WHERE id = ?1",
+            "SELECT initial_prompt FROM sessions WHERE id = ?1",
             [id.to_string()],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            |row| row.get(0),
         )
         .optional()
         .map_err(database_error)?
         .ok_or(Error::NotFound)?;
-    if pending.is_some_and(|generation| generation >= activation) {
-        return Err(Error::Session(
-            "initial prompt delivery is uncertain; reactivate the Session to continue without replaying it".into(),
-        ));
-    }
     transaction
         .execute(
             "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4, \
-             activity_json = '{}', initial_prompt = NULL, initial_prompt_claim = ?5 WHERE id = ?6",
-            params![
-                token.expose(),
-                sandbox,
-                launched_at,
-                attempts,
-                prompt.as_ref().map(|_| activation),
-                id.to_string()
-            ],
+             activity_json = '{}', initial_prompt = NULL WHERE id = ?5",
+            params![token.expose(), sandbox, launched_at, attempts, id.to_string()],
         )
         .map_err(database_error)?;
     // Reports from previous launches can no longer authenticate, so their IDs can be discarded.
@@ -312,41 +299,23 @@ pub(super) fn record_launch(
     Ok(prompt)
 }
 
-pub(super) fn confirm_launch(connection: &Connection, id: SessionId, token: &LaunchToken) -> Result<(), Error> {
-    connection
-        .execute(
-            "UPDATE sessions SET initial_prompt_claim = NULL WHERE id = ?1 AND launch_token = ?2",
-            params![id.to_string(), token.expose()],
-        )
-        .map_err(database_error)?;
-    Ok(())
-}
-
 pub(super) fn launch_state(connection: &Connection, id: SessionId) -> Result<Option<LaunchState>, Error> {
     connection
         .query_row(
-            "SELECT launch_sandbox, launched_at, launch_attempts, initial_prompt_claim, launch_token
+            "SELECT launch_sandbox, launched_at, launch_attempts
              FROM sessions WHERE id = ?1",
             [id.to_string()],
             |row| {
                 let sandbox = row.get::<_, Option<String>>(0)?;
                 let launched_at = row.get::<_, Option<i64>>(1)?;
                 let attempts = row.get::<_, u32>(2)?;
-                let initial_prompt_claim = row
-                    .get::<_, Option<i64>>(3)?
-                    .map(u64::try_from)
-                    .transpose()
-                    .map_err(conversion_error)?;
-                let token = row.get::<_, Option<String>>(4)?;
-                let (Some(sandbox), Some(launched_at), Some(token)) = (sandbox, launched_at, token) else {
+                let (Some(sandbox), Some(launched_at)) = (sandbox, launched_at) else {
                     return Ok(None);
                 };
                 Ok(Some(LaunchState {
-                    token: token.parse().map_err(conversion_error)?,
                     sandbox,
                     launched_at,
                     attempts,
-                    initial_prompt_claim,
                 }))
             },
         )
@@ -368,7 +337,7 @@ pub(super) fn reset_launch_attempts(connection: &Connection, id: SessionId) -> R
 pub(super) fn attach_target(connection: &Connection, id: SessionId) -> Result<AttachTarget, Error> {
     let session = get(connection, id)?;
     if session.status.lifecycle.state != LifecycleState::Running {
-        return Err(Error::Invalid(format!("Session {} is not ready", session.id)));
+        return Err(session.not_running_error());
     }
     let agent = agents::get(connection, session.agent_id)?;
     let ready = agent.agent.status.is_ready();

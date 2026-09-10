@@ -34,7 +34,6 @@ const SQL: &str = "
         activation_generation INTEGER NOT NULL DEFAULT 0,
         lifecycle_json TEXT NOT NULL DEFAULT '{}',
         initial_prompt TEXT,
-        initial_prompt_claim INTEGER,
         harness_native_id TEXT,
         harness_transcript_path TEXT,
         activity_json TEXT NOT NULL DEFAULT '{}',

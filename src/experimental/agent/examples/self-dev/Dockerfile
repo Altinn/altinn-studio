@@ -121,7 +121,14 @@ COPY --chown=agent:agent --chmod=0600 claude-state.json /home/agent/.claude/.cla
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
 
-RUN systemctl enable agent-workspace-init.service
+# All guest Executions inherit init.scope, whose default task limit is too low
+# for concurrent harnesses. The kernel pid limit remains the Sandbox boundary.
+# The guest also has no udev to activate hvc0's device unit, so its generated
+# serial login would otherwise wait 90 seconds at boot.
+RUN install -d /etc/systemd/system/init.scope.d \
+    && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && systemctl mask serial-getty@hvc0.service \
+    && systemctl enable agent-workspace-init.service
 
 # The checkout is a bind mount shared with the host. Keep Cargo's registry and build output on the
 # Sandbox root filesystem so host and Sandbox builds do not invalidate each other.

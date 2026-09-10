@@ -259,27 +259,26 @@ impl Connector for DelayedConnector {
 }
 
 #[tokio::test(flavor = "local")]
-async fn prompt_deadline_expiring_in_transit_prevents_dispatch() {
+async fn prompt_completion_timeout_is_unchanged_by_transit() {
     let fixture = api();
     let client = Client::new(Rc::new(DelayedConnector {
         inner: InProcessConnector {
             server: fixture.server.clone(),
         },
     }));
-    let error = client
+    client
         .prompt_session(
             "worker",
             agent::sessions::SessionName::new("s1").expect("name"),
-            "expired".into(),
+            "go".into(),
             true,
             Some(Duration::from_millis(20)),
         )
         .await
-        .expect_err("expired before reaching the service");
-    assert!(error.to_string().contains("deadline expired before delivery"));
-    assert!(
-        fixture.sent.borrow().is_empty(),
-        "expired request must not reach prompt delivery"
+        .expect("delivered");
+    assert_eq!(
+        fixture.sent.borrow().as_slice(),
+        [("go".into(), true, Some(Duration::from_millis(20)))]
     );
 }
 
@@ -308,8 +307,7 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
         let sent = fixture.sent.borrow();
         assert_eq!(sent.len(), 2);
         assert_eq!((&sent[0].0, sent[0].1), (&"do it".to_owned(), true));
-        let remaining = sent[0].2.expect("remaining deadline");
-        assert!(remaining <= Duration::from_secs(90) && remaining > Duration::from_secs(85));
+        assert_eq!(sent[0].2, Some(Duration::from_secs(90)));
         assert_eq!(sent[1], ("fire and forget".to_owned(), false, None));
     }
 

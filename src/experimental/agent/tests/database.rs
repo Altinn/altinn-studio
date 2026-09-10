@@ -156,6 +156,44 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
 }
 
 #[test]
+fn attach_error_identifies_the_session_and_its_lifecycle_failure() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("ready Agent");
+        let session = store
+            .ensure_session(
+                "worker",
+                &SessionName::new("recovering").expect("Session name"),
+                agent::Harness::Codex,
+                None,
+            )
+            .await
+            .expect("Session");
+        store
+            .update_session_lifecycle(
+                session.id,
+                Lifecycle::starting("harness exited; relaunching after up to 10s of backoff"),
+                1,
+            )
+            .await
+            .expect("lifecycle");
+
+        assert_eq!(
+            store
+                .session_attach_target(session.id)
+                .await
+                .expect_err("Session is not running")
+                .to_string(),
+            "invalid Agent: Session \"recovering\" is not running: harness exited; relaunching after up to 10s of backoff"
+        );
+    });
+}
+
+#[test]
 fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reused() {
     let directory = TempDir::new().expect("temporary directory");
     let path = directory.path().join("control-plane.db");
@@ -324,7 +362,7 @@ fn desired_state_cannot_change_after_deletion_starts() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn initial_prompt_claim_and_launch_record_commit_together() {
+async fn initial_prompt_consumption_and_launch_record_commit_together() {
     let directory = TempDir::new().expect("temporary directory");
     let path = directory.path().join("agent.db");
     let database = persistence::Database::open(&path).expect("database");
@@ -349,61 +387,36 @@ async fn initial_prompt_claim_and_launch_record_commit_together() {
         attempts: 1,
     };
     let inspect = rusqlite::Connection::open(&path).expect("inspect");
-    inspect.execute_batch("CREATE TRIGGER reject_claim AFTER UPDATE OF initial_prompt_claim ON sessions WHEN NEW.initial_prompt_claim IS NOT NULL BEGIN SELECT RAISE(ABORT, 'injected claim failure'); END;").expect("inject failure");
+    inspect.execute_batch("CREATE TRIGGER reject_consumption AFTER UPDATE OF initial_prompt ON sessions WHEN OLD.initial_prompt IS NOT NULL AND NEW.initial_prompt IS NULL BEGIN SELECT RAISE(ABORT, 'injected consumption failure'); END;").expect("inject failure");
     database
         .record_session_launch(session.id, launch.clone())
         .await
-        .expect_err("claim failure");
+        .expect_err("consumption failure");
     assert_eq!(
         database.session_launch_state(session.id).await.expect("state"),
         None,
-        "failed claim rolls back launch bookkeeping"
+        "failed consumption rolls back launch bookkeeping"
     );
     inspect
-        .execute_batch("DROP TRIGGER reject_claim;")
+        .execute_batch("DROP TRIGGER reject_consumption;")
         .expect("remove failure");
     assert_eq!(
         database
             .record_session_launch(session.id, launch.clone())
             .await
-            .expect("claim"),
+            .expect("consume"),
         Some("once".into()),
         "failed transaction did not consume the prompt"
     );
     drop(database);
     let reopened = persistence::Database::open(&path).expect("reopen");
-    reopened
-        .record_session_launch(session.id, launch.clone())
-        .await
-        .expect_err("a crash does not release the claim");
-    reopened
-        .confirm_session_launch(
-            session.id,
-            &"dddddddd-dddd-4ddd-8ddd-dddddddddddd".parse().expect("other token"),
-        )
-        .await
-        .expect("stale confirmation");
-    assert!(
-        reopened
-            .session_launch_state(session.id)
-            .await
-            .expect("state")
-            .expect("launch")
-            .initial_prompt_claim
-            .is_some(),
-        "another launch cannot confirm the claim"
-    );
-    reopened
-        .confirm_session_launch(session.id, &token)
-        .await
-        .expect("confirm launch");
     assert_eq!(
         reopened
             .record_session_launch(session.id, launch)
             .await
             .expect("relaunch"),
         None,
-        "confirmed launch never replays the prompt"
+        "recovery after a crash never replays the prompt"
     );
 }
 

@@ -245,7 +245,7 @@ fn tmux_runtime() -> Rc<dyn agent::sessions::SessionRuntime> {
 /// A scripted Session runtime: records deliveries and launches, serves a
 /// conversation the test appends to.
 struct FakeRuntime {
-    /// Whether the harness process is observed present; a launch is expected when it is not.
+    /// Whether the harness process is present; a launch is expected when it is not.
     present: Cell<bool>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
@@ -354,12 +354,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
         prompt: &'a str,
-        deadline: tokio::time::Instant,
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
-            tokio::time::timeout_at(deadline, tokio::time::sleep(self.delivery_delay.get()))
-                .await
-                .map_err(|_| Error::Session("timed out before delivery".into()))?;
+            tokio::time::sleep(self.delivery_delay.get()).await;
             self.sent.borrow_mut().push(prompt.to_owned());
             self.conversation.borrow_mut().push(user_turn(prompt));
             self.delivered.notify_one();
@@ -490,12 +487,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     const TOKEN: &str = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
-    let observers = agent::sessions::SessionObservers::new();
-    let observed = Rc::new(agent::sessions::ObservedStore::new(
-        Rc::new(database.clone()),
-        observers.clone(),
-    ));
-    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let runtime = Rc::new(FakeRuntime::default());
     // An earlier exchange the hook counter never saw (it was folded before a
@@ -523,7 +515,6 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
         runtime.clone(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        observers.clone(),
     ));
     let name = SessionName::new("s1").expect("name");
 
@@ -548,9 +539,9 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     );
 
     // The harness works, then reports the turn complete through the hook; the
-    // Platform API folds it durably and publishes it to observers.
+    // Platform API folds it durably for the service to poll.
     let token: agent::sessions::LaunchToken = TOKEN.parse().expect("token");
-    observed
+    database
         .apply_session_activity_for_launch(
             session.id,
             &token,
@@ -569,7 +560,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
         .expect("the sent turn")
         .messages
         .push(assistant_text("did the thing"));
-    observed
+    database
         .apply_session_activity_for_launch(
             session.id,
             &token,
@@ -603,12 +594,7 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
     const TOKEN: &str = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
-    let observers = agent::sessions::SessionObservers::new();
-    let observed = Rc::new(agent::sessions::ObservedStore::new(
-        Rc::new(database.clone()),
-        observers.clone(),
-    ));
-    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
@@ -630,7 +616,6 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
         Rc::new(FakeRuntime::default()),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        observers,
     ));
     let name = SessionName::new("s1").expect("name");
 
@@ -669,12 +654,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
     const TOKEN: &str = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) = running_session(&directory, TOKEN, false).await;
-    let observers = agent::sessions::SessionObservers::new();
-    let observed = Rc::new(agent::sessions::ObservedStore::new(
-        Rc::new(database.clone()),
-        observers.clone(),
-    ));
-    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let runtime = Rc::new(FakeRuntime::default());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
@@ -697,7 +677,6 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
         runtime.clone(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        observers.clone(),
     ));
     let name = SessionName::new("s1").expect("name");
     let token: agent::sessions::LaunchToken = TOKEN.parse().expect("token");
@@ -722,7 +701,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
 
     // The harness starts on its first prompt and is mid-turn when it reports.
     runtime.conversation.borrow_mut().push(user_turn("first prompt"));
-    observed
+    database
         .record_session_start_for_launch(
             session.id,
             &token,
@@ -734,7 +713,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
         .await
         .expect("start report");
     // The event is stamped in the past so the input-readiness grace is over.
-    observed
+    database
         .apply_session_activity_for_launch(
             session.id,
             &token,
@@ -744,7 +723,9 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
         )
         .await
         .expect("fold");
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    tokio::time::timeout(Duration::from_secs(1), runtime.delivered.notified())
+        .await
+        .expect("delivery after the readiness poll");
     assert_eq!(
         runtime.sent.borrow().as_slice(),
         ["steer left"],
@@ -767,7 +748,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
         .expect("running turn")
         .messages
         .push(assistant_text("went left"));
-    observed
+    database
         .apply_session_activity_for_launch(
             session.id,
             &token,
@@ -783,11 +764,10 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
     session_task.abort();
 }
 
-/// A Session service over a started `s1` with a fake runtime, plus the observed
-/// store the test writes harness reports through.
+/// A Session service over a started `s1` with a fake runtime, with a database
+/// the test writes harness reports through.
 struct ServiceHarness {
     database: persistence::Database,
-    observed: Rc<agent::sessions::ObservedStore<persistence::Database>>,
     runtime: Rc<FakeRuntime>,
     service: Rc<agent::sessions::Service>,
     session: agent::sessions::Session,
@@ -798,12 +778,7 @@ struct ServiceHarness {
 impl ServiceHarness {
     async fn start(directory: &TempDir, token: &str) -> Self {
         let (database, sandboxes, session) = running_session(directory, token, true).await;
-        let observers = agent::sessions::SessionObservers::new();
-        let observed = Rc::new(agent::sessions::ObservedStore::new(
-            Rc::new(database.clone()),
-            observers.clone(),
-        ));
-        let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+        let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
         let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
         let runtime = Rc::new(FakeRuntime::default());
         let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
@@ -828,11 +803,9 @@ impl ServiceHarness {
             runtime.clone(),
             Convergence::new(agent_wakeup, Observers::new()),
             session_wakeup,
-            observers,
         ));
         Self {
             database,
-            observed,
             runtime,
             service,
             session,
@@ -843,7 +816,7 @@ impl ServiceHarness {
 
     /// Reports one activity event for the current launch, as the Platform API would.
     async fn report(&self, event: agent::sessions::ActivityEvent) {
-        self.observed
+        self.database
             .apply_session_activity_for_launch(
                 self.session.id,
                 &self.token,
@@ -924,7 +897,7 @@ async fn prompt_waits_for_one_more_completion_without_reading_the_transcript() {
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     tokio::time::timeout(Duration::from_secs(2), waiting)
         .await
-        .expect("completion observed")
+        .expect("completion reports")
         .expect("task")
         .expect("prompt");
     harness.finish();
@@ -952,7 +925,7 @@ async fn prompt_waits_for_a_turn_that_started_before_delivery_finished() {
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     tokio::time::timeout(Duration::from_secs(2), waiting)
         .await
-        .expect("completion observed")
+        .expect("completion reports")
         .expect("task")
         .expect("prompt");
     harness.finish();
@@ -1008,7 +981,7 @@ async fn the_first_prompt_can_start_an_unreported_conversation() {
         let directory = TempDir::new().expect("temporary directory");
         let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
         harness
-            .observed
+            .database
             .clear_session_report(harness.session.id)
             .await
             .expect("no conversation yet");
@@ -1031,7 +1004,7 @@ async fn the_first_prompt_can_start_an_unreported_conversation() {
         if wait {
             assert!(!answer.is_finished(), "delivery alone is not turn completion");
             harness
-                .observed
+                .database
                 .record_session_start_for_launch(
                     harness.session.id,
                     &harness.token,
@@ -1055,12 +1028,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, session) =
         running_session(&directory, "33333333-3333-4333-8333-333333333333", false).await;
-    let observers = agent::sessions::SessionObservers::new();
-    let observed = Rc::new(agent::sessions::ObservedStore::new(
-        Rc::new(database.clone()),
-        observers.clone(),
-    ));
-    let session_store: Rc<dyn agent::sessions::SessionStore> = observed.clone();
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let runtime = Rc::new(FakeRuntime::default());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
@@ -1083,7 +1051,6 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
         runtime.clone(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        observers,
     ));
     let fire_and_forget = {
         let service = service.clone();
@@ -1099,7 +1066,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
         "nothing is pasted into a harness that has not reported in"
     );
     let token: agent::sessions::LaunchToken = "33333333-3333-4333-8333-333333333333".parse().expect("token");
-    observed
+    database
         .record_session_start_for_launch(
             session.id,
             &token,
@@ -1117,7 +1084,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn an_uncertain_initial_launch_is_not_replayed() {
+async fn a_failed_initial_launch_recovers_without_replaying_the_prompt() {
     let directory = TempDir::new().expect("temporary directory");
     let (database, sandboxes, _) = running_session(&directory, "ffffffff-ffff-4fff-8fff-ffffffffffff", true).await;
     let session = database
@@ -1142,47 +1109,30 @@ async fn an_uncertain_initial_launch_is_not_replayed() {
         runtime.clone(),
         "http://platform-api".into(),
     );
-    let error = reconciler.reconcile(session.id).await.expect_err("uncertain launch");
-    assert!(error.to_string().contains("initial prompt delivery is uncertain"));
-    assert!(
-        database
-            .session_launch_state(session.id)
-            .await
-            .expect("launch")
-            .expect("record")
-            .initial_prompt_claim
-            .is_some(),
-        "claim survives uncertain delivery"
+    reconciler.reconcile(session.id).await.expect_err("failed launch");
+    assert_eq!(
+        runtime.launches.borrow().as_slice(),
+        [(None, Some("perform once".into()))]
     );
     database
         .reset_session_launch_attempts(session.id)
         .await
         .expect("reset backoff");
     runtime.fail_start.set(false);
-    reconciler.reconcile(session.id).await.expect("uncertainty is durable");
+    reconciler.reconcile(session.id).await.expect("automatic recovery");
     assert_eq!(
-        runtime.launches.borrow().len(),
-        1,
-        "no automatic launch after uncertain delivery"
+        runtime.launches.borrow().as_slice(),
+        [(None, Some("perform once".into())), (None, None)]
     );
-    let failed = database.get_session(session.id).await.expect("Session");
-    assert!(
-        failed
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("Session")
             .status
             .lifecycle
-            .failure
-            .expect("failure")
-            .contains("initial prompt delivery is uncertain")
-    );
-    database
-        .activate_session(session.id)
-        .await
-        .expect("explicit reactivation");
-    reconciler.reconcile(session.id).await.expect("operator continues");
-    assert_eq!(
-        runtime.launches.borrow().last().expect("launch"),
-        &(None, None),
-        "reactivation never replays the claimed prompt"
+            .state,
+        agent::sessions::LifecycleState::Running
     );
 }
 
@@ -1225,17 +1175,6 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         [(None, Some("start here".to_owned()))],
         "the first launch starts on the first prompt"
     );
-    assert_eq!(
-        database
-            .session_launch_state(prompted.id)
-            .await
-            .expect("launch")
-            .expect("record")
-            .initial_prompt_claim,
-        None,
-        "a successful launch confirms the claim"
-    );
-
     // A fresh conversation later (nothing reported to resume) starts empty.
     // Clear the crash backoff the first launch armed so the pass relaunches now.
     database
@@ -1331,7 +1270,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         tmux_runtime(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        agent::sessions::SessionObservers::new(),
     );
 
     let explicit = service
@@ -1660,7 +1598,6 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
         tmux_runtime(),
         Convergence::new(agent_wakeup, Observers::new()),
         session_wakeup,
-        agent::sessions::SessionObservers::new(),
     ));
     let ensure_service = service.clone();
     let ensure = tokio::task::spawn_local(async move {
@@ -1765,7 +1702,7 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
     let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
     let mut waiting = harness.prompt("continue");
     harness.await_delivery(&mut waiting).await;
-    // Ensure the waiter will reread after its completion-settling timer.
+    // Ensure the waiter will reread on its next activity poll.
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     tokio::time::sleep(Duration::from_millis(50)).await;
     harness.database.mark_deleting("worker").await.expect("delete");
@@ -1791,7 +1728,7 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
         .await
         .expect("Session");
     harness
-        .observed
+        .database
         .update_session_lifecycle(replacement.id, agent::sessions::Lifecycle::running(), 0)
         .await
         .expect("running");
@@ -1805,65 +1742,53 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
 }
 
 #[tokio::test(flavor = "local")]
-async fn prompt_deadline_bounds_delivery_and_completion_waiting() {
-    for slow_delivery in [true, false] {
-        let directory = TempDir::new().expect("directory");
-        let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
-        if slow_delivery {
-            harness.runtime.delivery_delay.set(Duration::from_secs(2));
-        }
-        let result = tokio::time::timeout(
-            Duration::from_secs(2),
-            harness.service.prompt(
-                "worker",
-                &SessionName::new("s1").expect("name"),
-                "deadline",
-                true,
-                Some(Duration::from_millis(100)),
-            ),
+async fn completion_timeout_starts_after_delivery() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+    harness.runtime.delivery_delay.set(Duration::from_millis(300));
+    let started = tokio::time::Instant::now();
+    let error = harness
+        .service
+        .prompt(
+            "worker",
+            &harness.session.name,
+            "go",
+            true,
+            Some(Duration::from_millis(100)),
         )
         .await
-        .expect("prompt deadline");
-        assert!(result.expect_err("deadline").to_string().contains("timed out"));
-        assert_eq!(harness.runtime.sent.borrow().is_empty(), slow_delivery);
-        harness.finish();
-    }
+        .expect_err("completion timeout");
+    assert!(error.to_string().contains("prompt was submitted"));
+    assert!(started.elapsed() >= Duration::from_millis(400));
+    assert_eq!(harness.runtime.sent.borrow().as_slice(), ["go"]);
+    harness.finish();
 }
 
 #[tokio::test(flavor = "local")]
-async fn timed_out_delivery_keeps_its_lock_until_external_work_ends() {
+async fn queued_deliveries_do_not_expire_and_remain_serialized() {
     let directory = TempDir::new().expect("directory");
     let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
     harness.runtime.hold_completion.set(true);
-    let name = SessionName::new("s1").expect("name");
-    let first = harness
-        .service
-        .prompt("worker", &name, "first", false, Some(Duration::from_secs(5)))
-        .await;
-    assert!(first.expect_err("deadline").to_string().contains("timed out"));
+    let send = |text| {
+        let service = harness.service.clone();
+        let name = harness.session.name.clone();
+        tokio::task::spawn_local(async move {
+            service
+                .prompt("worker", &name, text, false, Some(Duration::from_millis(50)))
+                .await
+        })
+    };
+    let mut first = send("first");
+    harness.await_delivery(&mut first).await;
+    let second = send("second");
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    assert!(!first.is_finished());
+    assert!(!second.is_finished());
     assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first"]);
-    let queued = harness
-        .service
-        .prompt("worker", &name, "expired", false, Some(Duration::from_millis(50)))
-        .await;
-    assert!(
-        queued
-            .expect_err("queue deadline")
-            .to_string()
-            .contains("before delivery")
-    );
-    assert_eq!(
-        harness.runtime.sent.borrow().as_slice(),
-        ["first"],
-        "expired queued input never starts"
-    );
     harness.runtime.hold_completion.set(false);
     harness.runtime.release_completion.notify_one();
-    harness
-        .service
-        .prompt("worker", &name, "after cleanup", false, Some(Duration::from_secs(2)))
-        .await
-        .expect("lock released after completion");
-    assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first", "after cleanup"]);
+    first.await.expect("task").expect("first delivery");
+    second.await.expect("task").expect("second delivery");
+    assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first", "second"]);
     harness.finish();
 }

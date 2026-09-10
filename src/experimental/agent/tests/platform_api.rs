@@ -97,14 +97,10 @@ async fn session_reports_require_the_current_launch_token() {
         .await
         .expect("bind Platform API listener");
     let port = listener.local_addr().expect("local address").port();
-    let observers = agent::sessions::SessionObservers::new();
     let reported_errors = Rc::new(std::cell::Cell::new(0));
     let error_count = reported_errors.clone();
     let server = Rc::new(agent::platform_api::Server::new(
-        Rc::new(agent::sessions::ObservedStore::new(
-            Rc::new(database.clone()),
-            observers.clone(),
-        )),
+        Rc::new(database.clone()),
         Rc::new(move |error| {
             assert!(
                 error.to_string().contains("injected fold failure"),
@@ -165,15 +161,10 @@ async fn session_reports_require_the_current_launch_token() {
     assert_eq!(stored.status.reported.activity.phase, agent::sessions::Phase::Working);
 
     // A replay of an older start must not overwrite the newer conversation.
-    let mut start_feed = observers.subscribe(session.id);
     assert_eq!(request(port, TOKEN_1, &opaque).await, 204);
     assert_eq!(
         database.get_session(session.id).await.expect("session").status.reported,
         stored.status.reported
-    );
-    assert!(
-        !start_feed.has_changed().expect("observer"),
-        "duplicates do not publish"
     );
 
     let inspect = rusqlite::Connection::open(directory.path().join("agent.db")).expect("inspect");
@@ -187,10 +178,6 @@ async fn session_reports_require_the_current_launch_token() {
         database.get_session(session.id).await.expect("session").status.reported,
         stored.status.reported
     );
-    assert!(
-        !start_feed.has_changed().expect("observer"),
-        "rolled-back reports do not publish"
-    );
     inspect
         .execute_batch("DROP TRIGGER reject_activity;")
         .expect("remove failure");
@@ -200,10 +187,7 @@ async fn session_reports_require_the_current_launch_token() {
         applied.status.reported.harness_session_id.as_deref(),
         Some("next-conversation")
     );
-    assert!(start_feed.has_changed().expect("observer"), "committed reports publish");
-    start_feed.borrow_and_update();
     assert_eq!(request(port, TOKEN_1, &next_start).await, 204);
-    assert!(!start_feed.has_changed().expect("observer"));
     // Restore the conversation with a new event for the remaining assertions.
     assert_eq!(
         request(port, TOKEN_1, &report.replace("000000000001", "000000000008")).await,
@@ -219,9 +203,7 @@ async fn session_reports_require_the_current_launch_token() {
     assert_eq!(stored.status.reported.harness_session_id.as_deref(), Some(native));
     assert_eq!(stored.status.lifecycle.state, agent::sessions::LifecycleState::Running);
 
-    // Activity events fold into the report and wake Session observers.
-    let mut feed = observers.subscribe(session.id);
-    let before_events = *feed.borrow();
+    // Activity events fold into the durable report.
     let event = |name: &str| {
         let suffix = match name {
             "turnStarted" => 2,
@@ -246,12 +228,6 @@ async fn session_reports_require_the_current_launch_token() {
         agent::sessions::Phase::WaitingForInput
     );
     assert!(stored.status.reported.activity.last_event_at.is_some());
-    assert!(feed.has_changed().expect("feed open"));
-    assert_eq!(
-        *feed.borrow_and_update() - before_events,
-        3,
-        "one change tick per folded event"
-    );
     // An unknown event is a malformed report.
     assert_eq!(request(port, TOKEN_1, &event("danced")).await, 400);
 

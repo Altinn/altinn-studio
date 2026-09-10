@@ -180,7 +180,7 @@ async fn launch(
 /// supports direct terminal attachment.
 async fn attach_terminal(home: &std::path::Path, target: &AttachTarget) -> Result<(), Error> {
     if target.session.status.lifecycle.state != LifecycleState::Running {
-        return Err(Error::Invalid(format!("Session {} is not ready", target.session.id)));
+        return Err(target.session.not_running_error());
     }
     let spec = attach_spec(&target.session);
     match crate::sandbox::attach_terminal(home, &target.sandbox, AttachTerminalRequest::new(spec)).await? {
@@ -281,9 +281,8 @@ impl super::SessionRuntime for Tmux {
         session: &'a Session,
         sandbox: &'a SandboxHandle,
         prompt: &'a str,
-        deadline: tokio::time::Instant,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>> {
-        Box::pin(deliver(session, sandbox, prompt, deadline))
+        Box::pin(deliver(session, sandbox, prompt))
     }
 
     fn turns<'a>(
@@ -332,34 +331,20 @@ fn ready_input(screen: &str) -> Option<(&str, &str)> {
 /// File and buffer carry a per-delivery name, so two deliveries in flight for
 /// the same Session cannot overwrite each other's payload; the Session service
 /// additionally serializes deliveries per Session.
-async fn deliver(
-    session: &Session,
-    sandbox: &SandboxHandle,
-    prompt: &str,
-    deadline: tokio::time::Instant,
-) -> Result<(), Error> {
+async fn deliver(session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Result<(), Error> {
     use std::io::Cursor;
 
     let buffer = format!("agent-prompt-{}-{}", session.id, uuid::Uuid::new_v4());
     let file = format!("/tmp/{buffer}");
-    tokio::time::timeout_at(deadline, async {
-        if let Some(quiet) = input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()) {
-            tokio::time::sleep(quiet).await;
-        }
-        sandbox
-            .write_file(
-                &SandboxPath::new(file.clone()),
-                Box::pin(Cursor::new(prompt.as_bytes().to_vec())),
-            )
-            .await
-    })
-    .await
-    .map_err(|_| Error::Session("timed out preparing prompt delivery".into()))??;
-    if tokio::time::Instant::now() >= deadline {
-        return Err(Error::Session("timed out before prompt delivery".into()));
+    if let Some(quiet) = input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()) {
+        tokio::time::sleep(quiet).await;
     }
-    // Once dispatched, finish submission even after the caller times out. The
-    // owned delivery task retains the lock so the next prompt cannot interleave.
+    sandbox
+        .write_file(
+            &SandboxPath::new(file.clone()),
+            Box::pin(Cursor::new(prompt.as_bytes().to_vec())),
+        )
+        .await?;
     let delivered = sandbox
         .run_execution(ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),

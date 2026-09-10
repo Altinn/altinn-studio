@@ -219,11 +219,11 @@ struct SessionTarget {
 /// Whether a prompt waits for the next turn completion.
 #[derive(clap::Args)]
 struct CompletionOptions {
-    /// Wait for a turn completion and 200 ms of settled activity, following work
-    /// observed during settling. Inspect output separately with `turns`.
+    /// Wait for a turn completion and identical waiting activity in two polls
+    /// 250 ms apart, following newly observed work. Inspect output with `turns`.
     #[arg(long)]
     wait: bool,
-    /// Maximum wait with --wait, written as seconds, minutes, or hours.
+    /// Completion wait after submission, excluding setup and delivery; seconds, minutes, or hours.
     #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
     timeout: Duration,
 }
@@ -656,34 +656,20 @@ async fn prompt_session(
     input: PromptInput,
     completion: CompletionOptions,
 ) -> CommandResult<()> {
-    let deadline = tokio::time::Instant::now() + completion.timeout;
-    let operation = async {
-        ensure_daemon(home, client).await?;
-        let (agent, session) = session_target(client, target).await?;
-        let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
-        client
-            .prompt_session(
-                &agent,
-                session.clone(),
-                prompt,
-                completion.wait,
-                completion
-                    .wait
-                    .then(|| deadline.saturating_duration_since(tokio::time::Instant::now())),
-            )
-            .await?;
-        println!("session/{agent}/{session} prompted");
-        Ok(())
-    };
-    if completion.wait {
-        tokio::time::timeout_at(deadline, operation).await.map_err(|_| {
-            CommandError::Message(
-                "timed out prompting Session; delivery may have started; inspect turns before retrying".into(),
-            )
-        })?
-    } else {
-        operation.await
-    }
+    ensure_daemon(home, client).await?;
+    let (agent, session) = session_target(client, target).await?;
+    let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
+    client
+        .prompt_session(
+            &agent,
+            session.clone(),
+            prompt,
+            completion.wait,
+            completion.wait.then_some(completion.timeout),
+        )
+        .await?;
+    println!("session/{agent}/{session} prompted");
+    Ok(())
 }
 
 async fn turns(client: &Client, target: SessionTarget, last: Option<usize>) -> CommandResult<()> {
@@ -1186,10 +1172,8 @@ mod tests {
                         tokio::time::sleep(Duration::from_millis(600)).await;
                     } else {
                         assert_eq!(request["method"], "sessions.v1.prompt");
-                        let deadline: SystemTime =
-                            serde_json::from_value(request["params"]["deadline"].clone()).expect("deadline");
                         remaining.set(Some(
-                            deadline.duration_since(SystemTime::now()).expect("remaining budget"),
+                            serde_json::from_value(request["params"]["timeout"].clone()).expect("timeout"),
                         ));
                     }
                     let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":{}});
@@ -1204,7 +1188,7 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local", start_paused = true)]
-    async fn prompt_setup_consumes_the_delivery_budget() {
+    async fn prompt_setup_does_not_consume_the_completion_timeout() {
         let remaining = std::rc::Rc::new(std::cell::Cell::new(None));
         let client = Client::new(std::rc::Rc::new(DelayedHealthConnector {
             remaining: remaining.clone(),
@@ -1230,39 +1214,7 @@ mod tests {
         )
         .await
         .expect("prompt");
-        assert!(remaining.get().expect("request captured") <= Duration::from_millis(400));
-    }
-
-    #[tokio::test(flavor = "local", start_paused = true)]
-    async fn prompt_deadline_includes_daemon_startup_and_agent_resolution() {
-        for (owner, healthy) in [(Some("worker"), false), (None, true)] {
-            let client = Client::new(std::rc::Rc::new(StalledConnector { healthy }));
-            let directory = tempfile::TempDir::new().expect("home");
-            let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
-            let result = tokio::time::timeout(
-                Duration::from_secs(2),
-                prompt_session(
-                    &home,
-                    &client,
-                    SessionTarget {
-                        resource: "session/s1".into(),
-                        name: None,
-                        agent: owner.map(str::to_owned),
-                    },
-                    PromptInput {
-                        prompt: Some("go".into()),
-                        file: None,
-                    },
-                    CompletionOptions {
-                        wait: true,
-                        timeout: Duration::from_secs(1),
-                    },
-                ),
-            )
-            .await
-            .expect("command deadline");
-            assert!(matches!(result, Err(CommandError::Message(message)) if message.contains("timed out")));
-        }
+        assert_eq!(remaining.get(), Some(Duration::from_secs(1)));
     }
 
     #[test]

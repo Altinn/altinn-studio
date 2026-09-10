@@ -101,13 +101,8 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let platform_api_port = platform_api_listener.local_addr()?.port();
     let (sandboxes, session_hook_url) =
         open_sandboxes(&home, &database, credentials.clone(), policy, platform_api_port).await?;
-    let session_observers = agent::sessions::SessionObservers::new();
-    let observed_store = Rc::new(agent::sessions::ObservedStore::new(
-        store.clone(),
-        session_observers.clone(),
-    ));
-    let session_reports: Rc<dyn agent::sessions::SessionReports> = observed_store.clone();
-    let session_store: Rc<dyn agent::sessions::SessionStore> = observed_store;
+    let session_reports: Rc<dyn agent::sessions::SessionReports> = store.clone();
+    let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
     let session_runtime: Rc<dyn agent::sessions::SessionRuntime> = Rc::new(agent::sessions::Tmux);
     let agent_sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(store.clone(), sandboxes.clone()));
     let observers = agent::control_plane::Observers::new();
@@ -152,7 +147,6 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_runtime,
         convergence,
         session_wakeup,
-        session_observers,
     ));
     let server = Rc::new(Server::new(
         control_plane,

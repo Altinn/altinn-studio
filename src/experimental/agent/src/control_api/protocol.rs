@@ -138,7 +138,7 @@ pub(crate) struct SessionPromptParams {
     #[serde(default, skip_serializing_if = "is_false")]
     pub wait: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deadline: Option<std::time::SystemTime>,
+    pub timeout: Option<std::time::Duration>,
 }
 
 #[derive(Deserialize, Serialize)]

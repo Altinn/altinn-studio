@@ -2,7 +2,6 @@
 
 mod activity;
 mod controller;
-mod observed;
 mod reconciler;
 mod runtime;
 mod sandboxes;
@@ -18,7 +17,6 @@ use crate::{AgentId, Error, Harness, sandbox};
 pub use crate::controller::Reconcile;
 pub use activity::{Activity, ActivityEvent, Phase};
 pub use controller::{AgentNotifier, Controller, ErrorHandler, Wakeup};
-pub use observed::{ObservedStore, SessionObservers};
 pub use reconciler::Reconciler;
 pub use runtime::{Observation, SessionRuntime, Tmux};
 pub use sandboxes::AgentSandboxes;
@@ -255,16 +253,12 @@ pub struct Reported {
 /// Durable bookkeeping for the most recent harness launch of one Session.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LaunchState {
-    /// Identity of this launch, also used to confirm a pending initial-prompt claim.
-    pub token: LaunchToken,
     /// Sandbox ID the harness was launched in.
     pub sandbox: String,
     /// Launch time as Unix seconds.
     pub launched_at: i64,
     /// Consecutive launches without a sustained healthy observation.
     pub attempts: u32,
-    /// Activation that claimed the initial prompt but has not confirmed launch success.
-    pub initial_prompt_claim: Option<u64>,
 }
 
 /// Opaque bearer token authenticating one exact harness launch.
@@ -336,6 +330,24 @@ pub struct Session {
     pub(crate) observed_activation_generation: u64,
 }
 
+impl Session {
+    /// Describes why an operation cannot use this Session's running harness.
+    pub(crate) fn not_running_error(&self) -> Error {
+        let detail = self
+            .status
+            .lifecycle
+            .failure
+            .as_deref()
+            .unwrap_or(match self.status.lifecycle.state {
+                LifecycleState::Starting => "its lifecycle is starting",
+                LifecycleState::Idle => "its lifecycle is idle",
+                LifecycleState::Failed => "its lifecycle failed without a recorded reason",
+                LifecycleState::Running => "its harness has not reported readiness",
+            });
+        Error::Invalid(format!("Session \"{}\" is not running: {detail}", self.name))
+    }
+}
+
 /// Non-secret information required for a terminal attachment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -360,13 +372,6 @@ pub trait SessionStore {
         harness: Harness,
         initial_prompt: Option<&'a str>,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
-
-    /// Confirms a successful launch, clearing only that launch's uncertain prompt claim.
-    fn confirm_session_launch<'a>(
-        &'a self,
-        id: SessionId,
-        token: &'a LaunchToken,
-    ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
     /// Gets one Session by immutable identity.
     fn get_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<Session, Error>>;
@@ -404,8 +409,8 @@ pub trait SessionStore {
     fn clear_session_report(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
     /// Durably records a new harness launch and consumes its initial prompt atomically.
-    /// Returns the claimed prompt for this attempt; it is never restored after an
-    /// uncertain launch. An unconfirmed claim blocks attempts until reactivation.
+    /// Returns the consumed prompt for this attempt. It is never restored, even
+    /// if launch fails; recovery can therefore start an empty conversation.
     /// The previous launch's activity is reset so the Session reads as
     /// [`State::Starting`] until this launch reports; the native ID and
     /// transcript location survive because a resumed conversation keeps them.

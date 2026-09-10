@@ -77,16 +77,13 @@ pub trait SessionRuntime {
     ) -> ::sandbox::LocalFuture<'a, Result<bool, Error>>;
 
     /// Submits `prompt` to the running harness as operator input.
-    /// Check `deadline` before dispatching delivery. Once dispatched, finish
-    /// submission even if the caller times out, so the next prompt cannot
-    /// inherit a draft. A timeout therefore leaves delivery uncertain.
-    /// The service bounds the caller's wait while retaining the delivery guard.
+    /// Completes submission before returning; the service serializes delivery
+    /// and starts the completion timeout afterwards.
     fn prompt<'a>(
         &'a self,
         session: &'a Session,
         sandbox: &'a SandboxHandle,
         prompt: &'a str,
-        deadline: tokio::time::Instant,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
     /// Reads the Session's conversation so far as ordered turns.

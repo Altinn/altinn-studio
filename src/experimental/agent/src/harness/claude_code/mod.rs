@@ -109,14 +109,7 @@ pub(super) async fn verify_linux(
     sandbox: &sandbox::SandboxHandle,
     expected_version: Option<&str>,
 ) -> Result<(), Error> {
-    use sandbox::{SandboxPath, execution::ExecutionSpec};
-
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/env"),
-            ["claude".into(), "--version".into()],
-        ))
-        .await?;
+    let output = super::version_output(sandbox, "claude").await?;
     if !output.status.success() {
         let message = format!("`claude --version` exited with code {}", output.status.code);
         // 126/127 mean the image does not provide the harness; retrying cannot change that.

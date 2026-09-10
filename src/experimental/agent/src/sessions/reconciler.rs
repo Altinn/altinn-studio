@@ -82,11 +82,6 @@ impl Reconciler {
         let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
         if let Observation::Alive { attached, idle_seconds } = self.runtime.observe(session, &sandbox).await? {
-            if let Some(state) = &launch
-                && state.initial_prompt_claim.is_some()
-            {
-                self.sessions.confirm_session_launch(session.id, &state.token).await?;
-            }
             if !attached
                 && effective_idle_seconds(&session.status.reported.activity, idle_seconds, now) >= IDLE_AFTER_SECONDS
             {
@@ -103,15 +98,6 @@ impl Reconciler {
             return Ok(Lifecycle::running());
         }
 
-        if let Some(state) = &launch
-            && state
-                .initial_prompt_claim
-                .is_some_and(|generation| generation >= session.activation_generation)
-        {
-            return Ok(Lifecycle::failed(
-                "initial prompt delivery is uncertain; inspect the Session, then reactivate it to continue without replaying the prompt",
-            ));
-        }
         let mut attempts = 0;
         let mut resume = session.status.reported.harness_session_id.clone();
         if let Some(state) = launch {
@@ -146,7 +132,7 @@ impl Reconciler {
         .await
     }
 
-    /// Claims the first prompt before external effects; a crash cannot replay it.
+    /// Consumes the first prompt before launch; recovery never replays it.
     async fn launch(
         &self,
         session: &Session,
@@ -165,19 +151,7 @@ impl Reconciler {
                 resume,
                 initial_prompt.as_deref().filter(|_| resume.is_none()),
             )
-            .await
-            .map_err(|error| {
-                if initial_prompt.is_some() {
-                    Error::Session(format!(
-                        "initial prompt delivery is uncertain and will not be retried automatically: {error}"
-                    ))
-                } else {
-                    error
-                }
-            })?;
-        if initial_prompt.is_some() {
-            self.sessions.confirm_session_launch(session.id, &token).await?;
-        }
+            .await?;
         Ok(Lifecycle::running())
     }
 }

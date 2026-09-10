@@ -15,18 +15,22 @@ installed harness versions; testing an existing Sandbox does not prove the rebui
 
 | Check | Expected result |
 | --- | --- |
-| Create with an initial prompt | One submission and answer; a daemon restart does not replay the prompt. |
+| Create with an initial prompt | One submission and answer; a daemon restart does not replay the prompt. A failed launch may lose the initial prompt and recover with an empty conversation. |
 | Create without a prompt, then immediately `prompt --wait` | Input submits without manual Enter. Repeat several times to expose startup races. |
 | Short, long, multiline, XML-shaped and literal request-heading input | `turns` preserves the complete operator input. |
 | Prompt again after completion, including identical text | Waits for one more completed turn, ignoring previous completions. |
 | Prompt during an active tool call, including identical text | Input appears in `turns`; waiting follows work observed during settling, but does not demand an extra turn when input is absorbed into the current one. |
 | Tool success, tool failure, permission request and permission resolution | STATE reflects activity and blocking; tool completion alone does not complete a turn. Exercise permissions with a configuration that permits prompting. |
 | Supported interruption, then another prompt | The reported turn ending releases the wait; the next prompt remains usable. |
+| Model error reported through `StopFailure` | The completion report ends the wait, but does not imply a successful model response; inspect `turns`. |
 | Model error without a completion report | The wait times out; inspect the Session and recover manually. |
-| Short timeout during startup, delivery and turn-completion waiting | Caller returns within its budget. Input that expires while queued in the service is not dispatched; already-dispatched delivery can finish after timeout and is reported as uncertain without automatic resubmission. The next prompt contains no leftover draft. |
+| Short completion timeout | Queuing, input readiness and delivery finish before the completion timeout starts. A timeout reports that the prompt was submitted; inspect turns before retrying. The next prompt contains no leftover draft. |
 | Idle/resume, before and after the first turn | An untouched Session remains usable; an established conversation resumes with its history. |
 | Transcript writes while the terminal is quiet | Recent transcript writes keep an unattached Session alive; missing or old transcripts do not prevent idle-stop. |
 | Authentication and configuration | Mediated login/inference works without unexpected onboarding or authentication dialogs; configured instructions and skills are available. |
+
+Completion waits poll local database activity every 250 ms and require identical completed, waiting activity
+in two consecutive polls.
 
 Inspect `get sessions` (including `-o json`) and `turns` alongside the terminal. Check user messages, assistant answers,
 tool results and turn boundaries, including after compaction. A successful model response alone is insufficient.

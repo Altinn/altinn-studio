@@ -10,6 +10,8 @@ mod codex;
 mod hook_script;
 mod skills;
 
+const VERSION_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+
 pub(crate) use skills::{Skill, SkillFile};
 
 /// Supported harnesses.
@@ -209,6 +211,31 @@ pub(crate) async fn verify_linux(
     match harness {
         Harness::ClaudeCode => claude_code::verify_linux(sandbox, expected_version).await,
         Harness::Codex => codex::verify_linux(sandbox, expected_version).await,
+    }
+}
+
+async fn version_output(
+    sandbox: &sandbox::SandboxHandle,
+    executable: &str,
+) -> Result<sandbox::execution::ExecutionOutput, Error> {
+    use sandbox::{SandboxPath, execution::ExecutionSpec};
+
+    let started = sandbox
+        .start_execution(sandbox::execution::StartExecutionRequest::new(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/env"),
+            [executable.to_owned(), "--version".into()],
+        )))
+        .await?;
+    let execution_id = started.id.clone();
+    match tokio::time::timeout(VERSION_PROBE_TIMEOUT, started.collect()).await {
+        Ok(output) => output.map_err(Error::from),
+        Err(_elapsed) => {
+            let _ignored = sandbox.kill_execution(&execution_id).await;
+            Err(Error::SandboxSetup(format!(
+                "`{executable} --version` did not finish within {}s",
+                VERSION_PROBE_TIMEOUT.as_secs()
+            )))
+        }
     }
 }
 
