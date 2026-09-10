@@ -24,6 +24,7 @@ using NSubstitute;
 
 namespace Altinn.App.Ai.Enrichment.Tests.Unit.ServiceTasks;
 
+[Collection(ActivityListenerCollection.Name)]
 public class AiServiceTaskTests
 {
     private const string FormDataType = "model";
@@ -228,8 +229,34 @@ public class AiServiceTaskTests
         new() { InstanceDataMutator = mutator };
 #endif
 
+#if NET10_0_OR_GREATER
+    [Fact]
+    public async Task Execute_WithTracingActive_TagsOutputsWithTheLangfuseTraceId()
+    {
+        // Traces are findable by session id already; this is the reverse direction —
+        // from a stored output back to the run that produced it, which is what lets a
+        // caseworker's later verdict be attached to the right trace.
+        using var spans = new RecordedSpans();
+        var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
+        var storedMetadata = new List<List<KeyValueEntry>?>();
+        var mutator = CreateMutator("demo-json", stored, storedMetadata: storedMetadata);
+
+        var result = await CreateSut(trace: new EnrichmentTrace(Options.Create(new LangfuseOptions())))
+            .Execute(CreateContext(mutator, Guid.NewGuid()));
+
+        result.Should().BeOfType<ServiceTaskSuccessResult>();
+
+        var traceId = spans.Root().TraceId.ToHexString();
+        storedMetadata.Should().NotBeEmpty();
+        storedMetadata.Should().AllSatisfy(metadata =>
+            metadata.Should().ContainSingle(entry =>
+                entry.Key == AiServiceTask.LangfuseTraceIdMetadataKey && entry.Value == traceId));
+    }
+#endif
+
     private static AiServiceTask CreateSut(
-        AiEnrichmentOptions? options = null
+        AiEnrichmentOptions? options = null,
+        EnrichmentTrace? trace = null
 #if NET10_0_OR_GREATER
         , IInstanceClient? instanceClient = null
 #endif
@@ -260,7 +287,7 @@ public class AiServiceTaskTests
 #if NET10_0_OR_GREATER
             instanceClient,
 #endif
-            EnrichmentTrace.Disabled,
+            trace ?? EnrichmentTrace.Disabled,
             NullLogger<AiServiceTask>.Instance);
     }
 

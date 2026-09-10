@@ -72,6 +72,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<LangfuseTracing>();
         services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<LangfuseTracing>());
 
+        // Reading and writing scores is a separate concern from exporting spans: it runs
+        // long after a run, often in bulk, and stays available even when export is off.
+        services.AddHttpClient(LangfuseScoreClient.HttpClientName);
+        services.AddSingleton<ILangfuseScoreClient, LangfuseScoreClient>();
+
         services.AddSingleton<IChatService, OpenAiCompatibleChatService>();
         services.AddSingleton<ITypstRenderer, TypstRenderer>();
         services.AddSingleton<IRulesLoader, MarkdownRulesLoader>();

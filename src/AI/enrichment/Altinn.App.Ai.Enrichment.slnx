@@ -5,4 +5,7 @@
   <Folder Name="/test/">
     <Project Path="test/Altinn.App.Ai.Enrichment.Tests/Altinn.App.Ai.Enrichment.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Altinn.App.Ai.Enrichment.ScoreImport/Altinn.App.Ai.Enrichment.ScoreImport.csproj" />
+  </Folder>
 </Solution>

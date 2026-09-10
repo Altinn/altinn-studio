@@ -48,6 +48,14 @@ public sealed class AiServiceTask(
     /// non-deterministic) agent re-run instead of storing duplicate outputs.
     /// </summary>
     internal const string WorkflowIdMetadataKey = "aiEnrichmentWorkflowId";
+
+    /// <summary>
+    /// Metadata key holding the Langfuse trace id for the run that produced the
+    /// element. Traces are already findable by session id, but storing it on the
+    /// instance closes the loop the other way: from a stored output back to the run
+    /// that made it, which is what a caseworker's later verdict needs.
+    /// </summary>
+    internal const string LangfuseTraceIdMetadataKey = "langfuseTraceId";
 #endif
 
     // Default serialization on purpose: null fields stay present as null, matching
@@ -145,17 +153,19 @@ public sealed class AiServiceTask(
 
             var result = await runtime.ExecuteAsync(application, context.CancellationToken);
 
+            var traceId = run?.TraceId.ToHexString();
+
             foreach (var (key, value) in result.Context.Entries)
             {
                 if (value is not string json)
                     continue;
                 AddOutputElement(
                     context, taskOptions.JsonOutputDataType, "application/json", $"{key}.json",
-                    Encoding.UTF8.GetBytes(json));
+                    Encoding.UTF8.GetBytes(json), traceId);
             }
 
             foreach (var file in result.Files)
-                AddOutputElement(context, taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data);
+                AddOutputElement(context, taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data, traceId);
 
             trace.CompleteRun(run, DescribeOutput(result));
             return ServiceTaskResult.Success();
@@ -197,14 +207,20 @@ public sealed class AiServiceTask(
         string dataTypeId,
         string contentType,
         string filename,
-        ReadOnlyMemory<byte> bytes)
+        ReadOnlyMemory<byte> bytes,
+        string? langfuseTraceId)
     {
 #if NET10_0_OR_GREATER
-        List<KeyValueEntry>? metadata = context.WorkflowId is { } workflowId
-            ? [new KeyValueEntry { Key = WorkflowIdMetadataKey, Value = workflowId.ToString() }]
-            : null;
+        List<KeyValueEntry>? metadata = null;
+        if (context.WorkflowId is { } workflowId)
+            (metadata ??= []).Add(new KeyValueEntry { Key = WorkflowIdMetadataKey, Value = workflowId.ToString() });
+        if (!string.IsNullOrEmpty(langfuseTraceId))
+            (metadata ??= []).Add(new KeyValueEntry { Key = LangfuseTraceIdMetadataKey, Value = langfuseTraceId });
+
         context.InstanceDataMutator.AddBinaryDataElement(dataTypeId, contentType, filename, bytes, metadata: metadata);
 #else
+        // Data-element metadata arrived with app-lib v9; on net8 the trace is still
+        // findable by session id, which is the instance id.
         context.InstanceDataMutator.AddBinaryDataElement(dataTypeId, contentType, filename, bytes);
 #endif
     }
