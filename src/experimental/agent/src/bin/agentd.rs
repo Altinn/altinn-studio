@@ -84,7 +84,7 @@ async fn open_sandboxes(
         )
         .await?,
     );
-    let session_hook_url = microsandbox.platform_url("/v1/session/hooks/start")?;
+    let session_hook_url = microsandbox.platform_url("/v1/session/hooks")?;
     let provider: Rc<dyn agent::sandbox::Provider> = microsandbox;
     let platform: Rc<dyn agent::sandbox::PlatformAdapter> = Rc::new(agent::sandbox::platform::Linux);
     Ok((
@@ -101,18 +101,21 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let platform_api_port = platform_api_listener.local_addr()?.port();
     let (sandboxes, session_hook_url) =
         open_sandboxes(&home, &database, credentials.clone(), policy, platform_api_port).await?;
+    let session_reports: Rc<dyn agent::sessions::SessionReports> = store.clone();
     let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
+    let session_runtime: Rc<dyn agent::sessions::SessionRuntime> = Rc::new(agent::sessions::Tmux);
+    let agent_sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(store.clone(), sandboxes.clone()));
     let observers = agent::control_plane::Observers::new();
 
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
-        session_store.clone(),
+        session_reports,
         Rc::new(|error| tracing::error!(%error, "Platform API connection failed")),
     ));
     let session_reconciler: Rc<dyn agent::sessions::Reconcile<agent::sessions::SessionId>> =
         Rc::new(agent::sessions::Reconciler::new(
             session_store.clone(),
-            store.clone(),
-            sandboxes.clone(),
+            agent_sandboxes.clone(),
+            session_runtime.clone(),
             session_hook_url,
         ));
     let (session_controller, session_wakeup) = agent::sessions::Controller::new(
@@ -126,8 +129,9 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_wakeup.clone(),
         Rc::new(|error| tracing::error!(%error, "Session notification scan failed")),
     ));
-    let reconciler =
-        Rc::new(Reconciler::new(store.clone(), sandboxes, observers.clone()).with_session_notifier(session_notifier));
+    let reconciler = Rc::new(
+        Reconciler::new(store.clone(), sandboxes.clone(), observers.clone()).with_session_notifier(session_notifier),
+    );
     let (controller, wakeup) = Controller::new(
         store.clone(),
         reconciler,
@@ -137,7 +141,13 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
     let convergence = agent::control_plane::Convergence::new(wakeup, observers);
     let executions = Rc::new(ExecutionService::new(store.clone(), convergence.clone()));
-    let sessions = Rc::new(SessionService::new(session_store, store, convergence, session_wakeup));
+    let sessions = Rc::new(SessionService::new(
+        session_store,
+        agent_sandboxes,
+        session_runtime,
+        convergence,
+        session_wakeup,
+    ));
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),

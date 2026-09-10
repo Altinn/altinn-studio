@@ -50,3 +50,5 @@ Use Tokio's `LocalRuntime` for asynchronous work. Keep control-plane state singl
 ## Development
 
 Run `make help` in this directory to list the available development targets.
+
+When adding or updating a harness installation or adapter, follow [HARNESSES.md](agent/HARNESSES.md).

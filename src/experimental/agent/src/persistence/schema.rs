@@ -33,12 +33,21 @@ const SQL: &str = "
         created_at INTEGER NOT NULL,
         activation_generation INTEGER NOT NULL DEFAULT 0,
         lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        initial_prompt TEXT,
         harness_native_id TEXT,
+        harness_transcript_path TEXT,
+        activity_json TEXT NOT NULL DEFAULT '{}',
         launch_token TEXT UNIQUE,
         launch_sandbox TEXT,
         launched_at INTEGER,
         launch_attempts INTEGER NOT NULL DEFAULT 0,
         UNIQUE (agent_id, name)
+    );
+    CREATE TABLE IF NOT EXISTS session_activity_reports (
+        session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        launch_token TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        PRIMARY KEY (session_id, launch_token, event_id)
     );
     PRAGMA user_version = 1;
 ";

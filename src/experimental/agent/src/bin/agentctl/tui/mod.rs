@@ -358,7 +358,14 @@ async fn attach(
 ) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client.ensure_session(agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client.ensure_session(
+            agent,
+            session,
+            harness,
+            None,
+            WaitPolicy::UntilReady,
+            Some(&mut wait.sink()),
+        ))
         .await?;
     agent::sessions::attach(home.path(), &target).await
 }

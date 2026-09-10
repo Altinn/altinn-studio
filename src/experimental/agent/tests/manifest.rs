@@ -39,7 +39,7 @@ spec:
     source: home
   harnesses:
     - type: claudeCode
-      version: "2.1.239"
+      version: "2.1.266"
       auth: mediated
   network:
     mode: mediated

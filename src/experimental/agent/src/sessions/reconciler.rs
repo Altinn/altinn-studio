@@ -4,9 +4,12 @@ use std::rc::Rc;
 
 use ::sandbox::LocalFuture;
 
-use crate::{Error, control_plane::AgentStore};
+use crate::Error;
 
-use super::{LaunchRecord, LaunchToken, Session, SessionId, SharedStore, State, Status, tmux};
+use super::{
+    Activity, AgentSandboxes, LaunchRecord, LaunchToken, Lifecycle, LifecycleState, Session, SessionId, SessionRuntime,
+    SharedStore, runtime::Observation,
+};
 
 /// A launch is considered healthy after surviving this long, resetting backoff.
 const HEALTHY_AFTER_SECONDS: i64 = 60;
@@ -14,14 +17,15 @@ const HEALTHY_AFTER_SECONDS: i64 = 60;
 /// Longest wait between relaunches of a repeatedly exiting harness.
 const MAX_BACKOFF_SECONDS: i64 = 600;
 
-/// Stop an unattached harness after five minutes without terminal activity.
-const IDLE_AFTER_SECONDS: u64 = 5 * 60;
+/// Stop an unattached harness after this long without terminal output,
+/// transcript writes or reported activity.
+const IDLE_AFTER_SECONDS: u64 = 30 * 60;
 
 /// Converges persistent Sessions onto the tmux runtime in their Agent's Sandbox.
 pub struct Reconciler {
     sessions: SharedStore,
-    agents: Rc<dyn AgentStore>,
-    sandboxes: Rc<crate::sandbox::Service>,
+    sandboxes: Rc<AgentSandboxes>,
+    runtime: Rc<dyn SessionRuntime>,
     session_hook_url: String,
 }
 
@@ -33,25 +37,25 @@ impl Reconciler {
     #[must_use]
     pub fn new(
         sessions: SharedStore,
-        agents: Rc<dyn AgentStore>,
-        sandboxes: Rc<crate::sandbox::Service>,
+        sandboxes: Rc<AgentSandboxes>,
+        runtime: Rc<dyn SessionRuntime>,
         session_hook_url: String,
     ) -> Self {
         Self {
             sessions,
-            agents,
             sandboxes,
+            runtime,
             session_hook_url,
         }
     }
 
-    async fn converge(&self, session: &Session) -> Result<Status, Error> {
-        if session.status.state == State::Idle
+    async fn converge(&self, session: &Session) -> Result<Lifecycle, Error> {
+        if session.status.lifecycle.state == LifecycleState::Idle
             && session.activation_generation == session.observed_activation_generation
         {
-            return Ok(idle());
+            return Ok(Lifecycle::idle());
         }
-        let agent = self.agents.get(session.agent_id).await?;
+        let agent = self.sandboxes.agent(session.agent_id).await?;
         if agent.agent.metadata.deletion_timestamp.is_some()
             || !agent.agent.status.is_ready()
             || !matches!(
@@ -59,11 +63,10 @@ impl Reconciler {
                 Some(crate::sandbox::Assignment::Materialized { .. })
             )
         {
-            return Ok(Status {
-                state: State::Starting,
-                failure: Some(format!("Agent {:?} is not ready", agent.agent.metadata.name)),
-                harness_session_id: None,
-            });
+            return Ok(Lifecycle::starting(format!(
+                "Agent {:?} is not ready",
+                agent.agent.metadata.name
+            )));
         }
         let sandbox = self.sandboxes.open(&agent).await?;
         let platform = &sandbox.snapshot().image.platform;
@@ -78,11 +81,13 @@ impl Reconciler {
         let launch = self.sessions.session_launch_state(session.id).await?;
         let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
-        if let tmux::Observation::Alive { attached, idle_seconds } = tmux::observe(session, &sandbox).await? {
-            if !attached && idle_seconds >= IDLE_AFTER_SECONDS {
-                tmux::stop(session, &sandbox).await?;
+        if let Observation::Alive { attached, idle_seconds } = self.runtime.observe(session, &sandbox).await? {
+            if !attached
+                && effective_idle_seconds(&session.status.reported.activity, idle_seconds, now) >= IDLE_AFTER_SECONDS
+            {
+                self.runtime.stop(session, &sandbox).await?;
                 self.sessions.reset_session_launch_attempts(session.id).await?;
-                return Ok(idle());
+                return Ok(Lifecycle::idle());
             }
             if let Some(state) = &launch
                 && state.attempts > 0
@@ -90,21 +95,19 @@ impl Reconciler {
             {
                 self.sessions.reset_session_launch_attempts(session.id).await?;
             }
-            return Ok(running());
+            return Ok(Lifecycle::running());
         }
 
         let mut attempts = 0;
-        let mut resume = session.status.harness_session_id.clone();
+        let mut resume = session.status.reported.harness_session_id.clone();
         if let Some(state) = launch {
             if state.sandbox == sandbox_id {
                 attempts = state.attempts;
                 let wait = backoff_seconds(attempts);
                 if attempts > 0 && now < state.launched_at + wait {
-                    return Ok(Status {
-                        state: State::Failed,
-                        failure: Some(format!("harness exited; relaunching after up to {wait}s of backoff")),
-                        harness_session_id: None,
-                    });
+                    return Ok(Lifecycle::failed(format!(
+                        "harness exited; relaunching after up to {wait}s of backoff"
+                    )));
                 }
             } else {
                 // The Sandbox was replaced, and the harness conversation state
@@ -112,23 +115,44 @@ impl Reconciler {
                 // resuming an ID whose files no longer exist.
                 resume = None;
                 attempts = 0;
-                self.sessions.set_session_native_id(session.id, None).await?;
+                self.sessions.clear_session_report(session.id).await?;
             }
         }
-        let token = LaunchToken::generate();
-        self.sessions
-            .record_session_launch(
-                session.id,
-                LaunchRecord {
-                    token: token.clone(),
-                    sandbox: sandbox_id,
-                    launched_at: now,
-                    attempts: attempts + 1,
-                },
+        self.launch(
+            session,
+            &sandbox,
+            LaunchRecord {
+                token: LaunchToken::generate(),
+                sandbox: sandbox_id,
+                launched_at: now,
+                attempts: attempts + 1,
+            },
+            resume.as_deref(),
+        )
+        .await
+    }
+
+    /// Consumes the first prompt before launch; recovery never replays it.
+    async fn launch(
+        &self,
+        session: &Session,
+        sandbox: &::sandbox::SandboxHandle,
+        record: LaunchRecord,
+        resume: Option<&str>,
+    ) -> Result<Lifecycle, Error> {
+        let token = record.token.clone();
+        let initial_prompt = self.sessions.record_session_launch(session.id, record).await?;
+        self.runtime
+            .start(
+                session,
+                sandbox,
+                &self.session_hook_url,
+                &token,
+                resume,
+                initial_prompt.as_deref().filter(|_| resume.is_none()),
             )
             .await?;
-        tmux::create(session, &sandbox, &self.session_hook_url, &token, resume.as_deref()).await?;
-        Ok(running())
+        Ok(Lifecycle::running())
     }
 }
 
@@ -141,20 +165,16 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                 Err(error) => return Err(error),
             };
             match self.converge(&session).await {
-                Ok(status) => {
+                Ok(lifecycle) => {
                     self.sessions
-                        .update_session_status(session.id, status, session.activation_generation)
+                        .update_session_lifecycle(session.id, lifecycle, session.activation_generation)
                         .await
                 }
                 Err(error) => {
                     self.sessions
-                        .update_session_status(
+                        .update_session_lifecycle(
                             session.id,
-                            Status {
-                                state: State::Failed,
-                                failure: Some(error.to_string()),
-                                harness_session_id: None,
-                            },
+                            Lifecycle::failed(error.to_string()),
                             session.activation_generation,
                         )
                         .await?;
@@ -165,21 +185,13 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
     }
 }
 
-const fn running() -> Status {
-    Status {
-        state: State::Running,
-        failure: None,
-        // Preserved by the store; owned by the authenticated Session hook handler.
-        harness_session_id: None,
-    }
-}
-
-const fn idle() -> Status {
-    Status {
-        state: State::Idle,
-        failure: None,
-        harness_session_id: None,
-    }
+/// Seconds a Session has been inactive, taking the smaller of runtime
+/// inactivity (terminal or transcript) and time since the last reported event.
+fn effective_idle_seconds(activity: &Activity, runtime_idle_seconds: u64, now: i64) -> u64 {
+    activity.last_event_at.map_or(runtime_idle_seconds, |at| {
+        let since_event = u64::try_from((now - at.unix_timestamp()).max(0)).unwrap_or(u64::MAX);
+        runtime_idle_seconds.min(since_event)
+    })
 }
 
 /// Seconds to wait after launch attempt `attempts` before relaunching.
@@ -198,6 +210,33 @@ fn backoff_seconds(attempts: u32) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    use super::{Activity, effective_idle_seconds};
+
+    #[test]
+    fn idle_age_is_the_terminal_age_until_the_harness_reports_activity() {
+        assert_eq!(effective_idle_seconds(&Activity::default(), 1_900, 10_000), 1_900);
+    }
+
+    #[test]
+    fn idle_age_is_the_fresher_of_terminal_and_reported_activity() {
+        let reported = Activity {
+            last_event_at: Some(time::OffsetDateTime::from_unix_timestamp(9_940).expect("timestamp")),
+            ..Activity::default()
+        };
+        assert_eq!(
+            effective_idle_seconds(&reported, 1_900, 10_000),
+            60,
+            "a recent report counts as activity"
+        );
+        assert_eq!(
+            effective_idle_seconds(&reported, 5, 10_000),
+            5,
+            "terminal output counts too"
+        );
+        // A report stamped ahead of the daemon clock never yields a negative age.
+        assert_eq!(effective_idle_seconds(&reported, 30, 9_000), 0);
+    }
+
     #[test]
     fn backoff_grows_and_caps() {
         assert_eq!(super::backoff_seconds(0), 0);

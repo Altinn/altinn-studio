@@ -9,8 +9,9 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 use super::protocol::{
     DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
-    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, Notification,
-    ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams, read_message,
+    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
+    METHOD_SESSION_TURNS, NameParams, Notification, ReadMessage, Request, Response, SessionEnsureParams,
+    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -168,6 +169,7 @@ impl Client {
         agent: &str,
         name: sessions::SessionName,
         harness: Option<harness::Harness>,
+        initial_prompt: Option<String>,
         wait: WaitPolicy,
         progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<sessions::AttachTarget, Error> {
@@ -177,10 +179,68 @@ impl Client {
                 agent: agent.into(),
                 name,
                 harness,
+                initial_prompt,
                 progress: progress.is_some(),
                 follow: wait == WaitPolicy::UntilReady,
             },
             progress,
+        )
+        .await
+    }
+
+    /// Delivers a prompt to a running Session's harness. With `wait`, waits for
+    /// its completed-turn counter to advance with identical waiting activity in
+    /// two consecutive polls, 250 ms apart.
+    /// Work observed during settling requires another completion.
+    /// The timeout bounds completion waiting after submission, excluding setup and delivery.
+    /// Conversation output is read separately with [`Self::session_turns`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session is not running or the input cannot be delivered.
+    pub async fn prompt_session(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        prompt: String,
+        wait: bool,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_PROMPT,
+                SessionPromptParams {
+                    agent: agent.into(),
+                    name,
+                    prompt,
+                    wait,
+                    timeout,
+                },
+                None,
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Reads the harness transcript of a Session as ordered turns.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session or its transcript cannot be read.
+    pub async fn session_turns(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        last: Option<usize>,
+    ) -> Result<Vec<sessions::Turn>, Error> {
+        self.call(
+            METHOD_SESSION_TURNS,
+            SessionTurnsParams {
+                agent: agent.into(),
+                name,
+                last,
+            },
+            None,
         )
         .await
     }
