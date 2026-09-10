@@ -172,6 +172,7 @@ __metadata:
     marked-mangle: "npm:1.1.13"
     mime: "npm:4.1.0"
     prettier: "npm:3.9.6"
+    qrcode.react: "npm:4.2.0"
     react: "npm:19.2.8"
     react-content-loader: "npm:7.1.2"
     react-day-picker: "npm:10.0.1"
@@ -7608,6 +7609,7 @@ __metadata:
     react-router: "npm:8.3.0"
     react-toastify: "npm:11.1.0"
     resize-observer-polyfill: "npm:1.5.1"
+    slugify: "npm:1.6.9"
     tinybench: "npm:6.1.2"
     tsx: "npm:4.23.11"
     typescript: "npm:@typescript/typescript6@6.0.2"
@@ -16713,6 +16715,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qrcode.react@npm:4.2.0":
+  version: 4.2.0
+  resolution: "qrcode.react@npm:4.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/665036d88b160e6d5de4e24d101bc63bd2b76712802e874bbffe56c6b6e5fe50c63f02c3cba2975b2e2b555c1f1e112cbb42987f8cb3a626ce2d17023cfde6ac
+  languageName: node
+  linkType: hard
+
 "qs@npm:6.16.0":
   version: 6.16.0
   resolution: "qs@npm:6.16.0"
@@ -18289,6 +18300,13 @@ __metadata:
     ansi-styles: "npm:^6.2.1"
     is-fullwidth-code-point: "npm:^5.0.0"
   checksum: 10/75f61e1285c294b18c88521a0cdb22cdcbe9b0fd5e8e26f649be804cc43122aa7751bd960a968e3ed7f5aa7f3c67ac605c939019eae916870ec288e878b6fafb
+  languageName: node
+  linkType: hard
+
+"slugify@npm:1.6.9":
+  version: 1.6.9
+  resolution: "slugify@npm:1.6.9"
+  checksum: 10/101599a77585ac3b3fe49662db8666260c8ee1c5090d28a13c6ecabf16b42057e69ea209654797f46b13faee4c53224f48784044bd734a9443b7b88e0357110e
   languageName: node
   linkType: hard
 

@@ -32,6 +32,7 @@ import type { TypeConfig as LikertTypeConfig } from '@app/layout-contract/genera
 import type { TypeConfig as LikertItemTypeConfig } from '@app/layout-contract/generated/components/LikertItem/config.generated';
 import type { TypeConfig as LinkTypeConfig } from '@app/layout-contract/generated/components/Link/config.generated';
 import type { TypeConfig as ListTypeConfig } from '@app/layout-contract/generated/components/List/config.generated';
+import type { TypeConfig as LommebokTypeConfig } from '@app/layout-contract/generated/components/Lommebok/config.generated';
 import type { TypeConfig as MapTypeConfig } from '@app/layout-contract/generated/components/Map/config.generated';
 import type { TypeConfig as MultipleSelectTypeConfig } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
 import type { TypeConfig as NavigationBarTypeConfig } from '@app/layout-contract/generated/components/NavigationBar/config.generated';
@@ -94,6 +95,7 @@ export type ComponentTypeConfigs = {
   LikertItem: LikertItemTypeConfig;
   Link: LinkTypeConfig;
   List: ListTypeConfig;
+  Lommebok: LommebokTypeConfig;
   Map: MapTypeConfig;
   MultipleSelect: MultipleSelectTypeConfig;
   NavigationBar: NavigationBarTypeConfig;
@@ -156,6 +158,7 @@ export type ConfigurableComponent =
   | LikertTypeConfig['layout']
   | LinkTypeConfig['layout']
   | ListTypeConfig['layout']
+  | LommebokTypeConfig['layout']
   | MapTypeConfig['layout']
   | MultipleSelectTypeConfig['layout']
   | NavigationBarTypeConfig['layout']
@@ -186,4 +189,4 @@ export type ConfigurableComponent =
   | VideoTypeConfig['layout'];
 export type CompExternal = ComponentTypeConfigs[keyof ComponentTypeConfigs]['layout'];
 
-// Source hash: 8387c0ffd6a5142ed797669605c6c2750d58fdb5db33d64c61f5936408d9c1f3
+// Source hash: 3973b2c91baf961c72de8939e686568df28b5140398adfdc9e47be5fd40c8286

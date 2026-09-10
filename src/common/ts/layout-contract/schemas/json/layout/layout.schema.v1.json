@@ -41,6 +41,7 @@
             "Likert",
             "Link",
             "List",
+            "Lommebok",
             "Map",
             "MultipleSelect",
             "NavigationBar",
@@ -443,6 +444,18 @@
           },
           "then": {
             "$ref": "#/definitions/CompList"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Lommebok"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompLommebok"
           }
         },
         {
@@ -875,6 +888,9 @@
     },
     "CompList": {
       "$ref": "#/definitions/CompListExternal"
+    },
+    "CompLommebok": {
+      "$ref": "#/definitions/CompLommebokExternal"
     },
     "CompMap": {
       "$ref": "#/definitions/CompMapExternal"
@@ -4526,6 +4542,99 @@
             "type",
             "tableHeaders",
             "dataListId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CompLommebokExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/SummarizableComponentProps"
+        },
+        {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
+          "title": "CompLommebokExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "Lommebok"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "$ref": "#/definitions/TRBLabel"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true,
+                    "title": true,
+                    "description": true,
+                    "help": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "request": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RequestedDocument"
+              }
+            },
+            "issue": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/IssuableDocument"
+              }
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "readOnly": true,
+            "required": true,
+            "showValidations": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "labelSettings": true,
+            "type": true,
+            "textResourceBindings": true,
+            "request": true,
+            "issue": true
+          },
+          "required": [
+            "id",
+            "type"
           ],
           "additionalProperties": false
         }
@@ -9644,6 +9753,471 @@
         }
       ]
     },
+    "IssuableDocument": {
+      "title": "IssuableDocument",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "minid-pid"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "norsk-identitetsnummer"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "advokatbevilling"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "norsk-id-bevis"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "digital-kontaktinformasjon"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "norsk-foererkort"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "handicapbevis"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "aldersbevis"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "legeerklaeringbevis"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "inntektsbevis"
+            },
+            "urlDataType": {
+              "type": "string"
+            },
+            "urlField": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type",
+            "urlField"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "ISubformCellContent": {
       "title": "ISubformCellContent",
       "oneOf": [
@@ -11009,6 +11583,461 @@
               "additionalProperties": false
             }
           ]
+        }
+      ]
+    },
+    "RequestedDocument": {
+      "title": "RequestedDocument",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "minid-pid"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "norsk-identitetsnummer"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "advokatbevilling"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "norsk-id-bevis"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "digital-kontaktinformasjon"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "norsk-foererkort"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "handicapbevis"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "aldersbevis"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "legeerklaeringbevis"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "inntektsbevis"
+            },
+            "saveToDataType": {
+              "type": "string"
+            },
+            "alternativeUploadToDataType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "displayType": {
+                    "enum": [
+                      "string",
+                      "date",
+                      "image",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "field",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
         }
       ]
     },
