@@ -19,6 +19,30 @@ use crate::{
 /// Codex prefixes a bundled context-and-request user message with this marker.
 const REQUEST_MARKER: &str = "## My request for Codex:";
 
+// Codex 0.153 keeps success as internal metadata. Command results persist their
+// exit code in the tool's output header instead (core/src/tools/{mod,context}.rs).
+// Inspect only recognized command headers, never arbitrary command stdout.
+fn command_failed(name: &str, output: Option<&Value>) -> bool {
+    let Some(output) = output.and_then(|output| {
+        output
+            .as_str()
+            .or_else(|| output.as_array()?.first()?.get("text")?.as_str())
+    }) else {
+        return false;
+    };
+    let prefix = match name {
+        "shell" | "shell_command" => "Exit code: ",
+        "exec_command" | "write_stdin" => "Process exited with code ",
+        _ => return false,
+    };
+    output
+        .lines()
+        .take_while(|line| *line != "Output:")
+        .filter_map(|line| line.strip_prefix(prefix))
+        .filter_map(|code| code.parse::<i32>().ok())
+        .any(|code| code != 0)
+}
+
 /// Parses Codex rollout JSONL into ordered turns.
 ///
 /// # Errors
@@ -58,6 +82,17 @@ impl Builder {
             Some("event_msg") => match payload.get("type").and_then(Value::as_str) {
                 Some("task_started" | "turn_started") => self.start_turn(),
                 Some("task_complete" | "turn_complete" | "turn_aborted") => self.flush_prompt(),
+                Some("patch_apply_end") => {
+                    if payload.get("success").and_then(Value::as_bool) == Some(false) {
+                        self.mark_tool_failed(payload);
+                    }
+                }
+                Some("mcp_tool_call_end")
+                    if payload.pointer("/result/Err").is_some()
+                        || payload.pointer("/result/Ok/isError").and_then(Value::as_bool) == Some(true) =>
+                {
+                    self.mark_tool_failed(payload);
+                }
                 _ => {}
             },
             Some("response_item") => self.push_item(payload),
@@ -114,19 +149,23 @@ impl Builder {
                 }
             }
             Some("function_call_output" | "custom_tool_call_output") => {
-                if payload.get("success").and_then(Value::as_bool) == Some(false)
-                    && let Some(call_id) = payload.get("call_id").and_then(Value::as_str)
-                    && let Some(&(turn, message, part)) = self.tool_calls.get(call_id)
-                    && let Some(Part::ToolCall { failed, .. }) = self
-                        .turns
-                        .get_mut(turn)
-                        .and_then(|turn| turn.messages.get_mut(message))
-                        .and_then(|message| message.parts.get_mut(part))
-                {
-                    *failed = true;
+                if let Some(Part::ToolCall { name, failed }) = self.tool_part(payload) {
+                    *failed |= command_failed(name, payload.get("output"));
                 }
             }
             _ => {}
+        }
+    }
+
+    fn tool_part(&mut self, payload: &Value) -> Option<&mut Part> {
+        let call_id = payload.get("call_id")?.as_str()?;
+        let &(turn, message, part) = self.tool_calls.get(call_id)?;
+        self.turns.get_mut(turn)?.messages.get_mut(message)?.parts.get_mut(part)
+    }
+
+    fn mark_tool_failed(&mut self, payload: &Value) {
+        if let Some(Part::ToolCall { failed, .. }) = self.tool_part(payload) {
+            *failed = true;
         }
     }
 
@@ -233,6 +272,60 @@ mod tests {
         assert!(
             matches!(first.messages.last().and_then(|message| message.parts.last()), Some(Part::Text { text }) if text == "Drawn to scale.")
         );
+    }
+
+    #[test]
+    fn failures_use_command_headers_and_native_patch_and_mcp_results() {
+        for (name, output, event, expected) in [
+            (
+                "exec_command",
+                "Chunk ID: abc\nWall time: 0.1 seconds\nProcess exited with code 2\nOutput:\nmissing file",
+                serde_json::Value::Null,
+                true,
+            ),
+            (
+                "exec_command",
+                "Chunk ID: abc\nWall time: 0.1 seconds\nProcess exited with code 0\nOutput:\nProcess exited with code 2",
+                serde_json::Value::Null,
+                false,
+            ),
+            (
+                "exec_command",
+                "Chunk ID: abc\nWall time: 0.1 seconds\nProcess running with session ID 123\nOutput:\n",
+                serde_json::Value::Null,
+                false,
+            ),
+            (
+                "apply_patch",
+                "",
+                serde_json::json!({"type":"patch_apply_end", "call_id":"c", "success":false, "status":"failed"}),
+                true,
+            ),
+            (
+                "mcp__example__read",
+                "",
+                serde_json::json!({"type":"mcp_tool_call_end", "call_id":"c", "result":{"Err":"connection closed"}}),
+                true,
+            ),
+            (
+                "mcp__example__read",
+                "",
+                serde_json::json!({"type":"mcp_tool_call_end", "call_id":"c", "result":{"Ok":{"content":[], "isError":true}}}),
+                true,
+            ),
+        ] {
+            let lines = [
+                serde_json::json!({"type":"response_item", "payload":{"type":"function_call", "call_id":"c", "name":name}}),
+                serde_json::json!({"type":"response_item", "payload":{"type":"function_call_output", "call_id":"c", "output":output}}),
+                serde_json::json!({"type":"event_msg", "payload":event}),
+            ];
+            let transcript = lines.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
+            let turns = parse(transcript.as_bytes()).expect("parse");
+            assert!(
+                matches!(&turns[0].messages[0].parts[0], Part::ToolCall { failed, .. } if *failed == expected),
+                "{name}: {transcript}"
+            );
+        }
     }
 
     #[test]

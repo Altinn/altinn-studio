@@ -73,8 +73,7 @@ const payload = JSON.stringify(body);
 
 // Start and terminal reports unblock callers, so they retry within a strict budget.
 // The payload keeps the same event ID across retries, including a lost response.
-// Frequent per-tool events use one short best-effort attempt so hook latency
-// never dominates a turn.
+// Other activity uses one short best-effort attempt.
 const retryable = ["sessionStart", "turnCompleted", "waitingForInput"].includes(event);
 const attempts = retryable ? 3 : 1;
 const budget = retryable ? 1500 : 300;

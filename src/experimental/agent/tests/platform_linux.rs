@@ -245,13 +245,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         "node /home/agent/.codex/hooks/activity-hook.mjs"
     );
     assert!(codex_hooks["hooks"]["SessionStart"][0].get("matcher").is_none());
-    for event in [
-        "UserPromptSubmit",
-        "PreToolUse",
-        "PostToolUse",
-        "Stop",
-        "PermissionRequest",
-    ] {
+    for event in ["UserPromptSubmit", "Interrupt", "Stop", "PermissionRequest"] {
         assert_eq!(
             codex_hooks["hooks"][event][0]["hooks"][0]["command"], "node /home/agent/.codex/hooks/activity-hook.mjs",
             "Codex registers {event}"

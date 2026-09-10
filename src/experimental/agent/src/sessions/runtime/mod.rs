@@ -24,11 +24,11 @@ use super::{AttachTarget, LaunchToken, Session, Turn};
 pub enum Observation {
     /// The Session's process is not present in the runtime.
     Missing,
-    /// The Session is present, with attachment and terminal-inactivity age.
+    /// The Session is present, with attachment and activity age.
     Alive {
         /// Whether a client terminal is attached.
         attached: bool,
-        /// Seconds since the last terminal activity.
+        /// Seconds since the last terminal activity or transcript write.
         idle_seconds: u64,
     },
 }
@@ -76,13 +76,11 @@ pub trait SessionRuntime {
         sandbox: &'a SandboxHandle,
     ) -> ::sandbox::LocalFuture<'a, Result<bool, Error>>;
 
-    /// Delivers `prompt` to the running harness as operator input, returning
-    /// once the harness has taken it. The runtime owns the question of when the
-    /// harness can take input; callers only see the delivery. Do not start delivery
-    /// after `deadline`. If dispatch has begun, cancel it at the deadline and
-    /// finish observing its termination before returning, so another delivery
-    /// cannot interleave with uncertain external work. The service bounds the
-    /// caller's wait independently while retaining the delivery guard.
+    /// Submits `prompt` to the running harness as operator input.
+    /// Check `deadline` before dispatching delivery. Once dispatched, finish
+    /// submission even if the caller times out, so the next prompt cannot
+    /// inherit a draft. A timeout therefore leaves delivery uncertain.
+    /// The service bounds the caller's wait while retaining the delivery guard.
     fn prompt<'a>(
         &'a self,
         session: &'a Session,

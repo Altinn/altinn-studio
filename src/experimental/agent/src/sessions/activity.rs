@@ -27,7 +27,7 @@ pub struct Activity {
     /// Current coarse work phase.
     #[serde(default)]
     pub phase: Phase,
-    /// Completed turns observed for the running harness launch.
+    /// Reported turn endings (including interruption) observed for the running harness launch.
     #[serde(default)]
     pub turns: u64,
     /// Time of the most recent activity event, when one has been observed.
@@ -47,11 +47,7 @@ pub enum ActivityEvent {
     SessionStart,
     /// The operator submitted a prompt; a turn began.
     TurnStarted,
-    /// A tool call started.
-    ToolStarted,
-    /// A tool call finished.
-    ToolFinished,
-    /// The harness completed a turn and is idle awaiting input.
+    /// The harness ended a turn and is awaiting input; this does not imply success.
     TurnCompleted,
     /// The harness is blocked awaiting an operator decision.
     WaitingForInput,
@@ -62,10 +58,7 @@ impl Activity {
     #[must_use]
     pub const fn folded(mut self, event: ActivityEvent, at: OffsetDateTime) -> Self {
         match event {
-            ActivityEvent::SessionStart
-            | ActivityEvent::TurnStarted
-            | ActivityEvent::ToolStarted
-            | ActivityEvent::ToolFinished => {
+            ActivityEvent::SessionStart | ActivityEvent::TurnStarted => {
                 self.phase = Phase::Working;
             }
             ActivityEvent::TurnCompleted => {
@@ -94,10 +87,7 @@ mod tests {
         let cases: &[(ActivityEvent, Phase, u64)] = &[
             (ActivityEvent::SessionStart, Phase::Working, 0),
             (ActivityEvent::TurnStarted, Phase::Working, 0),
-            (ActivityEvent::ToolStarted, Phase::Working, 0),
-            (ActivityEvent::ToolFinished, Phase::Working, 0),
             (ActivityEvent::WaitingForInput, Phase::WaitingForInput, 0),
-            (ActivityEvent::ToolFinished, Phase::Working, 0),
             (ActivityEvent::TurnCompleted, Phase::WaitingForInput, 1),
             (ActivityEvent::TurnStarted, Phase::Working, 1),
             (ActivityEvent::TurnCompleted, Phase::WaitingForInput, 2),

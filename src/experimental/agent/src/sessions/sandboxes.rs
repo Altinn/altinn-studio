@@ -49,15 +49,4 @@ impl AgentSandboxes {
     pub async fn open(&self, record: &AgentRecord) -> Result<SandboxHandle, Error> {
         self.sandboxes.open(record).await
     }
-
-    /// Gets the active Agent by name and opens its Sandbox.
-    ///
-    /// # Errors
-    ///
-    /// See [`Self::agent_by_name`] and [`Self::open`].
-    pub async fn open_by_name(&self, name: &str) -> Result<(AgentRecord, SandboxHandle), Error> {
-        let record = self.agent_by_name(name).await?;
-        let sandbox = self.open(&record).await?;
-        Ok((record, sandbox))
-    }
 }

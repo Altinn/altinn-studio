@@ -21,12 +21,16 @@ installed harness versions; testing an existing Sandbox does not prove the rebui
 | Prompt again after completion, including identical text | Waits for one more completed turn, ignoring previous completions. |
 | Prompt during an active tool call, including identical text | Input appears in `turns`; waiting follows work observed during settling, but does not demand an extra turn when input is absorbed into the current one. |
 | Tool success, tool failure, permission request and permission resolution | STATE reflects activity and blocking; tool completion alone does not complete a turn. Exercise permissions with a configuration that permits prompting. |
-| Short timeout during startup, delivery and turn-completion waiting | Caller returns within its budget. Expired queued input is not delivered later; uncertain delivery is reported without automatic resubmission. |
+| Supported interruption, then another prompt | The reported turn ending releases the wait; the next prompt remains usable. |
+| Model error without a completion report | The wait times out; inspect the Session and recover manually. |
+| Short timeout during startup, delivery and turn-completion waiting | Caller returns within its budget. Input that expires while queued in the service is not dispatched; already-dispatched delivery can finish after timeout and is reported as uncertain without automatic resubmission. The next prompt contains no leftover draft. |
 | Idle/resume, before and after the first turn | An untouched Session remains usable; an established conversation resumes with its history. |
+| Transcript writes while the terminal is quiet | Recent transcript writes keep an unattached Session alive; missing or old transcripts do not prevent idle-stop. |
 | Authentication and configuration | Mediated login/inference works without unexpected onboarding or authentication dialogs; configured instructions and skills are available. |
 
 Inspect `get sessions` (including `-o json`) and `turns` alongside the terminal. Check user messages, assistant answers,
 tool results and turn boundaries, including after compaction. A successful model response alone is insufficient.
 
-Run the normal formatting, lint and test checks. Record tested versions, commands and observed results in the PR;
+Run the normal formatting, lint and test checks, plus `cargo test -p agent --lib -- --ignored` on a host with Node.js
+and tmux for the terminal integration check. Record tested versions, commands and observed results in the PR;
 update adapter fixtures when native output changes. Never publish credentials or authentication-bearing process arguments.

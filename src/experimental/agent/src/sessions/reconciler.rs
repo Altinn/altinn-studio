@@ -17,9 +17,8 @@ const HEALTHY_AFTER_SECONDS: i64 = 60;
 /// Longest wait between relaunches of a repeatedly exiting harness.
 const MAX_BACKOFF_SECONDS: i64 = 600;
 
-/// Stop an unattached harness after this long without terminal or reported
-/// activity. A harness can work for long stretches without drawing to the
-/// terminal, so reported activity counts too (see `effective_idle_seconds`).
+/// Stop an unattached harness after this long without terminal output,
+/// transcript writes or reported activity.
 const IDLE_AFTER_SECONDS: u64 = 30 * 60;
 
 /// Converges persistent Sessions onto the tmux runtime in their Agent's Sandbox.
@@ -212,15 +211,12 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
     }
 }
 
-/// Seconds a Session has been inactive, taking the smaller of terminal
-/// inactivity and time since the last reported activity event.
-///
-/// A harness working without terminal output keeps its activity fresh through
-/// its reports, so a long silent build no longer looks idle.
-fn effective_idle_seconds(activity: &Activity, terminal_idle_seconds: u64, now: i64) -> u64 {
-    activity.last_event_at.map_or(terminal_idle_seconds, |at| {
+/// Seconds a Session has been inactive, taking the smaller of runtime
+/// inactivity (terminal or transcript) and time since the last reported event.
+fn effective_idle_seconds(activity: &Activity, runtime_idle_seconds: u64, now: i64) -> u64 {
+    activity.last_event_at.map_or(runtime_idle_seconds, |at| {
         let since_event = u64::try_from((now - at.unix_timestamp()).max(0)).unwrap_or(u64::MAX);
-        terminal_idle_seconds.min(since_event)
+        runtime_idle_seconds.min(since_event)
     })
 }
 
@@ -256,7 +252,7 @@ mod tests {
         assert_eq!(
             effective_idle_seconds(&reported, 1_900, 10_000),
             60,
-            "a silent build is not idle"
+            "a recent report counts as activity"
         );
         assert_eq!(
             effective_idle_seconds(&reported, 5, 10_000),

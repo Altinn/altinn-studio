@@ -550,22 +550,16 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     // The harness works, then reports the turn complete through the hook; the
     // Platform API folds it durably and publishes it to observers.
     let token: agent::sessions::LaunchToken = TOKEN.parse().expect("token");
-    for event in [
-        agent::sessions::ActivityEvent::TurnStarted,
-        agent::sessions::ActivityEvent::ToolStarted,
-        agent::sessions::ActivityEvent::ToolFinished,
-    ] {
-        observed
-            .apply_session_activity_for_launch(
-                session.id,
-                &token,
-                uuid::Uuid::new_v4(),
-                event,
-                time::OffsetDateTime::now_utc(),
-            )
-            .await
-            .expect("fold");
-    }
+    observed
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            agent::sessions::ActivityEvent::TurnStarted,
+            time::OffsetDateTime::now_utc(),
+        )
+        .await
+        .expect("fold");
     tokio::time::sleep(Duration::from_millis(50)).await;
     assert!(!send.is_finished(), "working is not done");
     runtime
@@ -912,14 +906,13 @@ async fn prompt_waits_for_one_more_completion_without_reading_the_transcript() {
     let harness = ServiceHarness::start(&directory, "11111111-1111-4111-8111-111111111111").await;
     harness.runtime.fail_transcript.set(true);
     // A previous completion does not satisfy this invocation. Neither does a
-    // permission wait or tool completion in the current turn.
+    // permission wait in the current turn.
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     let mut waiting = harness.prompt("continue");
     harness.await_delivery(&mut waiting).await;
     for event in [
         agent::sessions::ActivityEvent::TurnStarted,
         agent::sessions::ActivityEvent::WaitingForInput,
-        agent::sessions::ActivityEvent::ToolFinished,
     ] {
         harness.report(event).await;
     }
@@ -1764,6 +1757,51 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
     rerun.await.expect("rerun task").expect("rerun reconciliation");
     assert_eq!(slow_calls.get(), 2);
     controller_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+    let mut waiting = harness.prompt("continue");
+    harness.await_delivery(&mut waiting).await;
+    // Ensure the waiter will reread after its completion-settling timer.
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    harness.database.mark_deleting("worker").await.expect("delete");
+    harness
+        .database
+        .finalize_deletion(harness.session.agent_id, 1)
+        .await
+        .expect("finalize");
+    harness
+        .database
+        .put(
+            ready_record(
+                "worker",
+                "f50fbec8-03a9-43ea-b65d-c15a86e9eb65".parse().expect("Agent ID"),
+            ),
+            0,
+        )
+        .await
+        .expect("replacement");
+    let replacement = harness
+        .database
+        .ensure_session("worker", &harness.session.name, agent::Harness::ClaudeCode, None)
+        .await
+        .expect("Session");
+    harness
+        .observed
+        .update_session_lifecycle(replacement.id, agent::sessions::Lifecycle::running(), 0)
+        .await
+        .expect("running");
+    let error = tokio::time::timeout(Duration::from_secs(1), waiting)
+        .await
+        .expect("original Session removal ends wait")
+        .expect("task")
+        .expect_err("original Session disappeared");
+    assert!(matches!(error, Error::NotFound));
+    harness.finish();
 }
 
 #[tokio::test(flavor = "local")]

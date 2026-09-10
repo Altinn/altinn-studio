@@ -3,14 +3,12 @@
 use crate::{harness::hook_script::HookScript, sessions::ActivityEvent};
 
 /// Every Codex hook event the platform folds. Codex 0.153 has no
-/// `Notification` or `PostToolUseFailure`; `Stop` covers the transition to
-/// waiting for input.
+/// `Notification`; Stop and Interrupt report a turn ending, not task success.
 const EVENTS: &[(&str, ActivityEvent)] = &[
     ("SessionStart", ActivityEvent::SessionStart),
     ("UserPromptSubmit", ActivityEvent::TurnStarted),
-    ("PreToolUse", ActivityEvent::ToolStarted),
-    ("PostToolUse", ActivityEvent::ToolFinished),
     ("Stop", ActivityEvent::TurnCompleted),
+    ("Interrupt", ActivityEvent::TurnCompleted),
     ("PermissionRequest", ActivityEvent::WaitingForInput),
 ];
 

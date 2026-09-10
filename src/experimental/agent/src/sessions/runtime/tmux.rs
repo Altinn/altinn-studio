@@ -40,26 +40,26 @@ fn pane_target(session: &Session) -> String {
     format!("={}:", session_name(session))
 }
 
-/// Observes attachment and activity for the Session's tmux runtime.
+// Both timestamps come from the Sandbox. A missing transcript is normal before
+// the harness creates its conversation; its contents are not needed here.
+const OBSERVE_SCRIPT: &str = include_str!("observe.sh");
+
+/// Observes attachment and the freshest terminal or transcript activity.
 async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observation, Error> {
-    const SCRIPT: &str = "values=$(/usr/bin/tmux list-sessions -F '#{session_attached} #{session_activity}' -f \"#{==:#{session_name},$1}\")\n\
-        status=$?\n\
-        case $status in 0) ;; 1) exit 10 ;; *) exit 11 ;; esac\n\
-        set -- $values\n\
-        [ \"$#\" -eq 0 ] && exit 10\n\
-        [ \"$#\" -eq 2 ] || exit 11\n\
-        now=$(/usr/bin/date +%s) || exit 11\n\
-        age=$((now - $2))\n\
-        [ \"$age\" -ge 0 ] || age=0\n\
-        printf '%s %s\\n' \"$1\" \"$age\"";
     let inspected = sandbox
         .run_execution(ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
             [
                 "-c".into(),
-                SCRIPT.into(),
+                OBSERVE_SCRIPT.into(),
                 "agent-session-observe".into(),
                 session_name(session),
+                session
+                    .status
+                    .reported
+                    .harness_transcript_path
+                    .clone()
+                    .unwrap_or_default(),
             ],
         ))
         .await?;
@@ -258,7 +258,7 @@ impl super::SessionRuntime for Tmux {
             let output = sandbox.run_execution(ExecutionSpec::command(
                 SandboxPath::new("/bin/sh"),
                 ["-c".into(),
-                 "/usr/bin/tmux display-message -p -t \"$1\" '#{cursor_flag} #{cursor_y}' && /usr/bin/tmux capture-pane -p -t \"$1\"".into(),
+                 "/usr/bin/tmux display-message -p -t \"$1\" '#{cursor_flag} #{cursor_y} #{pane_title}' && /usr/bin/tmux capture-pane -p -t \"$1\"".into(),
                  "agent-input-ready".into(), pane_target(session)],
             )).await?;
             // Provisioning publishes the launch before its pane necessarily exists.
@@ -271,8 +271,8 @@ impl super::SessionRuntime for Tmux {
             }
             let screen = std::str::from_utf8(&output.stdout)
                 .map_err(|error| Error::Session(format!("invalid terminal input state: {error}")))?;
-            Ok(ready_cursor_line(screen)
-                .is_some_and(|line| harness::input_ready_without_report(session.harness, line, screen)))
+            Ok(ready_input(screen)
+                .is_some_and(|(line, title)| harness::input_ready_without_report(session.harness, line, title)))
         })
     }
 
@@ -305,17 +305,18 @@ impl super::SessionRuntime for Tmux {
 
 /// Selects the current input cursor's line from a terminal snapshot. Readiness
 /// must not be inferred from a prompt retained elsewhere in terminal history.
-fn ready_cursor_line(screen: &str) -> Option<&str> {
+fn ready_input(screen: &str) -> Option<(&str, &str)> {
     let mut lines = screen.lines();
     let mut cursor = lines.next()?.split_whitespace();
     if cursor.next()? != "1" {
         return None;
     }
     let row = cursor.next()?.parse::<usize>().ok()?;
+    let title = cursor.next()?;
     if cursor.next().is_some() {
         return None;
     }
-    lines.nth(row)
+    lines.nth(row).map(|line| (line, title))
 }
 
 /// Delivers operator input to a running tmux Session.
@@ -357,37 +358,21 @@ async fn deliver(
     if tokio::time::Instant::now() >= deadline {
         return Err(Error::Session("timed out before prompt delivery".into()));
     }
-    let target = pane_target(session);
-    let script = format!(
-        "/usr/bin/tmux load-buffer -b {buffer} {file} \
-         && /usr/bin/tmux paste-buffer -d -p -b {buffer} -t {target} \
-         && /bin/sleep 0.2 \
-         && /usr/bin/tmux send-keys -t {target} Enter"
-    );
-    let request = ::sandbox::execution::StartExecutionRequest::new(ExecutionSpec::command(
-        SandboxPath::new("/bin/sh"),
-        ["-c".into(), script],
-    ));
-    let id = request.id().clone();
-    let execution = async { sandbox.start_execution(request).await?.collect().await };
-    tokio::pin!(execution);
-    let delivered = if let Ok(result) = tokio::time::timeout_at(deadline, execution.as_mut()).await {
-        result?
-    } else {
-        // The service has already bounded the caller's wait. Keep its delivery
-        // guard alive until the external execution ends, even if kill fails.
-        tokio::select! {
-            _ = execution.as_mut() => {},
-            _ = sandbox.kill_execution(&id) => { let _ = execution.await; },
-        }
-        return Err(Error::Session(
-            "timed out during prompt delivery; inspect turns before retrying".into(),
-        ));
-    };
-    // Best-effort cleanup of the transient input file; failure is not fatal.
-    let _ = sandbox
-        .run_execution(ExecutionSpec::command(SandboxPath::new("/bin/rm"), ["-f".into(), file]))
-        .await;
+    // Once dispatched, finish submission even after the caller times out. The
+    // owned delivery task retains the lock so the next prompt cannot interleave.
+    let delivered = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/bin/sh"),
+            [
+                "-c".into(),
+                include_str!("deliver.sh").into(),
+                "agent-session-deliver".into(),
+                file,
+                buffer,
+                pane_target(session),
+            ],
+        ))
+        .await?;
     if delivered.status.success() {
         Ok(())
     } else {
@@ -456,14 +441,31 @@ mod tests {
     use super::{Observation, Session, input_ready_in};
 
     #[test]
+    #[ignore = "requires Node.js and tmux; exercises input in an isolated terminal server"]
+    fn delivery_and_transcript_freshness_in_a_real_terminal() {
+        let output = std::process::Command::new("node")
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_delivery.mjs"))
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/deliver.sh"))
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/observe.sh"))
+            .output()
+            .expect("Node.js");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
     fn readiness_requires_a_visible_cursor_on_the_current_line() {
         assert_eq!(
-            super::ready_cursor_line("1 1\nold prompt\ncurrent input\n"),
-            Some("current input")
+            super::ready_input("1 1 title\nold prompt\ncurrent input\n"),
+            Some(("current input", "title"))
         );
-        assert_eq!(super::ready_cursor_line("0 1\nold prompt\ncurrent input\n"), None);
-        assert_eq!(super::ready_cursor_line("1 8\nold prompt\n"), None);
-        assert_eq!(super::ready_cursor_line("invalid\nold prompt\n"), None);
+        assert_eq!(super::ready_input("0 1 title\nold prompt\ncurrent input\n"), None);
+        assert_eq!(super::ready_input("1 8 title\nold prompt\n"), None);
+        assert_eq!(super::ready_input("invalid\nold prompt\n"), None);
     }
 
     #[test]

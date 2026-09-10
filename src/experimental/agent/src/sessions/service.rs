@@ -178,13 +178,12 @@ impl Service {
         delivery_started: Rc<Cell<bool>>,
     ) -> Result<(), Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
+        let id = session.id;
         let sandbox = Rc::new(sandbox);
         let delivering = Delivering::acquire(&self.deliveries, session.id).await;
         // Subscribe before reading so no change can slip between them.
         let mut changes = self.observers.subscribe(session.id);
-        let session = self
-            .ready_to_prompt(agent, name, &sandbox, &mut changes, deadline)
-            .await?;
+        let session = self.ready_to_prompt(id, name, &sandbox, &mut changes, deadline).await?;
         let mut completed_before = session.status.reported.activity.turns;
         if tokio::time::Instant::now() >= deadline {
             return Err(Error::Session("timed out before prompt delivery".into()));
@@ -193,8 +192,8 @@ impl Service {
         let delivery_sandbox = sandbox.clone();
         let input = prompt.to_owned();
         delivery_started.set(true);
-        // A caller deadline must not release serialization while external input
-        // delivery is still being cancelled. The runtime owns that cleanup.
+        // A caller deadline must not release serialization while the runtime
+        // is still submitting staged input or recovering a partial delivery.
         tokio::task::spawn_local(async move {
             let _delivering = delivering;
             runtime.prompt(&session, &delivery_sandbox, &input, deadline).await
@@ -207,7 +206,7 @@ impl Service {
 
         let mut settling = None;
         loop {
-            let current = self.store.get_agent_session(agent, name).await?;
+            let current = self.store.get_session(id).await?;
             match current.status.state {
                 State::Failed => {
                     return Err(Error::Session(format!(
@@ -255,7 +254,7 @@ impl Service {
     /// cannot depend on that conversation's start report.
     async fn ready_to_prompt(
         &self,
-        agent: &str,
+        id: SessionId,
         name: &SessionName,
         sandbox: &SandboxHandle,
         changes: &mut tokio::sync::watch::Receiver<u64>,
@@ -264,7 +263,7 @@ impl Service {
         let ready_deadline = (tokio::time::Instant::now() + INPUT_READY_TIMEOUT).min(deadline);
         tokio::time::timeout_at(ready_deadline, async {
             loop {
-                let session = self.store.get_agent_session(agent, name).await?;
+                let session = self.store.get_session(id).await?;
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
                     State::Idle | State::Failed => {
@@ -295,7 +294,9 @@ impl Service {
     /// conversation cannot be read.
     pub async fn turns(&self, agent: &str, name: &SessionName, last: Option<usize>) -> Result<Vec<Turn>, Error> {
         let session = self.store.get_agent_session(agent, name).await?;
-        let (_, sandbox) = self.sandboxes.open_by_name(agent).await?;
+        let owner = self.sandboxes.agent(session.agent_id).await?;
+        let sandbox = self.sandboxes.open(&owner).await?;
+        let session = self.store.get_session(session.id).await?;
         let mut turns = self.runtime.turns(&session, &sandbox).await?;
         if let Some(last) = last
             && turns.len() > last
@@ -310,7 +311,8 @@ impl Service {
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(Error::Invalid(format!("Session {name:?} is not running")));
         }
-        let (_, sandbox) = self.sandboxes.open_by_name(agent).await?;
+        let owner = self.sandboxes.agent(session.agent_id).await?;
+        let sandbox = self.sandboxes.open(&owner).await?;
         Ok((session, sandbox))
     }
 
@@ -354,6 +356,9 @@ impl Service {
             }
             Err(error) => return Err(error),
         };
+        if session.agent_id != owner.id {
+            return Err(Error::Conflict);
+        }
         self.store.activate_session(session.id).await?;
         Ok((owner, session))
     }

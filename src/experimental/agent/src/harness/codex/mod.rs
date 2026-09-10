@@ -165,19 +165,21 @@ pub(super) async fn verify_linux(
     Ok(())
 }
 
-/// Codex defers `SessionStart` until the first turn. Its provisional startup
-/// composer already shows a visible input cursor and accepts pastes, but drops
-/// submission keys. Wait for the session header to replace `model: loading`
-/// with the configured model as well as the visible composer cursor.
-/// Keep these terminal details in the adapter for the pinned harness version.
-pub(super) fn input_ready_without_report(cursor_line: &str, screen: &str) -> bool {
+/// Codex's provisional composer accepts pastes but drops submission keys. The
+/// launch-owned session-ID title appears only after `SessionConfigured`, and
+/// survives the header scrolling offscreen during resume. The pinned TUI
+/// truncates UUIDs to 29 ASCII characters plus three dots.
+pub(super) fn input_ready_without_report(cursor_line: &str, title: &str) -> bool {
     cursor_line.trim_start().starts_with("› ")
-        && screen.lines().any(|line| {
-            line.trim_start()
-                .strip_prefix('│')
-                .and_then(|line| line.trim_start().strip_prefix("model:"))
-                .and_then(|model| model.split_whitespace().next())
-                .is_some_and(|model| model != "loading" && model != "│")
+        && title.strip_suffix("...").is_some_and(|prefix| {
+            prefix.len() == 29
+                && prefix.bytes().enumerate().all(|(index, byte)| {
+                    if matches!(index, 8 | 13 | 18 | 23) {
+                        byte == b'-'
+                    } else {
+                        byte.is_ascii_hexdigit()
+                    }
+                })
         })
 }
 
@@ -187,7 +189,8 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
     let configuration = format!(
-        "-c 'cli_auth_credentials_store=\"file\"' -c 'projects.{}.trust_level=\"trusted\"'",
+        "-c 'cli_auth_credentials_store=\"file\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+         -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );
     let base = format!("codex {flags} {configuration}");
@@ -225,29 +228,15 @@ mod tests {
 
     #[test]
     fn input_readiness_waits_for_the_initialized_composer() {
-        let loading = "╭─────────────────────────────────────────╮\n\
-                       │ >_ OpenAI Codex (v0.153.4)              │\n\
-                       │ model:       loading   /model to change │\n\
-                       │ directory:   ~/code                     │\n\
-                       ╰─────────────────────────────────────────╯\n\
-                       › Ask Codex to do anything\n";
-        assert!(!super::input_ready_without_report(
-            "› Ask Codex to do anything",
-            loading
-        ));
-        let initialized = loading.replace("loading", "gpt-6-astra");
-        assert!(super::input_ready_without_report(
-            "› Ask Codex to do anything",
-            &initialized
-        ));
-        assert!(super::input_ready_without_report(
-            "  › Find a bug in this code",
-            &initialized
-        ));
-        for cursor in ["Starting Codex...", "Select a model", ""] {
-            assert!(!super::input_ready_without_report(cursor, &initialized));
+        let title = "01234567-1234-1234-1234-12345...";
+        assert!(super::input_ready_without_report("› Ask Codex to do anything", title));
+        assert!(super::input_ready_without_report("  › Find a bug", title));
+        for title in ["", "agent-dev", "model: loading", "01234567-1234-1234-1234-1234g..."] {
+            assert!(!super::input_ready_without_report("› Ask Codex to do anything", title));
         }
-        assert!(!super::input_ready_without_report("› Ask Codex to do anything", ""));
+        for cursor in ["Starting Codex...", "Select a model", ""] {
+            assert!(!super::input_ready_without_report(cursor, title));
+        }
     }
 
     #[test]

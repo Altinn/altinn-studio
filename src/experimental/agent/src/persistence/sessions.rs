@@ -274,8 +274,7 @@ pub(super) fn record_launch(
     let transaction = connection.transaction().map_err(database_error)?;
     let (prompt, activation, pending): (Option<String>, i64, Option<i64>) = transaction
         .query_row(
-            "SELECT initial_prompt, activation_generation,
-                    (SELECT activation_generation FROM session_prompt_claims WHERE session_id = sessions.id)
+            "SELECT initial_prompt, activation_generation, initial_prompt_claim
              FROM sessions WHERE id = ?1",
             [id.to_string()],
             |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
@@ -291,22 +290,17 @@ pub(super) fn record_launch(
     transaction
         .execute(
             "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4, \
-             activity_json = '{}', initial_prompt = NULL WHERE id = ?5",
-            params![token.expose(), sandbox, launched_at, attempts, id.to_string()],
+             activity_json = '{}', initial_prompt = NULL, initial_prompt_claim = ?5 WHERE id = ?6",
+            params![
+                token.expose(),
+                sandbox,
+                launched_at,
+                attempts,
+                prompt.as_ref().map(|_| activation),
+                id.to_string()
+            ],
         )
         .map_err(database_error)?;
-    transaction
-        .execute(
-            "DELETE FROM session_prompt_claims WHERE session_id = ?1",
-            [id.to_string()],
-        )
-        .map_err(database_error)?;
-    if prompt.is_some() {
-        transaction.execute(
-            "INSERT INTO session_prompt_claims (session_id, launch_token, activation_generation) VALUES (?1, ?2, ?3)",
-            params![id.to_string(), token.expose(), activation],
-        ).map_err(database_error)?;
-    }
     // Reports from previous launches can no longer authenticate, so their IDs can be discarded.
     transaction
         .execute(
@@ -321,7 +315,7 @@ pub(super) fn record_launch(
 pub(super) fn confirm_launch(connection: &Connection, id: SessionId, token: &LaunchToken) -> Result<(), Error> {
     connection
         .execute(
-            "DELETE FROM session_prompt_claims WHERE session_id = ?1 AND launch_token = ?2",
+            "UPDATE sessions SET initial_prompt_claim = NULL WHERE id = ?1 AND launch_token = ?2",
             params![id.to_string(), token.expose()],
         )
         .map_err(database_error)?;
@@ -331,8 +325,7 @@ pub(super) fn confirm_launch(connection: &Connection, id: SessionId, token: &Lau
 pub(super) fn launch_state(connection: &Connection, id: SessionId) -> Result<Option<LaunchState>, Error> {
     connection
         .query_row(
-            "SELECT launch_sandbox, launched_at, launch_attempts,
-             (SELECT activation_generation FROM session_prompt_claims WHERE session_id = sessions.id), launch_token
+            "SELECT launch_sandbox, launched_at, launch_attempts, initial_prompt_claim, launch_token
              FROM sessions WHERE id = ?1",
             [id.to_string()],
             |row| {

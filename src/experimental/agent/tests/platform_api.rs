@@ -225,7 +225,7 @@ async fn session_reports_require_the_current_launch_token() {
     let event = |name: &str| {
         let suffix = match name {
             "turnStarted" => 2,
-            "toolStarted" => 3,
+            "waitingForInput" => 3,
             "turnCompleted" => 4,
             _ => 5,
         };
@@ -235,7 +235,7 @@ async fn session_reports_require_the_current_launch_token() {
         )
     };
     assert_eq!(request(port, TOKEN_1, &event("turnStarted")).await, 204);
-    assert_eq!(request(port, TOKEN_1, &event("toolStarted")).await, 204);
+    assert_eq!(request(port, TOKEN_1, &event("waitingForInput")).await, 204);
     assert_eq!(request(port, TOKEN_1, &event("turnCompleted")).await, 204);
     // A successful completion whose HTTP response was lost must not count twice.
     assert_eq!(request(port, TOKEN_1, &event("turnCompleted")).await, 204);

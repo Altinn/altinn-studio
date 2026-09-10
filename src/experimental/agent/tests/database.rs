@@ -349,7 +349,7 @@ async fn initial_prompt_claim_and_launch_record_commit_together() {
         attempts: 1,
     };
     let inspect = rusqlite::Connection::open(&path).expect("inspect");
-    inspect.execute_batch("CREATE TRIGGER reject_claim BEFORE INSERT ON session_prompt_claims BEGIN SELECT RAISE(ABORT, 'injected claim failure'); END;").expect("inject failure");
+    inspect.execute_batch("CREATE TRIGGER reject_claim AFTER UPDATE OF initial_prompt_claim ON sessions WHEN NEW.initial_prompt_claim IS NOT NULL BEGIN SELECT RAISE(ABORT, 'injected claim failure'); END;").expect("inject failure");
     database
         .record_session_launch(session.id, launch.clone())
         .await

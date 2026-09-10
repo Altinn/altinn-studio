@@ -170,7 +170,12 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
     };
     ProcessLaunch {
         command,
-        environment: vec![("CLAUDE_CONFIG_DIR".into(), config)],
+        // Launch-only override keeps the tmux session non-interactive without
+        // depending on image ENV propagating into it.
+        environment: vec![
+            ("CLAUDE_CONFIG_DIR".into(), config),
+            ("DISABLE_AUTOUPDATER".into(), "1".into()),
+        ],
     }
 }
 
@@ -185,6 +190,7 @@ mod tests {
         assert!(launch.command.contains("160cdb4b-5997-464c-9d22-602786eb45d4.jsonl"));
         assert!(launch.command.contains("--resume 160cdb4b-5997-464c-9d22-602786eb45d4"));
         assert!(launch.command.contains("else exec claude"));
+        assert!(launch.environment.contains(&("DISABLE_AUTOUPDATER".into(), "1".into())));
     }
 
     #[test]

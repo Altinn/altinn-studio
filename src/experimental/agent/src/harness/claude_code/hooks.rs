@@ -8,10 +8,8 @@ use crate::{harness::hook_script::HookScript, sessions::ActivityEvent};
 const EVENTS: &[(&str, ActivityEvent)] = &[
     ("SessionStart", ActivityEvent::SessionStart),
     ("UserPromptSubmit", ActivityEvent::TurnStarted),
-    ("PreToolUse", ActivityEvent::ToolStarted),
-    ("PostToolUse", ActivityEvent::ToolFinished),
-    ("PostToolUseFailure", ActivityEvent::ToolFinished),
     ("Stop", ActivityEvent::TurnCompleted),
+    ("StopFailure", ActivityEvent::TurnCompleted),
     ("PermissionRequest", ActivityEvent::WaitingForInput),
     ("Notification", ActivityEvent::WaitingForInput),
 ];

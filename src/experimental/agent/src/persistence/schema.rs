@@ -34,6 +34,7 @@ const SQL: &str = "
         activation_generation INTEGER NOT NULL DEFAULT 0,
         lifecycle_json TEXT NOT NULL DEFAULT '{}',
         initial_prompt TEXT,
+        initial_prompt_claim INTEGER,
         harness_native_id TEXT,
         harness_transcript_path TEXT,
         activity_json TEXT NOT NULL DEFAULT '{}',
@@ -48,11 +49,6 @@ const SQL: &str = "
         launch_token TEXT NOT NULL,
         event_id TEXT NOT NULL,
         PRIMARY KEY (session_id, launch_token, event_id)
-    );
-    CREATE TABLE IF NOT EXISTS session_prompt_claims (
-        session_id TEXT PRIMARY KEY NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-        launch_token TEXT NOT NULL,
-        activation_generation INTEGER NOT NULL
     );
     PRAGMA user_version = 1;
 ";
