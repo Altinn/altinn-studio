@@ -34,7 +34,7 @@ def _is_prompt(path: Path) -> bool:
 
 
 def _local_prompt_names() -> list[str]:
-    return sorted(path.stem for path in PROMPTS_DIR.glob("*.md") if _is_prompt(path))
+    return sorted(path.stem for path in PROMPTS_DIR.rglob("*.md") if _is_prompt(path))
 
 
 def _every_local_name() -> set[str]:
