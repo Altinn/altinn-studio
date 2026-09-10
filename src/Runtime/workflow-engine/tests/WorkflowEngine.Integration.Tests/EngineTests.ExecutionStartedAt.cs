@@ -32,11 +32,11 @@ public partial class EngineTests
         Assert.Equal(2, workflow.Steps.Count);
         foreach (var step in workflow.Steps)
         {
-            // A step's attempt begins after the worker stamped the workflow and before the workflow's
-            // final write-back. (The step's own updatedAt is on the wire but not on the typed client —
-            // StepStatusResponse.UpdatedAt has an internal setter — so the workflow's bounds it.)
+            // A step's attempt begins after the worker stamped the workflow and before the step's own
+            // write-back — the two ends of the per-step duration recipe, both read through the typed client.
             Assert.NotNull(step.ExecutionStartedAt);
-            Assert.InRange(step.ExecutionStartedAt.Value, workflow.ExecutionStartedAt.Value, workflow.UpdatedAt.Value);
+            Assert.NotNull(step.UpdatedAt);
+            Assert.InRange(step.ExecutionStartedAt.Value, workflow.ExecutionStartedAt.Value, step.UpdatedAt.Value);
         }
 
         // Steps run sequentially: the second cannot have started before the first.
