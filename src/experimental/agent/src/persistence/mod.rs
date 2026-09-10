@@ -105,13 +105,17 @@ impl crate::sessions::SessionReports for Database {
         &'a self,
         id: crate::sessions::SessionId,
         token: &'a crate::sessions::LaunchToken,
+        event_id: uuid::Uuid,
         native: &'a str,
         transcript_path: Option<&'a str>,
-    ) -> sandbox::LocalFuture<'a, Result<(), Error>> {
+        at: time::OffsetDateTime,
+    ) -> sandbox::LocalFuture<'a, Result<Option<crate::sessions::Activity>, Error>> {
         Box::pin(async move {
             self.request(|response| Command::RecordSessionStartForLaunch {
                 id,
                 token: token.clone(),
+                event_id,
+                at,
                 native: native.into(),
                 transcript_path: transcript_path.map(str::to_owned),
                 response,
@@ -124,6 +128,7 @@ impl crate::sessions::SessionReports for Database {
         &'a self,
         id: crate::sessions::SessionId,
         token: &'a crate::sessions::LaunchToken,
+        event_id: uuid::Uuid,
         event: crate::sessions::ActivityEvent,
         at: time::OffsetDateTime,
     ) -> sandbox::LocalFuture<'a, Result<Option<crate::sessions::Activity>, Error>> {
@@ -131,6 +136,7 @@ impl crate::sessions::SessionReports for Database {
             self.request(|response| Command::ApplySessionActivityForLaunch {
                 id,
                 token: token.clone(),
+                event_id,
                 event,
                 at,
                 response,
@@ -160,23 +166,18 @@ impl crate::sessions::SessionStore for Database {
         })
     }
 
-    fn session_initial_prompt(
-        &self,
+    fn confirm_session_launch<'a>(
+        &'a self,
         id: crate::sessions::SessionId,
-    ) -> sandbox::LocalFuture<'_, Result<Option<String>, Error>> {
+        token: &'a crate::sessions::LaunchToken,
+    ) -> sandbox::LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
-            self.request(|response| Command::GetSessionInitialPrompt { id, response })
-                .await
-        })
-    }
-
-    fn clear_session_initial_prompt(
-        &self,
-        id: crate::sessions::SessionId,
-    ) -> sandbox::LocalFuture<'_, Result<(), Error>> {
-        Box::pin(async move {
-            self.request(|response| Command::ClearSessionInitialPrompt { id, response })
-                .await
+            self.request(|response| Command::ConfirmSessionLaunch {
+                id,
+                token: token.clone(),
+                response,
+            })
+            .await
         })
     }
 
@@ -258,7 +259,7 @@ impl crate::sessions::SessionStore for Database {
         &self,
         id: crate::sessions::SessionId,
         launch: crate::sessions::LaunchRecord,
-    ) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+    ) -> sandbox::LocalFuture<'_, Result<Option<String>, Error>> {
         Box::pin(async move {
             self.request(|response| Command::RecordSessionLaunch {
                 id,
@@ -464,12 +465,9 @@ enum Command {
         initial_prompt: Option<String>,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
-    GetSessionInitialPrompt {
+    ConfirmSessionLaunch {
         id: crate::sessions::SessionId,
-        response: oneshot::Sender<Result<Option<String>, Error>>,
-    },
-    ClearSessionInitialPrompt {
-        id: crate::sessions::SessionId,
+        token: crate::sessions::LaunchToken,
         response: oneshot::Sender<Result<(), Error>>,
     },
     GetSession {
@@ -509,13 +507,16 @@ enum Command {
     RecordSessionStartForLaunch {
         id: crate::sessions::SessionId,
         token: crate::sessions::LaunchToken,
+        event_id: uuid::Uuid,
+        at: time::OffsetDateTime,
         native: String,
         transcript_path: Option<String>,
-        response: oneshot::Sender<Result<(), Error>>,
+        response: oneshot::Sender<Result<Option<crate::sessions::Activity>, Error>>,
     },
     ApplySessionActivityForLaunch {
         id: crate::sessions::SessionId,
         token: crate::sessions::LaunchToken,
+        event_id: uuid::Uuid,
         event: crate::sessions::ActivityEvent,
         at: time::OffsetDateTime,
         response: oneshot::Sender<Result<Option<crate::sessions::Activity>, Error>>,
@@ -526,7 +527,7 @@ enum Command {
         sandbox: String,
         launched_at: i64,
         attempts: u32,
-        response: oneshot::Sender<Result<(), Error>>,
+        response: oneshot::Sender<Result<Option<String>, Error>>,
     },
     GetSessionLaunchState {
         id: crate::sessions::SessionId,
@@ -645,11 +646,8 @@ fn execute_session(connection: &mut Connection, command: Command) {
                 initial_prompt.as_deref(),
             ));
         }
-        Command::GetSessionInitialPrompt { id, response } => {
-            let _ = response.send(sessions::initial_prompt(connection, id));
-        }
-        Command::ClearSessionInitialPrompt { id, response } => {
-            let _ = response.send(sessions::clear_initial_prompt(connection, id));
+        Command::ConfirmSessionLaunch { id, token, response } => {
+            let _ = response.send(sessions::confirm_launch(connection, id, &token));
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));
@@ -722,6 +720,8 @@ fn execute_session_report(connection: &mut Connection, command: Command) {
         Command::RecordSessionStartForLaunch {
             id,
             token,
+            event_id,
+            at,
             native,
             transcript_path,
             response,
@@ -730,18 +730,23 @@ fn execute_session_report(connection: &mut Connection, command: Command) {
                 connection,
                 id,
                 &token,
+                event_id,
                 &native,
                 transcript_path.as_deref(),
+                at,
             ));
         }
         Command::ApplySessionActivityForLaunch {
             id,
             token,
+            event_id,
             event,
             at,
             response,
         } => {
-            let _ = response.send(sessions::apply_activity_for_launch(connection, id, &token, event, at));
+            let _ = response.send(sessions::apply_activity_for_launch(
+                connection, id, &token, event_id, event, at,
+            ));
         }
         // Only report commands are routed here by `execute_session`.
         _ => unreachable!("non-report command routed to the Session report executor"),

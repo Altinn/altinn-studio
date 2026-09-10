@@ -165,6 +165,14 @@ pub(super) async fn verify_linux(
     Ok(())
 }
 
+/// Codex defers `SessionStart` until the first turn. Its initialized composer
+/// displays this prefix at the visible input cursor, after terminal input has
+/// been enabled. A hidden cursor or a startup/dialog screen is not ready.
+/// Keep this terminal detail in the adapter for the pinned harness version.
+pub(super) fn input_ready_without_report(cursor_line: &str) -> bool {
+    cursor_line.trim_start().starts_with("› ")
+}
+
 pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.codex");
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
@@ -206,6 +214,15 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
+
+    #[test]
+    fn input_readiness_recognizes_the_composer_not_startup_or_dialog_text() {
+        assert!(super::input_ready_without_report("› Ask Codex to do anything"));
+        assert!(super::input_ready_without_report("  › Find a bug in this code"));
+        assert!(!super::input_ready_without_report("Starting Codex..."));
+        assert!(!super::input_ready_without_report("Select a model"));
+        assert!(!super::input_ready_without_report(""));
+    }
 
     #[test]
     fn stale_private_login_homes_are_removed_without_touching_other_files() {

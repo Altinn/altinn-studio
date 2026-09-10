@@ -21,9 +21,9 @@ const ANSWER_WAIT_MAX: Duration = Duration::from_mins(30);
 const TRANSCRIPT_FLUSH_POLL: Duration = Duration::from_millis(300);
 const TRANSCRIPT_SETTLE: Duration = Duration::from_secs(2);
 
-/// How long a waited prompt gives a freshly launched harness to report its
-/// start before giving up; until then there is no conversation to read.
-const START_REPORT_TIMEOUT: Duration = Duration::from_secs(15);
+/// Maximum time to wait for a newly launched harness to accept input.
+const INPUT_READY_TIMEOUT: Duration = Duration::from_secs(15);
+const INPUT_READY_POLL: Duration = Duration::from_millis(100);
 
 /// Durable Session registry whose effects are owned by the daemon controller.
 pub struct Service {
@@ -133,13 +133,13 @@ impl Service {
     /// the running turn, others queue it as the next turn); matching the prompt
     /// by content covers both. Without `wait`, returns immediately with no turns.
     ///
-    /// In both modes the prompt is delivered only once the Session has left
-    /// [`State::Starting`]: a harness that has not reported in cannot take input.
+    /// In both modes delivery waits for input readiness. The runtime may establish
+    /// readiness before the harness reports its first conversation.
     ///
     /// # Errors
     ///
     /// Returns an error when the Session is not running, the harness has not
-    /// reported its start within a short grace period, the input cannot be
+    /// become ready for input within a short grace period, the input cannot be
     /// delivered, the Session fails mid-turn, or the wait exceeds `timeout`.
     pub async fn prompt(
         &self,
@@ -154,7 +154,9 @@ impl Service {
         let deadline = tokio::time::Instant::now() + budget;
         // Subscribe before reading so no change can slip between them.
         let mut changes = self.observers.subscribe(session.id);
-        let session = self.started(agent, name, &mut changes, deadline).await?;
+        let session = self
+            .ready_to_prompt(agent, name, &sandbox, &mut changes, deadline)
+            .await?;
         // Answers are looked for from the turn open at delivery onward, so an
         // earlier exchange with the same text can never be mistaken for this one.
         let first_candidate = self.runtime.turns(&session, &sandbox).await?.len().saturating_sub(1);
@@ -196,28 +198,41 @@ impl Service {
         }
     }
 
-    /// Returns the Session once it has left [`State::Starting`]: a Session
-    /// created moments ago has launched but its harness has not reported in,
-    /// and until it does there is no conversation to read.
-    async fn started(
+    /// Waits for a report or runtime-observed input readiness. A harness may
+    /// create its conversation only after input arrives, so the first prompt
+    /// cannot depend on that conversation's start report.
+    async fn ready_to_prompt(
         &self,
         agent: &str,
         name: &SessionName,
+        sandbox: &SandboxHandle,
         changes: &mut tokio::sync::watch::Receiver<u64>,
         deadline: tokio::time::Instant,
     ) -> Result<Session, Error> {
-        let start_deadline = (tokio::time::Instant::now() + START_REPORT_TIMEOUT).min(deadline);
-        loop {
-            let session = self.store.get_agent_session(agent, name).await?;
-            match session.status.state {
-                State::Working | State::WaitingForInput => return Ok(session),
-                State::Idle | State::Failed => {
-                    return Err(Error::Invalid(format!("Session {name:?} is not running")));
+        let ready_deadline = (tokio::time::Instant::now() + INPUT_READY_TIMEOUT).min(deadline);
+        tokio::time::timeout_at(ready_deadline, async {
+            loop {
+                let session = self.store.get_agent_session(agent, name).await?;
+                match session.status.state {
+                    State::Working | State::WaitingForInput => return Ok(session),
+                    State::Idle | State::Failed => {
+                        return Err(Error::Invalid(format!("Session {name:?} is not running")));
+                    }
+                    State::Starting => {
+                        if self.runtime.input_ready(&session, sandbox).await? {
+                            return Ok(session);
+                        }
+                    }
                 }
-                State::Starting => {}
+                // Runtime readiness can change before any report exists.
+                tokio::select! {
+                    result = changes.changed() => result.map_err(|_| Error::Session("Session observer closed".into()))?,
+                    () = tokio::time::sleep(INPUT_READY_POLL) => {},
+                }
             }
-            await_change(name, changes, start_deadline, "to report its harness start").await?;
-        }
+        })
+        .await
+        .map_err(|_| Error::Session(format!("timed out waiting for Session {name:?} to accept input")))?
     }
 
     /// Delivers one prompt, serialized against other deliveries to the same Session.

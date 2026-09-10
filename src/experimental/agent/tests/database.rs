@@ -9,7 +9,7 @@ use agent::{
     control_plane::{AgentRecord, AgentStore as _},
     persistence,
     sandbox::{Assignment, ProviderId},
-    sessions::{Lifecycle, SessionName, SessionStore as _},
+    sessions::{Lifecycle, SessionName, SessionReports as _, SessionStore as _},
 };
 use sandbox::secret_store::SecretStore as _;
 use tempfile::TempDir;
@@ -133,10 +133,14 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
             agent::sessions::LifecycleState::Running
         );
         assert_eq!(
-            second
-                .session_initial_prompt(sessions[0].id)
-                .await
-                .expect("initial message")
+            rusqlite::Connection::open(&path)
+                .expect("read database")
+                .query_row(
+                    "SELECT initial_prompt FROM sessions WHERE id = ?1",
+                    [sessions[0].id.to_string()],
+                    |row| row.get::<_, Option<String>>(0)
+                )
+                .expect("initial prompt")
                 .as_deref(),
             Some("first prompt"),
             "the first prompt is recorded once, at creation"
@@ -317,4 +321,159 @@ fn desired_state_cannot_change_after_deletion_starts() {
                 .is_some()
         );
     });
+}
+
+#[tokio::test(flavor = "local")]
+async fn initial_prompt_claim_and_launch_record_commit_together() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("agent.db");
+    let database = persistence::Database::open(&path).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+            Some("once"),
+        )
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    let launch = agent::sessions::LaunchRecord {
+        token: token.clone(),
+        sandbox: "sandbox-1".into(),
+        launched_at: 0,
+        attempts: 1,
+    };
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    inspect.execute_batch("CREATE TRIGGER reject_claim BEFORE INSERT ON session_prompt_claims BEGIN SELECT RAISE(ABORT, 'injected claim failure'); END;").expect("inject failure");
+    database
+        .record_session_launch(session.id, launch.clone())
+        .await
+        .expect_err("claim failure");
+    assert_eq!(
+        database.session_launch_state(session.id).await.expect("state"),
+        None,
+        "failed claim rolls back launch bookkeeping"
+    );
+    inspect
+        .execute_batch("DROP TRIGGER reject_claim;")
+        .expect("remove failure");
+    assert_eq!(
+        database
+            .record_session_launch(session.id, launch.clone())
+            .await
+            .expect("claim"),
+        Some("once".into()),
+        "failed transaction did not consume the prompt"
+    );
+    drop(database);
+    let reopened = persistence::Database::open(&path).expect("reopen");
+    reopened
+        .record_session_launch(session.id, launch.clone())
+        .await
+        .expect_err("a crash does not release the claim");
+    reopened
+        .confirm_session_launch(
+            session.id,
+            &"dddddddd-dddd-4ddd-8ddd-dddddddddddd".parse().expect("other token"),
+        )
+        .await
+        .expect("stale confirmation");
+    assert!(
+        reopened
+            .session_launch_state(session.id)
+            .await
+            .expect("state")
+            .expect("launch")
+            .initial_prompt_claim
+            .is_some(),
+        "another launch cannot confirm the claim"
+    );
+    reopened
+        .confirm_session_launch(session.id, &token)
+        .await
+        .expect("confirm launch");
+    assert_eq!(
+        reopened
+            .record_session_launch(session.id, launch)
+            .await
+            .expect("relaunch"),
+        None,
+        "confirmed launch never replays the prompt"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
+    use agent::sessions::{ActivityEvent, LaunchRecord};
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("agent.db");
+    let database = persistence::Database::open(&path).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+            None,
+        )
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+    let event_id = uuid::Uuid::new_v4();
+    let at = time::OffsetDateTime::now_utc();
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    inspect.execute_batch("CREATE TRIGGER reject_activity BEFORE UPDATE OF activity_json ON sessions BEGIN SELECT RAISE(ABORT, 'injected fold failure'); END;").expect("inject failure");
+    database
+        .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+        .await
+        .expect_err("fold failure");
+    inspect
+        .execute_batch("DROP TRIGGER reject_activity;")
+        .expect("remove failure");
+    let activity = database
+        .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+        .await
+        .expect("retry")
+        .expect("applied");
+    assert_eq!(activity.turns, 1, "rolled-back receipt must not suppress the retry");
+    drop(database);
+    let reopened = persistence::Database::open(&path).expect("reopen");
+    assert_eq!(
+        reopened
+            .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+            .await
+            .expect("lost response retry"),
+        None
+    );
+    assert_eq!(
+        reopened
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .reported
+            .activity,
+        activity,
+        "duplicate does not change count, phase, or timestamp"
+    );
 }

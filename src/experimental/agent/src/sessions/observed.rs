@@ -76,15 +76,20 @@ impl<S: SessionReports> SessionReports for ObservedStore<S> {
         &'a self,
         id: SessionId,
         token: &'a LaunchToken,
+        event_id: uuid::Uuid,
         native: &'a str,
         transcript_path: Option<&'a str>,
-    ) -> LocalFuture<'a, Result<(), Error>> {
+        at: time::OffsetDateTime,
+    ) -> LocalFuture<'a, Result<Option<crate::sessions::Activity>, Error>> {
         Box::pin(async move {
-            self.inner
-                .record_session_start_for_launch(id, token, native, transcript_path)
+            let applied = self
+                .inner
+                .record_session_start_for_launch(id, token, event_id, native, transcript_path, at)
                 .await?;
-            self.observers.publish(id);
-            Ok(())
+            if applied.is_some() {
+                self.observers.publish(id);
+            }
+            Ok(applied)
         })
     }
 
@@ -92,13 +97,14 @@ impl<S: SessionReports> SessionReports for ObservedStore<S> {
         &'a self,
         id: SessionId,
         token: &'a LaunchToken,
+        event_id: uuid::Uuid,
         event: ActivityEvent,
         at: OffsetDateTime,
     ) -> LocalFuture<'a, Result<Option<Activity>, Error>> {
         Box::pin(async move {
             let applied = self
                 .inner
-                .apply_session_activity_for_launch(id, token, event, at)
+                .apply_session_activity_for_launch(id, token, event_id, event, at)
                 .await?;
             if applied.is_some() {
                 self.observers.publish(id);
@@ -119,12 +125,12 @@ impl<S: SessionStore> SessionStore for ObservedStore<S> {
         self.inner.ensure_session(agent, name, harness, initial_prompt)
     }
 
-    fn session_initial_prompt(&self, id: SessionId) -> LocalFuture<'_, Result<Option<String>, Error>> {
-        self.inner.session_initial_prompt(id)
-    }
-
-    fn clear_session_initial_prompt(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
-        self.inner.clear_session_initial_prompt(id)
+    fn confirm_session_launch<'a>(
+        &'a self,
+        id: SessionId,
+        token: &'a LaunchToken,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.inner.confirm_session_launch(id, token)
     }
 
     fn get_session(&self, id: SessionId) -> LocalFuture<'_, Result<Session, Error>> {
@@ -178,7 +184,11 @@ impl<S: SessionStore> SessionStore for ObservedStore<S> {
         })
     }
 
-    fn record_session_launch(&self, id: SessionId, launch: LaunchRecord) -> LocalFuture<'_, Result<(), Error>> {
+    fn record_session_launch(
+        &self,
+        id: SessionId,
+        launch: LaunchRecord,
+    ) -> LocalFuture<'_, Result<Option<String>, Error>> {
         self.inner.record_session_launch(id, launch)
     }
 

@@ -247,6 +247,10 @@ fn tmux_runtime() -> Rc<dyn agent::sessions::SessionRuntime> {
 struct FakeRuntime {
     /// Whether the harness process is observed present; a launch is expected when it is not.
     present: Cell<bool>,
+    fail_start: Cell<bool>,
+    delivery_delay: Cell<Duration>,
+    delivered: Notify,
+    ready_without_report: Cell<bool>,
     conversation: RefCell<Vec<agent::sessions::Turn>>,
     sent: RefCell<Vec<String>>,
     launches: RefCell<Vec<(Option<String>, Option<String>)>>,
@@ -256,6 +260,10 @@ impl Default for FakeRuntime {
     fn default() -> Self {
         Self {
             present: Cell::new(true),
+            fail_start: Cell::new(false),
+            delivery_delay: Cell::new(Duration::ZERO),
+            delivered: Notify::new(),
+            ready_without_report: Cell::new(false),
             conversation: RefCell::default(),
             sent: RefCell::default(),
             launches: RefCell::default(),
@@ -308,8 +316,15 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         self.launches
             .borrow_mut()
             .push((resume.map(str::to_owned), initial_prompt.map(str::to_owned)));
-        self.present.set(true);
-        Box::pin(async { Ok(()) })
+        let fail = self.fail_start.get();
+        self.present.set(!fail);
+        Box::pin(async move {
+            if fail {
+                Err(Error::Session("injected uncertain launch".into()))
+            } else {
+                Ok(())
+            }
+        })
     }
 
     fn stop<'a>(
@@ -320,15 +335,27 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         Box::pin(async { Ok(()) })
     }
 
+    fn input_ready<'a>(
+        &'a self,
+        _session: &'a agent::sessions::Session,
+        _sandbox: &'a SandboxHandle,
+    ) -> LocalFuture<'a, Result<bool, Error>> {
+        Box::pin(async { Ok(self.ready_without_report.get()) })
+    }
+
     fn prompt<'a>(
         &'a self,
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
         prompt: &'a str,
     ) -> LocalFuture<'a, Result<(), Error>> {
-        self.sent.borrow_mut().push(prompt.to_owned());
-        self.conversation.borrow_mut().push(user_turn(prompt));
-        Box::pin(async { Ok(()) })
+        Box::pin(async move {
+            tokio::time::sleep(self.delivery_delay.get()).await;
+            self.sent.borrow_mut().push(prompt.to_owned());
+            self.conversation.borrow_mut().push(user_turn(prompt));
+            self.delivered.notify_one();
+            Ok(())
+        })
     }
 
     fn turns<'a>(
@@ -425,20 +452,16 @@ async fn running_session(
     if started {
         let token: agent::sessions::LaunchToken = token.parse().expect("launch token");
         database
-            .record_session_start_for_launch(session.id, &token, "native-0", Some("/home/agent/conversation.jsonl"))
-            .await
-            .expect("start report");
-        // The start report itself is the first activity event; without it the
-        // Session still reads as Starting.
-        database
-            .apply_session_activity_for_launch(
+            .record_session_start_for_launch(
                 session.id,
                 &token,
-                agent::sessions::ActivityEvent::SessionStart,
+                uuid::Uuid::new_v4(),
+                "native-0",
+                Some("/home/agent/conversation.jsonl"),
                 time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
             )
             .await
-            .expect("fold");
+            .expect("start report");
     }
     let session = database.get_session(session.id).await.expect("Session");
     (database, sandboxes, session)
@@ -516,7 +539,13 @@ async fn send_with_wait_returns_the_turns_the_conversation_gained() {
         agent::sessions::ActivityEvent::ToolFinished,
     ] {
         observed
-            .apply_session_activity_for_launch(session.id, &token, event, time::OffsetDateTime::now_utc())
+            .apply_session_activity_for_launch(
+                session.id,
+                &token,
+                uuid::Uuid::new_v4(),
+                event,
+                time::OffsetDateTime::now_utc(),
+            )
             .await
             .expect("fold");
     }
@@ -533,6 +562,7 @@ async fn send_with_wait_returns_the_turns_the_conversation_gained() {
         .apply_session_activity_for_launch(
             session.id,
             &token,
+            uuid::Uuid::new_v4(),
             agent::sessions::ActivityEvent::TurnCompleted,
             time::OffsetDateTime::now_utc(),
         )
@@ -687,7 +717,14 @@ async fn send_with_wait_joins_a_running_turn_and_waits_for_a_late_start_report()
     // The harness starts on its first prompt and is mid-turn when it reports.
     runtime.conversation.borrow_mut().push(user_turn("first prompt"));
     observed
-        .record_session_start_for_launch(session.id, &token, "native-1", Some("/home/agent/t.jsonl"))
+        .record_session_start_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            "native-1",
+            Some("/home/agent/t.jsonl"),
+            time::OffsetDateTime::now_utc(),
+        )
         .await
         .expect("start report");
     // The event is stamped in the past so the input-readiness grace is over.
@@ -695,6 +732,7 @@ async fn send_with_wait_joins_a_running_turn_and_waits_for_a_late_start_report()
         .apply_session_activity_for_launch(
             session.id,
             &token,
+            uuid::Uuid::new_v4(),
             agent::sessions::ActivityEvent::TurnStarted,
             time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
         )
@@ -727,6 +765,7 @@ async fn send_with_wait_joins_a_running_turn_and_waits_for_a_late_start_report()
         .apply_session_activity_for_launch(
             session.id,
             &token,
+            uuid::Uuid::new_v4(),
             agent::sessions::ActivityEvent::TurnCompleted,
             time::OffsetDateTime::now_utc(),
         )
@@ -806,7 +845,13 @@ impl ServiceHarness {
     /// Reports one activity event for the current launch, as the Platform API would.
     async fn report(&self, event: agent::sessions::ActivityEvent) {
         self.observed
-            .apply_session_activity_for_launch(self.session.id, &self.token, event, time::OffsetDateTime::now_utc())
+            .apply_session_activity_for_launch(
+                self.session.id,
+                &self.token,
+                uuid::Uuid::new_v4(),
+                event,
+                time::OffsetDateTime::now_utc(),
+            )
             .await
             .expect("fold")
             .expect("current launch");
@@ -837,6 +882,17 @@ impl ServiceHarness {
         })
     }
 
+    async fn await_delivery(&self, answer: &mut tokio::task::JoinHandle<Result<Vec<agent::sessions::Turn>, Error>>) {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            tokio::select! {
+                () = self.runtime.delivered.notified() => {},
+                result = answer => panic!("prompt finished before delivery acknowledgement: {result:?}"),
+            }
+        })
+        .await
+        .expect("prompt delivery acknowledgement");
+    }
+
     fn finish(self) {
         for task in self.tasks {
             task.abort();
@@ -860,8 +916,9 @@ async fn a_repeated_prompt_never_matches_an_earlier_exchange() {
         .push(user_turn("something else"));
     harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
 
-    let answer = harness.prompt("continue");
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    harness.runtime.delivery_delay.set(Duration::from_millis(150));
+    let mut answer = harness.prompt("continue");
+    harness.await_delivery(&mut answer).await;
     // The unrelated turn completes: its answer is not ours, and neither is the old one.
     let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
     harness.append_to_last_turn(assistant_text("unrelated done"));
@@ -890,8 +947,9 @@ async fn a_queued_prompt_is_not_answered_by_its_own_opening_commentary() {
     harness.runtime.conversation.borrow_mut().push(user_turn("first task"));
     harness.report(agent::sessions::ActivityEvent::TurnStarted).await;
 
-    let answer = harness.prompt("second task");
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    harness.runtime.delivery_delay.set(Duration::from_millis(150));
+    let mut answer = harness.prompt("second task");
+    harness.await_delivery(&mut answer).await;
     // The first turn completes; the queued second turn starts and writes commentary
     // right after our prompt, then calls a tool, before it finally answers.
     let queued = harness.runtime.conversation.borrow_mut().pop().expect("queued turn");
@@ -920,6 +978,59 @@ async fn a_queued_prompt_is_not_answered_by_its_own_opening_commentary() {
     assert_eq!(produced[0].final_assistant_message(), Some("second done"));
     assert_eq!(produced[0].messages.len(), 4, "prompt, commentary, tool call, answer");
     harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn the_first_prompt_can_start_an_unreported_conversation() {
+    for wait in [false, true] {
+        let directory = TempDir::new().expect("temporary directory");
+        let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
+        harness
+            .observed
+            .clear_session_report(harness.session.id)
+            .await
+            .expect("no conversation yet");
+        harness.runtime.ready_without_report.set(true);
+        let service = harness.service.clone();
+        let mut answer = tokio::task::spawn_local(async move {
+            service
+                .prompt(
+                    "worker",
+                    &SessionName::new("s1").expect("name"),
+                    "first input",
+                    wait,
+                    Some(Duration::from_secs(10)),
+                )
+                .await
+        });
+        tokio::time::timeout(Duration::from_secs(5), harness.runtime.delivered.notified())
+            .await
+            .expect("first input must not wait for its own start report");
+        if wait {
+            assert!(!answer.is_finished(), "delivery alone is not an answer");
+            harness
+                .observed
+                .record_session_start_for_launch(
+                    harness.session.id,
+                    &harness.token,
+                    uuid::Uuid::new_v4(),
+                    "new-conversation",
+                    Some("/new.jsonl"),
+                    time::OffsetDateTime::now_utc(),
+                )
+                .await
+                .expect("start report");
+            harness.append_to_last_turn(assistant_text("first answer"));
+            harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+        }
+        let turns = (&mut answer).await.expect("task").expect("prompt");
+        if wait {
+            assert_eq!(turns[0].final_assistant_message(), Some("first answer"));
+        } else {
+            assert!(turns.is_empty());
+        }
+        harness.finish();
+    }
 }
 
 #[tokio::test(flavor = "local")]
@@ -972,23 +1083,91 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
     );
     let token: agent::sessions::LaunchToken = "33333333-3333-4333-8333-333333333333".parse().expect("token");
     observed
-        .record_session_start_for_launch(session.id, &token, "native-1", None)
-        .await
-        .expect("start report");
-    observed
-        .apply_session_activity_for_launch(
+        .record_session_start_for_launch(
             session.id,
             &token,
-            agent::sessions::ActivityEvent::SessionStart,
+            uuid::Uuid::new_v4(),
+            "native-1",
+            None,
             time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
         )
         .await
-        .expect("fold");
+        .expect("start report");
     let produced = fire_and_forget.await.expect("task").expect("delivered");
     assert!(produced.is_empty());
     assert_eq!(runtime.sent.borrow().as_slice(), ["go"]);
     agent_task.abort();
     session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_uncertain_initial_launch_is_not_replayed() {
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, _) = running_session(&directory, "ffffffff-ffff-4fff-8fff-ffffffffffff", true).await;
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("uncertain").expect("name"),
+            agent::Harness::ClaudeCode,
+            Some("perform once"),
+        )
+        .await
+        .expect("Session");
+    database.activate_session(session.id).await.expect("activate");
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    runtime.fail_start.set(true);
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    let error = reconciler.reconcile(session.id).await.expect_err("uncertain launch");
+    assert!(error.to_string().contains("initial prompt delivery is uncertain"));
+    assert!(
+        database
+            .session_launch_state(session.id)
+            .await
+            .expect("launch")
+            .expect("record")
+            .initial_prompt_claim
+            .is_some(),
+        "claim survives uncertain delivery"
+    );
+    database
+        .reset_session_launch_attempts(session.id)
+        .await
+        .expect("reset backoff");
+    runtime.fail_start.set(false);
+    reconciler.reconcile(session.id).await.expect("uncertainty is durable");
+    assert_eq!(
+        runtime.launches.borrow().len(),
+        1,
+        "no automatic launch after uncertain delivery"
+    );
+    let failed = database.get_session(session.id).await.expect("Session");
+    assert!(
+        failed
+            .status
+            .lifecycle
+            .failure
+            .expect("failure")
+            .contains("initial prompt delivery is uncertain")
+    );
+    database
+        .activate_session(session.id)
+        .await
+        .expect("explicit reactivation");
+    reconciler.reconcile(session.id).await.expect("operator continues");
+    assert_eq!(
+        runtime.launches.borrow().last().expect("launch"),
+        &(None, None),
+        "reactivation never replays the claimed prompt"
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -1031,9 +1210,14 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         "the first launch starts on the first prompt"
     );
     assert_eq!(
-        database.session_initial_prompt(prompted.id).await.expect("prompt"),
+        database
+            .session_launch_state(prompted.id)
+            .await
+            .expect("launch")
+            .expect("record")
+            .initial_prompt_claim,
         None,
-        "a delivered prompt is forgotten"
+        "a successful launch confirms the claim"
     );
 
     // A fresh conversation later (nothing reported to resume) starts empty.
@@ -1066,7 +1250,14 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         .await
         .expect("launch bookkeeping");
     database
-        .record_session_start_for_launch(prompted.id, &token, "native-1", Some("/home/agent/t.jsonl"))
+        .record_session_start_for_launch(
+            prompted.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            "native-1",
+            Some("/home/agent/t.jsonl"),
+            time::OffsetDateTime::now_utc(),
+        )
         .await
         .expect("start report");
     runtime.present.set(false);

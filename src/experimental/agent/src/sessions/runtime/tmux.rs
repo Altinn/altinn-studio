@@ -249,6 +249,35 @@ impl super::SessionRuntime for Tmux {
         Box::pin(stop(session, sandbox))
     }
 
+    fn input_ready<'a>(
+        &'a self,
+        session: &'a Session,
+        sandbox: &'a SandboxHandle,
+    ) -> ::sandbox::LocalFuture<'a, Result<bool, Error>> {
+        Box::pin(async move {
+            let output = sandbox.run_execution(ExecutionSpec::command(
+                SandboxPath::new("/bin/sh"),
+                ["-c".into(),
+                 "/usr/bin/tmux display-message -p -t \"$1\" '#{cursor_flag} #{cursor_y}' && /usr/bin/tmux capture-pane -p -t \"$1\"".into(),
+                 "agent-input-ready".into(), pane_target(session)],
+            )).await?;
+            // Provisioning publishes the launch before its pane necessarily exists.
+            // tmux exits 1 while there is no server or target pane to inspect.
+            if output.status.code == 1 {
+                return Ok(false);
+            }
+            if !output.status.success() {
+                return Err(Error::Session("could not inspect the harness input readiness".into()));
+            }
+            let screen = std::str::from_utf8(&output.stdout)
+                .map_err(|error| Error::Session(format!("invalid terminal input state: {error}")))?;
+            Ok(
+                ready_cursor_line(screen)
+                    .is_some_and(|line| harness::input_ready_without_report(session.harness, line)),
+            )
+        })
+    }
+
     fn prompt<'a>(
         &'a self,
         session: &'a Session,
@@ -275,13 +304,29 @@ impl super::SessionRuntime for Tmux {
     }
 }
 
+/// Selects the current input cursor's line from a terminal snapshot. Readiness
+/// must not be inferred from a prompt retained elsewhere in terminal history.
+fn ready_cursor_line(screen: &str) -> Option<&str> {
+    let mut lines = screen.lines();
+    let mut cursor = lines.next()?.split_whitespace();
+    if cursor.next()? != "1" {
+        return None;
+    }
+    let row = cursor.next()?.parse::<usize>().ok()?;
+    if cursor.next().is_some() {
+        return None;
+    }
+    lines.nth(row)
+}
+
 /// Delivers operator input to a running tmux Session.
 ///
 /// Input is held for [`INPUT_READY_GRACE`] after the latest reported hook
 /// event unless the harness is waiting for input (see [`input_ready_in`]). The
 /// prompt is then written to a Sandbox file and loaded into a private tmux
 /// buffer, pasted into the Session's pane with bracketed paste so newlines
-/// stay literal input, then submitted with a trailing Enter. Bracketed paste
+/// stay literal input, then submitted with a trailing Enter after a short settling
+/// interval so the TUI can consume the paste before handling submission. Bracketed paste
 /// is why a multi-line prompt is not submitted line by line by the harness TUI.
 ///
 /// File and buffer carry a per-delivery name, so two deliveries in flight for
@@ -305,6 +350,7 @@ async fn deliver(session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Re
     let script = format!(
         "/usr/bin/tmux load-buffer -b {buffer} {file} \
          && /usr/bin/tmux paste-buffer -d -p -b {buffer} -t {target} \
+         && /bin/sleep 0.2 \
          && /usr/bin/tmux send-keys -t {target} Enter"
     );
     let delivered = sandbox
@@ -383,6 +429,17 @@ mod tests {
     use crate::sessions::{Activity, Lifecycle, Phase, Reported, Status};
 
     use super::{Observation, Session, input_ready_in};
+
+    #[test]
+    fn readiness_requires_a_visible_cursor_on_the_current_line() {
+        assert_eq!(
+            super::ready_cursor_line("1 1\nold prompt\ncurrent input\n"),
+            Some("current input")
+        );
+        assert_eq!(super::ready_cursor_line("0 1\nold prompt\ncurrent input\n"), None);
+        assert_eq!(super::ready_cursor_line("1 8\nold prompt\n"), None);
+        assert_eq!(super::ready_cursor_line("invalid\nold prompt\n"), None);
+    }
 
     #[test]
     fn input_waits_out_the_grace_after_a_recent_event_unless_the_harness_is_waiting() {

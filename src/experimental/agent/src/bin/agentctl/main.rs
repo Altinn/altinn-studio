@@ -63,6 +63,9 @@ enum Command {
         /// Harness installation to bind when creating the Session.
         #[arg(long, value_parser = parse_harness)]
         harness: Option<agent::Harness>,
+        /// Maximum wait, written as seconds, minutes, or hours.
+        #[arg(long, default_value = "10m", value_parser = parse_duration)]
+        timeout: Duration,
         /// First prompt, handed to the harness at launch.
         #[command(flatten)]
         input: PromptInput,
@@ -362,11 +365,17 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        ensure_daemon(&home, &client).await?;
+        if !matches!(arguments.command, Command::Create { .. }) {
+            ensure_daemon(&home, &client).await?;
+        }
         execute(arguments.command, &home, &client).await
     })
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "keep command dispatch together; behavior lives in the handlers"
+)]
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
         Command::Claude {
@@ -447,7 +456,12 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::PortForward { agent, arguments } => {
             return port_forward(home, client, agent, &arguments).await;
         }
-        Command::Create { target, harness, input } => create_session(client, target, harness, input).await?,
+        Command::Create {
+            target,
+            harness,
+            input,
+            timeout,
+        } => create_session(home, client, target, harness, input, timeout).await?,
         Command::Prompt { target, input, answer } => prompt_session(client, target, input, answer).await?,
         Command::Turns {
             target,
@@ -676,23 +690,26 @@ async fn session_target(client: &Client, target: SessionTarget) -> CommandResult
 }
 
 async fn create_session(
+    home: &ControlPlaneHome,
     client: &Client,
     target: SessionTarget,
     harness: Option<agent::Harness>,
     input: PromptInput,
+    timeout: Duration,
 ) -> CommandResult<()> {
-    let (agent, session) = session_target(client, target).await?;
+    let resource = target.resource.clone();
     let initial = read_prompt_arg(input)?;
     let wait = progress::Wait::start();
-    wait.until(client.ensure_session(
-        &agent,
-        session.clone(),
-        harness,
-        initial,
-        WaitPolicy::UntilReady,
-        Some(&mut wait.sink()),
-    ))
-    .await?;
+    let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
+        ensure_daemon(home, client).await?;
+        let (agent, session) = session_target(client, target).await?;
+        client.ensure_session(
+            &agent, session.clone(), harness, initial, WaitPolicy::UntilReady, Some(&mut wait.sink()),
+        ).await?;
+        Ok::<_, CommandError>((agent, session))
+    })).await.map_err(|_| CommandError::Message(format!(
+        "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
+    )))??;
     println!("session/{agent}/{session} ready");
     Ok(())
 }
@@ -1158,6 +1175,74 @@ mod tests {
     use std::time::SystemTime;
 
     use super::*;
+
+    struct StalledConnector {
+        healthy: bool,
+    }
+
+    impl agent::control_api::Connector for StalledConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async move {
+                use tokio::io::AsyncBufReadExt as _;
+                if !self.healthy {
+                    return std::future::pending().await;
+                }
+                let (client, server) = tokio::io::duplex(4096);
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut line = String::new();
+                    server.read_line(&mut line).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
+                    if request["method"] == "control.v1.health" {
+                        let response = serde_json::json!({ "jsonrpc": "2.0", "id": request["id"], "result": {} });
+                        server
+                            .write_all(format!("{response}\n").as_bytes())
+                            .await
+                            .expect("health response");
+                    } else {
+                        std::future::pending::<()>().await;
+                        drop(server);
+                    }
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn create_stops_waiting_at_its_deadline() {
+        for (owner, healthy) in [(Some("worker"), false), (Some("worker"), true), (None, true)] {
+            let client = Client::new(std::rc::Rc::new(StalledConnector { healthy }));
+            let directory = tempfile::TempDir::new().expect("temporary home");
+            let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+            let result = tokio::time::timeout(
+                Duration::from_secs(2),
+                create_session(
+                    &home,
+                    &client,
+                    SessionTarget {
+                        resource: "session/s1".into(),
+                        name: None,
+                        agent: owner.map(str::to_owned),
+                    },
+                    None,
+                    PromptInput {
+                        prompt: Some("go".into()),
+                        file: None,
+                    },
+                    Duration::from_secs(1),
+                ),
+            )
+            .await
+            .expect("the command's own deadline must include Agent inference");
+            assert!(matches!(result, Err(CommandError::Message(message)) if message.contains("timed out")));
+        }
+    }
+
+    #[test]
+    fn create_accepts_a_bounded_wait() {
+        assert!(Arguments::try_parse_from(["agentctl", "create", "session/s1", "--timeout", "1s"]).is_ok());
+    }
 
     #[test]
     fn resource_references_follow_kubectl_shapes_and_aliases() {

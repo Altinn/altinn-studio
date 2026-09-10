@@ -98,19 +98,27 @@ async fn session_reports_require_the_current_launch_token() {
         .expect("bind Platform API listener");
     let port = listener.local_addr().expect("local address").port();
     let observers = agent::sessions::SessionObservers::new();
+    let reported_errors = Rc::new(std::cell::Cell::new(0));
+    let error_count = reported_errors.clone();
     let server = Rc::new(agent::platform_api::Server::new(
         Rc::new(agent::sessions::ObservedStore::new(
             Rc::new(database.clone()),
             observers.clone(),
         )),
-        Rc::new(|error| panic!("unexpected Platform API error: {error}")),
+        Rc::new(move |error| {
+            assert!(
+                error.to_string().contains("injected fold failure"),
+                "unexpected Platform API error: {error}"
+            );
+            error_count.set(error_count.get() + 1);
+        }),
     ));
     let server_task = tokio::task::spawn_local(server.serve(listener));
 
     let native = "0f0e0d0c-0b0a-4908-8706-050403020100";
     let transcript = "/home/agent/.claude/projects/-home-agent-code/0f0e0d0c-0b0a-4908-8706-050403020100.jsonl";
     let report = format!(
-        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":"{native}","transcriptPath":"{transcript}","source":"startup"}}"#,
+        r#"{{"eventId":"00000000-0000-4000-8000-000000000001","sessionId":"{}","event":"sessionStart","nativeSessionId":"{native}","transcriptPath":"{transcript}","source":"startup"}}"#,
         session.id
     );
 
@@ -118,11 +126,13 @@ async fn session_reports_require_the_current_launch_token() {
     // A stale or foreign token authenticates as nothing.
     assert_eq!(request(port, "unknown-token", &report).await, 401);
     // A valid token for a different platform Session is rejected.
-    let mismatched = format!(r#"{{"sessionId":"{agent_id}","event":"sessionStart","nativeSessionId":"{native}"}}"#);
+    let mismatched = format!(
+        r#"{{"eventId":"00000000-0000-4000-8000-000000000001","sessionId":"{agent_id}","event":"sessionStart","nativeSessionId":"{native}"}}"#
+    );
     assert_eq!(request(port, TOKEN_1, &mismatched).await, 401);
     // Harness-native IDs are opaque to the platform layer.
     let opaque = format!(
-        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":"opaque-harness-id"}}"#,
+        r#"{{"eventId":"00000000-0000-4000-8000-000000000006","sessionId":"{}","event":"sessionStart","nativeSessionId":"opaque-harness-id"}}"#,
         session.id
     );
     assert_eq!(request(port, TOKEN_1, &opaque).await, 204);
@@ -134,13 +144,13 @@ async fn session_reports_require_the_current_launch_token() {
     assert_eq!(stored.status.reported.harness_transcript_path, None);
     // A transcript location must be an absolute Sandbox path.
     let relative = format!(
-        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":"{native}","transcriptPath":"relative.jsonl"}}"#,
+        r#"{{"eventId":"00000000-0000-4000-8000-000000000001","sessionId":"{}","event":"sessionStart","nativeSessionId":"{native}","transcriptPath":"relative.jsonl"}}"#,
         session.id
     );
     assert_eq!(request(port, TOKEN_1, &relative).await, 400);
 
     let empty = format!(
-        r#"{{"sessionId":"{}","event":"sessionStart","nativeSessionId":""}}"#,
+        r#"{{"eventId":"00000000-0000-4000-8000-000000000001","sessionId":"{}","event":"sessionStart","nativeSessionId":""}}"#,
         session.id
     );
     assert_eq!(request(port, TOKEN_1, &empty).await, 400);
@@ -154,6 +164,52 @@ async fn session_reports_require_the_current_launch_token() {
     );
     assert_eq!(stored.status.reported.activity.phase, agent::sessions::Phase::Working);
 
+    // A replay of an older start must not overwrite the newer conversation.
+    let mut start_feed = observers.subscribe(session.id);
+    assert_eq!(request(port, TOKEN_1, &opaque).await, 204);
+    assert_eq!(
+        database.get_session(session.id).await.expect("session").status.reported,
+        stored.status.reported
+    );
+    assert!(
+        !start_feed.has_changed().expect("observer"),
+        "duplicates do not publish"
+    );
+
+    let inspect = rusqlite::Connection::open(directory.path().join("agent.db")).expect("inspect");
+    let next_start = report
+        .replace("000000000001", "000000000007")
+        .replace(native, "next-conversation");
+    inspect.execute_batch("CREATE TRIGGER reject_activity BEFORE UPDATE OF activity_json ON sessions BEGIN SELECT RAISE(ABORT, 'injected fold failure'); END;").expect("inject failure");
+    assert_eq!(request(port, TOKEN_1, &next_start).await, 500);
+    assert_eq!(reported_errors.get(), 1);
+    assert_eq!(
+        database.get_session(session.id).await.expect("session").status.reported,
+        stored.status.reported
+    );
+    assert!(
+        !start_feed.has_changed().expect("observer"),
+        "rolled-back reports do not publish"
+    );
+    inspect
+        .execute_batch("DROP TRIGGER reject_activity;")
+        .expect("remove failure");
+    assert_eq!(request(port, TOKEN_1, &next_start).await, 204);
+    let applied = database.get_session(session.id).await.expect("session");
+    assert_eq!(
+        applied.status.reported.harness_session_id.as_deref(),
+        Some("next-conversation")
+    );
+    assert!(start_feed.has_changed().expect("observer"), "committed reports publish");
+    start_feed.borrow_and_update();
+    assert_eq!(request(port, TOKEN_1, &next_start).await, 204);
+    assert!(!start_feed.has_changed().expect("observer"));
+    // Restore the conversation with a new event for the remaining assertions.
+    assert_eq!(
+        request(port, TOKEN_1, &report.replace("000000000001", "000000000008")).await,
+        204
+    );
+
     // Lifecycle writes cannot touch the reported half.
     database
         .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), 0)
@@ -165,9 +221,23 @@ async fn session_reports_require_the_current_launch_token() {
 
     // Activity events fold into the report and wake Session observers.
     let mut feed = observers.subscribe(session.id);
-    let event = |name: &str| format!(r#"{{"sessionId":"{}","event":"{name}"}}"#, session.id);
+    let before_events = *feed.borrow();
+    let event = |name: &str| {
+        let suffix = match name {
+            "turnStarted" => 2,
+            "toolStarted" => 3,
+            "turnCompleted" => 4,
+            _ => 5,
+        };
+        format!(
+            r#"{{"eventId":"00000000-0000-4000-8000-{suffix:012}","sessionId":"{}","event":"{name}"}}"#,
+            session.id
+        )
+    };
     assert_eq!(request(port, TOKEN_1, &event("turnStarted")).await, 204);
     assert_eq!(request(port, TOKEN_1, &event("toolStarted")).await, 204);
+    assert_eq!(request(port, TOKEN_1, &event("turnCompleted")).await, 204);
+    // A successful completion whose HTTP response was lost must not count twice.
     assert_eq!(request(port, TOKEN_1, &event("turnCompleted")).await, 204);
     let stored = database.get_session(session.id).await.expect("session");
     assert_eq!(stored.status.reported.activity.turns, 1);
@@ -177,7 +247,11 @@ async fn session_reports_require_the_current_launch_token() {
     );
     assert!(stored.status.reported.activity.last_event_at.is_some());
     assert!(feed.has_changed().expect("feed open"));
-    assert_eq!(*feed.borrow_and_update(), 3, "one change tick per folded event");
+    assert_eq!(
+        *feed.borrow_and_update() - before_events,
+        3,
+        "one change tick per folded event"
+    );
     // An unknown event is a malformed report.
     assert_eq!(request(port, TOKEN_1, &event("danced")).await, 400);
 

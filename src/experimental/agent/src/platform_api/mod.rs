@@ -143,35 +143,34 @@ impl Server {
     /// a silent no-op; a stale token on a start report is rejected so the ID is
     /// never attributed to the wrong launch.
     async fn accept_report(&self, token: &sessions::LaunchToken, report: &SessionReport) -> u16 {
-        if report.event == sessions::ActivityEvent::SessionStart {
+        let at = time::OffsetDateTime::now_utc();
+        let applied = if report.event == sessions::ActivityEvent::SessionStart {
             if report.native_session_id.is_empty() || report.native_session_id.len() > MAX_NATIVE_SESSION_ID_BYTES {
                 return 400;
             }
-            // The transcript path is read back inside the same Sandbox as the
-            // reporting harness; it is bounded and must be absolute, nothing more.
+            // A transcript is read inside the reporting Sandbox and must be an absolute path.
             let transcript_path = report.transcript_path.as_deref().filter(|path| !path.is_empty());
             if transcript_path.is_some_and(|path| !path.starts_with('/') || path.len() > MAX_TRANSCRIPT_PATH_BYTES) {
                 return 400;
             }
-            match self
-                .sessions
-                .record_session_start_for_launch(report.session_id, token, &report.native_session_id, transcript_path)
+            self.sessions
+                .record_session_start_for_launch(
+                    report.session_id,
+                    token,
+                    report.event_id,
+                    &report.native_session_id,
+                    transcript_path,
+                    at,
+                )
                 .await
-            {
-                Ok(()) => {}
-                Err(Error::NotFound) => return 401,
-                Err(error) => {
-                    (self.on_error)(&error);
-                    return 500;
-                }
-            }
-        }
-        match self
-            .sessions
-            .apply_session_activity_for_launch(report.session_id, token, report.event, time::OffsetDateTime::now_utc())
-            .await
-        {
+        } else {
+            self.sessions
+                .apply_session_activity_for_launch(report.session_id, token, report.event_id, report.event, at)
+                .await
+        };
+        match applied {
             Ok(_) => 204,
+            Err(Error::NotFound) => 401,
             Err(error) => {
                 (self.on_error)(&error);
                 500
@@ -185,6 +184,7 @@ impl Server {
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct SessionReport {
     session_id: sessions::SessionId,
+    event_id: uuid::Uuid,
     /// The reported activity signal; `sessionStart` also carries the native ID
     /// and, when the harness exposes one, its transcript location.
     event: sessions::ActivityEvent,

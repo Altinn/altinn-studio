@@ -239,6 +239,15 @@ pub(crate) fn shell_single_quoted(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
 
+/// Recognizes an initialized input line before a harness reports its conversation.
+/// The runtime supplies the line containing the visible terminal cursor.
+pub(crate) fn input_ready_without_report(harness: Harness, cursor_line: &str) -> bool {
+    match harness {
+        Harness::ClaudeCode => false,
+        Harness::Codex => codex::input_ready_without_report(cursor_line),
+    }
+}
+
 /// Parses harness transcript bytes into ordered, runtime-neutral turns.
 ///
 /// # Errors

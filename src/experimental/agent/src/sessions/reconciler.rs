@@ -83,6 +83,11 @@ impl Reconciler {
         let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
         if let Observation::Alive { attached, idle_seconds } = self.runtime.observe(session, &sandbox).await? {
+            if let Some(state) = &launch
+                && state.initial_prompt_claim.is_some()
+            {
+                self.sessions.confirm_session_launch(session.id, &state.token).await?;
+            }
             if !attached
                 && effective_idle_seconds(&session.status.reported.activity, idle_seconds, now) >= IDLE_AFTER_SECONDS
             {
@@ -99,6 +104,15 @@ impl Reconciler {
             return Ok(Lifecycle::running());
         }
 
+        if let Some(state) = &launch
+            && state
+                .initial_prompt_claim
+                .is_some_and(|generation| generation >= session.activation_generation)
+        {
+            return Ok(Lifecycle::failed(
+                "initial prompt delivery is uncertain; inspect the Session, then reactivate it to continue without replaying the prompt",
+            ));
+        }
         let mut attempts = 0;
         let mut resume = session.status.reported.harness_session_id.clone();
         if let Some(state) = launch {
@@ -119,37 +133,51 @@ impl Reconciler {
                 self.sessions.clear_session_report(session.id).await?;
             }
         }
-        // The Session's first prompt is delivered exactly once: at the first
-        // launch that starts, never to a resumed conversation, and not to a
-        // later fresh conversation after a Sandbox replacement.
-        let initial_prompt = match resume {
-            Some(_) => None,
-            None => self.sessions.session_initial_prompt(session.id).await?,
-        };
-        let token = LaunchToken::generate();
-        self.sessions
-            .record_session_launch(
-                session.id,
-                LaunchRecord {
-                    token: token.clone(),
-                    sandbox: sandbox_id,
-                    launched_at: now,
-                    attempts: attempts + 1,
-                },
-            )
-            .await?;
+        self.launch(
+            session,
+            &sandbox,
+            LaunchRecord {
+                token: LaunchToken::generate(),
+                sandbox: sandbox_id,
+                launched_at: now,
+                attempts: attempts + 1,
+            },
+            resume.as_deref(),
+        )
+        .await
+    }
+
+    /// Claims the first prompt before external effects; a crash cannot replay it.
+    async fn launch(
+        &self,
+        session: &Session,
+        sandbox: &::sandbox::SandboxHandle,
+        record: LaunchRecord,
+        resume: Option<&str>,
+    ) -> Result<Lifecycle, Error> {
+        let token = record.token.clone();
+        let initial_prompt = self.sessions.record_session_launch(session.id, record).await?;
         self.runtime
             .start(
                 session,
-                &sandbox,
+                sandbox,
                 &self.session_hook_url,
                 &token,
-                resume.as_deref(),
-                initial_prompt.as_deref(),
+                resume,
+                initial_prompt.as_deref().filter(|_| resume.is_none()),
             )
-            .await?;
+            .await
+            .map_err(|error| {
+                if initial_prompt.is_some() {
+                    Error::Session(format!(
+                        "initial prompt delivery is uncertain and will not be retried automatically: {error}"
+                    ))
+                } else {
+                    error
+                }
+            })?;
         if initial_prompt.is_some() {
-            self.sessions.clear_session_initial_prompt(session.id).await?;
+            self.sessions.confirm_session_launch(session.id, &token).await?;
         }
         Ok(Lifecycle::running())
     }

@@ -140,28 +140,6 @@ pub(super) fn activate(connection: &Connection, id: SessionId) -> Result<u64, Er
         .map_err(database_error)
 }
 
-pub(super) fn initial_prompt(connection: &Connection, id: SessionId) -> Result<Option<String>, Error> {
-    connection
-        .query_row(
-            "SELECT initial_prompt FROM sessions WHERE id = ?1",
-            [id.to_string()],
-            |row| row.get::<_, Option<String>>(0),
-        )
-        .optional()
-        .map_err(database_error)?
-        .ok_or(Error::NotFound)
-}
-
-pub(super) fn clear_initial_prompt(connection: &Connection, id: SessionId) -> Result<(), Error> {
-    let changed = connection
-        .execute(
-            "UPDATE sessions SET initial_prompt = NULL WHERE id = ?1",
-            [id.to_string()],
-        )
-        .map_err(database_error)?;
-    if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
-}
-
 pub(super) fn update_lifecycle(
     connection: &Connection,
     id: SessionId,
@@ -204,89 +182,178 @@ pub(super) fn apply_activity_for_launch(
     connection: &mut Connection,
     id: SessionId,
     token: &LaunchToken,
+    event_id: uuid::Uuid,
     event: ActivityEvent,
     at: time::OffsetDateTime,
 ) -> Result<Option<Activity>, Error> {
+    let (transaction, activity) = match begin_report(connection, id, token, event_id) {
+        Ok(Some(report)) => report,
+        Ok(None) | Err(Error::NotFound) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    commit_report(transaction, id, activity.folded(event, at)).map(Some)
+}
+
+/// Records start metadata and activity as one deduplicated report.
+pub(super) fn record_start_for_launch(
+    connection: &mut Connection,
+    id: SessionId,
+    token: &LaunchToken,
+    event_id: uuid::Uuid,
+    native: &str,
+    transcript_path: Option<&str>,
+    at: time::OffsetDateTime,
+) -> Result<Option<Activity>, Error> {
+    let Some((transaction, activity)) = begin_report(connection, id, token, event_id)? else {
+        return Ok(None);
+    };
+    transaction
+        .execute(
+            "UPDATE sessions SET harness_native_id = ?1, harness_transcript_path = ?2 WHERE id = ?3",
+            params![native, transcript_path, id.to_string()],
+        )
+        .map_err(database_error)?;
+    commit_report(transaction, id, activity.folded(ActivityEvent::SessionStart, at)).map(Some)
+}
+
+/// Authenticates the launch and claims the event ID inside its write transaction.
+/// Duplicate reports return `None`; stale launches return `Error::NotFound`.
+fn begin_report<'a>(
+    connection: &'a mut Connection,
+    id: SessionId,
+    token: &LaunchToken,
+    event_id: uuid::Uuid,
+) -> Result<Option<(rusqlite::Transaction<'a>, Activity)>, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let current = transaction
         .query_row(
-            "SELECT activity_json FROM sessions
-             WHERE id = ?1 AND launch_token = ?2
-             AND EXISTS (
-                 SELECT 1 FROM agents
-                 WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL
+            "SELECT activity_json FROM sessions \
+             WHERE id = ?1 AND launch_token = ?2 \
+             AND EXISTS ( \
+                 SELECT 1 FROM agents \
+                 WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL \
              )",
             params![id.to_string(), token.expose()],
             |row| row.get::<_, String>(0),
         )
         .optional()
+        .map_err(database_error)?
+        .ok_or(Error::NotFound)?;
+    let inserted = transaction
+        .execute(
+            "INSERT INTO session_activity_reports (session_id, launch_token, event_id) VALUES (?1, ?2, ?3) \
+             ON CONFLICT (session_id, launch_token, event_id) DO NOTHING",
+            params![id.to_string(), token.expose(), event_id.to_string()],
+        )
         .map_err(database_error)?;
-    let Some(current) = current else {
+    if inserted == 0 {
         return Ok(None);
-    };
-    let activity = serde_json::from_str::<Activity>(&current)?.folded(event, at);
+    }
+    Ok(Some((transaction, serde_json::from_str(&current)?)))
+}
+
+fn commit_report(transaction: rusqlite::Transaction<'_>, id: SessionId, activity: Activity) -> Result<Activity, Error> {
     transaction
         .execute(
-            "UPDATE sessions SET activity_json = ?1 WHERE id = ?2 AND launch_token = ?3",
-            params![serde_json::to_string(&activity)?, id.to_string(), token.expose()],
+            "UPDATE sessions SET activity_json = ?1 WHERE id = ?2",
+            params![serde_json::to_string(&activity)?, id.to_string()],
         )
         .map_err(database_error)?;
     transaction.commit().map_err(database_error)?;
-    Ok(Some(activity))
-}
-
-pub(super) fn record_start_for_launch(
-    connection: &Connection,
-    id: SessionId,
-    token: &LaunchToken,
-    native: &str,
-    transcript_path: Option<&str>,
-) -> Result<(), Error> {
-    let changed = connection
-        .execute(
-            "UPDATE sessions SET harness_native_id = ?1, harness_transcript_path = ?2
-             WHERE id = ?3 AND launch_token = ?4
-             AND EXISTS (
-                 SELECT 1 FROM agents
-                 WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL
-             )",
-            params![native, transcript_path, id.to_string(), token.expose()],
-        )
-        .map_err(database_error)?;
-    if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
+    Ok(activity)
 }
 
 pub(super) fn record_launch(
-    connection: &Connection,
+    connection: &mut Connection,
     id: SessionId,
     token: &LaunchToken,
     sandbox: &str,
     launched_at: i64,
     attempts: u32,
-) -> Result<(), Error> {
-    let changed = connection
+) -> Result<Option<String>, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let (prompt, activation, pending): (Option<String>, i64, Option<i64>) = transaction
+        .query_row(
+            "SELECT initial_prompt, activation_generation,
+                    (SELECT activation_generation FROM session_prompt_claims WHERE session_id = sessions.id)
+             FROM sessions WHERE id = ?1",
+            [id.to_string()],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        )
+        .optional()
+        .map_err(database_error)?
+        .ok_or(Error::NotFound)?;
+    if pending.is_some_and(|generation| generation >= activation) {
+        return Err(Error::Session(
+            "initial prompt delivery is uncertain; reactivate the Session to continue without replaying it".into(),
+        ));
+    }
+    transaction
         .execute(
             "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4, \
-             activity_json = '{}' WHERE id = ?5",
+             activity_json = '{}', initial_prompt = NULL WHERE id = ?5",
             params![token.expose(), sandbox, launched_at, attempts, id.to_string()],
         )
         .map_err(database_error)?;
-    if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
+    transaction
+        .execute(
+            "DELETE FROM session_prompt_claims WHERE session_id = ?1",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    if prompt.is_some() {
+        transaction.execute(
+            "INSERT INTO session_prompt_claims (session_id, launch_token, activation_generation) VALUES (?1, ?2, ?3)",
+            params![id.to_string(), token.expose(), activation],
+        ).map_err(database_error)?;
+    }
+    // Reports from previous launches can no longer authenticate, so their IDs can be discarded.
+    transaction
+        .execute(
+            "DELETE FROM session_activity_reports WHERE session_id = ?1",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    transaction.commit().map_err(database_error)?;
+    Ok(prompt)
+}
+
+pub(super) fn confirm_launch(connection: &Connection, id: SessionId, token: &LaunchToken) -> Result<(), Error> {
+    connection
+        .execute(
+            "DELETE FROM session_prompt_claims WHERE session_id = ?1 AND launch_token = ?2",
+            params![id.to_string(), token.expose()],
+        )
+        .map_err(database_error)?;
+    Ok(())
 }
 
 pub(super) fn launch_state(connection: &Connection, id: SessionId) -> Result<Option<LaunchState>, Error> {
     connection
         .query_row(
-            "SELECT launch_sandbox, launched_at, launch_attempts FROM sessions WHERE id = ?1",
+            "SELECT launch_sandbox, launched_at, launch_attempts,
+             (SELECT activation_generation FROM session_prompt_claims WHERE session_id = sessions.id), launch_token
+             FROM sessions WHERE id = ?1",
             [id.to_string()],
             |row| {
                 let sandbox = row.get::<_, Option<String>>(0)?;
                 let launched_at = row.get::<_, Option<i64>>(1)?;
                 let attempts = row.get::<_, u32>(2)?;
-                Ok(sandbox.zip(launched_at).map(|(sandbox, launched_at)| LaunchState {
+                let initial_prompt_claim = row
+                    .get::<_, Option<i64>>(3)?
+                    .map(u64::try_from)
+                    .transpose()
+                    .map_err(conversion_error)?;
+                let token = row.get::<_, Option<String>>(4)?;
+                let (Some(sandbox), Some(launched_at), Some(token)) = (sandbox, launched_at, token) else {
+                    return Ok(None);
+                };
+                Ok(Some(LaunchState {
+                    token: token.parse().map_err(conversion_error)?,
                     sandbox,
                     launched_at,
                     attempts,
+                    initial_prompt_claim,
                 }))
             },
         )

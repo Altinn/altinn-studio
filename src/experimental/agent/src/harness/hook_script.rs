@@ -19,7 +19,9 @@ pub(super) struct HookScript<'a> {
     pub(super) waiting_notifications: &'a [&'a str],
 }
 
-const TEMPLATE: &str = r#"const url = process.env.AGENT_SESSION_HOOK_URL;
+const TEMPLATE: &str = r#"import { randomUUID } from "node:crypto";
+
+const url = process.env.AGENT_SESSION_HOOK_URL;
 const token = process.env.AGENT_SESSION_TOKEN;
 const sessionId = process.env.AGENT_SESSION_ID;
 
@@ -59,7 +61,7 @@ if (
   process.exit(0);
 }
 
-const body = { sessionId, event, source: typeof input.source === "string" ? input.source : "" };
+const body = { sessionId, eventId: randomUUID(), event, source: typeof input.source === "string" ? input.source : "" };
 if (event === "sessionStart") {
   if (typeof input.session_id !== "string" || input.session_id === "") process.exit(0);
   body.nativeSessionId = input.session_id;
@@ -69,12 +71,14 @@ if (event === "sessionStart") {
 }
 const payload = JSON.stringify(body);
 
-// SessionStart matters and is rare, so it retries within a strict budget.
+// Start and terminal reports unblock callers, so they retry within a strict budget.
+// The payload keeps the same event ID across retries, including a lost response.
 // Frequent per-tool events use one short best-effort attempt so hook latency
 // never dominates a turn.
-const attempts = event === "sessionStart" ? 3 : 1;
-const budget = event === "sessionStart" ? 1500 : 300;
-const perAttempt = event === "sessionStart" ? 450 : 250;
+const retryable = ["sessionStart", "turnCompleted", "waitingForInput"].includes(event);
+const attempts = retryable ? 3 : 1;
+const budget = retryable ? 1500 : 300;
+const perAttempt = retryable ? 450 : 250;
 const deadline = Date.now() + budget;
 for (let attempt = 0; attempt < attempts; attempt += 1) {
   const remaining = deadline - Date.now();
@@ -172,7 +176,7 @@ mod tests {
         .expect("script renders");
         assert!(script.contains("body.nativeSessionId = input.session_id;"));
         assert!(script.contains("body.transcriptPath = input.transcript_path;"));
-        assert!(script.contains("event === \"sessionStart\" ? 3 : 1"));
-        assert!(script.contains("event === \"sessionStart\" ? 1500 : 300"));
+        assert!(script.contains("retryable ? 3 : 1"));
+        assert!(script.contains("retryable ? 1500 : 300"));
     }
 }

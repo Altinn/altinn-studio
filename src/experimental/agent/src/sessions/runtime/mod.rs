@@ -68,6 +68,14 @@ pub trait SessionRuntime {
         sandbox: &'a SandboxHandle,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
+    /// Whether a running harness can accept input before it reports a conversation.
+    /// Some harnesses do not create that conversation until the first prompt arrives.
+    fn input_ready<'a>(
+        &'a self,
+        session: &'a Session,
+        sandbox: &'a SandboxHandle,
+    ) -> ::sandbox::LocalFuture<'a, Result<bool, Error>>;
+
     /// Delivers `prompt` to the running harness as operator input, returning
     /// once the harness has taken it. The runtime owns the question of when the
     /// harness can take input; callers only see the delivery.

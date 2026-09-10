@@ -255,12 +255,16 @@ pub struct Reported {
 /// Durable bookkeeping for the most recent harness launch of one Session.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LaunchState {
+    /// Identity of this launch, also used to confirm a pending initial-prompt claim.
+    pub token: LaunchToken,
     /// Sandbox ID the harness was launched in.
     pub sandbox: String,
     /// Launch time as Unix seconds.
     pub launched_at: i64,
     /// Consecutive launches without a sustained healthy observation.
     pub attempts: u32,
+    /// Activation that claimed the initial prompt but has not confirmed launch success.
+    pub initial_prompt_claim: Option<u64>,
 }
 
 /// Opaque bearer token authenticating one exact harness launch.
@@ -348,7 +352,7 @@ pub trait SessionStore {
     /// Creates or gets one named Session for the active Agent incarnation.
     ///
     /// `initial_prompt`, recorded only when the Session is created, is handed to
-    /// the harness at its first successful launch.
+    /// the harness at its first launch attempt, without automatic replay.
     fn ensure_session<'a>(
         &'a self,
         agent: &'a str,
@@ -357,11 +361,12 @@ pub trait SessionStore {
         initial_prompt: Option<&'a str>,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
-    /// Reads the first prompt recorded at creation, while it is still undelivered.
-    fn session_initial_prompt(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<Option<String>, Error>>;
-
-    /// Forgets the first prompt once a harness launch has carried it.
-    fn clear_session_initial_prompt(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
+    /// Confirms a successful launch, clearing only that launch's uncertain prompt claim.
+    fn confirm_session_launch<'a>(
+        &'a self,
+        id: SessionId,
+        token: &'a LaunchToken,
+    ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
     /// Gets one Session by immutable identity.
     fn get_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<Session, Error>>;
@@ -398,7 +403,9 @@ pub trait SessionStore {
     /// conversation ID, its transcript location and the folded activity.
     fn clear_session_report(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
-    /// Durably records a new harness launch before its external effects begin.
+    /// Durably records a new harness launch and consumes its initial prompt atomically.
+    /// Returns the claimed prompt for this attempt; it is never restored after an
+    /// uncertain launch. An unconfirmed claim blocks attempts until reactivation.
     /// The previous launch's activity is reset so the Session reads as
     /// [`State::Starting`] until this launch reports; the native ID and
     /// transcript location survive because a resumed conversation keeps them.
@@ -406,7 +413,7 @@ pub trait SessionStore {
         &self,
         id: SessionId,
         launch: LaunchRecord,
-    ) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
+    ) -> ::sandbox::LocalFuture<'_, Result<Option<String>, Error>>;
 
     /// Reads the most recent launch bookkeeping, when one exists.
     fn session_launch_state(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<Option<LaunchState>, Error>>;
@@ -422,23 +429,26 @@ pub trait SessionStore {
 /// reports travel (today, harness hooks posting to the Platform API) is a
 /// transport detail below this trait.
 pub trait SessionReports {
-    /// Records the harness-native conversation ID and transcript location
-    /// reported at start, only when `token` still identifies this exact launch.
+    /// Atomically records start identity, transcript location and activity for
+    /// this launch. Duplicate event IDs return `None`; stale tokens return `Error::NotFound`.
     fn record_session_start_for_launch<'a>(
         &'a self,
         id: SessionId,
         token: &'a LaunchToken,
+        event_id: uuid::Uuid,
         native: &'a str,
         transcript_path: Option<&'a str>,
-    ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
+        at: time::OffsetDateTime,
+    ) -> ::sandbox::LocalFuture<'a, Result<Option<crate::sessions::Activity>, Error>>;
 
     /// Folds one activity event into the Session's activity, only when `token`
     /// still identifies this exact launch, and returns the folded activity.
-    /// A stale token is a no-op that returns `None`.
+    /// A stale token or duplicate event ID is a no-op that returns `None`.
     fn apply_session_activity_for_launch<'a>(
         &'a self,
         id: SessionId,
         token: &'a LaunchToken,
+        event_id: uuid::Uuid,
         event: ActivityEvent,
         at: OffsetDateTime,
     ) -> ::sandbox::LocalFuture<'a, Result<Option<Activity>, Error>>;
