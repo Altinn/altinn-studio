@@ -42,6 +42,10 @@ class EvalOutcome:
     traces: dict[str, str] = field(default_factory=dict)
 
 
+def _agent_base() -> str:
+    return os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/")
+
+
 def _agent_models_or_die(agent_base: str) -> dict[str, str]:
     """The agent's own models, refusing to silently fall back to this checkout's."""
     models = agent_role_models(agent_base)
@@ -55,11 +59,18 @@ def _agent_models_or_die(agent_base: str) -> dict[str, str]:
     return models
 
 
-def task_for(args, dataset):
+def agent_models_for(planned) -> dict[str, str]:
+    """One snapshot of the agent's models per run, read only when an e2e eval is selected."""
+    if not any(entry.kind == "e2e" for entry in planned):
+        return {}
+    return _agent_models_or_die(_agent_base())
+
+
+def task_for(args, dataset, agent_models: dict[str, str] | None = None):
     """The task and scorers for a dataset, chosen by its kind."""
     if dataset.kind == "e2e":
-        agent_base = os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/")
-        role_models = _agent_models_or_die(agent_base)
+        agent_base = _agent_base()
+        role_models = agent_models or _agent_models_or_die(agent_base)
         run_name = getattr(args, "run_name", None) or dataset.name
         task = AgentTask(
             agent_base=agent_base,
@@ -337,6 +348,7 @@ def run(
     include_slow: bool = False,
     only: tuple[str, ...] = (),
     run_eval,
+    agent_models: dict[str, str] | None = None,
     name: str | None = None,
 ) -> Run:
     """Execute the pinned behaviors and return a saved-shaped run."""
@@ -348,12 +360,8 @@ def run(
 
     chosen = evals_to_run(include_slow=include_slow, only=only)
     # The agent runs an e2e eval, so its models are what produced the result.
-    runs_e2e = any(entry.kind == "e2e" for entry in chosen)
-    agent_models = (
-        _agent_models_or_die(os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/"))
-        if runs_e2e
-        else {}
-    )
+    if agent_models is None:
+        agent_models = agent_models_for(chosen)
 
     for entry in chosen:
         result, versions, version_stamp = run_eval(entry)
@@ -414,14 +422,14 @@ def _warn_if_stale(entry: registry.Eval, remote_count: int) -> None:
     )
 
 
-def langfuse_runner(args, *, check_id: str = "", label: str = ""):
+def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=None):
     """The real `run_eval`: one Langfuse experiment per dataset."""
     client = get_client()
 
     def go(entry: registry.Eval):
         dataset = client.get_dataset(entry.name)
         items = [i for i in dataset.items if getattr(i, "status", "ACTIVE") != "ARCHIVED"]
-        task, evaluators, score_names, model = task_for(args, entry)
+        task, evaluators, score_names, model = task_for(args, entry, agent_models)
         slow = " (builds apps, minutes)" if entry.kind in SLOW_KINDS else ""
         print(f"  {entry.name}: {len(items)} items on {model}{slow}", flush=True)
         _warn_if_stale(entry, len(items))
