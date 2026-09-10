@@ -1,8 +1,18 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
-from typing import Dict, Any, Set, Optional, Tuple
+from typing import Dict, Any, List, Set, Optional, Tuple
 import requests
 from urllib.parse import urlparse
+
+
+# Pairings the schema marks optional but the renderer requires.
+BINDING_CONSTRAINTS: Dict[str, List[str]] = {
+    "Datepicker": [
+        'A binding to a string with "format": "date" requires "timeStamp": false. '
+        'The property defaults to true, which stores a full ISO timestamp against a '
+        'date-only field, and Altinn Studio refuses to render the component.'
+    ],
+}
 
 
 def layout_properties_tool(
@@ -55,6 +65,7 @@ def layout_properties_tool(
         return {
             "status": "success",
             "message": f"Schema information retrieved for component type '{component_type}'",
+            "constraints": BINDING_CONSTRAINTS.get(component_type, []),
             "allowed_properties": sorted(list(allowed_properties)),
             "required_properties": sorted(list(required_properties)),
             "property_details": property_details

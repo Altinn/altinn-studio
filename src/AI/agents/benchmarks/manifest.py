@@ -665,6 +665,48 @@ BEHAVIORS = (
         ),
     ),
     Behavior(
+        id="actor.writes-usable-component-content",
+        component="actor",
+        text="Writes components carrying the properties their bindings require",
+        checks=(
+            "On a replayed turn that wrote layouts, every component of a type the item names "
+            "carries the property that item requires. One pairing is declared today: a "
+            "Datepicker against a date-formatted binding has to set timeStamp."
+        ),
+        blind=(
+            "One pairing on one item, so it is a tripwire for a known defect rather than "
+            "coverage of written content. It reads write_file payloads only, so a component "
+            "introduced by edit_file is invisible to it, and it asserts the property is "
+            "present rather than that its value suits the binding. It also cannot see a "
+            "prevention: the replay runs the recorded system prompt and the recorded tool "
+            "results of the source session, so a change to either moves build.pages-render "
+            "and leaves this score where it was until the item is harvested again."
+        ),
+        eval="Loop/traces",
+        evaluator="gen_content_pairings",
+        metric="mean",
+        issue="digdir/digdir-ai-lab#225",
+        fix=Fix(
+            kind="coverage",
+            title="One declared pairing is a tripwire, not coverage of written content",
+            task=(
+                "1. Declare the other pairings the schema permits and the renderer rejects, "
+                "one rule key per pairing, and keep the evaluator generic over component type "
+                "and property. The specifics belong in the item.\n"
+                "2. Read edit_file payloads too, so a component added by an edit is scored "
+                "like one added by a write.\n"
+                "3. Do not grow this into a second layout validator. Whole-app validation is "
+                "build.components-valid and rendering is build.pages-render; this one only "
+                "asserts pairings a schema cannot express."
+            ),
+            acceptance=(
+                "Every pairing the render check has caught declared here, scored on at least "
+                "three items, and edit_file payloads read alongside write_file."
+            ),
+        ),
+        see=("build.pages-render", "build.components-valid"),
+    ),
+    Behavior(
         id="actor.recovers-from-tool-error",
         component="actor",
         text="Recovers from a tool error without abandoning the turn",
@@ -737,7 +779,7 @@ BEHAVIORS = (
                 "a property."
             ),
         ),
-        see=("actor.picks-allowed-tool",),
+        see=("actor.picks-allowed-tool", "actor.writes-usable-component-content"),
     ),
     Behavior(
         id="build.completes-the-workflow",
