@@ -2202,6 +2202,634 @@ const IPagination = {
   },
 } as const;
 
+const RequestedDocument = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'minid-pid', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-identitetsnummer', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'advokatbevilling', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-id-bevis', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'digital-kontaktinformasjon', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-foererkort', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'handicapbevis', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'aldersbevis', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'legeerklaeringbevis', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'inntektsbevis', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-id-bevis', required: true },
+        saveToDataType: { type: 'string', required: false },
+        alternativeUploadToDataType: { type: 'string', required: false },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+  ],
+} as const;
+
+const IssuableDocument = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'minid-pid', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-identitetsnummer', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'advokatbevilling', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-id-bevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'digital-kontaktinformasjon', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-foererkort', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'handicapbevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'aldersbevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'legeerklaeringbevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'inntektsbevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { type: 'constant', value: 'norsk-id-bevis', required: true },
+        urlDataType: { type: 'string', required: false },
+        urlField: { type: 'string', required: true },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string', required: true },
+              title: { type: 'string', required: true },
+              displayType: {
+                type: 'string',
+                allowedValues: ['string', 'date', 'image', 'boolean'],
+                required: false,
+              },
+            },
+            additionalProperties: false,
+          },
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+      },
+      additionalProperties: false,
+    },
+  ],
+} as const;
+
 const IDataModelBindingsForMap = {
   type: 'object',
   properties: {
@@ -3651,46 +4279,6 @@ const ListSummaryOverridesWithRef = {
   ],
 } as const;
 
-const LommebokSummaryOverridesWithRef = {
-  type: 'union',
-  variants: [
-    {
-      type: 'object',
-      properties: {
-        hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        componentId: { type: 'string', required: true },
-      },
-      additionalProperties: false,
-      title: {
-        en: 'Summary overrides for Lommebok',
-        nb: 'Overstyringer av oppsummering for Lommebok',
-      },
-      description: {
-        en: 'Properties for how to display the summary of this Lommebok component',
-        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Lommebok-komponenten vises.',
-      },
-    },
-    {
-      type: 'object',
-      properties: {
-        hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        componentType: { type: 'constant', value: 'Lommebok', required: true },
-      },
-      additionalProperties: false,
-      title: {
-        en: 'Summary overrides for all Lommebok',
-        nb: 'Overstyringer av oppsummering for alle Lommebok-komponenter',
-      },
-      description: {
-        en: 'Properties for how to display the summary of all Lommebok components',
-        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Lommebok-komponenter vises.',
-      },
-    },
-  ],
-} as const;
-
 const MapSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4357,7 +4945,6 @@ const AnySummaryOverride = {
     InputSummaryOverridesWithRef,
     LikertSummaryOverridesWithRef,
     ListSummaryOverridesWithRef,
-    LommebokSummaryOverridesWithRef,
     MapSummaryOverridesWithRef,
     MultipleSelectSummaryOverridesWithRef,
     NumberSummaryOverridesWithRef,
@@ -7660,7 +8247,7 @@ const generatedContract = {
       kind: 'component',
       category: 'Form',
       capabilities: {
-        renderInTable: true,
+        renderInTable: false,
         renderInButtonGroup: false,
         renderInAccordion: true,
         renderInAccordionGroup: false,
@@ -7714,6 +8301,20 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        request: {
+          type: 'array',
+          items: RequestedDocument,
+          minItems: undefined,
+          maxItems: undefined,
+          required: false,
+        },
+        issue: {
+          type: 'array',
+          items: IssuableDocument,
+          minItems: undefined,
+          maxItems: undefined,
           required: false,
         },
       },
