@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "07e319515e6a",
-    "code": "0eabfe8 clean",
+    "code": "d2f7f6f clean",
     "dataset": "114 items 5562d4e8298d",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260910T030031Z-datepicker-timestamp-rule-in-the-prompt-constraint-on-the-tool-pairing-scored-6382",
-  "label": "datepicker timeStamp: rule in the prompt, constraint on the tool, pairing scored",
-  "recorded_at": "2026-09-10T03:05:52+00:00",
-  "why": "datepicker timeStamp: prompt rule and tool constraint added, gen_content_pairings pins the pairing at 0.000 on the source run, which is the recorded defect"
+  "check_id": "20260910T042810Z-datepicker-timestamp-pairing-declares-the-required-value-5ea8",
+  "label": "datepicker timeStamp: pairing declares the required value",
+  "recorded_at": "2026-09-10T04:32:45+00:00",
+  "why": "pairing declares the required value, so a Datepicker with timeStamp true no longer scores as satisfied"
 }
