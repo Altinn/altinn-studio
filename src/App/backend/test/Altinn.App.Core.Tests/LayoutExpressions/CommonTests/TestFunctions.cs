@@ -257,9 +257,8 @@ public class TestFunctions
     public async Task Sum_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
-    [SharedTestCases("average")]
-    public async Task Average_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
-        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+    [SharedTest("average")]
+    public async Task Average_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("count")]

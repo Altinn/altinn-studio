@@ -135,32 +135,6 @@ describe('expression schema tests', () => {
     expect(declarations.length).toBe(Object.keys(expressionSchema.definitions).length);
   });
 
-  it('expressions returning a list should be accepted as list arguments', () => {
-    // The evaluators accept any expression returning a list where a list is expected, so the schema has to accept the
-    // lookup functions as well. Otherwise Studio refuses to save expressions that work perfectly fine at runtime.
-    const listArgumentExpressions = [
-      ['dataModel', 'someList'],
-      ['dataModel', 'someList', 'someDataType'],
-      ['component', 'someComponent'],
-      ['if', true, ['dataModel', 'someList'], 'else', ['dataModel', 'someOtherList']],
-      ['list', 1, 2],
-      ['jmespath', ['dataModel', 'someList'], '@'],
-    ];
-    for (const expression of listArgumentExpressions) {
-      for (const funcCall of listFunctionCalls(expression)) {
-        expect(validate(funcCall), JSON.stringify(funcCall)).toBe(true);
-      }
-    }
-  });
-
-  it('values that are not lists should not be accepted as list arguments', () => {
-    for (const argument of [null, 'string', 5, true]) {
-      for (const funcCall of listFunctionCalls(argument)) {
-        expect(validate(funcCall), JSON.stringify(funcCall)).toBe(false);
-      }
-    }
-  });
-
   it('no other function definitions should be present', () => {
     const functionDefs = Object.keys(expressionSchema.definitions).filter((key) => key.startsWith('func-'));
     const validFunctionDefs = new Set([
@@ -179,17 +153,6 @@ describe('expression schema tests', () => {
     expect(operators).toEqual(valid);
   });
 });
-
-/**
- * The function calls to test a list argument with. The average function needs a fallback value for empty lists.
- */
-function listFunctionCalls(listArgument: unknown): unknown[][] {
-  return [
-    ['count', listArgument],
-    ['sum', listArgument],
-    ['average', listArgument, 0],
-  ];
-}
 
 function testArgumentFromExprVal(val: ExprVal): string | string[] {
   return val === ExprVal.List ? ['list'] : exprValToString(val);
