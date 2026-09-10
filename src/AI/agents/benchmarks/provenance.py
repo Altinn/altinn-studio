@@ -201,8 +201,9 @@ def collect(
 ) -> Provenance:
     """Everything knowable without a network call, plus what the caller knows."""
     models, sampling = _models_and_sampling()
-    if agent_models:
-        models = {**models, **{r: m for r, m in agent_models.items() if r in LIVE_ROLES}}
+    agent_roles = tuple(sorted(r for r in (agent_models or {}) if r in LIVE_ROLES))
+    if agent_roles:
+        models = {**models, **{r: agent_models[r] for r in agent_roles}}
     provenance = Provenance(
         recorded_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         environment=_environment(),
@@ -216,13 +217,21 @@ def collect(
         evaluators=evaluators or {},
         judge=judge,
     )
+    notes = []
     missing = provenance.missing()
     if missing:
+        notes.append(f"axes not recorded: {', '.join(missing)}")
+    if agent_roles:
+        notes.append(
+            f"models axis for {', '.join(agent_roles)} came from the agent that built "
+            "the app, not this checkout"
+        )
+    if notes:
         provenance = Provenance(
             **{
                 **provenance.to_dict(),
                 "code": provenance.code,
-                "notes": (f"axes not recorded: {', '.join(missing)}",),
+                "notes": tuple(notes),
             }
         )
     return provenance

@@ -101,6 +101,8 @@ To use a prompt from Langfuse instead of the local file:
    - **Content**: Paste the prompt content (without YAML frontmatter for system prompts)
 4. **Label it `production`** — By default, `get_prompt()` fetches the version labeled `production`. If no version has this label, the fetch will fail and fall back to local.
 
+For a prompt that already has a file here, do steps 3 and 4 by editing the file and merging: `.github/workflows/assistant-prompts.yaml` publishes it as `production` on merge to main. Editing the served prompt in the UI instead leaves the repo copy behind, which the workflow reports as drift on the next pull request.
+
 ### Prompt Naming Reference
 
 The Langfuse prompt name is the local filename without its `.md` extension and
@@ -123,6 +125,9 @@ get_prompt_with_langfuse("intake_planning")
 | `templates/intake_planning_user.md` | `intake_planning_user`      |
 | `templates/spec_extraction_user.md` | `spec_extraction_user`      |
 | `templates/semantic_query_user.md`  | `semantic_query_user`       |
+
+One exception: the intent gate loads Langfuse prompt `intent_check` from local
+`intent_security.md`. Pass `local_path` when the two names diverge.
 
 ### LLM-as-a-judge prompts
 
@@ -161,7 +166,7 @@ The Langfuse SDK caches prompts internally (default 60s TTL). You can override t
 - **Organized**: One file per prompt, separate system vs user
 - **Type-safe**: Frontmatter provides metadata
 - **No Inline Strings**: All prompts external to code
-- **Remote Management**: Edit prompts via Langfuse UI without code changes or redeployment
+- **Reviewed publication**: CI publishes the repo copy to Langfuse on merge to main, so the served prompt has a reviewed commit behind it
 
 ## Prompt Files
 

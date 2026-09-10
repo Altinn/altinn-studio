@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "77dd32dbde59",
-    "code": "1f71e0a dirty",
-    "dataset": "not recorded",
+    "code": "9c51b37 clean",
+    "dataset": "114 items 5562d4e8298d",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "e477b1c86c5c"
   },
-  "check_id": "20260909T191956Z-planner-sol-d122",
-  "label": "planner sol",
-  "recorded_at": "2026-09-09T19:25:19+00:00",
-  "why": "post-migration reference: gpt-5.6-terra actor, gpt-5.6-sol planner, EU data zone"
+  "check_id": "20260910T015211Z-intent-gates-eb13",
+  "label": "intent gates",
+  "recorded_at": "2026-09-10T01:57:05+00:00",
+  "why": "intent gate: credential blocklist removed, confidence threshold at 0.30"
 }

@@ -118,10 +118,16 @@ def test_without_a_new_baseline_it_still_says_stale(capsys):
 
 def test_every_declared_pattern_matches_something_that_exists():
     """A rule for a path that is gone is a rule that silently stops working."""
+    import fnmatch
+
+    tracked = [
+        str(path.relative_to(AGENTS_ROOT))
+        for path in AGENTS_ROOT.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+    ]
     for pattern, _axis, _why in impact.YARDSTICK + impact.BEHAVIOR:
-        base = pattern.rstrip("/*")
-        target = AGENTS_ROOT / base
-        assert target.exists(), f"{pattern} matches nothing in the repo any more"
+        matched = any(fnmatch.fnmatch(path, pattern) for path in tracked)
+        assert matched, f"{pattern} matches nothing in the repo any more"
 
 
 def test_every_yardstick_axis_is_one_a_comparison_actually_blocks_on():
@@ -434,3 +440,34 @@ class TestTheOutputStaysReadable:
         before = len(logging.getLogger("asyncio").filters)
         quiet.apply()
         assert len(logging.getLogger("asyncio").filters) == before
+
+
+def test_documentation_beside_a_prompt_is_not_a_prompt():
+    """`agents/prompts/*` matched the README and the loader, so a docs-only change
+    was told to re-baseline."""
+    for path in ("src/AI/agents/agents/prompts/README.md",
+                 "src/AI/agents/agents/prompts/loader.py"):
+        assert impact.analyze([path]).hits == ()
+
+
+def test_a_prompt_itself_still_moves_the_axis():
+    hits = impact.analyze(["src/AI/agents/agents/prompts/scope_check.md"]).hits
+
+    assert [h.axis for h in hits] == ["prompts"]
+
+
+def test_a_judge_prompt_in_a_subdirectory_still_moves_the_axis():
+    hits = impact.analyze(["src/AI/agents/agents/prompts/llm-as-a-judge/x.md"]).hits
+
+    assert [h.axis for h in hits] == ["prompts"]
+
+
+def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
+    """xargs split a long list across several runs, so each saw part of the change."""
+    import io
+
+    monkeypatch.setattr("sys.argv", ["impact", "--strict"])
+    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/benchmarks/gates.py\n"))
+
+    assert impact._main() == 1
+    assert "evaluators" in capsys.readouterr().out

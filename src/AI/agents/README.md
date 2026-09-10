@@ -175,7 +175,7 @@ Three layers, each covering what the others cannot.
 
 **Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment *filenames*, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
 
-**Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change the agent makes to a repository lands on a session branch a human reviews before merge. That covers repository changes only: publishing a prompt with `scripts/sync_prompts.py --push` reaches the deployed service immediately, with no branch and no review (see [Prompts and Langfuse](#prompts-and-langfuse)).
+**Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change the agent makes to a repository lands on a session branch a human reviews before merge. The prompts Langfuse serves are covered too: CI publishes them when a prompt change merges to main, so a served prompt has a reviewed commit behind it (see [Prompts and Langfuse](#prompts-and-langfuse)).
 
 **Spotlighting** (both modes) covers what the intent gate never sees: the content of uploaded documents. Users attach PDFs and images as context, and that content reaches the model twice: once as the attachment the spec extractor reads, and again as the extracted `FormSpec` in the loop's system prompt. Both are wrapped in `<attachment_content>` / `<form_spec>` delimiters carrying an explicit instruction that the block is data to describe, not instructions to obey. A closing tag written inside the content is escaped so a document cannot end its own block early.
 
@@ -190,13 +190,14 @@ The files in `agents/prompts/` are a **fallback**, not the source of truth. When
 ```bash
 python -m scripts.sync_prompts --diff                    # every prompt, repo vs Langfuse
 python -m scripts.sync_prompts --diff spec_extraction    # just one
-python -m scripts.sync_prompts --push spec_extraction -m "why this changed"
 python -m scripts.sync_prompts --promote spec_extraction --version 1   # roll back
 ```
 
-`--push` publishes the local file as a new version labeled `production`, so **the deployed service picks it up immediately**. Roll back by promoting the previous version.
+Publishing runs from CI, not from a laptop. `.github/workflows/assistant-prompts.yaml` runs `--diff` on every pull request touching `agents/prompts/`, so drift is visible before merge, and runs `--push` on merge to main, which publishes every prompt that differs as a new version labeled `production` with the merge commit URL as its commit message. `--push` refuses to run unless `ALLOW_PROMPT_PUSH=1` is set, which CI does and a laptop should not. Roll back by promoting the previous version.
 
-Run `--diff` before editing any prompt, and after merging a PR that touches one. At the time of writing 11 of 17 prompts differ from their repo copies, so treat a diff as expected rather than alarming, and read it before pushing: the local file may be behind, not ahead.
+A full `--diff` also lists the prompts Langfuse holds that have no repo file. Adding a file under one of those names would serve the retired Langfuse version rather than the new file, so archive them in Langfuse instead of leaving them labeled `production`.
+
+At the time of writing 11 of 17 prompts differ from their repo copies, so treat a diff as expected rather than alarming, and read it: the local file may be behind, not ahead.
 
 This is also why the attachment spotlighting above is implemented in code. A security control that lives only in a prompt file is inert the moment a managed version exists.
 
