@@ -542,12 +542,15 @@ fn open(path: &Path) -> Result<Connection, Error> {
         std::fs::create_dir_all(parent)?;
         home::secure_directory(parent)?;
     }
-    let connection = Connection::open(path).map_err(database_error)?;
+    let mut connection = Connection::open(path).map_err(database_error)?;
     home::secure_file(path)?;
     connection
-        .execute_batch("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;")
+        .execute_batch("PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;")
         .map_err(database_error)?;
-    schema::initialize(&connection)?;
+    schema::initialize(&mut connection)?;
+    connection
+        .execute_batch("PRAGMA journal_mode = WAL;")
+        .map_err(database_error)?;
     Ok(connection)
 }
 
