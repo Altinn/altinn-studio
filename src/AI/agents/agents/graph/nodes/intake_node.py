@@ -92,7 +92,7 @@ async def handle(state: AgentState) -> AgentState:
                 type="error",
                 session_id=state.session_id,
                 data={
-                    "message": f"Intake failed: {exc}",
+                    "message": f"Klarte ikke å analysere forespørselen: {exc}",
                     "step": "intake",
                     "node": "intake",
                     "error_type": error_type,
@@ -147,7 +147,7 @@ async def scan_repository(state: AgentState) -> AgentState:
                 type="status",
                 session_id=state.session_id,
                 data={
-                    "message": "Repository scan complete",
+                    "message": "Ferdig med å lese repoet",
                     "file_count": len(facts.get("layouts", [])) + len(facts.get("models", [])) + len(facts.get("resources", [])),
                     "directory_count": existing_dirs,  # Actually count existing Altinn directories
                 },
@@ -166,7 +166,7 @@ async def scan_repository(state: AgentState) -> AgentState:
             AgentEvent(
                 type="error",
                 session_id=state.session_id,
-                data={"message": f"Repository scanning failed: {exc}"},
+                data={"message": f"Klarte ikke å lese repoet: {exc}"},
             )
         )
         state.next_action = "stop"

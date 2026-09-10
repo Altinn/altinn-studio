@@ -234,14 +234,27 @@ class EditFileTool(WriteToolMixin):
             return ToolResult(content=f"Read failed: {exc}", is_error=True)
 
         occurrences = text.count(args.old_string)
+        matched_on_whitespace = False
         if occurrences == 0:
-            return ToolResult(
-                content=(
-                    f"`old_string` not found in {args.path}.  Re-read the file and "
-                    "copy the exact text — do not retry the same value."
-                ),
-                is_error=True,
-            )
+            spans = _whitespace_insensitive_spans(text, args.old_string)
+            if len(spans) != 1:
+                found = ""
+                if len(spans) > 1:
+                    found = (
+                        f"  Ignoring whitespace it would match {len(spans)} places, so "
+                        "add surrounding context."
+                    )
+                return ToolResult(
+                    content=(
+                        f"`old_string` not found in {args.path}.  Re-read the file and "
+                        f"copy the exact text — do not retry the same value.{found}"
+                    ),
+                    is_error=True,
+                )
+            start, end = spans[0]
+            text = text[:start] + args.old_string + text[end:]
+            occurrences = 1
+            matched_on_whitespace = True
         if occurrences > 1 and not args.replace_all:
             return ToolResult(
                 content=(
@@ -265,10 +278,63 @@ class EditFileTool(WriteToolMixin):
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
         _mark_changed(ctx, args.path)
-        return ToolResult(
-            content=f"Edited {args.path}: replaced {replaced} occurrence(s).",
-            metadata={"replaced": replaced, "path": args.path},
+        note = (
+            "  `old_string` matched only after ignoring whitespace, so that region now "
+            "carries your formatting."
+            if matched_on_whitespace
+            else ""
         )
+        return ToolResult(
+            content=f"Edited {args.path}: replaced {replaced} occurrence(s).{note}",
+            metadata={
+                "replaced": replaced,
+                "path": args.path,
+                "matched_on_whitespace": matched_on_whitespace,
+            },
+        )
+
+
+def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int]]:
+    """Where `needle` occurs in `text` when whitespace between tokens is ignored.
+
+    Models reformat JSON they copy — a pretty-printed block comes back collapsed
+    onto one line — and then no exact match exists however often they re-read the
+    file. Whitespace inside a quoted string stays significant, so two different
+    string literals never match each other.
+    """
+    import re
+
+    structural = set("{}[],:")
+    pattern: list[str] = []
+    in_string = False
+    escaped = False
+    for char in needle:
+        if in_string:
+            pattern.append(re.escape(char))
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char.isspace():
+            if pattern and pattern[-1] != r"\s*":
+                pattern.append(r"\s*")
+            continue
+        if char in structural:
+            if pattern and pattern[-1] != r"\s*":
+                pattern.append(r"\s*")
+            pattern.append(re.escape(char))
+            pattern.append(r"\s*")
+            continue
+        pattern.append(re.escape(char))
+        if char == '"':
+            in_string = True
+    joined = "".join(pattern).strip()
+    if not joined:
+        return []
+    return [(m.start(), m.end()) for m in re.finditer(joined, text)]
 
 
 # ---------------------------------------------------------------------------

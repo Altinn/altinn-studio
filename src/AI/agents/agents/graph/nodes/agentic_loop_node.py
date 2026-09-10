@@ -76,7 +76,7 @@ def _status_for_tool_call(name: str, tool_input: dict[str, Any] | None) -> str |
     base = _TOOL_STATUS_MESSAGES.get(name)
     args = tool_input or {}
     if base:
-        subject = args.get("path") or args.get("skill")
+        subject = args.get("path") or args.get("skill") or args.get("name")
         if isinstance(subject, str) and subject:
             return f"{base} {subject}"
         return base

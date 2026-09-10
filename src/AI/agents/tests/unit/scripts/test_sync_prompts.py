@@ -30,10 +30,12 @@ def _page(names, *, total_pages=1, labels=None):
 
 
 class _Langfuse:
-    def __init__(self, listing=None, prompts=None):
+    def __init__(self, listing=None, prompts=None, published=None):
         self._listing = listing or [_page([])]
         self._prompts = prompts or {}
+        self._published = published or {}
         self.published = []
+        self.patched = []
         self.pages_read = 0
 
     def _get(self, path, **params):
@@ -41,6 +43,8 @@ class _Langfuse:
             self.pages_read += 1
             return self._listing[params["page"] - 1]
         name = path.rsplit("/", 1)[-1]
+        if name in self._published:
+            return self._published[name]
         if name not in self._prompts:
             raise httpx.HTTPStatusError(
                 "not found",
@@ -50,8 +54,12 @@ class _Langfuse:
         return {"prompt": self._prompts[name], "version": 1}
 
     def _post(self, path, body):
-        self.published.append(body["name"])
+        self.published.append(body)
         return {"version": 2, "labels": body["labels"]}
+
+    def _patch(self, path, body):
+        self.patched.append((path, body))
+        return {"version": int(path.rsplit("/", 1)[-1]), "labels": body["newLabels"]}
 
 
 class TestPromptsLangfuseHoldsAlone:
@@ -129,7 +137,7 @@ class TestPushingEveryDriftedPrompt:
 
         _run(monkeypatch, api, ["--push"], names=[LOCAL, IN_SYNC])
 
-        assert api.published == [LOCAL]
+        assert [b["name"] for b in api.published] == [LOCAL]
 
     def test_a_named_push_publishes_that_prompt(self, monkeypatch):
         monkeypatch.setenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, "1")
@@ -137,7 +145,7 @@ class TestPushingEveryDriftedPrompt:
 
         _run(monkeypatch, api, ["--push", LOCAL], names=[LOCAL])
 
-        assert api.published == [LOCAL]
+        assert [b["name"] for b in api.published] == [LOCAL]
 
 
 def _content(name):
@@ -163,3 +171,58 @@ def test_bulk_discovery_reaches_nested_prompts(name):
     """Bulk --diff and --push globbed one level, so a change to a template or a judge
     prompt was never reported and never published."""
     assert name in sync_prompts._local_prompt_names()
+
+
+class TestPromote:
+    """Rolling back is the only ungated write, so its endpoint has to be right."""
+
+    def test_it_patches_the_version_labels_endpoint(self, capsys):
+        api = _Langfuse()
+
+        sync_prompts._promote(api, IN_SYNC, 3)
+
+        assert api.patched == [
+            (f"/api/public/v2/prompts/{IN_SYNC}/versions/3", {"newLabels": ["production"]})
+        ]
+        assert "is now" in capsys.readouterr().out
+
+
+class TestPushKeepsThePublishedShape:
+    """A chat prompt's user turn carries the request; publishing it as text drops it."""
+
+    def _chat(self, name):
+        return {
+            "type": "chat",
+            "version": 3,
+            "prompt": [
+                {"type": "message", "role": "system", "content": "old system text"},
+                {"type": "message", "role": "user", "content": "{{user_message}}"},
+            ],
+        }
+
+    def test_a_chat_prompt_is_republished_as_chat_with_its_turns(self):
+        api = _Langfuse(published={IN_SYNC: self._chat(IN_SYNC)})
+
+        sync_prompts._push(api, IN_SYNC, "why")
+
+        body = api.published[0]
+        assert body["type"] == "chat"
+        assert [turn["role"] for turn in body["prompt"]] == ["system", "user"]
+        assert body["prompt"][1]["content"] == "{{user_message}}"
+        assert body["prompt"][0]["content"] != "old system text"
+
+    def test_a_text_prompt_stays_text(self):
+        api = _Langfuse(published={LOCAL: {"type": "text", "version": 2, "prompt": "old"}})
+
+        sync_prompts._push(api, LOCAL, "why")
+
+        body = api.published[0]
+        assert body["type"] == "text"
+        assert isinstance(body["prompt"], str)
+
+    def test_a_prompt_langfuse_has_never_seen_is_published_as_text(self):
+        api = _Langfuse()
+
+        sync_prompts._push(api, LOCAL, "why")
+
+        assert api.published[0]["type"] == "text"
