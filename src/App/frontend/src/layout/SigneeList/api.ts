@@ -59,7 +59,7 @@ export const signingQueries = {
     queryOptions({
       queryKey: [...signingQueries.all, 'signeeList', partyId, instanceGuid, taskId],
       queryFn: partyId && instanceGuid ? () => fetchSigneeList(partyId, instanceGuid, taskId) : skipToken,
-      refetchInterval: 1000 * 60, // 1 minute
+      refetchInterval: 1000 * 10, // 10 seconds
       refetchOnMount: 'always',
     }),
 };
