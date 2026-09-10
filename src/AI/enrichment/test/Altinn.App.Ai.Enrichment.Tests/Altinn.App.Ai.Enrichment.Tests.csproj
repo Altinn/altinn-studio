@@ -20,6 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The import tool is net10-only, so it is only testable on that TFM. -->
+    <ProjectReference Include="..\..\tools\Altinn.App.Ai.Enrichment.ScoreImport\Altinn.App.Ai.Enrichment.ScoreImport.csproj"
+                      Condition="'$(TargetFramework)' == 'net10.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Altinn.App.Ai.Enrichment\Altinn.App.Ai.Enrichment.csproj" />
   </ItemGroup>
 

@@ -206,6 +206,45 @@ Notes worth knowing before you turn it on:
 - **Cost needs a model price in Langfuse.** Token counts arrive regardless, but
   `totalCost` stays zero until the model is registered in the project.
 
+### Scoring a run afterwards
+
+Tracing captures what the model did; a score records whether it was right. The two
+are joined by the instance id, which is the Langfuse session id — so a spreadsheet of
+instance ids and verdicts is enough to find the runs and judge them, with no extra
+identifier to keep track of.
+
+`ILangfuseScoreClient` is registered alongside the tracer and works whether or not
+export is enabled:
+
+```csharp
+var traceIds = await scores.FindTraceIdsBySession(instance.Id);
+await scores.CreateScore(new LangfuseScore
+{
+    Id = $"review-{instanceGuid}",      // same id later overwrites, never duplicates
+    TraceId = traceIds[0],
+    Name = "saksbehandler_vurdering",
+    Value = 1,
+    DataType = "BOOLEAN",
+});
+```
+
+For bulk imports there is a CLI:
+
+```bash
+export LANGFUSE_BASE_URL=... LANGFUSE_PUBLIC_KEY=... LANGFUSE_SECRET_KEY=...
+dotnet run --project tools/Altinn.App.Ai.Enrichment.ScoreImport -- vurderinger.csv
+```
+
+The file needs a header and two or three columns — `instanceId`, `value` and an
+optional `comment`. Values may be numbers or the words a caseworker actually types
+(`ja`/`nei`, `true`/`false`, `korrekt`/`feil`), and both comma- and semicolon-separated
+exports work. Re-running a corrected file replaces the earlier verdicts rather than
+adding a second set.
+
+Runs also stamp their Langfuse trace id onto the output data elements
+(`langfuseTraceId` metadata), which closes the loop the other way: from a stored
+result back to the run that produced it.
+
 ## Running tests
 
 ```bash
