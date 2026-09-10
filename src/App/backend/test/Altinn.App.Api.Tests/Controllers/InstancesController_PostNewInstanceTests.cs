@@ -1530,6 +1530,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                                 Status = PersistentItemStatus.Skipped,
                                 RetryCount = 0,
                                 SkipReason = AcquireProcessingStatus.ConcurrencyConflictSkipReason,
+                                SkipOrigin = SkipOrigin.Command,
                             }
                             : new StepStatusResponse
                             {

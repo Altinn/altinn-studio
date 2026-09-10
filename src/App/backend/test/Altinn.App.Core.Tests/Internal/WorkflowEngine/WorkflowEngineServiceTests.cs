@@ -1183,6 +1183,31 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public void BuildWorkflowFailure_NewestSkippedAcquireByOperator_IsEngineFault()
+    {
+        Guid workflowId = Guid.NewGuid();
+        WorkflowStatusResponse skipped = CreateSkippedWorkflow(
+            workflowId,
+            AcquireProcessingStatus.ConcurrencyConflictSkipReason,
+            SkipOrigin.Manual
+        );
+
+        WorkflowFailure? failure = WorkflowEngineService.BuildWorkflowFailure([skipped]);
+
+        Assert.NotNull(failure);
+        Assert.Equal(WorkflowFailureKind.EngineFault, failure.Kind);
+        Assert.Equal(workflowId, failure.WorkflowId);
+        Assert.Equal(AcquireProcessingStatus.Key, failure.StepOperationId);
+        Assert.NotNull(failure.LastError);
+        Assert.False(failure.LastError.WasRetryable);
+        Assert.Contains(
+            AcquireProcessingStatus.ConcurrencyConflictSkipReason,
+            failure.LastError.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
     public void BuildWorkflowFailure_NewestSkippedWithoutReason_IsEngineFaultWithPlainMessage()
     {
         Guid workflowId = Guid.NewGuid();
@@ -1994,7 +2019,11 @@ public class WorkflowEngineServiceTests
             ],
         };
 
-    private static WorkflowStatusResponse CreateSkippedWorkflow(Guid workflowId, string? skipReason) =>
+    private static WorkflowStatusResponse CreateSkippedWorkflow(
+        Guid workflowId,
+        string? skipReason,
+        SkipOrigin skipOrigin = SkipOrigin.Command
+    ) =>
         new()
         {
             DatabaseId = workflowId,
@@ -2017,6 +2046,7 @@ public class WorkflowEngineServiceTests
                     RetryCount = 0,
                     UpdatedAt = DateTimeOffset.UtcNow,
                     SkipReason = skipReason,
+                    SkipOrigin = skipOrigin,
                 },
                 new StepStatusResponse
                 {

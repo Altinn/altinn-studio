@@ -635,6 +635,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         // reason lives on the skipping step only, and the workflow ends Skipped.
                         DateTimeOffset skippedAt = DateTimeOffset.UtcNow;
                         step.SkipReason = skip.Reason;
+                        step.SkipOrigin = SkipOrigin.Command;
                         foreach (
                             StoredStep skippedStep in workflow.Steps.Where(candidate =>
                                 candidate.ProcessingOrder >= step.ProcessingOrder
@@ -851,6 +852,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             Status = step.Status,
             RetryCount = step.RetryCount,
             SkipReason = step.SkipReason,
+            SkipOrigin = step.SkipOrigin,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count == 0 ? null : step.ErrorHistory.ToList(),
@@ -954,6 +956,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public string? StateOut { get; set; }
 
         public string? SkipReason { get; set; }
+
+        public SkipOrigin? SkipOrigin { get; set; }
 
         public PersistentItemStatus Status { get; set; } = PersistentItemStatus.Enqueued;
 

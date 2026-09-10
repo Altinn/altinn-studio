@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - A `reject` action no longer replaces a failed workflow. While the current task's workflow has failed, `POST .../process/next` is refused with `409 Conflict` and `processNextState: "resumeRequired"` for every action, `reject` included, until the workflow is resumed with `POST .../process/resume`. Previously a BPMN-allowed `reject` wrote the failed workflow off and moved the process along the reject flow, which could not undo work the failed task had already done.
-- The workflow engine's operator write-off of a failed workflow is now a skip (`POST .../workflows/{id}/skip`, with an optional reason) instead of an abandon. The app reports a process action whose workflow was skipped by an operator as an engine fault, carrying the operator's reason when one was given.
+- The workflow engine's operator write-off of a failed workflow is now a skip (`POST .../workflows/{id}/skip`, with an optional reason) instead of an abandon. The app reports a process action whose workflow was skipped by an operator as an engine fault, carrying the operator's reason when one was given, and treats a skipped transition as a concurrency conflict only when the engine reports the command itself as the skip's origin.
 
 ### Fixed
 

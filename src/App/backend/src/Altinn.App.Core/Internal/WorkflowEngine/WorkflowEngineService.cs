@@ -791,15 +791,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             // The one skip the app produces is the acquire conflict: AcquireProcessingStatus, as
             // the first step, lost to a concurrent change of the instance and skipped the
             // transition without side effects. Any other skip - another reason, or an operator
-            // skip through the engine's admin API, which may carry no reason at all - is reported
-            // as an engine fault.
+            // skip through the engine's admin API, whose free-text reason is never classified on
+            // even when it equals the code - is reported as an engine fault.
             StepStatusResponse skippedStep = newestWorkflow
                 .Steps.OrderBy(step => step.ProcessingOrder)
                 .First(step => step.Status == PersistentItemStatus.Skipped);
             bool acquireConflict =
                 skippedStep.OperationId == AcquireProcessingStatus.Key
                 && skippedStep.ProcessingOrder == newestWorkflow.Steps.Min(step => step.ProcessingOrder)
-                && skippedStep.SkipReason == AcquireProcessingStatus.ConcurrencyConflictSkipReason;
+                && skippedStep.SkipReason == AcquireProcessingStatus.ConcurrencyConflictSkipReason
+                && skippedStep.SkipOrigin == SkipOrigin.Command;
             return new WorkflowFailure
             {
                 Kind = acquireConflict ? WorkflowFailureKind.AcquireConflict : WorkflowFailureKind.EngineFault,

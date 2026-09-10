@@ -91,6 +91,17 @@ internal sealed record StepStatusResponse
     public string? SkipReason { get; init; }
 
     /// <summary>
+    /// Who caused the skip: <c>Command</c> when this step's command returned the skip outcome, <c>Manual</c>
+    /// when an operator skipped the workflow through the engine's skip endpoint. Present on the same step as
+    /// <see cref="SkipReason"/> (the first step that did not complete, whether or not a reason was given);
+    /// absent everywhere else.
+    /// </summary>
+    [JsonPropertyName("skipOrigin")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SkipOrigin? SkipOrigin { get; init; }
+
+    /// <summary>
     /// The output state produced by this step, passed as input to the next step.
     /// </summary>
     [JsonPropertyName("stateOut")]
