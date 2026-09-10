@@ -4,6 +4,7 @@ using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Orchestration;
 using Altinn.App.Ai.Enrichment.Rendering;
 using Altinn.App.Ai.Enrichment.ServiceTasks;
+using Altinn.App.Ai.Enrichment.Telemetry;
 #if NET10_0_OR_GREATER
 using Altinn.App.Core.Features.Process;
 #else
@@ -11,6 +12,7 @@ using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 #endif
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Altinn.App.Ai.Enrichment.DependencyInjection;
@@ -28,8 +30,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Registered before core so this wins over ConfigurationApiKeyProvider.
+        // Registered before core so these win over the Configuration* fallbacks.
         services.TryAddSingleton<IApiKeyProvider, SecretsApiKeyProvider>();
+        services.TryAddSingleton<ILangfuseKeyProvider, SecretsLangfuseKeyProvider>();
         services.AddAiEnrichmentCore(configuration);
 
         services.Configure<AiEnrichmentOptions>(configuration.GetSection(AiEnrichmentOptions.SectionName));
@@ -51,6 +54,7 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
         services.Configure<TypstOptions>(configuration.GetSection(TypstOptions.SectionName));
+        services.Configure<LangfuseOptions>(configuration.GetSection(LangfuseOptions.SectionName));
 
         // Infinite client-level timeout: HttpClient's default (100s) would fire
         // before AgentOptions.TimeoutSeconds; the chat service enforces the
@@ -59,6 +63,15 @@ public static class ServiceCollectionExtensions
             .AddHttpClient(OpenAiCompatibleChatService.HttpClientName)
             .ConfigureHttpClient(client => client.Timeout = Timeout.InfiniteTimeSpan);
         services.TryAddSingleton<IApiKeyProvider, ConfigurationApiKeyProvider>();
+        services.TryAddSingleton<ILangfuseKeyProvider, ConfigurationLangfuseKeyProvider>();
+
+        // The graph is identical whether tracing is on or off: LangfuseTracing inspects
+        // Enabled at start-up and simply builds no provider when it is false, leaving the
+        // ActivitySource without a listener and every call site a null check.
+        services.AddSingleton<EnrichmentTrace>();
+        services.AddSingleton<LangfuseTracing>();
+        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<LangfuseTracing>());
+
         services.AddSingleton<IChatService, OpenAiCompatibleChatService>();
         services.AddSingleton<ITypstRenderer, TypstRenderer>();
         services.AddSingleton<IRulesLoader, MarkdownRulesLoader>();

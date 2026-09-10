@@ -4,6 +4,7 @@ using Altinn.App.Ai.Enrichment.Chat;
 using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Orchestration;
 using Altinn.App.Ai.Enrichment.Rendering;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Ai.Enrichment.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -82,6 +83,8 @@ public class AgentRuntimeFactoryTests
             new StubChatService(),
             new TypstRenderer(NullLogger<TypstRenderer>.Instance, typstOptions),
             new MarkdownRulesLoader(),
+            Options.Create(new AgentOptions { Model = "test-model" }),
+            EnrichmentTrace.Disabled,
             NullLoggerFactory.Instance);
     }
 
