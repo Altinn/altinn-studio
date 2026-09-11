@@ -159,18 +159,31 @@ class TestAPreviewThatNeverAnsweredIsNotAFailure:
         assert by_name["bench_pages_render"].value == 0.0
         assert "binding is wrong" in by_name["bench_pages_render"].comment
 
-    def test_the_first_measured_page_decides_the_entry_score(self):
+    def test_an_unmeasured_entry_page_is_not_scored_from_a_later_page(self):
+        """A later page rendering says nothing about the entry page."""
         results = [
             PageRenderResult("Side1", False, "no render marker: Timeout", measured=False),
             PageRenderResult("Side2", True),
         ]
 
-        assert self._scores(results)["bench_renders"].value == 1.0
+        by_name = self._scores(results)
 
-    def test_every_page_unmeasured_scores_zero_and_says_why(self):
+        assert "bench_renders" not in by_name
+        assert by_name["bench_pages_render"].value == 1.0
+        assert "Side1" in by_name["bench_pages_render"].comment
+
+    def test_a_measured_entry_page_is_still_scored(self):
+        results = [
+            PageRenderResult("Side1", False, "error page: binding is wrong"),
+            PageRenderResult("Side2", True),
+        ]
+
+        assert self._scores(results)["bench_renders"].value == 0.0
+
+    def test_every_page_unmeasured_reports_nothing_for_the_entry_page(self):
         results = [PageRenderResult("Side1", False, "no render marker: Timeout", measured=False)]
 
         by_name = self._scores(results)
 
-        assert by_name["bench_renders"].value == 0.0
-        assert "never answered for" in by_name["bench_renders"].comment
+        assert "bench_renders" not in by_name
+        assert "never answered for" in by_name["bench_pages_render"].comment

@@ -100,21 +100,21 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
         else ""
     )
 
-    first = next((result for result in results if result.measured), None)
+    entry = results[0] if results else None
+    entry_unmeasured = entry is not None and not entry.measured
     renders = Score(
         name=RENDERS_SCORE_NAME,
-        value=1.0 if first and first.rendered else 0.0,
+        value=1.0 if entry and entry.rendered else 0.0,
         data_type="BOOLEAN",
         comment=(
-            f"first page {first.page!r} rendered"
-            if first and first.rendered
-            else f"first page failed — {first.page}: {first.detail}"
-            if first
+            f"first page {entry.page!r} rendered"
+            if entry and entry.rendered
+            else f"first page failed — {entry.page}: {entry.detail}"
+            if entry
             else "no ordered pages to render"
-            if not results
-            else f"no page could be rendered{skipped_note}"
         ),
     )
+
     pages_render = Score(
         name=PAGES_RENDER_SCORE_NAME,
         value=rendered_count / len(measured) if measured else 0.0,
@@ -127,7 +127,9 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
             else f"no ordered pages to render{skipped_note}"
         ),
     )
-    return [renders, pages_render]
+    # An unmeasured entry page is not evidence either way, and a later page's
+    # result is not the entry page's.
+    return [pages_render] if entry_unmeasured else [renders, pages_render]
 
 
 
