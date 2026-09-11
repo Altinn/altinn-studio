@@ -1,4 +1,4 @@
-.PHONY: help run start dev run-deps stop reset db-reset test
+.PHONY: help run start dev run-deps stop reset db-reset test playground playground-stop
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -15,6 +15,12 @@ dev run-deps: ## Start dependencies only (for local engine development)
 
 stop: ## Stop all services
 	docker compose --profile core down
+
+playground: ## Run the observability playground (full stack + throttling ON, fast throttle windows)
+	docker compose -f docker-compose.yaml -f .k6/docker-compose.playground.yaml --profile core up -d --build
+
+playground-stop: ## Stop the observability playground
+	docker compose -f docker-compose.yaml -f .k6/docker-compose.playground.yaml --profile core down
 
 reset db-reset: ## Stop all services and delete the database volume
 	docker compose --profile core down
