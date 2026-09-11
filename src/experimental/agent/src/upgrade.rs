@@ -23,6 +23,7 @@ const JOURNAL_FORMAT: u32 = 1;
 const HTTP_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 const HTTP_REQUEST_TIMEOUT: Duration = Duration::from_mins(1);
 const INSTALL_LOCK_TIMEOUT: Duration = Duration::from_secs(5);
+const BINARY_STEMS: [&str; 2] = ["agentctl", "agentd"];
 
 /// Filesystem locations for one managed Agent installation.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -316,7 +317,7 @@ pub async fn publish_release(paths: &InstallPaths, source: &Path, version: &str)
         .prefix(".staging-")
         .tempdir_in(paths.releases())?;
     for binary in binary_names() {
-        fs::copy(source.join(binary), staging.path().join(binary))?;
+        fs::copy(source.join(&binary), staging.path().join(binary))?;
     }
     validate_release_directory(staging.path(), version)?;
     fs::rename(staging.path(), &final_path)?;
@@ -468,7 +469,7 @@ fn activate_links(paths: &InstallPaths, target: &Path) -> Result<(), Error> {
     replace_directory_link(&paths.current(), target)?;
     fs::create_dir_all(paths.bin())?;
     for binary in binary_names() {
-        replace_file_link(&paths.bin.join(binary), &paths.current().join(binary))?;
+        replace_file_link(&paths.bin.join(&binary), &paths.current().join(binary))?;
     }
     Ok(())
 }
@@ -477,16 +478,20 @@ fn activate_links(paths: &InstallPaths, target: &Path) -> Result<(), Error> {
 fn activate_links(paths: &InstallPaths, target: &Path) -> Result<(), Error> {
     replace_windows_pointer(&paths.current(), target)?;
     fs::create_dir_all(paths.bin())?;
-    for binary in ["agentctl", "agentd"] {
+    for binary in BINARY_STEMS {
         let legacy = paths.bin().join(format!("{binary}.exe"));
         if legacy.exists() {
             fs::remove_file(legacy)?;
         }
-        let root = paths.root().to_string_lossy().replace('%', "%%");
+        let root = windows_command_path(paths.root()).replace('%', "%%");
         let script = format!(
             "@echo off\r\nsetlocal\r\nset /p AGENT_CURRENT=<\"{root}\\current\"\r\n\"%AGENT_CURRENT%\\{binary}.exe\" %*\r\n"
         );
-        replace_windows_file(&paths.bin().join(format!("{binary}.cmd")), script.as_bytes())?;
+        let launcher = paths.bin().join(format!("{binary}.cmd"));
+        // cmd.exe reads batch files lazily, so replacing the active launcher can corrupt its next command.
+        if !launcher.try_exists()? {
+            replace_windows_file(&launcher, script.as_bytes())?;
+        }
     }
     Ok(())
 }
@@ -691,7 +696,7 @@ fn verify_checksum(archive: &Path, checksum: &Path) -> Result<(), Error> {
 
 fn extract_archive(archive: &Path, destination: &Path) -> Result<(), Error> {
     let mut package = tar::Archive::new(GzDecoder::new(File::open(archive)?));
-    let expected = binary_names().into_iter().map(str::to_owned).collect::<BTreeSet<_>>();
+    let expected = binary_names().into_iter().collect::<BTreeSet<_>>();
     let mut found = BTreeSet::new();
     for entry in package
         .entries()
@@ -746,7 +751,7 @@ pub fn validate_release_directory(path: &Path, version: &str) -> Result<(), Erro
         ));
     }
     for binary in binary_names() {
-        let executable = path.join(binary);
+        let executable = path.join(&binary);
         require_executable(&executable)?;
         let output = Command::new(&executable).arg("--version").output()?;
         let actual = String::from_utf8_lossy(&output.stdout);
@@ -797,12 +802,8 @@ fn require_executable(path: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-const fn binary_names() -> [&'static str; 2] {
-    if cfg!(windows) {
-        ["agentctl.exe", "agentd.exe"]
-    } else {
-        ["agentctl", "agentd"]
-    }
+fn binary_names() -> [String; 2] {
+    BINARY_STEMS.map(|name| format!("{name}{}", std::env::consts::EXE_SUFFIX))
 }
 
 fn atomic_json(path: &Path, value: &impl Serialize) -> Result<(), Error> {
@@ -1073,7 +1074,7 @@ mod tests {
         );
         for binary in binary_names() {
             assert_eq!(
-                fs::read_link(paths.bin().join(binary)).expect("visible link"),
+                fs::read_link(paths.bin().join(&binary)).expect("visible link"),
                 paths.current().join(binary)
             );
         }

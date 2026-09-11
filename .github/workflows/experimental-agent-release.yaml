@@ -9,13 +9,6 @@ permissions:
   contents: read
 
 jobs:
-  images:
-    name: Publish Agent images
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/agents-images.yaml
-
   build:
     name: Build ${{ matrix.archive }}
     strategy:
@@ -111,7 +104,7 @@ jobs:
 
   release:
     name: Publish GitHub release
-    needs: [build, images]
+    needs: build
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -130,19 +123,6 @@ jobs:
       - name: Add installers
         run: |
           cp src/experimental/agent/install.sh src/experimental/agent/install.ps1 dist/
-
-      - name: Add version-pinned manifests and release metadata
-        run: |
-          VERSION="${GITHUB_REF_NAME#experimental-agent/}"
-          for VARIANT in full minimal worktree; do
-            sed "s/:latest/:${VERSION}/" "agents/${VARIANT}/agent.yaml" > "dist/agent-${VARIANT}.yaml"
-          done
-          jq -n \
-            --arg version "${VERSION}" \
-            --arg full "ghcr.io/altinn/altinn-studio/agent-full:${VERSION}" \
-            --arg minimal "ghcr.io/altinn/altinn-studio/agent-minimal:${VERSION}" \
-            '{version: $version, images: {full: $full, minimal: $minimal}}' \
-            > dist/agent-release.json
 
       - name: Publish release
         env:

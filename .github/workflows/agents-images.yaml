@@ -1,7 +1,6 @@
 name: Agents - build images
 
 on:
-  workflow_call:
   pull_request:
     paths:
       - agents/**
@@ -74,13 +73,6 @@ jobs:
             set -- \
               --tag "${IMAGE_REPOSITORY}:pr-${pr_number}" \
               --tag "${IMAGE_REPOSITORY}:pr-${pr_number}-${short_sha}"
-          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
-            release_version="${GITHUB_REF_NAME#experimental-agent/}"
-            short_sha="${GITHUB_SHA::10}"
-            set -- \
-              --tag "${IMAGE_REPOSITORY}:sha-${short_sha}" \
-              --tag "${IMAGE_REPOSITORY}:${release_version}" \
-              --tag "${IMAGE_REPOSITORY}:latest"
           else
             short_sha="${GITHUB_SHA::10}"
             set -- \

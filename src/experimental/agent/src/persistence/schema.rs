@@ -1,6 +1,6 @@
 //! Ordered, transactional `SQLite` schema migrations.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use rusqlite::{Connection, Transaction};
 
@@ -44,11 +44,14 @@ const PREVIEW_1_SQL: &str = "
     );
 ";
 
-const SESSION_MANAGEMENT_SQL: &str = "
+const SESSION_COLUMNS_SQL: &str = "
     ALTER TABLE sessions ADD COLUMN initial_prompt TEXT;
     ALTER TABLE sessions ADD COLUMN harness_transcript_path TEXT;
     ALTER TABLE sessions ADD COLUMN activity_json TEXT NOT NULL DEFAULT '{}';
-    CREATE TABLE session_activity_reports (
+";
+
+const SESSION_ACTIVITY_REPORTS_SQL: &str = "
+    CREATE TABLE IF NOT EXISTS session_activity_reports (
         session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
         launch_token TEXT NOT NULL,
         event_id TEXT NOT NULL,
@@ -59,6 +62,7 @@ const SESSION_MANAGEMENT_SQL: &str = "
 struct Migration {
     version: u32,
     name: &'static str,
+    schema: &'static [&'static str],
     apply: fn(&Transaction<'_>) -> Result<(), Error>,
 }
 
@@ -66,11 +70,13 @@ const MIGRATIONS: &[Migration] = &[
     Migration {
         version: 1,
         name: "preview 1 baseline",
+        schema: &[PREVIEW_1_SQL],
         apply: create_preview_1,
     },
     Migration {
         version: 2,
         name: "session management",
+        schema: &[SESSION_COLUMNS_SQL, SESSION_ACTIVITY_REPORTS_SQL],
         apply: add_session_management,
     },
 ];
@@ -85,9 +91,7 @@ pub(super) fn initialize(connection: &mut Connection) -> Result<(), Error> {
     if current == 0 && !user_tables(connection)?.is_empty() {
         return Err(unknown_schema(0, "the database contains unversioned tables"));
     }
-    if current == 1 {
-        verify_schema(connection, 1)?;
-    } else if current == VERSION {
+    if current == VERSION {
         return verify_schema(connection, VERSION);
     }
 
@@ -126,10 +130,16 @@ fn create_preview_1(transaction: &Transaction<'_>) -> Result<(), Error> {
 }
 
 fn add_session_management(transaction: &Transaction<'_>) -> Result<(), Error> {
-    verify_schema(transaction, 1)?;
+    if schema_difference(transaction, 2)?.is_none() {
+        return migrate_agent_instructions(transaction);
+    }
+    if schema_difference(transaction, 1)?.is_some() {
+        verify_intermediate_schema(transaction)?;
+    }
     migrate_agent_instructions(transaction)?;
+    transaction.execute_batch(SESSION_COLUMNS_SQL).map_err(database_error)?;
     transaction
-        .execute_batch(SESSION_MANAGEMENT_SQL)
+        .execute_batch(SESSION_ACTIVITY_REPORTS_SQL)
         .map_err(database_error)
 }
 
@@ -154,19 +164,21 @@ fn migrate_agent_instructions(transaction: &Transaction<'_>) -> Result<(), Error
             .get_mut("spec")
             .and_then(serde_json::Value::as_object_mut)
             .ok_or_else(|| Error::Database(format!("Agent {id} desired state has no object-valued spec")))?;
-        let Some(instructions) = spec.remove("instructions") else {
+        let Some(instructions) = spec.get_mut("instructions") else {
             continue;
         };
-        let instructions = if instructions.is_null() {
-            Vec::new()
-        } else if instructions.is_object() {
-            vec![instructions]
-        } else {
-            return Err(Error::Database(format!(
-                "Agent {id} desired state has an unexpected preview 1 instructions value"
-            )));
-        };
-        spec.insert("instructions".into(), serde_json::Value::Array(instructions));
+        match instructions {
+            serde_json::Value::Array(_) => continue,
+            serde_json::Value::Null => *instructions = serde_json::Value::Array(Vec::new()),
+            serde_json::Value::Object(_) => {
+                *instructions = serde_json::Value::Array(vec![instructions.take()]);
+            }
+            _ => {
+                return Err(Error::Database(format!(
+                    "Agent {id} desired state has an unexpected preview 1 instructions value"
+                )));
+            }
+        }
         transaction
             .execute(
                 "UPDATE agents SET desired_json = ?1 WHERE id = ?2",
@@ -184,29 +196,42 @@ fn schema_version(connection: &Connection) -> Result<u32, Error> {
 }
 
 fn verify_schema(connection: &Connection, version: u32) -> Result<(), Error> {
+    schema_difference(connection, version)?.map_or(Ok(()), |detail| Err(unknown_schema(version, &detail)))
+}
+
+fn schema_difference(connection: &Connection, version: u32) -> Result<Option<String>, Error> {
+    let statements = MIGRATIONS
+        .iter()
+        .filter(|migration| migration.version <= version)
+        .flat_map(|migration| migration.schema.iter().copied())
+        .collect::<Vec<_>>();
+    schema_difference_with(connection, &statements)
+}
+
+fn verify_intermediate_schema(connection: &Connection) -> Result<(), Error> {
+    schema_difference_with(connection, &[PREVIEW_1_SQL, SESSION_ACTIVITY_REPORTS_SQL])?
+        .map_or(Ok(()), |detail| Err(unknown_schema(1, &detail)))
+}
+
+fn schema_difference_with(connection: &Connection, statements: &[&str]) -> Result<Option<String>, Error> {
     let expected = Connection::open_in_memory().map_err(database_error)?;
-    expected.execute_batch(PREVIEW_1_SQL).map_err(database_error)?;
-    if version == VERSION {
-        expected.execute_batch(SESSION_MANAGEMENT_SQL).map_err(database_error)?;
+    for sql in statements {
+        expected.execute_batch(sql).map_err(database_error)?;
     }
     let actual_tables = user_tables(connection)?;
     let expected_tables = user_tables(&expected)?;
     if actual_tables != expected_tables {
-        return Err(unknown_schema(
-            version,
-            &format!("expected tables {expected_tables:?}, found {actual_tables:?}"),
-        ));
+        return Ok(Some(format!(
+            "expected tables {expected_tables:?}, found {actual_tables:?}"
+        )));
     }
     for table in expected_tables {
         let actual = inspect_table(connection, &table)?;
         if actual != inspect_table(&expected, &table)? {
-            return Err(unknown_schema(
-                version,
-                &format!("table {table:?} has an unexpected definition"),
-            ));
+            return Ok(Some(format!("table {table:?} has an unexpected definition")));
         }
     }
-    Ok(())
+    Ok(None)
 }
 
 fn user_tables(connection: &Connection) -> Result<BTreeSet<String>, Error> {
@@ -225,14 +250,13 @@ fn user_tables(connection: &Connection) -> Result<BTreeSet<String>, Error> {
 
 #[derive(Debug, Eq, PartialEq)]
 struct TableDefinition {
-    columns: Vec<ColumnDefinition>,
+    columns: BTreeMap<String, ColumnDefinition>,
     unique_keys: Vec<Vec<String>>,
     foreign_keys: Vec<ForeignKeyDefinition>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
 struct ColumnDefinition {
-    name: String,
     declared_type: String,
     not_null: bool,
     default: Option<String>,
@@ -255,16 +279,18 @@ fn inspect_table(connection: &Connection, table: &str) -> Result<TableDefinition
             .map_err(database_error)?;
         statement
             .query_map([], |row| {
-                Ok(ColumnDefinition {
-                    name: row.get(1)?,
-                    declared_type: row.get(2)?,
-                    not_null: row.get::<_, u32>(3)? != 0,
-                    default: row.get(4)?,
-                    primary_key_position: row.get(5)?,
-                })
+                Ok((
+                    row.get(1)?,
+                    ColumnDefinition {
+                        declared_type: row.get(2)?,
+                        not_null: row.get::<_, u32>(3)? != 0,
+                        default: row.get(4)?,
+                        primary_key_position: row.get(5)?,
+                    },
+                ))
             })
             .map_err(database_error)?
-            .collect::<Result<Vec<_>, _>>()
+            .collect::<Result<BTreeMap<_, _>, _>>()
             .map_err(database_error)?
     };
     let unique_keys = inspect_unique_keys(connection, table)?;
@@ -349,6 +375,12 @@ mod tests {
         Err(Error::Database("injected second migration failure".into()))
     }
 
+    fn create_third(transaction: &Transaction<'_>) -> Result<(), Error> {
+        transaction
+            .execute_batch("CREATE TABLE third (id INTEGER PRIMARY KEY);")
+            .map_err(database_error)
+    }
+
     #[test]
     fn all_pending_migrations_roll_back_together() {
         let mut connection = Connection::open_in_memory().expect("database");
@@ -356,11 +388,13 @@ mod tests {
             Migration {
                 version: 1,
                 name: "first",
+                schema: &[],
                 apply: create_first,
             },
             Migration {
                 version: 2,
                 name: "failure",
+                schema: &[],
                 apply: fail_second,
             },
         ];
@@ -370,5 +404,37 @@ mod tests {
         assert!(error.to_string().contains("injected second migration failure"));
         assert_eq!(schema_version(&connection).expect("schema version"), 0);
         assert!(user_tables(&connection).expect("tables").is_empty());
+    }
+
+    #[test]
+    fn expanded_version_1_continues_through_later_migrations() {
+        let mut connection = Connection::open_in_memory().expect("database");
+        connection.execute_batch(PREVIEW_1_SQL).expect("preview 1 schema");
+        connection
+            .execute_batch(SESSION_COLUMNS_SQL)
+            .expect("expanded Session columns");
+        connection
+            .execute_batch(SESSION_ACTIVITY_REPORTS_SQL)
+            .expect("expanded reports table");
+        connection.pragma_update(None, "user_version", 1).expect("version 1");
+        let migrations = [
+            Migration {
+                version: 2,
+                name: "session management",
+                schema: &[SESSION_COLUMNS_SQL, SESSION_ACTIVITY_REPORTS_SQL],
+                apply: add_session_management,
+            },
+            Migration {
+                version: 3,
+                name: "third",
+                schema: &["CREATE TABLE third (id INTEGER PRIMARY KEY);"],
+                apply: create_third,
+            },
+        ];
+
+        apply_pending_migrations(&mut connection, 1, &migrations, 3).expect("migrations");
+
+        assert_eq!(schema_version(&connection).expect("schema version"), 3);
+        assert!(user_tables(&connection).expect("tables").contains("third"));
     }
 }

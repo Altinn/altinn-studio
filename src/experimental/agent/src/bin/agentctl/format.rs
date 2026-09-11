@@ -49,9 +49,8 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
+        "Conditions:".to_owned(),
     ];
-    lines.extend(image_lines(agent));
-    lines.push("Conditions:".to_owned());
     if agent.status.conditions.is_empty() {
         lines.push("  None".to_owned());
         return lines;
@@ -70,28 +69,6 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         })
         .collect::<Vec<_>>();
     lines.extend(table_lines(&["TYPE", "STATUS", "REASON", "MESSAGE"], &rows));
-    lines
-}
-
-fn image_lines(agent: &Agent) -> Vec<String> {
-    let sandbox::image::ImageSource::Reference { reference } = &agent.spec.sandbox.image else {
-        return vec!["Image:      local build".into()];
-    };
-    let mut lines = vec![format!("Image:      {reference}")];
-    let without_digest = reference.split_once('@').map_or(reference.as_str(), |(base, _)| base);
-    let base = without_digest
-        .rsplit_once(':')
-        .filter(|(_, suffix)| !suffix.contains('/'))
-        .map_or(without_digest, |(base, _)| base);
-    if matches!(
-        base,
-        "ghcr.io/altinn/altinn-studio/agent-full" | "ghcr.io/altinn/altinn-studio/agent-minimal"
-    ) {
-        let recommended = format!("{base}:{}", agent::build_version());
-        if &recommended != reference {
-            lines.push(format!("Recommended: {recommended} (recreate the Agent to adopt it)"));
-        }
-    }
     lines
 }
 
@@ -192,48 +169,5 @@ mod tests {
         );
         assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
         assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
-    }
-
-    #[test]
-    fn official_moving_image_reports_the_release_specific_reference() {
-        let mut agent = agent::manifest::decode(
-            br#"apiVersion: agents.platform/v1alpha1
-kind: Agent
-metadata:
-  name: worker
-spec:
-  sandbox:
-    image:
-      type: reference
-      reference: ghcr.io/altinn/altinn-studio/agent-full:latest
-    platform: { os: linux }
-    resources:
-      cpu: "1"
-      memory: 1Gi
-      rootFilesystem: { capacity: 1Gi, mode: layered }
-  home: { source: home }
-  harnesses:
-    - { type: claudeCode, auth: mediated }
-  network: { mode: mediated, allow: all }
-"#,
-        )
-        .expect("Agent");
-        agent.status = agent::Status::default();
-
-        let lines = describe_agent_lines(&agent);
-
-        assert!(lines.iter().any(|line| line.contains("agent-full:latest")));
-        assert!(
-            lines
-                .iter()
-                .any(|line| line.contains(&format!("agent-full:{}", agent::build_version())))
-        );
-
-        let sandbox::image::ImageSource::Reference { reference } = &mut agent.spec.sandbox.image else {
-            unreachable!()
-        };
-        *reference = format!("ghcr.io/altinn/altinn-studio/agent-full@sha256:{}", "a".repeat(64));
-        let lines = describe_agent_lines(&agent);
-        assert!(lines.iter().any(|line| line.starts_with("Recommended:")));
     }
 }

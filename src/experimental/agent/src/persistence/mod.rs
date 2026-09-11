@@ -859,11 +859,7 @@ mod tests {
             let connection = Connection::open(&path).expect("database");
             connection.pragma_update(None, "user_version", 1).expect("old version");
             drop(connection);
-            let error = Database::migrate(&path).expect_err("expanded v1 is rejected after backup");
-            assert!(
-                error.to_string().contains("not a recognized released schema"),
-                "unexpected migration error: {error}"
-            );
+            Database::migrate(&path).expect("adopt expanded version 1 after backup");
         }
         let backups = std::fs::read_dir(directory.path().join("backups"))
             .expect("backups")

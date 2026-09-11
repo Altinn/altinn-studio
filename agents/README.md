@@ -19,19 +19,11 @@ curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/exper
 agentctl claude login
 ```
 
-Update an installed CLI and daemon together with:
+Update Agent with:
 
 ```sh
 agentctl self update
 ```
-
-The updater verifies the package before stopping `agentd`, backs up and migrates its database, and restarts
-detached Sessions with their existing Claude Code or Codex conversation IDs. Harness credentials and Agent state
-stay in `~/.agent`; the managed binaries are installed separately under `~/.local/share/agent`.
-
-Preview 1 needs one manual daemon stop because that release predates graceful shutdown. Finish active turns,
-detach terminals, run `pkill -x agentd` on Linux or macOS (or `Stop-Process -Name agentd` in PowerShell), then rerun
-the installer. The staged update resumes without another download.
 
 Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
 
@@ -44,11 +36,6 @@ Open a new PowerShell window so the updated user `PATH` takes effect, then authe
 ```powershell
 agentctl claude login
 ```
-
-The release page also contains manifests pinned to the matching image version. `agentctl self update` updates the
-host CLI and daemon; it does not replace existing Sandboxes. To adopt a newer Agent image or the latest published
-manifest, delete and recreate that Agent. This removes its writable Sandbox filesystem, while host-side harness
-credentials remain available to the replacement Agent.
 
 ## GitHub token
 

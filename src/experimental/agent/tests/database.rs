@@ -88,8 +88,54 @@ const PREVIEW_1_SCHEMA: &str = "
     PRAGMA user_version = 1;
 ";
 
+// The schema produced by the session-management build on main before migrations were introduced.
+const EXPANDED_VERSION_1_SCHEMA: &str = "
+    CREATE TABLE IF NOT EXISTS agents (
+        id TEXT PRIMARY KEY NOT NULL,
+        active_name TEXT UNIQUE,
+        source_directory TEXT NOT NULL,
+        desired_json TEXT NOT NULL,
+        deletion_timestamp INTEGER,
+        status_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS secrets (
+        name TEXT PRIMARY KEY NOT NULL,
+        value BLOB NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS provider_accounts (
+        provider TEXT PRIMARY KEY NOT NULL,
+        metadata_json TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        initial_prompt TEXT,
+        harness_native_id TEXT,
+        harness_transcript_path TEXT,
+        activity_json TEXT NOT NULL DEFAULT '{}',
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (agent_id, name)
+    );
+    CREATE TABLE IF NOT EXISTS session_activity_reports (
+        session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        launch_token TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        PRIMARY KEY (session_id, launch_token, event_id)
+    );
+    PRAGMA user_version = 1;
+";
+
 const PREVIEW_AGENT_ID: &str = "11111111-1111-4111-8111-111111111111";
 const PREVIEW_DELETED_AGENT_ID: &str = "22222222-2222-4222-8222-222222222222";
+const EXPANDED_AGENT_ID: &str = "33333333-3333-4333-8333-333333333333";
 const PREVIEW_SECRET: &[u8] = b"\0preview-one-secret\xff";
 
 fn preview_desired(name: &str) -> String {
@@ -448,31 +494,117 @@ fn released_preview_1_database_migrates_without_losing_state() {
             .expect("migrated Session defaults"),
         4
     );
+    drop(connection);
+    drop(persistence::Database::open(&path).expect("reopen migrated database"));
 }
 
 #[test]
-fn expanded_or_partial_version_1_schemas_are_rejected_without_mutation() {
-    for shape in ["expanded", "partial"] {
-        let directory = TempDir::new().expect("temporary directory");
-        let path = directory.path().join("control-plane.db");
-        if shape == "expanded" {
-            let database = persistence::Database::open(&path).expect("current database");
-            drop(database);
-            let connection = rusqlite::Connection::open(&path).expect("mark expanded schema as version 1");
-            connection.pragma_update(None, "user_version", 1).expect("version 1");
-        } else {
-            let connection = rusqlite::Connection::open(&path).expect("partial database");
-            connection
-                .execute_batch("CREATE TABLE agents (id TEXT PRIMARY KEY NOT NULL); PRAGMA user_version = 1;")
-                .expect("partial version 1 schema");
-        }
-        let before = schema_snapshot(&path);
-        let Err(error) = persistence::Database::open(&path) else {
-            panic!("{shape} schema should be rejected");
-        };
-        assert!(error.to_string().contains("not a recognized released schema"));
-        assert_eq!(schema_snapshot(&path), before, "rejection must not mutate {shape}");
-    }
+fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    create_preview_1_database(&path);
+    let connection = rusqlite::Connection::open(&path).expect("open intermediate database");
+    connection
+        .execute_batch(
+            "CREATE TABLE session_activity_reports (
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                launch_token TEXT NOT NULL,
+                event_id TEXT NOT NULL,
+                PRIMARY KEY (session_id, launch_token, event_id)
+            );",
+        )
+        .expect("intermediate reports table");
+    let expanded_desired = serde_json::to_string(&support::agent("new-worker")).expect("expanded desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'new-worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                EXPANDED_AGENT_ID,
+                serde_json::to_string(Path::new("/expanded/source")).expect("source"),
+                expanded_desired,
+            ],
+        )
+        .expect("expanded Agent");
+    drop(connection);
+
+    let database = persistence::Database::open(&path).expect("migrate intermediate database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let agent = database
+            .get(PREVIEW_AGENT_ID.parse().expect("preview Agent ID"))
+            .await
+            .expect("preserved Agent");
+        assert_eq!(agent.agent.spec.instructions.len(), 1);
+        let expanded = database
+            .get(EXPANDED_AGENT_ID.parse().expect("expanded Agent ID"))
+            .await
+            .expect("preserved expanded Agent");
+        assert_eq!(expanded.agent.spec.instructions.len(), 1);
+    });
+    drop(database);
+
+    assert_eq!(schema_snapshot(&path).0, 2);
+    assert_eq!(
+        connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
+        expanded_desired,
+        "array-valued instructions should not rewrite current desired state"
+    );
+}
+
+#[test]
+fn expanded_version_1_schema_is_adopted_without_losing_state() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create expanded version 1 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("expanded version 1 schema");
+    let desired = serde_json::to_string(&support::agent("worker")).expect("expanded desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                EXPANDED_AGENT_ID,
+                serde_json::to_string(Path::new("/expanded/source")).expect("source"),
+                desired,
+            ],
+        )
+        .expect("expanded Agent");
+    drop(connection);
+    let before = schema_snapshot(&path).1;
+
+    let database = persistence::Database::open(&path).expect("adopt expanded version 1 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        database
+            .get(EXPANDED_AGENT_ID.parse().expect("expanded Agent ID"))
+            .await
+            .expect("preserved Agent");
+    });
+    drop(database);
+
+    let after = schema_snapshot(&path);
+    assert_eq!(after.0, 2);
+    assert_eq!(after.1, before);
+}
+
+#[test]
+fn partial_version_1_schema_is_rejected_without_mutation() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("partial database");
+    connection
+        .execute_batch("CREATE TABLE agents (id TEXT PRIMARY KEY NOT NULL); PRAGMA user_version = 1;")
+        .expect("partial version 1 schema");
+    let before = schema_snapshot(&path);
+
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("partial schema should be rejected");
+    };
+    assert!(error.to_string().contains("not a recognized released schema"));
+    assert_eq!(schema_snapshot(&path), before, "rejection must not mutate the schema");
 }
 
 #[test]
