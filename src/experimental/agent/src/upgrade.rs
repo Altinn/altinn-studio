@@ -359,12 +359,26 @@ impl UpdateJournal {
 ///
 /// Returns an error when the pointer cannot be read.
 pub fn current_release(paths: &InstallPaths) -> Result<Option<PathBuf>, Error> {
+    read_current(paths)
+}
+
+#[cfg(unix)]
+fn read_current(paths: &InstallPaths) -> Result<Option<PathBuf>, Error> {
     match fs::read_link(paths.current()) {
         Ok(target) => Ok(Some(if target.is_absolute() {
             target
         } else {
             paths.root.join(target)
         })),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(error.into()),
+    }
+}
+
+#[cfg(windows)]
+fn read_current(paths: &InstallPaths) -> Result<Option<PathBuf>, Error> {
+    match fs::read_to_string(paths.current()) {
+        Ok(target) => Ok(Some(PathBuf::from(target.trim()))),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(error) => Err(error.into()),
     }
@@ -382,12 +396,36 @@ pub fn activate_release(paths: &InstallPaths, target: &Path) -> Result<(), Error
             "target release is outside the managed releases directory".into(),
         ));
     }
+    activate_links(paths, target)?;
+    sync_directory(paths.root())
+}
+
+#[cfg(unix)]
+fn activate_links(paths: &InstallPaths, target: &Path) -> Result<(), Error> {
     replace_directory_link(&paths.current(), target)?;
     fs::create_dir_all(paths.bin())?;
     for binary in binary_names() {
         replace_file_link(&paths.bin.join(binary), &paths.current().join(binary))?;
     }
-    sync_directory(paths.root())
+    Ok(())
+}
+
+#[cfg(windows)]
+fn activate_links(paths: &InstallPaths, target: &Path) -> Result<(), Error> {
+    replace_windows_pointer(&paths.current(), target)?;
+    fs::create_dir_all(paths.bin())?;
+    for binary in ["agentctl", "agentd"] {
+        let legacy = paths.bin().join(format!("{binary}.exe"));
+        if legacy.exists() {
+            fs::remove_file(legacy)?;
+        }
+        let root = paths.root().to_string_lossy().replace('%', "%%");
+        let script = format!(
+            "@echo off\r\nsetlocal\r\nset /p AGENT_CURRENT=<\"{root}\\current\"\r\n\"%AGENT_CURRENT%\\{binary}.exe\" %*\r\n"
+        );
+        replace_windows_file(&paths.bin().join(format!("{binary}.cmd")), script.as_bytes())?;
+    }
+    Ok(())
 }
 
 /// Durably requests one target-daemon Session relaunch pass.
@@ -750,37 +788,22 @@ fn replace_symlink(link: &Path, create: impl FnOnce(&Path) -> std::io::Result<()
 }
 
 #[cfg(windows)]
-fn replace_directory_link(link: &Path, target: &Path) -> Result<(), Error> {
-    let temporary = link.with_extension(format!("next-{}", std::process::id()));
-    let _ = fs::remove_dir(&temporary);
-    let status = Command::new("cmd")
-        .args(["/d", "/c", "mklink", "/J"])
-        .arg(&temporary)
-        .arg(target)
-        .status()?;
-    if !status.success() {
-        return Err(Error::Io(std::io::Error::other(
-            "could not create Agent release junction",
-        )));
-    }
-    let old = link.with_extension(format!("old-{}", std::process::id()));
-    let _ = fs::remove_dir(&old);
-    if link.exists() {
-        fs::rename(link, &old)?;
-    }
-    fs::rename(&temporary, link)?;
-    let _ = fs::remove_dir(old);
-    Ok(())
+fn replace_windows_pointer(path: &Path, target: &Path) -> Result<(), Error> {
+    replace_windows_file(path, format!("{}\r\n", target.display()).as_bytes())
 }
 
 #[cfg(windows)]
-fn replace_file_link(link: &Path, target: &Path) -> Result<(), Error> {
-    let temporary = link.with_extension(format!("next-{}", std::process::id()));
-    fs::copy(target, &temporary)?;
-    if link.exists() {
-        fs::remove_file(link)?;
-    }
-    fs::rename(temporary, link)?;
+fn replace_windows_file(path: &Path, contents: &[u8]) -> Result<(), Error> {
+    let temporary = path.with_extension(format!("next-{}", std::process::id()));
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&temporary)?;
+    file.write_all(contents)?;
+    file.sync_all()?;
+    drop(file);
+    fs::rename(temporary, path)?;
     Ok(())
 }
 

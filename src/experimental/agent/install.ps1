@@ -2,11 +2,41 @@ $ErrorActionPreference = "Stop"
 
 $Repository = if ($env:AGENT_GITHUB_REPOSITORY) { $env:AGENT_GITHUB_REPOSITORY } else { "Altinn/altinn-studio" }
 $Version = $env:AGENT_VERSION
+$InstallRoot = if ($env:AGENT_INSTALL_ROOT) { $env:AGENT_INSTALL_ROOT } else { Join-Path $env:LOCALAPPDATA "Agent" }
+$BinDirectory = if ($env:AGENT_INSTALL_DIR) { $env:AGENT_INSTALL_DIR } else { Join-Path $InstallRoot "bin" }
+$AgentHome = if ($env:AGENT_HOME) { $env:AGENT_HOME } else { Join-Path $env:USERPROFILE ".agent" }
 $LocalArchive = $env:AGENT_LOCAL_ARCHIVE
-$InstallDirectory = if ($env:AGENT_INSTALL_DIR) {
-    $env:AGENT_INSTALL_DIR
-} else {
-    Join-Path $env:LOCALAPPDATA "Agent\bin"
+$InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
+$BinDirectory = [IO.Path]::GetFullPath($BinDirectory)
+$AgentHome = [IO.Path]::GetFullPath($AgentHome)
+if ($LocalArchive) { $LocalArchive = [IO.Path]::GetFullPath($LocalArchive) }
+$JournalPath = Join-Path $InstallRoot "update.json"
+
+function Invoke-Completion($Journal) {
+    $Target = $Journal.targetRelease
+    $TargetVersion = $Journal.targetVersion
+    $Agentctl = Join-Path $Target "agentctl.exe"
+    if (-not $Target -or -not $TargetVersion -or -not (Test-Path $Agentctl -PathType Leaf)) {
+        throw "The Agent update journal does not name a usable staged release: $JournalPath"
+    }
+    $Arguments = @(
+        "--home", $AgentHome, "self", "__complete-update",
+        "--install-root", $InstallRoot, "--bin-directory", $BinDirectory,
+        "--agent-home", $AgentHome, "--target-release", $Target,
+        "--target-version", $TargetVersion, "--repository", $Repository
+    )
+    if ($Journal.previousRelease) { $Arguments += @("--previous-release", $Journal.previousRelease) }
+    & $Agentctl @Arguments
+    if ($LASTEXITCODE -ne 0) { throw "Target Agent updater exited with code $LASTEXITCODE" }
+}
+
+if (Test-Path $JournalPath -PathType Leaf) {
+    $Journal = Get-Content $JournalPath -Raw | ConvertFrom-Json
+    if ($Journal.phase -ne "complete") {
+        Invoke-Completion $Journal
+        Write-Host "Installed agentctl and agentd to $BinDirectory"
+        exit 0
+    }
 }
 
 if (-not $LocalArchive -and -not $Version) {
@@ -15,6 +45,7 @@ if (-not $LocalArchive -and -not $Version) {
     if (-not $Release) { throw "Could not resolve the latest experimental Agent release" }
     $Version = $Release.tag_name.Substring("experimental-agent/".Length)
 }
+if (-not $Version.StartsWith("v")) { $Version = "v$Version" }
 
 $Architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
 $Platform = switch ($Architecture) {
@@ -23,6 +54,7 @@ $Platform = switch ($Architecture) {
     default { throw "Unsupported Windows architecture: $Architecture" }
 }
 $Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("altinn-agent-install-" + [guid]::NewGuid())
+$Staging = Join-Path $InstallRoot ("releases\.staging-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Path $Temporary | Out-Null
 try {
     if ($LocalArchive) {
@@ -39,14 +71,32 @@ try {
     $Expected = (Get-Content $Checksum -Raw).Split(' ')[0].Trim().ToLowerInvariant()
     $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
-    New-Item -ItemType Directory -Force -Path $InstallDirectory | Out-Null
-    tar -xzf (Join-Path $Temporary $Archive) -C $InstallDirectory
+
+    $ReleasesDirectory = Join-Path $InstallRoot "releases"
+    New-Item -ItemType Directory -Force -Path $ReleasesDirectory | Out-Null
+    $Target = Join-Path $ReleasesDirectory "$Version-$Platform"
+    if (-not (Test-Path $Target -PathType Container)) {
+        New-Item -ItemType Directory -Path $Staging | Out-Null
+        tar -xzf (Join-Path $Temporary $Archive) -C $Staging
+        Move-Item $Staging $Target
+    }
+
+    $Previous = $null
+    $Current = Join-Path $InstallRoot "current"
+    if (Test-Path $Current -PathType Leaf) { $Previous = (Get-Content $Current -Raw).Trim() }
+    $Journal = [pscustomobject]@{
+        targetRelease = $Target
+        targetVersion = $Version
+        previousRelease = $Previous
+    }
+    Invoke-Completion $Journal
 } finally {
-    Remove-Item -Recurse -Force $Temporary
+    if (Test-Path $Temporary) { Remove-Item -Recurse -Force $Temporary }
+    if (Test-Path $Staging) { Remove-Item -Recurse -Force $Staging }
 }
 
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if (($UserPath -split ';') -notcontains $InstallDirectory) {
-    [Environment]::SetEnvironmentVariable("Path", (($UserPath.TrimEnd(';') + ';' + $InstallDirectory).TrimStart(';')), "User")
+if (($UserPath -split ';') -notcontains $BinDirectory) {
+    [Environment]::SetEnvironmentVariable("Path", (($UserPath.TrimEnd(';') + ';' + $BinDirectory).TrimStart(';')), "User")
 }
-Write-Host "Installed agentctl.exe and agentd.exe to $InstallDirectory"
+Write-Host "Installed agentctl and agentd to $BinDirectory"

@@ -245,7 +245,11 @@ async fn complete(
         journal.advance(&paths, UpdatePhase::DaemonStopped)?;
     }
 
-    let home_lock = acquire_home_lock(home).await?;
+    let home_lock = if journal.phase < UpdatePhase::Activated {
+        Some(acquire_home_lock(home).await?)
+    } else {
+        None
+    };
     if journal.phase < UpdatePhase::Migrated {
         println!("Migrate Agent state");
         if let Err(error) = agent::persistence::Database::migrate(&home.path().join("agent.db")) {
