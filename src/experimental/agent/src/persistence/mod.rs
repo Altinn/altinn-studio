@@ -594,11 +594,22 @@ fn backup_database(connection: &Connection, path: &Path, version: u32) -> Result
         .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .filter(|entry| entry.file_type().is_ok_and(|kind| kind.is_file()))
-        .filter(|entry| entry.file_name().to_string_lossy().starts_with("agent-schema-"))
+        .filter_map(|entry| {
+            let name = entry.file_name();
+            let timestamp = name
+                .to_str()?
+                .strip_prefix("agent-schema-")?
+                .strip_suffix(".db")?
+                .rsplit_once('-')?
+                .1
+                .parse::<u128>()
+                .ok()?;
+            Some((timestamp, entry))
+        })
         .collect::<Vec<_>>();
-    backups.sort_by_key(|entry| entry.metadata().and_then(|metadata| metadata.modified()).ok());
+    backups.sort_by_key(|(timestamp, _)| *timestamp);
     let remove = backups.len().saturating_sub(3);
-    for entry in backups.into_iter().take(remove) {
+    for (_, entry) in backups.into_iter().take(remove) {
         std::fs::remove_file(entry.path())?;
     }
     Ok(())
@@ -841,10 +852,8 @@ mod tests {
             let connection = Connection::open(&path).expect("database");
             connection.pragma_update(None, "user_version", 1).expect("old version");
             drop(connection);
-            assert!(
-                Database::migrate(&path).is_err(),
-                "expanded v1 is rejected after backup"
-            );
+            let error = Database::migrate(&path).expect_err("expanded v1 is rejected after backup");
+            assert!(error.to_string().contains("not a recognized released schema"));
         }
         let backups = std::fs::read_dir(directory.path().join("backups"))
             .expect("backups")
