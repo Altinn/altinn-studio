@@ -3,13 +3,23 @@ set -euo pipefail
 
 old_version="v0.0.1-upgrade-smoke"
 target_version="v0.0.2-upgrade-smoke"
-smoke_root="$(mktemp -d -t altinn-agent-upgrade.XXXXXXXX)"
-binary_directory="${CARGO_TARGET_DIR:-../../target}/debug"
+smoke_root="$(mktemp -d /tmp/au.XXXXXXXX)"
+smoke_target="${smoke_root}/target"
+binary_directory="${smoke_target}/debug"
 old_archive="${smoke_root}/old.tar.gz"
 target_archive="${smoke_root}/target.tar.gz"
 export AGENT_HOME="${smoke_root}/home"
 
 cleanup() {
+  status=$?
+  log="${AGENT_HOME}/agentd.log"
+  if [ "${RUNNER_OS:-}" = "Windows" ]; then
+    log="$(cygpath -u "${AGENT_HOME}")/agentd.log"
+  fi
+  if [ "${status}" -ne 0 ] && [ -f "${log}" ]; then
+    printf '%s\n' 'agentd.log:' >&2
+    cat "${log}" >&2
+  fi
   if [ "${RUNNER_OS:-}" = "Windows" ]; then
     # shellcheck disable=SC2016 # PowerShell expands its own environment variables.
     pwsh -NoProfile -Command '
@@ -25,10 +35,13 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 
 mkdir -p "${smoke_root}"
-AGENT_VERSION="${old_version}" cargo build --locked -p agent --bins
+CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 \
+  AGENT_VERSION="${old_version}" cargo build --locked -p agent --bins
 ./agent/package.sh "${old_archive}" "${binary_directory}"
-AGENT_VERSION="${target_version}" cargo build --locked -p agent --bins
+CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 \
+  AGENT_VERSION="${target_version}" cargo build --locked -p agent --bins
 ./agent/package.sh "${target_archive}" "${binary_directory}"
+rm -rf -- "${smoke_target}"
 
 if [ "${RUNNER_OS:-}" = "Windows" ]; then
   AGENT_INSTALL_ROOT="$(cygpath -w "${smoke_root}/install")"

@@ -83,7 +83,13 @@ try {
         $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
         New-Item -ItemType Directory -Path $SourceRelease | Out-Null
-        tar -xzf (Join-Path $Temporary $Archive) -C $SourceRelease
+        Push-Location $Temporary
+        try {
+            tar -xzf $Archive -C $SourceRelease
+            if ($LASTEXITCODE -ne 0) { throw "Failed to extract Agent archive" }
+        } finally {
+            Pop-Location
+        }
         & (Join-Path $SourceRelease "agentctl.exe") --home $AgentHome self __publish-release `
             --install-root $InstallRoot --bin-directory $BinDirectory `
             --source-release $SourceRelease --target-version $Version
