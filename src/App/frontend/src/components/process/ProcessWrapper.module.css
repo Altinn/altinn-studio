@@ -4,10 +4,13 @@
   gap: 10px;
 }
 
-.stillWorkingContainer {
+.stillWorkingOverlay {
+  position: absolute;
+  inset: 0;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 0 16px 48px;
+  padding: 16px;
 }
 
 .stillWorkingAlert {

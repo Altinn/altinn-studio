@@ -120,6 +120,7 @@ describe('ProcessWrapper workflow state machine', () => {
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
 
     await expectWorkflowLoader();
+    expect(screen.getByRole('heading', { name: /vent litt, vi henter det du trenger/i })).toBeInTheDocument();
     expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
@@ -241,7 +242,11 @@ describe('ProcessWrapper workflow state machine', () => {
       await act(async () => {
         await vi.advanceTimersByTimeAsync(2_000);
       });
-      expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
+      const status = screen.getByRole('status');
+      expect(status).toHaveAttribute('aria-live', 'polite');
+      expect(status).toHaveAttribute('aria-atomic', 'true');
+      expect(status).toHaveTextContent(/du kan trygt lukke siden/i);
+      expect(status.parentElement).toContainElement(screen.getByTestId('loader'));
     } finally {
       vi.useRealTimers();
     }

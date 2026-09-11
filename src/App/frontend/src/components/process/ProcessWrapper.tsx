@@ -171,11 +171,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     process?.currentTask?.elementId !== taskId;
 
   if (holdLoaderForPendingTransition) {
-    return (
-      <PresentationComponent showNavigation={false}>
-        <WorkflowProcessing />
-      </PresentationComponent>
-    );
+    return <WorkflowProcessing />;
   }
 
   if (taskType === ProcessTaskType.Archived && taskId !== TaskKeys.CustomReceipt) {
@@ -214,11 +210,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
 
   if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
-    return (
-      <PresentationComponent showNavigation={false}>
-        <WorkflowProcessing />
-      </PresentationComponent>
-    );
+    return <WorkflowProcessing />;
   }
 
   // A failure owned by the current service task falls through to the task's own view (see

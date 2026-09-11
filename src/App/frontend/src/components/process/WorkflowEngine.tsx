@@ -41,24 +41,26 @@ export function WorkflowProcessing() {
   }, [startedAt]);
 
   return (
-    <>
-      <Loader reason='workflow-processing' />
-      {stillWorking && (
-        <Flex
-          item
-          size={{ xs: 12 }}
-          aria-live='polite'
-          className={classes.stillWorkingContainer}
-        >
-          <Alert
-            data-color='info'
-            className={classes.stillWorkingAlert}
+    <Loader
+      reason='workflow-processing'
+      overlay={
+        stillWorking ? (
+          <div
+            role='status'
+            aria-live='polite'
+            aria-atomic='true'
+            className={classes.stillWorkingOverlay}
           >
-            <Lang id='process_workflow.still_working' />
-          </Alert>
-        </Flex>
-      )}
-    </>
+            <Alert
+              data-color='info'
+              className={classes.stillWorkingAlert}
+            >
+              <Lang id='process_workflow.still_working' />
+            </Alert>
+          </div>
+        ) : undefined
+      }
+    />
   );
 }
 
