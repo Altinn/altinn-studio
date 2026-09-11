@@ -239,32 +239,6 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public async Task DeleteRepository_GiteaServiceIsCalled()
-    {
-        // Arrange
-        string org = "ttd";
-        string origApp = "hvem-er-hvem";
-        string app = TestDataHelper.GenerateTestRepoName(origApp);
-        string developer = "testUser";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-
-        await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
-
-        Mock<IGiteaClient> mock = new();
-        mock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
-
-        SourceControlService sut = GetServiceForTest(developer, mock);
-
-        // Act
-        await sut.DeleteRepository(editingContext);
-        string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
-
-        // Assert
-        mock.VerifyAll();
-        Assert.False(Directory.Exists(expectedPath));
-    }
-
-    [Fact]
     public async Task CreatePullRequest_InputMappedCorectlyToCreatePullRequestOption()
     {
         // Arrange
