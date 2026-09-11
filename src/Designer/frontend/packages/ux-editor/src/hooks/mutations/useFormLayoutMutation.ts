@@ -3,9 +3,9 @@ import type { IInternalLayout } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayout';
+import type { SerializedComponent, SerializedFormLayout } from '../../types/SerializedComponent';
 
 type useFormLayoutMutationPayload = {
   internalLayout: IInternalLayout;
@@ -24,8 +24,10 @@ export const useFormLayoutMutation = (
 
   return useMutation({
     mutationFn: async (payload: useFormLayoutMutationPayload) => {
-      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(payload.internalLayout);
-      const requestPayload: FormLayoutRequest = {
+      const convertedLayout: SerializedFormLayout = internalLayoutToExternal(
+        payload.internalLayout,
+      );
+      const requestPayload: FormLayoutRequest<SerializedComponent> = {
         layout: convertedLayout,
         componentIdsChange: payload.componentIdsChange,
       };

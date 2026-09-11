@@ -3,26 +3,27 @@ import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { TextResource } from '../../TextResource/TextResource';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../../hooks';
+import { getTextResourceId } from '../../../utils/textResourceUtils';
 
 const TITLE_TEXT_RESOURCE_KEY = 'title';
 
 type TextResourceMainConfigProps = {
   component: FormItem;
-  componentSchemaTextKeys: string[];
+  textResourceBindingKeys: string[];
   handleComponentChange: (component: FormItem) => void;
 };
 
 export const TextResourceMainConfig = ({
   component,
-  componentSchemaTextKeys,
+  textResourceBindingKeys,
   handleComponentChange,
 }: TextResourceMainConfigProps): React.JSX.Element => {
   const { t } = useTranslation();
   const { selectedFormLayoutName } = useAppContext();
 
   if (
-    componentSchemaTextKeys.length === 0 ||
-    !componentSchemaTextKeys.includes(TITLE_TEXT_RESOURCE_KEY)
+    textResourceBindingKeys.length === 0 ||
+    !textResourceBindingKeys.includes(TITLE_TEXT_RESOURCE_KEY)
   ) {
     return null;
   }
@@ -49,7 +50,7 @@ export const TextResourceMainConfig = ({
       handleIdChange={handleIdUpdate}
       handleRemoveTextResource={handleRemoveTextResource}
       label={t(`ux_editor.modal_properties_textResourceBindings_${TITLE_TEXT_RESOURCE_KEY}`)}
-      textResourceId={component?.textResourceBindings?.[TITLE_TEXT_RESOURCE_KEY]}
+      textResourceId={getTextResourceId(component?.textResourceBindings?.[TITLE_TEXT_RESOURCE_KEY])}
       generateIdOptions={{
         componentId: component.id,
         layoutId: selectedFormLayoutName,

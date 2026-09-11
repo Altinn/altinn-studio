@@ -5,7 +5,7 @@ import { waitFor } from '@testing-library/react';
 import type { AddWidgetMutationArgs } from './useAddWidgetMutation';
 import { useAddWidgetMutation } from './useAddWidgetMutation';
 import type { IWidget, IWidgetTexts } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { app, org } from '@studio/testing/testids';

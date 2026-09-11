@@ -1,7 +1,7 @@
 import type { FormItem } from '../../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
 import {
   createPublishedCodeListReferenceString,

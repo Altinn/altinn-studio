@@ -1,16 +1,16 @@
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ConfigObjectProperty, type ConfigObjectPropertyProps } from './ConfigObjectProperty';
 import { componentMocks } from '../../../../testing/componentMocks';
-import InputSchema from '../../../../testing/schemas/json/component/Input.schema.v1.json';
+import type { PropertyDefinition } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
-const somePropertyName = 'somePropertyName';
+const somePropertyName = 'formatting';
 
 jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
   useComponentPropertyDescription: () => (propertyKey) =>
-    propertyKey === 'somePropertyName' ? 'Some description' : undefined,
+    propertyKey === somePropertyName ? 'Some description' : undefined,
 }));
 
 describe('ConfigObjectProperties', () => {
@@ -18,15 +18,13 @@ describe('ConfigObjectProperties', () => {
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            [somePropertyName]: {
-              type: 'object',
-              properties: {},
-              description: 'Some description',
-            },
+        properties: {
+          [somePropertyName]: {
+            type: 'object',
+            properties: {},
+            additionalProperties: false,
+            description: { en: 'Some description', nb: 'En beskrivelse' },
+            required: false,
           },
         },
       },
@@ -41,14 +39,14 @@ describe('ConfigObjectProperties', () => {
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
-        schema: {
-          properties: {
-            [somePropertyName]: {
-              type: 'object',
-              properties: {
-                readOnly: { type: 'boolean', default: false },
-              },
+        properties: {
+          [somePropertyName]: {
+            type: 'object',
+            properties: {
+              readOnly: { type: 'boolean', default: false, required: false },
             },
+            additionalProperties: false,
+            required: false,
           },
         },
         handleComponentUpdate: handleComponentUpdateMock,
@@ -90,7 +88,7 @@ describe('ConfigObjectProperties', () => {
         objectPropertyKey: somePropertyName,
         component: {
           ...componentMocks.Input,
-          [somePropertyName]: { testField: 'testValue' },
+          [somePropertyName]: { currency: 'NOK' },
         },
         handleComponentUpdate: handleComponentUpdateMock,
       },
@@ -118,15 +116,7 @@ describe('ConfigObjectProperties', () => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigObjectPropertyProps = {
       objectPropertyKey: somePropertyName,
-      schema: {
-        ...InputSchema,
-        properties: {
-          [somePropertyName]: {
-            type: 'object',
-            properties: {},
-          },
-        },
-      },
+      properties: defaultObjectProperties,
       component: inputComponent,
       handleComponentUpdate: jest.fn(),
       editFormId: 'test-form',
@@ -134,6 +124,15 @@ describe('ConfigObjectProperties', () => {
     return renderWithProviders(<ConfigObjectProperty {...defaultProps} {...props} />);
   };
 });
+
+const defaultObjectProperties: Record<string, PropertyDefinition> = {
+  [somePropertyName]: {
+    type: 'object',
+    properties: {},
+    additionalProperties: false,
+    required: false,
+  },
+};
 
 const openCard = async () => {
   const user = userEvent.setup();

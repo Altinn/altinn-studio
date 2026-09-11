@@ -2,7 +2,7 @@ import type { EditTabProps } from './EditTab';
 import { EditTab } from './EditTab';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
 import { renderWithProviders } from '../../../../../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

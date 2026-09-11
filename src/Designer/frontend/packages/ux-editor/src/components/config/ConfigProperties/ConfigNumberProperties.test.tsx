@@ -1,7 +1,7 @@
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigNumberProperties, type ConfigNumberPropertiesProps } from './ConfigNumberProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
+import type { PropertyDefinition } from '@app/layout-contract';
 import userEvent from '@testing-library/user-event';
 import {
   cancelConfigAndVerify,
@@ -11,6 +11,10 @@ import {
 } from './testConfigUtils';
 
 const defaultProperty = 'someNumberProperty';
+const properties: Record<string, PropertyDefinition> = {
+  [defaultProperty]: { type: 'number', allowedValues: [1, 2, 3], required: false },
+  preselectedOptionIndex: { type: 'number', required: false },
+};
 
 describe('ConfigNumberProperties', () => {
   it('should render property text for "preselectedOptionIndex" with button suffix', () => {
@@ -39,13 +43,9 @@ describe('ConfigNumberProperties', () => {
     const handleComponentUpdate = jest.fn();
     renderConfigNumberProperties({
       handleComponentUpdate,
-      schema: {
-        ...InputSchema,
-        properties: {
-          someNumberProperty: {
-            type: 'number',
-          },
-        },
+      properties: {
+        ...properties,
+        someNumberProperty: { type: 'number', required: false },
       },
     });
 
@@ -62,15 +62,7 @@ describe('ConfigNumberProperties', () => {
 
   const defaultProps: ConfigNumberPropertiesProps = {
     numberPropertyKeys: [defaultProperty],
-    schema: {
-      ...InputSchema,
-      properties: {
-        someNumberProperty: {
-          type: 'number',
-          enum: [1, 2, 3],
-        },
-      },
-    },
+    properties,
     component: componentMocks.Input,
     handleComponentUpdate: jest.fn(),
   };

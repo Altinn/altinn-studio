@@ -5,7 +5,7 @@ import {
   getAllLayoutContainers,
   getFullLayoutOrder,
 } from './formLayoutSelectors';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 // Test data:
 const layout1Name = layout1NameMock;
@@ -28,13 +28,11 @@ const formLayoutsData: IFormLayouts = {
       [container0Id]: {
         id: container0Id,
         index: 0,
-        itemType: 'CONTAINER',
         type: ComponentType.Group,
       },
       [container1Id]: {
         id: container1Id,
         index: 1,
-        itemType: 'CONTAINER',
         type: ComponentType.Group,
       },
     },
@@ -42,25 +40,21 @@ const formLayoutsData: IFormLayouts = {
       [component0AId]: {
         id: component0AId,
         type: ComponentType.Input,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'path1', dataType: '' } },
       },
       [component0BId]: {
         id: component0BId,
         type: ComponentType.Input,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'path2', dataType: '' } },
       },
       [component1AId]: {
         id: component1AId,
         type: ComponentType.Input,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'path3', dataType: '' } },
       },
       [component1BId]: {
         id: component1BId,
         type: ComponentType.Input,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'path4', dataType: '' } },
       },
     },
@@ -76,7 +70,6 @@ const formLayoutsData: IFormLayouts = {
       [container2Id]: {
         id: container2Id,
         index: 0,
-        itemType: 'CONTAINER',
         type: ComponentType.Group,
       },
     },
@@ -84,13 +77,11 @@ const formLayoutsData: IFormLayouts = {
       [component2AId]: {
         id: component2AId,
         type: ComponentType.Input,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'somePath1', dataType: '' } },
       },
       [component2BId]: {
         id: component2BId,
         type: ComponentType.Input,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'somePath2', dataType: '' } },
       },
     },

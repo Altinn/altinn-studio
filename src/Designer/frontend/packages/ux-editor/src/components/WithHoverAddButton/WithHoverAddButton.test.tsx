@@ -16,12 +16,10 @@ function createLayoutWithContainer(containerId: string, containerType: string): 
     containers: {
       [BASE_CONTAINER_ID]: {
         type: null,
-        itemType: 'CONTAINER' as const,
         id: BASE_CONTAINER_ID,
       },
       [containerId]: {
         type: containerType,
-        itemType: 'CONTAINER' as const,
         id: containerId,
       } as any,
     },
@@ -42,7 +40,6 @@ const defaultProps: Omit<WithHoverAddButtonProps, 'children'> = {
     containers: {
       [BASE_CONTAINER_ID]: {
         type: null,
-        itemType: 'CONTAINER',
         id: BASE_CONTAINER_ID,
       },
     },

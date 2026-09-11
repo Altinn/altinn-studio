@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { internalContainerComponentToExternal } from './internalContainerComponentToExternal';
 import type { FormContainer } from '../../types/FormContainer';
 
@@ -11,11 +11,9 @@ describe('internalGroupComponentToExternal', () => {
   it('Correctly converts an internal group component', () => {
     const internalGroupComponent: FormContainer = {
       id,
-      itemType: 'CONTAINER',
       type: ComponentType.Group,
-      pageIndex: null,
-      customProperty,
-    } as FormContainer<ComponentType.Group>;
+      customProperties: { customProperty },
+    };
     const result = internalContainerComponentToExternal(internalGroupComponent, children);
     expect(result).toEqual({
       id,

@@ -11,7 +11,7 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 const mockHandleComponentUpdate = jest.fn();
-const schemaTextResourceKeys = ['title'];
+const textResourceBindingKeys = ['title'];
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
   { id: '2', value: 'Text 2' },
@@ -21,20 +21,20 @@ const textResources: ITextResource[] = [
 describe('TextBindingMainConfig', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('return null if the schema of component does not have a title prop', () => {
+  it('returns null if the component does not support a title binding', () => {
     renderTextMainConfig({});
     const wrapper = screen.getByTestId('component-wrapper');
     expect(wrapper).toBeEmptyDOMElement();
   });
 
   it('renders when titleKey is defined', () => {
-    renderTextMainConfig({ componentSchemaTextKeys: schemaTextResourceKeys });
+    renderTextMainConfig({ textResourceBindingKeys });
     expect(textButton()).toBeInTheDocument();
   });
 
   it('updates text resource binding title when selecting a text resource id', async () => {
     const user = userEvent.setup();
-    renderTextMainConfig({ componentSchemaTextKeys: schemaTextResourceKeys });
+    renderTextMainConfig({ textResourceBindingKeys });
     await user.click(textButton());
 
     const searchButton = screen.getByRole('tab', {
@@ -65,7 +65,7 @@ describe('TextBindingMainConfig', () => {
       },
     };
 
-    renderTextMainConfig({ component, componentSchemaTextKeys: schemaTextResourceKeys });
+    renderTextMainConfig({ component, textResourceBindingKeys });
     await user.click(textButton());
 
     const removeButton = screen.getByRole('button', {
@@ -87,7 +87,7 @@ const textButton = () =>
 
 const renderTextMainConfig = ({
   component = component1Mock,
-  componentSchemaTextKeys = undefined,
+  textResourceBindingKeys: bindingKeys = undefined,
 }) => {
   const queryClient = createQueryClientMock();
   const textResourcesList: ITextResources = {
@@ -100,7 +100,7 @@ const renderTextMainConfig = ({
     <div data-testid='component-wrapper'>
       <TextResourceMainConfig
         component={component}
-        componentSchemaTextKeys={componentSchemaTextKeys || []}
+        textResourceBindingKeys={bindingKeys || []}
         handleComponentChange={mockHandleComponentUpdate}
       />
     </div>,
