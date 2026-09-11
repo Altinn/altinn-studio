@@ -8,6 +8,8 @@ use std::{
     io::{Read as _, Write as _},
     path::{Component, Path, PathBuf},
     process::Command,
+    sync::OnceLock,
+    time::Duration,
 };
 
 use flate2::read::GzDecoder;
@@ -18,6 +20,8 @@ use crate::{Error, local::home::ControlPlaneHome, sessions};
 
 const INSTALL_FORMAT: u32 = 1;
 const JOURNAL_FORMAT: u32 = 1;
+const HTTP_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+const HTTP_REQUEST_TIMEOUT: Duration = Duration::from_mins(1);
 
 /// Filesystem locations for one managed Agent installation.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -105,7 +109,13 @@ impl InstallPaths {
             .truncate(false)
             .open(&path)?;
         crate::local::home::secure_file(&path)?;
-        file.lock().map_err(Error::Io)?;
+        match file.try_lock() {
+            Ok(()) => {}
+            Err(std::fs::TryLockError::WouldBlock) => {
+                return Err(Error::Daemon("another Agent update is already running".into()));
+            }
+            Err(std::fs::TryLockError::Error(error)) => return Err(Error::Io(error)),
+        }
         Ok(InstallLock { _file: file })
     }
 }
@@ -543,7 +553,7 @@ async fn latest_release(repository: &str) -> Result<String, Error> {
     struct GithubRelease {
         tag_name: String,
     }
-    let client = reqwest::Client::new();
+    let client = http_client()?;
     for page in 1_u32.. {
         let releases = client
             .get(format!(
@@ -572,7 +582,7 @@ async fn latest_release(repository: &str) -> Result<String, Error> {
 }
 
 async fn download(url: &str, path: &Path) -> Result<(), Error> {
-    let bytes = reqwest::Client::new()
+    let bytes = http_client()?
         .get(url)
         .header(reqwest::header::USER_AGENT, "Altinn-Agent-updater")
         .send()
@@ -585,6 +595,20 @@ async fn download(url: &str, path: &Path) -> Result<(), Error> {
         .map_err(|error| Error::Daemon(format!("read Agent package: {error}")))?;
     fs::write(path, bytes)?;
     Ok(())
+}
+
+fn http_client() -> Result<&'static reqwest::Client, Error> {
+    static CLIENT: OnceLock<Result<reqwest::Client, String>> = OnceLock::new();
+    CLIENT
+        .get_or_init(|| {
+            reqwest::Client::builder()
+                .connect_timeout(HTTP_CONNECT_TIMEOUT)
+                .timeout(HTTP_REQUEST_TIMEOUT)
+                .build()
+                .map_err(|error| error.to_string())
+        })
+        .as_ref()
+        .map_err(|error| Error::Daemon(format!("create Agent update HTTP client: {error}")))
 }
 
 fn normalize_version(version: &str) -> Result<String, Error> {
@@ -851,6 +875,17 @@ mod tests {
         fs::create_dir_all(paths.releases()).expect("releases");
         let journal = UpdateJournal::new(None, temporary.path().join("elsewhere"), "v2.0.0".into());
         assert!(journal.validate(&paths).is_err());
+    }
+
+    #[test]
+    fn install_lock_reports_a_concurrent_update() {
+        let temporary = tempfile::TempDir::new().expect("temporary directory");
+        let paths = InstallPaths::new(temporary.path().join("install"), temporary.path().join("bin")).expect("paths");
+        let _first = paths.lock().expect("first lock");
+
+        let error = paths.lock().expect_err("second lock");
+
+        assert!(error.to_string().contains("another Agent update is already running"));
     }
 
     #[test]

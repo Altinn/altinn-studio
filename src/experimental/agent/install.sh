@@ -73,10 +73,10 @@ case "$(uname -s)-$(uname -m)" in
 esac
 
 temporary="$(mktemp -d -t altinn-agent-install.XXXXXXXX)"
-staging="${install_root}/releases/.staging-$$"
+mkdir -p "${install_root}/releases"
+staging="$(mktemp -d "${install_root}/releases/.staging-XXXXXXXX")"
 trap 'rm -rf "${temporary}" "${staging}"' EXIT HUP INT TERM
 
-mkdir -p "${install_root}/releases"
 target="${install_root}/releases/${version}-${platform}"
 if [ ! -d "${target}" ]; then
   if [ -n "${local_archive}" ]; then
@@ -94,7 +94,6 @@ if [ ! -d "${target}" ]; then
   else
     (cd "${temporary}" && shasum -a 256 -c "${archive}.sha256")
   fi
-  mkdir "${staging}"
   tar -xzf "${temporary}/${archive}" -C "${staging}"
   chmod 0755 "${staging}/agentctl" "${staging}/agentd"
   mv "${staging}" "${target}"
