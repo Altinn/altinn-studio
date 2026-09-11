@@ -26,6 +26,11 @@ make test      # 6. Unit tests
 - Avoid nolint, the bar should be high
 - Respect fieldalignment lints (`make lint-fix` auto-corrects struct field ordering)
 
+### Shared .NET libraries
+
+Libraries shared between the .NET projects in this area live under [`common/`](common/AGENTS.md) and are
+part of `studioctl.slnx`, so `make test` covers them.
+
 ### Changelog & releases
 
 - **Every PR with a user-visible studioctl change** (new commands/flags, behavior changes,
