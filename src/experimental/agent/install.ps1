@@ -83,9 +83,9 @@ try {
         $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
         New-Item -ItemType Directory -Path $SourceRelease | Out-Null
-        Push-Location $Temporary
+        Push-Location $SourceRelease
         try {
-            tar -xzf $Archive -C $SourceRelease
+            tar -xzf "../$Archive"
             if ($LASTEXITCODE -ne 0) { throw "Failed to extract Agent archive" }
         } finally {
             Pop-Location

@@ -6,6 +6,7 @@ target_version="v0.0.2-upgrade-smoke"
 smoke_root="$(mktemp -d /tmp/au.XXXXXXXX)"
 smoke_target="${smoke_root}/target"
 binary_directory="${smoke_target}/debug"
+target_binaries="${smoke_root}/target-binaries"
 old_archive="${smoke_root}/old.tar.gz"
 target_archive="${smoke_root}/target.tar.gz"
 export AGENT_HOME="${smoke_root}/home"
@@ -40,8 +41,14 @@ CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 \
 ./agent/package.sh "${old_archive}" "${binary_directory}"
 CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 \
   AGENT_VERSION="${target_version}" cargo build --locked -p agent --bins
-./agent/package.sh "${target_archive}" "${binary_directory}"
+suffix=""
+if [ -f "${binary_directory}/agentctl.exe" ]; then
+  suffix=".exe"
+fi
+mkdir "${target_binaries}"
+mv "${binary_directory}/agentctl${suffix}" "${binary_directory}/agentd${suffix}" "${target_binaries}/"
 rm -rf -- "${smoke_target}"
+./agent/package.sh "${target_archive}" "${target_binaries}"
 
 if [ "${RUNNER_OS:-}" = "Windows" ]; then
   AGENT_INSTALL_ROOT="$(cygpath -w "${smoke_root}/install")"
