@@ -561,7 +561,7 @@ fn open(path: &Path) -> Result<Connection, Error> {
         .execute_batch("PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;")
         .map_err(database_error)?;
     if let Some(version) = schema::pending_version(&connection)? {
-        backup_database(&connection, path, version)?;
+        backup_database(path, version)?;
     }
     schema::initialize(&mut connection)?;
     connection
@@ -570,7 +570,7 @@ fn open(path: &Path) -> Result<Connection, Error> {
     Ok(connection)
 }
 
-fn backup_database(connection: &Connection, path: &Path, version: u32) -> Result<(), Error> {
+fn backup_database(path: &Path, version: u32) -> Result<(), Error> {
     let parent = path
         .parent()
         .ok_or_else(|| Error::Database("database path has no parent directory".into()))?;
@@ -582,9 +582,11 @@ fn backup_database(connection: &Connection, path: &Path, version: u32) -> Result
         .map_err(|error| Error::Database(format!("system clock precedes Unix epoch: {error}")))?
         .as_nanos();
     let backup = directory.join(format!("agent-schema-{version}-{timestamp}.db"));
-    connection
+    let backup_connection = Connection::open(path).map_err(database_error)?;
+    backup_connection
         .execute("VACUUM INTO ?1", [backup.to_string_lossy().as_ref()])
         .map_err(database_error)?;
+    drop(backup_connection);
     home::secure_file(&backup)?;
     std::fs::File::open(&backup)?.sync_all()?;
     #[cfg(unix)]
