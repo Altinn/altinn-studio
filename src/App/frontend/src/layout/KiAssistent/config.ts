@@ -49,17 +49,35 @@ export const Config = new CG.component({
           new CG.prop(
             'alternativer',
             new CG.arr(
-              new CG.obj(
-                new CG.prop('value', new CG.str()),
-                new CG.prop('label', new CG.str()),
-              ).exportAs('IKiAlternativ'),
+              new CG.obj(new CG.prop('value', new CG.str()), new CG.prop('label', new CG.str())).exportAs(
+                'IKiAlternativ',
+              ),
             )
               .optional()
               .setTitle('Options', 'Alternativer'),
           ),
+          new CG.prop('flervalg', new CG.bool().optional({ default: false }).setTitle('Multiple choice', 'Flervalg')),
           new CG.prop(
-            'flervalg',
-            new CG.bool().optional({ default: false }).setTitle('Multiple choice', 'Flervalg'),
+            'maksLengde',
+            new CG.int()
+              .optional()
+              .setTitle('Max length', 'Maksimal lengde')
+              .setDescription(
+                'Character limit for free text fields. The assistant appends to what is already there, so ' +
+                  'without a limit a long conversation produces text the data model rejects on submit.',
+                'Tegngrense for fritekstfelt. Assistenten legger til det som alt står, så uten en grense gir ' +
+                  'en lang samtale en tekst datamodellen avviser ved innsending.',
+              ),
+          ),
+          new CG.prop(
+            'fritekst',
+            new CG.bool()
+              .optional({ default: false })
+              .setTitle('Free text description', 'Fritekstbeskrivelse')
+              .setDescription(
+                'Marks the field the assistant assesses with vurder_beskrivelse. At most one field.',
+                'Merker feltet assistenten vurderer med vurder_beskrivelse. Høyst ett felt.',
+              ),
           ),
           new CG.prop(
             'kunNaar',
@@ -92,6 +110,18 @@ export const Config = new CG.component({
               .setDescription(
                 'False for data owned by a register the citizen cannot change from this form.',
                 'Usann for data som eies av et register søkeren ikke kan endre herfra.',
+              ),
+          ),
+          new CG.prop(
+            'rettesHos',
+            new CG.str()
+              .optional()
+              .setTitle('Corrected at', 'Rettes hos')
+              .setDescription(
+                'Where the citizen corrects this, for fields that cannot be corrected here. ' +
+                  'Different fields come from different registers, so this belongs on the field.',
+                'Der søkeren retter opplysningen, for felter som ikke kan rettes her. ' +
+                  'Ulike felter kommer fra ulike registre, så dette hører hjemme på feltet.',
               ),
           ),
         ).exportAs('IKiForhaandsutfylt'),
@@ -138,18 +168,6 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
-      'stillhetMs',
-      new CG.int()
-        .optional({ default: 4000 })
-        .setTitle('Silence before answering', 'Stillhet før svar')
-        .setDescription(
-          'For server_vad. Milliseconds of silence before the turn is considered over.',
-          'For server_vad. Millisekunder stillhet før turen regnes som slutt.',
-        ),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
       'sprak',
       new CG.str()
         .optional({ default: 'no' })
@@ -163,9 +181,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'transkripsjonsmodell',
-      new CG.str()
-        .optional({ default: 'gpt-4o-transcribe' })
-        .setTitle('Transcription model', 'Transkripsjonsmodell'),
+      new CG.str().optional({ default: 'gpt-4o-transcribe' }).setTitle('Transcription model', 'Transkripsjonsmodell'),
     ),
   )
   .addProperty(

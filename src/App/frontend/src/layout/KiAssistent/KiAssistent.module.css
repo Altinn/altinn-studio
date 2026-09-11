@@ -1,0 +1,21 @@
+/* Speiler tittelen i den innebygde Alert-komponenten, slik at KI-boksen ser ut
+ * som de andre varslene i skjemaet og ikke som noe som er limt på. */
+.tittel {
+  font-weight: 500;
+  font-size: 1.25rem;
+}
+
+.innhold {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Knappen skal ikke strekke seg over hele bredden slik flex-kolonnen ellers ville gjort. */
+.handling {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

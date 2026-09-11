@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { KiAssistentComponent } from 'src/layout/KiAssistent/KiAssistentComponent';
 import { KiAssistentDef } from 'src/layout/KiAssistent/config.def.generated';
+import { KiAssistentComponent } from 'src/layout/KiAssistent/KiAssistentComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class KiAssistent extends KiAssistentDef {

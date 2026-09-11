@@ -13,32 +13,113 @@ export interface ISignaler {
   harKonkretSituasjon: boolean;
 }
 
-/** Områdene en beskrivelse bør innom, med ord som røper at de er nevnt. */
-const OMRAADER: { navn: string; ord: string[] }[] = [
+/**
+ * Områdene en beskrivelse bør innom, med det som røper at de er nevnt.
+ *
+ * «ord» sammenlignes som hele ord, ikke som delstreng. Delstreng så riktig ut og
+ * var det ikke: «plass» traff «holdeplassen», så enhver tekst om veien til bussen
+ * ble regnet for også å handle om å være om bord. Da meldte signalene dekning der
+ * det ikke var noen, og modellen sluttet å spørre om nettopp det som manglet.
+ *
+ * Derfor står bøyningsformene oppført. Det er mer skriving, men det er den eneste
+ * måten å få «går» uten å få «gård».
+ */
+const OMRAADER: { navn: string; ord: string[]; uttrykk: string[] }[] = [
   {
     navn: 'veien til holdeplassen',
-    ord: ['holdeplass', 'gå', 'gange', 'gangavstand', 'stopp', 'busstopp', 'hvile', 'meter'],
+    ord: [
+      'holdeplass',
+      'holdeplassen',
+      'bussholdeplass',
+      'bussholdeplassen',
+      'busstopp',
+      'busstoppet',
+      'stoppested',
+      'stoppestedet',
+      'gå',
+      'går',
+      'gikk',
+      'gått',
+      'gange',
+      'gangen',
+      'gangavstand',
+      'hvile',
+      'hviler',
+      'hvilte',
+      'pauser',
+      'meter',
+      'kvartal',
+      'kvartaler',
+    ],
+    uttrykk: ['veien dit', 'fram til bussen', 'frem til bussen'],
   },
   {
     navn: 'å komme av og på bussen',
-    ord: ['på bussen', 'av bussen', 'stige', 'trinn', 'dør', 'påstigning', 'avstigning', 'komme meg om bord', 'om bord'],
+    ord: ['trinn', 'trinnet', 'trinnene', 'påstigning', 'avstigning', 'rampe', 'rampa', 'rampen', 'dørene'],
+    uttrykk: ['på bussen', 'av bussen', 'om bord', 'stige på', 'stige av', 'komme meg inn', 'komme meg ut'],
   },
   {
     navn: 'å være om bord',
-    ord: ['stå', 'sitte', 'sete', 'plass', 'svimmel', 'holde', 'rykk', 'sving', 'underveis', 'turen'],
+    ord: [
+      'stå',
+      'står',
+      'sto',
+      'stod',
+      'stått',
+      'sitte',
+      'sitter',
+      'satt',
+      'sete',
+      'setet',
+      'sitteplass',
+      'sitteplassen',
+      'svimmel',
+      'kvalm',
+      'rykk',
+      'rykker',
+      'sving',
+      'svinger',
+      'bremser',
+      'underveis',
+      'turen',
+    ],
+    uttrykk: ['holde meg fast', 'om bord', 'på turen'],
   },
 ];
 
-/** Ord som tyder på at teksten forteller om noe som faktisk skjedde. */
-const KONKRET = ['en gang', 'sist', 'i går', 'forrige', 'da jeg', 'jeg måtte', 'jeg klarte', 'det skjedde', 'pleier'];
+/** Uttrykk som tyder på at teksten forteller om noe som faktisk skjedde. */
+const KONKRET = [
+  'en gang',
+  'sist',
+  'i går',
+  'forrige',
+  'da jeg',
+  'jeg måtte',
+  'jeg klarte',
+  'det skjedde',
+  'pleier',
+  'hver gang',
+];
+
+/** Deler teksten i ord. Unicode, fordi æ, ø og å ikke er med i \w. */
+function ord(tekst: string): Set<string> {
+  return new Set(
+    tekst
+      .toLowerCase()
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter((o) => o.length > 0),
+  );
+}
 
 export function finnSignaler(tekst: string): ISignaler {
   const t = (tekst ?? '').toLowerCase();
+  const ordene = ord(t);
   const omtaler: string[] = [];
   const mangler: string[] = [];
 
   for (const o of OMRAADER) {
-    (o.ord.some((ord) => t.includes(ord)) ? omtaler : mangler).push(o.navn);
+    const truffet = o.ord.some((x) => ordene.has(x)) || o.uttrykk.some((x) => t.includes(x));
+    (truffet ? omtaler : mangler).push(o.navn);
   }
 
   return {
