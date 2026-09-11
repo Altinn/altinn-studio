@@ -458,6 +458,7 @@ internal sealed class ProcessNextRequestFactory
                 );
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps(
+                    eventTaskId,
                     ResolveTaskCommands(altinnTaskType, eventTaskId, (task, taskId) => task.GetAbandonCommands(taskId))
                 );
             case InstanceEventType.process_EndEvent:

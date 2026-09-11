@@ -104,9 +104,10 @@ public class WorkflowCommandSetTaskCommandTests
     [Fact]
     public void GetTaskAbandonSteps_DeclaredCommands_RunBeforeAbandonHook()
     {
-        WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskAbandonSteps([
-            new WorkflowCommandRef("AbortRuntimeDelegatedSigning"),
-        ]);
+        WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskAbandonSteps(
+            "Task_1",
+            [new WorkflowCommandRef("AbortRuntimeDelegatedSigning")]
+        );
 
         Assert.Equal(["AbortRuntimeDelegatedSigning", OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Equal("AbortRuntimeDelegatedSigning", commandSet.Commands[0].CommandKey);

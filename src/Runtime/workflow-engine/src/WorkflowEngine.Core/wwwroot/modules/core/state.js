@@ -22,6 +22,7 @@
  *   executionStartedAt: string | null,
  *   updatedAt:      string | null,
  *   stateChanged:   boolean,
+ *   labels:         Record<string, string> | null | undefined,
  * }} Step
  */
 
@@ -264,6 +265,7 @@ const TASK_END_COMMANDS = new Set([
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
+    'CleanupGeneratedFromTask',
     'StartTask',
     'StartTaskLegacyHook',
     'OnTaskStartingHook',
@@ -271,12 +273,39 @@ const TASK_START_COMMANDS = new Set([
 ]);
 const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook']);
 
-/** @param {string} commandDetail @returns {'end'|'start'|'process-end'|null} */
-export const stepPhase = (commandDetail) => {
+/**
+ * Step labels an app sets on every step of a task phase — the lifecycle steps and the task type's own
+ * declared commands alike — so the pipeline can bracket them by task without knowing any command names.
+ */
+const TASK_LABEL = 'processTask';
+const TASK_PHASE_LABEL = 'processTaskPhase';
+
+/**
+ * The phase key a step is bracketed under. A labeled step yields `task:<phase>:<taskId>`, so consecutive
+ * steps of one task phase share a key and the bracket is named after the task. Steps from apps that do not
+ * label their steps fall back to the known lifecycle command names.
+ * @param {Step} step
+ * @returns {string | null}
+ */
+export const stepPhase = (step) => {
+    const task = step?.labels?.[TASK_LABEL];
+    if (task) return `task:${step.labels?.[TASK_PHASE_LABEL] ?? 'start'}:${task}`;
+    const commandDetail = step?.commandDetail;
     if (TASK_END_COMMANDS.has(commandDetail)) return 'end';
     if (TASK_START_COMMANDS.has(commandDetail)) return 'start';
     if (PROCESS_END_COMMANDS.has(commandDetail)) return 'process-end';
     return null;
+};
+
+/**
+ * The task a labeled phase key belongs to, or null for the legacy command-name phases.
+ * @param {string | null} phase
+ * @returns {string | null}
+ */
+export const phaseTask = (phase) => {
+    if (!phase?.startsWith('task:')) return null;
+    const rest = phase.slice('task:'.length);
+    return rest.slice(rest.indexOf(':') + 1) || null;
 };
 
 /**

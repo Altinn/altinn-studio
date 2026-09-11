@@ -96,11 +96,50 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskAbandonSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps([]);
+        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps("Task_1", []);
 
         Assert.Equal([OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
         Assert.Empty(commandSet.SideEffectCommands);
+    }
+
+    [Theory]
+    [InlineData("start")]
+    [InlineData("end")]
+    [InlineData("abandon")]
+    public void TaskPhaseSteps_CarryTheTaskAndPhaseAsStepLabels(string phase)
+    {
+        // The dashboard brackets a transition's steps by these labels, so every step of the task phase must
+        // carry them: the lifecycle steps and the task type's own declared commands alike.
+        WorkflowCommandRef[] declarations = [new("FirstCommand"), new("SecondCommand")];
+        WorkflowCommandSet commandSet = phase switch
+        {
+            "start" => WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    TaskId = "Task_1",
+                    ServiceTask = null,
+                    IsInitialTaskStart = false,
+                    StartCommands = declarations,
+                    RegisterEvents = true,
+                }
+            ),
+            "end" => WorkflowCommandSet.GetTaskEndSteps("Task_1", declarations),
+            _ => WorkflowCommandSet.GetTaskAbandonSteps("Task_1", declarations),
+        };
+
+        Assert.NotEmpty(commandSet.Commands);
+        Assert.All(
+            commandSet.Commands,
+            step =>
+            {
+                Assert.NotNull(step.Labels);
+                Assert.Equal("Task_1", step.Labels[WorkflowCommandSet.ProcessTaskLabel]);
+                Assert.Equal(phase, step.Labels[WorkflowCommandSet.ProcessTaskPhaseLabel]);
+            }
+        );
+        // Side effects run as their own workflows and belong to no task phase.
+        Assert.All(commandSet.SideEffectCommands, step => Assert.Null(step.Labels));
     }
 
     [Theory]
@@ -123,7 +162,7 @@ public class WorkflowCommandSetTests
                 }
             ),
             "end" => WorkflowCommandSet.GetTaskEndSteps("Task_1", declarations),
-            _ => WorkflowCommandSet.GetTaskAbandonSteps(declarations),
+            _ => WorkflowCommandSet.GetTaskAbandonSteps("Task_1", declarations),
         };
         List<string> keys = Keys(commandSet.Commands);
         Assert.Equal(keys.IndexOf("FirstCommand") + 1, keys.IndexOf("SecondCommand"));
