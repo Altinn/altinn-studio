@@ -17,7 +17,7 @@
         },
         db_connections: {
           count: {Scrubbed},
-          limit: 90
+          limit: 10
         },
         queue: {
           active_workflows: {Scrubbed},
