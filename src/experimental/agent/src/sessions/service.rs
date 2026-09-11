@@ -24,6 +24,15 @@ const INPUT_READY_POLL: Duration = Duration::from_millis(100);
 const UPGRADE_SESSION_PASS_TIMEOUT: Duration = Duration::from_mins(1);
 const UPGRADE_SANDBOX_INSPECTION_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// Sessions that block an upgrade and Sessions that will restart without resumption.
+#[derive(Debug, Default, Eq, PartialEq)]
+pub struct UpgradeReadiness {
+    /// Active work or attachments that make the transition unsafe.
+    pub blockers: Vec<String>,
+    /// Quiescent Sessions without a harness-native conversation to resume.
+    pub warnings: Vec<String>,
+}
+
 /// Durable Session registry whose effects are owned by the daemon controller.
 pub struct Service {
     store: SharedStore,
@@ -338,36 +347,52 @@ impl Service {
     /// # Errors
     ///
     /// Returns an error when the durable Session or Sandbox state cannot be inspected.
-    pub async fn upgrade_blockers(&self) -> Result<Vec<String>, Error> {
-        tokio::time::timeout(UPGRADE_SESSION_PASS_TIMEOUT, self.find_upgrade_blockers())
+    pub async fn upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
+        tokio::time::timeout(UPGRADE_SESSION_PASS_TIMEOUT, self.inspect_upgrade_readiness())
             .await
             .map_err(|_| Error::Session("timed out checking Sessions before upgrade".into()))?
     }
 
-    async fn find_upgrade_blockers(&self) -> Result<Vec<String>, Error> {
-        let mut blockers = Vec::new();
+    async fn inspect_upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
+        let mut readiness = UpgradeReadiness::default();
         for session in self.store.list_all_sessions().await? {
             let label = format!("session/{}/{}", session.agent, session.name);
-            if matches!(session.status.state, State::Starting | State::Working) {
-                let state = match session.status.state {
-                    State::Starting => "starting",
-                    State::Working => "working",
-                    State::WaitingForInput | State::Idle | State::Failed => unreachable!(),
-                };
-                blockers.push(format!("{label} ({state})"));
+            if session.status.state == State::Working {
+                readiness.blockers.push(format!("{label} (working)"));
+                continue;
+            }
+            if session.status.state == State::Starting && session.status.reported.harness_session_id.is_some() {
+                readiness.blockers.push(format!("{label} (starting)"));
                 continue;
             }
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
+                if session.status.state == State::Starting {
+                    readiness
+                        .warnings
+                        .push(format!("{label} will start a new conversation"));
+                }
                 continue;
             };
-            if matches!(
-                self.runtime.observe(&session, &sandbox).await?,
-                super::runtime::Observation::Alive { attached: true, .. }
-            ) {
-                blockers.push(format!("{label} (terminal attached)"));
+            match self.runtime.observe(&session, &sandbox).await? {
+                super::runtime::Observation::Alive { attached: true, .. } => {
+                    readiness.blockers.push(format!("{label} (terminal attached)"));
+                }
+                super::runtime::Observation::Alive { attached: false, .. }
+                    if session.status.reported.harness_session_id.is_none() =>
+                {
+                    readiness
+                        .warnings
+                        .push(format!("{label} will start a new conversation"));
+                }
+                super::runtime::Observation::Missing if session.status.state == State::Starting => {
+                    readiness
+                        .warnings
+                        .push(format!("{label} will start a new conversation"));
+                }
+                super::runtime::Observation::Missing | super::runtime::Observation::Alive { .. } => {}
             }
         }
-        Ok(blockers)
+        Ok(readiness)
     }
 
     /// Stops quiescent Session runtimes once after a software upgrade so normal

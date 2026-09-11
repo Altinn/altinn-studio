@@ -586,6 +586,8 @@ fn backup_database(connection: &Connection, path: &Path, version: u32) -> Result
         .execute("VACUUM INTO ?1", [backup.to_string_lossy().as_ref()])
         .map_err(database_error)?;
     home::secure_file(&backup)?;
+    std::fs::File::open(&backup)?.sync_all()?;
+    sync_directory(&directory)?;
 
     let mut backups = std::fs::read_dir(&directory)?
         .collect::<Result<Vec<_>, _>>()?
@@ -598,6 +600,17 @@ fn backup_database(connection: &Connection, path: &Path, version: u32) -> Result
     for entry in backups.into_iter().take(remove) {
         std::fs::remove_file(entry.path())?;
     }
+    Ok(())
+}
+
+#[cfg(unix)]
+fn sync_directory(path: &Path) -> Result<(), Error> {
+    std::fs::File::open(path)?.sync_all()?;
+    Ok(())
+}
+
+#[cfg(windows)]
+const fn sync_directory(_path: &Path) -> Result<(), Error> {
     Ok(())
 }
 

@@ -299,11 +299,13 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
+        if !matches!(arguments.command, Command::Self_ { .. }) {
+            self_update::resume_pending_before_command(&home)?;
+        }
         if !matches!(
             arguments.command,
             Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. }
         ) {
-            self_update::resume_pending_before_command(&home)?;
             ensure_daemon(&home, &client).await?;
         }
         execute(arguments.command, &home, &client).await

@@ -217,6 +217,13 @@ pub(crate) struct ShutdownParams {
     pub reason: String,
 }
 
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub(crate) struct ShutdownResult {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
+}
+
 pub(crate) fn error_response(id: u64, code: i32, message: impl Into<String>) -> Response {
     Response {
         jsonrpc: JSON_RPC_VERSION.into(),

@@ -8,14 +8,66 @@ use agent::{
     Error,
     control_api::{Client, PROTOCOL_VERSION},
     local::home::{ControlPlaneHome, Lock},
-    upgrade::{self, InstallMetadata, InstallPaths, Release, StagedRelease, UpdateJournal, UpdatePhase},
+    upgrade::{self, InstallMetadata, InstallPaths, Release, UpdateJournal, UpdatePhase},
 };
 
 use super::CommandResult;
 
 const DEFAULT_REPOSITORY: &str = "Altinn/altinn-studio";
 const DAEMON_STOP_TIMEOUT: Duration = Duration::from_secs(10);
+const LIFECYCLE_REQUEST_TIMEOUT: Duration = Duration::from_secs(65);
 const TARGET_VERIFY_TIMEOUT: Duration = Duration::from_secs(75);
+
+struct Completion {
+    paths: InstallPaths,
+    target_release: PathBuf,
+    target_version: String,
+    previous_release: Option<PathBuf>,
+    repository: String,
+}
+
+impl Completion {
+    fn from_journal(paths: InstallPaths, journal: UpdateJournal) -> Result<Self, Error> {
+        let repository = repository(&paths)?;
+        Ok(Self {
+            paths,
+            target_release: journal.target_release,
+            target_version: journal.target_version,
+            previous_release: journal.previous_release,
+            repository,
+        })
+    }
+
+    fn run_target(&self, home: &ControlPlaneHome) -> Result<(), Error> {
+        let mut command = ProcessCommand::new(
+            self.target_release
+                .join(format!("agentctl{}", std::env::consts::EXE_SUFFIX)),
+        );
+        command
+            .arg("--home")
+            .arg(home.path())
+            .args(["self", "__complete-update", "--install-root"])
+            .arg(self.paths.root())
+            .arg("--bin-directory")
+            .arg(self.paths.bin())
+            .arg("--agent-home")
+            .arg(home.path())
+            .arg("--target-release")
+            .arg(&self.target_release)
+            .arg("--target-version")
+            .arg(&self.target_version)
+            .arg("--repository")
+            .arg(&self.repository);
+        if let Some(previous) = &self.previous_release {
+            command.arg("--previous-release").arg(previous);
+        }
+        let status = command.status()?;
+        if !status.success() {
+            return Err(Error::Daemon(format!("target updater exited with {status}")));
+        }
+        Ok(())
+    }
+}
 
 #[derive(clap::Subcommand)]
 pub(super) enum SelfCommand {
@@ -64,12 +116,14 @@ pub(super) async fn execute(command: SelfCommand, home: &ControlPlaneHome) -> Co
                 return Err(Error::Invalid("--agent-home does not match the resolved Agent home".into()).into());
             }
             complete(
-                InstallPaths::new(install_root, bin_directory)?,
+                Completion {
+                    paths: InstallPaths::new(install_root, bin_directory)?,
+                    target_release,
+                    target_version,
+                    previous_release,
+                    repository,
+                },
                 home,
-                target_release,
-                target_version,
-                previous_release,
-                repository,
             )
             .await
         }
@@ -82,7 +136,7 @@ pub(super) fn resume_pending_before_command(home: &ControlPlaneHome) -> CommandR
         return Ok(());
     };
     let target_version = journal.target_version.clone();
-    run_target_completion(&paths, home, &journal)?;
+    Completion::from_journal(paths, journal)?.run_target(home)?;
     if !same_version(agent::build_version(), &target_version)? {
         return Err(Error::Daemon(format!(
             "Agent update to {target_version} completed; rerun this command with the current agentctl"
@@ -97,10 +151,13 @@ async fn update(home: &ControlPlaneHome, version: Option<&str>, check: bool) -> 
     if let Some(journal) = UpdateJournal::read(&paths)?.filter(|journal| journal.phase != UpdatePhase::Complete) {
         return resume_in_process(&paths, home, journal).await;
     }
-    let repository = repository(&paths);
+    if version.is_none() && agent::release_version().is_none() {
+        return Err(Error::Invalid("this development build needs an explicit self update --version".into()).into());
+    }
+    let repository = repository(&paths)?;
     println!("Resolve release");
     let release = Release::resolve(version, repository).await?;
-    compare_versions(agent::build_version(), &release.version, version.is_some())?;
+    compare_versions(agent::build_version(), &release.version)?;
     let previous = upgrade::current_release(&paths)?;
     if previous.is_some() && same_version(agent::build_version(), &release.version)? {
         println!("Agent {} is already installed", release.version);
@@ -117,99 +174,34 @@ async fn update(home: &ControlPlaneHome, version: Option<&str>, check: bool) -> 
 
     println!("Download and verify package");
     let staged = upgrade::stage_release(&paths, release).await?;
-    handoff(&paths, home, &staged, previous)
-}
-
-fn handoff(
-    paths: &InstallPaths,
-    home: &ControlPlaneHome,
-    staged: &StagedRelease,
-    previous: Option<PathBuf>,
-) -> CommandResult<()> {
-    let executable = staged.path.join(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
-    let mut command = ProcessCommand::new(executable);
-    command
-        .arg("--home")
-        .arg(home.path())
-        .args(["self", "__complete-update", "--install-root"])
-        .arg(paths.root())
-        .arg("--bin-directory")
-        .arg(paths.bin())
-        .arg("--agent-home")
-        .arg(home.path())
-        .arg("--target-release")
-        .arg(&staged.path)
-        .arg("--target-version")
-        .arg(&staged.release.version)
-        .arg("--repository")
-        .arg(&staged.release.repository);
-    if let Some(previous) = previous {
-        command.arg("--previous-release").arg(previous);
+    Completion {
+        paths,
+        target_release: staged.path,
+        target_version: staged.release.version,
+        previous_release: previous,
+        repository: staged.release.repository,
     }
-    let status = command.status().map_err(Error::from)?;
-    if !status.success() {
-        return Err(Error::Daemon(format!("target updater exited with {status}")).into());
-    }
-    Ok(())
+    .run_target(home)
+    .map_err(Into::into)
 }
 
 async fn resume_in_process(paths: &InstallPaths, home: &ControlPlaneHome, journal: UpdateJournal) -> CommandResult<()> {
-    let repository = repository(paths);
-    complete(
-        paths.clone(),
-        home,
-        journal.target_release,
-        journal.target_version,
-        journal.previous_release,
+    complete(Completion::from_journal(paths.clone(), journal)?, home).await
+}
+
+async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandResult<()> {
+    let Completion {
+        paths,
+        target_release,
+        target_version,
+        previous_release,
         repository,
-    )
-    .await
-}
-
-fn run_target_completion(paths: &InstallPaths, home: &ControlPlaneHome, journal: &UpdateJournal) -> Result<(), Error> {
-    let repository = repository(paths);
-    let mut command = ProcessCommand::new(
-        journal
-            .target_release
-            .join(format!("agentctl{}", std::env::consts::EXE_SUFFIX)),
-    );
-    command
-        .arg("--home")
-        .arg(home.path())
-        .args(["self", "__complete-update", "--install-root"])
-        .arg(paths.root())
-        .arg("--bin-directory")
-        .arg(paths.bin())
-        .arg("--agent-home")
-        .arg(home.path())
-        .arg("--target-release")
-        .arg(&journal.target_release)
-        .arg("--target-version")
-        .arg(&journal.target_version)
-        .arg("--repository")
-        .arg(repository);
-    if let Some(previous) = &journal.previous_release {
-        command.arg("--previous-release").arg(previous);
-    }
-    let status = command.status()?;
-    if !status.success() {
-        return Err(Error::Daemon(format!("target updater exited with {status}")));
-    }
-    Ok(())
-}
-
-#[allow(clippy::too_many_arguments)]
-async fn complete(
-    paths: InstallPaths,
-    home: &ControlPlaneHome,
-    target_release: PathBuf,
-    target_version: String,
-    previous_release: Option<PathBuf>,
-    repository: String,
-) -> CommandResult<()> {
+    } = completion;
     validate_target_process(&paths, &target_release, &target_version)?;
     let _install_lock = paths.lock()?;
-    let mut journal = if let Some(journal) = UpdateJournal::read(&paths)? {
+    let mut journal = if let Some(journal) =
+        UpdateJournal::read(&paths)?.filter(|journal| journal.phase != UpdatePhase::Complete)
+    {
         if journal.target_release != target_release
             || journal.target_version != target_version
             || journal.previous_release != previous_release
@@ -222,21 +214,20 @@ async fn complete(
         journal.advance(&paths, UpdatePhase::Prepared)?;
         journal
     };
-    if journal.phase == UpdatePhase::Complete {
-        return Ok(());
-    }
-
     let client = Client::for_path(home.socket_path());
-    let mut stopped_daemon = false;
     if journal.phase < UpdatePhase::DaemonStopped {
         println!("Check Agent activity");
-        if let Ok(info) = client.health().await {
+        if let Ok(Ok(info)) = tokio::time::timeout(Duration::from_secs(2), client.health()).await {
             if info.protocol_version.as_deref() != Some(PROTOCOL_VERSION) {
                 return Err(Error::Daemon(preview_stop_instruction().into()).into());
             }
             println!("Stop agentd");
-            client.shutdown_for_upgrade().await?;
-            stopped_daemon = true;
+            let warnings = tokio::time::timeout(LIFECYCLE_REQUEST_TIMEOUT, client.shutdown_for_upgrade())
+                .await
+                .map_err(|_| Error::Daemon("timed out waiting for agentd to prepare for upgrade".into()))??;
+            for warning in warnings {
+                eprintln!("Warning: {warning}");
+            }
         }
         journal.advance(&paths, UpdatePhase::DaemonStopped)?;
     }
@@ -250,8 +241,8 @@ async fn complete(
         println!("Migrate Agent state");
         if let Err(error) = agent::persistence::Database::migrate(&home.path().join("agent.db")) {
             drop(home_lock);
-            if stopped_daemon || previous_release.is_some() {
-                let _ = start_daemon(previous_release.as_deref().unwrap_or(&target_release), home);
+            if let Some(previous_release) = &previous_release {
+                let _ = start_daemon(previous_release, home);
             }
             return Err(error.into());
         }
@@ -269,7 +260,9 @@ async fn complete(
 
     if journal.phase < UpdatePhase::Verified {
         println!("Start and verify target daemon");
-        start_daemon(&target_release, home)?;
+        if !target_ready(&client, home, &target_version).await {
+            start_daemon(&target_release, home)?;
+        }
         verify_target(&client, home, &target_version).await?;
         journal.advance(&paths, UpdatePhase::Verified)?;
     }
@@ -325,11 +318,7 @@ fn start_daemon(release: &Path, home: &ControlPlaneHome) -> Result<(), Error> {
 async fn verify_target(client: &Client, home: &ControlPlaneHome, target_version: &str) -> Result<(), Error> {
     let deadline = Instant::now() + TARGET_VERIFY_TIMEOUT;
     while Instant::now() < deadline {
-        if let Ok(info) = client.health().await
-            && info.protocol_version.as_deref() == Some(PROTOCOL_VERSION)
-            && info.build_version.as_deref() == Some(target_version)
-            && !home.pending_session_relaunch_path().exists()
-        {
+        if target_ready(client, home, target_version).await {
             return Ok(());
         }
         tokio::time::sleep(Duration::from_millis(100)).await;
@@ -340,10 +329,19 @@ async fn verify_target(client: &Client, home: &ControlPlaneHome, target_version:
     )))
 }
 
-fn compare_versions(current: &str, target: &str, explicit: bool) -> Result<(), Error> {
-    let current = semver::Version::parse(current.strip_prefix('v').unwrap_or(current));
-    let target = semver::Version::parse(target.strip_prefix('v').unwrap_or(target))
-        .map_err(|error| Error::Invalid(format!("invalid target version: {error}")))?;
+async fn target_ready(client: &Client, home: &ControlPlaneHome, target_version: &str) -> bool {
+    matches!(
+        tokio::time::timeout(Duration::from_secs(1), client.health()).await,
+        Ok(Ok(info))
+            if info.protocol_version.as_deref() == Some(PROTOCOL_VERSION)
+                && info.build_version.as_deref() == Some(target_version)
+                && !home.pending_session_relaunch_path().exists()
+    )
+}
+
+fn compare_versions(current: &str, target: &str) -> Result<(), Error> {
+    let current = parse_version(current);
+    let target = parse_version(target).map_err(|error| Error::Invalid(format!("invalid target version: {error}")))?;
     if let Ok(ref current) = current
         && target < *current
     {
@@ -351,27 +349,28 @@ fn compare_versions(current: &str, target: &str, explicit: bool) -> Result<(), E
             "downgrading Agent from v{current} to v{target} is not supported"
         )));
     }
-    if current.is_err() && !explicit {
-        return Err(Error::Invalid(
-            "this development build needs an explicit self update --version".into(),
-        ));
-    }
     Ok(())
 }
 
 fn same_version(current: &str, target: &str) -> Result<bool, Error> {
-    let current = semver::Version::parse(current.strip_prefix('v').unwrap_or(current))
-        .map_err(|error| Error::Invalid(format!("invalid current version: {error}")))?;
-    let target = semver::Version::parse(target.strip_prefix('v').unwrap_or(target))
-        .map_err(|error| Error::Invalid(format!("invalid target version: {error}")))?;
+    let current =
+        parse_version(current).map_err(|error| Error::Invalid(format!("invalid current version: {error}")))?;
+    let target = parse_version(target).map_err(|error| Error::Invalid(format!("invalid target version: {error}")))?;
     Ok(current == target)
 }
 
-fn repository(paths: &InstallPaths) -> String {
-    InstallMetadata::read(paths).map_or_else(
-        |_| std::env::var("AGENT_GITHUB_REPOSITORY").unwrap_or_else(|_| DEFAULT_REPOSITORY.into()),
-        |metadata| metadata.repository().to_owned(),
-    )
+fn parse_version(version: &str) -> Result<semver::Version, semver::Error> {
+    semver::Version::parse(version.strip_prefix('v').unwrap_or(version))
+}
+
+fn repository(paths: &InstallPaths) -> Result<String, Error> {
+    match InstallMetadata::read(paths) {
+        Ok(metadata) => Ok(metadata.repository().to_owned()),
+        Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => {
+            Ok(std::env::var("AGENT_GITHUB_REPOSITORY").unwrap_or_else(|_| DEFAULT_REPOSITORY.into()))
+        }
+        Err(error) => Err(error),
+    }
 }
 
 const fn preview_stop_instruction() -> &'static str {
@@ -388,7 +387,7 @@ mod tests {
 
     #[test]
     fn version_comparison_rejects_downgrade() {
-        assert!(compare_versions("v2.0.0", "v1.0.0", true).is_err());
+        assert!(compare_versions("v2.0.0", "v1.0.0").is_err());
         assert!(same_version("1.0.0", "v1.0.0").expect("version"));
     }
 

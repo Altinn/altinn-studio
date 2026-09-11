@@ -128,7 +128,7 @@ pub trait SessionApi {
     ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
 
     /// Lists Sessions whose work or terminal attachment prevents an upgrade.
-    fn upgrade_blockers(&self) -> LocalFuture<'_, Result<Vec<String>, Error>>;
+    fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>>;
 }
 
 impl SessionApi for sessions::Service {
@@ -176,8 +176,8 @@ impl SessionApi for sessions::Service {
         Box::pin(async move { Self::list(self, agent).await })
     }
 
-    fn upgrade_blockers(&self) -> LocalFuture<'_, Result<Vec<String>, Error>> {
-        Box::pin(Self::upgrade_blockers(self))
+    fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>> {
+        Box::pin(Self::upgrade_readiness(self))
     }
 }
 
@@ -396,15 +396,15 @@ impl Server {
             lifecycle: &self.lifecycle,
             committed: false,
         };
-        match self.sessions.upgrade_blockers().await {
-            Ok(blockers) if blockers.is_empty() => {
+        match self.sessions.upgrade_readiness().await {
+            Ok(readiness) if readiness.blockers.is_empty() => {
                 check.commit();
-                result_response(id, Ok(serde_json::json!({})))
+                result_response(id, Ok(serde_json::json!({"warnings": readiness.warnings})))
             }
-            Ok(blockers) => error_response(
+            Ok(readiness) => error_response(
                 id,
                 CODE_INVALID_PARAMS,
-                format!("active Sessions block the upgrade: {}", blockers.join(", ")),
+                format!("active Sessions block the upgrade: {}", readiness.blockers.join(", ")),
             ),
             Err(error) => result_response::<serde_json::Value>(id, Err(error)),
         }

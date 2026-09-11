@@ -34,6 +34,7 @@ struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
+    upgrade_warnings: Rc<RefCell<Vec<String>>>,
 }
 
 fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
@@ -138,9 +139,10 @@ impl SessionApi for FakeSessions {
         })
     }
 
-    fn upgrade_blockers(&self) -> LocalFuture<'_, Result<Vec<String>, Error>> {
+    fn upgrade_readiness(&self) -> LocalFuture<'_, Result<agent::sessions::UpgradeReadiness, Error>> {
         let blockers = self.upgrade_blockers.borrow().clone();
-        Box::pin(async move { Ok(blockers) })
+        let warnings = self.upgrade_warnings.borrow().clone();
+        Box::pin(async move { Ok(agent::sessions::UpgradeReadiness { blockers, warnings }) })
     }
 }
 
@@ -190,6 +192,7 @@ struct ApiFixture {
     sent: Rc<RefCell<Vec<SentMessage>>>,
     progress_ensures: Rc<Cell<usize>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
+    upgrade_warnings: Rc<RefCell<Vec<String>>>,
 }
 
 impl Connector for InProcessConnector {
@@ -231,6 +234,7 @@ fn api() -> ApiFixture {
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let progress_ensures = Rc::new(Cell::new(0));
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
+    let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
@@ -241,6 +245,7 @@ fn api() -> ApiFixture {
             ensured_harnesses: ensured_harnesses.clone(),
             sent: sent.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
+            upgrade_warnings: upgrade_warnings.clone(),
         }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
@@ -252,6 +257,7 @@ fn api() -> ApiFixture {
         sent,
         progress_ensures,
         upgrade_blockers,
+        upgrade_warnings,
     }
 }
 
@@ -399,6 +405,20 @@ async fn shutdown_reports_blocking_sessions_without_draining() {
         .expect_err("working Session blocks shutdown");
     assert!(matches!(error, Error::Rpc(error) if error.is_invalid_params()));
     fixture.client.health().await.expect("daemon remains available");
+}
+
+#[tokio::test(flavor = "local")]
+async fn shutdown_returns_nonblocking_session_warnings() {
+    let fixture = api();
+    fixture
+        .upgrade_warnings
+        .borrow_mut()
+        .push("session/worker/fresh will start a new conversation".into());
+
+    assert_eq!(
+        fixture.client.shutdown_for_upgrade().await.expect("shutdown"),
+        ["session/worker/fresh will start a new conversation"]
+    );
 }
 
 fn request(name: &str) -> ApplyRequest {

@@ -343,7 +343,7 @@ impl UpdateJournal {
             .iter()
             .chain(std::iter::once(&self.target_release))
         {
-            if !path.is_absolute() || path.parent() != Some(releases.as_path()) {
+            if !path.is_absolute() || fs::canonicalize(path)?.parent() != Some(releases.as_path()) {
                 return Err(Error::Invalid(
                     "Agent update journal names a release outside the install root".into(),
                 ));
@@ -391,12 +391,13 @@ fn read_current(paths: &InstallPaths) -> Result<Option<PathBuf>, Error> {
 /// Returns an error for an unsafe target or a failed filesystem operation.
 pub fn activate_release(paths: &InstallPaths, target: &Path) -> Result<(), Error> {
     let releases = canonical_or_absolute(&paths.releases())?;
+    let target = fs::canonicalize(target)?;
     if !target.is_absolute() || target.parent() != Some(releases.as_path()) {
         return Err(Error::Invalid(
             "target release is outside the managed releases directory".into(),
         ));
     }
-    activate_links(paths, target)?;
+    activate_links(paths, &target)?;
     sync_directory(paths.root())
 }
 

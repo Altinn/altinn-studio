@@ -790,7 +790,11 @@ struct ServiceHarness {
 
 impl ServiceHarness {
     async fn start(directory: &TempDir, token: &str) -> Self {
-        let (database, sandboxes, session) = running_session(directory, token, true).await;
+        Self::start_with_report(directory, token, true).await
+    }
+
+    async fn start_with_report(directory: &TempDir, token: &str, started: bool) -> Self {
+        let (database, sandboxes, session) = running_session(directory, token, started).await;
         let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
         let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
         let runtime = Rc::new(FakeRuntime::default());
@@ -891,16 +895,47 @@ async fn upgrade_preflight_reports_work_and_terminal_attachments() {
     let directory = TempDir::new().expect("directory");
     let harness = ServiceHarness::start(&directory, "10101010-1010-4010-8010-101010101010").await;
     assert_eq!(
-        harness.service.upgrade_blockers().await.expect("working blockers"),
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("working blockers")
+            .blockers,
         ["session/worker/s1 (working)"]
     );
 
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
-    assert!(harness.service.upgrade_blockers().await.expect("quiescent").is_empty());
+    assert!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("quiescent")
+            .blockers
+            .is_empty()
+    );
     harness.runtime.attached.set(true);
     assert_eq!(
-        harness.service.upgrade_blockers().await.expect("attachment blockers"),
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("attachment blockers")
+            .blockers,
         ["session/worker/s1 (terminal attached)"]
+    );
+    harness.finish();
+
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start_with_report(&directory, "11111111-1111-4111-8111-111111111111", false).await;
+    assert_eq!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("missing native ID")
+            .warnings,
+        ["session/worker/s1 will start a new conversation"]
     );
     harness.finish();
 }

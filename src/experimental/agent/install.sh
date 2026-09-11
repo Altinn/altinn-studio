@@ -66,25 +66,24 @@ temporary="$(mktemp -d -t altinn-agent-install.XXXXXXXX)"
 staging="${install_root}/releases/.staging-$$"
 trap 'rm -rf "${temporary}" "${staging}"' EXIT HUP INT TERM
 
-if [ -n "${local_archive}" ]; then
-  archive="$(basename "${local_archive}")"
-  cp "${local_archive}" "${temporary}/${archive}"
-  cp "${AGENT_LOCAL_ARCHIVE_SHA256:-${local_archive}.sha256}" "${temporary}/${archive}.sha256"
-else
-  archive="agent-${platform}.tar.gz"
-  base="https://github.com/${repository}/releases/download/experimental-agent/${version}"
-  curl -fsSL "${base}/${archive}" -o "${temporary}/${archive}"
-  curl -fsSL "${base}/${archive}.sha256" -o "${temporary}/${archive}.sha256"
-fi
-if command -v sha256sum >/dev/null 2>&1; then
-  (cd "${temporary}" && sha256sum -c "${archive}.sha256")
-else
-  (cd "${temporary}" && shasum -a 256 -c "${archive}.sha256")
-fi
-
 mkdir -p "${install_root}/releases"
 target="${install_root}/releases/${version}-${platform}"
 if [ ! -d "${target}" ]; then
+  if [ -n "${local_archive}" ]; then
+    archive="$(basename "${local_archive}")"
+    cp "${local_archive}" "${temporary}/${archive}"
+    cp "${AGENT_LOCAL_ARCHIVE_SHA256:-${local_archive}.sha256}" "${temporary}/${archive}.sha256"
+  else
+    archive="agent-${platform}.tar.gz"
+    base="https://github.com/${repository}/releases/download/experimental-agent/${version}"
+    curl -fsSL "${base}/${archive}" -o "${temporary}/${archive}"
+    curl -fsSL "${base}/${archive}.sha256" -o "${temporary}/${archive}.sha256"
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    (cd "${temporary}" && sha256sum -c "${archive}.sha256")
+  else
+    (cd "${temporary}" && shasum -a 256 -c "${archive}.sha256")
+  fi
   mkdir "${staging}"
   tar -xzf "${temporary}/${archive}" -C "${staging}"
   chmod 0755 "${staging}/agentctl" "${staging}/agentd"

@@ -12,7 +12,7 @@ use super::protocol::{
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
     METHOD_SESSION_TURNS, METHOD_SHUTDOWN, NameParams, Notification, ReadMessage, Request, Response,
     SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
-    read_message,
+    ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -74,8 +74,8 @@ impl Client {
     ///
     /// Returns an error when active Sessions block the transition or the daemon
     /// cannot drain its listeners and in-flight calls.
-    pub async fn shutdown_for_upgrade(&self) -> Result<(), Error> {
-        let _: serde_json::Value = self
+    pub async fn shutdown_for_upgrade(&self) -> Result<Vec<String>, Error> {
+        let result: ShutdownResult = self
             .call(
                 METHOD_SHUTDOWN,
                 ShutdownParams {
@@ -84,7 +84,7 @@ impl Client {
                 None,
             )
             .await?;
-        Ok(())
+        Ok(result.warnings)
     }
 
     /// Creates or updates an Agent resource.

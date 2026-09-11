@@ -29,10 +29,16 @@ pub use manifest::{
 /// Version embedded in a matched `agentctl`/`agentd` build.
 #[must_use]
 pub const fn build_version() -> &'static str {
-    match option_env!("AGENT_VERSION") {
+    match release_version() {
         Some(version) => version,
         None => env!("CARGO_PKG_VERSION"),
     }
+}
+
+/// Release version embedded by packaging, absent from ordinary development builds.
+#[must_use]
+pub const fn release_version() -> Option<&'static str> {
+    option_env!("AGENT_VERSION")
 }
 
 use thiserror::Error;

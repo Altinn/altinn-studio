@@ -57,25 +57,24 @@ $Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("altinn-agent-install-
 $Staging = Join-Path $InstallRoot ("releases\.staging-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Path $Temporary | Out-Null
 try {
-    if ($LocalArchive) {
-        $Archive = Split-Path $LocalArchive -Leaf
-        Copy-Item $LocalArchive (Join-Path $Temporary $Archive)
-        $Checksum = if ($env:AGENT_LOCAL_ARCHIVE_SHA256) { $env:AGENT_LOCAL_ARCHIVE_SHA256 } else { "$LocalArchive.sha256" }
-    } else {
-        $Archive = "agent-$Platform.tar.gz"
-        $Base = "https://github.com/$Repository/releases/download/experimental-agent/$Version"
-        Invoke-WebRequest "$Base/$Archive" -OutFile (Join-Path $Temporary $Archive)
-        $Checksum = Join-Path $Temporary "$Archive.sha256"
-        Invoke-WebRequest "$Base/$Archive.sha256" -OutFile $Checksum
-    }
-    $Expected = (Get-Content $Checksum -Raw).Split(' ')[0].Trim().ToLowerInvariant()
-    $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
-
     $ReleasesDirectory = Join-Path $InstallRoot "releases"
     New-Item -ItemType Directory -Force -Path $ReleasesDirectory | Out-Null
     $Target = Join-Path $ReleasesDirectory "$Version-$Platform"
     if (-not (Test-Path $Target -PathType Container)) {
+        if ($LocalArchive) {
+            $Archive = Split-Path $LocalArchive -Leaf
+            Copy-Item $LocalArchive (Join-Path $Temporary $Archive)
+            $Checksum = if ($env:AGENT_LOCAL_ARCHIVE_SHA256) { $env:AGENT_LOCAL_ARCHIVE_SHA256 } else { "$LocalArchive.sha256" }
+        } else {
+            $Archive = "agent-$Platform.tar.gz"
+            $Base = "https://github.com/$Repository/releases/download/experimental-agent/$Version"
+            Invoke-WebRequest "$Base/$Archive" -OutFile (Join-Path $Temporary $Archive)
+            $Checksum = Join-Path $Temporary "$Archive.sha256"
+            Invoke-WebRequest "$Base/$Archive.sha256" -OutFile $Checksum
+        }
+        $Expected = (Get-Content $Checksum -Raw).Split(' ')[0].Trim().ToLowerInvariant()
+        $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
         New-Item -ItemType Directory -Path $Staging | Out-Null
         tar -xzf (Join-Path $Temporary $Archive) -C $Staging
         Move-Item $Staging $Target
