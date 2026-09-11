@@ -1,0 +1,192 @@
+/*
+ * Design tokens for the deck — Digdir brand.
+ *
+ * Palette, typography and layout metrics are taken from the Digdir PowerPoint
+ * templates in `branding/`; see `branding/BRAND.md` for where every number
+ * comes from. Short version: white ground, Digdir navy ink, flat colour
+ * blocks, no gradients, no glows, no shadows.
+ *
+ * All sizes are in ABSOLUTE px on the 1920x1080 logical canvas.
+ * The canvas is scaled to the viewport with a CSS transform (see Stage.tsx),
+ * so never use vw/vh/rem-relative-to-viewport units inside a slide.
+ *
+ * Ramp convention (unchanged): a HIGHER number is DARKER.
+ * On a white ground that means 500-700 are ink, 300-400 are fills.
+ */
+
+:root {
+  /* ---- Canvas ---- */
+  --canvas-w: 1920px;
+  --canvas-h: 1080px;
+
+  /* ---- Brand: Digdir navy (theme dk1/dk2/accent1 = #1E2B3C) ---- */
+  --navy-900: #0e1722;
+  --navy-800: #1e2b3c; /* the brand navy — dark slide ground */
+  --navy-700: #2c3a4d;
+  --navy-600: #3e4e63;
+  --navy-500: #5b6b80;
+
+  /* ---- Brand: Digdir blue (theme accent6 = #0062B8) ---- */
+  --blue-700: #003a6e;
+  --blue-600: #004e93;
+  --blue-500: #0062b8; /* primary */
+  --blue-400: #1eacf5; /* theme accent5 — light blue, fills and rules */
+  --blue-300: #9ad4fa;
+
+  /* ---- Secondary blue. There is no cyan in the Digdir scheme: these names
+         are kept for compatibility and now resolve to readable brand blues. ---- */
+  --cyan-500: #085273;
+  --cyan-400: #0c6f9f;
+  --cyan-300: #8fd3f7;
+  --teal-500: #068718;
+
+  /* ---- Brand: coral / red (theme accent2 + accent3) ---- */
+  --coral-500: #f05f63; /* decorative geometry only */
+  --coral-600: #c2132c; /* the logo red */
+
+  /* ---- Brand: gold (theme accent4) ---- */
+  --gold-500: #e5aa20;
+  --gold-600: #a56d13;
+
+  /* ---- Flat colour blocks, straight off the template layouts ---- */
+  --tint-blue: #d2eafd; /* layout "Blå" */
+  --tint-sand: #faeec2; /* layout "Gul" */
+  --tint-rose: #fddfe0; /* layout "Rød" */
+  --tint-mint: #daeddd; /* Designsystemet success surface */
+  --tint-grey: #f1f3f6;
+
+  /* ---- Semantic (Digdir Designsystemet) ---- */
+  --success: #068718;
+  --success-dim: #056d13;
+  --success-soft: var(--tint-mint);
+  --warning: #a56d13;
+  --warning-dim: #7a510e;
+  --warning-soft: var(--tint-sand);
+  --danger: #c2132c;
+  --danger-dim: #9b0e22;
+  --danger-soft: var(--tint-rose);
+  --info: #0a71c0;
+
+  /* ---- Version language (shared with the sims) ----
+         v8 / today  = gold: cautionary, not alarming.
+         v9 / engine = Digdir blue: the brand's own positive colour. ---- */
+  --v8: #a56d13;
+  --v8-soft: var(--tint-sand);
+  --v8-line: rgb(165 109 19 / 34%);
+  --v8-rule: var(--gold-500);
+
+  --v9: #0062b8;
+  --v9-soft: var(--tint-blue);
+  --v9-line: rgb(0 98 184 / 34%);
+  --v9-rule: var(--blue-400);
+
+  /* Outcome, independent of version. */
+  --ok-line: rgb(6 135 24 / 40%);
+  --ok-soft: var(--tint-mint);
+  --bad-line: rgb(194 19 44 / 34%);
+  --bad-soft: var(--tint-rose);
+
+  /* ---- Text: navy ink on white ---- */
+  --text-100: #1e2b3c; /* primary */
+  --text-200: #2c3a4d;
+  --text-300: #4a5a70; /* secondary */
+  --text-400: #6b7a8f; /* muted */
+  --text-500: #8c9aac; /* faint */
+  --text-on-dark: #ffffff;
+  --text-on-dark-dim: #b9c3cf;
+
+  /* ---- Surfaces (flat, opaque — they sit on white) ---- */
+  --surface-1: #f7f9fb;
+  --surface-2: #eef1f5;
+  --surface-3: #e3e8ee;
+  --surface-inset: #eaeef3;
+  --surface-dark: var(--navy-800);
+  --surface-dark-2: #26344a;
+
+  /* ---- Lines ---- */
+  --line-soft: #e3e8ef;
+  --line: #ccd5e0;
+  --line-strong: #97a5b6;
+  --line-on-dark: rgb(255 255 255 / 22%);
+
+  /* ---- Backgrounds ---- */
+  --bg: #ffffff;
+  --bg-radial: none; /* the templates have no gradients at all */
+  --bg-dark: var(--navy-800);
+
+  /* ---- Chip ground (labels that sit on top of artwork) ---- */
+  --chip-ground: #ffffff;
+
+  /* ---- Type scale (absolute px on the 1080 canvas) ---- */
+  --font-sans:
+    'Inter', 'Inter var', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    sans-serif;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --fs-display: 112px;
+  --fs-h1: 96px;
+  --fs-h2: 72px; /* the template's 48pt title */
+  --fs-h3: 48px;
+  --fs-h4: 34px;
+  --fs-lead: 36px;
+  --fs-body: 30px;
+  --fs-small: 22px;
+  --fs-micro: 18px;
+  --fs-stat: 120px; /* the template's 80pt statistic */
+
+  --lh-tight: 1.04;
+  --lh-snug: 1.16;
+  --lh-normal: 1.34;
+  --lh-relaxed: 1.5;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 700; /* the templates never go heavier than bold */
+
+  --tracking-tight: -0.02em;
+  --tracking-snug: -0.01em;
+  --tracking-wide: 0.03em;
+  --tracking-caps: 0.12em;
+
+  /* ---- Spacing (canvas px) ---- */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-5: 48px;
+  --sp-6: 64px;
+  --sp-7: 88px;
+  --sp-8: 120px;
+
+  /* The template hangs every placeholder off x=126 and starts the title at y=68. */
+  --slide-pad-x: 126px;
+  --slide-pad-y: 68px;
+  --slide-pad-bottom: 96px;
+
+  /* ---- Radii — the templates are square ---- */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 6px;
+  --r-xl: 8px;
+  --r-pill: 999px;
+
+  /* ---- Elevation: flat. Kept as names so nothing breaks. ---- */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 10px 40px rgb(30 43 60 / 16%); /* overlays only */
+  --glow-cyan: none;
+  --glow-blue: none;
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur-base: 280ms;
+  --dur-slow: 520ms;
+
+  /* ---- Chrome (progress bar, help, overview) ---- */
+  --chrome-progress-h: 5px;
+}
