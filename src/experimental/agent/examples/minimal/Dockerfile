@@ -30,7 +30,7 @@ RUN case "${TARGETARCH}" in \
     && rm -rf /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" \
     && gh --version
 
-ARG CLAUDE_CODE_VERSION=2.1.239
+ARG CLAUDE_CODE_VERSION=2.1.266
 
 RUN npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \

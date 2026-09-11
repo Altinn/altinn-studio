@@ -16,6 +16,8 @@ pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
 pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
+pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
+pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
 pub(crate) const METHOD_PROGRESS_EVENT: &str = "progress.v1.event";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
@@ -119,10 +121,33 @@ pub(crate) struct SessionEnsureParams {
     pub name: crate::sessions::SessionName,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub harness: Option<crate::Harness>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_prompt: Option<String>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub progress: bool,
     #[serde(default, skip_serializing_if = "is_false")]
     pub follow: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionPromptParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
+    pub prompt: String,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub wait: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<std::time::Duration>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionTurnsParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last: Option<usize>,
 }
 
 #[derive(Deserialize, Serialize)]

@@ -42,28 +42,27 @@ internal static class V8CompilationLoader
     /// </summary>
     private const string V8ProbeTypeMetadataName = "Altinn.App.Core.Features.IProcessTaskEnd";
 
-    public static async Task<SemanticAnalysis> LoadAsync(
+    private const string StepName = "Semantic analysis";
+
+    public static Task<SemanticAnalysis> LoadAsync(
         string projectFolder,
         string projectFile,
         CancellationToken cancellationToken
-    )
+    ) => LoadAsync(() => LoadCoreAsync(projectFolder, projectFile, cancellationToken));
+
+    /// <summary>
+    /// Runs <paramref name="loadCore"/> and reports its outcome as the <c>Semantic analysis</c> step of
+    /// the current upgrade run. Separated from the restore/design-time-build plumbing so the reporting
+    /// can be exercised without an SDK or network.
+    /// </summary>
+    internal static async Task<SemanticAnalysis> LoadAsync(Func<Task<SemanticAnalysis>> loadCore)
     {
-        await UpgradeConsole.Out.WriteLineAsync(
-            "Compiling the app against its current packages for exact detection..."
-        );
+        UpgradeConsole.BeginStep(StepName);
         var timer = Stopwatch.StartNew();
+        SemanticAnalysis result;
         try
         {
-            var result = await LoadCoreAsync(projectFolder, projectFile, cancellationToken);
-            timer.Stop();
-            await UpgradeConsole.Out.WriteLineAsync(
-                result.Compilation is not null
-                    ? $"  Compiled in {timer.Elapsed.TotalSeconds:0.0}s - detection uses exact symbol information."
-                    : $"  Semantic analysis unavailable after {timer.Elapsed.TotalSeconds:0.0}s - falling back to "
-                        + $"syntax-based detection ({result.UnavailableReason}). The upgrade still runs; detection "
-                        + "may over-report."
-            );
-            return result;
+            result = await loadCore();
         }
         catch (OperationCanceledException)
         {
@@ -71,15 +70,26 @@ internal static class V8CompilationLoader
         }
         catch (Exception exception)
         {
-            timer.Stop();
-            var result = SemanticAnalysis.Unavailable(exception.Message);
-            await UpgradeConsole.Out.WriteLineAsync(
-                $"  Semantic analysis unavailable after {timer.Elapsed.TotalSeconds:0.0}s - falling back to "
+            result = SemanticAnalysis.Unavailable(exception.Message);
+        }
+        timer.Stop();
+
+        if (result.Compilation is not null)
+        {
+            UpgradeConsole.Ok(
+                $"Compiled the app against its current packages in {timer.Elapsed.TotalSeconds:0.0}s - "
+                    + "detection uses exact symbol information."
+            );
+        }
+        else
+        {
+            UpgradeConsole.Warning(
+                $"Semantic analysis unavailable after {timer.Elapsed.TotalSeconds:0.0}s - falling back to "
                     + $"syntax-based detection ({result.UnavailableReason}). The upgrade still runs; detection "
                     + "may over-report."
             );
-            return result;
         }
+        return result;
     }
 
     private static async Task<SemanticAnalysis> LoadCoreAsync(

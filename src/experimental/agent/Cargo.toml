@@ -31,6 +31,9 @@ tempfile.workspace = true
 zeroize.workspace = true
 uuid.workspace = true
 
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
 [target.'cfg(windows)'.dependencies]
 tokio-util = { workspace = true, features = ["compat"] }
 win_uds = { version = "0.2.4", features = ["async"] }

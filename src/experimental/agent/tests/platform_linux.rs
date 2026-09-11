@@ -177,7 +177,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
             is_claude_version,
             vec![
                 ExecutionEvent::Started { process_id: None },
-                ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+                ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
         );
@@ -242,9 +242,25 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/hooks.json").await).expect("Codex hooks JSON");
     assert_eq!(
         codex_hooks["hooks"]["SessionStart"][0]["hooks"][0]["command"],
-        "node /home/agent/.codex/hooks/session-start.mjs"
+        "node /home/agent/.codex/hooks/activity-hook.mjs"
     );
     assert!(codex_hooks["hooks"]["SessionStart"][0].get("matcher").is_none());
+    for event in ["UserPromptSubmit", "Interrupt", "Stop", "PermissionRequest"] {
+        assert_eq!(
+            codex_hooks["hooks"][event][0]["hooks"][0]["command"], "node /home/agent/.codex/hooks/activity-hook.mjs",
+            "Codex registers {event}"
+        );
+    }
+    assert!(
+        codex_hooks["hooks"].get("Notification").is_none(),
+        "Codex has no Notification hook"
+    );
+    let hook_script = read_file(&sandbox, "/home/agent/.codex/hooks/activity-hook.mjs").await;
+    assert!(
+        String::from_utf8(hook_script)
+            .expect("UTF-8 hook")
+            .contains(r#""Stop":"turnCompleted""#)
+    );
 
     let executions = backend.execution_specs();
     let commands = executions
@@ -312,7 +328,7 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
             is_claude_version,
             vec![
                 ExecutionEvent::Started { process_id: None },
-                ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+                ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
         );
@@ -563,7 +579,7 @@ async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
         is_claude_version,
         vec![
             ExecutionEvent::Started { process_id: None },
-            ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+            ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
             ExecutionEvent::Exited(ExitStatus { code: 0 }),
         ],
     );

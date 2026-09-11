@@ -121,6 +121,11 @@ class TestDomainKnowledge:
         # Dynamic expression shape — array-based, not boolean.
         assert "equals" in prompt or "dataModel" in prompt
 
+    def test_a_datepicker_is_paired_with_timestamp_false(self):
+        prompt = build_system_prompt(_base_ctx())
+        assert "Datepicker" in prompt
+        assert '"timeStamp": false' in prompt
+
     def test_tool_use_section_calls_out_parallelism(self):
         prompt = build_system_prompt(_base_ctx())
         # Read-parallel / write-serial guidance.

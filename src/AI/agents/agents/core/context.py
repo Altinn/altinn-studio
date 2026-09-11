@@ -1,14 +1,4 @@
-"""System-prompt assembler for the agentic loop.
-
-One immutable prompt per session, composed in a stable order so Anthropic's
-prompt cache stays warm: identity, operating principles, Altinn anatomy,
-critical rules, tool-use guidance, then the session-specific tail (mode, goal,
-repo path, optional context) where cache misses are cheapest.
-
-Tool descriptions are not assembled here. They travel per request on the
-adapter's own tools field, so the tool-use section describes patterns rather
-than individual tools.
-"""
+"""System-prompt assembler for the agentic loop."""
 
 from __future__ import annotations
 
@@ -86,7 +76,11 @@ _CRITICAL_RULES = """\
     - ❌ `if (field == "x") hide`
     - ✅ `["not", ["equals", ["dataModel", "field"], "x"]]`
 
-7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one."""
+7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one.
+
+8.  **A `Datepicker` bound to a date field must set `"timeStamp": false`.**  The property defaults to `true`, which stores `2026-05-22T00:00:00.000Z` into a field the data model declares as `"format": "date"`, and Studio refuses to render the page.  Write it on every `Datepicker` you emit; only a field that really holds a date *and* a time leaves it out.
+    - ❌ `{"id": "fodselsdato", "type": "Datepicker", "dataModelBindings": {"simpleBinding": "fodselsdato"}}`
+    - ✅ the same component with `"timeStamp": false`"""
 
 
 
@@ -210,24 +204,14 @@ class SessionContext:
     today: date | None = None
 
 
+def stable_prefix_sections() -> tuple[str, ...]:
+    """The deployment-static part of the actor's system prompt."""
+    return (_IDENTITY, _OPERATING_PRINCIPLES, _ALTINN_ANATOMY, _CRITICAL_RULES, _TOOL_USE)
+
+
 def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -> str:
-    """Compose the immutable system prompt for a session.
-
-    Stable sections come first so the cacheable prefix is as long as
-    possible.  Variable session info (mode, goal, repo facts, form
-    spec) goes at the end where cache misses cost least.
-
-    `skill_listing` is the compact one-line-per-skill index from
-    `format_skill_listing`.  It is deployment-static, so it sits in the
-    stable prefix with the other cacheable sections.
-    """
-    sections: list[str] = [
-        _IDENTITY,
-        _OPERATING_PRINCIPLES,
-        _ALTINN_ANATOMY,
-        _CRITICAL_RULES,
-        _TOOL_USE,
-    ]
+    """Compose the immutable system prompt for a session."""
+    sections: list[str] = list(stable_prefix_sections())
 
     if skill_listing:
         sections.append(
@@ -266,12 +250,7 @@ def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -
 
 
 def _format_repo_facts(facts: dict[str, Any]) -> str:
-    """Render the repo_facts dict as bullet points.
-
-    Values that are themselves lists/dicts are stringified compactly; full
-    structured rendering happens when the model calls `scan_repo` and
-    sees the canonical output.  This section is a header summary only.
-    """
+    """Render the repo_facts dict as bullet points."""
     lines: list[str] = []
     for key, value in facts.items():
         if isinstance(value, (list, tuple)):

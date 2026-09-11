@@ -7,7 +7,7 @@ use ::sandbox::execution::ExecutionSpec;
 use crate::Error;
 
 pub use linux::Linux;
-pub(crate) use linux::{CONTAINER_HOST, HOME, WORKING_DIRECTORY, run_checked};
+pub(crate) use linux::{CONTAINER_HOST, HOME, PORTABLE_TERMINAL, UTF8_LOCALE, WORKING_DIRECTORY, run_checked};
 
 /// Builds the Agent-conventional Execution environment for one Sandbox OS.
 ///
