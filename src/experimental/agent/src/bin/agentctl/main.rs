@@ -19,6 +19,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 mod format;
 mod forward;
 mod progress;
+mod self_update;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
@@ -39,6 +40,11 @@ struct Arguments {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Manage the Agent CLI installation.
+    Self_ {
+        #[command(subcommand)]
+        command: self_update::SelfCommand,
+    },
     /// Manage Claude Code harness authentication.
     Claude {
         #[command(subcommand)]
@@ -293,7 +299,11 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        if !matches!(arguments.command, Command::Create { .. } | Command::Prompt { .. }) {
+        if !matches!(
+            arguments.command,
+            Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. }
+        ) {
+            self_update::resume_pending_before_command(&home)?;
             ensure_daemon(&home, &client).await?;
         }
         execute(arguments.command, &home, &client).await
@@ -306,6 +316,7 @@ fn run() -> CommandResult<ExitCode> {
 )]
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
+        Command::Self_ { command } => self_update::execute(command, home).await?,
         Command::Claude {
             command: ClaudeCommand::Login { from_stdin },
         } => {

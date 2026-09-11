@@ -41,10 +41,25 @@ fn run() -> Result<(), Error> {
         .with_ansi(std::io::stderr().is_terminal())
         .init();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
-    let _lock = home.acquire_lock()?;
+    let _lock = acquire_home_lock(&home)?;
     let database = persistence::Database::open(&home.path().join("agent.db"))?;
     let runtime = LocalRuntime::new()?;
     runtime.block_on(run_control_plane(home, database))
+}
+
+fn acquire_home_lock(home: &ControlPlaneHome) -> Result<agent::local::home::Lock, Error> {
+    let deadline = std::time::Instant::now() + Duration::from_secs(2);
+    loop {
+        match home.acquire_lock() {
+            Ok(lock) => return Ok(lock),
+            Err(Error::Io(error))
+                if error.kind() == std::io::ErrorKind::WouldBlock && std::time::Instant::now() < deadline =>
+            {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Err(error) => return Err(error),
+        }
+    }
 }
 
 type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;

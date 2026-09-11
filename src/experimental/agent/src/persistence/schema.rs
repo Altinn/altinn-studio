@@ -107,6 +107,11 @@ pub(super) fn initialize(connection: &mut Connection) -> Result<(), Error> {
     verify_schema(connection, VERSION)
 }
 
+pub(super) fn pending_version(connection: &Connection) -> Result<Option<u32>, Error> {
+    let version = schema_version(connection)?;
+    Ok((version > 0 && version < VERSION).then_some(version))
+}
+
 fn create_preview_1(transaction: &Transaction<'_>) -> Result<(), Error> {
     transaction.execute_batch(PREVIEW_1_SQL).map_err(database_error)
 }
