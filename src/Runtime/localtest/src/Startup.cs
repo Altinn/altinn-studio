@@ -35,6 +35,7 @@ using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.AccessManagement;
+using LocalTest.Services.Correspondence;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
@@ -128,6 +129,7 @@ namespace LocalTest
             services.AddSingleton<IResourceRegistry, ResourceRegistryService>();
             services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
             services.AddSingleton<LocalInstanceDelegationsRepository>();
+            services.AddSingleton<LocalCorrespondenceRepository>();
 
             // Shared auth services
             services.AddSingleton<IAuthentication, AuthenticationService>();
