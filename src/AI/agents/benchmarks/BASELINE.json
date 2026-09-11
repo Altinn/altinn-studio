@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "07e319515e6a",
-    "code": "f9397c5 clean",
+    "code": "99f1a53 clean",
     "dataset": "114 items 5562d4e8298d",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260911T095638Z-trace-fixes-gates-tools-and-copy-fda6",
-  "label": "trace fixes: gates, tools and copy",
-  "recorded_at": "2026-09-11T10:02:20+00:00",
-  "why": "gates, tool surfaces and user-facing copy fixed from production traces; a held defect now reads as held"
+  "check_id": "20260911T115131Z-unmeasured-previews-stricter-edit-matching-per-language-text-keys-3550",
+  "label": "unmeasured previews, stricter edit matching, per-language text keys",
+  "recorded_at": "2026-09-11T11:56:58+00:00",
+  "why": "review fixes plus unmeasured previews: a timeout no longer scores as a broken page"
 }
