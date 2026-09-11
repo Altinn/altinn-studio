@@ -53,6 +53,13 @@ documents. Restating them here would duplicate a source of truth that can drift,
 would equal its default — a typo in one of those keys would be undetectable, silently falling back
 to the value it was meant to set.
 
+The flag is not pinned by a test here. Binding itself is covered in the engine
+(`EngineSettingsConfigurationTests`), and asserting the shipped value would only pin a policy — it
+would make disabling the breaker a two-file change, and it cannot even be written correctly, since
+the value a host boots with is the layered result of `appsettings.json` plus the environment overlay,
+not the base file. The cost is that dropping the setting disables the breaker with no signal: the
+disabled path logs at `Debug`, below this host's `Information` floor for `WorkflowEngine.Data.Services`.
+
 Two consequences worth holding on to:
 
 - **It is restart-only.** The flag is read once at repository construction and once when the sweep
