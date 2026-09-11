@@ -22,20 +22,6 @@
 #   docker compose -f docker-compose.yaml -f .k6/docker-compose.playground.yaml \
 #       --profile core up -d --build
 services:
-  # Host ports, spelled as variables so a machine that already has something on 7070/4317/4318 —
-  # another project's LGTM stack, typically — can move this one out of the way without editing
-  # anything. The defaults are the ports the shared compose file publishes, so leaving them unset
-  # changes nothing. `!override` replaces the shared list rather than appending to it; appending
-  # would keep the conflicting binding and the container would fail to attach to the network at all.
-  #
-  #   PLAYGROUND_GRAFANA_PORT=7071 PLAYGROUND_OTLP_GRPC_PORT=4319 \
-  #     PLAYGROUND_OTLP_HTTP_PORT=4320 make playground
-  lgtm:
-    ports: !override
-      - "${PLAYGROUND_GRAFANA_PORT:-7070}:3000"
-      - "${PLAYGROUND_OTLP_GRPC_PORT:-4317}:4317"
-      - "${PLAYGROUND_OTLP_HTTP_PORT:-4318}:4318"
-
   workflow-engine-testapp:
     environment:
       # Namespace circuit breaker. OFF by default in every other configuration.
