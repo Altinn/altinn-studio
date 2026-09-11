@@ -897,7 +897,10 @@ mod tests {
 
         activate_release(&paths, &release).expect("activation");
 
-        assert_eq!(current_release(&paths).expect("current"), Some(release));
+        assert_eq!(
+            current_release(&paths).expect("current"),
+            Some(fs::canonicalize(release).expect("canonical release"))
+        );
         for binary in binary_names() {
             assert_eq!(
                 fs::read_link(paths.bin().join(binary)).expect("visible link"),
