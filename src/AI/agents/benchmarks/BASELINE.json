@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "07e319515e6a",
-    "code": "6b863cc clean",
-    "dataset": "114 items 5562d4e8298d",
+    "code": "c836cf0 clean",
+    "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260911T122235Z-entry-page-scored-from-the-entry-page-41ee",
-  "label": "entry page scored from the entry page",
-  "recorded_at": "2026-09-11T12:27:52+00:00",
-  "why": "entry page scored from the entry page, and an unanswered preview left unmeasured"
+  "check_id": "20260911T133325Z-scope-gate-sees-the-conversation-it-runs-with-0934",
+  "label": "scope gate sees the conversation it runs with",
+  "recorded_at": "2026-09-11T13:38:16+00:00",
+  "why": "the scope gate now judges a follow-up against the conversation it continues, measured on items carrying that context"
 }
