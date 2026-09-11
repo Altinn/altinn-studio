@@ -471,12 +471,29 @@ public class AppDevelopmentService : IAppDevelopmentService
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
+        if (_appVersionService.IsV9App(altinnRepoEditingContext))
+        {
+            Designer.Models.LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
+                layoutSetId,
+                cancellationToken
+            );
+            bool isSubform = layoutSettings.Type == Constants.General.SubformId;
+            return new LayoutSetConfig
+            {
+                Id = layoutSetId,
+                DataType = layoutSettings.DefaultDataType,
+                Type = layoutSettings.Type,
+                Tasks = isSubform ? null : new List<string> { layoutSetId },
+            };
+        }
+
         bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
         if (appUsesLayoutSets)
         {
             // TODO: introduce better check to evaluate if app uses layout sets
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            return layoutSets.Sets.FirstOrDefault(layoutSet => layoutSet.Id == layoutSetId);
+            return layoutSets.Sets.FirstOrDefault(layoutSet => layoutSet.Id == layoutSetId)
+                ?? throw new NoLayoutSetsFileFoundException($"Layout set '{layoutSetId}' was not found.");
         }
 
         throw new NoLayoutSetsFileFoundException("No layout set found for this app.");

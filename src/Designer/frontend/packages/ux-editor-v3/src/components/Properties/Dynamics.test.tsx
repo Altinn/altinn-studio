@@ -33,7 +33,7 @@ describe('Dynamics', () => {
 
   it('should not render switch if ruleHandler is not found', async () => {
     await render();
-    const oldDynamicsSwitch = screen.queryByRole('checkbox', {
+    const oldDynamicsSwitch = screen.queryByRole('switch', {
       name: textMock('right_menu.show_old_dynamics'),
     });
     expect(oldDynamicsSwitch).not.toBeInTheDocument();
@@ -42,7 +42,7 @@ describe('Dynamics', () => {
   it('should render default unchecked switch if ruleHandler is found', async () => {
     (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
     await render();
-    const oldDynamicsSwitch = screen.getByRole('checkbox', {
+    const oldDynamicsSwitch = screen.getByRole('switch', {
       name: textMock('right_menu.show_old_dynamics'),
     });
     expect(oldDynamicsSwitch).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe('Dynamics', () => {
   it('should render old dynamics when enabling switch if ruleHandler is found', async () => {
     (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
     await render();
-    const oldDynamicsSwitch = screen.getByRole('checkbox', {
+    const oldDynamicsSwitch = screen.getByRole('switch', {
       name: textMock('right_menu.show_old_dynamics'),
     });
     await user.click(oldDynamicsSwitch);

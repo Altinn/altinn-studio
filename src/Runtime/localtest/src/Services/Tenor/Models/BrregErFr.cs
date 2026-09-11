@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 public class BrregErFr
 {
     /// <summary>
-    /// Internally assigned property that is Altinn's inernal ID
+    /// Internally assigned property that is Altinn's internal ID
     /// </summary>
     [JsonIgnore]
     public int PartyId { get; set; }

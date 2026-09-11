@@ -3,6 +3,7 @@ kind: PodDisruptionBudget
 metadata:
   name: workflow-engine-app-pdb
 spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
   maxUnavailable: 1
   selector:
     matchLabels:
@@ -35,6 +36,9 @@ spec:
         azure.workload.identity/use: "true"
       annotations:
         linkerd.io/inject: enabled
+        # Linkerd 2026.4.2 uses regular sidecars; mirror the application's 5s drain + 35s shutdown.
+        config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "5"
+        config.linkerd.io/shutdown-grace-period: "35s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
@@ -51,7 +55,7 @@ spec:
             matchLabels:
               app: workflow-engine-app
       serviceAccountName: workflow-engine-app
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 45
       securityContext:
         runAsUser: 1654
         runAsGroup: 1654
@@ -103,7 +107,7 @@ spec:
               mountPath: /tmp
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /api/v1/health/live
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 10
@@ -111,7 +115,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /api/v1/health/ready
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 5

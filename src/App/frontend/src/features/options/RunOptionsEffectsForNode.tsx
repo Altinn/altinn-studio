@@ -1,5 +1,9 @@
 import React from 'react';
 
+import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelBindingsForGroupCheckbox } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import type { IDataModelBindingsForGroupMultiselect } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
@@ -10,10 +14,7 @@ import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/optio
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
-import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
-import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 import type { RuntimeNodeRef } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface RunOptionEffectsProps {
@@ -53,13 +54,11 @@ function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
     return false;
   }
 
-  // Quickfix to fix simpleBinding being cleared as stale in FileUploadWithTag,
+  // Quickfix to fix simpleBinding being cleared as stale in FileUpload,
   // we don't store option values here so it makes no sense to do this,
   // consider solving this more elegantly in the future.
   // AFAIK, stale values are not removed from attachment tags, maybe they should?
-  const parentComponent = node.parent.type === 'node' ? lookups.getComponent(node.parent.baseId) : undefined;
-  const shouldRemoveStaleValues =
-    parentComponent?.type !== 'FileUploadWithTag' && !('renderAsSummary' in item && item.renderAsSummary);
+  const shouldRemoveStaleValues = item?.type !== 'FileUpload' && !('renderAsSummary' in item && item.renderAsSummary);
 
   return (
     <>

@@ -20,6 +20,12 @@ const meta = {
     className: {
       control: 'text',
     },
+    error: {
+      control: 'text',
+    },
+    searchButtonLabel: {
+      control: 'text',
+    },
   },
 } satisfies Meta<typeof StudioSearch>;
 export default meta;

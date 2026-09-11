@@ -96,7 +96,7 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
 
     /// <summary>
     /// Stop processing the request with current changes and return a BadRequest with the following issues
-    /// This is intended to be an alternative to a <see cref="IFileAnalyser"/> <see cref="IFileValidator"/>
+    /// This is intended to be an alternative to a <see cref="IFileAnalyzer"/> <see cref="IFileValidator"/>
     /// pair to ensure that new binary data is not saved if the data is not valid.
     /// </summary>
     /// <param name="validationIssues"></param>

@@ -27,7 +27,7 @@ internal static class HeadingLayoutMigration
         var uiDirectory = ResolveUiDirectory(projectFolder);
         if (uiDirectory is null)
         {
-            await UpgradeConsole.Out.WriteLineAsync("No UI directory found, skipping Heading migration");
+            UpgradeConsole.Skip("No UI directory found, skipping Heading migration");
             return 0;
         }
 
@@ -63,16 +63,22 @@ internal static class HeadingLayoutMigration
             changedFiles++;
             changedComponents += occurrences.Components;
             changedSummaryRefs += occurrences.SummaryComponentTypes;
-            await UpgradeConsole.Out.WriteLineAsync(
+            UpgradeConsole.Ok(
                 $"Migrated {occurrences.Components} Heading component type(s) and {occurrences.SummaryComponentTypes} summary componentType ref(s) in {layoutFile}"
             );
         }
 
-        await UpgradeConsole.Out.WriteLineAsync(
-            changedFiles == 0
-                ? "No Header layout contract tokens found to migrate"
-                : $"Migrated {changedComponents} Heading component type(s) and {changedSummaryRefs} summary componentType ref(s) across {changedFiles} layout file(s)"
-        );
+        if (changedFiles == 0)
+        {
+            UpgradeConsole.Skip("No Header layout contract tokens found to migrate");
+        }
+        else
+        {
+            UpgradeConsole.Ok(
+                $"Migrated {changedComponents} Heading component type(s) and {changedSummaryRefs} summary componentType ref(s) across {changedFiles} layout file(s)"
+            );
+        }
+
         return 0;
     }
 

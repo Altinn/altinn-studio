@@ -11,8 +11,8 @@
                 "id": "organisationLookup",
                 "type": "OrganizationLookup",
                 "dataModelBindings": {
-                    "organization_lookup_orgnr": "street",
-                    "organization_lookup_name": "co"
+                    "orgnr": "street",
+                    "name": "co"
                 },
                 "textResourceBindings": {
                     "title": "Legg til virksomhet",

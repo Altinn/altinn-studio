@@ -1,3 +1,5 @@
+@value mediaMdDown from '@app/form-component/styles/breakpoints.module.css';
+
 .buttonCell {
   padding: 4px 36px 4px 4px;
 }
@@ -19,7 +21,7 @@
 TODO(1779): Remove these styles after going through all the different Table styles in
 Altinn, and making sure they are consistent. */
 
-@media (max-width: 992px) {
+@media mediaMdDown {
   .table {
     border-top: 1px solid #dde3e5;
   }

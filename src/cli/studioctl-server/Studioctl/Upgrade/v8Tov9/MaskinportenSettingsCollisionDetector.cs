@@ -120,24 +120,29 @@ internal sealed class MaskinportenSettingsCollisionDetector
             }
         }
 
-        var warnings = new List<string>();
-        AppendFindings(warnings, ExternalShapeSummary, externalShaped);
-        AppendFindings(warnings, ProvisionedOverlapSummary, provisionedOverlap);
+        var messages = new List<UpgradeMessage>();
+        AppendFindings(messages, ExternalShapeSummary, externalShaped);
+        AppendFindings(messages, ProvisionedOverlapSummary, provisionedOverlap);
 
-        var manualActionRequired = externalShaped.Concat(provisionedOverlap).Any(static finding => !finding.LocalOnly);
+        if (externalShaped.Concat(provisionedOverlap).Any(static finding => !finding.LocalOnly))
+        {
+            messages.Todo(
+                "MaskinportenSettings needs manual follow-up due to a section collision. See warnings above."
+            );
+        }
 
-        return new MigrationResult(manualActionRequired, warnings);
+        return new MigrationResult(messages);
     }
 
-    private static void AppendFindings(List<string> warnings, string summary, List<SectionFinding> findings)
+    private static void AppendFindings(List<UpgradeMessage> messages, string summary, List<SectionFinding> findings)
     {
         if (findings.Count == 0)
         {
             return;
         }
 
-        warnings.Add(summary);
-        warnings.AddRange(
+        messages.Warn(summary);
+        messages.WarnRange(
             findings.Select(static finding =>
                 finding.LocalOnly ? $"{finding.Detail} (development only - not loaded when deployed)" : finding.Detail
             )
@@ -218,7 +223,7 @@ internal sealed class MaskinportenSettingsCollisionDetector
 
     /// <summary>
     /// The property names of the file's <c>MaskinportenSettings</c> object, or <c>null</c> when the file
-    /// has no such section. Unparseable files are skipped rather than reported: appsettings files legally
+    /// has no such section. Unparsable files are skipped rather than reported: appsettings files legally
     /// contain comments and trailing commas, and a JSON complaint from an upgrade step about Maskinporten
     /// would be a confusing way to learn that.
     /// </summary>

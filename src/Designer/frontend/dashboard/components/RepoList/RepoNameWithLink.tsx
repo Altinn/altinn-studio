@@ -1,5 +1,5 @@
 import { getRepoEditUrl } from '../../utils/urlUtils';
-import { Link } from '@digdir/designsystemet-react';
+import { StudioLink } from '@studio/components';
 import classes from './RepoNameWithLink.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
   const editUrl = getRepoEditUrl({ org, repo: repoName });
 
   return (
-    <Link
+    <StudioLink
       className={classes.repoLink}
       href={editUrl}
       title={t('dashboard.edit_app', {
@@ -23,6 +23,6 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
       })}
     >
       {repoName}
-    </Link>
+    </StudioLink>
   );
 };

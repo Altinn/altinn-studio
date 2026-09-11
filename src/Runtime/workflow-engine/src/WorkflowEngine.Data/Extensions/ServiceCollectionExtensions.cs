@@ -98,6 +98,23 @@ internal static class ServiceCollectionExtensions
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
             services.AddHostedService<DbMaintenanceService>();
+            services.AddHostedService<MailboxDeadlineService>();
+
+            // Namespace failure-storm throttling (see the failure-throttling ADR). The view is a
+            // singleton so the workflow handler can consume the same snapshot the sweep publishes.
+            // Registration order relative to the other hosted services is not load-bearing here
+            // (unlike HeartbeatService vs the processor in Core's AddWorkflowEngineHost): the
+            // sweep holds no in-flight work and stops instantly, and with Throttling.Enabled off
+            // it exits before entering its loop.
+            // The sweep service is registered as a singleton and forwarded to both roles: the
+            // hosted service (the sweep loop) and INamespaceThrottleOperator (the force-trip/
+            // force-clear override endpoints), so overrides share the sweep's trip/clear logic
+            // and its in-process state.
+            services.AddSingleton<ThrottleStateView>();
+            services.AddSingleton<IThrottleStateView>(sp => sp.GetRequiredService<ThrottleStateView>());
+            services.AddSingleton<NamespaceThrottleService>();
+            services.AddSingleton<INamespaceThrottleOperator>(sp => sp.GetRequiredService<NamespaceThrottleService>());
+            services.AddHostedService(sp => sp.GetRequiredService<NamespaceThrottleService>());
 
             return services;
         }

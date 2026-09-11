@@ -60,7 +60,7 @@
         "textResourceBindings": {
           "title": "Group title",
           "summaryTitle": "Group summary title",
-          "edit_button_open": [
+          "editButtonOpen": [
             "if",
             [
               "dataModel",
@@ -70,7 +70,7 @@
             "else",
             "Rediger"
           ],
-          "edit_button_close": [
+          "editButtonClose": [
             "if",
             [
               "dataModel",
@@ -80,7 +80,7 @@
             "else",
             "Lagre og lukk"
           ],
-          "save_button": [
+          "saveButton": [
             "if",
             [
               "dataModel",
@@ -315,8 +315,8 @@
         "grid": {
           "md": 6
         },
-        "mapping": {
-          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].source": "source"
+        "queryParameters": {
+          "source": ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]
         }
       },
       {
@@ -431,8 +431,8 @@
         "grid": {
           "md": 6
         },
-        "mapping": {
-          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].nested-grp-1234[{1}].source": "source"
+        "queryParameters": {
+          "source": ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.source"]
         }
       },
       {
@@ -536,7 +536,7 @@
       },
       {
         "id": "subUploader",
-        "type": "FileUploadWithTag",
+        "type": "FileUpload",
         "textResourceBindings": {
           "title": "Nested uploader with tags"
         },
@@ -557,7 +557,7 @@
         },
         "textResourceBindings": {
           "summaryTitle": "Gruppe2",
-          "add_button": "referanse",
+          "addButton": "referanse",
           "title": "Referansegruppe"
         },
         "tableHeaders": ["group2-teller", "group2-input"],

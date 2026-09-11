@@ -1,9 +1,16 @@
 import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer } from '@app/form-component';
+import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type {
+  GridCell,
+  GridRow,
+  IGridColumnProperties,
+  ITableColumnFormatting,
+  ITableColumnProperties,
+} from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { LabelContent } from 'src/components/label/LabelContent';
@@ -14,7 +21,6 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import css from 'src/layout/Grid/Grid.module.css';
 import {
@@ -32,13 +38,6 @@ import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type {
-  GridCell,
-  GridRow,
-  IGridColumnProperties,
-  ITableColumnFormatting,
-  ITableColumnProperties,
-} from 'src/layout/common.generated';
 
 interface ColSpanHiddenOverlapWarningParams {
   colSpan: number;

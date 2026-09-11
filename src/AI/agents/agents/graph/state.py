@@ -1,3 +1,4 @@
+from shared.models.experiment import ExperimentContext
 from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 from shared.models import AgentAttachment
@@ -36,7 +37,7 @@ class FormSpecField(BaseModel):
         """Lift legacy `List[str]` options to `List[{label, value}]`.
 
         Older spec-extraction prompts sometimes return plain strings; we
-        normalise them so downstream code only ever sees the structured
+        normalize them so downstream code only ever sees the structured
         form.  Slugifying the value here keeps stored data stable across
         label edits.
         """
@@ -129,8 +130,10 @@ class AgentState(BaseModel):
     repo_path: str
     app_name: str
     developer: str
+    experiment: Optional["ExperimentContext"] = None
     org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
+    trace_id: Optional[str] = None  # Langfuse trace id, captured once at the root span
     # Hard permission gate: when False the loop runs read-only (write tools
     # denied) — the "chat mode" of the unified path. Fail closed: write
     # access is opt-in, so a constructor that omits the flag gets read-only.
@@ -151,6 +154,5 @@ class AgentState(BaseModel):
     changed_files: List[str] = []
     verify_notes: List[str] = []
     tests_passed: Optional[bool] = None
-    mcp_degraded: bool = False  # True when MCP went down mid-request — results may be incomplete
     next_action: Literal["plan", "scan", "spec", "act", "verify", "review", "stop"] = "plan"
     limits: Dict[str, Any] = {"max_files": 50, "max_lines": 2000}  # Altinn apps need multiple files (layout, resources, models)

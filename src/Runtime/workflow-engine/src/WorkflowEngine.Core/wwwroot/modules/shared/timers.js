@@ -1,7 +1,8 @@
-/* Timers — workflow elapsed + step backoff countdowns */
+/* Timers — workflow elapsed, step backoff countdowns, the step modal's running counter, and the
+ * two mailbox counters (a deadline counting down, a parked receiver counting up) */
 
 import { state } from '../core/state.js';
-import { formatElapsed } from '../core/helpers.js';
+import { formatElapsed, formatSpan } from '../core/helpers.js';
 
 export const updateTimers = () => {
     const now = Date.now();
@@ -19,10 +20,35 @@ export const updateTimers = () => {
         el.textContent = remaining > 0 ? `retry ${remaining.toFixed(1)}s` : 'retrying...';
     }
 
+    // The step modal's Processing counter: how long the current attempt has been running.
+    for (const el of document.querySelectorAll('[data-step-started]')) {
+        const started = new Date(el.getAttribute('data-step-started') ?? '').getTime();
+        if (Number.isNaN(started)) continue;
+        el.textContent = `running ${formatElapsed(Math.max(0, (now - started) / 1000))}`;
+    }
+
     for (const el of document.querySelectorAll('[data-starts-at]')) {
         const remaining =
             (new Date(el.getAttribute('data-starts-at') ?? '').getTime() - now) / 1000;
         el.textContent = remaining > 0 ? `starts in ${formatElapsed(remaining)}` : 'starting...';
+    }
+
+    // Counts down: what an operator wants from a deadline is how long is left.
+    for (const el of document.querySelectorAll('[data-deadline]')) {
+        const deadline = new Date(el.getAttribute('data-deadline') ?? '').getTime();
+        if (Number.isNaN(deadline)) continue;
+        const remaining = (deadline - now) / 1000;
+        el.textContent =
+            remaining > 0
+                ? `closes in ${formatSpan(remaining)}`
+                : `overdue ${formatSpan(-remaining)}`;
+        el.classList.toggle('mbx-overdue', remaining <= 0);
+    }
+
+    // A receiver still parked has no park duration to state — the server sends none — so the card counts up.
+    for (const el of document.querySelectorAll('[data-parked-since]')) {
+        const since = new Date(el.getAttribute('data-parked-since') ?? '').getTime();
+        el.textContent = Number.isNaN(since) ? '' : formatSpan((now - since) / 1000);
     }
 
     requestAnimationFrame(updateTimers);

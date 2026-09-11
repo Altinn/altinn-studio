@@ -1,4 +1,4 @@
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import classes from './ConditionalRendering.module.css';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Trans } from 'react-i18next';
@@ -10,7 +10,7 @@ export const ConditionalRendering = () => {
     <div className={classes.conditionalRendering}>
       <div className={classes.conditionalRenderingWrapper}>
         <div className={classes.dynamicsVersionCheckBox}>
-          <Alert severity='warning' className={classes.alert}>
+          <StudioAlert data-color='warning' className={classes.alert}>
             <span>
               <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
                 <a
@@ -22,7 +22,7 @@ export const ConditionalRendering = () => {
                 />
               </Trans>
             </span>
-          </Alert>
+          </StudioAlert>
         </div>
         <div>
           <ConditionalRenderingModal />

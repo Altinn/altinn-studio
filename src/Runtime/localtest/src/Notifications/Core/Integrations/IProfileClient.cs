@@ -21,6 +21,6 @@ public interface IProfileClient
     /// </summary>
     /// <param name="organizationNumbers">The set or organizations to retrieve contact points for</param>
     /// <param name="resourceId">The id of the resource to look up contact points for</param>
-    /// <returns>A list of organiation contact points containing user registered contact points</returns>
+    /// <returns>A list of organization contact points containing user registered contact points</returns>
     public Task<List<OrganizationContactPoints>> GetUserRegisteredContactPoints(List<string> organizationNumbers, string resourceId);
 }

@@ -4,7 +4,7 @@
 #if NETSTANDARD
 namespace System.Runtime.CompilerServices
 {
-    // Allow the use of init-only properties when targeting dotnet stadard.
+    // Allow the use of init-only properties when targeting dotnet standard.
     internal static class IsExternalInit { }
 }
 #endif

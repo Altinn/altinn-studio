@@ -1,0 +1,60 @@
+.icon {
+  width: 24px;
+  margin-right: 12px;
+}
+
+.fieldWrapper {
+  display: grid;
+  gap: var(--ds-size-2);
+}
+
+.optionComponent {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  width: 100%;
+}
+
+.label span {
+  font-size: 16px;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.labelWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+  align-items: flex-start;
+}
+
+.labelContainer {
+  display: flex;
+  gap: var(--ds-size-2);
+  align-items: center;
+}
+
+.labelContent {
+  overflow-wrap: anywhere;
+}
+
+.labelDescription {
+  padding-bottom: var(--ds-size-3);
+}
+
+.optionLabelContainer {
+  display: flex;
+  column-gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.optionDescription {
+  flex: 0 0 100%;
+}

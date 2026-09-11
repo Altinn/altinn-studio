@@ -2,13 +2,12 @@
 
 ## Context
 
-The `/AI` folder contains three projects:
+The `/AI` folder contains two projects:
 
-| Project         | Description                                                                      | Path                |
-| --------------- | -------------------------------------------------------------------------------- | ------------------- |
-| Altinity agents | Agent service that enables users to develop apps with natural language           | `./agents`          |
-| MCP server      | Altinn App tools, used by Altinity and developers working directly with app code | `./mcp`             |
-| Augmenter agent | Augments caseworker workflow with LLM support                                    | `./augmenter-agent` |
+| Project         | Description                                                            | Path                |
+| --------------- | ---------------------------------------------------------------------- | ------------------- |
+| Altinity agents | Agent service that enables users to develop apps with natural language | `./agents`          |
+| Augmenter agent | Augments caseworker workflow with LLM support                          | `./augmenter-agent` |
 
 These are all R&D projects from the AI lab, that will later be handed off to the Altinn Studio team.
 

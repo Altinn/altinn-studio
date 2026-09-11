@@ -4,12 +4,12 @@ import {
   StudioDisplayTile,
   StudioParagraph,
   StudioHeading,
+  StudioAlert,
 } from '@studio/components';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from '../ConfigPanel/ConfigContent/ConfigIcon';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import classes from './ConfigViewerPanel.module.css';
 
@@ -70,13 +70,13 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
 const ChooseElementToViewAlert = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
-    <Alert>
+    <StudioAlert>
       <StudioHeading level={3} data-size='xs' spacing>
         {t('process_editor.configuration_view_panel_no_task')}
       </StudioHeading>
       <StudioParagraph data-size='md'>
         {t('process_editor.configuration_view_panel_please_choose_task')}
       </StudioParagraph>
-    </Alert>
+    </StudioAlert>
   );
 };

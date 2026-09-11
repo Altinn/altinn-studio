@@ -143,12 +143,6 @@ internal class DataService : IDataService
             authenticationMethod,
             ct
         );
-        if (dataStream == null)
-        {
-            throw new ArgumentNullException(
-                $"Failed to retrieve binary dataStream from dataClient using dataElement.Id {dataElement.Id}."
-            );
-        }
 
         return await JsonSerializer.DeserializeAsync<T>(dataStream, _jsonSerializerOptions, ct)
             ?? throw new InvalidOperationException($"Unable to deserialize data from dataStream to type {nameof(T)}.");

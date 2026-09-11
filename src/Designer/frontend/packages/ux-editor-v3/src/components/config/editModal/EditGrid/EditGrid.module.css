@@ -1,15 +1,6 @@
 .gridContainer {
   background-color: white;
-  border-radius: var(--fds-border_radius-large);
-}
-
-.tab {
-  white-space: nowrap;
-}
-
-.tabs {
-  overflow: scroll;
-  --scroll-bar-color: white;
+  border-radius: var(--ds-border-radius-lg);
 }
 
 .tabs:hover {

@@ -1,11 +1,13 @@
 .labelAndHelpTextWrapper {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-2);
-  padding-bottom: var(--fds-spacing-1);
+  gap: var(--ds-size-2);
+  padding-bottom: var(--ds-size-1);
 }
 
 .link {
   display: inline;
-  font: var(--fds-typography-paragraph-small);
+  font-size: var(--ds-font-size-3);
+  line-height: var(--ds-line-height-md);
+  font-weight: var(--ds-font-weight-regular);
 }

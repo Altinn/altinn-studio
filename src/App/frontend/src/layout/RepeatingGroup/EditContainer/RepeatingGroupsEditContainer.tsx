@@ -202,7 +202,7 @@ function RepeatingGroupsEditContainerInternal({
                       fontSize='1rem'
                       aria-hidden='true'
                     />
-                    <Lang id={texts.multipage_back_button ? texts.multipage_back_button : 'general.back'} />
+                    <Lang id={texts.multipageBackButton ? texts.multipageBackButton : 'general.back'} />
                   </Button>
                 </Flex>
               )}
@@ -220,7 +220,7 @@ function RepeatingGroupsEditContainerInternal({
                       }
                     }}
                   >
-                    <Lang id={texts.multipage_next_button ? texts.multipage_next_button : 'general.next'} />
+                    <Lang id={texts.multipageNextButton ? texts.multipageNextButton : 'general.next'} />
                     <ChevronRightIcon
                       fontSize='1rem'
                       aria-hidden='true'
@@ -255,7 +255,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant='primary'
                   color='first'
                 >
-                  <Lang id={texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next'} />
+                  <Lang id={texts?.saveAndNextButton ? texts?.saveAndNextButton : 'general.save_and_next'} />
                 </Button>
               </Flex>
             )}
@@ -273,7 +273,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                 >
-                  <Lang id={texts?.save_button ? texts?.save_button : 'general.save_and_close'} />
+                  <Lang id={texts?.saveButton ? texts?.saveButton : 'general.save_and_close'} />
                 </Button>
               </Flex>
             )}

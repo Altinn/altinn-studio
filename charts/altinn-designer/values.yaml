@@ -1,4 +1,5 @@
 replicaCount: 1
+terminationGracePeriodSeconds: 30
 
 environment: dev
 
@@ -38,10 +39,8 @@ environmentVariables:
       value: dev.altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: GeneralSettings__CheckTeamMembershipForDeploy
       value: true
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -84,8 +83,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "false"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -138,10 +135,8 @@ environmentVariables:
       value: staging.altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: GeneralSettings__CheckTeamMembershipForDeploy
       value: true
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -184,8 +179,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "true"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -238,10 +231,8 @@ environmentVariables:
       value: altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -282,8 +273,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "false"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName

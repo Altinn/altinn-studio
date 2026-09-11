@@ -1,0 +1,46 @@
+﻿[
+  {
+    Plan: {
+      Node Type: Nested Loop,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Join Type: Inner,
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Inner Unique: true,
+      Plans: [
+        {
+          Node Type: Function Scan,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Alias: t,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false
+        },
+        {
+          Node Type: Index Scan,
+          Parent Relationship: Inner,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Scan Direction: Forward,
+          Index Name: ix_mailbox_deliveries_mailbox_id_idempotency_key,
+          Relation Name: mailbox_deliveries,
+          Alias: d,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Index Cond: ((mailbox_id = t.mailbox_id) AND ((idempotency_key)::text = t.idempotency_key))
+        }
+      ]
+    }
+  }
+]

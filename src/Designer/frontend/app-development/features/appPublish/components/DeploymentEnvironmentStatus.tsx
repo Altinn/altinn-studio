@@ -1,12 +1,17 @@
 import React, { type JSX } from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
-import { Alert, Link, Spinner } from '@digdir/designsystemet-react';
+import {
+  StudioLink,
+  StudioParagraph,
+  StudioSpinner,
+  StudioHeading,
+  StudioAlert,
+} from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
-import { StudioHeading, StudioParagraph } from '@studio/components';
 
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
@@ -45,7 +50,7 @@ export const DeploymentEnvironmentStatus = ({
   }) => {
     const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
     return (
-      <Alert severity={severity} className={classes.alert}>
+      <StudioAlert data-color={severity} className={classes.alert}>
         <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
         </StudioHeading>
@@ -53,11 +58,9 @@ export const DeploymentEnvironmentStatus = ({
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
-        <StudioParagraph data-size='sm' spacing={!!footer} className={classes.content}>
-          {content}
-        </StudioParagraph>
+        {content}
         {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
-      </Alert>
+      </StudioAlert>
     );
   };
 
@@ -66,22 +69,38 @@ export const DeploymentEnvironmentStatus = ({
       <DeploymentStatusAlert
         severity='info'
         content={
-          <span className={classes.loadingSpinner}>
-            <Spinner variant='interaction' title='' size='xsmall' />
+          <div className={classes.loadingSpinner}>
+            <StudioSpinner aria-hidden data-size='xs' />
             {t('app_deployment.status.inProgress')}
-          </span>
+          </div>
         }
       />
     );
   }
 
   if (!kubernetesDeployment) {
-    return <DeploymentStatusAlert severity='info' content={t('app_deployment.status.none')} />;
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.none')}
+          </StudioParagraph>
+        }
+      />
+    );
   }
 
   if (!kubernetesDeployment?.version) {
     return (
-      <DeploymentStatusAlert severity='warning' content={t('app_deployment.status.unavailable')} />
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.unavailable')}
+          </StudioParagraph>
+        }
+      />
     );
   }
 
@@ -89,20 +108,22 @@ export const DeploymentEnvironmentStatus = ({
     <DeploymentStatusAlert
       severity='success'
       content={
-        <Trans
-          i18nKey={'app_deployment.status.succeeded'}
-          values={{
-            version: kubernetesDeployment.version,
-          }}
-          components={{
-            a: (
-              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
-                {' '}
-              </Link>
-            ),
-            ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
-          }}
-        />
+        <StudioParagraph className={classes.content} spacing data-size='sm'>
+          <Trans
+            i18nKey={'app_deployment.status.succeeded'}
+            values={{
+              version: kubernetesDeployment.version,
+            }}
+            components={{
+              a: (
+                <StudioLink href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                  {' '}
+                </StudioLink>
+              ),
+              ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
+            }}
+          />
+        </StudioParagraph>
       }
       footer={
         lastPublishedDate &&

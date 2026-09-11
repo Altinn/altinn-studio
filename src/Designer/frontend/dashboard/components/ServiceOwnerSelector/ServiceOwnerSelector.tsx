@@ -1,8 +1,8 @@
 import { useId } from 'react';
-import { NativeSelect } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
+import { StudioSelect } from '@studio/components';
 
 export type ServiceOwnerSelectorProps = {
   selectedOrgOrUser: string;
@@ -10,7 +10,7 @@ export type ServiceOwnerSelectorProps = {
   organizations: Organization[];
   errorMessage?: string;
   name?: string;
-  onChange?: (org: string) => void;
+  onChange: (org: string) => void;
 };
 
 export const ServiceOwnerSelector = ({
@@ -33,21 +33,20 @@ export const ServiceOwnerSelector = ({
     selectableUser.value;
 
   return (
-    <NativeSelect
+    <StudioSelect
       label={t('general.service_owner')}
       error={errorMessage}
-      size='small'
       name={name}
       id={serviceOwnerId}
       defaultValue={defaultValue}
       onChange={(event) => onChange(event.target.value)}
     >
       {selectableOptions.map(({ value, label }) => (
-        <option key={value} value={value}>
+        <StudioSelect.Option key={value} value={value}>
           {label}
-        </option>
+        </StudioSelect.Option>
       ))}
-    </NativeSelect>
+    </StudioSelect>
   );
 };
 

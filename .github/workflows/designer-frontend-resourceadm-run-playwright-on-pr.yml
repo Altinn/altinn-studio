@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/resourceadm/**'
+      - 'src/Designer/frontend/packages/policy-editor/**'
       - '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -19,13 +20,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright
     timeout-minutes: 25
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
 
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Generate .env file
         run: |

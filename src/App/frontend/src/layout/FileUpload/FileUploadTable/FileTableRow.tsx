@@ -13,6 +13,7 @@ import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/Attach
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
@@ -35,11 +36,9 @@ export function FileTableRow({
   isSummary,
 }: IFileUploadTableRowProps) {
   const { langAsString } = useLanguage();
-  const { type, readOnly } = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    baseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  );
-  const hasTag = type === 'FileUploadWithTag';
+  const item = useItemWhenType(baseComponentId, 'FileUpload');
+  const hasTag = fileUploadHasTag(item);
+  const { readOnly } = item;
   const pdfModeActive = usePdfModeActive();
   const readableSize = getSizeWithUnit(attachment.data.size, 2);
 

@@ -89,6 +89,7 @@ import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceLis
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const queriesMock: ServicesContextProps = {
@@ -102,6 +103,7 @@ export const queriesMock: ServicesContextProps = {
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
+  getAppTemplates: jest.fn().mockImplementation(() => Promise.resolve<AppTemplate[]>([])),
   getAvailableTemplates: jest
     .fn()
     .mockImplementation(() =>
@@ -425,6 +427,7 @@ export const queriesMock: ServicesContextProps = {
   createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
   sendChatFeedback: jest.fn().mockImplementation(() => Promise.resolve()),
+  clearChatFeedback: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),

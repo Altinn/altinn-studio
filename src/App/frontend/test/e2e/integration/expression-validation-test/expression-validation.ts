@@ -22,7 +22,8 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /alder/i }).clear();
     cy.findByRole('textbox', { name: /alder/i }).type('14');
     cy.findByText(/skriftlige samtykke/i).should('not.exist');
-    cy.get(appFrontend.errorReport).should('contain.text', 'Minste gyldig tall er 15');
+    cy.findByText('Minste gyldig tall er 15').should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /alder/i }).clear();
     cy.findByRole('textbox', { name: /alder/i }).type('15');
     cy.findByText(/skriftlige samtykke/i).should('be.visible');
@@ -35,17 +36,20 @@ describe('Expression validation', () => {
     cy.dsSelect(appFrontend.expressionValidationTest.kjønn, 'Mann');
 
     cy.findByRole('textbox', { name: /e-post/i }).type('asdf');
-    cy.get(appFrontend.errorReport).should('contain.text', 'Feil format');
+    cy.findByText('Feil format eller verdi').should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /e-post/i }).clear();
     cy.findByRole('textbox', { name: /e-post/i }).type('test@test.test');
-    cy.get(appFrontend.errorReport).should('not.contain.text', 'Feil format eller verdi');
-    cy.get(appFrontend.errorReport).should('contain.text', "E-post må slutte med '@altinn.no'");
+    cy.findByText('Feil format eller verdi').should('not.exist');
+    cy.findByText("E-post må slutte med '@altinn.no'").should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /e-post/i }).clear();
     cy.findByRole('textbox', { name: /e-post/i }).type('test@altinn.no');
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('45612378');
-    cy.get(appFrontend.errorReport).should('contain.text', "Telefonnummer må starte med '9'");
+    cy.findByText("Telefonnummer må starte med '9'").should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /telefonnummer/i }).clear();
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('98765432');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -120,7 +124,8 @@ describe('Expression validation', () => {
       cy.findByRole('textbox', { name: /^til/i }).type('31.12.2020');
       cy.findByRole('textbox', { name: /stilling/i }).type('Seniorutvikler');
       cy.findByRole('textbox', { name: /beskrivelse/i }).type('flink');
-      cy.get(appFrontend.errorReport).should('contain.text', 'Beskrivelse kan ikke være flink');
+      cy.findByText('Beskrivelse kan ikke være flink').should('be.visible');
+      cy.get(appFrontend.errorReport).should('not.exist');
       cy.findByRole('textbox', { name: /beskrivelse/i }).clear();
       cy.findByRole('textbox', { name: /beskrivelse/i }).type('Jobbet med Altinn Studio');
       cy.get(appFrontend.errorReport).should('not.exist');
@@ -137,7 +142,8 @@ describe('Expression validation', () => {
         cy.findAllByRole('textbox', { name: /beskrivelse/i })
           .last()
           .type('kult');
-        cy.get(appFrontend.errorReport).should('contain.text', 'Beskrivelse kan ikke være kult');
+        cy.findByText('Beskrivelse kan ikke være kult').should('be.visible');
+        cy.get(appFrontend.errorReport).should('not.exist');
         cy.findAllByRole('textbox', { name: /beskrivelse/i })
           .last()
           .clear();
@@ -294,14 +300,14 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /^til/i }).type('01.06.2023'); // Intentionally invalid
     cy.findByRole('button', { name: /lagre og lukk/i }).click();
 
-    cy.get(appFrontend.errorReport).should('contain.text', 'Startdatoen må være før sluttdato');
-    cy.get(appFrontend.errorReport).should('contain.text', 'Sluttdato må være etter startdato');
+    cy.findByText('Startdatoen må være før sluttdato').should('be.visible');
+    cy.findByText('Sluttdato må være etter startdato').should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.findByRole('checkbox', { name: /jeg er fortsatt ansatt her/i }).check();
     cy.findByRole('button', { name: /lagre og lukk/i }).click();
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
-
-    cy.get(appFrontend.errorReport).should('not.contain.text', 'Startdatoen må være før sluttdato');
-    cy.get(appFrontend.errorReport).should('not.contain.text', 'Sluttdato må være etter startdato');
+    cy.findByText('Startdatoen må være før sluttdato').should('not.exist');
+    cy.findByText('Sluttdato må være etter startdato').should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
   });
 });

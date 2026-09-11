@@ -1,3 +1,1 @@
-# Repo-local config for Codex CLI.
-# Command approvals are defined in .codex/rules/default.rules to mirror Claude's allow list.
-approval_policy = "on-request"
+# Inherit approval policy from the environment's Codex configuration.

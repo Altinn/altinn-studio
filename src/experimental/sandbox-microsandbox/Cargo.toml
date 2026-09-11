@@ -1,0 +1,37 @@
+[package]
+name = "sandbox-microsandbox"
+description = "Microsandbox implementations of Sandbox SDK and enforcement contracts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+bollard.workspace = true
+bytes.workspace = true
+futures-util.workspace = true
+ignore.workspace = true
+microsandbox.workspace = true
+microsandbox-filesystem.workspace = true
+microsandbox-image.workspace = true
+microsandbox-network.workspace = true
+sandbox = { path = "../sandbox" }
+sandbox-authorization = { path = "../sandbox-authorization" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tar.workspace = true
+tempfile.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+zeroize.workspace = true
+
+# This direct dependency exists only to enable its `prebuilt` feature without
+# enabling Microsandbox's broader host-runtime `prebuilt` feature.
+[package.metadata.cargo-machete]
+ignored = ["microsandbox-filesystem"]
+
+[lints]
+workspace = true

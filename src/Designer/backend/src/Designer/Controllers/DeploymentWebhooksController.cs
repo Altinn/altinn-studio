@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Models;
@@ -13,7 +12,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -48,13 +46,12 @@ public class DeploymentWebhooksController : ControllerBase
     /// <summary>
     /// Webhook endpoint for receiving deploy events
     /// </summary>
-    /// <param name="org">Organisation name</param>
+    /// <param name="org">Organization name</param>
     /// <param name="app">Application name</param>
     /// <param name="request">Deploy event details</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Ok response</returns>
     [HttpPost("events")]
-    [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
     public async Task<IActionResult> ReceiveDeployEvent(
         string org,
         string app,

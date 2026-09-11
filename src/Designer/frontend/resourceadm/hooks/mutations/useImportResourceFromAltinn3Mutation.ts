@@ -5,7 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 /**
  * Mutation to import a resource from Altinn 3.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  */
 export const useImportResourceFromAltinn3Mutation = (org: string) => {
   const queryClient = useQueryClient();

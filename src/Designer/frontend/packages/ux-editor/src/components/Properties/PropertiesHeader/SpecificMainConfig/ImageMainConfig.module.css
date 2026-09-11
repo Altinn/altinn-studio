@@ -1,6 +1,6 @@
 .root {
-  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
-  gap: var(--fds-spacing-3);
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--ds-size-5);
+  gap: var(--ds-size-3);
 }
 
 .imageHeading {

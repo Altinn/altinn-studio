@@ -28,7 +28,14 @@ public sealed record Scrubbers(
         {
             v = v.Replace(instance.Id.Split('/')[1], "<instanceGuid>");
             for (int i = 0; i < instance.Data.Count; i++)
+            {
                 v = v.Replace(instance.Data[i].Id, $"<dataElementId[{i}]>");
+
+                // Storage mints a fresh blob version per write, and it also appears inside blobStoragePath.
+                if (instance.Data[i].BlobVersionId is { Length: > 0 } blobVersionId)
+                    v = v.Replace(blobVersionId, $"<blobVersionId[{i}]>");
+            }
+
             return v;
         };
 

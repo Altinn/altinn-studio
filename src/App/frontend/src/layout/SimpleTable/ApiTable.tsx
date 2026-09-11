@@ -1,19 +1,18 @@
 import React from 'react';
 
-import { AppTable } from '@app/form-component';
+import { AppTable, useIsMobile } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
+import type { DataConfig } from '@app/layout-contract/generated/components/SimpleTable/config.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/core/queries/externalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { DataConfig } from 'src/layout/SimpleTable/config.generated';
 
 interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
   externalApi: DataConfig;

@@ -1,0 +1,11 @@
+[Unit]
+Description=Add static /etc/hosts entries required by local dev stacks
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'grep -qxF "127.0.0.1 studio.localhost" /etc/hosts || echo "127.0.0.1 studio.localhost" >>/etc/hosts'
+ExecStart=/bin/sh -c 'grep -qxF "127.0.0.1 host.docker.internal" /etc/hosts || echo "127.0.0.1 host.docker.internal" >>/etc/hosts'
+
+[Install]
+WantedBy=multi-user.target

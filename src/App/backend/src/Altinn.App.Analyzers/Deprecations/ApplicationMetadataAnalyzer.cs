@@ -2,7 +2,7 @@ namespace Altinn.App.Analyzers.Deprecations;
 
 /// <summary>
 /// Validates <c>applicationmetadata.json</c> at build time. Currently it reports use of configuration
-/// that is no longer honoured by this version of the app backend, so apps fail the build instead of
+/// that is no longer honored by this version of the app backend, so apps fail the build instead of
 /// silently shipping a broken feature. This is the umbrella entry point for applicationmetadata.json
 /// checks — additional rule groups (e.g. sanity/usage checks) can be added here as more collectors.
 /// </summary>

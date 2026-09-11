@@ -1,7 +1,7 @@
-import { Switch } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
+import { StudioSwitch } from '@studio/components';
 
 export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -20,14 +20,13 @@ export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditC
       onChange={handleChange}
       propertyPath='definitions/component/properties/readOnly'
       renderField={({ fieldProps }) => (
-        <Switch
+        <StudioSwitch
+          data-size='sm'
           {...fieldProps}
           checked={fieldProps.value}
           onChange={(e) => fieldProps.onChange(e.target.checked, e)}
-          size='small'
-        >
-          {t('ux_editor.modal_configure_read_only')}
-        </Switch>
+          label={t('ux_editor.modal_configure_read_only')}
+        />
       )}
     />
   );

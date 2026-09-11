@@ -226,7 +226,6 @@ blockquote {
     └── ProcessEngine.Next()               ← in-memory loop (max 100 iterations)
             │
             ├── Authorize
-            ├── AcquireInstanceLock        ← 5-minute TTL via Platform Storage
             ├── HandleServiceTask()        ← or HandleUserAction()
             ├── Validate()
             ├── HandleMoveToNext()
@@ -357,8 +356,8 @@ blockquote {
 <td>State unknown. May or may not have persisted. No idempotency.</td>
 </tr>
 <tr>
-<td>Pod killed mid-processing</td>
-<td>Instance lock held for 5 minutes. Data state unclear.</td>
+<td>Workflow fails or pod is killed mid-process</td>
+<td>Instance remains durably <code>processing</code> and fenced; stuck or terminal work requires <code>POST process/resume</code> or ops recovery.</td>
 </tr>
 <tr>
 <td>Timeout during auto-loop iteration N</td>
@@ -370,7 +369,7 @@ blockquote {
 </tr>
 </tbody>
 </table>
-<p>The common thread: <strong>no automatic recovery</strong>. If it fails, someone has to investigate and fix it.</p>
+<p>Durable processing status keeps incomplete work fenced and visible. Stuck or terminal work has no expiry or automatic unlock and requires explicit <code>POST process/resume</code> or operations recovery.</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="4" data-paginate="true" data-theme="gaia" data-style=":root {
   --color-background: #1e2a3a;
@@ -618,7 +617,7 @@ blockquote {
 </tr>
 <tr>
 <td>Pod killed mid-processing</td>
-<td>Lock held 5 min. State unclear.</td>
+<td>Instance remains <code>processing</code>; explicit resume or ops recovery is required.</td>
 <td>Heartbeat expires. Another worker reclaims.</td>
 </tr>
 <tr>
@@ -894,7 +893,7 @@ blockquote {
       ├── Resilience  // concurrency limiters, retry strategies
       └── Telemetry   // OpenTelemetry via OTLP
 </code></pre>
-<p><code>WorkflowEngine.App</code> is the Altinn-specific host. It adds <code>AppCommand</code> — an HTTP callback into Altinn apps carrying full instance context (org, app, actor, lockToken, instanceGuid).</p>
+<p><code>WorkflowEngine.App</code> is the Altinn-specific host. It adds <code>AppCommand</code> — an HTTP callback into Altinn apps carrying full instance context (org, app, actor, instanceGuid, callback token).</p>
 <p>Database is the single source of truth. No in-memory queue. Enqueue and status-update paths use channel-based write buffers for throughput.</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="gaia" data-style=":root {

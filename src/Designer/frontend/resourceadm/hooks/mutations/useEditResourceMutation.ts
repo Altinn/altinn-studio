@@ -6,7 +6,7 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
 /**
  * Mutation to edit an existing resource.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param id the id of the resource
  */

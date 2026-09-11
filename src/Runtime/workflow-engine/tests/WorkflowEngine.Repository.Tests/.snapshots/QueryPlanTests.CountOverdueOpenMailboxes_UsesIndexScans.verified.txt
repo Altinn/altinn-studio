@@ -1,0 +1,60 @@
+﻿[
+  {
+    Plan: {
+      Node Type: Aggregate,
+      Strategy: Plain,
+      Partial Mode: Simple,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Plans: [
+        {
+          Node Type: Limit,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Plans: [
+            {
+              Node Type: Bitmap Heap Scan,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Relation Name: mailboxes,
+              Alias: m,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Recheck Cond: ((deadline <= '2026-03-19 11:55:00+00'::timestamp with time zone) AND (status = 'open'::text)),
+              Plans: [
+                {
+                  Node Type: Bitmap Index Scan,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Index Name: ix_mailboxes_deadline_open,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Index Cond: (deadline <= '2026-03-19 11:55:00+00'::timestamp with time zone)
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -1,9 +1,9 @@
 .alertMessage {
-  margin: var(--fds-spacing-2);
+  margin: var(--ds-size-2);
 }
 
 .alertTitle {
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .taskNameCell,
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   height: 100%;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
 }
 .taskIcon {
   flex-shrink: 0;
@@ -46,9 +46,9 @@
 
 .taskTypeCellContent svg {
   font-size: 1.3rem;
-  border: 2px solid var(--fds-colors-grey-600);
-  border-radius: var(--fds-border_radius-interactive);
+  border: 2px solid var(--ds-color-neutral-border-default);
+  border-radius: var(--ds-border-radius-md);
 
-  background-color: var(--fds-colors-grey-100);
-  color: var(--fds-colors-grey-800);
+  background-color: var(--ds-color-neutral-background-tinted);
+  color: var(--ds-color-neutral-text-default);
 }

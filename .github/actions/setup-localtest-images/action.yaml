@@ -1,0 +1,85 @@
+name: "Set up LocalTest images"
+description: "Restores required LocalTest images, builds them on a miss, and optionally caches them"
+inputs:
+  populate-cache:
+    description: "Build and cache images on a miss; only check availability on a hit"
+    required: false
+    default: "false"
+  require-cache-hit:
+    description: "Fail instead of preparing images when the cache is missing"
+    required: false
+    default: "false"
+  cache-key:
+    description: "Cache key from a prerequisite job; derived from local sources when omitted"
+    required: false
+    default: ""
+outputs:
+  cache-key:
+    description: "The cache key used for the LocalTest image archive"
+    value: ${{ steps.resolve-cache-key.outputs.cache-key }}
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve LocalTest image cache key
+      id: resolve-cache-key
+      shell: bash
+      env:
+        PROVIDED_CACHE_KEY: ${{ inputs.cache-key }}
+        SOURCE_HASH: ${{ hashFiles('src/Runtime/localtest/**', 'src/Runtime/pdf3/**', 'src/Runtime/workflow-engine/**', 'src/Runtime/workflow-engine-app/**', 'src/common/**', 'src/Shared/**', 'src/cli/internal/cmd/env/localtest/**', 'src/cli/internal/config/config.yaml', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!**/bin/**', '!**/obj/**') }}
+      run: |
+        cache_key="${PROVIDED_CACHE_KEY:-localtest-dev-images-v3-${{ runner.os }}-${{ runner.arch }}-${SOURCE_HASH}}"
+        echo "cache-key=${cache_key}" >> "$GITHUB_OUTPUT"
+
+    - name: Find LocalTest image archive
+      id: cache-localtest-images
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .cache/localtest-images/images.tar
+        key: ${{ steps.resolve-cache-key.outputs.cache-key }}
+        lookup-only: ${{ inputs.populate-cache }}
+
+    - name: Load cached LocalTest images
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit == 'true' && inputs.populate-cache != 'true' }}
+      shell: bash
+      run: docker image load --input .cache/localtest-images/images.tar
+
+    - name: Require cached LocalTest images
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.require-cache-hit == 'true' }}
+      shell: bash
+      run: |
+        echo "The LocalTest dev image cache was not populated by the prerequisite job."
+        exit 1
+
+    - name: Prepare required LocalTest images
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.require-cache-hit != 'true' }}
+      shell: bash
+      run: studioctl env up --detach
+
+    - name: Archive required LocalTest images
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p .cache/localtest-images
+        workflow_engine_db_image="$(docker inspect --format '{{.Config.Image}}' localtest-workflow-engine-db)"
+        docker image save --output .cache/localtest-images/images.tar \
+          localtest:dev \
+          localtest-pdf3:dev \
+          localtest-workflow-engine:dev \
+          "$workflow_engine_db_image"
+
+    - name: Save LocalTest image archive
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .cache/localtest-images/images.tar
+        key: ${{ steps.resolve-cache-key.outputs.cache-key }}
+
+    - name: Stop cache-building environment
+      if: ${{ always() && steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
+      shell: bash
+      run: studioctl env down || true
+
+    - name: Use prebuilt LocalTest dev images
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit == 'true' && inputs.populate-cache != 'true' }}
+      shell: bash
+      run: echo "STUDIOCTL_PREBUILT_DEV_IMAGES=true" >> "$GITHUB_ENV"

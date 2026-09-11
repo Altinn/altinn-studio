@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Models;
 public class AltinnStudioViewModel
 {
     /// <summary>
-    /// Gets or sets the organisation
+    /// Gets or sets the organization
     /// </summary>
     public string Org { get; set; }
 
@@ -21,7 +21,7 @@ public class AltinnStudioViewModel
     public string Service { get; set; }
 
     /// <summary>
-    /// Repostory Content
+    /// Repository Content
     /// </summary>
     public List<RepositoryContent> RepositoryContent { get; set; }
 
@@ -61,7 +61,7 @@ public class AltinnStudioViewModel
     public List<RepositoryClient.Model.Repository> Repositories { get; set; }
 
     /// <summary>
-    /// Gets or sets parametes to search for repository
+    /// Gets or sets parameters to search for repository
     /// </summary>
     public RepositorySearch RepositorySearch { get; set; }
 

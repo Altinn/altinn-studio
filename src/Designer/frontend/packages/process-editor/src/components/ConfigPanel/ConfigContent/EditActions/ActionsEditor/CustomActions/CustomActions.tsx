@@ -1,7 +1,6 @@
 import React from 'react';
-import { StudioHelpText, StudioTextfield } from '@studio/components';
+import { StudioHelpText, StudioSwitch, StudioTextfield } from '@studio/components';
 import { useDebounce } from '@studio/hooks';
-import { Switch } from '@digdir/designsystemet-react';
 import {
   BpmnActionModeler,
   ActionType,
@@ -45,15 +44,14 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
         value={isCustomAction ? actionElement.action : ''}
       />
       <div className={classes.actionTypeContainer}>
-        <Switch
-          size='small'
+        <StudioSwitch
+          data-size='sm'
           onChange={onActionTypeChange}
           value={currentActionType}
           checked={currentActionType === ActionType.Process}
           disabled={!isCustomAction}
-        >
-          {t('process_editor.configuration_panel_actions_set_server_action_label')}
-        </Switch>
+          label={t('process_editor.configuration_panel_actions_set_server_action_label')}
+        />
         <StudioHelpText
           aria-label={t('process_editor.configuration_panel_actions_action_type_help_text')}
         >

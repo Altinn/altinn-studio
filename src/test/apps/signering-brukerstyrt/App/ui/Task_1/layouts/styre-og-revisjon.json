@@ -21,8 +21,8 @@
         "id": "Styreleder-lookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "Styre.Styreleder.Foedselsnummer",
-          "person_lookup_name": "Styre.Styreleder.Etternavn"
+          "ssn": "Styre.Styreleder.Foedselsnummer",
+          "fullName": "Styre.Styreleder.Etternavn"
         },
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-02BCRt.title"
@@ -50,8 +50,8 @@
         "type": "PersonLookup",
         "hidden": ["equals", ["component", "har-nestleder-checkbox"], null],
         "dataModelBindings": {
-          "person_lookup_ssn": "Styre.Nestleder.Foedselsnummer",
-          "person_lookup_name": "Styre.Nestleder.Etternavn"
+          "ssn": "Styre.Nestleder.Foedselsnummer",
+          "fullName": "Styre.Nestleder.Etternavn"
         },
         "textResourceBindings": {
           "title": "Nestleder"
@@ -93,8 +93,8 @@
         "id": "Styremedlem-lookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "Styre.Styremedlem.Foedselsnummer",
-          "person_lookup_name": "Styre.Styremedlem.Etternavn"
+          "ssn": "Styre.Styremedlem.Foedselsnummer",
+          "fullName": "Styre.Styremedlem.Etternavn"
         },
         "textResourceBindings": {
           "title": "Styremedlem"
@@ -136,8 +136,8 @@
         "type": "OrganizationLookup",
         "hidden": ["equals", ["dataModel", "Revisor.HarRevisor"], "nei"],
         "dataModelBindings": {
-          "organization_lookup_orgnr": "Revisor.Organisasjonsnummer",
-          "organization_lookup_name": "Revisor.Navn"
+          "orgnr": "Revisor.Organisasjonsnummer",
+          "name": "Revisor.Navn"
         },
         "textResourceBindings": {
           "title": "styre-og-revisjon.Input-X4c6ij.title",

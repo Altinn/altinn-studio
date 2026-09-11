@@ -247,7 +247,7 @@ describe('ReleaseContainer', () => {
     ).toBeInTheDocument();
   });
 
-  it('does not query Maskinporten scopes for apps outside service owner organisations', async () => {
+  it('does not query Maskinporten scopes for apps outside service owner organizations', async () => {
     const mockLatestCommit = '123';
     const mockTagName = 'v1';
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));

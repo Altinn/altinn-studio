@@ -1,0 +1,24 @@
+[package]
+name = "github-runner-coordinator"
+description = "Runs one ephemeral GitHub Actions runner inside a Sandbox"
+edition.workspace = true
+license.workspace = true
+publish = false
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+clap = { workspace = true, features = ["env"] }
+futures-util.workspace = true
+jsonwebtoken.workspace = true
+reqwest.workspace = true
+sandbox.workspace = true
+sandbox-microsandbox.workspace = true
+serde.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

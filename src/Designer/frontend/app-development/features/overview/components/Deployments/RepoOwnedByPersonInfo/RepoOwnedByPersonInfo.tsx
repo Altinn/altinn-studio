@@ -1,5 +1,4 @@
-import { Alert, Link } from '@digdir/designsystemet-react';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioLink, StudioAlert } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './RepoOwnedByPersonInfo.module.css';
 
@@ -7,14 +6,14 @@ export const RepoOwnedByPersonInfo = () => {
   const { t } = useTranslation();
   return (
     <>
-      <Alert>{t('app_deployment.private_app_owner')}</Alert>
+      <StudioAlert>{t('app_deployment.private_app_owner')}</StudioAlert>
       <div className={classes.infoContainer}>
         <div className={classes.textContainer}>
           <StudioParagraph>{t('app_deployment.private_app_owner_info')}</StudioParagraph>
           <StudioParagraph>
             <Trans
               i18nKey={'app_deployment.private_app_owner_help'}
-              components={{ a: <Link href='/info/contact'> </Link> }}
+              components={{ a: <StudioLink href='/info/contact'> </StudioLink> }}
             />
           </StudioParagraph>
           <StudioParagraph>{t('app_deployment.private_app_owner_options')}</StudioParagraph>

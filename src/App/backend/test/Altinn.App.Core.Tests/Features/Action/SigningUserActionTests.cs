@@ -201,7 +201,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
@@ -262,7 +262,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
@@ -311,7 +311,7 @@ public class SigningUserActionTests
                         new InstanceIdentifier(instance),
                         instance.Process.CurrentTask.ElementId,
                         "signature",
-                        new Signee() { SystemUserId = systemUser.SystemUserId[0], OrganisationNumber = null },
+                        new Signee() { SystemUserId = systemUser.SystemUserId[0], OrganizationNumber = null },
                         new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
                     );
                     signClient.Verify(
@@ -346,7 +346,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];

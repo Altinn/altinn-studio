@@ -6,10 +6,10 @@
 }
 
 .alertWrapper {
-  margin-bottom: var(--fds-spacing-5);
+  margin-bottom: var(--ds-size-5);
 }
 
 .heading {
-  margin-top: var(--fds-spacing-7);
-  margin-bottom: var(--fds-spacing-2);
+  margin-top: var(--ds-size-7);
+  margin-bottom: var(--ds-size-2);
 }

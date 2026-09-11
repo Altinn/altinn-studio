@@ -1,9 +1,9 @@
 import React from 'react';
 import classes from './Documentation.module.css';
-import { StudioHeading, StudioLink } from '@studio/components';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { StudioLink, StudioHeading } from '@studio/components';
 
 export const Documentation = (): React.ReactElement => {
   const { t } = useTranslation();

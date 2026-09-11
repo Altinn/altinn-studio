@@ -14,7 +14,7 @@ namespace Altinn.Notifications.Core.Services.Interfaces
         /// </summary>
         /// <param name="recipients">List of recipients to retrieve contact points for</param>
         /// <param name="resourceId">The resource to find contact points in relation to</param>
-        /// <returns>The list of recipients augumented with email address points where available</returns>
+        /// <returns>The list of recipients augmented with email address points where available</returns>
         /// <remarks>Implementation alters the recipient reference object directly</remarks>
         public Task AddEmailContactPoints(List<Recipient> recipients, string? resourceId);
 
@@ -23,7 +23,7 @@ namespace Altinn.Notifications.Core.Services.Interfaces
         /// </summary>
         /// <param name="recipients">List of recipients to retrieve contact points for</param>
         /// <param name="resourceId">The resource to find contact points in relation to</param>
-        /// <returns>The list of recipients augumented with SMS address points where available</returns>
+        /// <returns>The list of recipients augmented with SMS address points where available</returns>
         /// <remarks>Implementation alters the recipient reference object directly</remarks>
         public Task AddSmsContactPoints(List<Recipient> recipients, string? resourceId);
     }

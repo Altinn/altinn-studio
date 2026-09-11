@@ -34,8 +34,7 @@ internal sealed class NuGetDowngradeResolver
         CancellationToken cancellationToken
     )
     {
-        var warnings = new List<string>();
-        var manualActionRequired = false;
+        var messages = new List<UpgradeMessage>();
 
         // Guards against re-processing the same "id@version" downgrade forever (e.g. a downgrade for a
         // package with no explicit reference, which restore keeps reporting after we warn about it).
@@ -68,12 +67,11 @@ internal sealed class NuGetDowngradeResolver
             {
                 if (updated.Contains(packageId))
                 {
-                    warnings.Add($"Raised {packageId} to {version} to satisfy the v9 dependency floor.");
+                    messages.Warn($"Raised {packageId} to {version} to satisfy the v9 dependency floor.");
                 }
                 else
                 {
-                    manualActionRequired = true;
-                    warnings.Add(
+                    messages.Todo(
                         $"{packageId} is resolved below the v9 floor {version} but has no explicit "
                             + $"PackageReference to raise. Add <PackageReference Include=\"{packageId}\" "
                             + $"Version=\"{version}\" /> manually."
@@ -82,7 +80,7 @@ internal sealed class NuGetDowngradeResolver
             }
         }
 
-        return new MigrationResult(manualActionRequired, warnings);
+        return new MigrationResult(messages);
     }
 
     /// <summary>Parses NU1605 "Detected package downgrade: X from A to B" lines from restore output.</summary>

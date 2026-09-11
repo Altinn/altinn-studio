@@ -41,6 +41,7 @@ public class RepositoryController : ControllerBase
     private readonly IRepository _repository;
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
     private readonly IBranchService _branchService;
+    private readonly IAppTemplateCatalog _appTemplateCatalog;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -53,12 +54,14 @@ public class RepositoryController : ControllerBase
     /// <param name="repository">the repository control</param>
     /// <param name="syncHub">websocket syncHub</param>
     /// <param name="branchService">the branch service</param>
+    /// <param name="appTemplateCatalog">the available app scaffolds</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
         IHubContext<SyncHub, ISyncClient> syncHub,
-        IBranchService branchService
+        IBranchService branchService,
+        IAppTemplateCatalog appTemplateCatalog
     )
     {
         _giteaClient = giteaClient;
@@ -66,6 +69,7 @@ public class RepositoryController : ControllerBase
         _repository = repository;
         _syncHub = syncHub;
         _branchService = branchService;
+        _appTemplateCatalog = appTemplateCatalog;
     }
 
     /// <summary>
@@ -239,6 +243,23 @@ public class RepositoryController : ControllerBase
             return BadRequest($"{request.Repository} is an invalid repository name.");
         }
 
+        AppTemplate appTemplate;
+        if (string.IsNullOrWhiteSpace(request.AppTemplate))
+        {
+            appTemplate = _appTemplateCatalog.GetDefaultAppTemplate();
+        }
+        else if (!_appTemplateCatalog.TryGetAppTemplate(request.AppTemplate, out AppTemplate? requestedAppTemplate))
+        {
+            return BadRequest(
+                $"'{request.AppTemplate}' is not a known app template. Available: "
+                    + $"{string.Join(", ", _appTemplateCatalog.GetAppTemplates().Select(template => template.Id))}."
+            );
+        }
+        else
+        {
+            appTemplate = requestedAppTemplate;
+        }
+
         try
         {
             var config = new ServiceConfiguration
@@ -250,7 +271,8 @@ public class RepositoryController : ControllerBase
             var repositoryResult = await _repository.CreateService(
                 request.Org,
                 config,
-                request.Template != null ? [request.Template] : []
+                request.Template != null ? [request.Template] : [],
+                appTemplate
             );
 
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
@@ -268,7 +290,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Returns a given app repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The app repository</param>
     /// <returns>The given app repository</returns>
     [HttpGet]
@@ -282,7 +304,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// This method returns the status of a given repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The repository</param>
     /// <returns>The repository status</returns>
     [HttpGet]
@@ -301,7 +323,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// This method returns the git diff between the working directory and the current branch's HEAD commit for a given repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The repository</param>
     /// <returns>A dictionary of modified or new files and the git diff</returns>
     [HttpGet]
@@ -319,7 +341,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Pull remote changes for a given repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">Name of the repository</param>
     /// <returns>Repo status</returns>
     [HttpGet]
@@ -345,7 +367,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Deletes the local repository for the user and makes a new clone of the repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">the name of the local repository to reset</param>
     /// <returns>True if the reset was successful, otherwise false.</returns>
     [HttpGet]
@@ -373,7 +395,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Pushes changes for a given repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">the name of the local repository to reset</param>
     /// <param name="commitInfo">Info about the commit</param>
     [HttpPost]
@@ -404,7 +426,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Commit changes
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">the name of the local repository to reset</param>
     /// <param name="commitInfo">Info about the commit</param>
     /// <returns>http response message as ok if commit is successful</returns>
@@ -433,7 +455,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Push commits to repo
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The repo name</param>
     [HttpPost]
     [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
@@ -450,7 +472,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Gets the latest commit from current user
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The repo name</param>
     /// <returns>List of commits</returns>
     [HttpGet]
@@ -469,7 +491,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Returns information about a given branch
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branch">Name of branch</param>
     /// <returns>The branch info</returns>
@@ -481,7 +503,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Returns a list of branches in the repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <returns>List of branches</returns>
     [HttpGet]
@@ -506,7 +528,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Creates a new branch in the repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="request">The branch creation request</param>
     /// <returns>The created branch</returns>
@@ -545,7 +567,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Deletes a branch from the repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branchName">The name of the branch to delete</param>
     [HttpDelete]
@@ -576,7 +598,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Gets information about the current branch
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <returns>Information about the current branch</returns>
     [HttpGet]
@@ -596,7 +618,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Checks out a specific branch
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="request">The checkout request</param>
     /// <returns>The updated repository status</returns>
@@ -633,7 +655,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Discards all local changes in the repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <returns>The updated repository status</returns>
     [HttpPost]
@@ -653,7 +675,7 @@ public class RepositoryController : ControllerBase
     /// <summary>
     /// Stages a specific file changed in working repository.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="fileName">the entire file path with filen name</param>
     /// <returns>Http response message as ok if checkout operation is successful</returns>

@@ -11,7 +11,6 @@ import { DeleteBranchDialog } from './DeleteBranchDialog';
 import classes from './BranchDropdown.module.css';
 import { useBranchData } from '../../hooks/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations';
-import type { Branch } from 'app-shared/types/api/BranchTypes';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
@@ -35,7 +34,8 @@ export const BranchDropdown = () => {
   const triggerButtonText = shouldDisplayText ? currentBranch : undefined;
   const isLoading = isLoadingData || isLoadingOperations;
   const canDeleteCurrentBranch = currentBranch !== DEFAULT_APP_BRANCH;
-  const shouldDisplayBranchList = branchList?.length > 1;
+  const branchNames = branchList?.map((branch) => branch.name) ?? [];
+  const shouldDisplayBranchList = branchNames.length > 1;
 
   if (isLoading) {
     return (
@@ -64,7 +64,7 @@ export const BranchDropdown = () => {
         />
         {shouldDisplayBranchList && (
           <BranchList
-            branchList={branchList}
+            branchNames={branchNames}
             currentBranch={currentBranch}
             onBranchClick={checkoutExistingBranch}
           />
@@ -74,6 +74,7 @@ export const BranchDropdown = () => {
         isOpen={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         currentBranch={currentBranch}
+        existingBranchNames={branchNames}
         onCreateBranch={checkoutNewBranch}
         isLoading={isLoading}
         createError={createError}
@@ -133,27 +134,27 @@ const BranchActions = ({
 };
 
 interface BranchListProps {
-  branchList: Array<Branch> | undefined;
+  branchNames: string[];
   currentBranch: string | undefined;
   onBranchClick: (branchName: string) => void;
 }
 
-const BranchList = ({ branchList, currentBranch, onBranchClick }: BranchListProps) => {
+const BranchList = ({ branchNames, currentBranch, onBranchClick }: BranchListProps) => {
   const { t } = useTranslation();
 
   return (
     <>
       <StudioDropdown.Heading>{t('branching.select_branch_heading')}</StudioDropdown.Heading>
       <StudioDropdown.List className={classes.branchList}>
-        {branchList?.map((branch) => (
-          <StudioDropdown.Item key={branch.name}>
+        {branchNames.map((branchName) => (
+          <StudioDropdown.Item key={branchName}>
             <StudioDropdown.Button
-              onClick={() => onBranchClick(branch.name)}
-              disabled={branch.name === currentBranch}
-              title={t('branching.switch_to_branch', { branchName: branch.name })}
+              onClick={() => onBranchClick(branchName)}
+              disabled={branchName === currentBranch}
+              title={t('branching.switch_to_branch', { branchName })}
             >
               <BranchingIcon />
-              {branch.name}
+              {branchName}
             </StudioDropdown.Button>
           </StudioDropdown.Item>
         ))}

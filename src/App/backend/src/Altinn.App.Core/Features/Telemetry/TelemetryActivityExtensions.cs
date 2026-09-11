@@ -237,32 +237,32 @@ public static class TelemetryActivityExtensions
     }
 
     /// <summary>
-    /// Sets the Organisation name as a tag/attribute on the activity/span
+    /// Sets the Organization name as a tag/attribute on the activity/span
     /// </summary>
     /// <param name="activity">Activity</param>
-    /// <param name="organisationName">Organisation name</param>
+    /// <param name="organizationName">Organization name</param>
     /// <returns>Activity</returns>
-    public static Activity SetOrganisationName(this Activity activity, string? organisationName)
+    public static Activity SetOrganizationName(this Activity activity, string? organizationName)
     {
-        if (!string.IsNullOrWhiteSpace(organisationName))
+        if (!string.IsNullOrWhiteSpace(organizationName))
         {
-            activity.SetTag(Labels.OrganisationName, organisationName);
+            activity.SetTag(Labels.OrganizationName, organizationName);
         }
 
         return activity;
     }
 
     /// <summary>
-    /// Sets the Organisation number as a tag/attribute on the activity/span
+    /// Sets the Organization number as a tag/attribute on the activity/span
     /// </summary>
     /// <param name="activity">Activity</param>
-    /// <param name="organisationNumber">Organisation number</param>
+    /// <param name="organizationNumber">Organization number</param>
     /// <returns>Activity</returns>
-    public static Activity SetOrganisationNumber(this Activity activity, string? organisationNumber)
+    public static Activity SetOrganizationNumber(this Activity activity, string? organizationNumber)
     {
-        if (!string.IsNullOrWhiteSpace(organisationNumber))
+        if (!string.IsNullOrWhiteSpace(organizationNumber))
         {
-            activity.SetTag(Labels.OrganisationNumber, organisationNumber);
+            activity.SetTag(Labels.OrganizationNumber, organizationNumber);
         }
 
         return activity;
@@ -377,15 +377,15 @@ public static class TelemetryActivityExtensions
             }
             case Authenticated.Org auth:
             {
-                activity.SetOrganisationNumber(auth.OrgNo);
+                activity.SetOrganizationNumber(auth.OrgNo);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);
                 activity.SetAuthenticationLevel(auth.AuthenticationLevel);
                 break;
             }
             case Authenticated.ServiceOwner auth:
             {
-                activity.SetOrganisationNumber(auth.OrgNo);
-                activity.SetOrganisationName(auth.Name);
+                activity.SetOrganizationNumber(auth.OrgNo);
+                activity.SetOrganizationName(auth.Name);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);
                 activity.SetAuthenticationLevel(auth.AuthenticationLevel);
                 break;
@@ -393,9 +393,9 @@ public static class TelemetryActivityExtensions
             case Authenticated.SystemUser auth:
             {
                 if (auth.SystemUserId is [var systemUserId, ..])
-                    activity.SetTag(Labels.OrganisationSystemUserId, systemUserId);
+                    activity.SetTag(Labels.OrganizationSystemUserId, systemUserId);
 
-                activity.SetOrganisationNumber(auth.SystemUserOrgNr.Get(OrganisationNumberFormat.Local));
+                activity.SetOrganizationNumber(auth.SystemUserOrgNr.Get(OrganizationNumberFormat.Local));
                 activity.SetAuthenticationLevel(auth.AuthenticationLevel);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);
                 break;

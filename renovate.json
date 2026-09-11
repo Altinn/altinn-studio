@@ -8,6 +8,18 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Update the shared Gitea version ARG using published rootless Docker tags",
+      "managerFilePatterns": ["/^src/gitea/Dockerfile$/"],
+      "matchStrings": [
+        "(?:^|\\r?\\n)ARG GITEA_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:\\r?\\n|$)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "docker.io/gitea/gitea",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)-rootless$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
       "managerFilePatterns": [
         "//\\.github/workflows/app-frontend-k6-browser\\.yml$//"
       ],
@@ -16,11 +28,37 @@
       "depNameTemplate": "grafana/k6",
       "versioningTemplate": "docker",
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Claude Code release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CLAUDE_CODE_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@anthropic-ai/claude-code"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Codex release installed into the Agent images",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@playwright/cli"
     }
   ],
-  "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "postUpdateOptions": ["gomodTidy"],
+  "vulnerabilityAlerts": {
+    "enabled": false
+  },
   "packageRules": [
     {
       "matchManagers": ["gomod", "pep621"],
@@ -30,10 +68,10 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "description": "Helm Go dependency updates are done manually because even patch releases can change Kubernetes client minor versions",
+      "description": "Require explicit approval for Helm Go dependency updates because even patch releases can change Kubernetes client minor versions",
       "matchManagers": ["gomod"],
       "matchPackageNames": ["helm.sh/helm/v3"],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
@@ -49,7 +87,7 @@
       "groupSlug": "k8s-flux-runtime-go-patches"
     },
     {
-      "description": "Kubernetes, Flux, and cluster tooling Go dependency minor/major updates are done manually after checking target cluster compatibility",
+      "description": "Require explicit approval for Kubernetes, Flux, and cluster tooling Go dependency minor/major updates after checking target cluster compatibility",
       "matchManagers": ["gomod"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
@@ -58,7 +96,7 @@
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
       "matchUpdateTypes": ["minor", "major"],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "groupName": "LibGit2Sharp dependency",
@@ -66,9 +104,28 @@
       "matchPackageNames": ["LibGit2Sharp"]
     },
     {
+      "description": "Let the custom manager update GITEA_VERSION without rewriting the ARG-based FROM instructions",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/gitea/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
+      "enabled": false
+    },
+    {
+      "description": "Keep Gitea server updates in their own PR",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
-      "matchPackageNames": ["gitea/gitea"]
+      "pinDigests": false
+    },
+    {
+      "description": "Keep Gitea runner image updates together, including digests for the rolling runner base image",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner", "docker.io/gitea/runner-images"],
+      "groupName": "gitea runner dependencies",
+      "groupSlug": "gitea-runner",
+      "pinDigests": true
     },
     {
       "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
@@ -86,25 +143,52 @@
       "groupName": "Design system in Designer"
     },
     {
-      "matchFileNames": ["src/App/**", "app-libs/**"],
+      "matchFileNames": ["src/App/**", "src/common/ts/**"],
       "additionalBranchPrefix": "app/",
-      "commitMessageSuffix": " (app)"
+      "commitMessageSuffix": " (app)",
+      "separateMinorPatch": true
     },
     {
       "description": "Keep App Designsystemet updates together and separate from other dependency updates",
       "matchManagers": ["npm"],
-      "matchFileNames": ["src/App/frontend/**", "app-libs/**"],
+      "matchFileNames": ["src/App/frontend/**", "src/common/ts/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in App"
     },
     {
-      "description": "Automerge non-major Altinn app template package updates",
+      "description": "Skip @percy/cypress 3.1.9: it depends on a beta @percy/sdk-utils (1.32.3-beta.1) whose waitForReady DOM-readiness step hangs, timing out all Cypress Percy snapshots. Allow again once a fixed release (>3.1.9) ships.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@percy/cypress"],
+      "allowedVersions": "<3.1.9 || >3.1.9"
+    },
+    {
+      "description": "Automerge non-major Altinn app template package updates (v8)",
       "matchManagers": ["nuget"],
-      "matchFileNames": ["src/App/template/src/App/App.csproj"],
+      "matchFileNames": ["src/App/template/v8/src/App/App.csproj"],
       "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Altinn app template NuGet packages",
-      "groupSlug": "app-template-nuget",
+      "groupName": "Altinn app template NuGet packages (v8)",
+      "groupSlug": "app-template-nuget-v8",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major Altinn app template package updates (v9). Separate from v8 so the two templates never share a PR.",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v9/src/App/App.csproj"],
+      "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Altinn app template NuGet packages (v9)",
+      "groupSlug": "app-template-nuget-v9",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["@anthropic-ai/claude-code", "@openai/codex"],
+      "matchUpdateTypes": ["minor", "patch"],
       "addLabels": ["approve"],
       "automerge": true
     },
@@ -112,11 +196,6 @@
       "matchFileNames": ["src/Runtime/localtest/**"],
       "additionalBranchPrefix": "localtest/",
       "commitMessageSuffix": " (localtest)"
-    },
-    {
-      "matchFileNames": ["src/Runtime/pdf3/**"],
-      "additionalBranchPrefix": "pdf3/",
-      "commitMessageSuffix": " (pdf3)"
     },
     {
       "description": "Keep Go module updates in repository-wide groups",
@@ -140,7 +219,7 @@
         "/^Microsoft\\.CodeAnalysis/",
         "/^Microsoft\\.Build/"
       ],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "matchFileNames": [
@@ -168,7 +247,7 @@
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"
       ],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Upgrade React consistently across the entire repository",
@@ -183,7 +262,20 @@
       "groupSlug": "react-ecosystem",
       "additionalBranchPrefix": "",
       "commitMessageSuffix": ""
+    },
+    {
+      "description": "Manage experimental agent platform dependencies manually",
+      "matchFileNames": ["src/experimental/**"],
+      "enabled": false
+    },
+    {
+      "description": "Manage all Rust dependencies manually",
+      "matchManagers": ["cargo"],
+      "enabled": false
     }
   ],
-  "schedule": []
+  "schedule": ["* 7-15 * * 1-5"],
+  "updateNotScheduled": false,
+  "automergeSchedule": ["* 7-15 * * 1-5"],
+  "platformAutomerge": false
 }

@@ -80,6 +80,8 @@ public static class ServiceRegistration
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
         services.AddScoped<IContactPointsRepository, ContactPointRepository>();
+        services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
+        services.AddScoped<IAdminAuditLogger, AdminAuditLogger>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
         services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
@@ -120,6 +122,7 @@ public static class ServiceRegistration
         services.AddTransient<ILayoutReferenceUpdater, LayoutReferenceUpdater>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
+        services.AddTransient<IPreviewBootstrapService, PreviewBootstrapService>();
         services.AddTransient<IDataService, DataService>();
         services.AddTransient<IInstanceService, InstanceService>();
         services.AddTransient<IProcessModelingService, ProcessModelingService>();
@@ -134,6 +137,7 @@ public static class ServiceRegistration
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+        services.AddSingleton<IAppTemplateCatalog, AppTemplateCatalog>();
         services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
         services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IBotAccountService, BotAccountService>();

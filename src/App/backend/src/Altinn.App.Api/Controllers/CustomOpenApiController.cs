@@ -1480,7 +1480,7 @@ file static class Snippets
             {
                 Name = "instanceOwnerPartyId",
                 Description =
-                    "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
+                    "PartyId for the owner of the instance, this is Altinn's internal id for the organization, person or self registered user. Might be the current user, or a party the user has rights to represent.",
                 In = ParameterLocation.Path,
                 Required = true,
                 Schema = new OpenApiSchema() { Type = JsonSchemaType.Integer },
@@ -1647,7 +1647,7 @@ file class SchemaPostVisitor : OpenApiVisitorBase
             concrete.Required.Add("id");
         }
 
-        // Don't allow additional properties on objects, when the type of the addional properties is not specified
+        // Don't allow additional properties on objects, when the type of the additional properties is not specified
         if (concrete.Type == JsonSchemaType.Object && concrete.AdditionalProperties is null)
         {
             concrete.AdditionalPropertiesAllowed = false;

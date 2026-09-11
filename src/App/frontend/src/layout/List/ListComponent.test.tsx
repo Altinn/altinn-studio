@@ -1,12 +1,12 @@
 import React from 'react';
 
+import * as useDeviceWidths from '@app/form-component';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import * as useDeviceWidths from 'src/hooks/useDeviceWidths';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { doPatchMultipleFormData } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';

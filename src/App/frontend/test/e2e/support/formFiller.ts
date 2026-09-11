@@ -43,9 +43,7 @@ function fillOutChangeName() {
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('a');
     cy.get(appFrontend.changeOfName.confirmChangeName)
-      .findByRole('checkbox', {
-        name: /Ja[a-z, ]*/,
-      })
+      .findByRole('checkbox', { name: /Ja[a-z, ]*/ })
       .check();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');

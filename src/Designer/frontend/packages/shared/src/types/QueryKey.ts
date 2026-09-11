@@ -5,6 +5,7 @@ export enum QueryKey {
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
   AppValidation = 'AppValidation',
+  AppTemplates = 'AppTemplates',
   AppVersion = 'AppVersion',
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',

@@ -229,6 +229,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
+    [InlineData("ttd", "app-with-layoutsets-v9", "testUser", "newSet")]
     public async Task AddLayoutSet_TaskTypeIsPdf_AddsLayoutSetWithPdfLayoutsAndReturnsOk(
         string org,
         string app,
@@ -256,14 +257,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         JsonNode pdfLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "PdfLayout");
-        JsonNode errorPageLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "ServiceTask");
+        JsonNode serviceTaskPage = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "ServiceTask");
         LayoutSettings layoutSettings = await GetLayoutSettingsFile(org, targetRepository, developer, layoutSetId);
 
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 
-        await Verifier.Verify(layoutSettings).UseTextForParameters("layoutSettings");
-        await Verifier.Verify(pdfLayout.ToJsonString(jsonOptions)).UseTextForParameters("pdfLayout");
-        await Verifier.Verify(errorPageLayout.ToJsonString(jsonOptions)).UseTextForParameters("errorPageLayout");
+        await Verifier.Verify(layoutSettings).UseTextForParameters($"{app}_layoutSettings");
+        await Verifier.Verify(pdfLayout.ToJsonString(jsonOptions)).UseTextForParameters($"{app}_pdfLayout");
+        await Verifier.Verify(serviceTaskPage.ToJsonString(jsonOptions)).UseTextForParameters($"{app}_serviceTaskPage");
     }
 
     [Theory]

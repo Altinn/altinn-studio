@@ -94,7 +94,8 @@ describe('ErrorReport', () => {
 
     await user.click(screen.getByRole('button', { name: 'Submit' }));
 
-    await screen.findByTestId('ErrorReport');
+    const errorReport = await screen.findByTestId('ErrorReport');
+    expect(errorReport).toHaveFocus();
 
     // Unmapped errors should not be clickable
     const errorNode = await screen.findByText('some unmapped error');

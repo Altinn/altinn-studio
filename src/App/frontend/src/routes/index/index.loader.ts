@@ -21,10 +21,11 @@ export type IndexLoaderError =
 
 export type IndexLoaderResult = null | IndexLoaderError;
 
-export async function indexLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
+export async function clientLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   if (isStateless()) {
+    // redirect is handled by routes/index/stateless-index.route.tsx
     return null;
   }
 
@@ -58,11 +59,6 @@ async function handleSelectInstance(queryClient: QueryClient, instanceApi: Insta
 
   if (activeInstances.length === 0) {
     return await createInstanceAndRedirect(instanceApi);
-  }
-
-  if (activeInstances.length === 1) {
-    const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(activeInstances[0].id);
-    return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
   }
 
   return redirect('/instance-selection');

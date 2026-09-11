@@ -1,0 +1,106 @@
+name: Assistant-prompts
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/AI/agents/agents/prompts/**'
+      - 'src/AI/agents/scripts/sync_prompts.py'
+      - '.github/workflows/assistant-prompts.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
+  push:
+    branches: [main]
+    paths:
+      - 'src/AI/agents/agents/prompts/**'
+      - 'src/AI/agents/scripts/sync_prompts.py'
+      - '.github/workflows/assistant-prompts.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  drift:
+    name: Prompt drift
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.fork == false }}
+    permissions:
+      contents: read
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: src/AI/agents
+        run: pip install -r requirements.txt
+
+      - name: What this change means for the served prompts
+        working-directory: src/AI/agents
+        env:
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${LANGFUSE_HOST:-}" ] || [ -z "${LANGFUSE_SECRET_KEY:-}" ]; then
+            echo "::notice::Langfuse is not configured for this repository, so prompt"\
+                 "drift was not checked. Set LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY and"\
+                 "LANGFUSE_SECRET_KEY to turn this on."
+            exit 0
+          fi
+          python -m scripts.sync_prompts --diff
+
+  publish:
+    name: Publish prompts
+    if: ${{ github.event_name == 'push' }}
+    permissions:
+      contents: read
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: src/AI/agents
+        run: pip install -r requirements.txt
+
+      - name: Publish drifted prompts as production
+        working-directory: src/AI/agents
+        env:
+          ALLOW_PROMPT_PUSH: '1'
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${LANGFUSE_HOST:-}" ] || [ -z "${LANGFUSE_SECRET_KEY:-}" ]; then
+            echo "::error::Langfuse is not configured, so the prompts on main were not"\
+                 "published. Set LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY and"\
+                 "LANGFUSE_SECRET_KEY, then re-run this job."
+            exit 1
+          fi
+          python -m scripts.sync_prompts --push -m "$COMMIT_URL"

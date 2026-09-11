@@ -16,7 +16,7 @@ namespace Altinn.App.Logic;
 /// <c>Finally</c> (<c>RunScenario</c>) reads the TransitionControl levers and runs the scenario.
 /// The stage's completion is recorded durably, so every retry, deferral re-check and resume
 /// re-runs only <c>RunScenario</c> — every postCommit e2e scenario thereby drives the multi-stage
-/// contract (expansion, dispatch by stage name, per-stage durability) through the public API.
+/// contract (expansion, dispatch by stage index, per-stage durability) through the public API.
 ///
 /// The <c>Gateway_PostCommit</c> gateway routes through <c>Task_Service</c> only on this path.
 /// That transition COMMITS first; the engine then runs the task as critical post-commit steps, so
@@ -54,7 +54,7 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
     public ProcessStepOptions? StepOptions => new() { WaitBudget = ScenarioWaitBudget };
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-        pipeline.Stage("PrepareScenario", PrepareScenario).Finally(RunScenario);
+        pipeline.Stage(PrepareScenario).Finally(RunScenario);
 
     /// <summary>
     /// No scenario work of its own — it exists so every postCommit e2e scenario runs a real

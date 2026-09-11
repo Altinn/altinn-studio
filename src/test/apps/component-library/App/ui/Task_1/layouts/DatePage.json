@@ -12,7 +12,23 @@
         "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
-          "title": "Date"
+          "title": "Dato – ulike varianter"
+        }
+      },
+      {
+        "id": "DatePage-Intro",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Denne siden viser Dato-komponenten i ulike oppsett. Dato-komponenten brukes til å vise en datoverdi, og kan settes opp med ulike formater, retninger og tilleggsinformasjon som beskrivelse og hjelpetekst."
+        }
+      },
+
+      {
+        "id": "DatePage-H-Card",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Datoer i et kort"
         }
       },
       {
@@ -86,6 +102,357 @@
             "children": ["date1", "date2", "date3", "date4", "date5"]
           }
         ]
+      },
+      {
+        "id": "DatePage-Divider-Card",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-Title",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Tittel og retning"
+        }
+      },
+      {
+        "id": "DatePage-Horizontal",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med horisontal retning (standard)"
+        },
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy"
+      },
+      {
+        "id": "DatePage-Vertical",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med vertikal retning"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy"
+      },
+      {
+        "id": "DatePage-Divider-Title",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-Text",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Beskrivelse og hjelpetekst"
+        }
+      },
+      {
+        "id": "DatePage-Description",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med beskrivelse",
+          "description": "Beskrivelsen står under tittelen, over verdien"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-NoDescription",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato uten beskrivelse"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-Help",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med hjelpetekst",
+          "help": "Hjelpeteksten åpnes i en boble fra knappen ved siden av tittelen"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-DescriptionAndHelp",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med beskrivelse og hjelpetekst",
+          "description": "Både en beskrivelse og en hjelpetekst",
+          "help": "Hjelpeteksten åpnes i en boble fra knappen ved siden av tittelen"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-Divider-Text",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-Icon",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Ikon"
+        }
+      },
+      {
+        "id": "DatePage-Icon",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med ikon"
+        },
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTEiIGZpbGw9IiNjMDM5MmIiLz48L3N2Zz4="
+      },
+      {
+        "id": "DatePage-Divider-Icon",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-NoTitle",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Uten tittel"
+        }
+      },
+      {
+        "id": "DatePage-NoTitle-Caption",
+        "type": "Heading",
+        "size": "h4",
+        "textResourceBindings": {
+          "title": "Uten ikon og beskrivelse"
+        }
+      },
+      {
+        "id": "DatePage-NoTitle",
+        "type": "Date",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy"
+      },
+      {
+        "id": "DatePage-NoTitleIcon-Caption",
+        "type": "Heading",
+        "size": "h4",
+        "textResourceBindings": {
+          "title": "Med ikon og beskrivelse (beskrivelsen og ikonet krever en tittel for å vises)"
+        }
+      },
+      {
+        "id": "DatePage-NoTitleIcon",
+        "type": "Date",
+        "textResourceBindings": {
+          "description": "Denne beskrivelsen vises ikke, fordi komponenten ikke har en tittel"
+        },
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTEiIGZpbGw9IiNjMDM5MmIiLz48L3N2Zz4="
+      },
+      {
+        "id": "DatePage-Divider-NoTitle",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-Format",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Format og tom verdi"
+        }
+      },
+      {
+        "id": "DatePage-FormatDate",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "dd.MM.yyyy"
+        },
+        "value": "2026-07-20 18:00:00.000",
+        "format": "dd.MM.yyyy",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-FormatDateTime",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "dd.MM.yyyy HH:mm:ss"
+        },
+        "value": "2026-07-20 18:00:00.000",
+        "format": "dd.MM.yyyy HH:mm:ss",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-FormatSlashes",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "dd/MM/yyyy HH:mm:ss"
+        },
+        "value": "2026-07-20 18:00:00.000",
+        "format": "dd/MM/yyyy HH:mm:ss",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-EmptyValue",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Tom verdi"
+        },
+        "value": "",
+        "format": "dd.MM.yyyy",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "DatePage-Divider-Format",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-LabelWidth",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Bredde på ledetekst"
+        }
+      },
+      {
+        "id": "DatePage-LabelGrid",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med labelGrid xs=3",
+          "description": "Ledetekstblokken er begrenset til 3 av 12 kolonner"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "grid": {
+          "labelGrid": { "xs": 3 }
+        }
+      },
+      {
+        "id": "DatePage-Divider-LabelWidth",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-InGrid",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Inne i en Grid-celle"
+        }
+      },
+      {
+        "id": "DatePage-InGrid-Info",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Grid-celler viser komponentene uten ledetekst, slik at bare verdien (og eventuelt ikonet) vises."
+        }
+      },
+      {
+        "id": "DatePage-Grid",
+        "type": "Grid",
+        "rows": [
+          {
+            "header": true,
+            "cells": [{ "text": "Oppsett" }, { "text": "Dato" }]
+          },
+          {
+            "cells": [{ "text": "Tittel og ikon" }, { "component": "DatePage-InGrid-Icon" }]
+          },
+          {
+            "cells": [
+              { "text": "Tittel og beskrivelse" },
+              { "component": "DatePage-InGrid-Description" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "DatePage-InGrid-Icon",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Registreringsdato"
+        },
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy",
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTEiIGZpbGw9IiNjMDM5MmIiLz48L3N2Zz4="
+      },
+      {
+        "id": "DatePage-InGrid-Description",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Godkjenningsdato",
+          "description": "Settes når saken ble godkjent"
+        },
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy"
+      },
+      {
+        "id": "DatePage-Divider-InGrid",
+        "type": "Divider"
+      },
+
+      {
+        "id": "DatePage-H-InGroup",
+        "type": "Heading",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Inne i en repeterende gruppe"
+        }
+      },
+      {
+        "id": "DatePage-InGroup-Info",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Legg til en rad for å se Dato vist i en tabell for repeterende gruppe. Gruppen bruker redigeringsmodus onlyTable, slik at Dato beholder ledeteksten inne i cellen."
+        }
+      },
+      {
+        "id": "DatePage-Group",
+        "type": "RepeatingGroup",
+        "dataModelBindings": {
+          "group": "repeatingGroup"
+        },
+        "edit": {
+          "mode": "onlyTable"
+        },
+        "children": ["DatePage-Group-Name", "DatePage-Group-Date"]
+      },
+      {
+        "id": "DatePage-Group-Name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Navn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "repeatingGroup.name"
+        }
+      },
+      {
+        "id": "DatePage-Group-Date",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Registreringsdato"
+        },
+        "direction": "vertical",
+        "value": "2026-07-20",
+        "format": "dd.MM.yyyy"
       },
       {
         "id": "Date-NavigationButtons",

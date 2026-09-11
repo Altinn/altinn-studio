@@ -9,7 +9,7 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
 {
     private readonly IUserOrganizationService _userOrganizationService;
 
-    private static readonly List<string> s_allowedOrganizations = ["ttd"];
+    private static readonly List<string> s_allowedOrganizations = ["ttd", "nfk", "ssb", "dat"];
 
     public AiAssistantPermissionHandler(IUserOrganizationService userOrganizationService)
     {

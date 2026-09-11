@@ -1,0 +1,83 @@
+# Altinn Agents
+
+Choose a Claude Code development environment:
+
+| Variant    | Additional tools                                                   |
+| ---------- | ------------------------------------------------------------------ |
+| `minimal`  | .NET, Node.js, Go, GitHub CLI, asciinema and agg                   |
+| `full`     | Rust, Podman, kind, kubectl, Helm, Flux, Playwright CLI and ffmpeg |
+| `worktree` | Full image with the current checkout mounted read-write            |
+
+Every variant installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
+recordings through asciinema, uploaded with `gh pr create --attach`.
+
+The host needs hardware virtualization. Docker is required only for manifests that build an image locally; these
+released variants use registry references. Install the released Agent CLI on Linux or macOS:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh | sh
+agentctl claude login
+```
+
+Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.ps1 | iex
+```
+
+Open a new PowerShell window so the updated user `PATH` takes effect, then authenticate:
+
+```powershell
+agentctl claude login
+```
+
+## GitHub token
+
+Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+for the repositories the Agent will use. Grant `Contents: Read and write` and
+`Pull requests: Read and write`; add `Actions: Read` for CI inspection and `Workflows: Read and
+write` only when the Agent must change workflow files. Gists are an account permission rather than a
+repository one, so add `Gists: Read and write` when the Agent must create or push them.
+Organization approval may be required.
+
+Copy the chosen variant's `.env.sample` to `.env` and set `GITHUB_TOKEN` there. The token remains
+on the host and is substituted only for authorized GitHub requests, including attachment uploads to
+`uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
+token prefix, which `gh` needs before it will attach files. The worktree variant does not receive a
+token because its host checkout is mounted into the Agent, so it cannot attach files to pull requests.
+
+From the repository root, configure and start an Agent:
+
+```sh
+cd agents/full
+cp .env.sample .env
+$EDITOR .env
+agentctl apply -f agent.yaml --wait
+```
+
+`--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
+returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
+
+Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
+
+To work directly on the current checkout without cloning it, apply `agents/worktree/agent.yaml` from
+the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
+worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
+
+A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree
+variant while any `.env` of another Agent, for example `agents/full/.env`, lies inside the checkout. Keep such
+secret files outside the checkout and pass their location with `agentctl apply --env-file <path>`.
+
+Create or reattach to a Session:
+
+```sh
+agentctl attach session/work
+```
+
+Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
+
+Delete the Agent and its Sandbox:
+
+```sh
+agentctl delete agent/altinn-full
+```

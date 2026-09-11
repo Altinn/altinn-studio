@@ -15,10 +15,6 @@ import { webcrypto } from 'crypto';
 failOnConsole({
   shouldFailOnWarn: true,
   silenceMessage(message) {
-    if (/React Router Future Flag Warning/.test(message)) {
-      // TODO: remove when react router has been updated to v7
-      return true;
-    }
     if (
       // TODO: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
       'Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.' ===

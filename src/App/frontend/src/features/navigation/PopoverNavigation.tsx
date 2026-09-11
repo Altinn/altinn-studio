@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
+import { useBrowserWidth, useIsMobile } from '@app/form-component';
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -13,7 +14,6 @@ import { Lang } from 'src/features/language/Lang';
 import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
-import { useBrowserWidth, useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {

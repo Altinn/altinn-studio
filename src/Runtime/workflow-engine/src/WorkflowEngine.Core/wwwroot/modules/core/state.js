@@ -14,6 +14,9 @@
  *   status:         StepStatus,
  *   processingOrder: number,
  *   retryCount:     number,
+ *   deferCount:     number,
+ *   firstDeferredAt: string | null,
+ *   lastDeferReason: string | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   executionStartedAt: string | null,
@@ -43,6 +46,7 @@
  *   traceId:        string | null,
  *   namespace:      string,
  *   collectionKey:  string | null,
+ *   mailboxId:      string | undefined,
  *   labels:         Record<string, string> | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
@@ -57,6 +61,41 @@
  *   links:          WorkflowRelation[] | undefined,
  *   steps:          Step[],
  * }} Workflow
+ */
+
+/**
+ * One position of a mailbox's log. `parkedForSeconds` is absent while a receiver is still parked
+ * (count up from `heldAt`) and for one that never parked.
+ * @typedef {{
+ *   position:           number,
+ *   state:              'delivered' | 'paired' | 'waiting' | 'closed',
+ *   deliveryKey:        string | undefined,
+ *   acceptedAt:         string | undefined,
+ *   receiverWorkflowId: string | undefined,
+ *   heldAt:             string | undefined,
+ *   releasedAt:         string | undefined,
+ *   claimedAt:          string | undefined,
+ *   parkedForSeconds:   number | undefined,
+ * }} MailboxPosition
+ */
+
+/**
+ * A mailbox as `/dashboard/mailboxes` reports it; `positions` is empty for a freshly minted one.
+ * @typedef {{
+ *   id:                   string,
+ *   namespace:            string,
+ *   idempotencyKey:       string,
+ *   collectionKey:        string | undefined,
+ *   status:               'Open' | 'Disposed',
+ *   disposedReason:       'Request' | 'Deadline' | undefined,
+ *   deadline:             string,
+ *   createdAt:            string,
+ *   disposedAt:           string | undefined,
+ *   nextIdx:              number,
+ *   nextSeq:              number,
+ *   unpairedDeliveries: number,
+ *   positions:            MailboxPosition[],
+ * }} Mailbox
  */
 
 /**
@@ -240,5 +279,11 @@ export const stepPhase = (commandDetail) => {
     return null;
 };
 
-/** Extra sub-label for a step (e.g. service task type). Returns null if none. */
-export const stepSubLabel = (_step) => null;
+/**
+ * Extra sub-label for a step. A Waiting step shows the reason its command gave for deferring, so
+ * the card says what the step is waiting for without opening the modal.
+ * @param {Step} step
+ * @returns {string | null}
+ */
+export const stepSubLabel = (step) =>
+    step.status === 'Waiting' && step.lastDeferReason ? step.lastDeferReason : null;

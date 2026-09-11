@@ -226,20 +226,16 @@ public class FiksIOClientTest
     }
 
     [Fact]
-    public async Task SendMessage_WhenSendFails_ThrowsExceptionWithLogging()
+    public async Task SendMessage_WhenSendFails_MakesOneAttemptAndThrowsWithLogging()
     {
-        // Arrange
-        await using var autoAdvancingFakeTime = AutoAdvancingFakeTime.Create(
-            TimeSpan.FromMilliseconds(10),
-            TimeSpan.FromMinutes(1)
-        );
+        // One attempt per call: retries belong to the caller — the workflow engine's step ladder for the
+        // Fiks Arkiv task, or whatever policy a standalone consumer wraps the client in.
         var externalFiksIOClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
         var loggerMock = new Mock<ILogger<FiksIOClient>>();
         var fixture = TestFixture.Create(services =>
         {
             services.AddFiksIOClient();
             services.AddSingleton(loggerMock.Object);
-            services.AddSingleton(autoAdvancingFakeTime.Provider);
         });
 
         var (request, _) = MessageRequestAndResponseFactory();
@@ -253,7 +249,7 @@ public class FiksIOClientTest
         externalFiksIOClientMock
             .Setup(x => x.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException)
-            .Verifiable(Times.Exactly(6));
+            .Verifiable(Times.Once);
 
         // Act
         var thrownException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -266,14 +262,10 @@ public class FiksIOClientTest
         loggerMock.Verify(
             TestHelpers.MatchLogEntry(
                 LogLevel.Error,
-                $"Failed to send message {request.MessageType}:{request.SendersReference} after 6 attempts",
+                $"Failed to send message {request.MessageType}:{request.SendersReference}",
                 loggerMock.Object
             ),
             Times.Once
-        );
-        loggerMock.Verify(
-            TestHelpers.MatchLogEntry(LogLevel.Warning, "Failed to send FiksIO message", loggerMock.Object),
-            Times.Exactly(5)
         );
     }
 

@@ -70,7 +70,7 @@ public class AuthorizationController : Controller
                 var reportee = details.Profile.Party;
                 if (user.SelectedPartyId != reportee.PartyId)
                 {
-                    // Setting cookie to partyID of logged in user if it varies from previus value.
+                    // Setting cookie to partyID of logged in user if it varies from previous value.
                     Response.Cookies.Append(
                         _settings.GetAltinnPartyCookieName,
                         reportee.PartyId.ToString(CultureInfo.InvariantCulture),

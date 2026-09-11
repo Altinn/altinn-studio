@@ -3,6 +3,7 @@ kind: PodDisruptionBudget
 metadata:
   name: pdf3-worker-pdb
 spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
   # Makes sure that during e.g. nodepool upgrades, when nodes are drained
   # we apply a constraint that at most 1 AZ (hopefully, depending on skew)
   # is disrupted at a time

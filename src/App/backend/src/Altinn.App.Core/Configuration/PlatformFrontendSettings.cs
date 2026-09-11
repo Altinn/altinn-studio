@@ -22,11 +22,26 @@ internal class PlatformFrontendSettings
     public Uri HelpCircleIllustrationUrl { get; set; } = new("https://altinncdn.no/img/illustration-help-circle.svg");
 
     /// <summary>
+    /// URL that logs the user out of Altinn.
+    /// </summary>
+    public string? LogoutUrl { get; set; }
+
+    /// <summary>
+    /// URL that logs the user in and returns them to <c>{goTo}</c>.
+    /// </summary>
+    public string? LoginUrl { get; set; }
+
+    /// <summary>
+    /// URL that forces a step-up to authentication level high and returns the user to <c>{goTo}</c>.
+    /// </summary>
+    public string? UpgradeAuthenticationLevelUrl { get; set; }
+
+    /// <summary>
     /// URL of the Altinn 3 "arbeidsflate" inbox. Null in environments where the arbeidsflate is not
     /// deployed, which hides every link to it.
     /// </summary>
     /// <remarks>
-    /// This and the URLs below are templates rather than <see cref="Uri"/>s: the frontend substitutes the
+    /// This and the other arbeidsflate URLs are templates rather than <see cref="Uri"/>s: the frontend substitutes the
     /// <c>{placeholder}</c> segments per request. Keeping the whole URL here means a change to the
     /// arbeidsflate route structure is a configuration change, not a new app frontend release.
     /// </remarks>

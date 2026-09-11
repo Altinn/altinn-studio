@@ -71,6 +71,58 @@ public class CreateMessageTests : ChatControllerTestsBase<CreateMessageTests>
     }
 
     [Fact]
+    public async Task CreateMessage_PersistsAttachmentInstructionFlag()
+    {
+        var thread = await SeedThreadAsync();
+        var request = new CreateChatMessageRequest(
+            Role: Role.Assistant,
+            Content: "Assistant reply",
+            AllowAppChanges: true,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null,
+            AttachmentInstructionFlagged: true
+        );
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MessagesUrl(thread.Id))
+        {
+            Content = CreateJsonContent(request),
+        };
+
+        using var response = await HttpClient.SendAsync(httpRequest);
+        var created = await DeserializeAsync<ChatMessageEntity>(response.Content);
+
+        DesignerDbFixture.DbContext.ChangeTracker.Clear();
+        var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleAsync(m => m.Id == created.Id);
+        Assert.True(dbRecord.AttachmentInstructionFlagged);
+        Assert.True(created.AttachmentInstructionFlagged);
+    }
+
+    [Fact]
+    public async Task CreateMessage_LeavesAttachmentInstructionFlagNull_WhenOmitted()
+    {
+        var thread = await SeedThreadAsync();
+        var request = new CreateChatMessageRequest(
+            Role: Role.Assistant,
+            Content: "Assistant reply",
+            AllowAppChanges: true,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null
+        );
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MessagesUrl(thread.Id))
+        {
+            Content = CreateJsonContent(request),
+        };
+
+        using var response = await HttpClient.SendAsync(httpRequest);
+        var created = await DeserializeAsync<ChatMessageEntity>(response.Content);
+
+        DesignerDbFixture.DbContext.ChangeTracker.Clear();
+        var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleAsync(m => m.Id == created.Id);
+        Assert.Null(dbRecord.AttachmentInstructionFlagged);
+    }
+
+    [Fact]
     public async Task CreateMessage_ReturnsNotFound_WhenThreadDoesNotExist()
     {
         var request = new CreateChatMessageRequest(

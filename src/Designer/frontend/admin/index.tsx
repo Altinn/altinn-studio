@@ -7,7 +7,6 @@ import { initReactI18next } from 'react-i18next';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
-import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';

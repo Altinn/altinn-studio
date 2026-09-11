@@ -9,7 +9,7 @@ on:
       - '.github/workflows/template-helm-push.yaml'
       - 'charts/gitea-org-runner/**'
       - 'charts/gitea-org-runner-config/**'
-      - 'src/gitea-runner/**'
+      - 'src/ci/gitea-runner/**'
 
   workflow_dispatch:
     inputs:
@@ -51,8 +51,8 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-gitea-runner
-      context: src/gitea-runner
-      dockerfile: src/gitea-runner/Dockerfile
+      context: src/ci/gitea-runner
+      dockerfile: src/ci/gitea-runner/Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
@@ -63,7 +63,7 @@ jobs:
     needs: determine-tag
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid semantic version
       chart-name: gitea-org-runner
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: dev # dev environment has push access and doesn't require review

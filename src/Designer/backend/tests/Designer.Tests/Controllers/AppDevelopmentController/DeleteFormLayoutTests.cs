@@ -1,11 +1,11 @@
-﻿using System.IO;
+﻿#nullable enable
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -29,7 +29,7 @@ public class DeleteFormLayoutTests
         string org,
         string app,
         string developer,
-        [CanBeNull] string layoutSetName,
+        string? layoutSetName,
         string layoutName
     )
     {
@@ -57,7 +57,7 @@ public class DeleteFormLayoutTests
         string org,
         string app,
         string developer,
-        string layoutSetName,
+        string? layoutSetName,
         string layoutName
     )
     {

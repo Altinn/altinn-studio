@@ -1,0 +1,47 @@
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: altinn-minimal
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-minimal:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "4"
+      memory: "8Gi"
+      rootFilesystem:
+        capacity: "64Gi"
+        mode: layered
+    initSystem: image
+  home:
+    source: home
+  instructions:
+    - source: ../instructions.md
+    - source: environment.md
+  skills:
+    - source: ../skills/pr-evidence
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+    # - type: codex
+    #   version: "0.149.1"
+    #   auth: mediated
+  secrets:
+    - environment: GITHUB_TOKEN
+      # gh only attaches files with a token it classifies by prefix; the inert placeholder
+      # therefore carries the fine-grained PAT prefix and is far shorter than a real token.
+      placeholder: github_pat_AGENT_MEDIATED_GITHUB_TOKEN
+      allowedHosts:
+        - github.com
+        - api.github.com
+        - gist.github.com
+        - uploads.github.com
+  network:
+    mode: mediated
+    allow: all
+    deny:
+      - metadata.google.internal

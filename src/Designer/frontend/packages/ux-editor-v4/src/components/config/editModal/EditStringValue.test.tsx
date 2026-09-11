@@ -33,6 +33,25 @@ const renderEditStringValue = ({
     />,
   );
 
+const REMOVE_CHIP_TEXT = 'Press to remove';
+
+const findEnumOption = (enumValue: string): Promise<HTMLElement> => {
+  const optionLabel = textMock(`ux_editor.component_properties.enum_${enumValue}`);
+  return screen.findByRole('option', {
+    name: (accessibleName: string) => accessibleName.endsWith(optionLabel),
+    hidden: true,
+  });
+};
+
+const findSelectedEnumChip = (enumValue: string): Promise<HTMLElement> => {
+  const optionLabel = textMock(`ux_editor.component_properties.enum_${enumValue}`);
+  return screen.findByRole('option', {
+    name: (accessibleName: string) =>
+      accessibleName.endsWith(`${optionLabel}, ${REMOVE_CHIP_TEXT}`),
+    hidden: true,
+  });
+};
+
 describe('EditStringValue', () => {
   it('should render component as input field, when not given enum prop', () => {
     renderEditStringValue();
@@ -96,10 +115,8 @@ describe('EditStringValue', () => {
       multiple: true,
     });
 
-    await user.click(screen.getByRole('combobox'));
-    await user.click(
-      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_one') }),
-    );
+    await user.click(screen.getByLabelText(textMock('ux_editor.component_properties.maxLength')));
+    await user.click(await findEnumOption('one'));
 
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith({
@@ -114,9 +131,7 @@ describe('EditStringValue', () => {
       });
     });
 
-    await user.click(
-      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_two') }),
-    );
+    await user.click(await findEnumOption('two'));
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -125,9 +140,7 @@ describe('EditStringValue', () => {
       );
     });
 
-    await user.click(
-      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_one') }),
-    );
+    await user.click(await findSelectedEnumChip('one'));
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith(
         expect.objectContaining({

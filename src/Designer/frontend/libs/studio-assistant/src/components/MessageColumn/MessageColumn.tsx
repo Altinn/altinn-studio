@@ -19,6 +19,7 @@ export type MessageColumnProps = {
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
   onMessageFeedback?: (feedback: UserFeedback) => void;
+  onClearMessageFeedback?: (traceId: string) => void;
   onPermissionResponse?: (requestId: string, granted: boolean) => void;
   workflowStatus?: WorkflowStatus;
   enableCompactInterface: boolean;
@@ -33,6 +34,7 @@ export function MessageColumn({
   cancelledMessageContent,
   onCancelledMessageConsumed,
   onMessageFeedback,
+  onClearMessageFeedback,
   onPermissionResponse,
   workflowStatus,
   enableCompactInterface,
@@ -53,6 +55,7 @@ export function MessageColumn({
               currentUser={currentUser}
               assistantAvatarUrl={undefined}
               onMessageFeedback={onMessageFeedback}
+              onClearMessageFeedback={onClearMessageFeedback}
               onPermissionResponse={onPermissionResponse}
             />
           ) : (

@@ -1,5 +1,7 @@
 import React from 'react';
 
+import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
@@ -10,7 +12,6 @@ import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { IGroupColumnFormatting } from 'src/layout/RepeatingGroup/config.generated';
 
 interface IProps {
   baseComponentId: string;

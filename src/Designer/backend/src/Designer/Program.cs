@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Common;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
@@ -40,27 +41,39 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
-using Microsoft.Net.Http.Headers;
 
 ILogger logger;
+const string ReloadConfigOnChangeKey = "hostBuilder:reloadConfigOnChange";
 
-ConfigureSetupLogging();
-
-var builder = WebApplication.CreateBuilder(args);
+ILoggerFactory setupLoggerFactory = ConfigureSetupLogging();
+WebApplicationBuilder builder;
+WebApplication app;
+try
 {
+    builder = WebApplication.CreateBuilder(args);
+    builder.Services.AddGracefulShutdown(
+        builder.Environment,
+        endpointDrainDelay: TimeSpan.FromSeconds(5),
+        applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+    );
     SetConfigurationProviders(builder.Configuration, builder.Environment);
     ConfigureLogging(builder.Logging);
-    builder.AddOpenTelemetry();
+    if (builder.Configuration.GetValue("OpenTelemetry:Enabled", true))
+    {
+        builder.AddOpenTelemetry();
+    }
     ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
-}
 
-var app = builder.Build();
-{
+    app = builder.Build();
     Configure(builder.Configuration);
-    app.Run();
 }
+finally
+{
+    setupLoggerFactory.Dispose();
+}
+app.Run();
 
-void ConfigureSetupLogging()
+ILoggerFactory ConfigureSetupLogging()
 {
     // Setup logging for the web host creation
     var logFactory = LoggerFactory.Create(builder =>
@@ -73,30 +86,32 @@ void ConfigureSetupLogging()
     });
 
     logger = logFactory.CreateLogger<Program>();
+    return logFactory;
 }
 
 void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
     logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+    bool reloadOnChange = config.GetValue(ReloadConfigOnChangeKey, true);
     config.SetBasePath(basePath);
     config.AddJsonFile(
         basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
         optional: true,
-        reloadOnChange: true
+        reloadOnChange: reloadOnChange
     );
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
     {
-        config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+        config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: reloadOnChange);
     }
     else
     {
         config.AddJsonFile(
             Directory.GetCurrentDirectory() + "/appsettings.json",
             optional: false,
-            reloadOnChange: true
+            reloadOnChange: reloadOnChange
         );
     }
 
@@ -127,7 +142,7 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
         config.AddJsonFile(
             Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json",
             optional: true,
-            reloadOnChange: true
+            reloadOnChange: reloadOnChange
         );
         Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
         if (assembly != null)
@@ -272,7 +287,7 @@ void Configure(IConfiguration configuration)
             OnPrepareResponse = context =>
             {
                 ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-                headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(60) };
+                headers.CacheControl = StaticFileCachePolicy.Create(context.File.Name);
             },
         }
     );

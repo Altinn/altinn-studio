@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Default validations that run on all data elements to validate metadata and file scan results.
 /// </summary>
-public class DefaultDataElementValidator : IDataElementValidator //TODO: This should implemnt IValidator
+public class DefaultDataElementValidator : IDataElementValidator //TODO: This should implement IValidator
 {
     /// <summary>
     /// Run validations on all data elements

@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -21,7 +22,6 @@ import type {
   DataModelBindingValidationContext,
   PropsFromGenericComponent,
 } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -39,7 +39,6 @@ export class List extends ListDef {
     const groupBinding = dmBindings?.group;
     const checkedBinding = dmBindings?.checked;
     const summaryBinding = component?.summaryBinding;
-    const legacySummaryBinding = component?.bindingToShowInSummary;
     const formData = useNodeFormDataWhenType(baseComponentId, 'List');
 
     if (groupBinding) {
@@ -57,24 +56,11 @@ export class List extends ListDef {
         return Object.values(rowData).join(', ');
       }
 
-      if (legacySummaryBinding && dmBindings) {
-        window.logError(
-          `Node ${baseComponentId}: BindingToShowInSummary is deprecated and does not work ` +
-            `along with a group binding, use summaryBinding instead`,
-        );
-      }
-
       return '';
     }
 
     if (summaryBinding && dmBindings) {
       return formData?.[summaryBinding] ?? '';
-    } else if (legacySummaryBinding && dmBindings) {
-      for (const [key, binding] of Object.entries(dmBindings)) {
-        if (binding?.field === legacySummaryBinding) {
-          return formData?.[key] ?? '';
-        }
-      }
     }
 
     return '';

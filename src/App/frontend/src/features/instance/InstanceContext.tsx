@@ -62,7 +62,7 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const pollFailureCount = useInstancePollFailureCount();
   const { error: instanceDataError, data } = useInstanceDataQuery({
     // Poll while a workflow transition is in flight (~2-3s, jittered so many clients waiting on the
-    // same engine don't synchronise into a thundering herd — which would otherwise peak exactly when
+    // same engine don't synchronize into a thundering herd — which would otherwise peak exactly when
     // the engine is already slow) so we converge on the committed task once it settles. The FAILED
     // state deliberately does NOT poll: a terminal failure requires manual (ops) intervention either
     // way, so the error page is static and an open tab doesn't pay the expensive failed-path read

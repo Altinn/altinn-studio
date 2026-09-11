@@ -110,7 +110,7 @@ public static partial class ObjectUtils
                 var value = prop.GetValue(model);
                 if (value is null)
                 {
-                    // Initialize IList if it has null value (xml deserialization always retrurn emtpy list, not null)
+                    // Initialize IList if it has null value (xml deserialization always retrurn empty list, not null)
                     prop.SetValue(model, Activator.CreateInstance(prop.PropertyType));
                 }
                 else

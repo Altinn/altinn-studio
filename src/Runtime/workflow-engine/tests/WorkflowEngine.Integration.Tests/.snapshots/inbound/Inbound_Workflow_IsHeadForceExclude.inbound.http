@@ -35,7 +35,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": false
+      "isHead": false,
+      "mailbox": null
     }
   ]
 }

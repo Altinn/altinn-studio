@@ -7,6 +7,8 @@ import {
   StudioError,
   StudioCard,
   StudioHeading,
+  StudioButton,
+  StudioTag,
 } from '@studio/components';
 import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +21,6 @@ import { InstanceStatus } from 'admin/features/apps/pages/instances/components/I
 import { useAppMetadataQuery } from 'admin/features/apps/hooks/queries/useAppMetadataQuery';
 import { useReduceQueries } from 'admin/features/apps/hooks/useReduceQueries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { Tag } from '@digdir/designsystemet-react';
 import {
   FileTextIcon,
   PaperclipIcon,
@@ -27,6 +28,7 @@ import {
   PencilLineIcon,
   PersonPencilIcon,
   ReceiptIcon,
+  StudioDeleteIcon,
 } from '@studio/icons';
 
 import classes from './InstanceDataView.module.css';
@@ -35,6 +37,7 @@ import {
   useProcessMetadataQuery,
 } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
+import { useInstanceDeletionMutation } from 'admin/features/apps/hooks/mutations/useInstanceDeletionMutation';
 
 type InstanceDataViewProps = {
   org: string;
@@ -62,6 +65,7 @@ export const InstanceDataView = ({ org, environment, app, id }: InstanceDataView
 
       return (
         <InstanceDataViewWithData
+          org={org}
           environment={environment}
           app={app}
           instance={instanceDetails}
@@ -74,6 +78,7 @@ export const InstanceDataView = ({ org, environment, app, id }: InstanceDataView
 };
 
 type InstanceDataViewWithDataProps = {
+  org: string;
   environment: string;
   app: string;
   instance: SimpleInstanceDetails;
@@ -82,6 +87,7 @@ type InstanceDataViewWithDataProps = {
 };
 
 const InstanceDataViewWithData = ({
+  org,
   environment,
   app,
   instance,
@@ -89,11 +95,33 @@ const InstanceDataViewWithData = ({
   processMetadata,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
+  const { mutate: deleteInstance, isPending: isDeletionPending } = useInstanceDeletionMutation(
+    org,
+    environment,
+    app,
+    instance.id,
+  );
+
+  const handleDelete = () => {
+    if (window.confirm(t('admin.instances.delete.confirm'))) {
+      deleteInstance();
+    }
+  };
 
   return (
     <>
       <StudioCard>
-        <StudioHeading data-size='sm'>{t('admin.instances.info.title')}</StudioHeading>
+        <div className={classes['card-header']}>
+          <StudioHeading data-size='sm'>{t('admin.instances.info.title')}</StudioHeading>
+          <StudioButton
+            onClick={handleDelete}
+            data-color='danger'
+            icon={<StudioDeleteIcon />}
+            disabled={!!instance.softDeletedAt || isDeletionPending}
+          >
+            {t('general.delete')}
+          </StudioButton>
+        </div>
         <div className={classes['info-wrapper']}>
           <LabelValue label={t('admin.environment')}>
             {t('admin.environment.name', { environment })}
@@ -307,9 +335,9 @@ const DataElementGroup = ({
             {label}
           </div>
           {taskName && (
-            <Tag size='sm' color='first'>
+            <StudioTag data-size='sm' color='first'>
               {taskName}
-            </Tag>
+            </StudioTag>
           )}
         </span>
       </StudioLabel>

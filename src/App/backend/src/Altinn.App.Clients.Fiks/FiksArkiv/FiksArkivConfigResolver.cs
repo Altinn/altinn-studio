@@ -5,7 +5,6 @@ using Altinn.App.Clients.Fiks.Factories;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
@@ -118,8 +117,22 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
             x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.CaseFileId)),
             cancellationToken
         );
+        var caseFileAdministrativeUnit = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            _fiksArkivSettings.Metadata.CaseFileAdministrativeUnit,
+            x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.CaseFileAdministrativeUnit)),
+            cancellationToken
+        );
 
-        return new FiksArkivDocumentMetadata(systemId, ruleId, caseFileId, caseFileTitle, journalEntryTitle);
+        return new FiksArkivDocumentMetadata(
+            systemId,
+            ruleId,
+            caseFileId,
+            caseFileTitle,
+            journalEntryTitle,
+            caseFileAdministrativeUnit
+        );
     }
 
     /// <inheritdoc />
@@ -194,7 +207,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         (data as string).EnsureNotEmpty($"{nameof(FiksArkivReceiptSettings)}.{paramName}");
 
     /// <inheritdoc />
-    public string GetCorrelationId(Instance instance) => instance.GetInstanceUrl(_generalSettings);
+    public string GetInstanceReference(Instance instance) => instance.GetInstanceUrl(_generalSettings);
 
     /// <inheritdoc />
     public Korrespondansepart GetRecipientParty(Instance instance, FiksArkivRecipient recipient) =>
@@ -202,27 +215,39 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
             partyId: recipient.Identifier,
             partyName: recipient.Name,
             organizationId: recipient.OrgNumber,
-            reference: GetCorrelationId(instance)
+            reference: GetInstanceReference(instance)
         );
 
     /// <inheritdoc />
-    public async Task<Klassifikasjon> GetInstanceOwnerClassification(
-        Authenticated auth,
+    public async Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(
+        Instance instance,
         CancellationToken cancellationToken = default
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        var entries = _fiksArkivSettings.Metadata?.CaseFileClassifications;
+        if (entries is null || entries.Count == 0)
+            return [];
 
-        return auth switch
+        var result = new List<Klassifikasjon>(entries.Count);
+        foreach (var entry in entries)
         {
-            Authenticated.User user => await KlassifikasjonFactory.CreateUser(user), // Note: Doesn't accept cancellation token.. yet
-            Authenticated.SystemUser systemUser => KlassifikasjonFactory.CreateSystemUser(systemUser),
-            Authenticated.ServiceOwner serviceOwner => KlassifikasjonFactory.CreateServiceOwner(serviceOwner),
-            Authenticated.Org org => KlassifikasjonFactory.CreateOrganization(org),
-            _ => throw new FiksArkivException(
-                $"Could not determine submitter details from authentication context: {auth}"
-            ),
-        };
+            var classification = entry.Source switch
+            {
+                FiksArkivClassificationSource.InstanceOwner => await GetInstanceOwnerClassification(
+                    instance,
+                    cancellationToken
+                ),
+                null => entry.ToKlassifikasjon(),
+                _ => throw new FiksArkivException($"Unsupported classification source: {entry.Source}"),
+            };
+
+            // Forward the IsRestricted value from config
+            classification.ErSkjermet = entry.IsRestricted;
+
+            result.Add(classification);
+        }
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -231,49 +256,62 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         CancellationToken cancellationToken = default
     )
     {
+        Party? party = await GetInstanceOwnerRegisterParty(instance, cancellationToken);
+        if (party is null)
+            return null;
+
+        var resolvedPartyId = party.PartyUuid?.ToString() ?? party.PartyId.ToString(CultureInfo.InvariantCulture);
+        var correspondenceParty = KorrespondansepartFactory.CreateSender(
+            partyId: resolvedPartyId,
+            partyName: party.Name ?? resolvedPartyId
+        );
+
+        if (party.Organization is not null)
+        {
+            correspondenceParty.Organisasjonid = !string.IsNullOrWhiteSpace(party.Organization.OrgNumber)
+                ? party.Organization.OrgNumber
+                : null;
+
+            correspondenceParty.AddContactInfo(
+                phoneNumber: party.Organization.TelephoneNumber,
+                mobileNumber: party.Organization.MobileNumber,
+                address: party.Organization.MailingAddress,
+                postcode: party.Organization.MailingPostalCode,
+                city: party.Organization.MailingPostalCity
+            );
+        }
+        else if (party.Person is not null)
+        {
+            correspondenceParty.Personid = !string.IsNullOrWhiteSpace(party.Person.SSN) ? party.Person.SSN : null;
+
+            correspondenceParty.AddContactInfo(
+                phoneNumber: party.Person.TelephoneNumber,
+                mobileNumber: party.Person.MobileNumber,
+                address: party.Person.MailingAddress,
+                postcode: party.Person.MailingPostalCode,
+                city: party.Person.MailingPostalCity
+            );
+        }
+
+        return correspondenceParty;
+    }
+
+    /// <summary>
+    /// Looks the instance owner up in the register. A failed lookup is logged and yields <c>null</c>, so the
+    /// shipment degrades to the identifiers recorded on the instance rather than failing.
+    /// </summary>
+    private async Task<Party?> GetInstanceOwnerRegisterParty(Instance instance, CancellationToken cancellationToken)
+    {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-            Party? party = await _altinnPartyClient.GetParty(partyId); // Note: doesn't accept cancellation token.. yet
-
-            if (party is null)
-                return null;
-
-            var resolvedPartyId = party.PartyUuid?.ToString() ?? party.PartyId.ToString(CultureInfo.InvariantCulture);
-            var correspondenceParty = KorrespondansepartFactory.CreateSender(
-                partyId: resolvedPartyId,
-                partyName: party.Name ?? resolvedPartyId
-            );
-
-            if (party.Organization is not null)
-            {
-                correspondenceParty.Organisasjonid = !string.IsNullOrWhiteSpace(party.Organization.OrgNumber)
-                    ? party.Organization.OrgNumber
-                    : null;
-
-                correspondenceParty.AddContactInfo(
-                    phoneNumber: party.Organization.TelephoneNumber,
-                    mobileNumber: party.Organization.MobileNumber,
-                    address: party.Organization.MailingAddress,
-                    postcode: party.Organization.MailingPostalCode,
-                    city: party.Organization.MailingPostalCity
-                );
-            }
-            else if (party.Person is not null)
-            {
-                correspondenceParty.Personid = !string.IsNullOrWhiteSpace(party.Person.SSN) ? party.Person.SSN : null;
-
-                correspondenceParty.AddContactInfo(
-                    phoneNumber: party.Person.TelephoneNumber,
-                    mobileNumber: party.Person.MobileNumber,
-                    address: party.Person.MailingAddress,
-                    postcode: party.Person.MailingPostalCode,
-                    city: party.Person.MailingPostalCity
-                );
-            }
-
-            return correspondenceParty;
+            return await _altinnPartyClient.GetParty(partyId); // Note: doesn't accept cancellation token.. yet
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // A cancelled shipment must stop here rather than degrade to a nameless owner and carry on.
+            throw;
         }
         catch (Exception e)
         {
@@ -286,6 +324,33 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The instance owner as recorded on the instance: an organization by its organization number, a person by
+    /// their national identity number, titled with the registered name when the register knows the party. The
+    /// shipment runs in the workflow engine with no end user present, and the case is about the owner regardless
+    /// of who submitted it, so the owner is the only identity that is both available and correct here.
+    /// </summary>
+    private async Task<Klassifikasjon> GetInstanceOwnerClassification(
+        Instance instance,
+        CancellationToken cancellationToken
+    )
+    {
+        InstanceOwner? owner = instance.InstanceOwner;
+        string? name = (await GetInstanceOwnerRegisterParty(instance, cancellationToken))?.Name;
+
+        if (!string.IsNullOrWhiteSpace(owner?.OrganisationNumber))
+            return KlassifikasjonFactory.CreateOrganization(owner.OrganisationNumber, name);
+
+        if (!string.IsNullOrWhiteSpace(owner?.PersonNumber))
+            return KlassifikasjonFactory.CreatePerson(owner.PersonNumber, name);
+
+        throw new FiksArkivException(
+            $"The owner of instance {instance.Id} (party {owner?.PartyId}) has neither an organization number nor a "
+                + $"national identity number, so the {nameof(FiksArkivClassificationSource.InstanceOwner)} case file "
+                + "classification cannot be resolved."
+        );
     }
 
     private static async Task<T?> GetBindableConfigValue<T>(

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
@@ -27,18 +28,21 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
     private readonly EngineSettings _engineSettings;
     private readonly ICommandRegistry _registry;
+    private readonly IEngineRepository _repository;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkflowExecutor> _logger;
 
     public WorkflowExecutor(
         IOptions<EngineSettings> engineSettings,
         ICommandRegistry registry,
+        IEngineRepository repository,
         TimeProvider timeProvider,
         ILogger<WorkflowExecutor> logger
     )
     {
         _engineSettings = engineSettings.Value;
         _registry = registry;
+        _repository = repository;
         _timeProvider = timeProvider;
         _logger = logger;
     }
@@ -104,6 +108,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             var stateIn = ResolveStateIn(workflow, step);
 
+            var rendezvous = await ResolveMailboxReceipt(workflow, step, cts.Token);
+            if (rendezvous.Failure is { } unresolved)
+                return unresolved;
+
             var context = new CommandExecutionContext
             {
                 Workflow = workflow,
@@ -114,6 +122,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 StateIn = stateIn,
                 ExecutionDeadline = executionDeadline,
                 WaitDeadline = step.ResolveWaitDeadline(_engineSettings),
+                MailboxReceipt = rendezvous.Receipt,
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
 
@@ -170,6 +179,60 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     /// <summary>
+    /// Reads the mailbox rendezvous for a receive workflow's first step; every other step answers "nothing to
+    /// read" from two field comparisons and no SQL.
+    /// </summary>
+    /// <remarks>
+    /// Read per attempt, over rows that cannot change once the receiver is runnable, so a retry reconstructs
+    /// the same callback. The two states the rendezvous cannot produce fail the step critically rather than
+    /// degrading into "no delivery", which is a statement, not an absence.
+    /// </remarks>
+    private async Task<MailboxRendezvous> ResolveMailboxReceipt(
+        Workflow workflow,
+        Step step,
+        CancellationToken cancellationToken
+    )
+    {
+        if (workflow.MailboxId is null || step.ProcessingOrder != 0)
+            return default;
+
+        var result = await _repository.ReadMailboxReceipt(workflow.DatabaseId, cancellationToken);
+
+        switch (result)
+        {
+            case MailboxReceiptResult.Resolved(var receipt):
+                return new MailboxRendezvous(receipt, null);
+
+            case MailboxReceiptResult.Unregistered:
+                _logger.MailboxReceiverUnregistered(step, workflow, workflow.MailboxId.Value);
+                Metrics.MailboxRendezvousViolations.Add(1, ("state", "unregistered"));
+                return new MailboxRendezvous(
+                    null,
+                    ExecutionResult.CriticalError(
+                        $"Receive workflow {workflow.DatabaseId} holds no position in mailbox "
+                            + $"{workflow.MailboxId.Value}; the mailbox and its log are gone, so the message this "
+                            + "step was to receive can no longer be read."
+                    )
+                );
+
+            case MailboxReceiptResult.Undecided(var mailboxId, var seq):
+                _logger.MailboxReceiverUndecided(step, workflow, mailboxId, seq);
+                Metrics.MailboxRendezvousViolations.Add(1, ("state", "undecided"));
+                return new MailboxRendezvous(
+                    null,
+                    ExecutionResult.CriticalError(
+                        $"Receive workflow {workflow.DatabaseId} became runnable at position {seq} of open mailbox "
+                            + $"{mailboxId} with no message there; a receiver may only run once its message exists "
+                            + "or its mailbox has closed."
+                    )
+                );
+
+            default:
+                throw new UnreachableException($"Unhandled mailbox receipt result: {result.GetType().Name}");
+        }
+    }
+
+    /// <summary>
     /// Resolves the state handed to a step: its own output if it has produced one, otherwise the most
     /// recent output of an earlier step (or the workflow's initial state for the first step).
     /// </summary>
@@ -206,6 +269,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 }
 
+/// <summary>
+/// The outcome of resolving a step's mailbox rendezvous: the receipt to hand the command, or the failure that
+/// stops the attempt before the command is called. <c>default</c> is "this step receives from no mailbox".
+/// </summary>
+internal readonly record struct MailboxRendezvous(MailboxReceipt? Receipt, ExecutionResult? Failure);
+
 internal static partial class WorkflowExecutorLogs
 {
     [LoggerMessage(LogLevel.Information, "Executing step {Step} for workflow {Workflow}")]
@@ -232,6 +301,31 @@ internal static partial class WorkflowExecutorLogs
         Step step,
         TimeSpan elapsed,
         string message
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Step {Step} of receive workflow {Workflow} holds no position in mailbox {MailboxId}; its registration and the mailbox's log have been purged"
+    )]
+    internal static partial void MailboxReceiverUnregistered(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        Workflow workflow,
+        Guid mailboxId
+    );
+
+    // An engine invariant violation, not a caller mistake: the rendezvous releases a receiver only once its
+    // message exists or its mailbox has closed, and a closed mailbox never reopens.
+    [LoggerMessage(
+        LogLevel.Error,
+        "Step {Step} of receive workflow {Workflow} is running at position {Seq} of mailbox {MailboxId}, which is still open and holds no message there"
+    )]
+    internal static partial void MailboxReceiverUndecided(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        Workflow workflow,
+        Guid mailboxId,
+        long seq
     );
 
     [LoggerMessage(LogLevel.Error, "Execution of step {Step} failed after {Elapsed}: {Message}")]

@@ -1,7 +1,7 @@
 # Keep src/ build context minimal for workflow-engine-app image.
 
 **
-!common/**
+!common/dotnet/Altinn.Studio.Common/**
 !Runtime/workflow-engine/**
 !Runtime/workflow-engine-app/**
 

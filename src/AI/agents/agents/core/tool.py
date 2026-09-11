@@ -5,7 +5,7 @@ declares its name, a description (shown to the model), an input schema
 (used both to advertise the call shape and to validate args at dispatch
 time), and a permission check that gates execution.
 
-This file intentionally avoids importing any LLM, MCP, or LangGraph
+This file intentionally avoids importing any LLM or LangGraph
 machinery — tools should be testable in isolation.
 """
 
@@ -97,14 +97,13 @@ class Tool(ABC):
     Safety predicates come in two forms:
 
     - `is_concurrency_safe` / `is_read_only` are class attributes that
-      cover the common case (a tool's behaviour does not depend on its
+      cover the common case (a tool's behavior does not depend on its
       input).  Both default to `False` — fail-closed: an unclassified
       tool is assumed to mutate state and to conflict with others.
     - `concurrency_safe_for(args)` / `read_only_for(args)` are
       input-aware methods that consult the class attributes by default.
       Tools whose safety depends on the call (a future Bash tool would
-      classify per command, an MCP proxy per upstream tool) override
-      these instead of the attributes.
+      classify per command) override these instead of the attributes.
 
     The dispatcher calls the methods, never the attributes, so the
     two paths stay consistent.

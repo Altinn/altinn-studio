@@ -59,7 +59,7 @@
         "minNumberOfAttachments": 1,
         "optionsId": "",
         "id": "FileUploadWithTag-UvbEiL",
-        "type": "FileUploadWithTag",
+        "type": "FileUpload",
         "textResourceBindings": {
           "tagTitle": "Filtype",
           "title": "Filopplasting med type"

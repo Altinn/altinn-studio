@@ -1,0 +1,21 @@
+# This policy intentionally contains no per-crate allowlist. New dependencies remain ordinary
+# Cargo.toml and Cargo.lock changes.
+
+[graph]
+all-features = true
+targets = [
+  "x86_64-unknown-linux-gnu",
+  "x86_64-pc-windows-gnu",
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+]
+
+[advisories]
+yanked = "deny"
+
+[sources]
+# crates.io is allowed by default. Additional registries fail until deliberately configured.
+unknown-registry = "deny"
+# Do not maintain a git repository allowlist, but require an explicit revision specifier.
+unknown-git = "allow"
+required-git-spec = "rev"

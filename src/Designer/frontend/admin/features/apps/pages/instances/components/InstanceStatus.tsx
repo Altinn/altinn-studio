@@ -1,4 +1,4 @@
-import { Tag } from '@digdir/designsystemet-react';
+import { StudioTag } from '@studio/components';
 import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse';
 
 import classes from './InstanceStatus.module.css';
@@ -29,33 +29,33 @@ const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
   switch (status) {
     case InstanceStatuses.Unread:
       return (
-        <Tag size='sm' color='warning'>
+        <StudioTag data-size='sm' color='warning'>
           {t('admin.instances.status.unread')}
-        </Tag>
+        </StudioTag>
       );
     case InstanceStatuses.Active:
       return (
-        <Tag size='sm' color='first'>
+        <StudioTag data-size='sm' color='first'>
           {t('admin.instances.status.active')}
-        </Tag>
+        </StudioTag>
       );
     case InstanceStatuses.Archived:
       return (
-        <Tag size='sm' color='success'>
+        <StudioTag data-size='sm' color='success'>
           {t('admin.instances.status.completed')}
-        </Tag>
+        </StudioTag>
       );
     case InstanceStatuses.Confirmed:
       return (
-        <Tag size='sm' color='success'>
+        <StudioTag data-size='sm' color='success'>
           {t('admin.instances.status.confirmed')}
-        </Tag>
+        </StudioTag>
       );
     case InstanceStatuses.SoftDeleted:
       return (
-        <Tag size='sm' color='danger'>
+        <StudioTag data-size='sm' color='danger'>
           {t('admin.instances.status.deleted')}
-        </Tag>
+        </StudioTag>
       );
   }
 };

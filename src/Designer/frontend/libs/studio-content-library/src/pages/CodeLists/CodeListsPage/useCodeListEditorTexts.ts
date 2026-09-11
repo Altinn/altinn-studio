@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import type { CodeListEditorTexts, StudioLanguagePickerTexts } from '@studio/components';
+import type { StudioCodeListEditorTexts, StudioLanguagePickerTexts } from '@studio/components';
 
-export function useCodeListEditorTexts(): CodeListEditorTexts {
+export function useCodeListEditorTexts(): StudioCodeListEditorTexts {
   const { t } = useTranslation();
   const languagePickerTexts = useLanguagePickerTexts();
 

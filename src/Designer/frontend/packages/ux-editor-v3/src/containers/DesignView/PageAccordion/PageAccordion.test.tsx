@@ -67,14 +67,15 @@ describe('PageAccordion', () => {
     const user = userEvent.setup();
     await render();
 
-    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenu).not.toBeInTheDocument();
-
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+
     await user.click(menuButton);
 
-    const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenuAfter).toBeInTheDocument();
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_up') }),
+    ).toBeInTheDocument();
   });
 
   it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed, and updates the url correctly', async () => {

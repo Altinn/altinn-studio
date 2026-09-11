@@ -1,0 +1,334 @@
+//! Harness-specific adapters behind the closed Agent manifest harness selection.
+
+use serde::{Deserialize, Serialize};
+use zeroize::Zeroizing;
+
+use crate::{Error, persistence};
+
+mod claude_code;
+mod codex;
+mod hook_script;
+mod skills;
+
+const VERSION_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+const MAX_INITIAL_PROMPT_ARGUMENT_BYTES: usize = 64 * 1024;
+
+pub(crate) use skills::{Skill, SkillFile};
+
+/// Supported harnesses.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Harness {
+    /// Anthropic Claude Code.
+    ClaudeCode,
+    /// `OpenAI` Codex CLI.
+    Codex,
+}
+
+impl Harness {
+    /// Returns the manifest and CLI spelling of this harness family.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::ClaudeCode => "claudeCode",
+            Self::Codex => "codex",
+        }
+    }
+}
+
+impl std::fmt::Display for Harness {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl std::str::FromStr for Harness {
+    type Err = Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "claudeCode" => Ok(Self::ClaudeCode),
+            "codex" => Ok(Self::Codex),
+            _ => Err(Error::Invalid(format!("unsupported harness {value:?}"))),
+        }
+    }
+}
+
+/// Supported harness authentication modes.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum HarnessAuthMode {
+    /// Credentials remain on the host and are injected into authorized requests.
+    Mediated,
+}
+
+/// One harness installation declared for an Agent.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct HarnessSpec {
+    /// Closed harness family identifier.
+    #[serde(rename = "type")]
+    pub kind: Harness,
+    /// Exact version installed by the Agent image; omitted when the image owns the version, so image bumps need no manifest change.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    /// Authentication delivery mode.
+    pub auth: HarnessAuthMode,
+    /// Whether new Sessions select this installation when no harness is specified.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub default: bool,
+}
+
+/// Non-secret result of importing a host harness login.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ImportedAuthentication {
+    /// Authentication provider identifier.
+    pub provider: String,
+    /// Whether usable credentials were imported.
+    pub ready: bool,
+}
+
+/// Dispatches host-side authentication to the selected harness adapter.
+pub struct AuthenticationManager {
+    database: persistence::Database,
+    claude_code: claude_code::authentication::Authentication,
+    codex: codex::authentication::Authentication,
+}
+
+impl AuthenticationManager {
+    /// Creates the harness authentication manager over the shared database owner.
+    #[must_use]
+    pub fn new(database: persistence::Database) -> Self {
+        Self {
+            database: database.clone(),
+            claude_code: claude_code::authentication::Authentication::new(database.clone()),
+            codex: codex::authentication::Authentication::new(database),
+        }
+    }
+
+    /// Stores a credential for the selected harness.
+    ///
+    /// `imported` marks a credential supplied by the caller rather than minted by the host login
+    /// flow; adapters whose host grant must stay isolated only accept mediated placeholders that way.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the credential is invalid or cannot be persisted.
+    pub async fn login(
+        &self,
+        harness: Harness,
+        credential: Zeroizing<String>,
+        imported: bool,
+    ) -> Result<ImportedAuthentication, Error> {
+        match harness {
+            Harness::ClaudeCode => self.claude_code.login(credential).await,
+            Harness::Codex => self.codex.login(credential, imported).await,
+        }
+    }
+}
+
+impl sandbox::secret_store::SecretStore for AuthenticationManager {
+    fn set<'a>(
+        &'a self,
+        name: &'a str,
+        value: &'a [u8],
+    ) -> sandbox::LocalFuture<'a, Result<sandbox::secret_store::SecretReference, sandbox::Error>> {
+        sandbox::secret_store::SecretStore::set(&self.database, name, value)
+    }
+
+    fn resolve<'a>(
+        &'a self,
+        reference: &'a sandbox::secret_store::SecretReference,
+    ) -> sandbox::LocalFuture<'a, Result<sandbox::secret_store::SecretMaterial, sandbox::Error>> {
+        Box::pin(async move {
+            if codex::owns_secret(reference) {
+                self.codex.resolve_access().await
+            } else {
+                sandbox::secret_store::SecretStore::resolve(&self.database, reference).await
+            }
+        })
+    }
+}
+
+/// Acquires a host credential for the selected harness, interactively.
+///
+/// Runs on the client host, where a terminal and browser are available; the
+/// harness-specific login mechanism lives behind the closed harness enum.
+///
+/// # Errors
+///
+/// Returns an error when the harness login tool is missing, fails, or yields no credential.
+pub fn acquire_host_credential(
+    harness: Harness,
+    control_plane_home: &std::path::Path,
+) -> Result<Zeroizing<String>, Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::acquire_host_token(),
+        Harness::Codex => codex::acquire_host_credential(control_plane_home),
+    }
+}
+
+pub(crate) async fn prepare(harness: Harness, database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::prepare(database).await,
+        Harness::Codex => codex::prepare(database).await,
+    }
+}
+
+pub(crate) struct MediatedSecret {
+    pub(crate) environment: &'static str,
+    pub(crate) placeholder: &'static str,
+    pub(crate) reference: sandbox::secret_store::SecretReference,
+    pub(crate) allowed_hosts: Vec<String>,
+}
+
+pub(crate) fn conflicts_with_managed_secret(harness: Harness, name: &str, placeholder: Option<&str>) -> bool {
+    match harness {
+        Harness::ClaudeCode => claude_code::conflicts_with_managed_secret(name, placeholder),
+        Harness::Codex => codex::conflicts_with_managed_secret(name, placeholder),
+    }
+}
+
+pub(crate) async fn bootstrap_linux(
+    harness: Harness,
+    sandbox: &sandbox::SandboxHandle,
+    home: &str,
+    instructions: Option<&[u8]>,
+    skills: &[Skill],
+) -> Result<(), Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions, skills).await,
+        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions, skills).await,
+    }
+}
+
+/// Verifies that the declared harness installation exists, at the exact version when one is declared.
+pub(crate) async fn verify_linux(
+    harness: Harness,
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::verify_linux(sandbox, expected_version).await,
+        Harness::Codex => codex::verify_linux(sandbox, expected_version).await,
+    }
+}
+
+async fn version_output(
+    sandbox: &sandbox::SandboxHandle,
+    executable: &str,
+) -> Result<sandbox::execution::ExecutionOutput, Error> {
+    use sandbox::{SandboxPath, execution::ExecutionSpec};
+
+    let started = sandbox
+        .start_execution(sandbox::execution::StartExecutionRequest::new(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/env"),
+            [executable.to_owned(), "--version".into()],
+        )))
+        .await?;
+    let execution_id = started.id.clone();
+    match tokio::time::timeout(VERSION_PROBE_TIMEOUT, started.collect()).await {
+        Ok(output) => output.map_err(Error::from),
+        Err(_elapsed) => {
+            let _ignored = sandbox.kill_execution(&execution_id).await;
+            Err(Error::SandboxSetup(format!(
+                "`{executable} --version` did not finish within {}s",
+                VERSION_PROBE_TIMEOUT.as_secs()
+            )))
+        }
+    }
+}
+
+/// Harness-specific process and environment used by the Session runtime.
+pub struct ProcessLaunch {
+    /// Shell command used to launch the harness.
+    pub command: String,
+    /// Environment added to the generic Agent session environment.
+    pub environment: Vec<(String, String)>,
+}
+
+/// Resolves the selected harness's terminal launch configuration.
+///
+/// A `resume` value continues the given harness-native conversation instead of
+/// starting a fresh one. `initial_prompt` is the first prompt of a fresh
+/// conversation, passed as the harness's positional prompt argument so the
+/// harness starts working on it immediately; it is ignored when resuming.
+#[must_use]
+pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
+    match harness {
+        Harness::ClaudeCode => claude_code::launch_linux(home, resume, initial_prompt),
+        Harness::Codex => codex::launch_linux(home, resume, initial_prompt),
+    }
+}
+
+/// Quotes `value` as one POSIX shell word, safe for any content.
+pub(crate) fn shell_single_quoted(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\\''"))
+}
+
+/// Validates an initial prompt before it is persisted for an argv-based launch.
+pub(crate) fn validate_initial_prompt(prompt: &str) -> Result<(), Error> {
+    if prompt.contains('\0') {
+        return Err(Error::Invalid("initial prompt must not contain NUL".into()));
+    }
+    let quoted_bytes = prompt
+        .len()
+        .saturating_add(prompt.bytes().filter(|byte| *byte == b'\'').count().saturating_mul(3))
+        .saturating_add(2);
+    if quoted_bytes > MAX_INITIAL_PROMPT_ARGUMENT_BYTES {
+        return Err(Error::Invalid(format!(
+            "initial prompt is too large; its encoded launch argument must not exceed {} KiB",
+            MAX_INITIAL_PROMPT_ARGUMENT_BYTES / 1024
+        )));
+    }
+    Ok(())
+}
+
+/// Recognizes an initialized input line before a harness reports its conversation.
+/// The runtime supplies the visible cursor line and pane title.
+pub(crate) fn input_ready_without_report(harness: Harness, cursor_line: &str, title: &str) -> bool {
+    match harness {
+        Harness::ClaudeCode => false,
+        Harness::Codex => codex::input_ready_without_report(cursor_line, title),
+    }
+}
+
+/// Parses harness transcript bytes into ordered, runtime-neutral turns.
+///
+/// # Errors
+///
+/// Returns an error when the transcript cannot be decoded.
+pub(crate) fn parse_transcript(harness: Harness, bytes: &[u8]) -> Result<Vec<crate::sessions::Turn>, Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::transcript::parse(bytes),
+        Harness::Codex => codex::transcript::parse(bytes),
+    }
+}
+
+/// Trims a transcript suffix to its first complete harness turn.
+pub(crate) fn trim_partial_transcript(harness: Harness, bytes: &[u8]) -> &[u8] {
+    match harness {
+        Harness::ClaudeCode => claude_code::transcript::trim_partial(bytes),
+        Harness::Codex => codex::transcript::trim_partial(bytes),
+    }
+}
+
+#[cfg(test)]
+pub(crate) const fn test_harness() -> Harness {
+    Harness::ClaudeCode
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn initial_prompt_validation_measures_the_shell_quoted_argument() {
+        validate_initial_prompt(&"a".repeat(MAX_INITIAL_PROMPT_ARGUMENT_BYTES - 2)).expect("boundary prompt");
+
+        let expanded = "'".repeat(MAX_INITIAL_PROMPT_ARGUMENT_BYTES / 4);
+        assert!(validate_initial_prompt(&expanded).is_err());
+        assert!(validate_initial_prompt("before\0after").is_err());
+    }
+}

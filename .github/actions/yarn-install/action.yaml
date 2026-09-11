@@ -15,20 +15,6 @@ runs:
         cache-dependency-path: ${{ inputs.working-directory }}/yarn.lock
         node-version: '22'
 
-    - name: "Getting yarn cache directory path"
-      id: yarn-cache-dir-path
-      run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-
-    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles(format('{0}/yarn.lock', inputs.working-directory)) }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
-
     - name: 'Installing Dependencies'
       run: yarn install --immutable --inline-builds
       shell: bash

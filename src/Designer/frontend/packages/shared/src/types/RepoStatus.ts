@@ -14,4 +14,4 @@ export type RepoContentStatus = {
 };
 
 export type FileStatus =
-  'NewInWorkdir' | 'DeletedFromWorkdir' | 'ModifiedInWorkdir' | 'RenamedInWorkdir'; // Do we need more?
+  'NewInWorkdir' | 'DeletedFromWorkdir' | 'ModifiedInWorkdir' | 'RenamedInWorkdir';

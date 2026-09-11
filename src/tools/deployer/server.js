@@ -84,7 +84,6 @@ const STUDIO_WORKFLOWS = [
   'deploy-designer.yaml',
   'deploy-repositories.yaml',
   'deploy-gitea-runners.yaml',
-  'deploy-studio-mcp-server.yaml',
   'deploy-studio-otel-operator.yaml',
   'deploy-studio-observability.yaml',
   'deploy-lhci-server.yaml',

@@ -6,6 +6,7 @@ import {
   StudioButton,
   StudioCard,
   StudioHeading,
+  StudioLink,
   StudioParagraph,
 } from '@studio/components';
 import {
@@ -24,7 +25,6 @@ import type { CodeListMapError } from './types/CodeListMapError';
 import { Errors } from './Errors';
 import type { CodeListFile } from '../../../types/CodeListFile';
 import type { CodeListFileMap } from './types/CodeListFileMap';
-import { Link } from '@digdir/designsystemet-react';
 import { useRouterContext } from '../../../ContentLibrary/RouterContext';
 
 export type CodeListsPageProps = {
@@ -211,7 +211,7 @@ function SaveMessage({ state, isSaved }: SaveMessageProps): React.ReactNode {
       return (
         <Trans
           i18nKey='app_content_library.code_lists.save.error'
-          components={{ a: <Link href={contactPagePath}>{null}</Link> }}
+          components={{ a: <StudioLink href={contactPagePath}>{null}</StudioLink> }}
         />
       );
   }

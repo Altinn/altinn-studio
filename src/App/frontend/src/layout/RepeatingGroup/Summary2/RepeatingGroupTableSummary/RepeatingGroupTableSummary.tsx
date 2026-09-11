@@ -1,8 +1,10 @@
 import React from 'react';
 
+import { useIsMobile } from '@app/form-component';
 import { Table, ValidationMessage } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
+import type { GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -13,7 +15,6 @@ import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import repeatingGroupClasses from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
@@ -27,7 +28,6 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { GridRows, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {

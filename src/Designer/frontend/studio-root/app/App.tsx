@@ -1,6 +1,6 @@
 import classes from './App.module.css';
 import { Route, Routes } from 'react-router-dom';
-import { StudioNotFoundPage, StudioParagraph, StudioLink } from '@studio/components';
+import { StudioLink, StudioNotFoundPage, StudioParagraph } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';

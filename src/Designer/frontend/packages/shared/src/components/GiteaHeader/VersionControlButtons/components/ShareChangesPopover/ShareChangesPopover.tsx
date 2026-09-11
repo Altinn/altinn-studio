@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useMediaQuery } from '@studio/components-legacy';
-import { StudioPopover } from '@studio/components';
+import { useMediaQuery } from '@studio/hooks';
+import { StudioBadge, StudioPopover } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
-import { Notification } from '../Notification';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useVersionControlButtonsContext } from '../../context';
@@ -71,7 +70,9 @@ export const ShareChangesPopover = () => {
         aria-label={t('sync_header.changes_to_share')}
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}
-        {displayNotification && <Notification />}
+        {displayNotification && (
+          <StudioBadge role='status' className={classes.badge} data-color='danger' />
+        )}
       </StudioPopover.Trigger>
       <StudioPopover
         open={popoverOpen}

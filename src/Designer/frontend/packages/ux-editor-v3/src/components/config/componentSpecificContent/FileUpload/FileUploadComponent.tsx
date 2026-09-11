@@ -1,4 +1,3 @@
-import { Fieldset, Radio } from '@digdir/designsystemet-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -8,7 +7,7 @@ import type {
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioTextfield } from '@studio/components';
+import { StudioFieldset, StudioRadio, StudioRadioGroup, StudioTextfield } from '@studio/components';
 
 export const FileUploadComponent = ({
   component,
@@ -57,7 +56,7 @@ export const FileUploadComponent = ({
   };
 
   return (
-    <Fieldset
+    <StudioFieldset
       className={classes.fieldset}
       legend={t('ux_editor.file_upload_component.settings')}
       hideLegend
@@ -67,18 +66,27 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.hasCustomFileEndings}
         propertyPath={`${component.propertyPath}/properties/hasCustomFileEndings`}
         renderField={({ fieldProps }) => (
-          <Radio.Group
+          <StudioRadioGroup
             legend={t('ux_editor.file_upload_component.valid_file_endings')}
             hideLegend
-            {...fieldProps}
-            onChange={(val) => handleHasCustomFileEndingsChange(val)}
-            name={`${component.id}-valid-file-endings`}
-            inline={true}
-            value={fieldProps.value === true ? 'true' : 'false'}
           >
-            <Radio value='false'>{t('ux_editor.modal_properties_valid_file_endings_all')}</Radio>
-            <Radio value='true'>{t('ux_editor.modal_properties_valid_file_endings_custom')}</Radio>
-          </Radio.Group>
+            <div className={classes.inlineRadios}>
+              <StudioRadio
+                name={`${component.id}-valid-file-endings`}
+                value='false'
+                checked={fieldProps.value !== true}
+                onChange={(e) => handleHasCustomFileEndingsChange(e.target.value)}
+                label={t('ux_editor.modal_properties_valid_file_endings_all')}
+              />
+              <StudioRadio
+                name={`${component.id}-valid-file-endings`}
+                value='true'
+                checked={fieldProps.value === true}
+                onChange={(e) => handleHasCustomFileEndingsChange(e.target.value)}
+                label={t('ux_editor.modal_properties_valid_file_endings_custom')}
+              />
+            </div>
+          </StudioRadioGroup>
         )}
       />
 
@@ -106,16 +114,24 @@ export const FileUploadComponent = ({
           value={fileUploaderComponent.displayMode}
           propertyPath={`${component.propertyPath}/properties/displayMode`}
           renderField={({ fieldProps }) => (
-            <Radio.Group
-              legend={t('ux_editor.file_upload_component.display_mode')}
-              hideLegend
-              name={`${component.id}-display-mode`}
-              inline={true}
-              onChange={fieldProps.onChange}
-            >
-              <Radio value='simple'>{t('ux_editor.modal_properties_file_upload_simple')}</Radio>
-              <Radio value='list'>{t('ux_editor.modal_properties_file_upload_list')}</Radio>
-            </Radio.Group>
+            <StudioRadioGroup legend={t('ux_editor.file_upload_component.display_mode')} hideLegend>
+              <div className={classes.inlineRadios}>
+                <StudioRadio
+                  name={`${component.id}-display-mode`}
+                  value='simple'
+                  checked={fieldProps.value === 'simple'}
+                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                  label={t('ux_editor.modal_properties_file_upload_simple')}
+                />
+                <StudioRadio
+                  name={`${component.id}-display-mode`}
+                  value='list'
+                  checked={fieldProps.value === 'list'}
+                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                  label={t('ux_editor.modal_properties_file_upload_list')}
+                />
+              </div>
+            </StudioRadioGroup>
           )}
         />
       )}
@@ -169,6 +185,6 @@ export const FileUploadComponent = ({
           />
         )}
       />
-    </Fieldset>
+    </StudioFieldset>
   );
 };

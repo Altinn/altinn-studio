@@ -1,4 +1,4 @@
 .container {
-  padding: var(--fds-spacing-3);
+  padding: var(--ds-size-3);
   box-sizing: border-box;
 }

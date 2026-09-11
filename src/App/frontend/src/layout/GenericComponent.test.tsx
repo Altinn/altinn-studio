@@ -34,13 +34,11 @@ const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = t
                       sm: 10,
                       md: 8,
                       lg: 6,
-                      xl: 4,
                       innerGrid: {
                         xs: 11,
                         sm: 9,
                         md: 7,
                         lg: 5,
-                        xl: 3,
                       },
                     },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any

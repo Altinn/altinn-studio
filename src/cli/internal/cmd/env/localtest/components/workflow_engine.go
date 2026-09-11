@@ -27,6 +27,17 @@ const (
 	postgresHealthRetries     = 9
 	postgresHealthStartPeriod = 30 * time.Second
 
+	workflowEngineHealthInterval    = 500 * time.Millisecond
+	workflowEngineHealthTimeout     = 5 * time.Second
+	workflowEngineHealthRetries     = 60
+	workflowEngineHealthStartPeriod = 2 * time.Second
+
+	// The aspnet base image ships no curl or wget, so the probe speaks HTTP over bash's /dev/tcp;
+	// the versionless /health/ready is a redirect and would pass before the engine could serve.
+	workflowEngineHealthProbe = `bash -c "exec 3<>/dev/tcp/127.0.0.1/` + workflowEngineHTTPPort +
+		` && printf 'GET /api/v1/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3` +
+		` && head -n 1 <&3 | grep -q ' 200 '"`
+
 	postgresUser     = "postgres"
 	postgresPassword = "postgres"
 	postgresDB       = "postgres"
@@ -61,7 +72,7 @@ func workflowEngineImage(ctx *Options) resource.ImageResource {
 		}
 	}
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.BuiltImage{
+		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile: filepath.ToSlash(
@@ -72,7 +83,7 @@ func workflowEngineImage(ctx *Options) resource.ImageResource {
 				CacheTo:   nil,
 			},
 			Tag: devImageTagWorkflowEngine,
-		}
+		})
 	}
 	return &resource.PulledImage{
 		Enabled:    nil,
@@ -130,6 +141,13 @@ func workflowEngineContainer(ctx *Options) *ContainerSpec {
 		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
 		nil,
 	)
+	spec.HealthCheck = &types.HealthCheck{
+		Test:        []string{"CMD-SHELL", workflowEngineHealthProbe},
+		Interval:    workflowEngineHealthInterval,
+		Timeout:     workflowEngineHealthTimeout,
+		Retries:     workflowEngineHealthRetries,
+		StartPeriod: workflowEngineHealthStartPeriod,
+	}
 	// Workflow-engine has no host-writable mounts, so use the image user instead of host UID/GID remapping.
 	spec.UseDefaultUser = true
 	return spec

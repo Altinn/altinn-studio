@@ -6,7 +6,6 @@ pydantic>=2.12.5
 
 # HTTP client
 httpx>=0.28.1
-httpx-sse>=0.4.3
 
 # Configuration
 python-dotenv>=1.2.2
@@ -18,9 +17,6 @@ langchain-openai>=1.1.12
 openai>=2.30.0
 anthropic>=0.86.0
 
-# MCP client
-fastmcp>=3.1.1
-
 # Observability
 langfuse>=3.0.0
 
@@ -31,6 +27,6 @@ json-repair>=0.58.7
 # YAML parsing for prompt frontmatter
 PyYAML>=6.0
 
-# Altinn domain library (agents/altinn — extracted from the retired MCP server)
+# Altinn domain library (agents/altinn)
 jsonschema>=4.0
 defusedxml>=0.7

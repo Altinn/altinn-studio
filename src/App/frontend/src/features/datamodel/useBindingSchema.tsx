@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
@@ -17,7 +18,6 @@ import {
   getStatelessDataModelUrlWithPrefill,
 } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export type AsSchema<T> = {

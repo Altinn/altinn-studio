@@ -14,6 +14,7 @@ import {
   storageTextsRoute,
   storageInstancesRoute,
   storageInstanceDetailsRoute,
+  storageInstanceDeleteRoute,
 } from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
 import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
@@ -46,6 +47,7 @@ app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRout
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
 app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDetailsRoute);
+app.delete('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDeleteRoute);
 app.get('/api/v1/scopes/all', accessibleForAllScopesRoute);
 app.get('/api/v1/scopes/access/all', accessScopesRoute);
 app.post('/_apis/build/builds/', buildsRoute);

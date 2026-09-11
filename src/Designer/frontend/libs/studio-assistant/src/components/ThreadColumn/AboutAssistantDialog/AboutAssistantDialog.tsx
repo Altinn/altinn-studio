@@ -4,8 +4,8 @@ import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@studi
 import { ExternalLinkIcon, InformationIcon } from '@studio/icons';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 
-const branchDocsUrl =
-  'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/branching/#flette-grener-til-master';
+export const assistantDocsUrl =
+  'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/assistant/';
 
 export const hasSeenDialogStorageKey = 'hasSeenAboutAssistantDialog';
 
@@ -35,22 +35,14 @@ export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): Reac
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
-          <StudioParagraph spacing>{texts.intro}</StudioParagraph>
-          <StudioHeading level={3} data-size='xs'>
-            {texts.howToHeading}
-          </StudioHeading>
-          <StudioParagraph spacing>{texts.description}</StudioParagraph>
           <StudioParagraph spacing>
-            {texts.branchInfo}
-            <StudioLink target='_blank' rel='noopener noreferrer' href={branchDocsUrl}>
-              <span>{texts.branchDocsLink}</span>
+            {texts.intro} {texts.assistantDocsInfo}
+            <StudioLink target='_blank' rel='noopener noreferrer' href={assistantDocsUrl}>
+              <span>{texts.assistantDocsLink}</span>
               <ExternalLinkIcon />
             </StudioLink>
           </StudioParagraph>
           <StudioParagraph spacing>{texts.disclaimer}</StudioParagraph>
-          <StudioHeading level={3} data-size='xs'>
-            {texts.privacyHeading}
-          </StudioHeading>
           <StudioParagraph>{texts.privacyDataHandling}</StudioParagraph>
         </StudioDialog.Block>
       </StudioDialog>

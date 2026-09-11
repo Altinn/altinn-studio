@@ -85,14 +85,16 @@ describe('EditFormComponent', () => {
     const labels = {
       'ux_editor.modal_properties_component_change_id': 'textbox',
       'ux_editor.modal_properties_data_model_helper': 'combobox',
-      'ux_editor.modal_configure_read_only': 'checkbox',
+      'ux_editor.modal_configure_read_only': 'switch',
     };
 
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await user.click(linkIcon);
 
-    Object.keys(labels).map(async (label) =>
-      expect(await screen.findByRole(labels[label], { name: textMock(label) })),
+    await Promise.all(
+      Object.keys(labels).map((label) =>
+        screen.findByRole(labels[label], { name: textMock(label) }),
+      ),
     );
     expect(
       screen.getByRole('combobox', {
@@ -202,7 +204,7 @@ describe('EditFormComponent', () => {
       },
     });
     await switchToBeta(user);
-    const datePickerTimeStampProp = screen.getByRole('checkbox', {
+    const datePickerTimeStampProp = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.timeStamp'),
     });
     expect(datePickerTimeStampProp).toBeChecked();
@@ -210,7 +212,7 @@ describe('EditFormComponent', () => {
 });
 
 const switchToBeta = async (user) => {
-  const betaConfigSwitch = screen.getByRole('checkbox', {
+  const betaConfigSwitch = screen.getByRole('switch', {
     name: textMock('ux_editor.edit_component.show_beta_func'),
   });
   await user.click(betaConfigSwitch);

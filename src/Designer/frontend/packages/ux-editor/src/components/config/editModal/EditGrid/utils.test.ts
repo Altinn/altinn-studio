@@ -13,7 +13,6 @@ describe('utils', () => {
       expect(findEffectiveGridSize(gridSizes, ViewSize.Sm)).toBe(12);
       expect(findEffectiveGridSize(gridSizes, ViewSize.Md)).toBe(6);
       expect(findEffectiveGridSize(gridSizes, ViewSize.Lg)).toBe(6);
-      expect(findEffectiveGridSize(gridSizes, ViewSize.Xl)).toBe(6);
     });
 
     it('Returns 12 when no grid values are set', () => {
@@ -22,12 +21,11 @@ describe('utils', () => {
       expect(findEffectiveGridSize(gridSizes, ViewSize.Sm)).toBe(12);
       expect(findEffectiveGridSize(gridSizes, ViewSize.Md)).toBe(12);
       expect(findEffectiveGridSize(gridSizes, ViewSize.Lg)).toBe(12);
-      expect(findEffectiveGridSize(gridSizes, ViewSize.Xl)).toBe(12);
     });
 
     it('Returns 12 when no grid values on view sizes below the current one are set', () => {
       const gridSizes: GridSizes = {
-        [ViewSize.Xl]: 6,
+        [ViewSize.Lg]: 6,
       };
       expect(findEffectiveGridSize(gridSizes, ViewSize.Xs)).toBe(12);
     });

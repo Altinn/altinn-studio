@@ -44,9 +44,10 @@ spec:
         name: keda
         namespace: default
   values:
-    # KEDA's defaults are sensible. Keep this block intentionally small;
-    # any per-environment knobs (e.g. higher resource limits in prod) can
-    # be added later via Flux postBuild substitution or per-env overlays.
+    # Allow the Gitea scaler more time to receive a response before KEDA
+    # considers the request failed.
+    http:
+      timeout: 10000
     resources:
       operator:
         requests:

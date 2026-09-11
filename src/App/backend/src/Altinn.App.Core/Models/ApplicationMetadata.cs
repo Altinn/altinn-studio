@@ -53,7 +53,7 @@ public class ApplicationMetadata : Application
     public AppIdentifier AppIdentifier { get; private set; }
 
     /// <summary>
-    /// Configure options for setting organisation logo
+    /// Configure options for setting organization logo
     /// </summary>
     [JsonProperty(PropertyName = "logo")]
     public Logo? Logo { get; set; }

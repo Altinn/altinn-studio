@@ -11,8 +11,8 @@
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "GridExample.ExampleInputTwo",
-          "person_lookup_name": "street"
+          "ssn": "GridExample.ExampleInputTwo",
+          "fullName": "street"
         },
         "textResourceBindings": {
           "title": "Legg til person",

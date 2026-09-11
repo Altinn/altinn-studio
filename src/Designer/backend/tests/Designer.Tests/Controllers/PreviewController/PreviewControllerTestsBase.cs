@@ -21,6 +21,7 @@ public class PreviewControllerTestsBase<TTestClass>(WebApplicationFactory<Progra
     protected const string AppV3 = "app-without-layoutsets";
     protected const string AppV3Path = "app-without-layoutsets/V3";
     protected const string AppV4 = "app-with-layoutsets";
+    protected const string AppV9 = "app-with-layoutsets-v9";
     protected const string PreviewApp = "preview-app";
     protected const string Developer = "testUser";
     protected const string LayoutSetName = "layoutSet1";

@@ -134,7 +134,7 @@ public sealed class AppProcessWorkflowFailure
 /// <summary>
 /// The consumer-facing activity status of a task's workflow transition. Deliberately coarse:
 /// <see cref="Processing"/> covers the first attempt and every automatic retry, because the
-/// consumer behaviour (wait) is identical. The presentation-only
+/// consumer behavior (wait) is identical. The presentation-only
 /// <see cref="AppProcessWorkflowStatus.Retrying"/> hint is the one place retries surface.
 /// </summary>
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]

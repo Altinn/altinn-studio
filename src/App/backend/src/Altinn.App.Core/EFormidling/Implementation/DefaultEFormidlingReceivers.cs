@@ -1,6 +1,6 @@
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models.SBD;
 using Altinn.App.Core.Features;
-using Altinn.Common.EFormidlingClient.Models.SBD;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
@@ -28,7 +28,7 @@ public class DefaultEFormidlingReceivers : IEFormidlingReceivers
     {
         var identifier = new Identifier
         {
-            // 0192 prefix for all Norwegian organisations.
+            // 0192 prefix for all Norwegian organizations.
             Value = $"0192:{receiver}",
             Authority = "iso6523-actorid-upis",
         };

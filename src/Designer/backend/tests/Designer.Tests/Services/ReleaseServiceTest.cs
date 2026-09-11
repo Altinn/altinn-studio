@@ -259,7 +259,6 @@ public class ReleaseServiceTest
         {
             BaseUri = "https://dev.azure.com/brreg/altinn-studio/_apis/",
             BuildDefinitionId = 69,
-            DeployDefinitionId = 81,
         };
     }
 

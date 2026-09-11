@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ../base
   - ../base/github-runners.yaml
+  - ../base/sandbox-node.yaml

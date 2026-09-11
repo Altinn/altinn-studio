@@ -3,8 +3,8 @@
   --outline: 1px solid var(--ds-color-base-default);
   --outline-offset: 1px;
   --border-radius: var(--ds-border-radius-md);
-  --selected-square-colour: var(--ds-color-base-active);
-  --unselected-square-colour: var(--ds-color-surface-tinted);
+  --selected-square-color: var(--ds-color-base-active);
+  --unselected-square-color: var(--ds-color-surface-tinted);
   --hover-square-color: var(--ds-color-base-hover);
   --slider-width: min(100%, 500px);
   --thumb-width: calc(var(--slider-width) / 12);

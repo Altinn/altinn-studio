@@ -11,9 +11,7 @@ See `agents/core/skills.py` for the loader and
 ## These files are the canonical source
 
 The skills ARE the single source of truth for Altinn domain knowledge.
-(They were originally derived from the retired MCP server's context
-files, but ownership moved here with the consolidation.) Edit them
-directly.
+Edit them directly.
 
 | Skill              | Covers                                                            |
 | ------------------ | ----------------------------------------------------------------- |

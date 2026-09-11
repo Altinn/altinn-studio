@@ -1,17 +1,15 @@
-"""Thin raw-REST Langfuse client for the benchmark runner.
-
-Deliberately not the Langfuse SDK: the self-hosted server (v3.x) omits
-fields newer SDK models require (`media_references` pydantic failures),
-and the runner only needs six endpoints.
-"""
+"""Raw-REST Langfuse client for dataset-item upsert and score configs."""
 
 from __future__ import annotations
 
 import os
-import uuid
 from typing import Any
+from urllib.parse import quote
 
 import httpx
+
+RUN_PAGE_SIZE = 50
+MAX_RUN_PAGES = 200
 
 
 class LangfuseApi:
@@ -55,21 +53,6 @@ class LangfuseApi:
         response.raise_for_status()
         return response.json()
 
-    # -- datasets ---------------------------------------------------------
-
-    def dataset_items(self, dataset_name: str) -> list[dict]:
-        items: list[dict] = []
-        page = 1
-        while True:
-            data = self._get(
-                "/api/public/dataset-items", datasetName=dataset_name, page=page, limit=50
-            )
-            items.extend(data.get("data") or [])
-            if page >= (data.get("meta") or {}).get("totalPages", 1):
-                break
-            page += 1
-        return [item for item in items if item.get("status") != "ARCHIVED"]
-
     def upsert_dataset_item(
         self,
         dataset_name: str,
@@ -77,8 +60,11 @@ class LangfuseApi:
         input: Any = None,
         expected_output: Any = None,
         metadata: Any = None,
+        status: str | None = None,
     ) -> dict:
         body: dict[str, Any] = {"datasetName": dataset_name, "id": item_id}
+        if status:
+            body["status"] = status
         if input is not None:
             body["input"] = input
         if expected_output is not None:
@@ -87,20 +73,15 @@ class LangfuseApi:
             body["metadata"] = metadata
         return self._post("/api/public/dataset-items", body)
 
-    def create_dataset_run_item(
-        self, run_name: str, dataset_item_id: str, trace_id: str, run_description: str = ""
-    ) -> dict:
-        return self._post(
-            "/api/public/dataset-run-items",
-            {
-                "runName": run_name,
-                "datasetItemId": dataset_item_id,
-                "traceId": trace_id,
-                "runDescription": run_description,
-            },
-        )
-
     # -- scores -----------------------------------------------------------
+
+    def models_by_connection(self) -> dict[str, list[str]]:
+        """The models each LLM connection offers."""
+        data = self._get("/api/public/llm-connections", limit=50)
+        return {
+            row["provider"]: sorted(row.get("customModels") or [])
+            for row in data.get("data") or []
+        }
 
     def score_configs_by_name(self) -> dict[str, dict]:
         data = self._get("/api/public/score-configs", limit=100)
@@ -111,51 +92,24 @@ class LangfuseApi:
             "/api/public/score-configs", {"name": name, "dataType": data_type, **extra}
         )
 
-    def create_score(
-        self,
-        trace_id: str,
-        name: str,
-        value: float,
-        data_type: str,
-        comment: str = "",
-        config_id: str | None = None,
-    ) -> None:
-        body: dict[str, Any] = {
-            "id": str(uuid.uuid4()),
-            "traceId": trace_id,
-            "name": name,
-            "value": value,
-            "dataType": data_type,
-            "comment": comment,
-        }
-        if config_id:
-            body["configId"] = config_id
-        self._post("/api/public/scores", body)
 
-    # -- traces -----------------------------------------------------------
-
-    def find_trace_for_session(
-        self, session_id: str, trace_name: str, from_timestamp: str
-    ) -> str | None:
-        """Find the workflow trace whose metadata carries `session_id`.
-
-        The workflow root span doesn't set a Langfuse session, so we page
-        recent traces by name and match on metadata client-side.
-        """
-        page = 1
-        while page <= 10:
-            data = self._get(
-                "/api/public/traces",
-                name=trace_name,
-                fromTimestamp=from_timestamp,
-                orderBy="timestamp.desc",
-                page=page,
-                limit=50,
+def assert_run_is_new(lf: "LangfuseApi", dataset: str, run_name: str) -> None:
+    """Refuse to write into a run that already exists."""
+    encoded = quote(dataset, safe="")
+    for page in range(1, MAX_RUN_PAGES + 1):
+        existing = lf._get(
+            f"/api/public/datasets/{encoded}/runs", page=page, limit=RUN_PAGE_SIZE
+        ).get("data") or []
+        if not existing:
+            return
+        if any((run.get("name") or "") == run_name for run in existing):
+            raise SystemExit(
+                f"A run named {run_name!r} already exists on {dataset!r}. Re-using the "
+                "name merges the results rather than replacing them. Pick another name, "
+                "or delete the run first."
             )
-            for trace in data.get("data") or []:
-                if (trace.get("metadata") or {}).get("session_id") == session_id:
-                    return trace.get("id")
-            if page >= (data.get("meta") or {}).get("totalPages", 1):
-                break
-            page += 1
-        return None
+    raise SystemExit(
+        f"Stopped after {MAX_RUN_PAGES} pages of runs on {dataset!r} without reaching the "
+        f"end, so {run_name!r} could not be shown to be new. Delete some runs, or raise "
+        "MAX_RUN_PAGES."
+    )

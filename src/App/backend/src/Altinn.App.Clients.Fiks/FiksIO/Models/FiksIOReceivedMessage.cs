@@ -128,17 +128,17 @@ public sealed record FiksIOReceivedMessageContent
     /// </summary>
     public async Task<IReadOnlyList<(string Filename, string Content)>?> GetDecryptedPayloads()
     {
-        if (_decrypedPayloadStrings is null && _mottattMelding.HasPayload)
+        if (_decryptedPayloadStrings is null && _mottattMelding.HasPayload)
         {
             var decryptedPayloads = await _mottattMelding.DecryptedPayloads;
-            _decrypedPayloadStrings = decryptedPayloads.Select(x => (x.Filename, x.Payload.ReadToString())).ToList();
+            _decryptedPayloadStrings = decryptedPayloads.Select(x => (x.Filename, x.Payload.ReadToString())).ToList();
         }
 
-        return _decrypedPayloadStrings;
+        return _decryptedPayloadStrings;
     }
 
     private IMottattMelding _mottattMelding { get; }
-    private IReadOnlyList<(string, string)>? _decrypedPayloadStrings;
+    private IReadOnlyList<(string, string)>? _decryptedPayloadStrings;
 
     internal FiksIOReceivedMessageContent(IMottattMelding mottattMelding)
     {

@@ -1,18 +1,20 @@
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { putWithoutConfig } from 'src/utils/network/networking';
-import { invalidateCookieUrl, redirectToUpgrade } from 'src/utils/urls/appUrlHelper';
+import { getUpgradeAuthLevelUrl, invalidateCookieUrl, redirectToUpgrade } from 'src/utils/urls/appUrlHelper';
 
 /**
  * A 403 carrying a `RequiredAuthenticationLevel` means the user is authenticated, but with a too low security level.
  * This is a synchronous guard so the render path can block further rendering (showing a loader) instead of flashing a
- * generic "missing roles" error page while the asynchronous step-up redirect is in flight.
+ * generic "missing roles" error page while the asynchronous step-up redirect is in flight. Environments without a
+ * step-up URL configured have no redirect to wait for, so they must fall through to the error page instead.
  */
 export function isAuthenticationRedirectError(error: unknown): boolean {
   return !!(
     isAxiosError(error) &&
     error.response?.status === 403 &&
     error.response.data &&
-    error.response.data['RequiredAuthenticationLevel']
+    error.response.data['RequiredAuthenticationLevel'] &&
+    getUpgradeAuthLevelUrl()
   );
 }
 

@@ -1,9 +1,10 @@
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 import { changeToLang } from 'test/e2e/support/lang';
 
 import { isNumberFormat } from 'src/layout/Input/number-format-helpers';
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -178,7 +179,7 @@ describe('UI Components', () => {
         shouldExist: appFrontend.changeOfName.uploadedTable,
       },
       {
-        type: 'FileUploadWithTag' as const,
+        type: 'FileUpload' as const,
         uploader: appFrontend.changeOfName.uploadWithTag.uploadZone,
         shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
       },
@@ -207,7 +208,7 @@ describe('UI Components', () => {
 
   it('minNumberOfAttachments should validate like required', () => {
     cy.interceptLayout('Task_2', (component) => {
-      if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
+      if (component.type === 'FileUpload') {
         component.minNumberOfAttachments = 1;
       }
     });
@@ -315,7 +316,6 @@ describe('UI Components', () => {
         'Datepicker',
         'Dropdown',
         'FileUpload',
-        'FileUploadWithTag',
         'Input',
         'RadioButtons',
         'TextArea',
@@ -452,6 +452,7 @@ describe('UI Components', () => {
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
+    cy.get(appFrontend.confirmPopover).should('not.exist');
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
     cy.get(appFrontend.confirmPopover).should(
@@ -614,13 +615,19 @@ describe('UI Components', () => {
       });
 
       cy.goto('changename');
-      cy.get('#form-content-newFirstName').contains(`Du har ${maxLength} tegn igjen`);
+      cy.get('#form-content-newFirstName').find(`[data-label="Du har ${maxLength} tegn igjen"]`).should('be.visible');
       cy.get(appFrontend.changeOfName.newFirstName).type('Per');
-      cy.get('#form-content-newFirstName').contains(`Du har ${maxLength - 3} tegn igjen`);
+      cy.get('#form-content-newFirstName')
+        .find(`[data-label="Du har ${maxLength - 3} tegn igjen"]`)
+        .should('be.visible');
       cy.get(appFrontend.changeOfName.newFirstName).type('r');
-      cy.get('#form-content-newFirstName').contains(`Du har ${maxLength - 4} tegn igjen`);
+      cy.get('#form-content-newFirstName')
+        .find(`[data-label="Du har ${maxLength - 4} tegn igjen"]`)
+        .should('be.visible');
       cy.get(appFrontend.changeOfName.newFirstName).type('rrr');
-      cy.get('#form-content-newFirstName').contains(`Du har overskredet maks antall tegn med ${7 - maxLength}`);
+      cy.get('#form-content-newFirstName')
+        .find(`[data-label="Du har overskredet maks antall tegn med ${7 - maxLength}"]`)
+        .should('be.visible');
 
       // Display data model validation below component if maxLength in layout and datamodel is different
       if (maxLength !== 4) {
@@ -628,6 +635,12 @@ describe('UI Components', () => {
       } else {
         cy.get('#form-content-newFirstName').should('not.contain', 'Bruk 4 eller færre tegn');
       }
+      cy.get(appFrontend.errorReport).should('not.exist');
+      cy.get(appFrontend.changeOfName.newFirstName).type('a');
+      cy.get(appFrontend.changeOfName.confirmChangeName)
+        .findByRole('checkbox', { name: /Ja[a-z, ]*/ })
+        .check();
+      cy.findByRole('button', { name: /Neste/ }).click();
       cy.get(appFrontend.errorReport).should('be.visible');
       cy.get(appFrontend.errorReport).should('contain.text', 'Bruk 4 eller færre tegn');
     });

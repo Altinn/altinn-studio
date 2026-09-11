@@ -43,7 +43,7 @@ public class UserActionResponse
     public List<ClientAction>? ClientActions { get; set; }
 
     /// <summary>
-    /// Validation issues that occured when processing action
+    /// Validation issues that occurred when processing action
     /// </summary>
     [JsonPropertyName("error")]
     public ActionError? Error { get; set; }

@@ -10,7 +10,7 @@
 }
 
 .root:hover .label {
-  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+  background-color: var(--ds-color-accent-surface-hover);
 }
 
 .deleteButton {
@@ -22,9 +22,9 @@
 }
 
 .duplicateComponentIds {
-  background-color: var(--fds-semantic-surface-danger-subtle) !important;
+  background-color: var(--ds-color-danger-surface-tinted) !important;
 }
 
 .deprecatedComponent {
-  background-color: var(--fds-semantic-surface-warning-default);
+  background-color: var(--ds-color-warning-surface-tinted);
 }

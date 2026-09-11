@@ -43,6 +43,7 @@ public class EnqueueSideEffectsWorkflowTests
     private static ProcessEngineCommandContext CreateContext() =>
         new()
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = _instanceId,
             InstanceDataMutator = null!,
@@ -51,10 +52,10 @@ public class EnqueueSideEffectsWorkflowTests
             {
                 CommandKey = EnqueueSideEffectsWorkflow.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 WorkflowId = _mainWorkflowId,
+                StepId = Guid.NewGuid(),
                 State = SignedTestState,
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
 

@@ -56,7 +56,7 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
-  it.each([ComponentType.FileUpload, ComponentType.FileUploadWithTag])(
+  it.each([ComponentType.FileUpload])(
     'should render file upload config when the component type is %s',
     (type) => {
       renderComponentMainConfig(mainConfigComponentMock(type), true);

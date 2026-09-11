@@ -34,7 +34,7 @@ public partial class CreateRepoOption : IEquatable<CreateRepoOption>, IValidatab
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
     /// </summary>
-    /// <param name="autoInit">Whether the repository should be auto-intialized?.</param>
+    /// <param name="autoInit">Whether the repository should be auto-initialized?.</param>
     /// <param name="description">Description of the repository to create.</param>
     /// <param name="gitignores">Gitignores to use.</param>
     /// <param name="license">License to use.</param>
@@ -66,7 +66,7 @@ public partial class CreateRepoOption : IEquatable<CreateRepoOption>, IValidatab
     }
 
     /// <summary>
-    /// Whether the repository should be auto-intialized?
+    /// Whether the repository should be auto-initialized?
     /// </summary>
     [DataMember(Name = "auto_init", EmitDefaultValue = false)]
     public bool? AutoInit { get; set; }

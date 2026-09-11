@@ -112,7 +112,7 @@ def _validate_tool(tool: Tool) -> None:
       - forget to set `name`, `description`, or `input_schema`,
       - shadow a predicate method with a non-callable.
 
-    Cheap to run at registration time, and turns silent mis-wiring into
+    Cheap to run at registration time, and turns silent miswiring into
     a startup error instead of a runtime surprise.
     """
     if not isinstance(tool, Tool):
@@ -123,10 +123,9 @@ def _validate_tool(tool: Tool) -> None:
         raise ValueError(
             f"Tool {type(tool).__name__} is missing required attribute 'name'"
         )
-    # `description` is shown to the model.  Allow empty strings — MCP
-    # wrappers around third-party servers can legitimately ship an
-    # empty description — but the attribute itself must be a string so
-    # the JSON-schema emit doesn't break.
+    # `description` is shown to the model.  Allow empty strings — some
+    # tools can legitimately ship an empty description — but the attribute
+    # itself must be a string so the JSON-schema emit doesn't break.
     if not isinstance(getattr(tool, "description", None), str):
         raise ValueError(
             f"Tool {tool.name!r} is missing required attribute 'description'"

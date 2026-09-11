@@ -1,10 +1,9 @@
-import { Switch } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect, StudioSwitch } from '@studio/components';
 
 export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -32,14 +31,13 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
         renderField={({ fieldProps }) => (
-          <Switch
+          <StudioSwitch
+            data-size='sm'
             {...fieldProps}
             checked={fieldProps.value}
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
-            size='small'
-          >
-            {t('ux_editor.show_icon')}
-          </Switch>
+            label={t('ux_editor.show_icon')}
+          />
         )}
       />
 

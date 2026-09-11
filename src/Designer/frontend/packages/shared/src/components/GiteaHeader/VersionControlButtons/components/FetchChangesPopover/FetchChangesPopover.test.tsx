@@ -8,12 +8,12 @@ import {
   type VersionControlButtonsContextProps,
 } from '../../context';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 const mockGetRepoPull = jest.fn();
 
@@ -65,10 +65,7 @@ describe('fetchChanges', () => {
       },
     });
 
-    const fetchButton = screen.getByRole('button', {
-      name: textMock('sync_header.fetch_changes'),
-    });
-    expect(fetchButton).toHaveTextContent(textMock('sync_header.fetch_changes') + numberOfChanges);
+    expect(screen.getByRole('status')).toHaveAttribute('data-count', String(numberOfChanges));
   });
 
   it('should not render number of changes when displayNotification is true and there are merge conflicts', () => {
@@ -84,13 +81,7 @@ describe('fetchChanges', () => {
       },
     });
 
-    const fetchButton = screen.getByRole('button', {
-      name: textMock('sync_header.fetch_changes'),
-    });
-
-    expect(fetchButton).not.toHaveTextContent(
-      textMock('sync_header.fetch_changes') + numberOfChanges,
-    );
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('should render fetch changes button as disabled when there are merge conflicts', () => {

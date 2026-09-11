@@ -4,7 +4,7 @@
     -e env=*** -e org=*** -e level2app=*** -e pid=*** -e testidppwd=*** -e appsaccesskey=***
 
     Optional:
-    Decide org for instansiation (not take the first one from lookup for parties).
+    Decide org for instantiation (not take the first one from lookup for parties).
     Command: docker-compose run k6 run /src/tests/platform/register/register.js
     -e env=*** -e org=*** -e level2app=*** -e pid=*** -e testidppwd=*** -e appsaccesskey=*** -e instanceOwnerOrgnr=***
 */

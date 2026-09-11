@@ -2,6 +2,6 @@
   align-items: center;
   display: flex;
   flex-direction: row;
-  gap: var(--fds-spacing-4);
-  margin-bottom: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
+  margin-bottom: var(--ds-size-4);
 }

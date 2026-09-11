@@ -30,7 +30,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly CertificateSettings certSettings;
 
         /// <summary>
-        /// Initialise a new instance of <see cref="OpenIdController"/> with the given input values.
+        /// Initialize a new instance of <see cref="OpenIdController"/> with the given input values.
         /// </summary>
         /// <param name="generalSettings">The application general settings.</param>
         /// <param name="certSettings">The settings section for certificate information.</param>
@@ -114,14 +114,22 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             if (string.IsNullOrEmpty(keyVaultSettings.ClientId) || string.IsNullOrEmpty(keyVaultSettings.ClientSecret))
             {
-                return new X509Certificate2(certSettings.CertificatePath, certSettings.CertificatePwd);
+                return X509CertificateLoader.LoadPkcs12FromFile(
+                    certSettings.CertificatePath,
+                    certSettings.CertificatePwd,
+                    X509KeyStorageFlags.DefaultKeySet
+                );
             }
 
             KeyVaultClient client = KeyVaultSettings.GetClient(keyVaultSettings.ClientId, keyVaultSettings.ClientSecret);
             CertificateBundle certificate = client.GetCertificateAsync(keyVaultSettings.SecretUri, certSettings.CertificateName).GetAwaiter().GetResult();
             SecretBundle secret = client.GetSecretAsync(certificate.SecretIdentifier.Identifier).GetAwaiter().GetResult();
             byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-            return new X509Certificate2(pfxBytes);
+            return X509CertificateLoader.LoadPkcs12(
+                pfxBytes,
+                password: null,
+                X509KeyStorageFlags.DefaultKeySet
+            );
         }
 
         private static List<string> ExportChain(X509Certificate2 cert)

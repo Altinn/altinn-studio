@@ -15,6 +15,7 @@ export interface CreateBranchDialogProps {
   onClose: () => void;
   onCreateBranch: (name: string) => void;
   currentBranch: string;
+  existingBranchNames: string[];
   createError: string;
   isLoading: boolean;
 }
@@ -24,6 +25,7 @@ export const CreateBranchDialog = ({
   onClose,
   onCreateBranch,
   currentBranch,
+  existingBranchNames,
   createError,
   isLoading,
 }: CreateBranchDialogProps) => {
@@ -37,20 +39,17 @@ export const CreateBranchDialog = ({
     onClose();
   };
 
-  const handleCreateBranch = () => {
-    const validationResult = BranchNameValidator.validate(newBranchName);
-
-    if (!validationResult.isValid) {
-      setValidationError(t(validationResult.errorKey));
-      return;
-    }
-
-    onCreateBranch(newBranchName);
+  const handleNameChange = (name: string) => {
+    setNewBranchName(name);
+    const validationResult = BranchNameValidator.validate(name, existingBranchNames);
+    setValidationError(validationResult.isValid ? '' : t(validationResult.errorKey));
   };
 
   const createButtonText = isLoading
     ? t('general.loading')
     : t('branching.new_branch_dialog.create');
+
+  const isCreateButtonEnabled = Boolean(newBranchName) && !validationError && !isLoading;
 
   return (
     <StudioDialog open={isOpen} onClose={handleClose} data-color-scheme='light'>
@@ -69,14 +68,17 @@ export const CreateBranchDialog = ({
         <StudioTextfield
           label={t('branching.new_branch_dialog.branch_name_label')}
           value={newBranchName}
-          onChange={(e) => setNewBranchName(e.target.value)}
+          onChange={(e) => handleNameChange(e.target.value)}
           placeholder={t('branching.new_branch_dialog.branch_name_placeholder')}
           error={validationError || createError}
           disabled={isLoading}
         />
         <StudioParagraph>{t('branching.new_branch_dialog.hint')}</StudioParagraph>
         <div className={classes.buttons}>
-          <StudioButton onClick={handleCreateBranch} disabled={isLoading}>
+          <StudioButton
+            onClick={() => onCreateBranch(newBranchName)}
+            disabled={!isCreateButtonEnabled}
+          >
             {createButtonText}
           </StudioButton>
           <StudioButton variant='secondary' onClick={handleClose}>

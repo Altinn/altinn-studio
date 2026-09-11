@@ -11,14 +11,12 @@ export const routes = {
   instanceSelection: 'instance-selection',
   partySelection: 'party-selection',
   partySelectionCatchAll: 'party-selection/*',
-  partySelectionLegacy: 'partyselection',
   partySelectionLegacyCatchAll: 'partyselection/*',
   statelessPage: ':pageKey',
   instance: 'instance/:instanceOwnerPartyId/:instanceGuid',
   processEnd: `instance/:instanceOwnerPartyId/:instanceGuid/${TaskKeys.ProcessEnd}`,
   task: ':taskId',
   page: ':pageKey',
-  component: ':componentId',
   componentCatchAll: ':componentId/*',
 } as const;
 

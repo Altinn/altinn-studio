@@ -7,23 +7,41 @@ import {
   StudioHeading,
   StudioTextarea,
 } from '@studio/components';
-import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
+import {
+  ThumbDownIcon,
+  ThumbUpIcon,
+  ThumbDownFillIcon,
+  ThumbUpFillIcon,
+  PaperplaneFillIcon,
+  XMarkIcon,
+} from '@studio/icons';
 import type { MessageFeedbackTexts } from '../../../../../types/AssistantTexts';
 import type { FeedbackPayload } from '../../../../../types/UserFeedback';
 import classes from './MessageFeedback.module.css';
 
 export type MessageFeedbackProps = {
   texts: MessageFeedbackTexts;
+  currentVote?: boolean;
   onSubmit: (payload: FeedbackPayload) => void;
+  onClear?: () => void;
 };
 
-export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): ReactElement {
+export function MessageFeedback({
+  texts,
+  currentVote,
+  onSubmit,
+  onClear,
+}: MessageFeedbackProps): ReactElement {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedVote, setSelectedVote] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
   const commentPlaceholder = selectedVote === true ? texts.thumbsUp : texts.thumbsDown;
 
   const handleVoteClick = (vote: boolean): void => {
+    if (currentVote === vote && onClear) {
+      onClear();
+      return;
+    }
     setSelectedVote(vote);
     setIsDialogOpen(true);
   };
@@ -52,17 +70,21 @@ export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): Reac
           variant='tertiary'
           data-size='sm'
           aria-label={texts.thumbsUp}
-          title={texts.thumbsUp}
+          aria-pressed={currentVote === true}
+          title={currentVote === true ? texts.clear : texts.thumbsUp}
+          className={currentVote === true ? classes.selectedVote : undefined}
           onClick={() => handleVoteClick(true)}
-          icon={<ThumbUpIcon />}
+          icon={currentVote === true ? <ThumbUpFillIcon /> : <ThumbUpIcon />}
         />
         <StudioButton
           variant='tertiary'
           data-size='sm'
           aria-label={texts.thumbsDown}
-          title={texts.thumbsDown}
+          aria-pressed={currentVote === false}
+          title={currentVote === false ? texts.clear : texts.thumbsDown}
+          className={currentVote === false ? classes.selectedVote : undefined}
           onClick={() => handleVoteClick(false)}
-          icon={<ThumbDownIcon />}
+          icon={currentVote === false ? <ThumbDownFillIcon /> : <ThumbDownIcon />}
         />
       </div>
 

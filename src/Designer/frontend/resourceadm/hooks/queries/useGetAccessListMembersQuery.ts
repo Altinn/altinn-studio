@@ -7,7 +7,7 @@ import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 /**
  * Query to get paginated members of access list
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param resourceId the identifier of the resource
  * @param env the chosen environment
  *

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -10,7 +11,6 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const countries: IRawOption[] = [
@@ -125,8 +125,8 @@ describe('DropdownComponent', () => {
     const { fetchOptions } = await render({
       component: {
         optionsId: 'countries',
-        mapping: {
-          myInput: 'queryArg',
+        queryParameters: {
+          queryArg: ['dataModel', 'myInput'],
         },
       },
       waitUntilLoaded: false,
@@ -142,7 +142,7 @@ describe('DropdownComponent', () => {
     await userEvent.click(await screen.findByRole('combobox'));
     await screen.findByRole('option', { name: /denmark/i });
 
-    // The component always finishes loading the first time, but if we have mapping that affects the options
+    // The component always finishes loading the first time, but if we have query parameters that affect the options
     // the component renders a spinner for a while when fetching the options again.
     await userEvent.type(screen.getByTestId('my-input'), 'test');
 

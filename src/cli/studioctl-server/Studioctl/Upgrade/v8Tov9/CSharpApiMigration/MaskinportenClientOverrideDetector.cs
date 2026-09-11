@@ -12,7 +12,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// (<c>RegisterCustomAppServices</c> precedes <c>AddAltinnAppServices</c> in the app template), so a call
 /// with a custom section path or a configuration lambda wins and the provisioned credentials are never
 /// read. The App backend's own <c>ConfigureMaskinportenClient_OverridesDefaultMaskinportenConfiguration</c>
-/// test pins exactly that behaviour.
+/// test pins exactly that behavior.
 /// </para>
 /// <para>
 /// In v8 that was harmless - nothing else used the client. In v9 it is not: the same default

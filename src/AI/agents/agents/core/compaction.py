@@ -3,7 +3,7 @@
 Two mechanisms, ordered from cheapest to most aggressive:
 
 1.  **Per-result cap** — every tool_result is truncated to a hard char
-    limit when it lands in the message list.  Prevents one giant MCP
+    limit when it lands in the message list.  Prevents one giant tool
     response (e.g. a full layout dump) from dominating the window.
 2.  **History compaction** — when the cumulative message size crosses a
     threshold, the oldest tool_results are replaced with a single digest

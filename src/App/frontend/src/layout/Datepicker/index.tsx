@@ -69,7 +69,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
 
   /**
    * Datepicker has a custom format validation which give a better error message than what the schema provides.
-   * Filter out the schema format vaildation to avoid duplicate error messages.
+   * Filter out the schema format validation to avoid duplicate error messages.
    */
   private static schemaFormatFilter(validation: BaseValidation): boolean {
     return !(

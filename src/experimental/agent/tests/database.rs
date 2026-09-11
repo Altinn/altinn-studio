@@ -1,0 +1,492 @@
+#![allow(clippy::expect_used)]
+
+mod support;
+
+use std::path::{Path, PathBuf};
+
+use agent::{
+    AgentId, Condition, ConditionStatus, Error, Status,
+    control_plane::{AgentRecord, AgentStore as _},
+    persistence,
+    sandbox::{Assignment, ProviderId},
+    sessions::{Lifecycle, SessionName, SessionReports as _, SessionStore as _},
+};
+use sandbox::secret_store::SecretStore as _;
+use tempfile::TempDir;
+use tokio::runtime::LocalRuntime;
+
+fn test_agent_id() -> AgentId {
+    "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID")
+}
+
+fn record_with_id(name: &str, generation: u64, id: AgentId) -> AgentRecord {
+    let mut agent = support::agent(name);
+    agent.metadata.generation = generation;
+    AgentRecord {
+        id,
+        source_directory: PathBuf::from("/source"),
+        manifest_path: None,
+        env_file: None,
+        agent,
+    }
+}
+
+fn record(name: &str, generation: u64) -> AgentRecord {
+    record_with_id(name, generation, test_agent_id())
+}
+
+fn ready_record(name: &str, id: AgentId) -> AgentRecord {
+    let mut ready = record_with_id(name, 1, id);
+    ready.agent.status = Status::observed(
+        1,
+        Some(Assignment::Materialized {
+            provider: ProviderId::new("memory").expect("Provider ID"),
+            id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
+        }),
+        vec![Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::True,
+            reason: "SandboxReady".into(),
+            message: String::new(),
+        }],
+    );
+    ready
+}
+
+#[test]
+fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let mut record = ready_record("worker", test_agent_id());
+        record.manifest_path = Some(PathBuf::from("/source/worker.yml"));
+        record.agent.status.provenance = Some(agent::Provenance {
+            source_directory: PathBuf::from("/leaked"),
+            manifest_path: None,
+            env_file: None,
+        });
+        store.put(record.clone(), 0).await.expect("Agent stored");
+
+        let stored = store.get(record.id).await.expect("Agent loaded");
+        assert_eq!(stored.agent.status.provenance, None);
+        assert_eq!(stored.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
+        assert_eq!(stored.source_directory, record.source_directory);
+
+        let mut status = stored.agent.status.clone();
+        status.provenance = Some(agent::Provenance {
+            source_directory: PathBuf::from("/leaked"),
+            manifest_path: None,
+            env_file: None,
+        });
+        store
+            .update_status(record.id, stored.agent.metadata.generation, status)
+            .await
+            .expect("status updated");
+        let reloaded = store.get(record.id).await.expect("Agent reloaded");
+        assert_eq!(reloaded.agent.status.provenance, None);
+        assert_eq!(reloaded.agent.status.conditions, stored.agent.status.conditions);
+        assert_eq!(reloaded.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
+        assert_eq!(reloaded.source_directory, record.source_directory);
+    });
+}
+
+#[test]
+fn sessions_are_idempotent_and_survive_database_reopen() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let first = persistence::Database::open(&path).expect("open first database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let ready = ready_record("worker", test_agent_id());
+        first.put(ready, 0).await.expect("ready Agent");
+        let name = SessionName::new("s1").expect("session name");
+        let created = first
+            .ensure_session("worker", &name, agent::Harness::ClaudeCode, Some("first prompt"))
+            .await
+            .expect("create session");
+        let existing = first
+            .ensure_session(
+                "worker",
+                &name,
+                agent::Harness::ClaudeCode,
+                Some("ignored: not created here"),
+            )
+            .await
+            .expect("get session");
+        assert_eq!(created.agent_id, test_agent_id());
+        assert_eq!(created.harness, agent::Harness::ClaudeCode);
+        assert_eq!(created, existing);
+        first
+            .update_session_lifecycle(created.id, Lifecycle::running(), 0)
+            .await
+            .expect("persist observed state");
+    });
+    drop(first);
+
+    let second = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let sessions = second.list_agent_sessions("worker").await.expect("persistent sessions");
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(sessions[0].name.as_str(), "s1");
+        assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
+        assert_eq!(
+            sessions[0].status.lifecycle.state,
+            agent::sessions::LifecycleState::Running
+        );
+        assert_eq!(
+            rusqlite::Connection::open(&path)
+                .expect("read database")
+                .query_row(
+                    "SELECT initial_prompt FROM sessions WHERE id = ?1",
+                    [sessions[0].id.to_string()],
+                    |row| row.get::<_, Option<String>>(0)
+                )
+                .expect("initial prompt")
+                .as_deref(),
+            Some("first prompt"),
+            "the first prompt is recorded once, at creation"
+        );
+        assert_eq!(
+            second
+                .get_agent_session("worker", &SessionName::new("s1").expect("Session name"))
+                .await
+                .expect("named Session"),
+            sessions[0]
+        );
+    });
+}
+
+#[test]
+fn attach_error_identifies_the_session_and_its_lifecycle_failure() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("ready Agent");
+        let session = store
+            .ensure_session(
+                "worker",
+                &SessionName::new("recovering").expect("Session name"),
+                agent::Harness::Codex,
+                None,
+            )
+            .await
+            .expect("Session");
+        store
+            .update_session_lifecycle(
+                session.id,
+                Lifecycle::starting("harness exited; relaunching after up to 10s of backoff"),
+                1,
+            )
+            .await
+            .expect("lifecycle");
+
+        assert_eq!(
+            store
+                .session_attach_target(session.id)
+                .await
+                .expect_err("Session is not running")
+                .to_string(),
+            "invalid Agent: Session \"recovering\" is not running: harness exited; relaunching after up to 10s of backoff"
+        );
+    });
+}
+
+#[test]
+fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reused() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    let old_id = "f9fc2dac-ae2d-4534-a9c1-dd13dd9b5160".parse().expect("old Agent ID");
+    let new_id = "f50fbec8-03a9-43ea-b65d-c15a86e9eb65".parse().expect("new Agent ID");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store.put(ready_record("worker", old_id), 0).await.expect("old Agent");
+        let old_session = SessionName::new("old-session").expect("session name");
+        store
+            .ensure_session("worker", &old_session, agent::Harness::ClaudeCode, None)
+            .await
+            .expect("old session");
+        store.mark_deleting("worker").await.expect("mark deleting");
+        store.finalize_deletion(old_id, 1).await.expect("finalize deletion");
+        assert!(matches!(store.get(old_id).await, Err(Error::NotFound)));
+
+        store
+            .put(ready_record("worker", new_id), 0)
+            .await
+            .expect("new Agent incarnation");
+        let sessions = store.list_agent_sessions("worker").await.expect("new Agent sessions");
+        assert!(sessions.is_empty());
+    });
+    drop(store);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM agents", [], |row| row.get::<_, i64>(0))
+            .expect("Agent count"),
+        2
+    );
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get::<_, i64>(0))
+            .expect("session count"),
+        1
+    );
+}
+
+#[test]
+fn incompatible_schema_requires_an_explicit_purge() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create incompatible database");
+    connection
+        .execute_batch("CREATE TABLE agents (name TEXT PRIMARY KEY NOT NULL, record_json TEXT NOT NULL);")
+        .expect("incompatible schema");
+    drop(connection);
+
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("incompatible schema should not be migrated");
+    };
+    assert!(error.to_string().contains("purge the Agent home"));
+}
+
+#[test]
+fn secret_material_is_persistent_and_replaced_by_name() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let first = persistence::Database::open(&path).expect("open first database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        first.set("claude-access", b"first").await.expect("store secret");
+    });
+    drop(first);
+
+    let second = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let reference = second.set("claude-access", b"second").await.expect("replace secret");
+        let material = second.resolve(&reference).await.expect("resolve secret");
+        assert_eq!(material.expose(), b"second");
+    });
+}
+
+#[test]
+fn finalizing_an_agent_removes_only_its_scoped_secret_material() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let id = test_agent_id();
+        store.put(record("worker", 1), 0).await.expect("Agent");
+        let agent_secret = store
+            .set(&format!("agent/{id}/github-token"), b"github-secret")
+            .await
+            .expect("Agent secret");
+        let provider_secret = store
+            .set("claude-access-token", b"claude-secret")
+            .await
+            .expect("provider secret");
+
+        store.mark_deleting("worker").await.expect("mark deleting");
+        store.finalize_deletion(id, 1).await.expect("finalize deletion");
+
+        assert!(store.resolve(&agent_secret).await.is_err());
+        assert_eq!(
+            store
+                .resolve(&provider_secret)
+                .await
+                .expect("provider secret remains")
+                .expose(),
+            b"claude-secret"
+        );
+    });
+}
+
+#[test]
+fn agent_records_survive_reopen_and_preserve_compare_and_swap() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let first = persistence::Database::open(&path).expect("open first database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        first
+            .put(record("worker", 1), 0)
+            .await
+            .expect("insert first generation");
+        let error = first
+            .put(record("worker", 2), 0)
+            .await
+            .expect_err("duplicate create should conflict");
+        assert!(matches!(error, Error::Conflict));
+    });
+    drop(first);
+
+    let second = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        assert_eq!(
+            second.get(test_agent_id()).await.expect("persistent record"),
+            record("worker", 1)
+        );
+        second.put(record("worker", 2), 1).await.expect("compare and swap");
+        let error = second
+            .update_status(test_agent_id(), 1, Status::default())
+            .await
+            .expect_err("stale status should conflict");
+        assert!(matches!(error, Error::Conflict));
+    });
+}
+
+#[test]
+fn desired_state_cannot_change_after_deletion_starts() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store.put(record("worker", 1), 0).await.expect("Agent");
+        let mut stale = store.get_by_name("worker").await.expect("stale desired state");
+        store.mark_deleting("worker").await.expect("mark deleting");
+
+        stale.agent.metadata.generation = 2;
+        let error = store
+            .put(stale, 1)
+            .await
+            .expect_err("deleting Agent must reject desired-state updates");
+        assert!(matches!(error, Error::Conflict));
+        assert!(
+            store
+                .get_by_name("worker")
+                .await
+                .expect("deleting Agent")
+                .agent
+                .metadata
+                .deletion_timestamp
+                .is_some()
+        );
+    });
+}
+
+#[tokio::test(flavor = "local")]
+async fn initial_prompt_consumption_and_launch_record_commit_together() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("agent.db");
+    let database = persistence::Database::open(&path).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+            Some("once"),
+        )
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    let launch = agent::sessions::LaunchRecord {
+        token: token.clone(),
+        sandbox: "sandbox-1".into(),
+        launched_at: 0,
+        attempts: 1,
+    };
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    inspect.execute_batch("CREATE TRIGGER reject_consumption AFTER UPDATE OF initial_prompt ON sessions WHEN OLD.initial_prompt IS NOT NULL AND NEW.initial_prompt IS NULL BEGIN SELECT RAISE(ABORT, 'injected consumption failure'); END;").expect("inject failure");
+    database
+        .record_session_launch(session.id, launch.clone())
+        .await
+        .expect_err("consumption failure");
+    assert_eq!(
+        database.session_launch_state(session.id).await.expect("state"),
+        None,
+        "failed consumption rolls back launch bookkeeping"
+    );
+    inspect
+        .execute_batch("DROP TRIGGER reject_consumption;")
+        .expect("remove failure");
+    assert_eq!(
+        database
+            .record_session_launch(session.id, launch.clone())
+            .await
+            .expect("consume"),
+        Some("once".into()),
+        "failed transaction did not consume the prompt"
+    );
+    drop(database);
+    let reopened = persistence::Database::open(&path).expect("reopen");
+    assert_eq!(
+        reopened
+            .record_session_launch(session.id, launch)
+            .await
+            .expect("relaunch"),
+        None,
+        "recovery after a crash never replays the prompt"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
+    use agent::sessions::{ActivityEvent, LaunchRecord};
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("agent.db");
+    let database = persistence::Database::open(&path).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+            None,
+        )
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+    let event_id = uuid::Uuid::new_v4();
+    let at = time::OffsetDateTime::now_utc();
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    inspect.execute_batch("CREATE TRIGGER reject_activity BEFORE UPDATE OF activity_json ON sessions BEGIN SELECT RAISE(ABORT, 'injected fold failure'); END;").expect("inject failure");
+    database
+        .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+        .await
+        .expect_err("fold failure");
+    inspect
+        .execute_batch("DROP TRIGGER reject_activity;")
+        .expect("remove failure");
+    let activity = database
+        .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+        .await
+        .expect("retry")
+        .expect("applied");
+    assert_eq!(activity.turns, 1, "rolled-back receipt must not suppress the retry");
+    drop(database);
+    let reopened = persistence::Database::open(&path).expect("reopen");
+    assert_eq!(
+        reopened
+            .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+            .await
+            .expect("lost response retry"),
+        None
+    );
+    assert_eq!(
+        reopened
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .reported
+            .activity,
+        activity,
+        "duplicate does not change count, phase, or timestamp"
+    );
+}

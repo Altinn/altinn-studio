@@ -50,7 +50,7 @@ public class EmailNotificationOrdersController : ControllerBase
     /// Add an email notification order.
     /// </summary>
     /// <remarks>
-    /// The API will accept the request after som basic validation of the request.
+    /// The API will accept the request after some basic validation of the request.
     /// The system will also attempt to verify that it will be possible to fulfill the order.
     /// </remarks>
     /// <returns>The id of the registered notification order</returns>

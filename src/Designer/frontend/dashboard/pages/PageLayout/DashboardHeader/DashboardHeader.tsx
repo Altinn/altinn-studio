@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar, StudioPageHeader } from '@studio/components';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';

@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
 import classes from './ImagesPage.module.css';
-import { Alert } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading, StudioAlert } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { InfoBox } from '../../../components/InfoBox';
 import { PageName } from '../../../types/PageName';
@@ -28,7 +27,7 @@ export function ImagesPage({ images, onUpdateImage }: ImagesPageProps): ReactEle
       </StudioHeading>
       {noExistingImages ? (
         <div className={classes.noImagesWrapper}>
-          <Alert size='small'>{t('app_content_library.images.coming_soon')}</Alert>
+          <StudioAlert data-size='sm'>{t('app_content_library.images.coming_soon')}</StudioAlert>
           <InfoBox pageName={PageName.Images} />
         </div>
       ) : (

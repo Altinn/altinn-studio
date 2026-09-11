@@ -47,10 +47,10 @@ export class GiteaPage extends BasePage {
       .click();
   }
 
-  public async clickOnLayoutSetsFolder(): Promise<void> {
-    await this.getRepoFilesTable()
-      .getByRole('link', { name: giteaPageTexts['layoutSetFolderName'] })
-      .click();
+  public async clickOnLayoutSetsFolder(
+    layoutSetFolderName: string = giteaPageTexts['layoutSetFolderName'],
+  ): Promise<void> {
+    await this.getRepoFilesTable().getByRole('link', { name: layoutSetFolderName }).click();
   }
 
   public async clickOnLayoutsFilesFolder(): Promise<void> {

@@ -46,6 +46,8 @@ distinctEnvironmentVariables:
       value: "10.48.0.0/20"
     - name: GITEA__service__USER_DISABLED_FEATURES
       value: change_username
+    - name: GITEA__mailer__USER
+      value: gitea-dev
   staging:
     - name: GITEA____RUN_MODE
       value: test
@@ -70,6 +72,8 @@ distinctEnvironmentVariables:
       value: "10.48.0.0/20"
     - name: GITEA__service__USER_DISABLED_FEATURES
       value: change_username
+    - name: GITEA__mailer__USER
+      value: gitea-staging
   prod:
     - name: ALTINN_STUDIO_DOMAIN
       value: altinn.studio
@@ -98,6 +102,8 @@ distinctEnvironmentVariables:
       value: "10.48.0.0/20"
     - name: GITEA__service__USER_DISABLED_FEATURES
       value: change_username
+    - name: GITEA__mailer__USER
+      value: gitea-prod
 
 environmentVariables:
   - name: USER_UID
@@ -116,10 +122,16 @@ environmentVariables:
     value: "100"
   - name: GITEA__mailer__ENABLED
     value: "true"
-  - name: GITEA__mailer__SKIP_VERIFY
-    value: "true"
-  - name: GITEA__mailer__REGISTER_EMAIL_CONFIRM
-    value: "true"
+  - name: GITEA__mailer__PROTOCOL
+    value: smtp+starttls
+  - name: GITEA__mailer__SMTP_ADDR
+    value: smtp.azurecomm.net
+  - name: GITEA__mailer__SMTP_PORT
+    value: "587"
+  - name: GITEA__mailer__FROM
+    value: Altinn Studio <studio@altinn.no>
+  - name: GITEA__mailer__FORCE_TRUST_SERVER_CERT
+    value: "false"
   - name: GITEA__service__ENABLE_NOTIFY_MAIL
     value: "true"
 

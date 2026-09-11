@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm@sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b
+FROM python:3.14-slim-bookworm@sha256:9ab8d9c8514b44f90cf0029dd42fdd7e9e211e639c8b995304cc04568dee900f
 
 WORKDIR /app
 
@@ -10,6 +10,9 @@ RUN git config --system user.name "Altinity Agent" && \
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
+
+RUN pip install --no-cache-dir "playwright>=1.49.0" && \
+    playwright install --with-deps chromium
 
 COPY agents/ ./agents/
 COPY api/ ./api/

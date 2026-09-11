@@ -1,7 +1,8 @@
 # Keep src/ build context minimal for gateway image.
 **
-!common/Altinn.Studio.Runtime.Common.csproj
-!common/src/**
+!common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
+!common/dotnet/Altinn.Studio.Common/.editorconfig
+!common/dotnet/Altinn.Studio.Common/src/**
 !Runtime/gateway/Directory.Packages.props
 !Runtime/gateway/src/Altinn.Studio.Gateway.Api/**
 !Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/**

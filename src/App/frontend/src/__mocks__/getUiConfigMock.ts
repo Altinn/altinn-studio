@@ -1,5 +1,6 @@
+import type { ILayoutSettings } from '@app/layout-contract/generated/common.generated';
+
 import type { GlobalPageSettings, UiConfig } from 'src/features/form/ui/types';
-import type { ILayoutSettings } from 'src/layout/common.generated';
 
 export const defaultDataTypeMock = 'test-data-model';
 export const statelessDataTypeMock = 'stateless';

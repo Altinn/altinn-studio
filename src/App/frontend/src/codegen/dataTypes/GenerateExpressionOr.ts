@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -43,8 +44,8 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
-    CodeGeneratorContext.curFile().addImport('ExprVal', 'src/features/expressions/types');
-    CodeGeneratorContext.curFile().addImport('ExprValToActualOrExpr', 'src/features/expressions/types');
+    CodeGeneratorContext.curFile().addImport('ExprVal', '@app/layout-contract');
+    CodeGeneratorContext.curFile().addImport('ExprValToActualOrExpr', '@app/layout-contract');
     return symbol ? `type ${symbol} = ${toTsMap[this.valueType]};` : toTsMap[this.valueType];
   }
 
@@ -53,5 +54,23 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
       ...this.getInternalJsonSchema(),
       ...toSchemaMap[this.valueType],
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    const definitions: Record<ExprVal, PropertyValueDefinition> = {
+      [ExprVal.Any]: { type: 'any', expression: true },
+      [ExprVal.Boolean]: { type: 'boolean', expression: true },
+      [ExprVal.Number]: { type: 'number', expression: true },
+      [ExprVal.String]: { type: 'string', expression: true },
+      [ExprVal.Date]: { type: 'date', expression: true },
+      [ExprVal.List]: { type: 'array', expression: true, items: { type: 'any' } },
+      [ExprVal.Object]: {
+        type: 'object',
+        expression: true,
+        properties: {},
+        additionalProperties: { type: 'any' },
+      },
+    };
+    return { ...definitions[this.valueType], ...this.componentCatalogMetadata() };
   }
 }

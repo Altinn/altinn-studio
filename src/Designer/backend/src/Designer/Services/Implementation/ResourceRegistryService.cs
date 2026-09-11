@@ -376,9 +376,9 @@ public class ResourceRegistryService : IResourceRegistry
             return new StatusCodeResult(412);
         }
         response.EnsureSuccessStatusCode();
-        AccessList resonseContent = await response.Content.ReadAsAsync<AccessList>();
-        resonseContent.Etag = response.Headers.ETag?.ToString();
-        return resonseContent;
+        AccessList responseContent = await response.Content.ReadAsAsync<AccessList>();
+        responseContent.Etag = response.Headers.ETag?.ToString();
+        return responseContent;
     }
 
     public async Task<ActionResult> AddAccessListMembers(

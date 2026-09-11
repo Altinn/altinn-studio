@@ -23,7 +23,7 @@ using Microsoft.Net.Http.Headers;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Controller containing all actions related to data modelling
+/// Controller containing all actions related to data modeling
 /// </summary>
 [ApiController]
 [Authorize]
@@ -174,7 +174,7 @@ public class DatamodelsController : ControllerBase
     /// Upload an XSD.
     /// </summary>
     /// <remarks>
-    /// This operation will use the new data modelling library to convert the XSD into a JSON schema,
+    /// This operation will use the new data modeling library to convert the XSD into a JSON schema,
     /// metadata model and C# class.
     /// </remarks>
     /// <param name="org">The short name of the application owner.</param>

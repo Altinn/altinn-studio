@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -22,6 +23,14 @@ namespace Designer.Tests.Controllers.RepositoryController;
 public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
+    private readonly Mock<IAppTemplateCatalog> _appTemplateCatalogMock = new Mock<IAppTemplateCatalog>();
+
+    private static readonly AppTemplate s_defaultAppTemplate = new()
+    {
+        Id = "v8",
+        DisplayName = "Altinn App v8",
+        RootPath = "/templates/v8/src",
+    };
     private static string VersionPrefix => "/designer/api/repos";
 
     public CreateAppTests(WebApplicationFactory<Program> factory)
@@ -32,6 +41,10 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _repositoryMock.Object);
+
+        _appTemplateCatalogMock.Setup(c => c.GetAppTemplates()).Returns([s_defaultAppTemplate]);
+        _appTemplateCatalogMock.Setup(c => c.GetDefaultAppTemplate()).Returns(s_defaultAppTemplate);
+        services.AddSingleton(_ => _appTemplateCatalogMock.Object);
     }
 
     [Fact]
@@ -71,7 +84,8 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
                 r.CreateService(
                     It.IsAny<string>(),
                     It.IsAny<ServiceConfiguration>(),
-                    It.IsAny<List<CustomTemplateReference>>()
+                    It.IsAny<List<CustomTemplateReference>>(),
+                    It.IsAny<AppTemplate>()
                 )
             )
             .ReturnsAsync(
@@ -115,7 +129,8 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
                 r.CreateService(
                     It.IsAny<string>(),
                     It.IsAny<ServiceConfiguration>(),
-                    It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template")
+                    It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template"),
+                    It.IsAny<AppTemplate>()
                 )
             )
             .ReturnsAsync(
@@ -159,7 +174,8 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
                 r.CreateService(
                     It.IsAny<string>(),
                     It.IsAny<ServiceConfiguration>(),
-                    It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template")
+                    It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template"),
+                    It.IsAny<AppTemplate>()
                 )
             )
             .ThrowsAsync(CustomTemplateException.ValidationFailed("Template validation failed", []));

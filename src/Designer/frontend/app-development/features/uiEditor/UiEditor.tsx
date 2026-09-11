@@ -3,7 +3,7 @@ import { SubApp as UiEditorV4 } from '@altinn/ux-editor-v4/SubApp';
 import { SubApp as UiEditorV3 } from '@altinn/ux-editor-v3/SubApp';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
-import { usePreviewContext } from '../../contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';

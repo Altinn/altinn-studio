@@ -40,6 +40,69 @@ internal sealed partial class EngineRepository
     private static readonly Func<NpgsqlConnection, IEnumerable<(Guid, Guid)>, CancellationToken, Task> _insertLinks =
         SqlBulkInserter.CreateForJoinTable("workflow_link", "workflow_id", "linked_workflow_id", SchemaNames.Engine);
 
+    // The FetchAndLockWorkflows SQL. One compile-time constant — which is what CA2100 demands of
+    // raw command texts; runtime values arrive as the @now/@count/@throttle_gate parameters.
+    //
+    // The throttle gate is always present in the query and switched off by @throttle_gate rather
+    // than compiled out into a second variant, so there is a single query to read here. Disabled,
+    // the gate short-circuits before throttled_until is consulted, so the column has no bearing
+    // on which rows are fetched — including any a previously-enabled run had parked. Planning is
+    // unaffected in the normal case: parameter values are bound per execution, so the planner
+    // folds NOT @throttle_gate away and both settings produce the plan the ungated query did
+    // (QueryPlanTests pins both). Only a generic plan would carry the predicate as a residual
+    // filter, which is the small, deliberate cost of having one query instead of two.
+    //
+    // Like the backoff gate, the throttle gate is bypassed by a pending cancellation, and for the
+    // same reason — see the invariant RequestCancellation documents: promptness comes from this
+    // gate, not from the clearing it does, and it never clears throttled_until. Throttle windows
+    // run to MaxWindow (an hour by default) rather than a retry backoff's minutes, so without the
+    // bypass a cancelled workflow would sit unleased — invisible to watcher and sweep alike — for
+    // far longer than the case the backoff bypass was written to prevent. It costs the throttled
+    // namespace nothing: the handler cancels a flagged workflow before executing anything, so the
+    // fetch issues no downstream call. (The dependency gate stays un-bypassed for the planner
+    // reason below; a column comparison on the same row carries no such cost.)
+    private const string FetchAndLockSql = $"""
+        WITH ready AS (
+            SELECT w.id
+            FROM engine.workflows w
+            WHERE w.status IN ({PersistentItemStatusMap.FetchableSqlList})
+              AND (
+                w.backoff_until IS NULL
+                OR w.backoff_until <= @now
+                OR w.cancellation_requested_at IS NOT NULL
+              )
+              AND (
+                NOT @throttle_gate
+                OR w.throttled_until IS NULL
+                OR w.throttled_until <= @now
+                OR w.cancellation_requested_at IS NOT NULL
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM engine.workflow_dependency wd
+                  JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
+                  WHERE wd.workflow_id = w.id
+                    AND dep.status NOT IN ({PersistentItemStatusMap.FinishedSqlList})
+              )
+            ORDER BY w.backoff_until NULLS FIRST, w.created_at
+            FOR UPDATE SKIP LOCKED
+            LIMIT @count
+        ),
+        updated AS (
+            UPDATE engine.workflows w
+            SET status       = {PersistentItemStatusMap.ProcessingSqlLiteral},
+                updated_at   = @now,
+                heartbeat_at = @now,
+                lease_token  = gen_random_uuid()
+            FROM ready r
+            WHERE w.id = r.id
+            RETURNING w.id
+        )
+        SELECT id AS "Value" FROM updated
+        """;
+
+    // Engine configuration is restart-only, so the gate is read once.
+    private readonly bool _throttleGate = settings.Value.Throttling.Enabled;
+
     /// <inheritdoc/>
     public async Task UpdateWorkflow(
         Workflow workflow,
@@ -66,7 +129,9 @@ internal sealed partial class EngineRepository
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
                                     .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
+                                    .SetProperty(t => t.ExecutionStartedAt, workflow.ExecutionStartedAt)
                                     .SetProperty(t => t.BackoffUntil, workflow.BackoffUntil)
+                                    .SetProperty(t => t.ThrottledUntil, workflow.ThrottledUntil)
                                     .SetProperty(t => t.EngineTraceContext, workflow.EngineTraceContext),
                             ct
                         );
@@ -110,6 +175,7 @@ internal sealed partial class EngineRepository
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
                                     .SetProperty(t => t.StateOut, step.StateOut)
                                     .SetProperty(t => t.UpdatedAt, step.UpdatedAt)
+                                    .SetProperty(t => t.ExecutionStartedAt, step.ExecutionStartedAt)
                                     .SetProperty(t => t.EngineTraceContext, step.EngineTraceContext),
                             ct
                         );
@@ -171,17 +237,47 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
+            // The first act on mailbox state, and only for genuinely new requests: a replay consumes no position,
+            // and locking for one would stall the rest of the flush.
+            var mailboxes = await LockAndReadMailboxes(conn, requests, newRequestIndices, cancellationToken);
+
+            var receiverPlan = PlanMailboxReceivers(
+                requests,
+                newRequestIndices,
+                bulkInsertData,
+                mailboxes,
+                results,
+                cancellationToken
+            );
+
+            if (receiverPlan.RejectedRequestIndices.Count > 0)
+            {
+                await ReleaseIdempotencyKeys(conn, requests, receiverPlan.RejectedRequestIndices, cancellationToken);
+            }
+
             await BulkCopyNewWorkflows(conn, newRequestIndices, bulkInsertData, cancellationToken);
 
             await ProcessCollections(conn, requests, newRequestIndices, perRequestWorkflows, cancellationToken);
 
+            await WriteMailboxReceivers(conn, receiverPlan, cancellationToken);
+
             await tx.CommitAsync(cancellationToken);
 
-            existingRequestIndices.AddRange(duplicates);
+            receiverPlan.Births.Record();
 
             foreach (var i in newRequestIndices)
             {
                 results[i] = BatchEnqueueResult.Created([.. perRequestWorkflows[i].Select(w => w.DatabaseId)]);
+            }
+
+            foreach (var (index, primaryIndex) in duplicates)
+            {
+                // A duplicate of a refused request cannot classify against the stored key — the flush released it —
+                // so it inherits the primary's verdict.
+                if (results[primaryIndex] is { } primary && IsMailboxRejection(primary.Status))
+                    results[index] = primary;
+                else
+                    existingRequestIndices.Add(index);
             }
 
             if (existingRequestIndices.Count > 0)
@@ -331,10 +427,12 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
+        // Distinct() keeps the unnest a set: repeated (key, namespace) pairs would multiply the joined row.
         var (keys, namespaces) = existingRequestIndices
             .Select(i =>
                 (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
             )
+            .Distinct()
             .ToArray()
             .Unzip();
 
@@ -350,10 +448,11 @@ internal sealed partial class EngineRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var existingLookup = existingEntities.ToDictionary(
-            e => (e.IdempotencyKey, e.Namespace),
-            e => (hash: e.RequestBodyHash, workflowIds: e.WorkflowIds)
-        );
+        // Indexer rather than ToDictionary: a duplicate key here would throw inside the flush and fail every
+        // unrelated caller batched into the transaction.
+        var existingLookup = new Dictionary<(string Key, string Namespace), (byte[] Hash, Guid[] WorkflowIds)>();
+        foreach (var entity in existingEntities)
+            existingLookup[(entity.IdempotencyKey, entity.Namespace)] = (entity.RequestBodyHash, entity.WorkflowIds);
 
         foreach (var i in existingRequestIndices)
         {
@@ -361,8 +460,8 @@ internal sealed partial class EngineRepository
             var compositeKey = (req.Metadata.IdempotencyKey, WorkflowNamespace.Normalize(req.Metadata.Namespace));
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
-                if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
-                    results[i] = BatchEnqueueResult.Duplicate(existing.workflowIds);
+                if (existing.Hash.AsSpan().SequenceEqual(req.RequestBodyHash))
+                    results[i] = BatchEnqueueResult.Duplicate(existing.WorkflowIds);
                 else
                     results[i] = BatchEnqueueResult.Conflicted();
             }
@@ -441,10 +540,18 @@ internal sealed partial class EngineRepository
         return validIndices;
     }
 
-    private static List<int> RemoveDuplicates(IReadOnlyList<BufferedEnqueueRequest> requests, List<int> indicesToCheck)
+    /// <summary>
+    /// Removes intra-batch duplicates from <paramref name="indicesToCheck"/>, each paired with the request it
+    /// duplicates.
+    /// </summary>
+    private static List<(int Index, int PrimaryIndex)> RemoveDuplicates(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> indicesToCheck
+    )
     {
-        var duplicates = new List<int>();
+        var duplicates = new List<(int Index, int PrimaryIndex)>();
         BufferedEnqueueRequest? previous = null;
+        int previousKeptIndex = -1;
         foreach (
             var (current, index) in requests
                 .Select((value, index) => (Value: value, Index: index))
@@ -464,8 +571,12 @@ internal sealed partial class EngineRepository
                 && current.Metadata.IdempotencyKey == previous.Metadata.IdempotencyKey
             )
             {
-                duplicates.Add(index);
+                duplicates.Add((index, previousKeptIndex));
                 indicesToCheck.Remove(index);
+            }
+            else
+            {
+                previousKeptIndex = index;
             }
             previous = current;
         }
@@ -602,6 +713,318 @@ internal sealed partial class EngineRepository
         {
             await _insertLinks(conn, allLinkEdges, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// One mailbox's state under its row lock. Deliveries are gapless, so <c>seq &lt; NextIdx</c> is exactly
+    /// "a delivery already sits at this receiver's position".
+    /// </summary>
+    private sealed record MailboxReceiverRow(string Namespace, bool IsDisposed, long NextIdx, long NextSeq);
+
+    /// <summary>Published after the commit.</summary>
+    private readonly record struct MailboxBirthCounts(long Delivered, long Closed, long Held)
+    {
+        public void Record()
+        {
+            if (Delivered > 0)
+                Metrics.MailboxReceiversCreated.Add(Delivered, new KeyValuePair<string, object?>("birth", "delivered"));
+
+            if (Closed > 0)
+                Metrics.MailboxReceiversCreated.Add(Closed, new KeyValuePair<string, object?>("birth", "closed"));
+
+            if (Held > 0)
+                Metrics.MailboxReceiversCreated.Add(Held, new KeyValuePair<string, object?>("birth", "held"));
+        }
+    }
+
+    /// <summary>Exactly one of <c>HeldAt</c> and <c>ReleasedAt</c> is set.</summary>
+    private readonly record struct MailboxReceiverRegistration(
+        Guid MailboxId,
+        long Seq,
+        Guid WorkflowId,
+        DateTimeOffset? HeldAt,
+        DateTimeOffset? ReleasedAt
+    );
+
+    /// <summary>
+    /// Rejected requests are already answered, but their idempotency keys must be released before commit;
+    /// registrations cover every receiver, parked or not.
+    /// </summary>
+    private sealed record MailboxReceiverPlan(
+        List<int> RejectedRequestIndices,
+        List<MailboxReceiverRegistration> Registrations,
+        Dictionary<Guid, long> SeqAdvances,
+        MailboxBirthCounts Births
+    )
+    {
+        public static readonly MailboxReceiverPlan Empty = new([], [], [], default);
+    }
+
+    private static bool IsMailboxRejection(BatchEnqueueResultStatus status) =>
+        status is BatchEnqueueResultStatus.MailboxNotFound or BatchEnqueueResultStatus.MailboxLogFull;
+
+    /// <summary>
+    /// The lock leaves only two interleavings between a delivery and its receiver's enqueue. Returns
+    /// <c>null</c> when the batch declares no mailbox (keeping the ordinary path free of mailbox statements); an
+    /// empty dictionary means the named mailboxes do not exist.
+    /// </summary>
+    private static async Task<Dictionary<Guid, MailboxReceiverRow>?> LockAndReadMailboxes(
+        NpgsqlConnection conn,
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> validRequestIndices,
+        CancellationToken cancellationToken
+    )
+    {
+        SortedSet<Guid>? mailboxIds = null;
+        foreach (var i in validRequestIndices)
+        {
+            foreach (var workflow in requests[i].Request.Workflows)
+            {
+                if (workflow.Mailbox is { } mailbox)
+                    (mailboxIds ??= []).Add(mailbox.Id);
+            }
+        }
+
+        if (mailboxIds is null)
+            return null;
+
+        var ids = mailboxIds.ToArray();
+
+        // ORDER BY keeps concurrent flushes from deadlocking each other.
+        const string sql = """
+            SELECT m.id, m.namespace, m.status, m.next_idx, m.next_seq
+            FROM engine.mailboxes m
+            WHERE m.id = ANY(@ids)
+            ORDER BY m.id
+            FOR UPDATE
+            """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+
+        var rows = new Dictionary<Guid, MailboxReceiverRow>(ids.Length);
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+#pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is buffered after ReadAsync
+            rows[reader.GetGuid(0)] = new MailboxReceiverRow(
+                Namespace: reader.GetString(1),
+                IsDisposed: MailboxStatusMap.FromDbValue(reader.GetString(2)) == MailboxStatus.Disposed,
+                NextIdx: reader.GetInt64(3),
+                NextSeq: reader.GetInt64(4)
+            );
+#pragma warning restore CA1849, S6966
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// A delivery at the position outranks a closed mailbox, so a saga replaying after the deadline drains its
+    /// promised backlog. A request is refused whole or not at all.
+    /// </summary>
+    private MailboxReceiverPlan PlanMailboxReceivers(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> newRequestIndices,
+        BulkInsertData bulkInsertData,
+        Dictionary<Guid, MailboxReceiverRow>? mailboxes,
+        BatchEnqueueResult[] results,
+        CancellationToken cancellationToken
+    )
+    {
+        if (mailboxes is null)
+            return MailboxReceiverPlan.Empty;
+
+        var cap = settings.Value.MaxMailboxLogLength;
+
+        // The engine's own clock: these stamps are compared against instants the engine writes.
+        var now = timeProvider.GetUtcNow();
+        var rejected = new List<int>();
+        var registrations = new List<MailboxReceiverRegistration>();
+        var advances = new Dictionary<Guid, long>(mailboxes.Count);
+        long bornDelivered = 0;
+        long bornClosed = 0;
+        long bornHeld = 0;
+        var pending = new List<(Guid MailboxId, long Seq, WorkflowEntity Entity)>();
+        var reserved = new Dictionary<Guid, long>();
+
+        foreach (var reqIdx in newRequestIndices)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var request = requests[reqIdx];
+            var ns = WorkflowNamespace.Normalize(request.Metadata.Namespace);
+            var workflowRequests = request.Request.Workflows;
+            var entities = bulkInsertData.WorkflowEntities[reqIdx];
+
+            pending.Clear();
+            reserved.Clear();
+            BatchEnqueueResult? rejection = null;
+
+            for (int j = 0; j < workflowRequests.Count && rejection is null; j++)
+            {
+                if (workflowRequests[j].Mailbox is not { } declared)
+                    continue;
+
+                if (!mailboxes.TryGetValue(declared.Id, out var mailbox) || mailbox.Namespace != ns)
+                {
+                    rejection = BatchEnqueueResult.MailboxRejected(
+                        BatchEnqueueResultStatus.MailboxNotFound,
+                        $"Workflow '{workflowRequests[j].Ref ?? $"#{j}"}' declares mailbox {declared.Id}, "
+                            + $"which does not exist in namespace '{ns}'."
+                    );
+                    continue;
+                }
+
+                var seq =
+                    mailbox.NextSeq + advances.GetValueOrDefault(declared.Id) + reserved.GetValueOrDefault(declared.Id);
+
+                if (seq >= cap)
+                {
+                    rejection = BatchEnqueueResult.MailboxRejected(
+                        BatchEnqueueResultStatus.MailboxLogFull,
+                        $"The receivers log of mailbox {declared.Id} already holds {seq} positions, maximum is {cap}."
+                    );
+                    continue;
+                }
+
+                pending.Add((declared.Id, seq, entities[j]));
+                reserved[declared.Id] = reserved.GetValueOrDefault(declared.Id) + 1;
+            }
+
+            if (rejection is not null)
+            {
+                results[reqIdx] = rejection;
+                rejected.Add(reqIdx);
+                continue;
+            }
+
+            foreach (var (mailboxId, seq, entity) in pending)
+            {
+                var mailbox = mailboxes[mailboxId];
+                var hasDelivery = seq < mailbox.NextIdx;
+
+                if (hasDelivery || mailbox.IsDisposed)
+                {
+                    // Runnable at birth, but it still registers: the position is what the executor reads its delivery
+                    // by. Born released, so no release statement can match it.
+                    entity.Status = PersistentItemStatus.Enqueued;
+                    registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, null, now));
+
+                    if (hasDelivery)
+                        bornDelivered++;
+                    else
+                        bornClosed++;
+                }
+                else
+                {
+                    entity.Status = PersistentItemStatus.Held;
+                    registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, now, null));
+                    bornHeld++;
+                }
+
+                advances[mailboxId] = advances.GetValueOrDefault(mailboxId) + 1;
+            }
+        }
+
+        foreach (var reqIdx in rejected)
+        {
+            newRequestIndices.Remove(reqIdx);
+        }
+
+        return new MailboxReceiverPlan(
+            rejected,
+            registrations,
+            advances,
+            new MailboxBirthCounts(bornDelivered, bornClosed, bornHeld)
+        );
+    }
+
+    /// <summary>
+    /// Deletes the keys of refused requests, so the same request may be made again once the reason is gone.
+    /// </summary>
+    private static async Task ReleaseIdempotencyKeys(
+        NpgsqlConnection conn,
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> requestIndices,
+        CancellationToken cancellationToken
+    )
+    {
+        var (keys, namespaces) = requestIndices
+            .Select(i =>
+                (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
+            )
+            .ToArray()
+            .Unzip();
+
+        const string sql = """
+            DELETE FROM engine.idempotency_keys ik
+            USING unnest(@keys, @namespaces) AS t(idempotency_key, namespace)
+            WHERE ik.idempotency_key = t.idempotency_key AND ik.namespace = t.namespace
+            """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", keys));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The transaction is what makes the log gapless: every position handed out is written with the counter that
+    /// consumed it, or not at all.
+    /// </summary>
+    private static async Task WriteMailboxReceivers(
+        NpgsqlConnection conn,
+        MailboxReceiverPlan plan,
+        CancellationToken cancellationToken
+    )
+    {
+        if (plan.SeqAdvances.Count == 0)
+            return;
+
+        var (mailboxIds, counts) = plan.SeqAdvances.Select(kvp => (kvp.Key, kvp.Value)).ToArray().Unzip();
+
+        const string advanceSql = """
+            UPDATE engine.mailboxes AS m
+            SET next_seq = m.next_seq + v.n
+            FROM unnest(@ids, @counts) AS v(id, n)
+            WHERE m.id = v.id
+            """;
+
+        await using (var advanceCmd = new NpgsqlCommand(advanceSql, conn))
+        {
+            advanceCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", mailboxIds));
+            advanceCmd.Parameters.Add(new NpgsqlParameter<long[]>("counts", counts));
+            await advanceCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        if (plan.Registrations.Count == 0)
+            return;
+
+        var (registryMailboxIds, seqs, workflowIds, heldAt, releasedAt) = plan
+            .Registrations.Select(r => (r.MailboxId, r.Seq, r.WorkflowId, r.HeldAt, r.ReleasedAt))
+            .ToArray()
+            .Unzip();
+
+        const string registrySql = """
+            INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+            SELECT mailbox_id, seq, workflow_id, held_at, released_at, NULL
+            FROM unnest(@mailbox_ids, @seqs, @workflow_ids, @held_at, @released_at)
+                AS t(mailbox_id, seq, workflow_id, held_at, released_at)
+            """;
+
+        await using var registryCmd = new NpgsqlCommand(registrySql, conn);
+        registryCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", registryMailboxIds));
+        registryCmd.Parameters.Add(new NpgsqlParameter<long[]>("seqs", seqs));
+        registryCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("workflow_ids", workflowIds));
+        registryCmd.Parameters.Add(
+            new NpgsqlParameter("held_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = heldAt }
+        );
+        registryCmd.Parameters.Add(
+            new NpgsqlParameter("released_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = releasedAt }
+        );
+        await registryCmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>
@@ -946,7 +1369,8 @@ internal sealed partial class EngineRepository
 
         // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poisoned finalization
         // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
-        // re-enter here as Enqueued.
+        // re-enter here as Enqueued. The SQL itself is the FetchAndLockSql constant at the top of
+        // this file; @throttle_gate carries EngineSettings.Throttling.Enabled, read at construction.
         //
         // A pending cancellation bypasses the backoff gate: the handler cancels a flagged workflow
         // before executing anything. Without the bypass, a cancel accepted while the row still read
@@ -958,43 +1382,11 @@ internal sealed partial class EngineRepository
         // the planner's per-row anti-join into a hashed subplan over every dependency edge per fetch
         // cycle. A cancelled dependent therefore still waits for its dependency to settle.
         var ids = await context
-            .Database.SqlQuery<Guid>(
-                $"""
-                WITH ready AS (
-                    SELECT w.id
-                    FROM engine.workflows w
-                    WHERE w.status IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued}, {PersistentItemStatus.Waiting})
-                      AND (
-                        w.backoff_until IS NULL
-                        OR w.backoff_until <= {now}
-                        OR w.cancellation_requested_at IS NOT NULL
-                      )
-                      AND NOT EXISTS (
-                          SELECT 1 FROM engine.workflow_dependency wd
-                          JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
-                          WHERE wd.workflow_id = w.id
-                            AND dep.status <> {PersistentItemStatus.Completed}
-                            AND dep.status <> {PersistentItemStatus.Failed}
-                            AND dep.status <> {PersistentItemStatus.DependencyFailed}
-                            AND dep.status <> {PersistentItemStatus.Canceled}
-                            AND dep.status <> {PersistentItemStatus.Abandoned}
-                      )
-                    ORDER BY w.backoff_until NULLS FIRST, w.created_at
-                    FOR UPDATE SKIP LOCKED
-                    LIMIT {count}
-                ),
-                updated AS (
-                    UPDATE engine.workflows w
-                    SET status       = {PersistentItemStatus.Processing},
-                        updated_at   = {now},
-                        heartbeat_at = {now},
-                        lease_token  = gen_random_uuid()
-                    FROM ready r
-                    WHERE w.id = r.id
-                    RETURNING w.id
-                )
-                SELECT id AS "Value" FROM updated
-                """
+            .Database.SqlQueryRaw<Guid>(
+                FetchAndLockSql,
+                new NpgsqlParameter<DateTimeOffset>("now", now),
+                new NpgsqlParameter<int>("count", count),
+                new NpgsqlParameter<bool>("throttle_gate", _throttleGate)
             )
             .ToListAsync(cancellationToken);
 
@@ -1011,11 +1403,57 @@ internal sealed partial class EngineRepository
             .Where(w => ids.Contains(w.Id))
             .ToListAsync(cancellationToken);
 
+        await RecordWakeToClaimLatency(context, entities, now, cancellationToken);
+
         var workflows = entities.Select(x => x.ToDomainModel()).ToList();
 
         Metrics.DbOperationsSucceeded.Add(1);
 
         return workflows;
+    }
+
+    /// <summary>
+    /// Records wake-to-claim latency and stamps <c>claimed_at</c>. <c>claimed_at IS NULL</c> keeps it once per
+    /// release rather than per retry; <c>held_at IS NOT NULL</c> keeps it about the wake — a receiver born
+    /// runnable never waited. Clamped at zero: the two ends come from two pods' clocks.
+    /// </summary>
+    private static async Task RecordWakeToClaimLatency(
+        EngineDbContext context,
+        List<WorkflowEntity> claimed,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        List<Guid>? receiverIds = null;
+        foreach (var entity in claimed)
+        {
+            if (entity.MailboxId is not null)
+                (receiverIds ??= []).Add(entity.Id);
+        }
+
+        if (receiverIds is null)
+            return;
+
+        var ids = receiverIds.ToArray();
+
+        var releasedAt = await context
+            .Database.SqlQuery<DateTimeOffset?>(
+                $"""
+                UPDATE engine.mailbox_receivers mr
+                SET claimed_at = {now}
+                WHERE mr.workflow_id = ANY({ids})
+                  AND mr.released_at IS NOT NULL
+                  AND mr.claimed_at IS NULL
+                RETURNING CASE WHEN mr.held_at IS NOT NULL THEN mr.released_at END AS "Value"
+                """
+            )
+            .ToListAsync(cancellationToken);
+
+        foreach (var released in releasedAt)
+        {
+            if (released is { } releaseInstant)
+                Metrics.MailboxReceiverWakeLatency.Record(Math.Max(0, (now - releaseInstant).TotalSeconds));
+        }
     }
 
     /// <inheritdoc/>
@@ -1183,6 +1621,8 @@ internal sealed partial class EngineRepository
                     var ids = new Guid[sorted.Count];
                     var statuses = new int[sorted.Count];
                     var backoffDeadlines = new object[sorted.Count];
+                    var throttleDeadlines = new object[sorted.Count];
+                    var executionStartedAts = new object[sorted.Count];
                     var engineTraceContexts = new object[sorted.Count];
                     var leaseTokens = new Guid[sorted.Count];
 
@@ -1192,6 +1632,10 @@ internal sealed partial class EngineRepository
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
                         backoffDeadlines[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
+                        throttleDeadlines[i] = w.ThrottledUntil.HasValue ? w.ThrottledUntil.Value : DBNull.Value;
+                        executionStartedAts[i] = w.ExecutionStartedAt.HasValue
+                            ? w.ExecutionStartedAt.Value
+                            : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                         // FetchAndLockWorkflows always stamps a LeaseToken; the throw is an invariant check.
                         leaseTokens[i] =
@@ -1213,13 +1657,15 @@ internal sealed partial class EngineRepository
                         SET status               = v.status,
                             updated_at           = @now,
                             backoff_until        = v.backoff_until,
+                            throttled_until      = v.throttled_until,
+                            execution_started_at = v.execution_started_at,
                             heartbeat_at         = CASE WHEN v.status = @processing THEN @now ELSE NULL END,
                             lease_token          = CASE WHEN v.status = @processing THEN w.lease_token ELSE NULL END,
                             engine_trace_context = v.engine_trace_context
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @backoff_deadlines, @engine_trace_contexts, @lease_tokens)
-                                AS t(id, status, backoff_until, engine_trace_context, lease_token)
+                            FROM unnest(@ids, @statuses, @backoff_deadlines, @throttle_deadlines, @execution_started_ats, @engine_trace_contexts, @lease_tokens)
+                                AS t(id, status, backoff_until, throttled_until, execution_started_at, engine_trace_context, lease_token)
                             ORDER BY t.id
                         ) AS v
                         WHERE w.id = v.id
@@ -1235,6 +1681,18 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("backoff_deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
                             {
                                 Value = backoffDeadlines,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("throttle_deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = throttleDeadlines,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("execution_started_ats", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = executionStartedAts,
                             }
                         );
                         cmd.Parameters.Add(
@@ -1274,6 +1732,7 @@ internal sealed partial class EngineRepository
                         var stepFirstDeferredAt = new object[allSteps.Count];
                         var stepLastDeferredAt = new object[allSteps.Count];
                         var stepLastDeferReasons = new object[allSteps.Count];
+                        var stepExecutionStartedAt = new object[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
@@ -1290,6 +1749,9 @@ internal sealed partial class EngineRepository
                                 : DBNull.Value;
                             stepLastDeferredAt[i] = s.LastDeferredAt.HasValue ? s.LastDeferredAt.Value : DBNull.Value;
                             stepLastDeferReasons[i] = (object?)s.LastDeferReason ?? DBNull.Value;
+                            stepExecutionStartedAt[i] = s.ExecutionStartedAt.HasValue
+                                ? s.ExecutionStartedAt.Value
+                                : DBNull.Value;
                             stepErrorHistories[i] =
                                 s.ErrorHistory.Count > 0
                                     ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
@@ -1306,14 +1768,15 @@ internal sealed partial class EngineRepository
                                 first_deferred_at    = v.first_deferred_at,
                                 last_deferred_at     = v.last_deferred_at,
                                 last_defer_reason    = v.last_defer_reason,
+                                execution_started_at = v.execution_started_at,
                                 error_history        = v.error_history,
                                 state_out            = v.state_out,
                                 engine_trace_context = v.engine_trace_context,
                                 updated_at           = @now
                             FROM (
                                 SELECT *
-                                FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @error_histories, @engine_trace_contexts, @state_outs)
-                                    AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, error_history, engine_trace_context, state_out)
+                                FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @execution_started_at, @error_histories, @engine_trace_contexts, @state_outs)
+                                    AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, execution_started_at, error_history, engine_trace_context, state_out)
                                 ORDER BY t.id
                             ) AS v
                             WHERE s.id = v.id
@@ -1340,6 +1803,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("last_defer_reasons", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
                                 Value = stepLastDeferReasons,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("execution_started_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = stepExecutionStartedAt,
                             }
                         );
                         cmd.Parameters.Add(
@@ -1440,12 +1909,15 @@ internal sealed partial class EngineRepository
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
                     // Reset from terminal + Requeued/Waiting (both skip the backoff wait). Clearing
-                    // LeaseToken preserves the "NOT NULL iff Processing" invariant.
+                    // LeaseToken preserves the "NOT NULL iff Processing" invariant. throttled_until
+                    // is cleared too: an explicit resume wins over the namespace circuit breaker.
                     const string resetPrimarySql = """
                         UPDATE engine.workflows
                         SET status = @enqueued,
                             cancellation_requested_at = NULL,
                             backoff_until = NULL,
+                            throttled_until = NULL,
+                            execution_started_at = NULL,
                             heartbeat_at = NULL,
                             lease_token = NULL,
                             reclaim_count = 0,
@@ -1502,6 +1974,8 @@ internal sealed partial class EngineRepository
                             SET status = @enqueued,
                                 cancellation_requested_at = NULL,
                                 backoff_until = NULL,
+                                throttled_until = NULL,
+                                execution_started_at = NULL,
                                 heartbeat_at = NULL,
                                 lease_token = NULL,
                                 reclaim_count = 0,
@@ -1532,6 +2006,7 @@ internal sealed partial class EngineRepository
                             first_deferred_at = NULL,
                             last_deferred_at = NULL,
                             last_defer_reason = NULL,
+                            execution_started_at = NULL,
                             updated_at = @now
                         WHERE job_id = ANY(@ids)
                           AND status != @completed
@@ -1581,10 +2056,14 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
 
+                    // Also clears throttled_until: a nudge is an explicit operator/caller poke,
+                    // and it always wins over the namespace circuit breaker — the workflow gets
+                    // its immediate re-check even while its namespace is throttled.
                     const string sql = """
                         UPDATE engine.workflows
-                        SET backoff_until = NULL, updated_at = @now
-                        WHERE id = @id AND namespace = @ns AND status IN (@requeued, @waiting) AND backoff_until IS NOT NULL
+                        SET backoff_until = NULL, throttled_until = NULL, updated_at = @now
+                        WHERE id = @id AND namespace = @ns AND status IN (@requeued, @waiting)
+                          AND (backoff_until IS NOT NULL OR throttled_until IS NOT NULL)
                         """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
@@ -1613,6 +2092,106 @@ internal sealed partial class EngineRepository
         {
             activity?.Errored(ex);
             logger.FailedToUpdateWorkflow("clear-backoff", workflowId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<WorkflowFailureInfo?> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset failedAt,
+        string reason,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.FailWorkflow");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        var errorEntry = JsonSerializer.Serialize(
+            new[] { new ErrorEntry(failedAt, reason, HttpStatusCode: null, WasRetryable: false) },
+            JsonOptions.Default
+        );
+
+        try
+        {
+            WorkflowFailureInfo? failed = null;
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    // Compare-and-set from the two parked states — the set the nudge acts on. A parked
+                    // row holds no lease, so a fetch that claims it first moves it to Processing and this
+                    // becomes a no-op: a step in flight is never failed out from under its worker. The
+                    // parked step is the one sharing its workflow's status (steps run sequentially, so
+                    // there is exactly one), and it receives the same non-retryable error entry the
+                    // handler writes when it gives up, so consumers cannot tell the two failures apart.
+                    // A step that never wrote back holds JSON null in error_history (the enqueue insert),
+                    // one that did holds SQL NULL; jsonb_typeof folds both into an empty array so the
+                    // concatenation appends instead of wrapping the null as a leading element.
+                    const string sql = """
+                        WITH failed AS (
+                            UPDATE engine.workflows
+                            SET status = @failed, backoff_until = NULL, updated_at = @now
+                            WHERE id = @id
+                              AND namespace = @ns
+                              AND status IN (@requeued, @waiting)
+                            RETURNING id, is_head
+                        ),
+                        failed_steps AS (
+                            UPDATE engine.steps s
+                            SET status = @failed,
+                                error_history = CASE
+                                                    WHEN jsonb_typeof(s.error_history) = 'array' THEN s.error_history
+                                                    ELSE '[]'::jsonb
+                                                END || @error_entry,
+                                updated_at = @now
+                            FROM failed f
+                            WHERE s.job_id = f.id
+                              AND s.status IN (@requeued, @waiting)
+                        )
+                        SELECT id, is_head FROM failed
+                        """;
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("waiting", (int)PersistentItemStatus.Waiting));
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", failedAt));
+                    cmd.Parameters.Add(new NpgsqlParameter("error_entry", NpgsqlDbType.Jsonb) { Value = errorEntry });
+
+                    await using (var reader = await cmd.ExecuteReaderAsync(ct))
+                    {
+                        if (await reader.ReadAsync(ct))
+                        {
+                            failed = new WorkflowFailureInfo(
+                                reader.GetGuid(0),
+                                await reader.IsDBNullAsync(1, ct) ? null : reader.GetBoolean(1)
+                            );
+                        }
+                    }
+
+                    if (failed is not null)
+                    {
+                        await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                        await notifyCmd.ExecuteNonQueryAsync(ct);
+                    }
+                },
+                cancellationToken
+            );
+
+            return failed;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow("fail", workflowId, ex.Message, ex);
             throw;
         }
     }

@@ -20,6 +20,7 @@ spec:
         release: kuberneteswrapper
     spec:
       serviceAccountName: kuberneteswrappersa
+      terminationGracePeriodSeconds: 30
       containers:
         - name: kuberneteswrapper
           image: ""

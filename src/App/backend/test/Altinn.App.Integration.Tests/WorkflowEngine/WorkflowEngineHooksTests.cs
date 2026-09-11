@@ -168,7 +168,7 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
     {
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         Assert.Equal(HttpStatusCode.Created, readInstantiationResponse.Response.StatusCode);

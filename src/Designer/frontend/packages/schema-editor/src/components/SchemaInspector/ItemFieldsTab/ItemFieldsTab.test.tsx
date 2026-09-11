@@ -81,7 +81,7 @@ describe('ItemFieldsTab', () => {
     const textboxes = await screen.findAllByLabelText(textFieldName);
     expect(textboxes).toHaveLength(numberOfFields);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(fieldNames[i]));
-    expect(screen.getAllByRole('checkbox')).toHaveLength(numberOfFields);
+    expect(screen.getAllByRole('switch')).toHaveLength(numberOfFields);
     expect(
       screen.getAllByRole('button', {
         name: textDeleteField,
@@ -207,6 +207,6 @@ describe('ItemFieldsTab', () => {
     renderItemFieldsTab();
     const textboxes = await screen.findAllByRole('textbox');
     textboxes.forEach((input) => expect(input).toBeEnabled());
-    screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeEnabled());
+    screen.queryAllByRole('switch').forEach((input) => expect(input).toBeEnabled());
   });
 });

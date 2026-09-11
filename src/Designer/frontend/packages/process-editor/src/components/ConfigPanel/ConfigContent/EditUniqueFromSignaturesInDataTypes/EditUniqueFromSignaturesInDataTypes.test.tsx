@@ -91,12 +91,10 @@ describe('EditUniqueFromSignaturesInDataTypes', () => {
 
     await user.click(link);
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
-    });
+    const suggestionInput = screen.getByRole('combobox');
 
-    await user.click(combobox);
-    expect(combobox).not.toHaveValue();
+    await user.click(suggestionInput);
+    expect(suggestionInput).not.toHaveValue();
   });
 
   it('should display the existing data type in preview when clicking the close button after edit mode', async () => {
@@ -130,19 +128,17 @@ describe('EditUniqueFromSignaturesInDataTypes', () => {
     });
     await user.click(updateDataTypeButton);
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
-    });
-    await user.click(combobox);
+    const suggestionInput = screen.getByRole('combobox');
+    await user.click(suggestionInput);
 
     existingDataTypes.forEach((existingDataType) => {
-      expect(screen.getByRole('option', { name: existingDataType.name })).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: existingDataType.name, hidden: true }),
+      ).toBeInTheDocument();
     });
     signingTasks.forEach((signingTask) =>
       expect(
-        screen.getByRole('option', {
-          name: signingTask.businessObject.name,
-        }),
+        screen.getByRole('option', { name: signingTask.businessObject.name, hidden: true }),
       ).toBeInTheDocument(),
     );
   });

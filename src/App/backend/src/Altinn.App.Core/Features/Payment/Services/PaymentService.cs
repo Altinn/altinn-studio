@@ -25,7 +25,7 @@ internal class PaymentService : IPaymentService
     private readonly GeneralSettings _generalSettings;
     private readonly AppIdentifier _app;
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
-    private readonly Telemetry? _telemtry;
+    private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaymentService"/> class.
@@ -38,7 +38,7 @@ internal class PaymentService : IPaymentService
         IOptions<GeneralSettings> generalSettings,
         AppIdentifier app,
         IAuthenticationTokenResolver authenticationTokenResolver,
-        Telemetry? telemtry = null
+        Telemetry? telemetry = null
     )
     {
         _dataService = dataService;
@@ -48,7 +48,7 @@ internal class PaymentService : IPaymentService
         _generalSettings = generalSettings.Value;
         _app = app;
         _authenticationTokenResolver = authenticationTokenResolver;
-        _telemtry = telemtry;
+        _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
@@ -58,7 +58,7 @@ internal class PaymentService : IPaymentService
         string? language
     )
     {
-        using var activity = _telemtry?.StartPaymentServiceActivity();
+        using var activity = _telemetry?.StartPaymentServiceActivity();
         try
         {
             _logger.LogInformation("Starting payment for instance {InstanceId}.", instance.Id);
@@ -99,7 +99,7 @@ internal class PaymentService : IPaymentService
             }
 
             OrderDetails orderDetails;
-            using (var orderDetailsActivity = _telemtry?.StartCalculateOrderDetailsActivity(orderDetailsCalculator))
+            using (var orderDetailsActivity = _telemetry?.StartCalculateOrderDetailsActivity(orderDetailsCalculator))
             {
                 try
                 {

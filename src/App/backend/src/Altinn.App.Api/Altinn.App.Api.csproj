@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP"/>
-    <PackageReference Include="Altinn.Platform.Storage.Interface"/>
+    <PackageReference Include="Altinn.Platform.Storage.Interface.Experimental"/>
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore"/>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
@@ -33,6 +33,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../Altinn.App.Core/Altinn.App.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared hosting mechanics are compiled as source to avoid a runtime package dependency. -->
+    <Compile Include="../../../../common/dotnet/Altinn.Studio.Common/src/GracefulShutdown.cs" Link="Infrastructure/Lifetime/GracefulShutdown.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -109,7 +109,7 @@ describe('ScopeListContainer', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display an alert if user does not have access on behalf of the organisation', async () => {
+  it('should display an alert if user does not have access on behalf of the organization', async () => {
     const getMaskinportenScopes = jest
       .fn()
       .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
@@ -131,7 +131,7 @@ describe('ScopeListContainer', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should display selected scopes without management controls if user does not have access on behalf of the organisation', async () => {
+  it('should display selected scopes without management controls if user does not have access on behalf of the organization', async () => {
     const getMaskinportenScopes = jest
       .fn()
       .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
