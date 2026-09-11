@@ -1,4 +1,4 @@
-use std::{cell::Cell, rc::Rc};
+use std::{cell::Cell, rc::Rc, time::Duration};
 
 use sandbox::LocalFuture;
 use serde::Serialize;
@@ -217,7 +217,43 @@ enum LifecycleState {
 #[derive(Default)]
 struct Lifecycle {
     state: Cell<LifecycleState>,
+    active_mutations: Cell<usize>,
+    mutations_idle: Notify,
     shutdown: Notify,
+}
+
+impl Lifecycle {
+    fn admit_mutation(&self) -> Option<MutationGuard<'_>> {
+        if self.state.get() != LifecycleState::Running {
+            return None;
+        }
+        self.active_mutations.set(self.active_mutations.get() + 1);
+        Some(MutationGuard { lifecycle: self })
+    }
+
+    async fn wait_for_mutations(&self) {
+        loop {
+            let notified = self.mutations_idle.notified();
+            if self.active_mutations.get() == 0 {
+                return;
+            }
+            notified.await;
+        }
+    }
+}
+
+struct MutationGuard<'a> {
+    lifecycle: &'a Lifecycle,
+}
+
+impl Drop for MutationGuard<'_> {
+    fn drop(&mut self) {
+        let remaining = self.lifecycle.active_mutations.get() - 1;
+        self.lifecycle.active_mutations.set(remaining);
+        if remaining == 0 {
+            self.lifecycle.mutations_idle.notify_waiters();
+        }
+    }
 }
 
 struct ShutdownCheck<'a> {
@@ -353,9 +389,14 @@ impl Server {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
         }
-        if self.lifecycle.state.get() != LifecycleState::Running && is_mutating(&request.method) {
-            return error_response(request.id, CODE_UPDATING, "Agent daemon is preparing for an upgrade");
-        }
+        let _mutation = if is_mutating(&request.method) {
+            let Some(mutation) = self.lifecycle.admit_mutation() else {
+                return error_response(request.id, CODE_UPDATING, "Agent daemon is preparing for an upgrade");
+            };
+            Some(mutation)
+        } else {
+            None
+        };
         match request.method.as_str() {
             METHOD_APPLY => self.handle_apply(request.id, request.params).await,
             METHOD_HEALTH => result_response(
@@ -396,17 +437,23 @@ impl Server {
             lifecycle: &self.lifecycle,
             committed: false,
         };
-        match self.sessions.upgrade_readiness().await {
-            Ok(readiness) if readiness.blockers.is_empty() => {
+        let readiness = tokio::time::timeout(Duration::from_mins(1), async {
+            self.lifecycle.wait_for_mutations().await;
+            self.sessions.upgrade_readiness().await
+        })
+        .await;
+        match readiness {
+            Ok(Ok(readiness)) if readiness.blockers.is_empty() => {
                 check.commit();
                 result_response(id, Ok(serde_json::json!({"warnings": readiness.warnings})))
             }
-            Ok(readiness) => error_response(
+            Ok(Ok(readiness)) => error_response(
                 id,
                 CODE_INVALID_PARAMS,
                 format!("active Sessions block the upgrade: {}", readiness.blockers.join(", ")),
             ),
-            Err(error) => result_response::<serde_json::Value>(id, Err(error)),
+            Ok(Err(error)) => result_response::<serde_json::Value>(id, Err(error)),
+            Err(_) => error_response(id, CODE_UPDATING, "Agent did not finish preparing for an upgrade"),
         }
     }
 

@@ -62,11 +62,10 @@ $Platform = switch ($Architecture) {
     default { throw "Unsupported Windows architecture: $Architecture" }
 }
 $Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("altinn-agent-install-" + [guid]::NewGuid())
-$Staging = Join-Path $InstallRoot ("releases\.staging-" + [guid]::NewGuid())
+$SourceRelease = Join-Path $Temporary "release"
 New-Item -ItemType Directory -Path $Temporary | Out-Null
 try {
     $ReleasesDirectory = Join-Path $InstallRoot "releases"
-    New-Item -ItemType Directory -Force -Path $ReleasesDirectory | Out-Null
     $Target = Join-Path $ReleasesDirectory "$Version-$Platform"
     if (-not (Test-Path $Target -PathType Container)) {
         if ($LocalArchive) {
@@ -83,9 +82,12 @@ try {
         $Expected = (Get-Content $Checksum -Raw).Split(' ')[0].Trim().ToLowerInvariant()
         $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
-        New-Item -ItemType Directory -Path $Staging | Out-Null
-        tar -xzf (Join-Path $Temporary $Archive) -C $Staging
-        Move-Item $Staging $Target
+        New-Item -ItemType Directory -Path $SourceRelease | Out-Null
+        tar -xzf (Join-Path $Temporary $Archive) -C $SourceRelease
+        & (Join-Path $SourceRelease "agentctl.exe") --home $AgentHome self __publish-release `
+            --install-root $InstallRoot --bin-directory $BinDirectory `
+            --source-release $SourceRelease --target-version $Version
+        if ($LASTEXITCODE -ne 0) { throw "Target Agent publisher exited with code $LASTEXITCODE" }
     }
 
     $Previous = $null
@@ -99,7 +101,6 @@ try {
     Invoke-Completion $Journal
 } finally {
     if (Test-Path $Temporary) { Remove-Item -Recurse -Force $Temporary }
-    if (Test-Path $Staging) { Remove-Item -Recurse -Force $Staging }
 }
 
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")

@@ -22,6 +22,7 @@ const INSTALL_FORMAT: u32 = 1;
 const JOURNAL_FORMAT: u32 = 1;
 const HTTP_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 const HTTP_REQUEST_TIMEOUT: Duration = Duration::from_mins(1);
+const INSTALL_LOCK_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Filesystem locations for one managed Agent installation.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -39,10 +40,14 @@ impl InstallPaths {
     pub fn resolve() -> Result<Self, Error> {
         let root = match env::var_os("AGENT_INSTALL_ROOT").filter(|value| !value.is_empty()) {
             Some(path) => absolute(Path::new(&path))?,
-            None => default_install_root()?,
+            None => match inferred_install_root()? {
+                Some(path) => path,
+                None => default_install_root()?,
+            },
         };
         let bin = match env::var_os("AGENT_INSTALL_DIR").filter(|value| !value.is_empty()) {
             Some(path) => absolute(Path::new(&path))?,
+            None if root.join("install.json").is_file() => InstallMetadata::read_from_root(&root)?.bin_directory,
             #[cfg(unix)]
             None => default_bin_directory()?,
             #[cfg(windows)]
@@ -98,7 +103,7 @@ impl InstallPaths {
     /// # Errors
     ///
     /// Returns an error when the lock cannot be created or acquired.
-    pub fn lock(&self) -> Result<InstallLock, Error> {
+    pub async fn lock(&self) -> Result<InstallLock, Error> {
         fs::create_dir_all(&self.root)?;
         crate::local::home::secure_directory(&self.root)?;
         let path = self.root.join("install.lock");
@@ -109,12 +114,18 @@ impl InstallPaths {
             .truncate(false)
             .open(&path)?;
         crate::local::home::secure_file(&path)?;
-        match file.try_lock() {
-            Ok(()) => {}
-            Err(std::fs::TryLockError::WouldBlock) => {
-                return Err(Error::Daemon("another Agent update is already running".into()));
+        let deadline = tokio::time::Instant::now() + INSTALL_LOCK_TIMEOUT;
+        loop {
+            match file.try_lock() {
+                Ok(()) => break,
+                Err(std::fs::TryLockError::WouldBlock) if tokio::time::Instant::now() < deadline => {
+                    tokio::time::sleep(Duration::from_millis(50)).await;
+                }
+                Err(std::fs::TryLockError::WouldBlock) => {
+                    return Err(Error::Daemon("another Agent update is already running".into()));
+                }
+                Err(std::fs::TryLockError::Error(error)) => return Err(Error::Io(error)),
             }
-            Err(std::fs::TryLockError::Error(error)) => return Err(Error::Io(error)),
         }
         Ok(InstallLock { _file: file })
     }
@@ -131,7 +142,6 @@ pub struct InstallLock {
 pub struct InstallMetadata {
     format_version: u32,
     repository: String,
-    channel: String,
     target: String,
     bin_directory: PathBuf,
 }
@@ -142,7 +152,6 @@ impl InstallMetadata {
         Self {
             format_version: INSTALL_FORMAT,
             repository,
-            channel: "experimental-agent".into(),
             target: package_target().into(),
             bin_directory,
         }
@@ -168,8 +177,15 @@ impl InstallMetadata {
     ///
     /// Returns an error for invalid, incompatible, or unreadable metadata.
     pub fn read(paths: &InstallPaths) -> Result<Self, Error> {
-        let metadata: Self = serde_json::from_slice(&fs::read(paths.metadata())?)?;
-        if metadata.format_version != INSTALL_FORMAT || metadata.target != package_target() {
+        Self::read_from_root(paths.root())
+    }
+
+    fn read_from_root(root: &Path) -> Result<Self, Error> {
+        let metadata: Self = serde_json::from_slice(&fs::read(root.join("install.json"))?)?;
+        if metadata.format_version != INSTALL_FORMAT
+            || metadata.target != package_target()
+            || !metadata.bin_directory.is_absolute()
+        {
             return Err(Error::Invalid(
                 "managed Agent installation has an incompatible format or target".into(),
             ));
@@ -239,18 +255,18 @@ pub struct StagedRelease {
 ///
 /// Returns an error when download, checksum, archive, or binary validation fails.
 pub async fn stage_release(paths: &InstallPaths, release: Release) -> Result<StagedRelease, Error> {
-    fs::create_dir_all(paths.releases())?;
     let final_path = paths.releases().join(release.directory_name());
-    if final_path.exists() {
-        validate_release_directory(&final_path, &release.version)?;
-        return Ok(StagedRelease {
-            release,
-            path: final_path,
-        });
+    {
+        let _lock = paths.lock().await?;
+        if final_path.exists() {
+            validate_release_directory(&final_path, &release.version)?;
+            return Ok(StagedRelease {
+                release,
+                path: final_path,
+            });
+        }
     }
-    let temporary = tempfile::Builder::new()
-        .prefix(".staging-")
-        .tempdir_in(paths.releases())?;
+    let temporary = tempfile::Builder::new().prefix("agent-release-").tempdir()?;
     let archive = temporary.path().join(Release::archive_name());
     let checksum = temporary.path().join(format!("{}.sha256", Release::archive_name()));
     if let Some(local) = &release.local_archive {
@@ -274,24 +290,47 @@ pub async fn stage_release(paths: &InstallPaths, release: Release) -> Result<Sta
     let extracted = temporary.path().join("release");
     fs::create_dir(&extracted)?;
     extract_archive(&archive, &extracted)?;
-    validate_release_directory(&extracted, &release.version)?;
-    fs::rename(&extracted, &final_path)?;
-    #[cfg(unix)]
-    sync_directory(&paths.releases())?;
+    let final_path = publish_release(paths, &extracted, &release.version).await?;
     Ok(StagedRelease {
         release,
         path: final_path,
     })
 }
 
+/// Validates and publishes an extracted package while serializing release ownership.
+///
+/// # Errors
+///
+/// Returns an error when the package is invalid or another update holds the install lock.
+pub async fn publish_release(paths: &InstallPaths, source: &Path, version: &str) -> Result<PathBuf, Error> {
+    validate_release_directory(source, version)?;
+    let _lock = paths.lock().await?;
+    fs::create_dir_all(paths.releases())?;
+    crate::local::home::secure_directory(&paths.releases())?;
+    let final_path = paths.releases().join(format!("{version}-{}", package_target()));
+    if final_path.exists() {
+        validate_release_directory(&final_path, version)?;
+        return Ok(final_path);
+    }
+    let staging = tempfile::Builder::new()
+        .prefix(".staging-")
+        .tempdir_in(paths.releases())?;
+    for binary in binary_names() {
+        fs::copy(source.join(binary), staging.path().join(binary))?;
+    }
+    validate_release_directory(staging.path(), version)?;
+    fs::rename(staging.path(), &final_path)?;
+    #[cfg(unix)]
+    sync_directory(&paths.releases())?;
+    Ok(final_path)
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum UpdatePhase {
     Prepared,
-    DaemonStopped,
     Migrated,
     Activated,
-    Verified,
     Complete,
 }
 
@@ -723,6 +762,24 @@ pub fn validate_release_directory(path: &Path, version: &str) -> Result<(), Erro
     Ok(())
 }
 
+/// Reads and validates the version encoded by one managed release directory.
+///
+/// # Errors
+///
+/// Returns an error when the directory name or package contents are invalid.
+pub fn managed_release_version(path: &Path) -> Result<String, Error> {
+    let name = path
+        .file_name()
+        .and_then(std::ffi::OsStr::to_str)
+        .ok_or_else(|| Error::Invalid("managed Agent release has an invalid directory name".into()))?;
+    let version = name
+        .strip_suffix(&format!("-{}", package_target()))
+        .ok_or_else(|| Error::Invalid("managed Agent release does not match this platform".into()))?;
+    let version = normalize_version(version)?;
+    validate_release_directory(path, &version)?;
+    Ok(version)
+}
+
 #[cfg(unix)]
 fn require_executable(path: &Path) -> Result<(), Error> {
     use std::os::unix::fs::PermissionsExt as _;
@@ -787,6 +844,20 @@ fn absolute(path: &Path) -> Result<PathBuf, Error> {
     } else {
         Ok(env::current_dir()?.join(path))
     }
+}
+
+fn inferred_install_root() -> Result<Option<PathBuf>, Error> {
+    let executable = fs::canonicalize(env::current_exe()?)?;
+    Ok(install_root_for_executable(&executable)
+        .filter(|root| root.join("install.json").is_file() || root.join("update.json").is_file()))
+}
+
+fn install_root_for_executable(executable: &Path) -> Option<PathBuf> {
+    let releases = executable.parent()?.parent()?;
+    if releases.file_name()? != "releases" {
+        return None;
+    }
+    releases.parent().map(Path::to_path_buf)
 }
 
 #[cfg(unix)]
@@ -877,15 +948,39 @@ mod tests {
         assert!(journal.validate(&paths).is_err());
     }
 
-    #[test]
-    fn install_lock_reports_a_concurrent_update() {
+    #[tokio::test(flavor = "current_thread", start_paused = true)]
+    async fn install_lock_reports_a_concurrent_update() {
         let temporary = tempfile::TempDir::new().expect("temporary directory");
         let paths = InstallPaths::new(temporary.path().join("install"), temporary.path().join("bin")).expect("paths");
-        let _first = paths.lock().expect("first lock");
+        let _first = paths.lock().await.expect("first lock");
 
-        let error = paths.lock().expect_err("second lock");
+        let error = paths.lock().await.expect_err("second lock");
 
         assert!(error.to_string().contains("another Agent update is already running"));
+    }
+
+    #[test]
+    fn managed_executable_identifies_its_install_root() {
+        let root = Path::new("managed/agent");
+        let executable = root.join("releases/v2.0.0-linux-x86_64/agentctl");
+
+        assert_eq!(install_root_for_executable(&executable), Some(root.to_path_buf()));
+        assert_eq!(install_root_for_executable(Path::new("agentctl")), None);
+    }
+
+    #[test]
+    fn install_metadata_preserves_the_visible_bin_directory() {
+        let temporary = tempfile::TempDir::new().expect("temporary directory");
+        let paths =
+            InstallPaths::new(temporary.path().join("install"), temporary.path().join("custom-bin")).expect("paths");
+        InstallMetadata::new("example/repository".into(), paths.bin().to_path_buf())
+            .write(&paths)
+            .expect("metadata");
+
+        let metadata = InstallMetadata::read(&paths).expect("read metadata");
+
+        assert_eq!(metadata.repository(), "example/repository");
+        assert_eq!(metadata.bin_directory, paths.bin());
     }
 
     #[test]
@@ -930,13 +1025,7 @@ mod tests {
 
         assert!(error.to_string().contains("checksum mismatch"));
         assert!(!paths.current().exists());
-        assert!(fs::read_dir(paths.releases()).expect("staging directory").all(|entry| {
-            entry
-                .expect("entry")
-                .file_name()
-                .to_string_lossy()
-                .starts_with(".staging-")
-        }));
+        assert!(!paths.releases().exists());
     }
 
     #[cfg(unix)]
@@ -967,5 +1056,25 @@ mod tests {
         prune_releases(&paths, None).expect("prune releases");
         assert!(release.exists());
         assert!(!stale.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn managed_release_version_comes_from_the_active_package() {
+        use std::os::unix::fs::PermissionsExt as _;
+
+        let temporary = tempfile::TempDir::new().expect("temporary directory");
+        let release = temporary.path().join(format!("v2.3.4-preview.1-{}", package_target()));
+        fs::create_dir(&release).expect("release");
+        for binary in ["agentctl", "agentd"] {
+            let path = release.join(binary);
+            fs::write(&path, format!("#!/bin/sh\necho '{binary} v2.3.4-preview.1'\n")).expect("binary");
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).expect("permissions");
+        }
+
+        assert_eq!(
+            managed_release_version(&release).expect("managed version"),
+            "v2.3.4-preview.1"
+        );
     }
 }

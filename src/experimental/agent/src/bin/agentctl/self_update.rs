@@ -98,6 +98,18 @@ pub(super) enum SelfCommand {
         #[arg(long, default_value = DEFAULT_REPOSITORY)]
         repository: String,
     },
+    /// Publish an extracted release through the platform install lock.
+    #[command(name = "__publish-release", hide = true)]
+    PublishRelease {
+        #[arg(long)]
+        install_root: PathBuf,
+        #[arg(long)]
+        bin_directory: PathBuf,
+        #[arg(long)]
+        source_release: PathBuf,
+        #[arg(long)]
+        target_version: String,
+    },
 }
 
 pub(super) async fn execute(command: SelfCommand, home: &ControlPlaneHome) -> CommandResult<()> {
@@ -127,6 +139,21 @@ pub(super) async fn execute(command: SelfCommand, home: &ControlPlaneHome) -> Co
             )
             .await
         }
+        SelfCommand::PublishRelease {
+            install_root,
+            bin_directory,
+            source_release,
+            target_version,
+        } => {
+            validate_source_process(&source_release)?;
+            upgrade::publish_release(
+                &InstallPaths::new(install_root, bin_directory)?,
+                &source_release,
+                &target_version,
+            )
+            .await?;
+            Ok(())
+        }
     }
 }
 
@@ -149,7 +176,8 @@ pub(super) fn resume_pending_before_command(home: &ControlPlaneHome) -> CommandR
 async fn update(home: &ControlPlaneHome, version: Option<&str>, check: bool) -> CommandResult<()> {
     let paths = InstallPaths::resolve()?;
     if let Some(journal) = UpdateJournal::read(&paths)?.filter(|journal| journal.phase != UpdatePhase::Complete) {
-        return resume_in_process(&paths, home, journal).await;
+        Completion::from_journal(paths, journal)?.run_target(home)?;
+        return Ok(());
     }
     if version.is_none() && agent::release_version().is_none() {
         return Err(Error::Invalid("this development build needs an explicit self update --version".into()).into());
@@ -157,18 +185,19 @@ async fn update(home: &ControlPlaneHome, version: Option<&str>, check: bool) -> 
     let repository = repository(&paths)?;
     println!("Resolve release");
     let release = Release::resolve(version, repository).await?;
-    compare_versions(agent::build_version(), &release.version)?;
     let previous = upgrade::current_release(&paths)?;
-    if previous.is_some() && same_version(agent::build_version(), &release.version)? {
+    let current_version = previous
+        .as_deref()
+        .map(upgrade::managed_release_version)
+        .transpose()?
+        .unwrap_or_else(|| agent::build_version().to_owned());
+    compare_versions(&current_version, &release.version)?;
+    if previous.is_some() && same_version(&current_version, &release.version)? {
         println!("Agent {} is already installed", release.version);
         return Ok(());
     }
     if check {
-        println!(
-            "Agent {} is available (current {})",
-            release.version,
-            agent::build_version()
-        );
+        println!("Agent {} is available (current {})", release.version, current_version);
         return Ok(());
     }
 
@@ -185,10 +214,6 @@ async fn update(home: &ControlPlaneHome, version: Option<&str>, check: bool) -> 
     .map_err(Into::into)
 }
 
-async fn resume_in_process(paths: &InstallPaths, home: &ControlPlaneHome, journal: UpdateJournal) -> CommandResult<()> {
-    complete(Completion::from_journal(paths.clone(), journal)?, home).await
-}
-
 async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandResult<()> {
     let Completion {
         paths,
@@ -197,8 +222,8 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
         previous_release,
         repository,
     } = completion;
+    let _install_lock = paths.lock().await?;
     validate_target_process(&paths, &target_release, &target_version)?;
-    let _install_lock = paths.lock()?;
     let mut journal = if let Some(journal) =
         UpdateJournal::read(&paths)?.filter(|journal| journal.phase != UpdatePhase::Complete)
     {
@@ -215,7 +240,7 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
         journal
     };
     let client = Client::for_path(home.socket_path());
-    if journal.phase < UpdatePhase::DaemonStopped {
+    if journal.phase < UpdatePhase::Migrated {
         println!("Check Agent activity");
         match tokio::time::timeout(Duration::from_secs(2), client.health()).await {
             Ok(Ok(info)) => {
@@ -240,11 +265,7 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
         }
     }
     let home_lock = if journal.phase < UpdatePhase::Activated {
-        let home_lock = acquire_home_lock(home).await?;
-        if journal.phase < UpdatePhase::DaemonStopped {
-            journal.advance(&paths, UpdatePhase::DaemonStopped)?;
-        }
-        Some(home_lock)
+        Some(acquire_home_lock(home).await?)
     } else {
         None
     };
@@ -263,20 +284,17 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
 
     if journal.phase < UpdatePhase::Activated {
         println!("Activate target package");
-        upgrade::activate_release(&paths, &target_release)?;
         InstallMetadata::new(repository, paths.bin().to_path_buf()).write(&paths)?;
+        upgrade::activate_release(&paths, &target_release)?;
         journal.advance(&paths, UpdatePhase::Activated)?;
     }
     drop(home_lock);
 
-    if journal.phase < UpdatePhase::Verified {
-        println!("Start and verify target daemon");
-        if !target_ready(&client, home, &target_version).await {
-            start_daemon(&target_release, home)?;
-        }
-        verify_target(&client, home, &target_version).await?;
-        journal.advance(&paths, UpdatePhase::Verified)?;
+    println!("Start and verify target daemon");
+    if !target_ready(&client, home, &target_version).await {
+        start_daemon(&target_release, home)?;
     }
+    verify_target(&client, home, &target_version).await?;
     journal.advance(&paths, UpdatePhase::Complete)?;
     upgrade::prune_releases(&paths, previous_release.as_deref())?;
     println!("Agent updated to {target_version}");
@@ -288,12 +306,18 @@ fn validate_target_process(paths: &InstallPaths, target: &Path, version: &str) -
         return Err(Error::Invalid("target updater paths are inconsistent".into()));
     }
     upgrade::validate_release_directory(target, version)?;
+    validate_release_process(target, "update completion must run from the target release")
+}
+
+fn validate_source_process(source: &Path) -> Result<(), Error> {
+    validate_release_process(source, "release publication must run from the source package")
+}
+
+fn validate_release_process(release: &Path, mismatch: &str) -> Result<(), Error> {
     let executable = std::fs::canonicalize(std::env::current_exe()?)?;
-    let expected = std::fs::canonicalize(target.join(format!("agentctl{}", std::env::consts::EXE_SUFFIX)))?;
+    let expected = std::fs::canonicalize(release.join(format!("agentctl{}", std::env::consts::EXE_SUFFIX)))?;
     if executable != expected {
-        return Err(Error::Invalid(
-            "update completion must run from the target release".into(),
-        ));
+        return Err(Error::Invalid(mismatch.into()));
     }
     Ok(())
 }
@@ -407,5 +431,6 @@ mod tests {
         use clap::CommandFactory as _;
         let help = super::super::Arguments::command().render_long_help().to_string();
         assert!(!help.contains("__complete-update"));
+        assert!(!help.contains("__publish-release"));
     }
 }

@@ -91,20 +91,29 @@ pub(super) fn initialize(connection: &mut Connection) -> Result<(), Error> {
         return verify_schema(connection, VERSION);
     }
 
-    for migration in MIGRATIONS.iter().filter(|migration| migration.version > current) {
-        let transaction = connection.transaction().map_err(database_error)?;
+    apply_pending_migrations(connection, current, MIGRATIONS, VERSION)?;
+    verify_schema(connection, VERSION)
+}
+
+fn apply_pending_migrations(
+    connection: &mut Connection,
+    current: u32,
+    migrations: &[Migration],
+    target: u32,
+) -> Result<(), Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    for migration in migrations.iter().filter(|migration| migration.version > current) {
         (migration.apply)(&transaction).map_err(|error| {
             Error::Database(format!(
                 "failed to apply Agent database migration {} ({}): {error}",
                 migration.version, migration.name
             ))
         })?;
-        transaction
-            .pragma_update(None, "user_version", migration.version)
-            .map_err(database_error)?;
-        transaction.commit().map_err(database_error)?;
     }
-    verify_schema(connection, VERSION)
+    transaction
+        .pragma_update(None, "user_version", target)
+        .map_err(database_error)?;
+    transaction.commit().map_err(database_error)
 }
 
 pub(super) fn pending_version(connection: &Connection) -> Result<Option<u32>, Error> {
@@ -324,4 +333,42 @@ fn unknown_schema(version: u32, detail: &str) -> Error {
     Error::Database(format!(
         "Agent database schema {version} is not a recognized released schema: {detail}; select a new AGENT_HOME or restore a supported backup"
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_first(transaction: &Transaction<'_>) -> Result<(), Error> {
+        transaction
+            .execute_batch("CREATE TABLE first (id INTEGER PRIMARY KEY);")
+            .map_err(database_error)
+    }
+
+    fn fail_second(_transaction: &Transaction<'_>) -> Result<(), Error> {
+        Err(Error::Database("injected second migration failure".into()))
+    }
+
+    #[test]
+    fn all_pending_migrations_roll_back_together() {
+        let mut connection = Connection::open_in_memory().expect("database");
+        let migrations = [
+            Migration {
+                version: 1,
+                name: "first",
+                apply: create_first,
+            },
+            Migration {
+                version: 2,
+                name: "failure",
+                apply: fail_second,
+            },
+        ];
+
+        let error = apply_pending_migrations(&mut connection, 0, &migrations, 2).expect_err("second migration fails");
+
+        assert!(error.to_string().contains("injected second migration failure"));
+        assert_eq!(schema_version(&connection).expect("schema version"), 0);
+        assert!(user_tables(&connection).expect("tables").is_empty());
+    }
 }
