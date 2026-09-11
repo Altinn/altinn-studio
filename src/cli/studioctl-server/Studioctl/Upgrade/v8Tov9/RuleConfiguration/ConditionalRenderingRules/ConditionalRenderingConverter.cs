@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
@@ -12,11 +11,18 @@ internal sealed class ConditionalRenderingConverter
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     private readonly string _appBasePath;
+    private readonly LayoutMigrationWorkspace _workspace;
+    private readonly List<UpgradeMessage> _messages = [];
+    private readonly HashSet<string> _layoutSetsRequiringManualWork = new(StringComparer.Ordinal);
 
-    public ConditionalRenderingConverter(string appBasePath)
+    public ConditionalRenderingConverter(string appBasePath, LayoutMigrationWorkspace workspace)
     {
         _appBasePath = appBasePath;
+        _workspace = workspace;
     }
+
+    public MigrationResult MigrationResult => new(_messages);
+    public IReadOnlySet<string> LayoutSetsRequiringManualWork => _layoutSetsRequiringManualWork;
 
     /// <summary>
     /// Convert all layout sets in the app
@@ -37,7 +43,7 @@ internal sealed class ConditionalRenderingConverter
         }
 
         // Enumerate all layout sets (subdirectories in ui/)
-        var layoutSetDirectories = Directory.GetDirectories(uiPath);
+        var layoutSetDirectories = Directory.GetDirectories(uiPath).Order(StringComparer.Ordinal);
         foreach (var layoutSetPath in layoutSetDirectories)
         {
             var layoutSetName = Path.GetFileName(layoutSetPath);
@@ -51,18 +57,11 @@ internal sealed class ConditionalRenderingConverter
                 stats.FailedConversions += result.FailedConversions;
                 stats.ComponentsNotFound += result.ComponentsNotFound;
                 stats.ExistingHiddenConflicts += result.ExistingHiddenConflicts;
-
-                // Log summary for this layout set if there were rules to process
-                if (result.RulesProcessed > 0)
-                {
-                    UpgradeConsole.WriteLine(
-                        $"Successfully converted {result.SuccessfulConversions} of {result.RulesProcessed} conditional rendering rules into hidden-expressions in layout-set {layoutSetName}. Please manually review the expressions and test functionality."
-                    );
-                }
             }
             catch (Exception ex)
             {
-                UpgradeConsole.WriteErrorLine($"Error processing layout set {layoutSetName}: {ex.Message}");
+                _layoutSetsRequiringManualWork.Add(layoutSetName);
+                _messages.Todo($"Layout set '{layoutSetName}': conditional rendering conversion failed: {ex.Message}");
             }
         }
 
@@ -94,44 +93,56 @@ internal sealed class ConditionalRenderingConverter
         }
 
         var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
-        RuleHandlerParser jsParser;
-        try
+        if (!File.Exists(ruleHandlerPath))
         {
-            jsParser = new RuleHandlerParser(ruleHandlerPath);
-            jsParser.Parse();
-        }
-        catch (FileNotFoundException)
-        {
-            UpgradeConsole.WriteErrorLine(
-                $"RuleHandler.js not found for layout set {layoutSetName}, cannot convert rules"
+            _messages.Todo(
+                $"Layout set '{layoutSetName}': RuleHandler.js was not found, so conditional rendering rules "
+                    + "could not be converted. Restore the handler or migrate the rules manually."
             );
+            _layoutSetsRequiringManualWork.Add(layoutSetName);
             result.RulesProcessed = rules.Count;
             result.FailedConversions = rules.Count;
             return result;
         }
+        var jsParser = new RuleHandlerParser(ruleHandlerPath);
+        jsParser.Parse();
 
         // Initialize layout file manager
         var layoutsPath = Path.Combine(layoutSetPath, "layouts");
         if (!Directory.Exists(layoutsPath))
         {
-            UpgradeConsole.WriteErrorLine($"Layouts directory not found for layout set {layoutSetName}: {layoutsPath}");
+            _messages.Todo($"Layout set '{layoutSetName}': layouts directory not found; legacy rules were kept.");
+            _layoutSetsRequiringManualWork.Add(layoutSetName);
             result.RulesProcessed = rules.Count;
             result.FailedConversions = rules.Count;
             return result;
         }
 
-        var layoutManager = new LayoutFileManager(layoutsPath);
-        try
+        if (_workspace.HasManualConversionFileIn(layoutsPath))
         {
-            layoutManager.LoadLayouts();
-        }
-        catch (Exception ex)
-        {
-            UpgradeConsole.WriteErrorLine($"Failed to load layouts for {layoutSetName}: {ex.Message}");
+            _messages.Todo(
+                $"Layout set '{layoutSetName}' still contains a MANUAL CONVERSION REQUIRED marker. "
+                    + "Finish that expression before re-running rule conversion."
+            );
+            _layoutSetsRequiringManualWork.Add(layoutSetName);
             result.RulesProcessed = rules.Count;
             result.FailedConversions = rules.Count;
             return result;
         }
+
+        if (_workspace.HasUnreadableFileIn(layoutsPath))
+        {
+            _messages.Todo(
+                $"Layout set '{layoutSetName}' has an unreadable layout file. Conditional rendering was not "
+                    + "converted because its target components cannot be checked safely; legacy rules were kept."
+            );
+            _layoutSetsRequiringManualWork.Add(layoutSetName);
+            result.RulesProcessed = rules.Count;
+            result.FailedConversions = rules.Count;
+            return result;
+        }
+
+        var layoutManager = new LayoutFileManager(_workspace, layoutsPath);
 
         // Process each rule
         foreach (var ruleEntry in rules)
@@ -145,6 +156,16 @@ internal sealed class ConditionalRenderingConverter
             var ruleConfigJson = JsonSerializer.Serialize(rule, JsonOptions);
 
             var injectionResults = ProcessRule(ruleId, rule, jsParser, layoutManager, ruleConfigJson);
+            if (injectionResults.Count == 0)
+            {
+                _layoutSetsRequiringManualWork.Add(layoutSetName);
+                _messages.Todo(
+                    $"Layout set '{layoutSetName}', rule '{ruleId}' has no target components. "
+                        + "Review and remove or migrate the rule manually."
+                );
+                result.FailedConversions++;
+                continue;
+            }
 
             // Determine rule-level success based on component results
             bool ruleSucceeded = injectionResults.Any(r => r.Success && r.Status != InjectionStatus.ConversionFailed);
@@ -164,8 +185,9 @@ internal sealed class ConditionalRenderingConverter
                 if (injectionResult.Status == InjectionStatus.ComponentNotFound)
                 {
                     result.ComponentsNotFound++;
-                    UpgradeConsole.WriteErrorLine(
-                        $"Failed to find component '{injectionResult.ComponentId}' in layouts when converting conditional rendering rules"
+                    _messages.Todo(
+                        $"Layout set '{layoutSetName}', rule '{ruleId}': component "
+                            + $"'{injectionResult.ComponentId}' was not found. Migrate this rule manually."
                     );
                 }
                 else if (injectionResult.Status == InjectionStatus.ExistingHiddenConflict)
@@ -174,46 +196,18 @@ internal sealed class ConditionalRenderingConverter
                 }
                 else if (injectionResult.Status == InjectionStatus.ConversionFailed)
                 {
-                    UpgradeConsole.WriteErrorLine(
-                        $"Failed to convert rule for component '{injectionResult.ComponentId}': {injectionResult.Message}"
+                    _messages.Todo(
+                        $"Layout set '{layoutSetName}', rule '{ruleId}', component "
+                            + $"'{injectionResult.ComponentId}': {injectionResult.Message}. "
+                            + "Replace MANUAL_CONVERSION_REQUIRED in the named layout with a valid hidden expression, "
+                            + "then remove this rule from RuleConfiguration.json before rerunning."
                     );
                 }
             }
         }
 
-        try
-        {
-            layoutManager.SaveLayouts();
-
-            // Post-process to inject invalid JSON for failed conversions
-            PostProcessFailedConversions(layoutsPath);
-
-            // Restore whitespace-only changes to preserve original formatting
-            try
-            {
-                var whitespaceRestorer = new WhitespaceRestorationProcessor(layoutsPath);
-                var restorationResult = whitespaceRestorer.RestoreWhitespaceOnlyChanges();
-
-                foreach (var warning in restorationResult.Warnings)
-                {
-                    UpgradeConsole.WriteLine($"Warning: {warning}");
-                }
-
-                foreach (var error in restorationResult.Errors)
-                {
-                    UpgradeConsole.WriteErrorLine($"Error: {error}");
-                }
-            }
-            catch (Exception ex)
-            {
-                // Non-fatal: Log warning but continue
-                UpgradeConsole.WriteErrorLine($"Warning: Could not restore whitespace formatting: {ex.Message}");
-            }
-        }
-        catch (Exception ex)
-        {
-            UpgradeConsole.WriteErrorLine($"Failed to save layouts for {layoutSetName}: {ex.Message}");
-        }
+        if (result.FailedConversions > 0 || result.ComponentsNotFound > 0)
+            _layoutSetsRequiringManualWork.Add(layoutSetName);
 
         return result;
     }
@@ -290,156 +284,6 @@ internal sealed class ConditionalRenderingConverter
         }
 
         return results;
-    }
-
-    /// <summary>
-    /// Post-process layout files to replace placeholders with invalid JSON and add detailed comments
-    /// </summary>
-    private void PostProcessFailedConversions(string layoutsPath)
-    {
-        var jsonFiles = Directory.GetFiles(layoutsPath, "*.json");
-        foreach (var filePath in jsonFiles)
-        {
-            var jsonText = File.ReadAllText(filePath);
-
-            // Check if there are any failed conversions in this file
-            if (!jsonText.Contains("__MANUAL_CONVERSION_REQUIRED_", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            // Replace placeholders with invalid JSON and extract comment info
-            var lines = jsonText.Split('\n');
-            var newLines = new List<string>();
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                var line = lines[i];
-
-                // Check if this line contains a placeholder
-                if (line.Contains("\"__MANUAL_CONVERSION_REQUIRED_"))
-                {
-                    // Extract rule ID from placeholder
-                    var startIdx =
-                        line.IndexOf("__MANUAL_CONVERSION_REQUIRED_", StringComparison.Ordinal)
-                        + "__MANUAL_CONVERSION_REQUIRED_".Length;
-                    var endIdx = line.IndexOf("__\"", startIdx, StringComparison.Ordinal);
-                    var ruleId = endIdx > startIdx ? line.Substring(startIdx, endIdx - startIdx) : "unknown";
-
-                    // Look for the _conversionFailureInfo property nearby
-                    string? ruleConfig = null;
-                    string? jsFunction = null;
-                    for (int j = Math.Max(0, i - 10); j < Math.Min(lines.Length, i + 10); j++)
-                    {
-                        if (lines[j].Contains("\"_conversionFailureInfo\""))
-                        {
-                            // Extract the rule config and JS function from the comment
-                            var ruleConfigStart = lines[j].IndexOf("Rule config: ", StringComparison.Ordinal);
-                            if (ruleConfigStart > 0)
-                            {
-                                ruleConfigStart += "Rule config: ".Length;
-                                var ruleConfigEnd = lines[j]
-                                    .IndexOf(" | Original JS function: ", ruleConfigStart, StringComparison.Ordinal);
-                                if (ruleConfigEnd > ruleConfigStart)
-                                {
-                                    ruleConfig = lines[j].Substring(ruleConfigStart, ruleConfigEnd - ruleConfigStart);
-
-                                    var funcStart = ruleConfigEnd + " | Original JS function: ".Length;
-                                    var funcEnd = lines[j].LastIndexOf('"');
-                                    if (funcEnd > funcStart)
-                                    {
-                                        jsFunction = lines[j].Substring(funcStart, funcEnd - funcStart);
-                                    }
-                                }
-                            }
-                            break;
-                        }
-                    }
-
-                    // Get indentation from current line
-                    var indent = line.Substring(0, line.Length - line.TrimStart().Length);
-
-                    // Build the multi-line comment
-                    var comment = $"{indent}/* MANUAL CONVERSION REQUIRED\n";
-                    comment += $"{indent}   Rule ID: {ruleId}\n";
-                    if (!string.IsNullOrEmpty(ruleConfig))
-                    {
-                        comment += $"{indent}   \n";
-                        comment += $"{indent}   Rule configuration:\n";
-                        // Unescape the newlines and quotes and split into lines
-                        var unescapedRuleConfig = ruleConfig
-                            .Replace("\\n", "\n")
-                            .Replace("\\r", "\r")
-                            .Replace("\\\"", "\"");
-                        var ruleConfigLines = unescapedRuleConfig.Split('\n');
-                        var commentBuilder = new System.Text.StringBuilder(comment);
-                        foreach (var configLine in ruleConfigLines)
-                        {
-                            commentBuilder.Append(
-                                System.Globalization.CultureInfo.InvariantCulture,
-                                $"{indent}   {configLine}\n"
-                            );
-                        }
-                        comment = commentBuilder.ToString();
-                    }
-                    if (!string.IsNullOrEmpty(jsFunction))
-                    {
-                        comment += $"{indent}   \n";
-                        comment += $"{indent}   Original JS function:\n";
-                        // Unescape the newlines and quotes and split into lines
-                        var unescapedJsFunction = jsFunction
-                            .Replace("\\n", "\n")
-                            .Replace("\\r", "\r")
-                            .Replace("\\\"", "\"");
-                        var jsFunctionLines = unescapedJsFunction.Split('\n');
-                        var commentBuilder2 = new System.Text.StringBuilder(comment);
-                        foreach (var jsLine in jsFunctionLines)
-                        {
-                            commentBuilder2.Append(
-                                System.Globalization.CultureInfo.InvariantCulture,
-                                $"{indent}   {jsLine}\n"
-                            );
-                        }
-                        comment = commentBuilder2.ToString();
-                    }
-                    comment += $"{indent}   \n";
-                    comment += $"{indent}   This rule could not be automatically converted to an expression.\n";
-                    comment +=
-                        $"{indent}   Consider implementing this logic using IDataWriteProcessor storing to a shadow field in the data model, and read from that shadow field in an expression here instead.\n";
-                    comment += $"{indent}*/\n";
-
-                    // Check if this placeholder is inside an array (has existing hidden expression)
-                    // by looking at the line structure - if it's just a string value in an array, don't add the property name
-                    var trimmedLine = line.TrimStart();
-                    bool isArrayElement = trimmedLine.StartsWith(
-                        "\"__MANUAL_CONVERSION_REQUIRED_",
-                        StringComparison.Ordinal
-                    );
-
-                    if (isArrayElement)
-                    {
-                        // Inside an array - just add the comment and the placeholder without the property name
-                        newLines.Add(comment + $"{indent}MANUAL_CONVERSION_REQUIRED");
-                    }
-                    else
-                    {
-                        // Standalone property - add the full property declaration
-                        var propertyName = "hidden";
-                        newLines.Add(comment + $"{indent}\"{propertyName}\": MANUAL_CONVERSION_REQUIRED");
-                    }
-                }
-                else if (line.Contains("\"_conversionFailureInfo\""))
-                {
-                    // Skip this line - it was temporary storage
-                }
-                else
-                {
-                    newLines.Add(line);
-                }
-            }
-
-            File.WriteAllText(filePath, string.Join("\n", newLines));
-        }
     }
 }
 

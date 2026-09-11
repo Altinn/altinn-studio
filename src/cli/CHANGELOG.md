@@ -17,6 +17,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - `studioctl app upgrade v9` removes `moveToNextTask` from the Fiks Arkiv `successHandling` and `errorHandling` settings in your appsettings files. A Fiks Arkiv task in v9 always moves the process on once the archiving is decided, so the setting no longer exists; left in place it would be ignored without notice. Where it was `false`, the upgrade reports a TODO explaining what changes: a success that used to leave the instance on the task now moves on with the success action, and a rejection that used to fail the task now moves on with the error action, `reject` by default. The upgrade also reports a TODO for a Fiks Arkiv task that is not followed by an exclusive gateway, since the v9 app refuses to start until one separates a confirmed archiving from a rejected one.
+- `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
+
+### Fixed
+
+- `studioctl app upgrade v9` can be safely run again after the project has moved to v9. Layout and legacy-rule migrations no longer duplicate successful changes.
+- When a legacy conditional-rendering rule cannot be converted, all other layout changes are completed first. The affected layout gets a detailed manual-conversion marker, the upgrade reports a `TODO`, and its `RuleConfiguration.json` and `RuleHandler.js` are kept for reference. A later run recognizes the marker instead of failing on the intentionally invalid JSON.
+- Conflicting layout bindings now produce TODOs without preventing other layouts from being upgraded. JSON comments are preserved while layouts are migrated, including comments on removed properties. Legacy rule files remain available when their layouts need manual work.
+- When multiple legacy layout sets map to the same task folder, the upgrade now leaves `layout-sets.json` and the source folders untouched and reports how to resolve the collision instead of starting a partial migration.
 
 ## [0.1.0-preview.23] - 2026-09-04
 

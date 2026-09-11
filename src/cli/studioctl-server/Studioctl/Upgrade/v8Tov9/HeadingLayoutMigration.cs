@@ -1,6 +1,4 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -13,95 +11,38 @@ internal static class HeadingLayoutMigration
     private const string OldComponentType = "Header";
     private const string NewComponentType = "Heading";
 
-    private static readonly Regex _componentTypePattern = new(
-        "(\"type\"\\s*:\\s*)\"Header\"",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant
-    );
-    private static readonly Regex _summaryComponentTypePattern = new(
-        "(\"componentType\"\\s*:\\s*)\"Header\"",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant
-    );
-
     public static async Task<int> Migrate(string projectFolder)
     {
-        var uiDirectory = ResolveUiDirectory(projectFolder);
-        if (uiDirectory is null)
+        var workspace = await LayoutMigrationWorkspace.Load(projectFolder);
+        if (workspace is null)
         {
             UpgradeConsole.Skip("No UI directory found, skipping Heading migration");
             return 0;
         }
 
-        var changedFiles = 0;
-        var changedComponents = 0;
-        var changedSummaryRefs = 0;
-        foreach (var layoutFile in FindLayoutFiles(uiDirectory))
-        {
-            var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(layoutFile));
-            var root = JsonNode.Parse(
-                decoded.Text,
-                new JsonNodeOptions { PropertyNameCaseInsensitive = false },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
-            );
-            if (root is null)
-                throw new JsonException($"Layout file does not contain JSON: {layoutFile}");
+        var result = Apply(workspace);
+        await workspace.Save();
 
-            var occurrences = CountLegacyContract(root);
-            if (occurrences.Components == 0 && occurrences.SummaryComponentTypes == 0)
-                continue;
-
-            EnsureExpectedOccurrences(layoutFile, decoded.Text, occurrences);
-            var migrated = _componentTypePattern.Replace(
-                decoded.Text,
-                match => match.Groups[1].Value + $"\"{NewComponentType}\""
-            );
-            migrated = _summaryComponentTypePattern.Replace(
-                migrated,
-                match => match.Groups[1].Value + $"\"{NewComponentType}\""
-            );
-
-            await Utf8TextFile.Write(layoutFile, migrated, decoded.HadBom);
-            changedFiles++;
-            changedComponents += occurrences.Components;
-            changedSummaryRefs += occurrences.SummaryComponentTypes;
-            UpgradeConsole.Ok(
-                $"Migrated {occurrences.Components} Heading component type(s) and {occurrences.SummaryComponentTypes} summary componentType ref(s) in {layoutFile}"
-            );
-        }
-
-        if (changedFiles == 0)
+        if (result.FilesChanged == 0)
         {
             UpgradeConsole.Skip("No Header layout contract tokens found to migrate");
         }
         else
         {
             UpgradeConsole.Ok(
-                $"Migrated {changedComponents} Heading component type(s) and {changedSummaryRefs} summary componentType ref(s) across {changedFiles} layout file(s)"
+                $"Migrated {result.Changes} Header contract value(s) across {result.FilesChanged} layout file(s)"
             );
         }
 
         return 0;
     }
 
-    private static string? ResolveUiDirectory(string projectFolder)
+    internal static LayoutMutationResult Apply(LayoutMigrationWorkspace workspace) =>
+        workspace.Apply(RenameLegacyContract);
+
+    private static int RenameLegacyContract(JsonNode node)
     {
-        var appUiDirectory = Path.Combine(projectFolder, "App", "ui");
-        if (Directory.Exists(appUiDirectory))
-            return appUiDirectory;
-
-        var uiDirectory = Path.Combine(projectFolder, "ui");
-        return Directory.Exists(uiDirectory) ? uiDirectory : null;
-    }
-
-    private static IEnumerable<string> FindLayoutFiles(string uiDirectory) =>
-        Directory
-            .EnumerateFiles(uiDirectory, "*.json", SearchOption.AllDirectories)
-            .Where(path =>
-                string.Equals(Path.GetFileName(Path.GetDirectoryName(path)), "layouts", StringComparison.Ordinal)
-            );
-
-    private static LegacyContractOccurrences CountLegacyContract(JsonNode node)
-    {
-        var occurrences = new LegacyContractOccurrences();
+        var changes = 0;
         if (node is JsonObject obj)
         {
             if (
@@ -110,7 +51,8 @@ internal static class HeadingLayoutMigration
                 && componentType == OldComponentType
             )
             {
-                occurrences.Components++;
+                obj["type"] = NewComponentType;
+                changes++;
             }
 
             if (
@@ -119,13 +61,14 @@ internal static class HeadingLayoutMigration
                 && summaryComponentType == OldComponentType
             )
             {
-                occurrences.SummaryComponentTypes++;
+                obj["componentType"] = NewComponentType;
+                changes++;
             }
 
             foreach (var child in obj.Select(property => property.Value).ToList())
             {
                 if (child is not null)
-                    occurrences.Add(CountLegacyContract(child));
+                    changes += RenameLegacyContract(child);
             }
         }
         else if (node is JsonArray array)
@@ -133,36 +76,10 @@ internal static class HeadingLayoutMigration
             foreach (var child in array.ToList())
             {
                 if (child is not null)
-                    occurrences.Add(CountLegacyContract(child));
+                    changes += RenameLegacyContract(child);
             }
         }
 
-        return occurrences;
-    }
-
-    private static void EnsureExpectedOccurrences(string layoutFile, string content, LegacyContractOccurrences expected)
-    {
-        var componentTypes = _componentTypePattern.Count(content);
-        var summaryComponentTypes = _summaryComponentTypePattern.Count(content);
-        if (componentTypes != expected.Components || summaryComponentTypes != expected.SummaryComponentTypes)
-        {
-            throw new InvalidOperationException(
-                $"Could not safely migrate {layoutFile}: legacy Header tokens occur outside matching layout properties "
-                    + $"(type: {componentTypes} text vs {expected.Components} structural, "
-                    + $"componentType: {summaryComponentTypes} text vs {expected.SummaryComponentTypes} structural)"
-            );
-        }
-    }
-
-    private sealed class LegacyContractOccurrences
-    {
-        public int Components { get; set; }
-        public int SummaryComponentTypes { get; set; }
-
-        public void Add(LegacyContractOccurrences other)
-        {
-            Components += other.Components;
-            SummaryComponentTypes += other.SummaryComponentTypes;
-        }
+        return changes;
     }
 }

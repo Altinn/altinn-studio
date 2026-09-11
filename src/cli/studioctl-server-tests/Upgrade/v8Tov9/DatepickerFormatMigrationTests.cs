@@ -130,7 +130,7 @@ public sealed class DatepickerFormatMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task MigratesDespiteJsonCommentsContainingLegacyFormats()
+    public async Task PreservesJsonCommentsContainingLegacyFormats()
     {
         _app.Write(
             "ui/Task_1/layouts/Side1.json",
@@ -152,11 +152,10 @@ public sealed class DatepickerFormatMigrationTests : IDisposable
         );
 
         await Migrate();
-
         var after = _app.Read("ui/Task_1/layouts/Side1.json");
-        Assert.Contains("\"format\": \"dd.MM.yyyy\"", after, StringComparison.Ordinal);
-        Assert.DoesNotContain("DD.MM.YYYY", after, StringComparison.Ordinal);
-        using var _ = JsonDocument.Parse(after);
+        Assert.Contains("// The old value was \"format\": \"DD.MM.YYYY\"", after);
+        Assert.Contains("/* previously \"format\": \"DD.MM.YYYY\" */", after);
+        Assert.Contains("\"format\": \"dd.MM.yyyy\"", after);
     }
 
     [Fact]

@@ -56,7 +56,7 @@ internal sealed class FiksArkivSettingsMigrator
     /// </summary>
     private static async Task StripMoveToNextTask(string file, List<UpgradeMessage> messages)
     {
-        var original = await File.ReadAllTextAsync(file);
+        var (original, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(file));
         if (!original.Contains(SettingName, StringComparison.OrdinalIgnoreCase))
             return;
 
@@ -117,7 +117,7 @@ internal sealed class FiksArkivSettingsMigrator
             return;
         }
 
-        await File.WriteAllTextAsync(file, result);
+        await Utf8TextFile.Write(file, result, hadBom);
 
         foreach (var (handler, value) in removed)
         {
